@@ -1,0 +1,3 @@
+[submodule "submodules/rapidsms"]
+	path = submodules/rapidsms
+	url = git://github.com/rapidsms/rapidsms-core-dev.git
