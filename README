@@ -1,5 +1,8 @@
-This is an example of a RapidSMS project, as it might (currently) be
-deployed in-country. When things settle down a bit, the contrib- repo
-will be submoduled into lib/rapidsms/contrib, and the entire thing can
-be bundled into a deb, rpm, .tar.gz, or whatever.
+This is an example of a RapidSMS project, as it might be deployed
+in-country. When development settles down a bit, the rapidsms package
+can be bundled into a deb, rpm, .tar.gz (or whatever), and installed
+into site-packages. For now, it is a submodule.
+
+The RapidSMS repo also contains submodules of its own, so don't forget
+to `git submodule init` and `git submodule update` those, too.
 
