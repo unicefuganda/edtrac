@@ -2,11 +2,23 @@
 
 {% block content %}
 
+<script type="text/javascript">
+function deleteField() {
+	if(confirm("Are you sure you want to delete \"{{ field.name }}\" from your form?")) {
+		document.delete_field.submit();
+	}
+}
+</script>
+
 <form action="/xforms/{{ xform.pk }}/edit_field/{{ field.pk }}/" method="post">
 <table>
 {{ form.as_table }}
 </table>
 <input type="submit" value="Update" />
 </form>
+<br/><br/>
 
+<form name="delete_field" action="/xforms/{{ xform.pk }}/delete_field/{{ field.pk }}/" method="post">
+<a href="javascript:deleteField()">Remove Field</a>
+</form>
 {% endblock %}

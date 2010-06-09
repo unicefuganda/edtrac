@@ -16,7 +16,8 @@ class XForm(models.Model):
 TYPE_CHOICES = (
     ('INT', 'Integer'),
     ('DEC', 'Decimal'),
-    ('STR', 'String')
+    ('STR', 'String'),
+	('GPS', 'GPS Coordinates')
 )
 
 class XFormField(models.Model):
