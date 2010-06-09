@@ -13,4 +13,14 @@ DATABASE_ENGINE = "sqlite3"
 DATABASE_NAME = "db.sqlite3"
 
 INSTALLED_APPS = (
-    "rapidsms")
+    "django.contrib.sessions",
+    "django.contrib.contenttypes",
+    "django.contrib.auth",
+    "rapidsms"
+)
+
+MIDDLEWARE_CLASSES = (
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+)
