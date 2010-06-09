@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block title %}XForms{% endblock %}
+
+{% block content %}
+<h2>Existing Forms</h2>
+<ul>
+{% for xform in xforms %}
+<li><a href="/xforms/{{ xform.pk }}/edit">{{ xform.name }}</a></li>
+{% endfor %}
+</ul>
+
+<a href="/xforms/new/">Add New</a>
+{% endblock %}

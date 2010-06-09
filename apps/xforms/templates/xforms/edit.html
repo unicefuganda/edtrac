@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+{% block title %}XForms{% endblock %}
+
+{% block content %}
+<a href="/xforms/">all forms</a>
+
+<form action="/xforms/{{ xform.pk }}/edit/" method="post">
+{{ form.as_ul }}
+<input type="submit" value="Save" />
+</form>
+
+<h2>Fields:</h2>
+<ul>
+{% for field in fields %}
+<li>{{ field.name }} </li>
+{% endfor %}
+</ul>
+<a href="/xforms/{{ xform.pk }}/add_field/">Add Field</a>
+
+{% endblock %}

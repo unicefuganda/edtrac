@@ -16,7 +16,14 @@ INSTALLED_APPS = (
     "django.contrib.sessions",
     "django.contrib.contenttypes",
     "django.contrib.auth",
-    "rapidsms"
+
+    "rapidsms",
+
+    # enable admin using the rapidsms hack
+    "rapidsms.contrib.djangoadmin",
+    "django.contrib.admin",
+
+    "xforms"
 )
 
 MIDDLEWARE_CLASSES = (
@@ -24,3 +31,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
 )
+
+# default login redirect is back home
+LOGIN_REDIRECT_URL = "/"

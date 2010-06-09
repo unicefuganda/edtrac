@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+{% block title %}XForms{% endblock %}
+
+{% block content %}
+<h2>XForm '{{ xform.slug }}'</h2>
+Add new field:
+<form action="/xforms/{{ xform.pk }}/add_field/" method="post">
+{{ form.as_ul }}
+<input type="submit" value="Add Field" />
+</form>
+{% endblock %}

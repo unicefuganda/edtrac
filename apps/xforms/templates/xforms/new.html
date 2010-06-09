@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% block title %}XForms{% endblock %}
+
+{% block content %}
+<form action="/xforms/new/" method="post">
+{{ form.as_ul }}
+<input type="submit" value="Create" />
+</form>
+{% endblock %}
