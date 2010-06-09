@@ -45,7 +45,7 @@ def edit_xform(req, form_id):
         form = XFormForm(req.POST, instance=xform)
         if form.is_valid():
             xform = form.save()
-            return render_to_response(req, "xforms/edit.html", { 'form': form, 'xform': xform, 'fields': fields } )
+            return redirect("/xforms")
     else:
         form = XFormForm(instance=xform)
 
@@ -72,3 +72,18 @@ def add_field(req, form_id):
 
     return render_to_response(req, "xforms/add_field.html", { 'form': form, 'xform': xform })
 
+def edit_field (req, form_id, field_id):
+	xform = XForm.objects.get(pk=form_id)
+	field = XFormField.objects.get(pk=field_id)
+	
+	if req.method == 'POST':
+		form = FieldForm(req.POST, instance=field)
+		if form.is_valid():
+			field = form.save(commit=False)
+			field.xform = xform
+			field.save()
+			return redirect("/xforms/%d/edit/" % xform.pk)
+	else:
+		form = FieldForm(instance=field)
+
+	return render_to_response(req, "xforms/edit_field.html", { 'form' : form, 'xform': xform, 'field' : field })

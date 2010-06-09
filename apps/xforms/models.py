@@ -15,7 +15,8 @@ class XForm(models.Model):
 
 TYPE_CHOICES = (
     ('INT', 'Integer'),
-    ('STR', 'String') 
+    ('DEC', 'Decimal'),
+    ('STR', 'String')
 )
 
 class XFormField(models.Model):

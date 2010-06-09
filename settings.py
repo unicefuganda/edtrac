@@ -23,7 +23,10 @@ INSTALLED_APPS = (
     "rapidsms.contrib.djangoadmin",
     "django.contrib.admin",
 
-    "xforms"
+    "xforms",
+
+    # for AJAX
+    "dajaxice"
 )
 
 MIDDLEWARE_CLASSES = (

@@ -1,20 +1,43 @@
-{% extends "layout.html" %}
+{% extends "xforms/xforms_base.html" %}
 {% block title %}XForms{% endblock %}
 
 {% block content %}
 <a href="/xforms/">all forms</a>
+<br/><br/>
 
+<table>
 <form action="/xforms/{{ xform.pk }}/edit/" method="post">
-{{ form.as_ul }}
+{{ form.as_table }}
+</table>
 <input type="submit" value="Save" />
 </form>
 
 <h2>Fields:</h2>
-<ul>
+<table>
+
+<tr>
 {% for field in fields %}
-<li>{{ field.name }} </li>
+<td><nobr><a href="/xforms/{{ xform.pk }}/edit_field/{{ field.pk }}/">{{ field.name }}</a></nobr></td>
 {% endfor %}
-</ul>
+</tr>
+
+<!--
+<tr>
+{% for field in fields %}
+<td>{{ field.type }}</td>
+{% endfor %}
+</tr>
+
+<tr>
+{% for field in fields %}
+<td><a href="/xforms/{{ xform.pk }}/edit_field/{{ field.pk }}/">edit</a></td>
+{% endfor %}
+</tr>
+-->
+
+</table>
+<br/><br/>
+
 <a href="/xforms/{{ xform.pk }}/add_field/">Add Field</a>
 
 {% endblock %}

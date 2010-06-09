@@ -1,9 +1,14 @@
-{% extends "layout.html" %}
+{% extends "xforms/xforms_base.html" %}
 {% block title %}XForms{% endblock %}
 
 {% block content %}
+
 <form action="/xforms/new/" method="post">
-{{ form.as_ul }}
+<table>
+{{ form.as_table }}
+</table>
 <input type="submit" value="Create" />
+
 </form>
+
 {% endblock %}

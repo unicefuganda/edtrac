@@ -1,13 +1,14 @@
-{% extends "layout.html" %}
+{% extends "xforms/xforms_base.html" %}
 {% block title %}XForms{% endblock %}
 
 {% block content %}
 <h2>Existing Forms</h2>
-<ul>
+<table>
 {% for xform in xforms %}
-<li><a href="/xforms/{{ xform.pk }}/edit">{{ xform.name }}</a></li>
+<tr>
+<td><a href="/xforms/{{ xform.pk }}/edit">{{ xform.name }}</td><td>{{ xform.description }}</td></tr>
 {% endfor %}
-</ul>
-
+</table>
+<br/>
 <a href="/xforms/new/">Add New</a>
 {% endblock %}
