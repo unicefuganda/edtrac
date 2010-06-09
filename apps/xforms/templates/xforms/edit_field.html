@@ -1,0 +1,12 @@
+{% extends "xforms/xforms_base.html" %}
+
+{% block content %}
+
+<form action="/xforms/{{ xform.pk }}/edit_field/{{ field.pk }}/" method="post">
+<table>
+{{ form.as_table }}
+</table>
+<input type="submit" value="Update" />
+</form>
+
+{% endblock %}
