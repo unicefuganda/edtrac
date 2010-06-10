@@ -2,13 +2,32 @@
 {% block title %}XForms{% endblock %}
 
 {% block content %}
+
+<script type="text/javascript">
+function deleteForm(form_id, form_name) {
+	if (confirm("Are you sure you want to delete \"" + form_name + "\" ?")) {
+		document.form.action += form_id + "/delete/";
+		document.form.submit();
+	}
+}
+</script>
+
+
 <h2>Existing Forms</h2>
 <table>
 {% for xform in xforms %}
 <tr>
-<td><a href="/xforms/{{ xform.pk }}/edit">{{ xform.name }}</td><td>{{ xform.description }}</td></tr>
+<td><a href="/xforms/{{ xform.pk }}/edit">{{ xform.name }}</td>
+<td>{{ xform.description }}</td>
+<td><a href="javascript:deleteForm('{{xform.pk}}','{{xform.name|addslashes}}');"><img border="0" src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png"/></a></td>
+</tr>
 {% endfor %}
 </table>
 <br/>
-<a href="/xforms/new/">Add New</a>
+
+<input type="button" onclick="window.location.href='/xforms/new/'" value="Add Form"/>
+
+<form name="form" method="post" action="/xforms/">
+</form>
+
 {% endblock %}

@@ -88,6 +88,12 @@ def edit_field (req, form_id, field_id):
 
 	return render_to_response(req, "xforms/edit_field.html", { 'form' : form, 'xform': xform, 'field' : field })
 
+def delete_xform (req, form_id):
+	xform = XForm.objects.get(pk=form_id)
+	if req.method == 'POST':
+		xform.delete()
+		
+	return redirect("/xforms")
 
 def delete_field (req, form_id, field_id):
 	xform = XForm.objects.get(pk=form_id)
