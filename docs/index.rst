@@ -28,6 +28,14 @@ Then sync your database with ``rapidsms syncdb``.
 
 Once you restart RapidSMS a new tab will created letting you create, manage and view forms and their submissions.
 
+Building the Documentation
+==========================
+
+XForms is fully documented.  To build the html docs, go to the /docs subdirectory and execute::
+       
+       % make html
+
+The final docs will be found at /docs/_build/html/index.html
 
 Getting Started
 ===========================================
