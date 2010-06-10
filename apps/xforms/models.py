@@ -25,6 +25,7 @@ class XFormField(models.Model):
     name = models.CharField(max_length=16)
     description = models.CharField(max_length=32)
     required = models.BooleanField(default=True)
+    order = models.IntegerField(default=0)
     
     xform = models.ForeignKey(XForm)
 

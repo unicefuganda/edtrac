@@ -1,0 +1,39 @@
+.form_title {
+	font-size:20px;
+	padding-bottom:5px;
+	border-bottom:1px solid #eee;
+	color:#666;
+	margin-bottom:10px;
+}
+
+.form_body {
+	font-size:16px;
+	color:#666;
+}
+
+.form_edit {
+	font-size:10px;
+	padding-left:5px;
+}
+
+.form_fields {
+	margin-top:10px;
+	padding:10px;
+	background: #f3f3f3;
+}
+
+.form_unselected {
+	background-color:white;
+}
+
+.form_selected {
+	background-color:#faf9e9;
+}
+
+.form_field_edits {
+
+}
+
+#sortable { list-style-type: none; margin: 0; padding: 0; width: 100%; }
+#sortable li { margin: 0 3px 3px 3px; padding: 0.4em; padding-left: 0.5em; font-size: 1.4em; height: 18px; border: 1px solid #ddd;}
+#sortable li span { position: absolute; margin-left: -1.3em; }

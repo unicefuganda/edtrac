@@ -2,41 +2,83 @@
 {% block title %}XForms{% endblock %}
 
 {% block content %}
-<a href="/xforms/">all forms</a>
-<br/><br/>
 
+<script type="text/javascript">
+	$(function() {
+		$("#sortable").sortable({
+		   	update: function(event, ui) {
+				var order = $('#sortable').sortable('toArray');
+				delim = "";
+				sub = "";
+				for (var i = 0; i < order.length; i++) {
+					sub += delim + order[i];
+					delim = ",";
+				}
+				
+				$.post("/xforms/{{xform.pk}}/order/",{'order':sub});
+			}
+		});
+		$("#sortable").disableSelection();
+	});
+	
+	
+	$( document ).ready( function() {
+	
+		$( '.field' ).click( function() {
+			url = "/xforms/" +  {{xform.pk}} + "/edit_field/" + this.id + "/"
+			$( "#edit_box" ).html("&nbsp;").load( url );
+			
+			$('.field').removeClass('form_selected');
+			$('.field').addClass('form_unselected');
+			
+			$(this).addClass('form_selected');
+			$(this).removeClass('form_unselected');
+			
+		});
+		
+		$( '.add_field' ).click( function() {
+			url =  "/xforms/" + {{ xform.pk }} + "/add_field/";
+			$( "#edit_box" ).load( url );
+		});
+		
+		$('#empty_box').load( "/xforms/" + {{ xform.pk }} + "/add_field/")
+	});
+	
+</script>
+
+
+<div class="form_title">{{xform.name}}<span class="form_edit"><a href="">edit</a></span></div>
+<div class="form_body">{{xform.description}}<span class="form_edit"><a href="">edit</a></span></div>
+<div class="form_fields">
 <table>
-<form action="/xforms/{{ xform.pk }}/edit/" method="post">
-{{ form.as_table }}
+<tr valign="top"><td width="400">
+
+<ul id="sortable">
+
+	{% for field in fields %}
+	<li class="field ui-state-default form_unselected" id="{{field.pk}}">
+		<a href="javascript:void(0);">{{ field.name }}</a>
+	</li>
+	{% empty %}
+	
+	<div id="empty_box"></div>
+	
+	{% endfor %}
+	
+</ul>
+
+</td><td>
+
+<div id="edit_box">
+
+</div>
+
+</td></tr>
 </table>
-<input type="submit" value="Update Form" />
-</form>
-<br/><br/>
-<table>
+</div>
 
-<tr>
-{% for field in fields %}
-<td><nobr><a href="/xforms/{{ xform.pk }}/edit_field/{{ field.pk }}/">{{ field.name }}</a></nobr></td>
-{% endfor %}
-</tr>
-
-<!--
-<tr>
-{% for field in fields %}
-<td>{{ field.type }}</td>
-{% endfor %}
-</tr>
-
-<tr>
-{% for field in fields %}
-<td><a href="/xforms/{{ xform.pk }}/edit_field/{{ field.pk }}/">edit</a></td>
-{% endfor %}
-</tr>
--->
-
-</table>
 <br/><br/>
 
-<input type="button" onclick="window.location.href='/xforms/{{ xform.pk }}/add_field/'" value="Add Field"/>
+<div class="add_field"><a href="javascript:void(0);">Add Field</a></div>
 
 {% endblock %}

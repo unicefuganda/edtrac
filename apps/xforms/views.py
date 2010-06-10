@@ -2,6 +2,7 @@ from django.views.decorators.http import require_GET
 from django.templatetags.tabs_tags import register_tab
 from django.shortcuts import redirect
 from django import forms
+
 from rapidsms.utils import render_to_response
 from .models import XForm, XFormField
 
@@ -30,7 +31,7 @@ def new_xform(req):
             # commit it
             xform.save()
 
-            return redirect("/xforms/%d/add_field/" % xform.pk)
+            return redirect("/xforms/%d/edit/" % xform.pk)
     else:
         form = XFormForm()
 
@@ -39,7 +40,7 @@ def new_xform(req):
 
 def edit_xform(req, form_id):
     xform = XForm.objects.get(pk=form_id)
-    fields = XFormField.objects.filter(xform=xform)
+    fields = XFormField.objects.order_by('order').filter(xform=xform)
 
     if req.method == 'POST':
         form = XFormForm(req.POST, instance=xform)
@@ -50,21 +51,36 @@ def edit_xform(req, form_id):
         form = XFormForm(instance=xform)
 
     return render_to_response(req, "xforms/edit.html", { 'form': form, 'xform': xform, 'fields': fields } )
-    
+
+def order_xform (req, form_id):
+	if req.method == 'POST':
+		
+		field_ids = req.POST['order'].split(',')
+		count = 1
+		for field_id in field_ids:
+			field = XFormField.objects.get(pk=field_id)
+			field.order = count
+			count = count + 1
+			field.save()
+			
+		return render_to_response(req, "xforms/ajax_complete.html", {'ids' : field_ids})
 
 class FieldForm(forms.ModelForm):
     class Meta:
         model = XFormField
         fields = ('type', 'name', 'description', 'required')
+        description = forms.CharField(widget=forms.Textarea)
 
 def add_field(req, form_id):
     xform = XForm.objects.get(pk=form_id)
+    fields = XFormField.objects.filter(xform=xform)
 
     if req.method == 'POST':
         form = FieldForm(req.POST)
         if form.is_valid():
             field = form.save(commit=False)
             field.xform = xform
+            field.order = len(fields)
             field.save()
             return redirect("/xforms/%d/edit/" % xform.pk)
     else:
@@ -83,6 +99,9 @@ def edit_field (req, form_id, field_id):
 			field.xform = xform
 			field.save()
 			return redirect("/xforms/%d/edit/" % xform.pk)
+		else:
+			fields = XFormField.objects.filter(xform=xform)
+			return render_to_response(req, "xforms/edit.html", { 'form' : form, 'xform': xform, 'field' : field, 'fields':fields })
 	else:
 		form = FieldForm(instance=field)
 
