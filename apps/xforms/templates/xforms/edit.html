@@ -9,10 +9,9 @@
 <form action="/xforms/{{ xform.pk }}/edit/" method="post">
 {{ form.as_table }}
 </table>
-<input type="submit" value="Save" />
+<input type="submit" value="Update Form" />
 </form>
-
-<h2>Fields:</h2>
+<br/><br/>
 <table>
 
 <tr>
@@ -38,6 +37,6 @@
 </table>
 <br/><br/>
 
-<a href="/xforms/{{ xform.pk }}/add_field/">Add Field</a>
+<input type="button" onclick="window.location.href='/xforms/{{ xform.pk }}/add_field/'" value="Add Field"/>
 
 {% endblock %}
