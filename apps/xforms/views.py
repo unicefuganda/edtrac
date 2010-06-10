@@ -8,12 +8,12 @@ from .models import XForm, XFormField
 
 @require_GET
 @register_tab(caption="XForms")
-def xforms(req):
+def xforms(req): 
     xforms = XForm.objects.all()
     return render_to_response(req, "xforms/xforms.html", { 'xforms': xforms } )
 
 
-class XFormForm(forms.ModelForm):
+class XFormForm(forms.ModelForm): # pragma: no cover
     class Meta:
         model = XForm
         fields = ('name', 'slug', 'description')

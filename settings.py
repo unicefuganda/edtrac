@@ -23,7 +23,8 @@ INSTALLED_APPS = (
     "rapidsms.contrib.djangoadmin",
     "django.contrib.admin",
 
-    "xforms"
+    "xforms",
+    "test_extensions"
 )
 
 MIDDLEWARE_CLASSES = (

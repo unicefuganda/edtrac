@@ -37,6 +37,25 @@ XForms is fully documented.  To build the html docs, go to the /docs subdirector
 
 The final docs will be found at /docs/_build/html/index.html
 
+Running the Tests
+=================
+
+We use the excellent ``django-test-extensions`` package to give us coverage reports for our unit tests.  This let's us guarantee that we have 100% coverage for our tests. (not the same as saying there are no bugs, but a start)
+
+If you want to run our tests with coverage, you'll need to install django-test-extensions::
+
+   % pip install django-test-extensions
+
+And edit your ``INSTALLED_APPS`` in ``settings.py`` to include django-test-extensions::
+    
+  INSTALLED_APPS = ( "rapidsms",
+  		     "django-test-extensions",
+  		     "xforms" )
+
+You'll then be able to run the unit tests and get a full coverage report::
+
+       % ./rapidsms test xforms --coverage       
+
 Getting Started
 ===========================================
 
