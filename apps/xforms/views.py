@@ -68,7 +68,7 @@ def order_xform (req, form_id):
 class FieldForm(forms.ModelForm):
     class Meta:
         model = XFormField
-        fields = ('type', 'name', 'description', 'required')
+        fields = ('type', 'name', 'description')
         description = forms.CharField(widget=forms.Textarea)
 
 def add_field(req, form_id):

@@ -63,9 +63,9 @@ Once installed, click on the XForms tab.  Here you can create a new form.  A for
 
 Once saved you can submit SMS messages to the system in the forms::
 
-     +survey +age 10 +name emily
-     +survey + age 30   +name greg linden
-     +survey +name eric +age 15.4
+     survey +age 10 +name emily
+     survey + age 30   +name greg linden
+     survey +name eric +age 15.4
 
 You can view submitted reports after they come in, and edit them as you like.
 
