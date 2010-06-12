@@ -57,6 +57,13 @@ class ViewTest(TestCase): # pragma: no cover
 
 class ModelTest(TestCase): #pragma: no cover
 
+    def setUp(self):
+        self.user = User.objects.create_user('fred', 'fred@wilma.com', 'secret')
+        self.user.save()
+
+        self.xform = XForm(name='test', keyword='test', owner=self.user)
+        self.xform.save()
+
     def testMinValConstraint(self):
         msg = 'error message'
         c = XFormFieldConstraint(type='min_val', test='10', message=msg)
@@ -116,16 +123,48 @@ class ModelTest(TestCase): #pragma: no cover
         self.failUnlessEqual(c.check_value('MAL'), None)
         self.failUnlessEqual(c.check_value('FeV'), None)
 
+    def testIntField(self):
+        field = self.xform.fields.create(type='int', caption='number', command='number')
+
+        self.failUnlessEqual(field.check_value('1 '), None)
+        self.failUnlessEqual(field.check_value(None), None)
+        self.failUnlessEqual(field.check_value(''), None)
+        self.failIfEqual(field.check_value('abc'), None)
+        self.failIfEqual(field.check_value('1.34'), None)
+
+    def testDecField(self):
+        field = self.xform.fields.create(type='dec', caption='number', command='number')
+
+        self.failUnlessEqual(field.check_value('1'), None)
+        self.failUnlessEqual(field.check_value(' 1.1'), None)
+        self.failUnlessEqual(field.check_value(None), None)
+        self.failUnlessEqual(field.check_value(''), None)
+        self.failIfEqual(field.check_value('abc'), None)
+
+    def testStrField(self):
+        field = self.xform.fields.create(type='str', caption='string', command='string')
+
+        self.failUnlessEqual(field.check_value('1'), None)
+        self.failUnlessEqual(field.check_value('1.1'), None)
+        self.failUnlessEqual(field.check_value('abc'), None)
+        self.failUnlessEqual(field.check_value(''), None)
+        self.failUnlessEqual(field.check_value(None), None)
+
+    def testGPSField(self):
+        field = self.xform.fields.create(type='gps', caption='location', command='location')
+
+        self.failUnlessEqual(field.check_value('1 2'), None)
+        self.failUnlessEqual(field.check_value('1.1 1'), None)
+        self.failUnlessEqual(field.check_value('1.1 1.123'), None)
+        self.failUnlessEqual(field.check_value(''), None)
+        self.failUnlessEqual(field.check_value(None), None)
+
+        self.failIfEqual(field.check_value('1.123'), None)
+        self.failIfEqual(field.check_value('1.123 asdf'), None)
+        self.failIfEqual(field.check_value('asdf'), None)
+
     def testFieldConstraints(self):
-        user = User.objects.create_user('fred', 'fred@wilma.com', 'secret')
-        user.save()
-
-        xform = XForm(name='test', keyword='test', owner=user)
-
-        xform.save()
-
-        field = XFormField(type='INT', caption='number', command='number', xform=xform)
-        field.save()
+        field = self.xform.fields.create(type='str', caption='number', command='number')
 
         # test that with no constraings, all values work
         self.failUnlessEqual(field.check_value('1'), None)
@@ -153,9 +192,24 @@ class ModelTest(TestCase): #pragma: no cover
         self.failUnlessEqual(field.check_value('6'), msg1)
 
 
+class SubmisionTest(TestCase): #pragma: no cover
+    
+    def testSMSSubmission(self):
 
+        # bootstrap a form
+        user = User.objects.create_user('fred', 'fred@wilma.com', 'secret')
+        user.save()
 
+        xform = XForm(name='test', keyword='survey', owner=user)
+        xform.save()
 
+        xform.fields.create(type='int', caption='age', command='age')
+        xform.fields.create(type='str', caption='name', command='name')
+
+        # now try a submission
+        submission = xform.process_sms_submission("survey +age 10 +name matt berg", None)
+
+        self.failUnlessEqual(len(submission.values.all()), 2)
 
 
 
