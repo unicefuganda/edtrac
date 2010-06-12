@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 import re
 
 class XForm(models.Model):
-    slug = models.CharField(max_length=32, unique=True)
+    keyword = models.SlugField(max_length=32, unique=True)
     name = models.CharField(max_length=32, unique=True)
     description = models.CharField(max_length=255)
 
@@ -25,7 +25,8 @@ class XFormField(models.Model):
     xform = models.ForeignKey(XForm, related_name='fields')
 
     type = models.CharField(max_length=3, choices=TYPE_CHOICES)
-    name = models.CharField(max_length=16)
+    command = models.SlugField(max_length=8)
+    caption = models.CharField(max_length=16)
     description = models.CharField(max_length=32)
     order = models.IntegerField(default=0)
 

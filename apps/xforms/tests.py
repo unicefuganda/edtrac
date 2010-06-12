@@ -22,7 +22,7 @@ class ViewTest(TestCase): # pragma: no cover
         self.failUnlessEqual(response.status_code, 302)
 
     def testList(self):
-        x1 = XForm.objects.create(name="form1", slug="form1", description="nothing", owner=self.user)
+        x1 = XForm.objects.create(name="form1", keyword="form1", description="nothing", owner=self.user)
         response = self.client.get("/xforms/")
         self.failUnlessEqual(response.status_code, 200)
         self.failUnlessEqual(len(response.context['xforms']), 1)
@@ -30,7 +30,7 @@ class ViewTest(TestCase): # pragma: no cover
     def testNew(self):
         response = self.client.post("/xforms/new/",
                                     { 'name': 'form2',
-                                      'slug': 'slug2',
+                                      'keyword': 'keyword2',
                                       'description': 'desc2' }, follow=True)
 
         self.failUnlessEqual(response.status_code, 200)
@@ -40,7 +40,7 @@ class ViewTest(TestCase): # pragma: no cover
 
         self.failUnlessEqual(xform.pk, 1)
         self.failUnlessEqual(xform.name, 'form2')
-        self.failUnlessEqual(xform.slug, 'slug2')
+        self.failUnlessEqual(xform.keyword, 'keyword2')
         self.failUnlessEqual(xform.description, 'desc2')
         self.failUnlessEqual(xform.owner, self.user)
 
@@ -48,7 +48,7 @@ class ViewTest(TestCase): # pragma: no cover
         # check that dupe doesn't work
         response = self.client.post("/xforms/new/",
                                     { 'name': 'form2',
-                                      'slug': 'form2',
+                                      'keyword': 'keyword2',
                                       'description': 'desc2' }, follow=True)
         self.failUnlessEqual(response.status_code, 200)
 
@@ -120,11 +120,11 @@ class ModelTest(TestCase): #pragma: no cover
         user = User.objects.create_user('fred', 'fred@wilma.com', 'secret')
         user.save()
 
-        xform = XForm(name='test', slug='test', owner=user)
+        xform = XForm(name='test', keyword='test', owner=user)
 
         xform.save()
 
-        field = XFormField(type='INT', name='number', xform=xform)
+        field = XFormField(type='INT', caption='number', command='number', xform=xform)
         field.save()
 
         # test that with no constraings, all values work

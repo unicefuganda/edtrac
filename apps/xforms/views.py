@@ -16,7 +16,7 @@ def xforms(req):
 class XFormForm(forms.ModelForm): # pragma: no cover
     class Meta:
         model = XForm
-        fields = ('name', 'slug', 'description')
+        fields = ('name', 'keyword', 'description')
 
 def new_xform(req):
     if req.method == 'POST':
@@ -68,7 +68,7 @@ def order_xform (req, form_id):
 class FieldForm(forms.ModelForm):
     class Meta:
         model = XFormField
-        fields = ('type', 'name', 'description')
+        fields = ('type', 'caption', 'command', 'description')
         description = forms.CharField(widget=forms.Textarea)
 
 def add_field(req, form_id):
