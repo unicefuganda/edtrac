@@ -19,6 +19,7 @@ function deleteForm(form_id, form_name) {
 <tr>
 <td><a href="/xforms/{{ xform.pk }}/edit">{{ xform.name }}</td>
 <td>{{ xform.description }}</td>
+<td><a href="/xforms/{{ xform.pk }}/submissions">submissions</td>
 <td><a href="javascript:deleteForm('{{xform.pk}}','{{xform.name|addslashes}}');"><img border="0" src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png"/></a></td>
 </tr>
 {% endfor %}

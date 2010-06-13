@@ -5,6 +5,7 @@ from . import views
 urlpatterns = patterns('',
     url(r"^xforms/$", login_required(views.xforms), name="xforms"),
     url(r"^xforms/new/$", login_required(views.new_xform)),
+    url(r"^xforms/(\d+)/submissions/$", login_required(views.view_xform_submissions)),
     url(r"^xforms/(\d+)/edit/$", login_required(views.edit_xform)),
     url(r"^xforms/(\d+)/order/$", login_required(views.order_xform)),
     url(r"^xforms/(\d+)/delete/$", login_required(views.delete_xform)),

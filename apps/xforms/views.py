@@ -1,5 +1,4 @@
 from django.views.decorators.http import require_GET
-from django.templatetags.tabs_tags import register_tab
 from django.shortcuts import redirect
 from django import forms
 
@@ -7,7 +6,6 @@ from rapidsms.utils import render_to_response
 from .models import XForm, XFormField
 
 @require_GET
-@register_tab(caption="XForms")
 def xforms(req): 
     xforms = XForm.objects.all()
     return render_to_response(req, "xforms/xforms.html", { 'xforms': xforms } )
@@ -87,6 +85,23 @@ def add_field(req, form_id):
         form = FieldForm()
 
     return render_to_response(req, "xforms/add_field.html", { 'form': form, 'xform': xform })
+
+def view_xform_submissions(req, form_id):
+    xform = XForm.objects.get(pk=form_id)
+
+    fields = xform.fields.all()
+
+    # we manually build up a list of dicts for the values to make rendering a bit easier
+    # TODO: pagination
+    sub_values = []
+    for submission in xform.submissions.all():
+        values = {}
+        for value in submission.values.all():
+            values[value.field.command] = value.value
+
+        sub_values.add(value)
+
+    return render_to_response(req, "xforms/submissions.html", { 'xform': xform, 'fields': fields, 'sub_values': sub_values })
 
 def edit_field (req, form_id, field_id):
 	xform = XForm.objects.get(pk=form_id)
