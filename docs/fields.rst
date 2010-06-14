@@ -10,13 +10,13 @@ Integer Field
 
 An integer field holds integers.  It supports the following restraints:
 
-`required`
+``required``
 	a value is required for all form submission
 
-`min_value`
+``min_value``
 	The value must be be at least equal to the test value
 
-`max_value`
+``max_value``
 	The value must be less than or equal to the test value
 
 Decimal Field
@@ -24,13 +24,13 @@ Decimal Field
 
 A decimal field holds a real, non integer number.  It has a maximum precision of 9 digits before and 9 digits after the period.
 
-`required`
+``required``
 	a value is required for all form submission
 
-`min_value`
+``min_value``
 	The value must be be at least equal to the test value
 
-`max_value`
+``max_value``
 	The value must be less than or equal to the test value
 
 String Field
@@ -38,16 +38,16 @@ String Field
 
 A string field, represents just a block of text.
 
-`required`
+``required``
 	a value is required for all form submission
 
-`min_len`
+``min_len``
 	The value must be be at least of length n
 
-`max_len`
+``max_len``
 	The value must be at most of length n
 
-`regex
+``regex``
 	The value must match the passed in regex.  This can have multiple forms and should include anchor tokens if the regular expression is meant to be inclusive, some examples::
 
 	^(mal|fev|shi)$
