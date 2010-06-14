@@ -5,10 +5,10 @@ Signals
 The XForms app uses signals to let you integrate with incoming submissions.  You can choose to listen for submissions as they come in.  You should make every effort to integrate your application in this way instead of changing the XForms app itself.  We consider it an error in our own design if you are modifying the XForms source, so please let us know if that is the case.
 
 
-Submission Received Signal
+xform_received Signal
 ---------------------------
 
-Every time a new XForm submission comes in, a signal will be triggered for that submission.  The listener will receive a dict containing two values, ``submission``, the actual XFormSubmission object, and ``xform`` the XForm type that wass submitted.
+Every time a new XForm submission comes in, a signal will be triggered for that submission.  The listener will receive a dict containing two values, ``submission``, the actual XFormSubmission object, and ``xform`` the XForm type that was submitted.
 
 Note that all submissions will trigger a signal.  It is up to the caller to filter the incoming submissions based on whether they were successful or are the type of XForm the listener is interested in.
 
