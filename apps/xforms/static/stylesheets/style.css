@@ -20,20 +20,88 @@
 	margin-top:10px;
 	padding:10px;
 	background: #f3f3f3;
+
+} 
+
+.field_box {
+	background-color:#fff;
+	border: 1px solid #ddd;
+	padding: 0.4em;
+	font-size: 1.4em;
+	margin: 0 3px 3px 3px;
 }
 
 .form_unselected {
-	background-color:white;
 }
 
 .form_selected {
-	background-color:#faf9e9;
+
 }
 
 .form_field_edits {
 
 }
 
+.form_field_name {
+
+}
+
+.form_edit_name {
+	padding-bottom:3px;
+	margin-bottom:5px;
+	border-bottom:1px solid #ddd;
+}
+
+.form_edit_name #id_caption {
+	font-size:18px;
+	color:#666;
+}
+
+.clear { /* generic container (i.e. div) for floating buttons */
+    overflow: hidden;
+    width: 100%;
+}
+
+a.button {
+    background: transparent url('../images/bg_button_a.gif') no-repeat scroll top right;
+    color: #444;
+    display: block;
+    float: left;
+    font: normal 12px arial, sans-serif;
+    height: 24px;
+    margin-right: 6px;
+    padding-right: 18px; /* sliding doors padding */
+    text-decoration: none;
+}
+
+a.button span {
+    background: transparent url('../images/bg_button_span.gif') no-repeat;
+    display: block;
+    line-height: 14px;
+    padding: 5px 0 5px 18px;
+}
+
+.constraints_box {
+	margin-top:5px;
+	border-top:1px solid #ddd;
+	padding-top:5px;
+}
+
+#edit_box {
+	
+}
+
+button img {
+	float:left;
+	vertical-align:top;
+	padding-top:1px;
+}
+
+button div {
+	line-height:17px;
+	margin-left:5px;
+	display:inline;
+}
+
 #sortable { list-style-type: none; margin: 0; padding: 0; width: 100%; }
-#sortable li { margin: 0 3px 3px 3px; padding: 0.4em; padding-left: 0.5em; font-size: 1.4em; height: 18px; border: 1px solid #ddd;}
 #sortable li span { position: absolute; margin-left: -1.3em; }
