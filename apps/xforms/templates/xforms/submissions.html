@@ -1,0 +1,30 @@
+{% extends "xforms/xforms_base.html" %}
+{% block title %}XForms{% endblock %}
+
+{% block content %}
+
+<h2>Form Submissions</h2>
+<table>
+<tr>
+<th>Date<th>
+<th>Type</th>
+<th>Connection</th>
+{% for field in fields.all %}
+<th>{{ field.caption }}</th>
+{% endfor %}
+</tr>
+
+{% for submission in xform.submission.all %}
+<tr>
+<td>{{ submission.created }}</td>
+<td>{{ submission.type }}</td>
+<td>{{ submission.connection }}</td>
+{% for field in fields.all %}
+  <th>{{ field.caption }}</th>
+{% endfor %}
+</tr>
+{% endfor %}
+</table>
+<br/>
+
+{% endblock %}
