@@ -6,28 +6,39 @@ function deleteField() {
 }
 
 function submitField(button, field_id) {
+
+   	//url = "/xforms/{{ xform.pk }}/edit_field/" + field_id + "/";
+
+	// if there is no id, then its an add
 	if (field_id == 0) {
-		form_data = $("#field_form_" + field_id).serializeArray();
-    	url = "/xforms/{{ xform.pk }}/add_field/";
-		$(button).parent().load(url, form_data, addNameClick);
-	} else {
-		form_data = $("#field_form_" + field_id).serializeArray();
-    	url = "/xforms/{{ xform.pk }}/edit_field/" + field_id + "/";
-		console.log($(button).parent());
-		$(button).parent().load(url, form_data, addNameClick);
+		url = "/xforms/{{ xform.pk }}/add_field/";
 	}
+	
+	console.log($(button).parent());
+	
+	// form = $(button).parent();
+	// form_data = form.serializeArray();
+	// form.parent().load(url, form_data, addNameClick);
+
+}
+
+function saveField(link) {
+	form = $(link).parents(".form");
+	form_data = form.serializeArray();
+	form.parent().load(form.attr("action"), form_data, addNameClick);
 }
 </script>
 
 
 
 {% if field %}
-<button style="float:right" onclick="submitField(this, {{field.pk}})" ><img src="{{ MEDIA_URL }}rapidsms/icons/silk/accept--dull.png"/><div>Done</div></button>
-<form onSubmit="javascript:void(0)" id="field_form_{{field.pk}}" action="/xforms/{{ xform.pk }}/edit_field/{{ field.pk }}/" method="post">
+<form class="form" action="/xforms/{{ xform.pk }}/edit_field/{{ field.pk }}/" method="post">
 {% else %}
-<button style="float:right" onclick="submitField(this, 0)" ><img src="{{ MEDIA_URL }}rapidsms/icons/silk/accept--dull.png"/><div>Done</div></button>
-<form id="field_form_0" action="/xforms/{{ xform.pk }}/add_field/" method="post">
+<form class="form" action="/xforms/{{ xform.pk }}/add_field/" method="post">
 {% endif %}
+
+<div style="float:right"><img src="{{ MEDIA_URL }}rapidsms/icons/silk/accept--dull.png"/> <a href="javascript:void(0);" onclick="saveField(this);" class="done">done</a></div>
+
 
 <div class="form_edit_name">
 	<img id="{{field.id}}" class="form_field_edit" border="0" width="16" height="16" src="{{ MEDIA_URL }}xforms/icons/silk/bullet_arrow_down.png">
@@ -58,7 +69,8 @@ blah
 
 </form>
 
-<button onclick="javascript:void(0);"><img src="{{ MEDIA_URL }}rapidsms/icons/silk/add.png"/><div>Add Constraint</div></button>
+<!-- Not ready for constraints yet
+button onclick="javascript:void(0);"><img src="{{ MEDIA_URL }}rapidsms/icons/silk/add.png"/><div>Add Constraint</div></button-->
 
 
 </div>
