@@ -4,6 +4,8 @@
 {% block content %}
 
 <script type="text/javascript">
+
+	// Create our sortable widget and handle any sort events
 	$(function() {
 		$("#sortable").sortable({
 		   	update: function(event, ui) {
@@ -14,34 +16,74 @@
 					sub += delim + order[i];
 					delim = ",";
 				}
-				
 				$.post("/xforms/{{xform.pk}}/order/",{'order':sub});
 			}
 		});
 		$("#sortable").disableSelection();
 	});
 	
+	// We need to call this every time a new field box is added/updated 
+	function addNameClick() {
+
+		// Handle field selection
+		$( '.form_field_edit' ).each( function() {
+		
+			// we dont want to re-bind events causing multiple events to trigger
+			if (!this.hasEventHandler) {
+			
+				$(this).click(function() {
+			
+					// hide any open edit boxes
+					// $("div.field_box").load( "/xforms/" +  {{xform.pk}} + "/edit_field/" + this.id + "/");
+		
+					url = "/xforms/" +  {{xform.pk}} + "/edit_field/" + this.id + "/"
+					$( "#field_box_" + this.id ).load( url );
+			
+					// $('.field').removeClass('form_selected');
+					// $('.field').addClass('form_unselected');
+			
+					selected = $(("#selection_" + this.id));
+					selected.addClass('form_selected');
+					selected.removeClass('form_unselected');
+					this.hasEventHandler = true;
+				});
+			}
+			
+		});
+	}
 	
 	$( document ).ready( function() {
 	
-		$( '.field' ).click( function() {
-			url = "/xforms/" +  {{xform.pk}} + "/edit_field/" + this.id + "/"
-			$( "#edit_box" ).html("&nbsp;").load( url );
-			
-			$('.field').removeClass('form_selected');
-			$('.field').addClass('form_unselected');
-			
-			$(this).addClass('form_selected');
-			$(this).removeClass('form_unselected');
-			
-		});
+		addNameClick();
 		
+		// Handle new field creation
 		$( '.add_field' ).click( function() {
 			url =  "/xforms/" + {{ xform.pk }} + "/add_field/";
-			$( "#edit_box" ).load( url );
+			$( "#new_field_box" ).load( url );
 		});
 		
+		// if no fields, show the add new field form
 		$('#empty_box').load( "/xforms/" + {{ xform.pk }} + "/add_field/")
+		
+	});
+	
+	$.ajaxSetup({
+		error:function(x,e){
+			if(x.status==0){
+			alert('You are offline!!\n Please Check Your Network.');
+			}else if(x.status==404){
+			alert('Requested URL not found.');
+			}else if(x.status==500){
+			$("#error").html(x.responseText);
+			//alert('Internel Server Error.' + x.responseText);
+			}else if(e=='parsererror'){
+			alert('Error.\nParsing JSON Request failed.');
+			}else if(e=='timeout'){
+			alert('Request Time out.');
+			}else {
+			alert('Unknow Error.\n'+x.responseText);
+			}
+		}
 	});
 	
 </script>
@@ -50,35 +92,39 @@
 <div class="form_title">{{xform.name}}<span class="form_edit"><a href="">edit</a></span></div>
 <div class="form_body">{{xform.description}}<span class="form_edit"><a href="">edit</a></span></div>
 <div class="form_fields">
-<table>
-<tr valign="top"><td width="400">
 
-<ul id="sortable">
+	<table>
+		<tr valign="top"><td width="400">
 
-	{% for field in fields %}
-	<li class="field ui-state-default form_unselected" id="{{field.pk}}">
-		<a href="javascript:void(0);">{{ field.caption }}</a>
-	</li>
-	{% empty %}
-	
-	<div id="empty_box"></div>
-	
-	{% endfor %}
-	
-</ul>
+			<ul id="sortable">
+				{% for field in fields %}
+				<li class="field ui-state-default form_unselected" id="selection_{{field.pk}}">
+					<div class="field_box" id="field_box_{{field.id}}">
+						<div class="delete" style="float:right"><img src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png"></div>
+						<img id="{{field.id}}" class="form_field_edit" border="0" width="16" height="16" src="{{ MEDIA_URL }}xforms/icons/silk/bullet_arrow_right.png"><a id="{{field.id}}" class="form_field_edit" href="javascript:void(0);">{{ field.caption }}</a>
+					</div>
+				</li>
+				{% empty %}
+				<div class="empty_box" id="empty_box"></div>
+				{% endfor %}
+				
+				<li class="field ui-state-default form_unselected">
+					<div class="field_box" id="new_field_box"></div>
 
-</td><td>
+			</ul>
 
-<div id="edit_box">
+		</td><td>
+			<div id="edit_box">
+			</div>
+		</td></tr>
+	</table>
 
-</div>
-
-</td></tr>
-</table>
 </div>
 
 <br/><br/>
 
 <div class="add_field"><a href="javascript:void(0);">Add Field</a></div>
+
+<div id="error"></div>
 
 {% endblock %}

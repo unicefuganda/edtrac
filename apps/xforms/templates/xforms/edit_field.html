@@ -4,19 +4,59 @@ function deleteField() {
 		document.delete_field.submit();
 	}
 }
+
+function submitField(field_id) {
+	if (field_id == 0) {
+		$("#field_form_0").submit();
+	} else {
+		form_data = $("#field_form_" + field_id).serializeArray();
+    	url = "/xforms/{{ xform.pk }}/edit_field/" + field_id + "/";
+		$( "#field_box_" + field_id ).load( url, form_data, addNameClick);
+	}
+}
 </script>
 
-<form action="/xforms/{{ xform.pk }}/edit_field/{{ field.pk }}/" method="post">
 
 
-<table cellpadding=0 cellspacing=0>
-{{ form.as_table }}
-</table>
+{% if field %}
+<button style="float:right" onclick="submitField({{field.pk}})" ><img src="{{ MEDIA_URL }}rapidsms/icons/silk/accept--dull.png"/><div>Done</div></button>
+<form onSubmit="javascript:void(0)" id="field_form_{{field.pk}}" action="/xforms/{{ xform.pk }}/edit_field/{{ field.pk }}/" method="post">
+{% else %}
+<button style="float:right" onclick="submitField(0)" ><img src="{{ MEDIA_URL }}rapidsms/icons/silk/accept--dull.png"/><div>Done</div></button>
+<form id="field_form_0" action="/xforms/{{ xform.pk }}/add_field/" method="post">
+{% endif %}
 
-<input type="submit" value="Update Field" />
+<div class="form_edit_name">
+	<img id="{{field.id}}" class="form_field_edit" border="0" width="16" height="16" src="{{ MEDIA_URL }}xforms/icons/silk/bullet_arrow_down.png">
+
+	{{form.caption.errors}}
+ 	{{form.caption}}
+</div>
+
+	{{form.command.errors}}
+ 	{{form.command}}
+
+<!-- TODO: Need some better formatting here -->
+
+
+<div class="form_edit_type">{{form.type.errors}} {{form.type}}</div>
+
+<div class="form_edit_description">{{form.description.errors}} {{form.description}}</div>
+
+<div class="constraints_box" id="field_constraints_{{field.pk}}">
+
+{% for constraint in constraints %}
+blah
+	{{constraint.type}}
+{% empty %}
+{% endfor %}
+				
+
+
 </form>
 
-<br/><br/>
-<form name="delete_field" action="/xforms/{{ xform.pk }}/delete_field/{{ field.pk }}/" method="post">
-<a href="javascript:deleteField()">Remove Field</a>
-</form>
+<button onclick="javascript:void(0);"><img src="{{ MEDIA_URL }}rapidsms/icons/silk/add.png"/><div>Add Constraint</div></button>
+
+
+</div>
+
