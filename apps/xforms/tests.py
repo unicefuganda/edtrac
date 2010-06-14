@@ -31,7 +31,8 @@ class ViewTest(TestCase): # pragma: no cover
         response = self.client.post("/xforms/new/",
                                     { 'name': 'form2',
                                       'keyword': 'keyword2',
-                                      'description': 'desc2' }, follow=True)
+                                      'description': 'desc2',
+                                      'response': 'response2'}, follow=True)
 
         self.failUnlessEqual(response.status_code, 200)
 
