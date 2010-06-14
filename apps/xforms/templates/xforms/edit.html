@@ -17,7 +17,9 @@
 			}
 		});
 
-		$.post("/xforms/{{xform.pk}}/order/",{'order':sub});
+		if (sub != "") {
+			$.post("/xforms/{{xform.pk}}/order/",{'order':sub});
+		}
 	}
 
 	// Create our sortable widget and handle any sort events
