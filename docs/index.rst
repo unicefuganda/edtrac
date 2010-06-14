@@ -24,7 +24,7 @@ To use, just put the ``xforms`` on your Python path, then edit your ``settings.p
   INSTALLED_APPS = ( "rapidsms",
   		     "xforms" )
 
-Then sync your database with ``rapidsms syncdb``.
+Then sync your database with ``./manage.py syncdb``.
 
 Once you restart RapidSMS a new tab will created letting you create, manage and view forms and their submissions.
 
@@ -54,7 +54,9 @@ And edit your ``INSTALLED_APPS`` in ``settings.py`` to include django-test-exten
 
 You'll then be able to run the unit tests and get a full coverage report::
 
-       % ./rapidsms test xforms --coverage       
+       % ./manage.py test xforms --coverage       
+
+NOTE: There is currently an issue in django-test-extensions that makes all module level elements (imports and the like) show up as non-covered.  We are trying to get to the bottom of this with the author.
 
 Getting Started
 ===========================================

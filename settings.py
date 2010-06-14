@@ -41,11 +41,3 @@ LOGIN_REDIRECT_URL = "/"
 INSTALLED_BACKENDS = {
     "message_tester" : {"ENGINE": "rapidsms.backends.bucket" } 
 }
-
-# configure our tabs
-TABS = [
-    ('rapidsms.views.dashboard', 'Dashboard'),
-#    ('rapidsms.contrib.httptester.views.generate_identity', 'Message Tester'),
-#    ('rapidsms.contrib.messagelog.views.message_log', 'Message Log'),
-    ('xforms.views.xforms', 'XForms'),
-]

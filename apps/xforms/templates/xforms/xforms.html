@@ -13,13 +13,14 @@ function deleteForm(form_id, form_name) {
 </script>
 
 
-<h2>Existing Forms</h2>
+<div class="module">
+<h2>XForms</h2>
 <table>
 {% for xform in xforms %}
 <tr>
 <td><a href="/xforms/{{ xform.pk }}/edit">{{ xform.name }}</td>
 <td>{{ xform.description }}</td>
-<td><a href="/xforms/{{ xform.pk }}/submissions">submissions</td>
+<td><a href="/xforms/{{ xform.pk }}/submissions">View Submissions</td>
 <td><a href="javascript:deleteForm('{{xform.pk}}','{{xform.name|addslashes}}');"><img border="0" src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png"/></a></td>
 </tr>
 {% endfor %}
@@ -30,5 +31,9 @@ function deleteForm(form_id, form_name) {
 
 <form name="form" method="post" action="/xforms/">
 </form>
+</div>
+</div>
+
+</div>
 
 {% endblock %}

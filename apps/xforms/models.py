@@ -10,10 +10,11 @@ class XForm(models.Model):
     XForms also define their keyword which will be used when submitting via SMS.
     """
 
-
     keyword = models.SlugField(max_length=32, unique=True)
     name = models.CharField(max_length=32, unique=True)
     description = models.CharField(max_length=255)
+
+    response = models.CharField(max_length=255)
 
     owner = models.ForeignKey(User)
     created = models.DateTimeField(auto_now_add=True)
@@ -58,7 +59,7 @@ class XForm(models.Model):
                     error = field.check_value(value)
 
                     if error:
-                        errors.add(error)
+                        errors.append(error)
                     else:
                         submission.values.create(field=field, value=value)
 
@@ -123,25 +124,25 @@ class XFormField(models.Model):
                 try:
                     test = int(value)
                 except ValueError:
-                    return "Must be an even number."
+                    return "+%s parameter must be an even number." % self.command
 
             if self.type == 'dec':
                 try:
                     test = float(value)
                 except ValueError:
-                    return "Must be a number."
+                    return "+%s parameter must be a number." % self.command
 
 
             # for gps, we expect values like 1.241 1.543, so basically two numbers
             if self.type == 'gps':
                 coords = value.split(' ')
                 if len(coords) != 2:
-                    return "GPS coordinates must be two numbers in the format 'lat long'"
+                    return "+%s parameter must be GPS coordinates in the format 'lat long'" % self.command
                 for coord in coords:
                     try:
                         test = float(coord)
                     except ValueError:
-                        return "GPS coordinates must be two numbers in the format 'lat long'"
+                        return "+%s parameter must be GPS coordinates the format 'lat long'" % self.command
 
             # anything goes for strings
 
@@ -245,6 +246,9 @@ class XFormSubmission(models.Model):
     raw = models.TextField()
     has_errors = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
+
+    # transient, only populated when the submission first comes in
+    errors = []
 
     def __unicode__(self): # pragma: no cover
         return "%s (%s)" % (self.xform, self.type)

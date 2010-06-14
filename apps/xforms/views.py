@@ -16,7 +16,7 @@ def xforms(req):
 class XFormForm(forms.ModelForm): # pragma: no cover
     class Meta:
         model = XForm
-        fields = ('name', 'keyword', 'description')
+        fields = ('name', 'keyword', 'description', 'response')
 
 def new_xform(req):
     if req.method == 'POST':
@@ -98,19 +98,10 @@ def add_field(req, form_id):
 def view_xform_submissions(req, form_id):
     xform = XForm.objects.get(pk=form_id)
 
-    fields = xform.fields.all()
+    submissions = xform.submissions.all().order_by('-pk')
+    fields = xform.fields.all().order_by('pk')
 
-    # we manually build up a list of dicts for the values to make rendering a bit easier
-    # TODO: pagination
-    sub_values = []
-    for submission in xform.submissions.all():
-        values = {}
-        for value in submission.values.all():
-            values[value.field.command] = value.value
-
-        sub_values.add(value)
-
-    return render_to_response(req, "xforms/submissions.html", { 'xform': xform, 'fields': fields, 'sub_values': sub_values })
+    return render_to_response(req, "xforms/submissions.html", { 'xform': xform, 'fields': fields, 'submissions': submissions })
 
 def view_field(req, form_id, field_id):
 	xform = XForm.objects.get(pk=form_id)
