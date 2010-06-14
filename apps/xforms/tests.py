@@ -214,8 +214,9 @@ class SubmisionTest(TestCase): #pragma: no cover
         # add a listener to our signal
         class Listener:
             def handle_submission(self, sender, **args):
-                self.submission = args['submission']
-                self.xform = args['xform']
+                if args['xform'].keyword == 'survey':
+                    self.submission = args['submission']
+                    self.xform = args['xform']
 
 
         listener = Listener()
