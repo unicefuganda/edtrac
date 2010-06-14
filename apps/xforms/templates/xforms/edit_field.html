@@ -5,30 +5,12 @@ function deleteField() {
 	}
 }
 
-function submitField(button, field_id) {
-
-   	//url = "/xforms/{{ xform.pk }}/edit_field/" + field_id + "/";
-
-	// if there is no id, then its an add
-	if (field_id == 0) {
-		url = "/xforms/{{ xform.pk }}/add_field/";
-	}
-	
-	console.log($(button).parent());
-	
-	// form = $(button).parent();
-	// form_data = form.serializeArray();
-	// form.parent().load(url, form_data, addNameClick);
-
-}
-
 function saveField(link) {
 	form = $(link).parents(".form");
 	form_data = form.serializeArray();
 	form.parent().load(form.attr("action"), form_data, addNameClick);
 }
 </script>
-
 
 
 {% if field %}
@@ -39,23 +21,18 @@ function saveField(link) {
 
 <div style="float:right"><img src="{{ MEDIA_URL }}rapidsms/icons/silk/accept--dull.png"/> <a href="javascript:void(0);" onclick="saveField(this);" class="done">done</a></div>
 
-
 <div class="form_edit_name">
 	<img id="{{field.id}}" class="form_field_edit" border="0" width="16" height="16" src="{{ MEDIA_URL }}xforms/icons/silk/bullet_arrow_down.png">
 
-	{{form.caption.errors}}
  	{{form.caption}}
+	<div class="name_error">{{form.caption.errors}}</div>
 </div>
 
-	{{form.command.errors}}
- 	{{form.command}}
-
-<!-- TODO: Need some better formatting here -->
-
-
-<div class="form_edit_type">{{form.type.errors}} {{form.type}}</div>
-
-<div class="form_edit_description">{{form.description.errors}} {{form.description}}</div>
+<table class="field_table">
+<tr><td>{{form.command.label}}</td><td>{{form.command.errors}}{{form.command}}</td></tr>
+<tr><td>{{form.type.label}}</td><td>{{form.type.errors}}{{form.type}}</td></tr>
+<tr><td>{{form.description.label}}</td><td>{{form.description.errors}}{{form.description}}</td></tr>
+</table>
 
 <div class="constraints_box" id="field_constraints_{{field.pk}}">
 

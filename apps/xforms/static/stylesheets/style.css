@@ -57,6 +57,15 @@
 	color:#666;
 }
 
+.field_table {
+	margin-left:30px;
+}
+
+.field_table td {
+	font-size:14px;
+	color:#666;
+}
+
 .clear { /* generic container (i.e. div) for floating buttons */
     overflow: hidden;
     width: 100%;
@@ -101,6 +110,19 @@ button div {
 	line-height:17px;
 	margin-left:5px;
 	display:inline;
+}
+
+.errorlist {
+	list-style-type: none;
+	color: #993131;
+	margin: 0; 
+	padding: 0;
+	padding-top:5px;
+	padding-bottom:5px;
+}
+
+.name_error {
+	padding-left:25px;
 }
 
 #sortable { list-style-type: none; margin: 0; padding: 0; width: 100%; }
