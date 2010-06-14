@@ -5,20 +5,24 @@
 
 <script type="text/javascript">
 
-	// Create our sortable widget and handle any sort events
-	$(function() {
-		$("#sortable").sortable({
-		   	update: function(event, ui) {
-				var order = $('#sortable').sortable('toArray');
-				delim = "";
-				sub = "";
-				for (var i = 0; i < order.length; i++) {
-					sub += delim + order[i];
-					delim = ",";
-				}
-				$.post("/xforms/{{xform.pk}}/order/",{'order':sub});
+	// send the current field order to the server
+	function updateOrder() {
+		delim = "";
+		sub = "";
+
+		$("#sortable img").each(function() {
+			if (this.id != "") {
+				sub += delim + this.id;
+				delim = ",";
 			}
 		});
+
+		$.post("/xforms/{{xform.pk}}/order/",{'order':sub});
+	}
+
+	// Create our sortable widget and handle any sort events
+	$(function() {
+		$("#sortable").sortable({ update: updateOrder });
 		$("#sortable").disableSelection();
 	});
 	
@@ -46,8 +50,12 @@
 			}
 			
 		});
+		
+		// when we have successful saves, update our sort order too
+		updateOrder();
 	}
 	
+	// Add a new box for entering a new field
 	function addNewFieldBox() {
 		var newBox = $("#new_field_box").clone(true);
 		newBox.load( "/xforms/" + {{ xform.pk }} + "/add_field/", function() {
@@ -106,7 +114,7 @@
 
 			<ul id="sortable">
 				{% for field in fields %}
-				<li class="field ui-state-default form_unselected" >
+				<li class="field ui-state-default form_unselected" id="{{field.pk}}">
 					<div class="field_box" id="field_box_{{forloop.counter}}">
 						<div class="delete" style="float:right"><img src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png"></div>
 						<img id="{{field.id}}" class="form_field_edit" border="0" width="16" height="16" src="{{ MEDIA_URL }}xforms/icons/silk/bullet_arrow_right.png"><a id="{{field.id}}" class="form_field_edit" href="javascript:void(0);">{{ field.caption }}</a>
