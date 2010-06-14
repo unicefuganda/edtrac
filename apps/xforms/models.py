@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from rapidsms.models import Connection
+import django.dispatch
 import re
 
 class XForm(models.Model):
@@ -71,6 +72,10 @@ class XForm(models.Model):
             # and set our db state as well
             submission.has_errors = True
             submission.save()
+
+
+        # trigger our signal
+        xform_received.send(sender=self, xform=self, submission=submission)
 
         return submission
                         
@@ -268,4 +273,10 @@ class XFormSubmissionValue(models.Model):
 
     def __unicode__(self): # pragma: no cover
         return "%s=%s" % (self.field, self.value)
+
+
+# Signal triggered whenever an xform is received.  The caller can derive from the submission
+# whether it was successfully parsed or not and do what they like with it.
+
+xform_received = django.dispatch.Signal(providing_args=["xform", "submission"])
 

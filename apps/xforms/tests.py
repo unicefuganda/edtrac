@@ -5,7 +5,7 @@ Basic tests for XForms
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.test.client import Client
-from .models import XForm, XFormField, XFormFieldConstraint
+from .models import XForm, XFormField, XFormFieldConstraint, xform_received
 
 class ViewTest(TestCase): # pragma: no cover
     urls = 'xforms.urls'
@@ -195,22 +195,34 @@ class ModelTest(TestCase): #pragma: no cover
 
 class SubmisionTest(TestCase): #pragma: no cover
     
-    def testSMSSubmission(self):
-
+    def setUp(self):
         # bootstrap a form
-        user = User.objects.create_user('fred', 'fred@wilma.com', 'secret')
-        user.save()
+        self.user = User.objects.create_user('fred', 'fred@wilma.com', 'secret')
+        self.user.save()
 
-        xform = XForm(name='test', keyword='survey', owner=user)
-        xform.save()
+        self.xform = XForm(name='test', keyword='survey', owner=self.user)
+        self.xform.save()
 
-        xform.fields.create(type='int', caption='age', command='age')
-        xform.fields.create(type='str', caption='name', command='name')
+        self.xform.fields.create(type='int', caption='age', command='age')
+        self.xform.fields.create(type='str', caption='name', command='name')
 
-        # now try a submission
-        submission = xform.process_sms_submission("survey +age 10 +name matt berg", None)
-
+    def testSMSSubmission(self):
+        submission = self.xform.process_sms_submission("survey +age 10 +name matt berg", None)
         self.failUnlessEqual(len(submission.values.all()), 2)
 
+    def testSignal(self):
+        # add a listener to our signal
+        class Listener:
+            def handle_submission(self, sender, **args):
+                self.submission = args['submission']
+                self.xform = args['xform']
 
+
+        listener = Listener()
+        xform_received.connect(listener.handle_submission)
+
+        submission = self.xform.process_sms_submission("survey +age 10 +name matt berg", None)
+        self.failUnlessEqual(listener.submission, submission)
+        self.failUnlessEqual(listener.xform, self.xform)
+        
 
