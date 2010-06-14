@@ -1,11 +1,13 @@
 from django.views.decorators.http import require_GET
 from django.shortcuts import redirect
+from django.templatetags.tabs_tags import register_tab
 from django import forms
 
 from rapidsms.utils import render_to_response
 from .models import XForm, XFormField, XFormFieldConstraint
 
 @require_GET
+@register_tab(caption="XForms")
 def xforms(req): 
     xforms = XForm.objects.all()
     return render_to_response(req, "xforms/xforms.html", { 'xforms': xforms } )
