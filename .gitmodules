@@ -1,7 +1,3 @@
 [submodule "submodules/rapidsms"]
 	path = submodules/rapidsms
 	url = git://github.com/rapidsms/rapidsms-core-dev.git
-
-[submodule "submodules/rapidsms-contrib"]
-	path = submodules/rapidsms-contrib
-	url = http://github.com/rapidsms/rapidsms-contrib-apps-dev.git
