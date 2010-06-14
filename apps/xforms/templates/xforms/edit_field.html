@@ -5,13 +5,16 @@ function deleteField() {
 	}
 }
 
-function submitField(field_id) {
+function submitField(button, field_id) {
 	if (field_id == 0) {
-		$("#field_form_0").submit();
+		form_data = $("#field_form_" + field_id).serializeArray();
+    	url = "/xforms/{{ xform.pk }}/add_field/";
+		$(button).parent().load(url, form_data, addNameClick);
 	} else {
 		form_data = $("#field_form_" + field_id).serializeArray();
     	url = "/xforms/{{ xform.pk }}/edit_field/" + field_id + "/";
-		$( "#field_box_" + field_id ).load( url, form_data, addNameClick);
+		console.log($(button).parent());
+		$(button).parent().load(url, form_data, addNameClick);
 	}
 }
 </script>
@@ -19,10 +22,10 @@ function submitField(field_id) {
 
 
 {% if field %}
-<button style="float:right" onclick="submitField({{field.pk}})" ><img src="{{ MEDIA_URL }}rapidsms/icons/silk/accept--dull.png"/><div>Done</div></button>
+<button style="float:right" onclick="submitField(this, {{field.pk}})" ><img src="{{ MEDIA_URL }}rapidsms/icons/silk/accept--dull.png"/><div>Done</div></button>
 <form onSubmit="javascript:void(0)" id="field_form_{{field.pk}}" action="/xforms/{{ xform.pk }}/edit_field/{{ field.pk }}/" method="post">
 {% else %}
-<button style="float:right" onclick="submitField(0)" ><img src="{{ MEDIA_URL }}rapidsms/icons/silk/accept--dull.png"/><div>Done</div></button>
+<button style="float:right" onclick="submitField(this, 0)" ><img src="{{ MEDIA_URL }}rapidsms/icons/silk/accept--dull.png"/><div>Done</div></button>
 <form id="field_form_0" action="/xforms/{{ xform.pk }}/add_field/" method="post">
 {% endif %}
 

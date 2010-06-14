@@ -37,11 +37,7 @@
 					// $("div.field_box").load( "/xforms/" +  {{xform.pk}} + "/edit_field/" + this.id + "/");
 		
 					url = "/xforms/" +  {{xform.pk}} + "/edit_field/" + this.id + "/"
-					$( "#field_box_" + this.id ).load( url );
-			
-					// $('.field').removeClass('form_selected');
-					// $('.field').addClass('form_unselected');
-			
+					$(this).parent().load(url);
 					selected = $(("#selection_" + this.id));
 					selected.addClass('form_selected');
 					selected.removeClass('form_unselected');
@@ -52,19 +48,31 @@
 		});
 	}
 	
-	$( document ).ready( function() {
-	
-		addNameClick();
-		
-		// Handle new field creation
-		$( '.add_field' ).click( function() {
-			url =  "/xforms/" + {{ xform.pk }} + "/add_field/";
-			$( "#new_field_box" ).load( url );
+	function addNewFieldBox() {
+		var newBox = $("#new_field_box").clone(true);
+		newBox.load( "/xforms/" + {{ xform.pk }} + "/add_field/", function() {
+			newBox.show();
+			$("#sortable").append(newBox);
 		});
 		
-		// if no fields, show the add new field form
-		$('#empty_box').load( "/xforms/" + {{ xform.pk }} + "/add_field/")
+	}
+	
+	$( document ).ready( function() {
+
+		// hide our new field template
+		$('#new_field_box').hide();
 		
+		addNameClick();
+		
+		// Handle new field creation button
+		$( '.add_field' ).click( function() {
+			addNewFieldBox();
+		});
+
+		// if no fields, show the add new field form
+		if ({{field_count}} == 0) {
+			addNewFieldBox();
+		}
 	});
 	
 	$.ajaxSetup({
@@ -98,19 +106,17 @@
 
 			<ul id="sortable">
 				{% for field in fields %}
-				<li class="field ui-state-default form_unselected" id="selection_{{field.pk}}">
-					<div class="field_box" id="field_box_{{field.id}}">
+				<li class="field ui-state-default form_unselected" >
+					<div class="field_box" id="field_box_{{forloop.counter}}">
 						<div class="delete" style="float:right"><img src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png"></div>
 						<img id="{{field.id}}" class="form_field_edit" border="0" width="16" height="16" src="{{ MEDIA_URL }}xforms/icons/silk/bullet_arrow_right.png"><a id="{{field.id}}" class="form_field_edit" href="javascript:void(0);">{{ field.caption }}</a>
 					</div>
 				</li>
-				{% empty %}
-				<div class="empty_box" id="empty_box"></div>
 				{% endfor %}
-				
+
 				<li class="field ui-state-default form_unselected">
 					<div class="field_box" id="new_field_box"></div>
-
+				</li>
 			</ul>
 
 		</td><td>

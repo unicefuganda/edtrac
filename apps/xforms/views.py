@@ -48,7 +48,7 @@ def edit_xform(req, form_id):
     else:
         form = XFormForm(instance=xform)
 
-    return render_to_response(req, "xforms/edit.html", { 'form': form, 'xform': xform, 'fields': fields } )
+    return render_to_response(req, "xforms/edit.html", { 'form': form, 'xform': xform, 'fields': fields, 'field_count' : len(fields) } )
 
 def order_xform (req, form_id):
 	if req.method == 'POST':
@@ -87,7 +87,7 @@ def add_field(req, form_id):
             field.xform = xform
             field.order = len(fields)
             field.save()
-            return redirect("/xforms/%d/edit/" % xform.pk)
+            return render_to_response(req, "xforms/view_field.html", {'field' : field, 'xform' : xform })
     else:
         form = FieldForm()
 
@@ -113,7 +113,7 @@ def view_xform_submissions(req, form_id):
 def view_field(req, form_id, field_id):
 	xform = XForm.objects.get(pk=form_id)
 	field = XFormField.objects.get(pk=field_id)
-	return render_to_response(req, "xforms/view_field.html", { 'form' : form, 'xform': xform, 'field' : field })
+	return render_to_response(req, "xforms/view_field.html", { 'xform': xform, 'field' : field })
 	
 
 def edit_field (req, form_id, field_id):
