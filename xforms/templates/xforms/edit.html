@@ -28,38 +28,6 @@
 		$("#sortable").disableSelection();
 	});
 	
-	// We need to call this every time a new field box is added/updated 
-	function addNameClick() {
-
-		// Handle field selection
-		$( '.form_field_edit' ).each( function() {
-		
-			// we dont want to re-bind events causing multiple events to trigger
-			if (!this.hasEventHandler) {
-			
-				$(this).click(function() {
-			
-					// hide any open edit boxes
-					// $("div.field_box").load( "/xforms/" +  {{xform.pk}} + "/edit_field/" + this.id + "/");
-		
-					url = "/xforms/" +  {{xform.pk}} + "/edit_field/" + this.id + "/";
-					
-					$(this).parents(".field_box").load(url);
-					selected = $(("#selection_" + this.id));
-					selected.addClass('form_selected');
-					selected.removeClass('form_unselected');
-					
-				});
-				
-				this.hasEventHandler = true;
-			}
-			
-		});
-		
-		// when we have successful saves, update our sort order too
-		// updateOrder();
-	}
-	
 	// Add a new box for entering a new field
 	function addNewFieldBox() {
 		var newBox = $("#new_field_box").clone();
@@ -85,8 +53,7 @@
 			field_id = $(this).parent().attr("id");
 			// console.log(this + " " + field_id);
 			if (field_id) {
-				url = "/xforms/" +  {{xform.pk}} + "/field/" + field_id + "/"
-				$(this).load(url, addNameClick);
+				$(this).load("/xforms/" +  {{xform.pk}} + "/field/" + field_id + "/");
 			}
 		});
 		
@@ -96,6 +63,24 @@
 		}
 		
 	});
+	
+	function deleteField(link) {
+	  field_id = $(link).parents(".field_table").attr("id");
+	  if (confirm("Are you sure you want to delete this field?")) {
+      $.post('/xforms/{{xform.pk}}/delete_field/' + field_id + "/", function(data) {
+        $(link).parents(".field_box").remove();
+      }); 
+    }
+  }
+  
+  function editField(link) {
+    field_id = $(link).parents(".field_table").attr("id");
+    url = "/xforms/" +  {{xform.pk}} + "/edit_field/" + field_id + "/";
+    $(link).parents(".field_box").load(url);
+    selected = $(("#selection_" + field_id));
+    selected.addClass('form_selected');
+    selected.removeClass('form_unselected');
+  }
 	
 	// Trap our ajax errors and put them where we can see them
 	$.ajaxSetup({

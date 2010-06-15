@@ -51,14 +51,6 @@
 	color:#666;
 }
 
-.field_table {
-	margin-left:0px;
-}
-
-.field_table td {
-	font-size:14px;
-	color:#666;
-}
 
 .clear { /* generic container (i.e. div) for floating buttons */
     overflow: hidden;
@@ -129,7 +121,7 @@ button div {
 	padding:0px;
 	padding-right:2px;
 	padding-left:-4px;
-	background-color:#fafafa;
+	background-color:#f3f3f3;
 }
 
 .field_box {
@@ -142,10 +134,6 @@ button div {
 	width:100%;
 }
 
-.field_table table tr td th {
-	padding:0px;
-	margin:0px;
-}
 
 .field_name_col {
 	padding:0px;
@@ -175,6 +163,34 @@ button div {
 .field_options_col {
 	border:0px solid;
 	text-align:right;	
+}
+
+
+.field_table table tr td th {
+  padding:0px;
+  margin:0px;
+}
+
+
+.field_table {
+  margin-left:0px;
+}
+
+.field_table td {
+  font-size:14px;
+  color:#666;
+}
+
+.add_field_header {
+  background-color:#66a1d0;
+  color:white;
+  padding-left:10px;
+  padding-top:5px;
+  padding-bottom:5px;
+}
+
+.field_box .add_field {
+  background-color:#d7eaef;
 }
 
 

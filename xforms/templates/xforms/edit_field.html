@@ -1,49 +1,49 @@
 <script type="text/javascript">
-function deleteField() {
-	if(confirm("Are you sure you want to delete \"{{ field.name }}\" from your form?")) {
-		document.delete_field.submit();
-	}
-}
 
 function saveField(link) {
 	form = $(link).parents(".form");
 	form_data = form.serializeArray();
-	form.parent().load(form.attr("action"), form_data, addNameClick);
+	form.parents(".field_box").load(form.attr("action"), form_data);
 }
+
+function cancelAdd(link) {
+  if (confirm("Are you sure you want to cancel this new field?")) {
+    $(link).parents(".field_box").remove();
+  }
+}
+
 </script>
 
 
 {% if field %}
+<div class="edit_field">
 <form class="form" action="/xforms/{{ xform.pk }}/edit_field/{{ field.pk }}/" method="post">
 {% else %}
+<div class="add_field_header">Add New Field</div>
+<div class="add_field">
 <form class="form" action="/xforms/{{ xform.pk }}/add_field/" method="post">
 {% endif %}
 
-<table class="field_table">
+<table class="field_table" width="100%">
+<tbody>
 <tr>
 <td class="field_name_col">{{ form.caption }} {{ form.caption.errors}}</td>
 <td class="field_type_col">{{ form.type }} {{ form.type.errors }}</td>
 <td class="field_command_col">{{ form.command }} {{form.command.errors}}</td>
 <td class="field_description_col">{{ form.description }} {{ form.description.errors }}</td>
-<td class="field_options_col"><a href="javascript:void(0);" onclick="saveField(this);" class="done">save</a> | <a href="javascript:void(0);" onclick="saveField(this);" class="done">cancel</a></td>
+<td class="field_options_col"><a href="javascript:void(0);" onclick="saveField(this);" class="done">save</a> | <a href="javascript:void(0)" onClick="cancelAdd(this)" class="cancel">cancel</a></td>
 </tr>
-
+</tbody>
 </table>
 </form>
 
-<!-- div class="constraints_box" id="field_constraints_{{field.pk}}">
+</div>
+<!--div class="constraints_box" id="field_constraints_{{field.pk}}">
 
 {% for constraint in constraints %}
-blah
 	{{constraint.type}}
-{% empty %}
 {% endfor %}
 				
-
-
-
-Not ready for constraints yet
-button onclick="javascript:void(0);"><img src="{{ MEDIA_URL }}rapidsms/icons/silk/add.png"/><div>Add Constraint</div></button-->
 
 
 </div-->

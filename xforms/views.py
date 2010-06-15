@@ -53,17 +53,16 @@ def edit_xform(req, form_id):
     return render_to_response(req, "xforms/edit.html", { 'form': form, 'xform': xform, 'fields': fields, 'field_count' : len(fields) } )
 
 def order_xform (req, form_id):
-	if req.method == 'POST':
-		
-		field_ids = req.POST['order'].split(',')
-		count = 1
-		for field_id in field_ids:
-			field = XFormField.objects.get(pk=field_id)
-			field.order = count
-			count = count + 1
-			field.save()
-			
-		return render_to_response(req, "xforms/ajax_complete.html", {'ids' : field_ids})
+    if req.method == 'POST':
+        field_ids = req.POST['order'].split(',')
+        count = 1
+        for field_id in field_ids:
+            field = XFormField.objects.get(pk=field_id)
+            field.order = count
+            count = count + 1
+            field.save()
+            
+        return render_to_response(req, "xforms/ajax_complete.html", {'ids' : field_ids})
 
 class FieldForm(forms.ModelForm):
     class Meta:
@@ -77,7 +76,7 @@ class ConstraintForm(forms.ModelForm):
     class Meta:
         model = XFormFieldConstraint
         fields = ('type', 'test', 'message') # Why do we need order?
-		
+        
 def add_field(req, form_id):
     xform = XForm.objects.get(pk=form_id)
     fields = XFormField.objects.filter(xform=xform)
@@ -165,67 +164,65 @@ def edit_submission(req, submission_id):
                                                                     'fields': fields, 'values': values, 'form': form })
 
 def view_field(req, form_id, field_id):
-	xform = XForm.objects.get(pk=form_id)
-	field = XFormField.objects.get(pk=field_id)
-	return render_to_response(req, "xforms/view_field.html", { 'xform': xform, 'field' : field })
-	
+    xform = XForm.objects.get(pk=form_id)
+    field = XFormField.objects.get(pk=field_id)
+    return render_to_response(req, "xforms/view_field.html", { 'xform': xform, 'field' : field })
+    
 
 def edit_field (req, form_id, field_id):
-	xform = XForm.objects.get(pk=form_id)
-	field = XFormField.objects.get(pk=field_id)
-	constraints = XFormFieldConstraint.objects.filter(field=field) # Is order necessary for constraints?
-	
-	if req.method == 'POST':
-		form = FieldForm(req.POST, instance=field)
-		if form.is_valid():
-			print "Valid Form"
-			field = form.save(commit=False)
-			field.xform = xform
-			field.save()
-			return render_to_response(req, "xforms/view_field.html", { 'form' : form, 'xform' : xform, 'field' : field })
-		else:
-			print "Invalid Form"
-			return render_to_response(req, "xforms/edit_field.html", { 'form' : form, 'xform': xform, 'field' : field })
-	else:
-		form = FieldForm(instance=field)
+    xform = XForm.objects.get(pk=form_id)
+    field = XFormField.objects.get(pk=field_id)
+    constraints = XFormFieldConstraint.objects.filter(field=field) # Is order necessary for constraints?
+    
+    if req.method == 'POST':
+        form = FieldForm(req.POST, instance=field)
+        if form.is_valid():
+            field = form.save(commit=False)
+            field.xform = xform
+            field.save()
+            return render_to_response(req, "xforms/view_field.html", { 'form' : form, 'xform' : xform, 'field' : field })
+        else:
+            return render_to_response(req, "xforms/edit_field.html", { 'form' : form, 'xform': xform, 'field' : field })
+    else:
+        form = FieldForm(instance=field)
 
-	return render_to_response(req, "xforms/edit_field.html", { 'form' : form, 'xform': xform, 'field' : field })
+    return render_to_response(req, "xforms/edit_field.html", { 'form' : form, 'xform': xform, 'field' : field })
 
 def add_constraint(req, form_id, field_id):
-	xform = XForm.objects.get(pk=form_id)
-	field = XFormField.objects.get(pk=field_id)
+    xform = XForm.objects.get(pk=form_id)
+    field = XFormField.objects.get(pk=field_id)
 
-	if req.method == 'POST':
-		form = ConstraintForm(req.POST)
-		if form.is_valid():
-			constraint = form.save(commit=False)
-			constraint.field = field
-			constraint.save()
-			print "saved %s %s" % (constraint.id, constraint.field.id)
-		else:
-			print "form invalid"
-	else:
-		form = ConstraintForm()
-		
-	return render_to_response(req, "xforms/edit_constraint.html", { 'form' : form, 'xform' : xform, 'field' : field });
+    if req.method == 'POST':
+        form = ConstraintForm(req.POST)
+        if form.is_valid():
+            constraint = form.save(commit=False)
+            constraint.field = field
+            constraint.save()
+            print "saved %s %s" % (constraint.id, constraint.field.id)
+        else:
+            print "form invalid"
+    else:
+        form = ConstraintForm()
+        
+    return render_to_response(req, "xforms/edit_constraint.html", { 'form' : form, 'xform' : xform, 'field' : field });
 
 def edit_constraint(req, form_id, field_id, constraint_id) :
 
-	return render_to_response(req, "xforms/edit_constraint.html");
+    return render_to_response(req, "xforms/edit_constraint.html");
 
 
 def delete_xform (req, form_id):
-	xform = XForm.objects.get(pk=form_id)
-	if req.method == 'POST':
-		xform.delete()
-		
-	return redirect("/xforms")
+    xform = XForm.objects.get(pk=form_id)
+    if req.method == 'POST':
+        xform.delete()
+        
+    return redirect("/xforms")
 
 def delete_field (req, form_id, field_id):
-	xform = XForm.objects.get(pk=form_id)
-	field = XFormField.objects.get(pk=field_id)
+    xform = XForm.objects.get(pk=form_id)
+    field = XFormField.objects.get(pk=field_id)
 
-	if req.method == 'POST':
-		field.delete()
-		
-	return redirect("/xforms/%d/edit/" % xform.pk)
+    if req.method == 'POST':
+        field.delete()
+        
+    return redirect("/xforms/%d/edit/" % xform.pk)

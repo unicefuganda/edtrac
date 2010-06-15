@@ -1,11 +1,11 @@
 <!--div class="delete" style="float:right"><img src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png"></div-->
 <!-- img id="{{field.id}}" class="form_field_edit" border="0" width="16" height="16" src="{{ MEDIA_URL }}xforms/icons/silk/bullet_arrow_right.png"-->
-<div class="field_table">
-<table><tr>
-<td class="field_name_col"><a id="{{field.id}}" class="form_field_edit" href="javascript:void(0);">{{ field.caption }}</a></td>
+<div class="field_table" id="{{field.id}}">
+<table width="100%"><tr>
+<td class="field_name_col">{{ field.caption }}</td>
 <td class="field_type_col">{{ field.type }}</td>
 <td class="field_command_col">{{ field.command }}</td>
 <td class="field_description_col">{{ field.description }}</td>
-<td class="field_options_col"><a href="">edit</a> | <a href="">delete</a></td>
+<td class="field_options_col"><a onclick="editField(this);" href="javascript:void(0)">edit</a> | <a onclick="deleteField(this)" href="javascript:void(0)">delete</a></td>
 </tr></table>
 </div>
