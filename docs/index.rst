@@ -35,7 +35,7 @@ XForms is fully documented.  To build the html docs, go to the /docs subdirector
        
        % make html
 
-The final docs will be found at /docs/_build/html/index.html
+The final docs will be found in ``docs/_build/html/index.html``
 
 Running the Tests
 =================

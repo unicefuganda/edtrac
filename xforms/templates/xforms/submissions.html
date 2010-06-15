@@ -1,0 +1,55 @@
+{% extends "xforms/xforms_base.html" %}
+{% block title %}XForms{% endblock %}
+
+{% block content %}
+
+<div class="module">
+<div>
+<p><a href="/xforms">&lt; All Forms</a></p>
+</div>
+
+
+<h2>{{ xform.name }} Submissions</h2>
+<table>
+  <tr>
+    <th>Action</th>
+    <th>Date</th>
+    <th>Type</th>
+    <th>Connection</th>
+    {% for field in fields.all %}
+    <th>{{ field.caption }}</th>
+    {% endfor %}
+    <th>Message</th>
+  </tr>
+
+  {% for submission in submissions %}
+  <tr>
+    <td><a href="/xforms/submissions/{{ submission.pk }}/edit/">edit</a></td>
+    <td>
+      {% if submission.has_errors %}
+      <font color='red'>
+      {% else %}
+      <font color='green'>
+      {% endif %}
+      {{ submission.created|date:"m/j/y G:i:s"}}</td>
+    </font>
+    <td>{{ submission.type }}</td>
+    <td>{{ submission.connection }}</td>
+    {% for field in fields.all %}
+    <td>
+      {% for value in submission.values.all %}
+      {% ifequal field value.field %}
+      {{ value.value }}
+      {% endifequal %}
+      {% endfor %}
+    </td>
+    {% endfor %}
+    <td><code>{{ submission.raw }}</code></td>
+  </tr>
+  {% endfor %}
+</table>
+<br/>
+
+</div>
+
+{% endblock %}

@@ -1,3 +1,6 @@
 [submodule "submodules/rapidsms"]
 	path = submodules/rapidsms
 	url = git://github.com/rapidsms/rapidsms-core-dev.git
+[submodule "docs/_build/html"]
+	path = docs/_build/html
+	url = git@github.com:nyaruka/rapidsms-xforms-builder.git

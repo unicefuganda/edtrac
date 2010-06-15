@@ -12,7 +12,7 @@ Every time a new XForm submission comes in, a signal will be triggered for that 
 
 Note that all submissions will trigger a signal.  It is up to the caller to filter the incoming submissions based on whether they were successful or are the type of XForm the listener is interested in.
 
-You can listen to incoming submissions via::
+An example of a simple listener::
 
     from xforms.models import xform_received
 
@@ -26,4 +26,9 @@ You can listen to incoming submissions via::
 
     # then wire it to the xform_received signal
     xform_received.connect(handle_submission)
+
+Submission Editing
+------------------
+
+Note that the ``xform_received`` signal will also be sent when an administrator edits and saves a submission.  As a listener you need to manage that an incomiung signal may be for a submission you have seen before.
 
