@@ -27,3 +27,8 @@ An example of a simple listener::
     # then wire it to the xform_received signal
     xform_received.connect(handle_submission)
 
+Submission Editing
+------------------
+
+Note that the ``xform_received`` signal will also be sent when an administrator edits and saves a submission.  As a listener you need to manage that an incomiung signal may be for a submission you have seen before.
+
