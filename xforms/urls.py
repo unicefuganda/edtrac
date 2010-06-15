@@ -16,5 +16,5 @@ urlpatterns = patterns('',
     url(r"^xforms/(\d+)/field/(\d+)/constraint/(\d+)/$", login_required(views.edit_constraint)),
     url(r"^xforms/(\d+)/field/(\d+)/constraint/$", login_required(views.add_constraint)),
     url(r"^xforms/(\d+)/delete_field/(\d+)/$", login_required(views.delete_field)),
-	url(r"^static/xforms/(?P<path>.*)$", 'django.views.static.serve', {'document_root' : 'apps/xforms/static'}),
+	url(r"^static/xforms/(?P<path>.*)$", 'django.views.static.serve', {'document_root' : 'xforms/static'}),
 )
