@@ -35,5 +35,4 @@ Updating GitHub Docs
 We use some modified paver scripts fromthe github-tools package to manage uploading our built docs to github::
 
   % easy_install github-tools[template]
-  % rm -rf docs/_build
   % paver gh_pages_build gh_pages_update -m "update github docs"
