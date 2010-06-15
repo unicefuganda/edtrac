@@ -10,7 +10,7 @@
 		delim = "";
 		sub = "";
 
-		$("#sortable img").each(function() {
+		$("#sortable a").each(function() {
 			if (this.id != "") {
 				sub += delim + this.id;
 				delim = ",";
@@ -42,19 +42,22 @@
 					// hide any open edit boxes
 					// $("div.field_box").load( "/xforms/" +  {{xform.pk}} + "/edit_field/" + this.id + "/");
 		
-					url = "/xforms/" +  {{xform.pk}} + "/edit_field/" + this.id + "/"
-					$(this).parent().load(url);
+					url = "/xforms/" +  {{xform.pk}} + "/edit_field/" + this.id + "/";
+					
+					$(this).parents(".field_box").load(url);
 					selected = $(("#selection_" + this.id));
 					selected.addClass('form_selected');
 					selected.removeClass('form_unselected');
-					this.hasEventHandler = true;
+					
 				});
+				
+				this.hasEventHandler = true;
 			}
 			
 		});
 		
 		// when we have successful saves, update our sort order too
-		updateOrder();
+		// updateOrder();
 	}
 	
 	// Add a new box for entering a new field
@@ -73,17 +76,25 @@
 		// hide our new field template
 		$('#new_field_box').hide();
 		
-		addNameClick();
-		
 		// Handle new field creation button
 		$( '.add_field' ).click( function() {
 			addNewFieldBox();
 		});
 
+		$(".field_box").each(function() {
+			field_id = $(this).parent().attr("id");
+			// console.log(this + " " + field_id);
+			if (field_id) {
+				url = "/xforms/" +  {{xform.pk}} + "/field/" + field_id + "/"
+				$(this).load(url, addNameClick);
+			}
+		});
+		
 		// if no fields, show the add new field form
 		if ({{field_count}} == 0) {
 			addNewFieldBox();
 		}
+		
 	});
 	
 	// Trap our ajax errors and put them where we can see them
@@ -100,22 +111,28 @@
 </script>
 
 <div>
-<p><a href="/xforms">&lt; All Forms</a></p>
+<p><a href="/xforms">&laquo; All Forms</a></p>
 </div>
 
 <div class="form_title">{{xform.name}}<span class="form_edit"><a href="">edit</a></span></div>
 <div class="form_body">{{xform.description}}<span class="form_edit"><a href="">edit</a></span></div>
-<div class="form_fields">
-
-	<table>
-		<tr valign="top"><td width="400">
-
+<br/><br/>
+<table width="100%" class="form_table">
+<thead>
+<tr>
+<th class="field_name_col">Caption</th>
+<th class="field_type_col">Type</th>
+<th class="field_command_col">Command</th>
+<th class="field_description_col">Description</th>
+<th class="field_options_col"></th>
+</tr>
+</thead>
+<tbody>
+<tr><td class="form_fields_cell" colspan="5">
 			<ul id="sortable">
 				{% for field in fields %}
 				<li class="field ui-state-default form_unselected" id="{{field.pk}}">
 					<div class="field_box" id="field_box_{{forloop.counter}}">
-						<div class="delete" style="float:right"><img src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png"></div>
-						<img id="{{field.id}}" class="form_field_edit" border="0" width="16" height="16" src="{{ MEDIA_URL }}xforms/icons/silk/bullet_arrow_right.png"><a id="{{field.id}}" class="form_field_edit" href="javascript:void(0);">{{ field.caption }}</a>
 					</div>
 				</li>
 				{% endfor %}
@@ -124,14 +141,9 @@
 					<div class="field_box" id="new_field_box"></div>
 				</li>
 			</ul>
-
-		</td><td>
-			<div id="edit_box">
-			</div>
-		</td></tr>
-	</table>
-
-</div>
+</td></tr>
+</tbody>
+</table>
 
 <br/><br/>
 

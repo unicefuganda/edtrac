@@ -19,22 +19,19 @@ function saveField(link) {
 <form class="form" action="/xforms/{{ xform.pk }}/add_field/" method="post">
 {% endif %}
 
-<div style="float:right"><img src="{{ MEDIA_URL }}rapidsms/icons/silk/accept--dull.png"/> <a href="javascript:void(0);" onclick="saveField(this);" class="done">done</a></div>
-
-<div class="form_edit_name">
-	<img id="{{field.id}}" class="form_field_edit" border="0" width="16" height="16" src="{{ MEDIA_URL }}xforms/icons/silk/bullet_arrow_down.png">
-
- 	{{form.caption}}
-	<div class="name_error">{{form.caption.errors}}</div>
-</div>
-
 <table class="field_table">
-<tr><td>{{form.command.label}}</td><td>{{form.command.errors}}{{form.command}}</td></tr>
-<tr><td>{{form.type.label}}</td><td>{{form.type.errors}}{{form.type}}</td></tr>
-<tr><td>{{form.description.label}}</td><td>{{form.description.errors}}{{form.description}}</td></tr>
-</table>
+<tr>
+<td class="field_name_col">{{ form.caption }} {{ form.caption.errors}}</td>
+<td class="field_type_col">{{ form.type }} {{ form.type.errors }}</td>
+<td class="field_command_col">{{ form.command }} {{form.command.errors}}</td>
+<td class="field_description_col">{{ form.description }} {{ form.description.errors }}</td>
+<td class="field_options_col"><a href="javascript:void(0);" onclick="saveField(this);" class="done">save</a> | <a href="javascript:void(0);" onclick="saveField(this);" class="done">cancel</a></td>
+</tr>
 
-<div class="constraints_box" id="field_constraints_{{field.pk}}">
+</table>
+</form>
+
+<!-- div class="constraints_box" id="field_constraints_{{field.pk}}">
 
 {% for constraint in constraints %}
 blah
@@ -44,11 +41,10 @@ blah
 				
 
 
-</form>
 
-<!-- Not ready for constraints yet
+Not ready for constraints yet
 button onclick="javascript:void(0);"><img src="{{ MEDIA_URL }}rapidsms/icons/silk/add.png"/><div>Add Constraint</div></button-->
 
 
-</div>
+</div-->
 
