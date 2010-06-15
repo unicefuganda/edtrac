@@ -8,54 +8,77 @@ An XForm is composed of one or more ordered fields.  Currently four types are su
 Integer Field
 --------------
 
-An integer field holds integers.  It supports the following restraints:
+An integer field which contains even numbers.
 
-``required``
-	a value is required for all form submission
-
-``min_value``
-	The value must be be at least equal to the test value
-
-``max_value``
-	The value must be less than or equal to the test value
+Examples::
+	
+	survey +age 20
+	survey +height 35
 
 Decimal Field
 --------------
 
 A decimal field holds a real, non integer number.  It has a maximum precision of 9 digits before and 9 digits after the period.
 
-``required``
-	a value is required for all form submission
-
-``min_value``
-	The value must be be at least equal to the test value
-
-``max_value``
-	The value must be less than or equal to the test value
+Examples::
+	
+	survey +flow 5.4
+	survey +temp 98.6
 
 String Field
 ------------
 
 A string field, represents just a block of text.
 
-``required``
-	a value is required for all form submission
-
-``min_len``
-	The value must be be at least of length n
-
-``max_len``
-	The value must be at most of length n
-
-``regex``
-	The value must match the passed in regex.  This can have multiple forms and should include anchor tokens if the regular expression is meant to be inclusive, some examples::
-
-	^(mal|fev|shi)$
+Examples::
+	
+	survey +name matt berg
+	survey +comment well is in need of repair
 
 Coordinate Field
 ----------------
 
 A coordinate field, which in practice is a pairing of decimal fields.
 
+Examples::
+
+	survey +loc 1.4564 1.5435
+	survey +track 1.5456 1.2355
+
+Field Constraints
+==================
+
+Every field can have one or more ordered constraints applied to it.  For each constraint you can specify a custom error message that is returned if the constraint fails.
+
+The types of constraints are:
+
+``required``
+	a non empty value is required for all form submission
+
+``min_value``
+	The numeric value of the field must be n or greater.
+
+``max_value``
+	The numeric value of the field must be n or less.
+
+``min_len``
+	The value as a string must be be at least of length n
+
+``max_len``
+	The value as a string must be at most of length n
+
+``regex``
+	The value must match the passed in regex.  You likely want to include anchor tokens if the regular expression is meant to be inclusive.
+
+Some example regular expressions::
+	
+	# only matches the strings 'mal', 'fev' or 'shi'
+	^(mal|fev|shi)$
+
+	# matches phone numbers in the form 333-3333
+	^\d\d\d-\d\d\d\d$
+
+	# forces the string to be only lowercase letters
+	^[a-z]+$
 
 

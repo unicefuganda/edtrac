@@ -12,7 +12,7 @@ Every time a new XForm submission comes in, a signal will be triggered for that 
 
 Note that all submissions will trigger a signal.  It is up to the caller to filter the incoming submissions based on whether they were successful or are the type of XForm the listener is interested in.
 
-You can listen to incoming submissions via::
+An example of a simple listener::
 
     from xforms.models import xform_received
 
