@@ -225,5 +225,31 @@ class SubmisionTest(TestCase): #pragma: no cover
         submission = self.xform.process_sms_submission("survey +age 10 +name matt berg", None)
         self.failUnlessEqual(listener.submission, submission)
         self.failUnlessEqual(listener.xform, self.xform)
-        
+
+        # test that it works via update as well
+        new_vals = { 'age': 20, 'name': 'greg snider' }
+        self.xform.update_submission_from_dict(submission, new_vals)
+
+        self.failUnlessEqual(listener.submission.values.get(field__command='age').value, '20')
+        self.failUnlessEqual(listener.submission.values.get(field__command='name').value, 'greg snider')
+
+    def testUpdateFromDict(self):
+        submission = self.xform.process_sms_submission("survey +age 10 +name matt berg", None)
+        self.failUnlessEqual(len(submission.values.all()), 2)
+
+        # now update the form using a dict
+        new_vals = { 'age': 20, 'name': 'greg snider' }
+        self.xform.update_submission_from_dict(submission, new_vals)
+
+        self.failUnlessEqual(len(submission.values.all()), 2)
+        self.failUnlessEqual(submission.values.get(field__command='age').value, '20')
+        self.failUnlessEqual(submission.values.get(field__command='name').value, 'greg snider')
+
+        # make sure removal case works
+        new_vals = { 'age': 30 }
+        self.xform.update_submission_from_dict(submission, new_vals)
+
+        self.failUnlessEqual(len(submission.values.all()), 1)
+        self.failUnlessEqual(submission.values.get(field__command='age').value, '30')
+
 

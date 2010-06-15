@@ -1,0 +1,21 @@
+{% extends "xforms/xforms_base.html" %}
+{% block title %}XForms{% endblock %}
+
+{% block content %}
+
+<div class="module">
+<p><a href="/xforms/{{ xform.pk }}/submissions">&lt; All Submissions</a></p>
+
+
+From: {{ submission.connection }}<br>
+Sent: {{ submission.created|date:"m/j/y G:i:s"}}<br>
+Message: <code>{{ submission.raw }}</code><br>
+
+<h4>Values</h4>
+<form action="/xforms/submissions/{{submission.pk}}/edit/" method="post">
+{{ form.as_ul }}
+<input type="submit" value="Save" />
+
+</div>
+
+{% endblock %}

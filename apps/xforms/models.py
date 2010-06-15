@@ -21,6 +21,43 @@ class XForm(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
+    def update_submission_from_dict(self, submission, values):
+        """
+        Sets the values for the passed in submission to the passed in dictionary.  The dict
+        is expected to have keys corresponding to the commands of the fields.
+
+        Note that the submission will set itself as no longer having any errors and trigger
+        the xform_submitted signal
+
+        TODO: I'm kind of putting all real logic in XForm as a base, but maybe this really
+        belongs in XFormSubmission where I first had it.
+        """
+        # first update any existing values, removing them from our dict as we work
+        for value in submission.values.all():
+            # we have a new value, update it
+            if value.field.command in values:
+                value.value = values[value.field.command]
+                value.save()
+                del values[value.field.command]
+
+            # no new value, we need to remove this one
+            else:
+                value.delete()
+
+        # now add any remaining values in our dict
+        for key, value in values.items():
+            # look up the field by key
+            field = XFormField.objects.get(xform=self, command=key)
+            sub_value = submission.values.create(field=field, value=str(value))
+
+        # clear out our error flag if there were some
+        if submission.has_errors:
+            submission.has_errors = False
+            submission.save()
+
+        # trigger our signal for anybody interested in form submissions
+        xform_received.send(sender=self, xform=self, submission=submission)
+
     def process_sms_submission(self, message, connection):
         """
         Given an incoming SMS message, will create a new submission.  If there is an error
@@ -120,7 +157,6 @@ class XFormField(models.Model):
         The return value is None in the case of no errors or the first error message if one of the
         constraints fails.
         """
-
 
         # check against our type first if we have a value
 
