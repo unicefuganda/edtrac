@@ -42,18 +42,29 @@ def new_xform(req):
 def view_form(req, form_id):
     xform = XForm.objects.get(pk=form_id)
     fields = XFormField.objects.order_by('order').filter(xform=xform)
+    breadcrumbs = (('XForms', '/xforms'),('Edit Form', ''))
+    return render_to_response(req, "xforms/form_view.html", { 'xform': xform, 'fields': fields, 'field_count' : len(fields), 'breadcrumbs' : breadcrumbs })
 
-    breadcrumbs = (('XForms', '/'),('Edit Form', ''))
+def view_form_details(req, form_id):
+    xform = XForm.objects.get(pk=form_id)
+    return render_to_response(req, "xforms/form_details.html", { 'xform': xform })
+
+def edit_form(req, form_id):
+    xform = XForm.objects.get(pk=form_id)
+    fields = XFormField.objects.order_by('order').filter(xform=xform)
+
+    breadcrumbs = (('XForms', '/xforms'),('Edit Form', ''))
 
     if req.method == 'POST':
         form = XFormForm(req.POST, instance=xform)
         if form.is_valid():
             xform = form.save()
-            return redirect("/xforms")
+            return render_to_response(req, "xforms/form_details.html", {"xform" : xform})
     else:
         form = XFormForm(instance=xform)
 
-    return render_to_response(req, "xforms/form_view.html", { 'form': form, 'xform': xform, 'fields': fields, 'field_count' : len(fields), 'breadcrumbs' : breadcrumbs })
+    return render_to_response(req, "xforms/form_edit.html", { 'form': form, 'xform': xform, 'fields': fields, 'field_count' : len(fields), 'breadcrumbs' : breadcrumbs })
+
 
 def order_xform (req, form_id):
     if req.method == 'POST':
@@ -103,7 +114,9 @@ def view_submissions(req, form_id):
     submissions = xform.submissions.all().order_by('-pk')
     fields = xform.fields.all().order_by('pk')
 
-    return render_to_response(req, "xforms/submissions.html", { 'xform': xform, 'fields': fields, 'submissions': submissions })
+    breadcrumbs = (('XForms', '/xforms'),('Submissions', ''))
+    
+    return render_to_response(req, "xforms/submissions.html", { 'xform': xform, 'fields': fields, 'submissions': submissions, 'breadcrumbs': breadcrumbs })
 
 def make_submission_form(xform):
     fields = {}

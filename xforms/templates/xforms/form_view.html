@@ -47,9 +47,11 @@
 		$(".field_box").each(function() {
 			field_id = $(this).parent().attr("id");
 			if (field_id) {
-				$(this).load("/xforms/" +  {{xform.pk}} + "/field/" + field_id + "/");
+				$(this).load("/xforms/{{xform.pk}}/field/" + field_id + "/");
 			}
 		});
+		
+		showFormDetails();
 		
 		// if no fields, show the add new field form
 		if ({{field_count}} == 0) {
@@ -57,6 +59,10 @@
 		}
 		
 	});
+	
+	function showFormDetails() {
+	  $("#form_header").load("/xforms/{{xform.pk}}/details");
+	}
 	
 	function deleteField(link) {
 	  field_id = $(link).parents(".field_table").attr("id");
@@ -93,8 +99,16 @@
      $(link).parents(".field_box").load("/xforms/{{xform.pk}}/field/" + field_id + "/");
 	}
 	
-	function editFormName(form_id) {
-	  $("#form_name").load("/xforms/" + form_id + "/editname/");
+	function editFormDetails(form_id) {
+	  $("#form_header").load("/xforms/" + form_id + "/edit/");
+	}
+	
+	function submitForm(link, resultDiv) {
+	  form = $(link).parents("form");
+    form_data = form.serializeArray();
+    console.log(resultDiv);
+    console.log($(resultDiv));
+    $(resultDiv).load(form.attr("action"), form_data);
 	}
 	
 	// Trap our ajax errors and put them where we can see them
@@ -110,17 +124,8 @@
 	
 </script>
   
-<div class="form_header">
-    <div class="buttons">
-    <a onclick="editFormName('{{xform.pk}}');" href="javascript:void(0);">
-        <img src="{{ MEDIA_URL }}xforms/icons/silk/pencil.png" alt=""/> 
-        Edit Name and Description
-    </a>
-    </div>
-  <div id="form_name">
-    <div class="name">{{xform.name}}</div>
-    <div class="description">{{xform.description}}</div>
-  </div>
+<div id="form_header">
+   
 </div>
 
 <table width="100%" class="form_table">
