@@ -6,6 +6,23 @@
 <td class="field_type_col">{{ field.type }}</td>
 <td class="field_command_col">{{ field.command }}</td>
 <td class="field_description_col">{{ field.description }}</td>
-<td class="field_options_col"><a onclick="editField(this);" href="javascript:void(0)">edit</a> | <a onclick="deleteField(this)" href="javascript:void(0)">delete</a></td>
+<td class="field_options_col">
+    
+    <a onclick="deleteField(this);" class="negative" style="float:right">
+        <img style="vertical-alignment:bottom;padding-top:7px" src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png" alt=""/>
+    </a>
+<div class="buttons">
+  
+    <a onclick="editField(this);" href="javascript:void(0);">
+        <img src="{{ MEDIA_URL }}xforms/icons/silk/pencil.png" alt=""/> 
+        Edit
+    </a>
+</div>
+
+<!--
+  <img onclick="editField(this)" style="vertical-align:middle;padding-right:5px" src="{{ MEDIA_URL }}xforms/icons/silk/pencil.png" border="0">
+  <img onclick="deleteField(this)" style="vertical-align:middle" src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png" border="0">
+  --> 
+</td>
 </tr></table>
 </div>

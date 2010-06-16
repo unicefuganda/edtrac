@@ -10,7 +10,7 @@
 		delim = "";
 		sub = "";
 
-		$("#sortable a").each(function() {
+		$("#sortable .field_table").each(function() {
 			if (this.id != "") {
 				sub += delim + this.id;
 				delim = ",";
@@ -44,14 +44,8 @@
 		// hide our new field template
 		$('#new_field_box').hide();
 		
-		// Handle new field creation button
-		$( '.add_field' ).click( function() {
-			addNewFieldBox();
-		});
-
 		$(".field_box").each(function() {
 			field_id = $(this).parent().attr("id");
-			// console.log(this + " " + field_id);
 			if (field_id) {
 				$(this).load("/xforms/" +  {{xform.pk}} + "/field/" + field_id + "/");
 			}
@@ -81,6 +75,23 @@
     selected.addClass('form_selected');
     selected.removeClass('form_unselected');
   }
+	
+	function saveField(link) {
+    form = $(link).parents(".form");
+    form_data = form.serializeArray();
+    form.parents(".field_box").load(form.attr("action"), form_data);
+  }
+  
+  function cancelAdd(link) {
+    if (confirm("Are you sure you want to cancel this new field?")) {
+      $(link).parents(".field_box").remove();
+    }
+  }
+	
+	function cancelField(link) {
+	   field_id = $(link).parents(".field_table").attr("id");
+     $(link).parents(".field_box").load("/xforms/{{xform.pk}}/field/" + field_id + "/");
+	}
 	
 	// Trap our ajax errors and put them where we can see them
 	$.ajaxSetup({
@@ -129,10 +140,14 @@
 </td></tr>
 </tbody>
 </table>
-
+<br/>
+<div class="buttons">
+    <a href="javascript:addNewFieldBox();" style="float:left">
+      <img border="0" src="{{ MEDIA_URL }}rapidsms/icons/silk/add.png" alt=""/>Add New Field
+    </a>
+  </div>
 <br/><br/>
 
-<div class="add_field"><a href="javascript:void(0);">Add Field</a></div>
 
 <div id="error"></div>
 

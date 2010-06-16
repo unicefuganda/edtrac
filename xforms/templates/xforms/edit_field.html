@@ -1,19 +1,14 @@
-<script type="text/javascript">
 
-function saveField(link) {
-	form = $(link).parents(".form");
-	form_data = form.serializeArray();
-	form.parents(".field_box").load(form.attr("action"), form_data);
-}
-
-function cancelAdd(link) {
-  if (confirm("Are you sure you want to cancel this new field?")) {
-    $(link).parents(".field_box").remove();
-  }
-}
-
+<script language="javascript">
+  $(document).ready(function() {
+    // highlight the save button when changes are detected
+    $("input,select").change(function() { 
+        field_id = $(this).parents(".field_table").attr("id");
+        $("#save_" + field_id).addClass("positive");
+    });
+  });
+  
 </script>
-
 
 {% if field %}
 <div class="edit_field">
@@ -24,14 +19,39 @@ function cancelAdd(link) {
 <form class="form" action="/xforms/{{ xform.pk }}/add_field/" method="post">
 {% endif %}
 
-<table class="field_table" width="100%">
+<table class="field_table" width="100%" id="{{field.pk}}">
 <tbody>
 <tr>
-<td class="field_name_col">{{ form.caption }} {{ form.caption.errors}}</td>
+<td class="field_name_col">
+  {% if field %}
+  
+  {% endif %} {{ form.caption }} {{ form.caption.errors}}</td>
 <td class="field_type_col">{{ form.type }} {{ form.type.errors }}</td>
 <td class="field_command_col">{{ form.command }} {{form.command.errors}}</td>
 <td class="field_description_col">{{ form.description }} {{ form.description.errors }}</td>
-<td class="field_options_col"><a href="javascript:void(0);" onclick="saveField(this);" class="done">save</a> | <a href="javascript:void(0)" onClick="cancelAdd(this)" class="cancel">cancel</a></td>
+<td class="field_options_col">
+  
+  {% if field %}
+  
+  <a href="javascript:void(0);"><img onclick="cancelField(this);" style="float:right;padding-top:6px;" src="{{ MEDIA_URL }}rapidsms/icons/silk/decline.png" alt="" border="0"/></a>
+  
+  <div class="buttons">
+    <a onclick="saveField(this);" href="javascript:void(0);" id="save_{{field.pk}}">
+      <img src="{{ MEDIA_URL }}xforms/icons/silk/database_save.png" alt=""/>Save
+    </a>
+  </div>
+
+  {% else %}
+  
+  <a href="javascript:void(0);"><img onclick="cancelAdd(this);" style="float:right;padding-top:6px;" src="{{ MEDIA_URL }}rapidsms/icons/silk/decline.png" alt="" border="0"/></a>
+  
+  <div class="buttons">
+    <a onclick="saveField(this);" href="javascript:void(0);" id="save_{{field.pk}}" class="positive">
+      <img src="{{ MEDIA_URL }}rapidsms/icons/silk/add.png" alt=""/>Add
+    </a>
+  </div>
+  {% endif %}
+  </td>
 </tr>
 </tbody>
 </table>
