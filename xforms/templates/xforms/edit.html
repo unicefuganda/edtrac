@@ -24,7 +24,7 @@
 
 	// Create our sortable widget and handle any sort events
 	$(function() {
-		$("#sortable").sortable({ update: updateOrder });
+		$("#sortable").sortable({ update: updateOrder, delay: 0, distance: 20, handle: '.grippy' });
 		$("#sortable").disableSelection();
 	});
 	
@@ -106,13 +106,11 @@
 	
 </script>
 
-<div>
-<p><a href="/xforms">&laquo; All Forms</a></p>
+<div class="form_header">
+  <div class="breadcrumb"><a href="/xforms">XForms</a> &raquo; {{xform.name}}</p></div>
+  <div class="form_body">{{xform.description}}</div>
 </div>
 
-<div class="form_title">{{xform.name}}<span class="form_edit"><a href="">edit</a></span></div>
-<div class="form_body">{{xform.description}}<span class="form_edit"><a href="">edit</a></span></div>
-<br/><br/>
 <table width="100%" class="form_table">
 <thead>
 <tr>

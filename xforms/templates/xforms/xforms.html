@@ -30,13 +30,15 @@ function deleteForm(form_id, form_name) {
       <td><b>{{ xform.name }}</b></td>
       <td>{{ xform.description }}</td>
       <td>
+           <a style="float:right;padding-top:7px;" href="javascript:void(0);" onclick="deleteForm('{{xform.pk}}','{{xform.name|addslashes}}');"><img border="0" src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png"/></a>
+	
 	<div class="buttons">
-          <a href="javascript:deleteForm('{{xform.pk}}','{{xform.name|addslashes}}');"><img border="0" src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png"/></a>
+       
 	  <a href="/xforms/{{ xform.pk }}/submissions/">
-            <img src="{{ MEDIA_URL }}xforms/icons/silk/database_save.png" alt=""/> Submissions
+            <img src="{{ MEDIA_URL }}xforms/icons/silk/database_table.png" alt=""/> Submissions
 	  </a>
 	  <a href="/xforms/{{ xform.pk }}/edit/">
-            <img src="{{ MEDIA_URL }}xforms/icons/silk/pencil.png" alt=""/> Edit
+            <img src="{{ MEDIA_URL }}xforms/icons/silk/application_form_edit.png" alt=""/> Edit
 	  </a>
 	</div>
       </td>
