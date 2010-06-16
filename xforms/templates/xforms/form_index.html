@@ -1,4 +1,4 @@
-{% extends "xforms/xforms_base.html" %}
+{% extends "xforms/layout.html" %}
 {% block title %}XForms{% endblock %}
 
 {% block content %}
@@ -37,7 +37,7 @@ function deleteForm(form_id, form_name) {
 	  <a href="/xforms/{{ xform.pk }}/submissions/">
             <img src="{{ MEDIA_URL }}xforms/icons/silk/database_table.png" alt=""/> Submissions
 	  </a>
-	  <a href="/xforms/{{ xform.pk }}/edit/">
+	  <a href="/xforms/{{ xform.pk }}/view/">
             <img src="{{ MEDIA_URL }}xforms/icons/silk/application_form_edit.png" alt=""/> Edit
 	  </a>
 	</div>

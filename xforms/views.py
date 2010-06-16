@@ -10,7 +10,7 @@ from .models import XForm, XFormSubmission, XFormField, XFormFieldConstraint
 @register_tab(caption="XForms")
 def xforms(req): 
     xforms = XForm.objects.all()
-    return render_to_response(req, "xforms/xforms.html", { 'xforms': xforms } )
+    return render_to_response(req, "xforms/form_index.html", { 'xforms': xforms } )
 
 
 class XFormForm(forms.ModelForm): # pragma: no cover
@@ -35,10 +35,10 @@ def new_xform(req):
     else:
         form = XFormForm()
 
-    return render_to_response(req, "xforms/new.html", { 'form': form } )
+    return render_to_response(req, "xforms/form_create.html", { 'form': form } )
 
 
-def edit_xform(req, form_id):
+def view_form(req, form_id):
     xform = XForm.objects.get(pk=form_id)
     fields = XFormField.objects.order_by('order').filter(xform=xform)
 
@@ -50,7 +50,7 @@ def edit_xform(req, form_id):
     else:
         form = XFormForm(instance=xform)
 
-    return render_to_response(req, "xforms/edit.html", { 'form': form, 'xform': xform, 'fields': fields, 'field_count' : len(fields) } )
+    return render_to_response(req, "xforms/form_view.html", { 'form': form, 'xform': xform, 'fields': fields, 'field_count' : len(fields) } )
 
 def order_xform (req, form_id):
     if req.method == 'POST':
@@ -88,11 +88,11 @@ def add_field(req, form_id):
             field.xform = xform
             field.order = len(fields)
             field.save()
-            return render_to_response(req, "xforms/view_field.html", {'field' : field, 'xform' : xform })
+            return render_to_response(req, "xforms/field_view.html", {'field' : field, 'xform' : xform })
     else:
         form = FieldForm()
 
-    return render_to_response(req, "xforms/edit_field.html", { 'form': form, 'xform': xform })
+    return render_to_response(req, "xforms/field_edit.html", { 'form': form, 'xform': xform })
 
 def view_submissions(req, form_id):
     xform = XForm.objects.get(pk=form_id)
@@ -160,13 +160,13 @@ def edit_submission(req, submission_id):
 
         form = form_class(form_vals)
 
-    return render_to_response(req, "xforms/edit_submission.html", { 'xform': xform, 'submission': submission,
+    return render_to_response(req, "xforms/submission_edit.html", { 'xform': xform, 'submission': submission,
                                                                     'fields': fields, 'values': values, 'form': form })
 
 def view_field(req, form_id, field_id):
     xform = XForm.objects.get(pk=form_id)
     field = XFormField.objects.get(pk=field_id)
-    return render_to_response(req, "xforms/view_field.html", { 'xform': xform, 'field' : field })
+    return render_to_response(req, "xforms/field_view.html", { 'xform': xform, 'field' : field })
     
 
 def edit_field (req, form_id, field_id):
@@ -180,13 +180,12 @@ def edit_field (req, form_id, field_id):
             field = form.save(commit=False)
             field.xform = xform
             field.save()
-            return render_to_response(req, "xforms/view_field.html", { 'form' : form, 'xform' : xform, 'field' : field })
-        else:
-            return render_to_response(req, "xforms/edit_field.html", { 'form' : form, 'xform': xform, 'field' : field })
+            return render_to_response(req, "xforms/field_view.html", { 'form' : form, 'xform' : xform, 'field' : field })
+        else:            return render_to_response(req, "xforms/field_edit.html", { 'form' : form, 'xform': xform, 'field' : field })
     else:
         form = FieldForm(instance=field)
 
-    return render_to_response(req, "xforms/edit_field.html", { 'form' : form, 'xform': xform, 'field' : field })
+    return render_to_response(req, "xforms/field_edit.html", { 'form' : form, 'xform': xform, 'field' : field })
 
 def add_constraint(req, form_id, field_id):
     xform = XForm.objects.get(pk=form_id)
@@ -204,11 +203,11 @@ def add_constraint(req, form_id, field_id):
     else:
         form = ConstraintForm()
         
-    return render_to_response(req, "xforms/edit_constraint.html", { 'form' : form, 'xform' : xform, 'field' : field });
+    return render_to_response(req, "xforms/onstraint_constraint.html", { 'form' : form, 'xform' : xform, 'field' : field });
 
 def edit_constraint(req, form_id, field_id, constraint_id) :
 
-    return render_to_response(req, "xforms/edit_constraint.html");
+    return render_to_response(req, "xforms/constraint_edit.html");
 
 
 def delete_xform (req, form_id):

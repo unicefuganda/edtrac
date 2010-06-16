@@ -105,7 +105,7 @@
 
 .field_name_col {
 	padding:0px;
-	padding-left:2px;
+	padding-left:5px;
 	margin:0px;
 	width:200px;
 	border:0px solid;
@@ -140,6 +140,7 @@
 	border:0px solid;
 	width:100px;
 }
+
 
 .form_options_col {
 	width: 250px;
@@ -181,12 +182,26 @@
 .form_header {
   margin-left:8px;
   margin-bottom:15px;
+  color:#666;
+}
+
+.form_header .name {
+  font-weight:bold;
+  font-size:18px;
+  margin-bottom:7px;
+  
+}
+
+.form_header .description {
+  font-size:14px;
 }
 
 .breadcrumb {
-  font-size:20px;
+  font-size:12px;
   color:#666;
   margin-bottom:10px;
+  border-bottom: 1px solid #eee;
+  padding-bottom:5px;
 }
 
 #sortable { list-style-type: none; margin: 0; padding: 0; width: 100%; }

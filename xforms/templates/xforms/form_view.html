@@ -1,4 +1,4 @@
-{% extends "xforms/xforms_base.html" %}
+{% extends "xforms/layout.html" %}
 {% block title %}XForms{% endblock %}
 
 {% block content %}
@@ -93,6 +93,10 @@
      $(link).parents(".field_box").load("/xforms/{{xform.pk}}/field/" + field_id + "/");
 	}
 	
+	function editFormName(form_id) {
+	  $("#form_name").load("/xforms/" + form_id + "/editname/");
+	}
+	
 	// Trap our ajax errors and put them where we can see them
 	$.ajaxSetup({
 		error:function(x,e){
@@ -105,10 +109,19 @@
 	});
 	
 </script>
-
+<div class="breadcrumb"><a href="/xforms">XForms</a> &raquo; Edit Form</p></div>
+  
 <div class="form_header">
-  <div class="breadcrumb"><a href="/xforms">XForms</a> &raquo; {{xform.name}}</p></div>
-  <div class="form_body">{{xform.description}}</div>
+    <div class="buttons">
+    <a onclick="editFormName('{{xform.pk}}');" href="javascript:void(0);">
+        <img src="{{ MEDIA_URL }}xforms/icons/silk/pencil.png" alt=""/> 
+        Edit Name and Description
+    </a>
+    </div>
+  <div id="form_name">
+    <div class="name">{{xform.name}}</div>
+    <div class="description">{{xform.description}}</div>
+  </div>
 </div>
 
 <table width="100%" class="form_table">
