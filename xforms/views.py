@@ -9,6 +9,7 @@ from .models import XForm, XFormSubmission, XFormField, XFormFieldConstraint
 @require_GET
 @register_tab(caption="XForms")
 def xforms(req): 
+
     xforms = XForm.objects.all()
     return render_to_response(req, "xforms/form_index.html", { 'xforms': xforms } )
 
@@ -42,6 +43,8 @@ def view_form(req, form_id):
     xform = XForm.objects.get(pk=form_id)
     fields = XFormField.objects.order_by('order').filter(xform=xform)
 
+    breadcrumbs = (('XForms', '/'),('Edit Form', ''))
+
     if req.method == 'POST':
         form = XFormForm(req.POST, instance=xform)
         if form.is_valid():
@@ -50,7 +53,7 @@ def view_form(req, form_id):
     else:
         form = XFormForm(instance=xform)
 
-    return render_to_response(req, "xforms/form_view.html", { 'form': form, 'xform': xform, 'fields': fields, 'field_count' : len(fields) } )
+    return render_to_response(req, "xforms/form_view.html", { 'form': form, 'xform': xform, 'fields': fields, 'field_count' : len(fields), 'breadcrumbs' : breadcrumbs })
 
 def order_xform (req, form_id):
     if req.method == 'POST':
