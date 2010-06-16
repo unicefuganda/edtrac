@@ -132,6 +132,24 @@
 	text-align:right;	
 }
 
+.form_description_col {
+	border:0px solid;
+}
+
+.form_name_col {
+	border:0px solid;
+	width:100px;
+}
+
+.form_options_col {
+	width: 250px;
+	border:0px solid;
+	text-align:right;	
+}
+
+.form_table_row {
+	background: #FFF;
+}
 
 .field_table table tr td th {
   padding:0px;

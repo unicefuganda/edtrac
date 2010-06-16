@@ -13,7 +13,9 @@ Message: <code>{{ submission.raw }}</code><br>
 
 <h4>Values</h4>
 <form action="/xforms/submissions/{{submission.pk}}/edit/" method="post">
-{{ form.as_ul }}
+<table>
+{{ form.as_table }}
+</table>
 <input type="submit" value="Save" />
 
 </div>

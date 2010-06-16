@@ -9,22 +9,23 @@
 </div>
 
 
-<h2>{{ xform.name }} Submissions</h2>
-<table>
-  <tr>
-    <th>Action</th>
-    <th>Date</th>
-    <th>Type</th>
-    <th>Connection</th>
-    {% for field in fields.all %}
-    <th>{{ field.caption }}</th>
-    {% endfor %}
-    <th>Message</th>
-  </tr>
+<table width="100%" class="form_table"> 
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Type</th>
+      <th>Connection</th>
+      {% for field in fields.all %}
+      <th>{{ field.caption }}</th>
+      {% endfor %}
+      <th>Message</th>
+      <th></th>
+    </tr>
+  </thead>
 
+  {% if submissions %}
   {% for submission in submissions %}
-  <tr>
-    <td><a href="/xforms/submissions/{{ submission.pk }}/edit/">edit</a></td>
+  <tr class="form_table_row">
     <td>
       {% if submission.has_errors %}
       <font color='red'>
@@ -45,8 +46,22 @@
     </td>
     {% endfor %}
     <td><code>{{ submission.raw }}</code></td>
+    <td>
+      <div class="buttons">
+	<a href="/xforms/submissions/{{ submission.pk }}/edit/">
+          <img src="{{ MEDIA_URL }}xforms/icons/silk/pencil.png" alt=""/> Edit
+	</a>
+      </div>
+    </td>
   </tr>
   {% endfor %}
+  {% else %}
+  <tr class="form_table_row">
+    <td colspan="10">
+      <i>No submissions for this form.</i>
+    </td>
+  </tr>
+  {% endif %}
 </table>
 <br/>
 

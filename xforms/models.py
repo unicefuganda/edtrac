@@ -10,12 +10,15 @@ class XForm(models.Model):
 
     XForms also define their keyword which will be used when submitting via SMS.
     """
+    name = models.CharField(max_length=32, unique=True,
+                            help_text="Human readable name.")
+    keyword = models.SlugField(max_length=32, unique=True,
+                               help_text="The SMS keyword for this form, must be a slug.")
+    description = models.Field(max_length=255,
+                               help_text="The purpose of this form.")
 
-    keyword = models.SlugField(max_length=32, unique=True)
-    name = models.CharField(max_length=32, unique=True)
-    description = models.CharField(max_length=255)
-
-    response = models.CharField(max_length=255)
+    response = models.CharField(max_length=255,
+                                help_text="The response sent when this form is successfully submitted.")
 
     owner = models.ForeignKey(User)
     created = models.DateTimeField(auto_now_add=True)
@@ -144,7 +147,7 @@ class XFormField(models.Model):
     type = models.CharField(max_length=3, choices=TYPE_CHOICES)
     command = models.SlugField(max_length=8)
     caption = models.CharField(max_length=16)
-    description = models.CharField(max_length=32)
+    description = models.CharField(max_length=64)
     order = models.IntegerField(default=0)
 
     def check_value(self, value):

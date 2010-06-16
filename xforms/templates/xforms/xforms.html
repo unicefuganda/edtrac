@@ -13,26 +13,57 @@ function deleteForm(form_id, form_name) {
 </script>
 
 
-<div class="module">
 <h2>XForms</h2>
-<table>
-{% for xform in xforms %}
-<tr>
-<td><a href="/xforms/{{ xform.pk }}/edit">{{ xform.name }}</td>
-<td>{{ xform.description }}</td>
-<td><a href="/xforms/{{ xform.pk }}/submissions">View Submissions</td>
-<td><a href="javascript:deleteForm('{{xform.pk}}','{{xform.name|addslashes}}');"><img border="0" src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png"/></a></td>
-</tr>
-{% endfor %}
+
+<table width="100%" class="form_table"> 
+  <thead> 
+    <tr> 
+      <th class="form_name_col">Name</th> 
+      <th class="form_description_col">Description</th> 
+      <th class="form_options_col"></th> 
+    </tr> 
+  </thead> 
+  <tbody>
+    {% if xforms %}
+    {% for xform in xforms %}
+    <tr class="form_table_row">
+      <td><b>{{ xform.name }}</b></td>
+      <td>{{ xform.description }}</td>
+      <td>
+	<div class="buttons">
+          <a href="javascript:deleteForm('{{xform.pk}}','{{xform.name|addslashes}}');"><img border="0" src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png"/></a>
+	  <a href="/xforms/{{ xform.pk }}/submissions/">
+            <img src="{{ MEDIA_URL }}xforms/icons/silk/database_save.png" alt=""/> Submissions
+	  </a>
+	  <a href="/xforms/{{ xform.pk }}/edit/">
+            <img src="{{ MEDIA_URL }}xforms/icons/silk/pencil.png" alt=""/> Edit
+	  </a>
+	</div>
+      </td>
+    </tr>
+    {% endfor %}
+    {% else %}
+    <tr class="form_table_row">
+      <td colspan=3><i>No existing Forms.  Click 'Add New Form' to create one.</i></td>
+    </tr>
+    {% endif %}
+  </tbody>
 </table>
 <br/>
 
-<input type="button" onclick="window.location.href='/xforms/new/'" value="Add Form"/>
+<div class="buttons"> 
+    <a href="/xforms/new/" style="float:left"> 
+      <img border="0" src="/static/rapidsms/icons/silk/add.png" alt=""/>Add New Form
+    </a> 
+</div> 
+
+<br/><br/>
+
+</div>
+
 
 <form name="form" method="post" action="/xforms/">
 </form>
-</div>
-</div>
 
 </div>
 
