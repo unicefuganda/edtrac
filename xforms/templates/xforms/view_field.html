@@ -12,11 +12,14 @@
         <img style="vertical-alignment:bottom;padding-top:7px" src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png" alt=""/>
     </a>
 <div class="buttons">
-  
     <a onclick="editField(this);" href="javascript:void(0);">
         <img src="{{ MEDIA_URL }}xforms/icons/silk/pencil.png" alt=""/> 
         Edit
     </a>
+    <a onclick="saveField(this);" href="javascript:void(0);" id="save_{{field.pk}}">
+      <img src="{{ MEDIA_URL }}xforms/icons/silk/bullet_wrench.png" alt=""/>Constraints
+    </a>
+
 </div>
 
 <!--
