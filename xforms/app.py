@@ -10,7 +10,7 @@ class App (rapidsms.App):
         keyword = message.text.split()[0].lower()
 
         # see if this message matches any of our forms
-        for form in XForm.objects.all():
+        for form in XForm.objects.all().filter(active=True):
             if form.keyword == keyword:
                 submission = form.process_sms_submission(message.text, message.connection)
 
@@ -19,7 +19,6 @@ class App (rapidsms.App):
                 else:
                     message.respond(form.response)
                 return True
-        
 
         return False
         

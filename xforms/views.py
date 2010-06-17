@@ -15,14 +15,19 @@ def xforms(req):
     return render_to_response(req, "xforms/form_index.html", { 'xforms': xforms, 'breadcrumbs': breadcrumbs } )
 
 
-class XFormForm(forms.ModelForm): # pragma: no cover
+class NewXFormForm(forms.ModelForm): # pragma: no cover
     class Meta:
         model = XForm
         fields = ('name', 'keyword', 'description', 'response')
 
+class EditXFormForm(forms.ModelForm): # pragma: no cover
+    class Meta:
+        model = XForm
+        fields = ('name', 'keyword', 'description', 'response', 'active')
+
 def new_xform(req):
     if req.method == 'POST':
-        form = XFormForm(req.POST)
+        form = NewXFormForm(req.POST)
         if form.is_valid():
             # create our XForm
             xform = form.save(commit=False)
@@ -35,7 +40,7 @@ def new_xform(req):
 
             return redirect("/xforms/%d/view/" % xform.pk)
     else:
-        form = XFormForm()
+        form = NewXFormForm()
 
     return render_to_response(req, "xforms/form_create.html", { 'form': form } )
 
@@ -57,12 +62,12 @@ def edit_form(req, form_id):
     breadcrumbs = (('XForms', '/xforms'),('Edit Form', ''))
 
     if req.method == 'POST':
-        form = XFormForm(req.POST, instance=xform)
+        form = EditXFormForm(req.POST, instance=xform)
         if form.is_valid():
             xform = form.save()
             return render_to_response(req, "xforms/form_details.html", {"xform" : xform})
     else:
-        form = XFormForm(instance=xform)
+        form = EditXFormForm(instance=xform)
 
     return render_to_response(req, "xforms/form_edit.html", { 'form': form, 'xform': xform, 'fields': fields, 'field_count' : len(fields), 'breadcrumbs' : breadcrumbs })
 

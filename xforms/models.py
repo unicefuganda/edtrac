@@ -14,11 +14,12 @@ class XForm(models.Model):
                             help_text="Human readable name.")
     keyword = models.SlugField(max_length=32, unique=True,
                                help_text="The SMS keyword for this form, must be a slug.")
-    description = models.Field(max_length=255,
+    description = models.TextField(max_length=255,
                                help_text="The purpose of this form.")
-
     response = models.CharField(max_length=255,
                                 help_text="The response sent when this form is successfully submitted.")
+    active = models.BooleanField(default=True,
+                                 help_text="Inactive forms will not accept new submissions.")
 
     owner = models.ForeignKey(User)
     created = models.DateTimeField(auto_now_add=True)

@@ -24,7 +24,7 @@ function deleteForm(form_id, form_name) {
     {% if xforms %}
     {% for xform in xforms %}
     <tr class="form_table_row">
-      <td><b>{{ xform.name }}</b></td>
+      <td><b>{% if xform.active %}{{ xform.name }}{% else %}<font color="grey">{{ xform.name }}</font>{% endif %}</b></td>
       <td>{{ xform.description }}</td>
       <td>
            <a style="float:right;padding-top:7px;" href="javascript:void(0);" onclick="deleteForm('{{xform.pk}}','{{xform.name|addslashes}}');"><img border="0" src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png"/></a>
@@ -35,7 +35,7 @@ function deleteForm(form_id, form_name) {
             <img src="{{ MEDIA_URL }}xforms/icons/silk/database_table.png" alt=""/> Submissions
 	  </a>
 	  <a href="/xforms/{{ xform.pk }}/view/">
-            <img src="{{ MEDIA_URL }}xforms/icons/silk/application_form_edit.png" alt=""/> Edit
+            <img src="{{ MEDIA_URL }}xforms/icons/silk/zoom.png" alt=""/> View
 	  </a>
 	</div>
       </td>
