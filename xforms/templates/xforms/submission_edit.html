@@ -3,21 +3,33 @@
 
 {% block content %}
 
-<div class="module">
-<p><a href="/xforms/{{ xform.pk }}/submissions">&lt; All Submissions</a></p>
+<div class="details">
 
-
-From: {{ submission.connection }}<br>
-Sent: {{ submission.created|date:"m/j/y G:i:s"}}<br>
-Message: <code>{{ submission.raw }}</code><br>
-
-<h4>Values</h4>
-<form action="/xforms/submissions/{{submission.pk}}/edit/" method="post">
-<table>
-{{ form.as_table }}
-</table>
-<input type="submit" value="Save" />
-
+<div class="name">{{ xform.name }} Submission</div>
+<span class="label">From:</span>{{ submission.connection }}<br>
+<span class="label">Sent:</span> {{ submission.created|date:"m/j/y G:i:s"}}<br>
+<span class="label">Message:</span> <code>{{ submission.raw }}</code><br>
 </div>
+
+<h3>Values</h3>
+
+{% load uni_form_tags %}
+<form action="/xforms/submissions/{{submission.pk}}/edit/" method="post" class="uniForm" id="subForm">
+<fieldset>
+{{ form|as_uni_form }}
+
+<div class="buttons" style="float:left;margin-bottom:10px;margin-top:10px">
+  <a href="/xforms/{{ xform.pk }}/submissions" class="negative">
+    <img src="{{ MEDIA_URL }}rapidsms/icons/silk/decline.png" alt=""/> 
+    Cancel
+  </a>
+  <a onclick="$('#subForm').submit();" href="javascript:void(0);">
+    <img src="{{ MEDIA_URL }}xforms/icons/silk/disk.png" alt=""/> 
+    Save Form Details
+  </a>
+</div>
+
+</fieldset>
+</form>
 
 {% endblock %}

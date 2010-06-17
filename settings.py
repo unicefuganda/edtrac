@@ -25,7 +25,9 @@ INSTALLED_APPS = (
     "rapidsms.contrib.httptester",
 
     "xforms",
-    "test_extensions"
+    "test_extensions",
+    
+    "uni_form"
 )
 
 MIDDLEWARE_CLASSES = (

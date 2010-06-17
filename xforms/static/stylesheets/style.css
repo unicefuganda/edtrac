@@ -179,6 +179,24 @@
   background-color:#fff;
 }
 
+.details {
+  margin-bottom:15px;
+  color:#666;
+  font-size:14px;
+  line-height: 1.2em;
+}
+
+.details .name {
+  font-weight:bold;
+  font-size:18px;
+  margin-bottom:7px;
+}
+
+.details .label {
+  font-weight:bold;
+  font-size:14px;
+}
+
 #form_header {
   margin-left:8px;
   margin-bottom:15px;

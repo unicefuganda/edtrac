@@ -11,13 +11,21 @@ Getting started
 
 Quick start from a clone.  We don't encourage using the source, instead use the package (forthcoming) but this will get you going in the meantime::
 
+  # we depend on django-uni-form being installed
+  % pip install django-uni-form
+
+  # update our submodules
   % git submodule init
   % git submodule update
   % cd submodules/rapidsms
   % git submodule init
   % git submodule update
   % cd ../..
+
+  # create our tables
   % ./manage.py syncdb
+
+  # and we're off!
   % ./manage.py runserver
 
 Building Docs

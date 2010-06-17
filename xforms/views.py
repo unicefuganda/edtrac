@@ -11,7 +11,8 @@ from .models import XForm, XFormSubmission, XFormField, XFormFieldConstraint
 def xforms(req): 
 
     xforms = XForm.objects.all()
-    return render_to_response(req, "xforms/form_index.html", { 'xforms': xforms } )
+    breadcrumbs = (('XForms', ''),)
+    return render_to_response(req, "xforms/form_index.html", { 'xforms': xforms, 'breadcrumbs': breadcrumbs } )
 
 
 class XFormForm(forms.ModelForm): # pragma: no cover
@@ -32,7 +33,7 @@ def new_xform(req):
             # commit it
             xform.save()
 
-            return redirect("/xforms/%d/edit/" % xform.pk)
+            return redirect("/xforms/%d/view/" % xform.pk)
     else:
         form = XFormForm()
 
@@ -121,7 +122,8 @@ def view_submissions(req, form_id):
 def make_submission_form(xform):
     fields = {}
     for field in xform.fields.all().order_by('order'):
-        fields[field.command] = forms.CharField(required=False)
+        fields[field.command] = forms.CharField(required=False,
+                                                help_text=field.description)
 
     # this method overloads Django's form clean() method and makes sure all the fields
     # pass the constraints determined by our XForm.  This guarantees that even the Admin
@@ -176,8 +178,11 @@ def edit_submission(req, submission_id):
 
         form = form_class(form_vals)
 
+    breadcrumbs = (('XForms', '/xforms'),('Submissions', '/xforms/%d/submissions' % xform.pk), ('Edit Submission', ''))
+
     return render_to_response(req, "xforms/submission_edit.html", { 'xform': xform, 'submission': submission,
-                                                                    'fields': fields, 'values': values, 'form': form })
+                                                                    'fields': fields, 'values': values, 'form': form,
+                                                                    'breadcrumbs': breadcrumbs })
 
 def view_field(req, form_id, field_id):
     xform = XForm.objects.get(pk=form_id)

@@ -1,7 +1,10 @@
 <div class="name">Edit '{{xform.name}}'</div>
 
-<form action="/xforms/{{xform.pk}}/edit/" method="post">
-{{form.as_p}}
+{% load uni_form_tags %}
+
+<form action="/xforms/{{xform.pk}}/edit/" method="post" class="uniForm">
+<fieldset>
+{{form|as_uni_form}}
 
 <div class="buttons" style="float:left;margin-bottom:10px;margin-top:10px">
   <a onclick="showFormDetails('{{xform.pk}}');" href="javascript:void(0);" class="negative">
@@ -13,4 +16,5 @@
     Save Form Details
   </a>
 </div>
+</fieldset>
 </from>

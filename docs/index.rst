@@ -17,11 +17,16 @@ Distinct features:
 
 Installation
 ===========================================
-To use, just put the ``xforms`` on your Python path, then edit your ``settings.py`` to include ``xforms``:
+We depend on the ``uni-form`` library to provide us with better looking (and more accessible) forms for free.  You'll need to install this first::
+
+   % pip install django-uni-form
+
+Then to use xforms, just put ``xforms`` on your Python path, then edit your ``settings.py`` to include ``xforms``:
 
 .. sourcecode:: python
 
   INSTALLED_APPS = ( "rapidsms",
+  		     "uni_form",
   		     "xforms" )
 
 Then sync your database with ``./manage.py syncdb``.
