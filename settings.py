@@ -27,7 +27,7 @@ INSTALLED_APPS = (
     "xforms",
     "test_extensions",
     
-    "uni_form"
+    "uni_form",
 )
 
 MIDDLEWARE_CLASSES = (
@@ -43,3 +43,10 @@ LOGIN_REDIRECT_URL = "/"
 INSTALLED_BACKENDS = {
     "message_tester" : {"ENGINE": "rapidsms.backends.bucket" } 
 }
+
+TABS = [
+    ('rapidsms.views.dashboard', 'Dashboard'),
+    ('rapidsms.contrib.httptester.views.generate_identity', 'Message Tester'),
+    ('xforms.views.xforms', 'XForms'),
+]
+
