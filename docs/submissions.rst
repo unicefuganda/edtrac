@@ -34,6 +34,22 @@ Some examples SMS forms and responses for an XForm with the keyword ``survey`` a
 XForm HTTP Post
 ---------------
 
+Any forms created will also be made available as standard XForms.  In order to expose your forms through this interface you will need to set the ``XFORMS_HOST`` variable in your ``settings.py`` to the host (and port if not 80) of your RapidSMS Server::
 
-Automated SMS Submission
-------------------------
+    XFORMS_HOST="rapidsms.unicef.org:8000"
+
+You can download a free ODK Client from the Android market named ``ODK Collect``.  Once installed, just change the server to point to the same host specified above.  You will be able to list, install, and submit the forms you have created on your server using the native Android application.
+
+
+Endpoints
+*********
+
+Two endpoints are implemented in order to work seamlessly with the ODK Collect client:
+
+``/formList``
+	Returns an XML document containing an index of all the form definitions installed on the server
+
+``/submission``
+	The end point that XForm clients POST their submissions to
+
+Note that these URLs are hard coded in the ODK Collect client, so they cannot be changed.

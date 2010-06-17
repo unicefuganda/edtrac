@@ -10,7 +10,7 @@ from xml.dom.minidom import parse, parseString
 # ODK Endpoints
 @require_GET
 def odk_list_forms(req):
-    xforms = XForm.objects.all()
+    xforms = XForm.objects.all().filter(active=True)
     return render_to_response(req, "xforms/odk_list_forms.xml", { 'xforms': xforms, 'host':  settings.XFORMS_HOST })
 
 @require_GET

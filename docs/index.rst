@@ -10,8 +10,9 @@ The RapidSMS xforms application provides an interactive web based form builder. 
 
 Distinct features:
 
-- Interactive Web UI to build new incoming Forms
-- Ability to submit forms via hand entered SMS's, HTTP Posts in XForm format or urlencoded XForm SMSes
+- Interactive Web UI to build Forms
+- Flexible constraint architecture to allow for validation of inputs with customized error messaging
+- Ability to submit forms either via hand entered SMS's or via HTTP Posts in XForm format
 - Display of submitted forms and editing of values by admin
 - Signal architecture to allow you to plug in your own handler for submitted forms
 
