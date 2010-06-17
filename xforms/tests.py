@@ -156,13 +156,17 @@ class ModelTest(TestCase): #pragma: no cover
 
         self.failUnlessEqual(field.check_value('1 2'), None)
         self.failUnlessEqual(field.check_value('1.1 1'), None)
-        self.failUnlessEqual(field.check_value('1.1 1.123'), None)
+        self.failUnlessEqual(field.check_value('-1.1 -1.123'), None)
         self.failUnlessEqual(field.check_value(''), None)
         self.failUnlessEqual(field.check_value(None), None)
 
         self.failIfEqual(field.check_value('1.123'), None)
         self.failIfEqual(field.check_value('1.123 asdf'), None)
         self.failIfEqual(field.check_value('asdf'), None)
+        self.failIfEqual(field.check_value('-91.1 -1.123'), None)
+        self.failIfEqual(field.check_value('92.1 -1.123'), None)
+        self.failIfEqual(field.check_value('-1.1 -181.123'), None)
+        self.failIfEqual(field.check_value('2.1 181.123'), None)
 
     def testFieldConstraints(self):
         field = self.xform.fields.create(type='str', caption='number', command='number')

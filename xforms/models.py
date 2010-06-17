@@ -189,6 +189,14 @@ class XFormField(models.Model):
                     except ValueError:
                         return "+%s parameter must be GPS coordinates the format 'lat long'" % self.command
 
+                # lat needs to be between -90 and 90
+                if float(coords[0]) < -90 or float(coords[0]) > 90:
+                        return "+%s parameter has invalid latitude, must be between -90 and 90" % self.command
+
+                # lng needs to be between -180 and 180
+                if float(coords[1]) < -180 or float(coords[1]) > 180:
+                        return "+%s parameter has invalid longitude, must be between -180 and 180" % self.command
+
             # anything goes for strings
 
         # now check our actual constraints if any
