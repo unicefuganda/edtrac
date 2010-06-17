@@ -125,7 +125,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.failUnlessEqual(c.check_value('FeV'), None)
 
     def testIntField(self):
-        field = self.xform.fields.create(type='int', caption='number', command='number')
+        field = self.xform.fields.create(type='integer', caption='number', command='number')
 
         self.failUnlessEqual(field.check_value('1 '), None)
         self.failUnlessEqual(field.check_value(None), None)
@@ -134,7 +134,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.failIfEqual(field.check_value('1.34'), None)
 
     def testDecField(self):
-        field = self.xform.fields.create(type='dec', caption='number', command='number')
+        field = self.xform.fields.create(type='decimal', caption='number', command='number')
 
         self.failUnlessEqual(field.check_value('1'), None)
         self.failUnlessEqual(field.check_value(' 1.1'), None)
@@ -143,7 +143,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.failIfEqual(field.check_value('abc'), None)
 
     def testStrField(self):
-        field = self.xform.fields.create(type='str', caption='string', command='string')
+        field = self.xform.fields.create(type='string', caption='string', command='string')
 
         self.failUnlessEqual(field.check_value('1'), None)
         self.failUnlessEqual(field.check_value('1.1'), None)
@@ -152,7 +152,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.failUnlessEqual(field.check_value(None), None)
 
     def testGPSField(self):
-        field = self.xform.fields.create(type='gps', caption='location', command='location')
+        field = self.xform.fields.create(type='geopoint', caption='location', command='location')
 
         self.failUnlessEqual(field.check_value('1 2'), None)
         self.failUnlessEqual(field.check_value('1.1 1'), None)
@@ -169,7 +169,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.failIfEqual(field.check_value('2.1 181.123'), None)
 
     def testFieldConstraints(self):
-        field = self.xform.fields.create(type='str', caption='number', command='number')
+        field = self.xform.fields.create(type='string', caption='number', command='number')
 
         # test that with no constraings, all values work
         self.failUnlessEqual(field.check_value('1'), None)
@@ -207,8 +207,8 @@ class SubmisionTest(TestCase): #pragma: no cover
         self.xform = XForm(name='test', keyword='survey', owner=self.user)
         self.xform.save()
 
-        self.xform.fields.create(type='int', caption='age', command='age')
-        self.xform.fields.create(type='str', caption='name', command='name')
+        self.xform.fields.create(type='integer', caption='age', command='age')
+        self.xform.fields.create(type='string', caption='name', command='name')
 
     def testSMSSubmission(self):
         submission = self.xform.process_sms_submission("survey +age 10 +name matt berg", None)

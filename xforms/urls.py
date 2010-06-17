@@ -18,5 +18,10 @@ urlpatterns = patterns('',
     url(r"^xforms/(\d+)/field/(\d+)/constraint/(\d+)/$", login_required(views.edit_constraint)),
     url(r"^xforms/(\d+)/field/(\d+)/constraint/$", login_required(views.add_constraint)),
     url(r"^xforms/(\d+)/delete_field/(\d+)/$", login_required(views.delete_field)),
-	url(r"^static/xforms/(?P<path>.*)$", 'django.views.static.serve', {'document_root' : 'xforms/static'}),
+    url(r"^static/xforms/(?P<path>.*)$", 'django.views.static.serve', {'document_root' : 'xforms/static'}),
+     
+    # these are ODK URLs to be used by ODK Collect
+    url(r"^formList$", views.odk_list_forms),
+    url(r"^xforms/odk/get/(\d+)/$", views.odk_get_form),
+    url(r"^submission", views.odk_submission)
 )

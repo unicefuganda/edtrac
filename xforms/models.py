@@ -124,10 +124,10 @@ class XForm(models.Model):
         return self.name
 
 TYPE_CHOICES = (
-    ('int', 'Integer'),
-    ('dec', 'Decimal'),
-    ('str', 'String'),
-    ('gps', 'GPS Coordinates')
+    ('integer', 'Integer'),
+    ('decimal', 'Decimal'),
+    ('string', 'String'),
+    ('geopoint', 'GPS Coordinates')
 )
 
 class XFormField(models.Model):
@@ -145,7 +145,7 @@ class XFormField(models.Model):
 
     xform = models.ForeignKey(XForm, related_name='fields')
 
-    type = models.CharField(max_length=3, choices=TYPE_CHOICES)
+    type = models.CharField(max_length=16, choices=TYPE_CHOICES)
     command = models.SlugField(max_length=8)
     caption = models.CharField(max_length=16)
     description = models.CharField(max_length=64)
@@ -165,13 +165,13 @@ class XFormField(models.Model):
         # check against our type first if we have a value
 
         if value is not None and len(value) > 0:
-            if self.type == 'int':
+            if self.type == 'integer':
                 try:
                     test = int(value)
                 except ValueError:
                     return "+%s parameter must be an even number." % self.command
 
-            if self.type == 'dec':
+            if self.type == 'decimal':
                 try:
                     test = float(value)
                 except ValueError:
@@ -179,7 +179,7 @@ class XFormField(models.Model):
 
 
             # for gps, we expect values like 1.241 1.543, so basically two numbers
-            if self.type == 'gps':
+            if self.type == 'geopoint':
                 coords = value.split(' ')
                 if len(coords) != 2:
                     return "+%s parameter must be GPS coordinates in the format 'lat long'" % self.command
@@ -206,6 +206,29 @@ class XFormField(models.Model):
                 return error
         
         return None
+
+
+    def constraints_as_xform(self):
+        """
+        Returns the attributes for an xform bind element that corresponds to the
+        constraints that are present on this field.
+
+        See: http://www.w3.org/TR/xforms11/
+        """
+
+        # some examples:
+        # <bind nodeset="/data/location" type="geopoint" required="true()"/>
+        # <bind nodeset="/data/comment" type="string" constraint="(. &gt;  and . &lt; 100)"/>
+
+        constraints = ""
+        for constraint in self.constraings:
+            if constraint.type == 'req_val':
+                constraints = "%s %s" % (constraints, "required=\"true()\"")
+
+        #TODO: add other constraints
+
+        return constraints
+
 
     def __unicode__(self): # pragma: no cover
         return self.caption

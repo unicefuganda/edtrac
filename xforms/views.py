@@ -1,17 +1,63 @@
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 from django.shortcuts import redirect, get_object_or_404
+from django.conf import settings
 from django import forms
 
 from rapidsms.utils import render_to_response
 from .models import XForm, XFormSubmission, XFormField, XFormFieldConstraint
+from xml.dom.minidom import parse, parseString
+
+# ODK Endpoints
+@require_GET
+def odk_list_forms(req):
+    xforms = XForm.objects.all()
+    return render_to_response(req, "xforms/odk_list_forms.xml", { 'xforms': xforms, 'host':  settings.XFORMS_HOST })
+
+@require_GET
+def odk_get_form(req, pk):
+    xform = get_object_or_404(XForm, pk=pk)
+    return render_to_response(req, "xforms/odk_get_form.xml", { 'xform': xform })
+
+@require_POST
+def odk_submission(req):
+    values = {}
+    xform = None
+    raw = ""
+
+    for file in req.FILES.values():
+        raw = "%s %s" % (raw, file.file.getvalue())
+        dom = parseString(file.file.getvalue())
+        root = dom.childNodes[0]
+        for child in root.childNodes:
+            tag = child.tagName
+            body = child.childNodes[0].wholeText
+            
+            if tag == 'xform-keyword':
+                xform = XForm.objects.get(keyword=body)
+            else:
+                values[tag] = body
+
+    # if we found the xform
+    if xform:
+        submission = xform.submissions.create(type='odk-www', raw=raw)
+        xform.update_submission_from_dict(submission, values)
+
+    resp = render_to_response(req, "xforms/odk_submission.xml", { "xform": xform, "submission": submission })
+
+    # ODK needs two things for a form to be considered successful
+    # 1) the status code needs to be 201 (created)
+    resp.status_code = 201
+
+    # 2) The location header needs to be set to the host it posted to
+    resp['Location'] = "http://%s/submission" % settings.XFORMS_HOST
+    return resp
+
 
 @require_GET
 def xforms(req): 
-
     xforms = XForm.objects.all()
     breadcrumbs = (('XForms', ''),)
     return render_to_response(req, "xforms/form_index.html", { 'xforms': xforms, 'breadcrumbs': breadcrumbs } )
-
 
 class NewXFormForm(forms.ModelForm): # pragma: no cover
     class Meta:
