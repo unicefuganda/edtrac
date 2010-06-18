@@ -7,7 +7,7 @@
 
   <td class="constraint_{{type}}_col">
     {% if forloop.first %} 
-    <a href="javascript:void(0);"><img class="grippy" src="{{MEDIA_URL}}xforms/images/grippy_grid.png" style="vertical-align:middle;padding-right:8px;padding-left:3px" border="0"/></a>
+    <div class="grippy" style="margin-right:8px;float:left;width:18px;height:19px;background: url('{{MEDIA_URL}}xforms/images/grippy_grid.png')">&nbsp;</div>
     {% endif %}
     {{item|prop:type}}
   </td>
