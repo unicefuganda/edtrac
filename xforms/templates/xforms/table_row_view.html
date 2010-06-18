@@ -4,7 +4,7 @@
 {% for name,type in columns %}
 
   <td class="type_col">
-    {% if forloop.first and sortable %} 
+    {% if forloop.first %} 
     <a href="javascript:void(0);"><img class="grippy" src="{{MEDIA_URL}}xforms/images/grippy_grid.png" style="vertical-align:middle;padding-right:8px;padding-left:3px" border="0"/></a>
     {% endif %}
     {{item|prop:type}}

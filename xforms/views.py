@@ -336,6 +336,18 @@ def delete_constraint (req, form_id, field_id, constraint_id):
         
     return redirect("/xforms/%s/field/%s/constraints/" % (form_id, field_id))
 
+def order_constraints (req, form_id, field_id):
+    if req.method == 'POST':
+        constraint_ids = req.POST['order'].split(',')
+        count = 1
+        for constraint_id in constraint_ids:
+            constraint = XFormFieldConstraint.objects.get(pk=constraint_id)
+            constraint.order = count
+            count = count + 1
+            constraint.save()
+            
+        return render_to_response(req, "xforms/ajax_complete.html", {'ids' : constraint_ids})
+
 
 add_button = ({ "text" : "Add", "image" : "rapidsms/icons/silk/add.png", 'click' : 'add'},)
 save_button = ( { "image" : "rapidsms/icons/silk/decline.png", 'click' : 'cancelSave'},
