@@ -349,8 +349,8 @@ def order_constraints (req, form_id, field_id):
 add_button = ({ "text" : "Add", "image" : "rapidsms/icons/silk/add.png", 'click' : 'add'},)
 save_button = ( { "image" : "rapidsms/icons/silk/decline.png", 'click' : 'cancelSave'},
                 { "text" : "Save", "image" : "xforms/icons/silk/bullet_disk.png", 'click' : 'saveRow'},)
-constraint_buttons = ({ "text" : "Edit", "image" : "xforms/icons/silk/pencil.png", 'click' : 'editRow'},
-                      { "text" : "Delete", "image" : "rapidsms/icons/silk/delete.png", 'click' : 'deleteRow'},)
+constraint_buttons = ({"image" : "rapidsms/icons/silk/delete.png", 'click' : 'deleteRow'},
+                      { "text" : "Edit", "image" : "xforms/icons/silk/pencil.png", 'click' : 'editRow'},)
 constraint_columns = (('Type', 'type'), ('Test', 'test'), ('Message', 'message'))
 
 
