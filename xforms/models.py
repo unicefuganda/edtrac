@@ -62,6 +62,26 @@ class XForm(models.Model):
         # trigger our signal for anybody interested in form submissions
         xform_received.send(sender=self, xform=self, submission=submission)
 
+    def process_odk_submission(self, xml, values):
+        """
+        Given the raw XML content and a map of values, processes a new ODK submission, returning the newly
+        created submission.
+
+        This mostly just coerces the 4 parameter ODK geo locations to our two parameter ones.
+        """
+        import pdb; pdb.set_trace()
+        for field in self.fields.filter(type='geopoint'):
+            if field.type == 'geopoint':
+                if field.command in values:
+                    geo_values = values[field.command].split(" ")
+                    values[field.command] = "%s %s" % (geo_values[0], geo_values[1])
+
+        # create our submission now
+        submission = self.submissions.create(type='odk-www', raw=xml)
+        self.update_submission_from_dict(submission, values)
+
+        return submission
+
     def process_sms_submission(self, message, connection):
         """
         Given an incoming SMS message, will create a new submission.  If there is an error
@@ -276,15 +296,23 @@ class XFormFieldConstraint(models.Model):
         if value is None:
             return None
 
-        # otherwise, check the appropriate constraint
-        if self.type == 'min_val':
-            if float(value) < float(self.test):
+        # these two constraints depend on the value being numeric
+        if self.type == 'min_val' or self.type == 'max_val':
+            try:
+                val = float(value)
+
+                if self.type == 'min_val':
+                    if float(value) < float(self.test):
+                        return self.message
+
+                elif self.type == 'max_val':
+                    if float(value) > float(self.test):
+                        return self.message
+
+            except ValueError:
                 return self.message
 
-        elif self.type == 'max_val':
-            if float(value) > float(self.test):
-                return self.message
-
+        # check our other constraints
         elif self.type == 'min_len':
             if len(value) < int(self.test):
                 return self.message
