@@ -15,7 +15,7 @@
         <img src="{{ MEDIA_URL }}xforms/icons/silk/pencil.png" alt=""/> 
         Edit
     </a>
-    <a onclick="saveField(this);" href="javascript:void(0);" id="save_{{field.pk}}">
+    <a href="/xforms/{{xform.pk}}/field/{{field.pk}}/constraints/" id="save_{{field.pk}}">
       <img src="{{ MEDIA_URL }}xforms/icons/silk/bullet_wrench.png" alt=""/>Constraints
     </a>
   </div>

@@ -1,0 +1,68 @@
+{% extends "xforms/layout_table.html" %}
+
+<script>
+{% block table_scripts %}
+
+  function getViewUrl(itemId) {
+    return "/xforms/{{xform.pk}}/field/{{field.pk}}/constraint/" + itemId + "/"; 
+  }
+  
+  function editRow(link) {
+    var itemId = $(link).parents(".row").attr("id");
+    var url = "/xforms/{{xform.pk}}/field/{{field.pk}}/constraint/" + itemId;
+    var row = $(link).parents(".row");
+    
+    $.get(url, function(data) {
+      row.empty();
+      row.append(data);
+    });
+    
+    selected = $(("#selection_" + field_id));
+    selected.addClass('form_selected');
+    selected.removeClass('form_unselected');
+  }
+  
+  function addConstraint() {
+    $.get("/xforms/{{ xform.pk }}/field/{{field.pk}}/constraints/add", function(data) {
+      $("#sortable").append("<li class='row'>" + data + "</li>");
+    });
+  }
+  
+  function add(link) {
+    
+    var row = $(link).parents(".row");
+    var form = $("form");
+    console.log(row);
+    
+    var form_data = form.serializeArray();
+    
+    $.post(form.attr("action"), form_data, function(data) {
+      row.empty();
+      row.append(data);
+    });
+
+  }
+  
+  
+{% endblock %}
+</script>
+
+
+
+{% block table_header %}
+
+Hello table header
+
+{% endblock %}
+
+
+{% block table_footer %}
+
+<br/>
+  <div class="buttons">
+      <a href="javascript:addConstraint();" style="float:left">
+        <img border="0" src="{{ MEDIA_URL }}rapidsms/icons/silk/add.png" alt=""/>Add Constraint
+      </a>
+  </div>
+
+{% endblock %}

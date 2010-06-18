@@ -242,7 +242,6 @@ def view_field(req, form_id, field_id):
 def edit_field (req, form_id, field_id):
     xform = XForm.objects.get(pk=form_id)
     field = XFormField.objects.get(pk=field_id)
-    constraints = XFormFieldConstraint.objects.filter(field=field) # Is order necessary for constraints?
     
     if req.method == 'POST':
         form = FieldForm(req.POST, instance=field)
@@ -256,28 +255,6 @@ def edit_field (req, form_id, field_id):
         form = FieldForm(instance=field)
 
     return render_to_response(req, "xforms/field_edit.html", { 'form' : form, 'xform': xform, 'field' : field })
-
-def add_constraint(req, form_id, field_id):
-    xform = XForm.objects.get(pk=form_id)
-    field = XFormField.objects.get(pk=field_id)
-
-    if req.method == 'POST':
-        form = ConstraintForm(req.POST)
-        if form.is_valid():
-            constraint = form.save(commit=False)
-            constraint.field = field
-            constraint.save()
-            print "saved %s %s" % (constraint.id, constraint.field.id)
-        else:
-            print "form invalid"
-    else:
-        form = ConstraintForm()
-        
-    return render_to_response(req, "xforms/onstraint_constraint.html", { 'form' : form, 'xform' : xform, 'field' : field });
-
-def edit_constraint(req, form_id, field_id, constraint_id) :
-
-    return render_to_response(req, "xforms/constraint_edit.html");
 
 
 def delete_xform (req, form_id):
@@ -295,3 +272,64 @@ def delete_field (req, form_id, field_id):
         field.delete()
         
     return redirect("/xforms/%d/edit/" % xform.pk)
+
+def add_constraint(req, form_id, field_id):
+    xform = XForm.objects.get(pk=form_id)
+    field = XFormField.objects.get(pk=field_id)
+    constraints = XFormFieldConstraint.objects.order_by('order').filter(field=field)
+    form = ConstraintForm()
+
+    if req.method == 'POST':
+        form = ConstraintForm(req.POST)
+        if form.is_valid():
+            constraint = form.save(commit=False)
+            constraint.field = field
+            constraint.order = len(constraints)
+            constraint.save()
+            return render_to_response(req, "xforms/table_row_view.html", {'item' : constraint, 'columns': constraint_columns, 'buttons' : constraint_buttons, 'field' : field, 'xform' : xform })
+    else:
+        form = ConstraintForm()
+
+    return render_to_response(req, "xforms/table_row_edit.html", { 'buttons' : add_button, 'form' : form, 'xform' : xform, 'field' : field });
+
+def edit_constraint(req, form_id, field_id, constraint_id) :
+    
+    xform = XForm.objects.get(pk=form_id)
+    field = XFormField.objects.get(pk=field_id)
+    constraint = XFormFieldConstraint.objects.get(pk=constraint_id)
+    
+    if req.method == 'POST':
+        form = ConstraintForm(req.POST, instance=constraint)
+        if form.is_valid():
+            constraint = form.save(commit=False)
+            constraint.field = field
+            constraint.save()
+            return render_to_response(req, "xforms/table_row_view.html", { 'form' : form, 'xform' : xform, 'field' : field })
+        else:
+            return render_to_response(req, "xforms/field_edit.html", { 'form' : form, 'xform' : xform, 'field' : field })
+    else:
+        form = FieldForm(instance=field)
+    
+    return render_to_response(req, "xforms/table_row_edit.html", { 'buttons' : save_button, 'form' : form, 'xform': xform, 'field' : field })
+
+def view_constraint(req, form_id, field_id, constraint_id) :
+    
+    xform = XForm.objects.get(pk=form_id)
+    field = XFormField.objects.get(pk=field_id)
+    constraint = XFormFieldConstraint.objects.get(pk=constraint_id)
+    return render_to_response(req, "xforms/table_row_view.html", { 'columns' : constraint_columns, 'buttons' : constraint_buttons, 'item' : constraint, 'xform' : xform, 'field' : field })
+    
+    
+def view_constraints(req, form_id, field_id):
+    xform = XForm.objects.get(pk=form_id)
+    field = XFormField.objects.get(pk=field_id)
+    constraints = XFormFieldConstraint.objects.order_by('order').filter(field=field)
+    return render_to_response(req, "xforms/constraints.html", {  'xform' : xform, 'field' : field, 'table' : constraints, 'buttons' : constraint_buttons, 'columns' : constraint_columns })
+
+add_button = ({ "text" : "Add", "image" : "rapidsms/icons/silk/add.png", 'click' : 'add'},)
+save_button = ({ "text" : "Save", "image" : "xforms/icons/silk/bullet-disk.png", 'click' : 'save'},)
+constraint_buttons = ({ "text" : "Edit", "image" : "xforms/icons/silk/pencil.png", 'click' : 'editRow'},
+                      { "text" : "Delete", "image" : "rapidsms/icons/silk/delete.png", 'click' : 'deleteRow'},)
+constraint_columns = (('Type', 'type'), ('Test', 'test'), ('Message', 'message'))
+
+

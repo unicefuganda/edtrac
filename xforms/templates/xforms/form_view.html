@@ -81,6 +81,12 @@
     selected.addClass('form_selected');
     selected.removeClass('form_unselected');
   }
+  
+  function showConstraints(link) {
+    field_id = $(link).parents(".field_table").attr("id");
+    url = "/xforms/" +  {{xform.pk}} + "/edit_field/" + field_id + "/";
+    
+  }
 	
 	function saveField(link) {
     form = $(link).parents(".form");

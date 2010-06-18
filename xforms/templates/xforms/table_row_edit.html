@@ -1,0 +1,53 @@
+{% load prop %}
+{% load dumper %}
+
+{% if constraint %}
+<div class="edit_field">
+<form class="form" action="/xforms/{{ xform.pk }}/field/{{ field.pk }}/constraint/{{constraint.pk}}/edit" method="post">
+{% else %}
+<div class="add_field_header">Add New Constraint</div>
+<div class="add_field">
+<form class="form" action="/xforms/{{ xform.pk }}/field/{{ field.pk }}/constraints/add" method="post">
+{% endif %}
+
+<table><tr>
+{% for field in form %}
+ <td class="{{field.name}}_col">
+   
+   {% if forloop.first %}
+   {% endif %}
+   {{field.errors}}
+   {{field}}
+   
+ </td>
+{% endfor %}
+  
+  
+<td>
+  {% for button in buttons %}
+  
+    {% if button.text %}
+      <div class="buttons" >
+        <a onclick="{{button.click}}(this);" href="javascript:void(0);">
+        <img src="{{ MEDIA_URL }}{{button.image}}" alt=""/> 
+        {{button.text}}
+        </a>
+      </div>
+    
+    {% else %}
+      <a style="float:right" onclick="{{button.click}}(this);" href="javascript:void(0);">
+        <img border="0" style="padding-top:7px;" src="{{ MEDIA_URL }}{{button.image}}" alt=""/> 
+        {{button.text}}
+      </a>
+    {% endif %}
+
+    
+    
+    {% if button.text %}
+    {% endif %}
+
+  {% endfor %}
+</td>
+
+</tr></table>
+  

@@ -1,0 +1,36 @@
+{% load prop %}
+
+<table><tr>
+{% for name,type in columns %}
+
+  <td class="type_col">
+    {% if forloop.first and sortable %} 
+    <a href="javascript:void(0);"><img class="grippy" src="{{MEDIA_URL}}xforms/images/grippy_grid.png" style="vertical-align:middle;padding-right:8px;padding-left:3px" border="0"/></a>
+    {% endif %}
+    {{item|prop:type}}
+  </td>
+
+{% endfor %}
+
+<td>
+  {% for button in buttons %}
+  
+    {% if button.text %}
+      <div class="buttons" >
+    {% endif %}
+
+    <a onclick="{{button.click}}(this);" href="javascript:void(0);">
+        <img src="{{ MEDIA_URL }}{{button.image}}" alt=""/> 
+        {{button.text}}
+    </a>
+    
+    {% if button.text %}
+      </div>
+    {% endif %}
+
+  {% endfor %}
+</td>
+
+</tr>
+</table>
+
