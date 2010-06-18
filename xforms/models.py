@@ -69,7 +69,6 @@ class XForm(models.Model):
 
         This mostly just coerces the 4 parameter ODK geo locations to our two parameter ones.
         """
-        import pdb; pdb.set_trace()
         for field in self.fields.filter(type='geopoint'):
             if field.type == 'geopoint':
                 if field.command in values:

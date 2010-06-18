@@ -43,7 +43,7 @@
       {% endfor %}
     </td>
     {% endfor %}
-    <td><code>{{ submission.raw }}</code></td>
+    <td><code>{{ submission.raw|slice:":50" }}</code></td>
     <td>
       <div class="buttons">
 	<a href="/xforms/submissions/{{ submission.pk }}/edit/">
