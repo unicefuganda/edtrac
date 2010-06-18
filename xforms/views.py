@@ -324,7 +324,10 @@ def view_constraints(req, form_id, field_id):
     xform = XForm.objects.get(pk=form_id)
     field = XFormField.objects.get(pk=field_id)
     constraints = XFormFieldConstraint.objects.order_by('order').filter(field=field)
-    return render_to_response(req, "xforms/constraints.html", {  'xform' : xform, 'field' : field, 'table' : constraints, 'buttons' : constraint_buttons, 'columns' : constraint_columns })
+
+    breadcrumbs = (('XForms', '/xforms'),(xform.name, "/xforms/%s/view/" % xform.pk), ("Constraints", ''))
+
+    return render_to_response(req, "xforms/constraints.html", {  'xform' : xform, 'field' : field, 'table' : constraints, 'buttons' : constraint_buttons, 'columns' : constraint_columns, 'breadcrumbs': breadcrumbs })
 
 def delete_constraint (req, form_id, field_id, constraint_id):
     constraint = XFormFieldConstraint.objects.get(pk=constraint_id)
