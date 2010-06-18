@@ -40,7 +40,7 @@
   function add(link) {
     
     var row = $(link).parents(".row");
-    var form = $("form");
+    var form = $(link).parents(".form");
     
     var form_data = form.serializeArray();
     
