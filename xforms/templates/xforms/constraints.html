@@ -3,13 +3,12 @@
 <script>
 {% block table_scripts %}
 
-  function viewRow(row) {
-    var itemId = row.attr("id");
-    row.load("/xforms/{{xform.pk}}/field/{{field.pk}}/constraint/" + itemId + "/");
+  function viewRow(row, id) {
+    row.load("/xforms/{{xform.pk}}/field/{{field.pk}}/constraint/" + id + "/");
   }
 
   function editRow(link) {
-    var itemId = $(link).parents(".row").attr("id");
+    var itemId = $(link).parents(".item_table").attr("id");
     var url = "/xforms/{{xform.pk}}/field/{{field.pk}}/constraint/" + itemId + "/edit/";
     var row = $(link).parents(".row");
     row.load(url);
@@ -37,7 +36,8 @@
   }
   
   function cancelSave(link) {
-    viewRow($(link).parents(".row"))    
+    var id = $(link).parents(".item_table").attr("id");
+    viewRow($(link).parents(".row"), id)    
   }
   
   function saveRow(link) {
@@ -49,7 +49,7 @@
   }
   
   function deleteRow(link) {
-    var itemId = $(link).parents(".row").attr("id");
+    var itemId = $(link).parents(".item_table").attr("id");
     if (confirm("Are you sure you want to delete this constraint?")) {
       $.post('/xforms/{{xform.pk}}/field/{{field.pk}}/constraint/' + itemId + '/delete/' , function(data) {
         $(link).parents(".row").remove();

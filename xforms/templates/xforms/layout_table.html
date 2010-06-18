@@ -11,7 +11,7 @@
       $("#sortable").sortable({helper: fixHelper}).disableSelection;
       
       $(".row").each(function() {
-        viewRow($(this));
+        viewRow($(this), $(this).attr("id"));
       });
     });
     

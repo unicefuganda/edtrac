@@ -10,7 +10,7 @@
 <form class="form" action="/xforms/{{ xform.pk }}/field/{{ field.pk }}/constraints/add/" method="post">
 {% endif %}
 
-<table><tr>
+<table class="item_table" id="{{item.pk}}"><tr>
 {% for field in form %}
  <td class="{{field.name}}_col">
    
