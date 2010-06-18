@@ -8,7 +8,7 @@
 
   
     $(document).ready(function() {
-      $("#sortable").sortable({helper: fixHelper}).disableSelection;
+      $("#sortable").sortable({ update: updateOrder, delay: 0, distance: 20, handle: '.grippy' }).disableSelection;
       
       $(".row").each(function() {
         viewRow($(this), $(this).attr("id"));

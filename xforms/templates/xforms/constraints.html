@@ -7,6 +7,22 @@
     row.load("/xforms/{{xform.pk}}/field/{{field.pk}}/constraint/" + id + "/");
   }
 
+  function updateOrder() {
+    delim = "";
+    sub = "";
+
+    $("#sortable").children(".row").each(function() {
+      if (this.id != "") {
+        sub += delim + this.id;
+        delim = ",";
+      }
+    });
+
+    if (sub != "") {
+      $.post("/xforms/{{xform.pk}}/field/{{field.pk}}/constraints/order/",{'order':sub});
+    }
+  }
+  
   function editRow(link) {
     var itemId = $(link).parents(".item_table").attr("id");
     var url = "/xforms/{{xform.pk}}/field/{{field.pk}}/constraint/" + itemId + "/edit/";
