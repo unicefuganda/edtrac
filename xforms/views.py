@@ -349,7 +349,9 @@ def order_constraints (req, form_id, field_id):
         return render_to_response(req, "xforms/ajax_complete.html", {'ids' : constraint_ids})
 
 
-add_button = ({ "text" : "Add", "image" : "rapidsms/icons/silk/add.png", 'click' : 'add'},)
+add_button = ({ "image" : "rapidsms/icons/silk/decline.png", 'click' : 'cancelAdd'}, 
+              { "text" : "Add", "image" : "rapidsms/icons/silk/add.png", 'click' : 'add'},)
+
 save_button = ( { "image" : "rapidsms/icons/silk/decline.png", 'click' : 'cancelSave'},
                 { "text" : "Save", "image" : "xforms/icons/silk/bullet_disk.png", 'click' : 'saveRow'},)
 constraint_buttons = ({"image" : "rapidsms/icons/silk/delete.png", 'click' : 'deleteRow'},

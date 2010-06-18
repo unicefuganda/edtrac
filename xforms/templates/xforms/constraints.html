@@ -37,6 +37,13 @@
     });
   }
   
+  function cancelAdd(link) {
+    if (confirm("Are you sure you want to cancel this new constraint?")) {
+      $(link).parents(".row").remove();
+    }
+  }
+  
+  
   function add(link) {
     
     var row = $(link).parents(".row");
