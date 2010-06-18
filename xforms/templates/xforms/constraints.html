@@ -10,14 +10,14 @@
 
   function editRow(link) {
     var itemId = $(link).parents(".row").attr("id");
-    var url = "/xforms/{{xform.pk}}/field/{{field.pk}}/constraint/" + itemId + "/edit";
+    var url = "/xforms/{{xform.pk}}/field/{{field.pk}}/constraint/" + itemId + "/edit/";
     var row = $(link).parents(".row");
     row.load(url);
     
   }
   
   function addConstraint() {
-    $.get("/xforms/{{ xform.pk }}/field/{{field.pk}}/constraints/add", function(data) {
+    $.get("/xforms/{{ xform.pk }}/field/{{field.pk}}/constraints/add/", function(data) {
       $("#sortable").append("<li class='row'>" + data + "</li>");
     });
   }
