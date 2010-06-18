@@ -1,31 +1,39 @@
 {% load prop %}
 
-<table class="item_table" id="{{item.pk}}"><tr>
+<div class="field_box">
+<div class="field_table">
+<table class="item_table" id="{{item.pk}}" width="100%"><tr>
 {% for name,type in columns %}
 
-  <td class="type_col">
+  <td class="constraint_{{type}}_col">
     {% if forloop.first %} 
-    <a href="javascript:void(0);"><img class="grippy" src="{{MEDIA_URL}}xforms/images/grippy_grid.png" style="vertical-align:middle;padding-right:8px;padding-left:3px" border="0"/></a>
+    <div class="grippy" style="margin-right:8px;float:left;width:18px;height:19px;background: url('{{MEDIA_URL}}xforms/images/grippy_grid.png')">&nbsp;</div>
     {% endif %}
     {{item|prop:type}}
   </td>
 
 {% endfor %}
 
-<td>
+<td class="constraint_options_col" >
   {% for button in buttons %}
   
     {% if button.text %}
       <div class="buttons" >
-    {% endif %}
-
-    <a onclick="{{button.click}}(this);" href="javascript:void(0);">
+        <a onclick="{{button.click}}(this);" href="javascript:void(0);">
         <img src="{{ MEDIA_URL }}{{button.image}}" alt=""/> 
         {{button.text}}
-    </a>
+        </a>
+      </div>
+    
+    {% else %}
+      <a style="float:right" onclick="{{button.click}}(this);" href="javascript:void(0);">
+        <img border="0" style="padding-top:7px;" src="{{ MEDIA_URL }}{{button.image}}" alt=""/> 
+      </a>
+    {% endif %}
+
+    
     
     {% if button.text %}
-      </div>
     {% endif %}
 
   {% endfor %}
@@ -33,4 +41,5 @@
 
 </tr>
 </table>
-
+</div>
+</div>

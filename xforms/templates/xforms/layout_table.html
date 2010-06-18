@@ -8,7 +8,7 @@
 
   
     $(document).ready(function() {
-      $("#sortable").sortable({ update: updateOrder, delay: 0, distance: 20, handle: '.grippy' }).disableSelection;
+      $("#sortable").sortable({ update: updateOrder, delay: 0, distance: 10, handle: '.grippy' }).disableSelection;
       
       $(".row").each(function() {
         viewRow($(this), $(this).attr("id"));
@@ -44,23 +44,23 @@
 
   {% block table_header %}{% endblock %}
 
-  <table width="100%" class="rich_table">
+  <table width="100%" class="form_table">
   <thead>
   <tr>
   
   {% for name, type in columns %}
-  <th id="{{type}}_header">{{name}}</th>
+  <th class="constraint_{{type}}_col">{{name}}</th>
   {% endfor %}
   
   {% if buttons %}
-  <th id="options_header">Options</th>
+  <th id="options_header"></th>
   {% endif %}
   
   </tr>
   </thead>
   
   <tbody>
-    <tr><td class="sortable_cell" colspan="5">
+    <tr><td class="form_fields_cell" colspan="4">
       <ul id="sortable">
         {% for item in table %}
           <li id="{{item.pk}}" class="row ui-state-default"></li>

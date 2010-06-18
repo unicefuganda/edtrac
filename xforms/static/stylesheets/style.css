@@ -83,7 +83,12 @@
 .form_table {
 	background-color:#efefef;
 	border: 1px solid #ddd;
-	padding: 30px;
+
+}
+
+.form_table table tr td th form  {
+  padding:0px;
+  margin:0px;
 }
 
 .form_fields_cell {
@@ -101,7 +106,6 @@
 	margin: 0px 0px 0px 0px;
 	width:100%;
 }
-
 
 .field_name_col {
 	padding:0px;
@@ -148,11 +152,31 @@
 	text-align:right;	
 }
 
+
+.constraint_type_col {
+  width:200px;
+  border:0px;
+}
+
+.constraint_test_col {
+  width:200px;
+  border:0px;
+}
+
+.constraint_message_col {
+  width:250px;
+  border:0px;
+}
+
+.constraint_options_col {
+  border:0px;
+}
+
 .form_table_row {
 	background: #FFF;
 }
 
-.field_table table tr td th {
+.field_table table tr td th form {
   padding:0px;
   margin:0px;
 }
@@ -167,6 +191,11 @@
   color:#666;
 }
 
+
+form {
+  padding:0px;
+  margin:0px;
+}
 .add_field_header {
   background-color:#66a1d0;
   color:white;
