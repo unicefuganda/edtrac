@@ -3,27 +3,20 @@
 <script>
 {% block table_scripts %}
 
-  function getViewUrl(itemId) {
-    return "/xforms/{{xform.pk}}/field/{{field.pk}}/constraint/" + itemId + "/"; 
+  function viewRow(row, id) {
+    row.load("/xforms/{{xform.pk}}/field/{{field.pk}}/constraint/" + id + "/");
   }
-  
+
   function editRow(link) {
-    var itemId = $(link).parents(".row").attr("id");
-    var url = "/xforms/{{xform.pk}}/field/{{field.pk}}/constraint/" + itemId;
+    var itemId = $(link).parents(".item_table").attr("id");
+    var url = "/xforms/{{xform.pk}}/field/{{field.pk}}/constraint/" + itemId + "/edit/";
     var row = $(link).parents(".row");
+    row.load(url);
     
-    $.get(url, function(data) {
-      row.empty();
-      row.append(data);
-    });
-    
-    selected = $(("#selection_" + field_id));
-    selected.addClass('form_selected');
-    selected.removeClass('form_unselected');
   }
   
   function addConstraint() {
-    $.get("/xforms/{{ xform.pk }}/field/{{field.pk}}/constraints/add", function(data) {
+    $.get("/xforms/{{ xform.pk }}/field/{{field.pk}}/constraints/add/", function(data) {
       $("#sortable").append("<li class='row'>" + data + "</li>");
     });
   }
@@ -32,7 +25,6 @@
     
     var row = $(link).parents(".row");
     var form = $("form");
-    console.log(row);
     
     var form_data = form.serializeArray();
     
@@ -42,6 +34,29 @@
     });
 
   }
+  
+  function cancelSave(link) {
+    var id = $(link).parents(".item_table").attr("id");
+    viewRow($(link).parents(".row"), id)    
+  }
+  
+  function saveRow(link) {
+    form = $(link).parents(".form");
+    form_data = form.serializeArray();
+    
+    var row = $(link).parents(".row");
+    row.load(form.attr("action"), form_data);
+  }
+  
+  function deleteRow(link) {
+    var itemId = $(link).parents(".item_table").attr("id");
+    if (confirm("Are you sure you want to delete this constraint?")) {
+      $.post('/xforms/{{xform.pk}}/field/{{field.pk}}/constraint/' + itemId + '/delete/' , function(data) {
+        $(link).parents(".row").remove();
+      }); 
+    }
+  }
+  
   
   
 {% endblock %}
