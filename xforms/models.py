@@ -240,14 +240,26 @@ class XFormField(models.Model):
         # <bind nodeset="/data/location" type="geopoint" required="true()"/>
         # <bind nodeset="/data/comment" type="string" constraint="(. &gt;  and . &lt; 100)"/>
 
+        full = ""
         constraints = ""
-        for constraint in self.constraings:
+        delim = ""
+
+        for constraint in self.constraints.all():
             if constraint.type == 'req_val':
-                constraints = "%s %s" % (constraints, "required=\"true()\"")
+                full = "required=\"true()\""
 
-        #TODO: add other constraints
+            elif constraint.type == 'min_val':
+                constraints += delim + ". &gt;= %s" % constraint.test
+                delim = " and "
 
-        return constraints
+            elif constraint.type == 'max_val':
+                constraints += delim + ". &lt;= %s" % constraint.test
+                delim = " and "
+
+        if constraints:
+            constraints = " constraint=\"(%s)\"" % constraints
+
+        return "%s %s" % (full, constraints)
 
 
     def __unicode__(self): # pragma: no cover
