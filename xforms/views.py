@@ -304,13 +304,13 @@ def edit_constraint(req, form_id, field_id, constraint_id) :
             constraint = form.save(commit=False)
             constraint.field = field
             constraint.save()
-            return render_to_response(req, "xforms/table_row_view.html", { 'form' : form, 'xform' : xform, 'field' : field })
+            return render_to_response(req, "xforms/table_row_view.html", {  'columns' : constraint_columns, 'buttons' : constraint_buttons, 'item' : constraint, 'form' : form, 'xform' : xform, 'field' : field })
         else:
-            return render_to_response(req, "xforms/field_edit.html", { 'form' : form, 'xform' : xform, 'field' : field })
+            return render_to_response(req, "xforms/table_row_edit.html", { 'buttons' : save_button, 'item' : constraint, 'form' : form, 'xform' : xform, 'field' : field })
     else:
-        form = FieldForm(instance=field)
+        form = ConstraintForm(instance=constraint)
     
-    return render_to_response(req, "xforms/table_row_edit.html", { 'buttons' : save_button, 'form' : form, 'xform': xform, 'field' : field })
+    return render_to_response(req, "xforms/table_row_edit.html", { 'buttons' : save_button, 'form' : form, 'xform': xform, 'field' : field, 'item' : constraint })
 
 def view_constraint(req, form_id, field_id, constraint_id) :
     
@@ -326,8 +326,17 @@ def view_constraints(req, form_id, field_id):
     constraints = XFormFieldConstraint.objects.order_by('order').filter(field=field)
     return render_to_response(req, "xforms/constraints.html", {  'xform' : xform, 'field' : field, 'table' : constraints, 'buttons' : constraint_buttons, 'columns' : constraint_columns })
 
+def delete_constraint (req, form_id, field_id, constraint_id):
+    constraint = XFormFieldConstraint.objects.get(pk=constraint_id)
+    if req.method == 'POST':
+        constraint.delete()
+        
+    return redirect("/xforms/%s/field/%s/constraints/" % (form_id, field_id))
+
+
 add_button = ({ "text" : "Add", "image" : "rapidsms/icons/silk/add.png", 'click' : 'add'},)
-save_button = ({ "text" : "Save", "image" : "xforms/icons/silk/bullet-disk.png", 'click' : 'save'},)
+save_button = ( { "image" : "rapidsms/icons/silk/decline.png", 'click' : 'cancelSave'},
+                { "text" : "Save", "image" : "xforms/icons/silk/bullet_disk.png", 'click' : 'saveRow'},)
 constraint_buttons = ({ "text" : "Edit", "image" : "xforms/icons/silk/pencil.png", 'click' : 'editRow'},
                       { "text" : "Delete", "image" : "rapidsms/icons/silk/delete.png", 'click' : 'deleteRow'},)
 constraint_columns = (('Type', 'type'), ('Test', 'test'), ('Message', 'message'))

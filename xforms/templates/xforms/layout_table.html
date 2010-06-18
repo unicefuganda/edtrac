@@ -15,10 +15,6 @@
       });
     });
     
-    function viewRow(row) {
-      var itemId = row.attr("id");
-      row.load(getViewUrl(itemId));
-    }
 
     // For a given row, grab its data from the database and load it in
     function viewJSONRow(row) {
