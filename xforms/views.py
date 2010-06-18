@@ -11,12 +11,17 @@ from xml.dom.minidom import parse, parseString
 @require_GET
 def odk_list_forms(req):
     xforms = XForm.objects.all().filter(active=True)
-    return render_to_response(req, "xforms/odk_list_forms.xml", { 'xforms': xforms, 'host':  settings.XFORMS_HOST })
+    resp = render_to_response(req, "xforms/odk_list_forms.xml", { 'xforms': xforms, 'host':  settings.XFORMS_HOST })
+    resp['Content-Type'] = 'text/xml; charset=utf-8'
+    return resp
 
 @require_GET
 def odk_get_form(req, pk):
     xform = get_object_or_404(XForm, pk=pk)
-    return render_to_response(req, "xforms/odk_get_form.xml", { 'xform': xform })
+    resp = render_to_response(req, "xforms/odk_get_form.xml", { 'xform': xform })
+    resp['Content-Type'] = 'text/xml; charset=utf-8'
+    resp['Content-Disposition'] = 'attachment;filename="%s.xml"' % xform.keyword
+    return resp
 
 @require_POST
 def odk_submission(req):
