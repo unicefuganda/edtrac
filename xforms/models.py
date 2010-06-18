@@ -256,6 +256,19 @@ class XFormField(models.Model):
                 constraints += delim + ". &lt;= %s" % constraint.test
                 delim = " and "
 
+            # hack in min and max length using regular expressions
+            elif constraint.type == 'min_len':
+                constraints += delim + "regex(., '^.{%s,}$')" % constraint.test
+                delim = " and "
+
+            elif constraint.type == 'max_len':
+                constraints += delim + "regex(., '^.{0,%s}$')" % constraint.test
+                delim = " and "
+            
+            elif constraint.type == 'regex':
+                constraints += delim + "regex(., '%s')" % constraint.test
+                delim = " and "
+
         if constraints:
             constraints = " constraint=\"(%s)\"" % constraints
 
