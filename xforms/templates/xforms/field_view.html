@@ -16,7 +16,7 @@
         Edit
     </a>
     <a href="/xforms/{{xform.pk}}/field/{{field.pk}}/constraints/" id="save_{{field.pk}}">
-      <img src="{{ MEDIA_URL }}xforms/icons/silk/bullet_wrench.png" alt=""/>Constraints
+      <img src="{{ MEDIA_URL }}xforms/icons/silk/bullet_wrench.png" alt=""/>Constraints ({{ field.constraints.all.count }})
     </a>
   </div>
 

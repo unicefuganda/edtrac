@@ -51,5 +51,5 @@ TABS = [
 ]
 
 # The externally accessible address for this server, used for linking in XForms
-XFORMS_HOST="192.168.0.199:8000"
+XFORMS_HOST="192.168.43.245:8000"
 

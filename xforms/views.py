@@ -11,12 +11,14 @@ from xml.dom.minidom import parse, parseString
 @require_GET
 def odk_list_forms(req):
     xforms = XForm.objects.all().filter(active=True)
-    return render_to_response(req, "xforms/odk_list_forms.xml", { 'xforms': xforms, 'host':  settings.XFORMS_HOST })
+    return render_to_response(req, "xforms/odk_list_forms.xml", { 'xforms': xforms, 'host':  settings.XFORMS_HOST }, mimetype="application/xml")
 
 @require_GET
 def odk_get_form(req, pk):
     xform = get_object_or_404(XForm, pk=pk)
-    return render_to_response(req, "xforms/odk_get_form.xml", { 'xform': xform })
+    resp = render_to_response(req, "xforms/odk_get_form.xml", { 'xform': xform }, mimetype="application/xml")
+    resp['Content-Disposition'] = 'attachment;filename="%s.xml"' % xform.keyword
+    return resp
 
 @require_POST
 def odk_submission(req):
@@ -33,14 +35,12 @@ def odk_submission(req):
             body = child.childNodes[0].wholeText
             
             if tag == 'xform-keyword':
-                xform = XForm.objects.get(keyword=body)
+                xform = get_object_or_404(XForm, keyword=body)
             else:
                 values[tag] = body
 
     # if we found the xform
-    if xform:
-        submission = xform.submissions.create(type='odk-www', raw=raw)
-        xform.update_submission_from_dict(submission, values)
+    submission = xform.process_odk_submission(raw, values)
 
     resp = render_to_response(req, "xforms/odk_submission.xml", { "xform": xform, "submission": submission })
 

@@ -32,7 +32,7 @@ function deleteForm(form_id, form_name) {
 	<div class="buttons">
        
 	  <a href="/xforms/{{ xform.pk }}/submissions/">
-            <img src="{{ MEDIA_URL }}xforms/icons/silk/database_table.png" alt=""/> Submissions
+            <img src="{{ MEDIA_URL }}xforms/icons/silk/database_table.png" alt=""/> Submissions ({{ xform.submissions.all.count }})
 	  </a>
 	  <a href="/xforms/{{ xform.pk }}/view/">
             <img src="{{ MEDIA_URL }}xforms/icons/silk/zoom.png" alt=""/> View
