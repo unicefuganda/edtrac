@@ -5,6 +5,7 @@ Basic tests for XForms
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.test.client import Client
+from django.core.exceptions import ValidationError
 from .models import XForm, XFormField, XFormFieldConstraint, xform_received
 
 class ViewTest(TestCase): # pragma: no cover
@@ -65,137 +66,162 @@ class ModelTest(TestCase): #pragma: no cover
         self.xform = XForm(name='test', keyword='test', owner=self.user)
         self.xform.save()
 
+
+    def failIfValid(self, constraint, value):
+        try:
+            constraint.validate(value)
+            self.fail("Should have failed validating: %s" % value)
+        except ValidationError:
+            pass
+
+    def failUnlessValid(self, constraint, value):
+        try:
+            constraint.validate(value)
+        except ValidationError:
+            self.fail("Should have passed validating: %s" % value)
+
+    def failIfClean(self, field, value):
+        try:
+            field.clean(value)
+            self.fail("Should have failed cleaning: %s" % value)
+        except ValidationError:
+            pass
+
+    def failUnlessClean(self, field, value):
+        try:
+            field.clean(value)
+        except ValidationError:
+            self.fail("Should have passed cleaning: %s" % value)
+
     def testMinValConstraint(self):
         msg = 'error message'
         c = XFormFieldConstraint(type='min_val', test='10', message=msg)
 
-        self.failUnlessEqual(c.check_value('1'), msg)
-        self.failUnlessEqual(c.check_value(None), None)
-        self.failUnlessEqual(c.check_value('10'), None)
-        self.failUnlessEqual(c.check_value('11'), None)
+        self.failIfValid(c, '1')
+        self.failUnlessValid(c, None)
+        self.failUnlessValid(c, '10')
+        self.failUnlessValid(c, '11')
 
     def testMaxValConstraint(self):
         msg = 'error message'
         c = XFormFieldConstraint(type='max_val', test='10', message=msg)
 
-        self.failUnlessEqual(c.check_value('1'), None)
-        self.failUnlessEqual(c.check_value('10'), None)
-        self.failUnlessEqual(c.check_value(None), None)
-        self.failUnlessEqual(c.check_value('11'), msg)
+        self.failUnlessValid(c, '1')
+        self.failUnlessValid(c, '10')
+        self.failUnlessValid(c, None)
+        self.failIfValid(c, '11')
 
     def testMinLenConstraint(self):
         msg = 'error message'
         c = XFormFieldConstraint(type='min_len', test='2', message=msg)
 
-        self.failUnlessEqual(c.check_value('a'), msg)
-        self.failUnlessEqual(c.check_value(''), msg)
-        self.failUnlessEqual(c.check_value(None), None)
-        self.failUnlessEqual(c.check_value('ab'), None)
-        self.failUnlessEqual(c.check_value('abcdef'), None)
+        self.failIfValid(c, 'a')
+        self.failIfValid(c, '')
+        self.failUnlessValid(c, None)
+        self.failUnlessValid(c, 'ab')
+        self.failUnlessValid(c, 'abcdef')
 
     def testMaxLenConstraint(self):
         msg = 'error message'
         c = XFormFieldConstraint(type='max_len', test='3', message=msg)
 
-        self.failUnlessEqual(c.check_value('a'), None)
-        self.failUnlessEqual(c.check_value(''), None)
-        self.failUnlessEqual(c.check_value(None), None)
-        self.failUnlessEqual(c.check_value('ab'), None)
-        self.failUnlessEqual(c.check_value('abc'), None)
-        self.failUnlessEqual(c.check_value('abcdef'), msg)
+        self.failUnlessValid(c, 'a')
+        self.failUnlessValid(c, '')
+        self.failUnlessValid(c, None)
+        self.failUnlessValid(c, 'abc')
+        self.failIfValid(c, 'abcdef')
 
     def testReqValConstraint(self):
         msg = 'error message'
         c = XFormFieldConstraint(type='req_val', message=msg)
 
-        self.failUnlessEqual(c.check_value('a'), None)
-        self.failUnlessEqual(c.check_value('1.20'), None)
-        self.failUnlessEqual(c.check_value(''), msg)
-        self.failUnlessEqual(c.check_value(None), msg)
+        self.failUnlessValid(c, 'a')
+        self.failUnlessValid(c, '1.20')
+        self.failIfValid(c, '')
+        self.failIfValid(c, None)
 
     def testRegexConstraint(self):
         msg = 'error message'
         c = XFormFieldConstraint(type='regex', test='^(mal|fev)$', message=msg)
 
-        self.failUnlessEqual(c.check_value('a'), msg)
-        self.failUnlessEqual(c.check_value(''), msg)
-        self.failUnlessEqual(c.check_value('malo'), msg)
-        self.failUnlessEqual(c.check_value(None), None)
-        self.failUnlessEqual(c.check_value('MAL'), None)
-        self.failUnlessEqual(c.check_value('FeV'), None)
+        self.failIfValid(c, 'a')
+        self.failIfValid(c, '')
+        self.failIfValid(c, 'malo')
+        self.failUnlessValid(c, None)
+        self.failUnlessValid(c, 'MAL')
+        self.failUnlessValid(c, 'FeV')
 
     def testIntField(self):
         field = self.xform.fields.create(type='integer', caption='number', command='number')
 
-        self.failUnlessEqual(field.check_value('1 '), None)
-        self.failUnlessEqual(field.check_value(None), None)
-        self.failUnlessEqual(field.check_value(''), None)
-        self.failIfEqual(field.check_value('abc'), None)
-        self.failIfEqual(field.check_value('1.34'), None)
+        self.failUnlessClean(field, '1 ')
+        self.failUnlessClean(field, None)
+        self.failUnlessClean(field, '')
+        self.failIfClean(field, 'abc')
+        self.failIfClean(field, '1.34')
 
     def testDecField(self):
         field = self.xform.fields.create(type='decimal', caption='number', command='number')
 
-        self.failUnlessEqual(field.check_value('1'), None)
-        self.failUnlessEqual(field.check_value(' 1.1'), None)
-        self.failUnlessEqual(field.check_value(None), None)
-        self.failUnlessEqual(field.check_value(''), None)
-        self.failIfEqual(field.check_value('abc'), None)
+        self.failUnlessClean(field, '1')
+        self.failUnlessClean(field, ' 1.1')
+        self.failUnlessClean(field, None)
+        self.failUnlessClean(field, '')
+        self.failIfClean(field, 'abc')
 
     def testStrField(self):
         field = self.xform.fields.create(type='string', caption='string', command='string')
 
-        self.failUnlessEqual(field.check_value('1'), None)
-        self.failUnlessEqual(field.check_value('1.1'), None)
-        self.failUnlessEqual(field.check_value('abc'), None)
-        self.failUnlessEqual(field.check_value(''), None)
-        self.failUnlessEqual(field.check_value(None), None)
+        self.failUnlessClean(field, '1')
+        self.failUnlessClean(field, '1.1')
+        self.failUnlessClean(field, 'abc')
+        self.failUnlessClean(field, None)
+        self.failUnlessClean(field, '')
 
     def testGPSField(self):
         field = self.xform.fields.create(type='geopoint', caption='location', command='location')
 
-        self.failUnlessEqual(field.check_value('1 2'), None)
-        self.failUnlessEqual(field.check_value('1.1 1'), None)
-        self.failUnlessEqual(field.check_value('-1.1 -1.123'), None)
-        self.failUnlessEqual(field.check_value(''), None)
-        self.failUnlessEqual(field.check_value(None), None)
+        self.failUnlessClean(field, '1 2')
+        self.failUnlessClean(field, '1.1 1')
+        self.failUnlessClean(field, '-1.1 -1.123')
+        self.failUnlessClean(field, '')
+        self.failUnlessClean(field, None)
 
-        self.failIfEqual(field.check_value('1.123'), None)
-        self.failIfEqual(field.check_value('1.123 asdf'), None)
-        self.failIfEqual(field.check_value('asdf'), None)
-        self.failIfEqual(field.check_value('-91.1 -1.123'), None)
-        self.failIfEqual(field.check_value('92.1 -1.123'), None)
-        self.failIfEqual(field.check_value('-1.1 -181.123'), None)
-        self.failIfEqual(field.check_value('2.1 181.123'), None)
+        self.failIfClean(field, '1.123')
+        self.failIfClean(field, '1.123 asdf')
+        self.failIfClean(field, 'asdf')
+        self.failIfClean(field, '-91.1 -1.123')
+        self.failIfClean(field, '92.1 -1.123')
+        self.failIfClean(field, '-1.1 -181.123')
+        self.failIfClean(field, '2.1 181.123')
 
     def testFieldConstraints(self):
         field = self.xform.fields.create(type='string', caption='number', command='number')
 
         # test that with no constraings, all values work
-        self.failUnlessEqual(field.check_value('1'), None)
-        self.failUnlessEqual(field.check_value(None), None)
-        self.failUnlessEqual(field.check_value('abc'), None)
+        self.failUnlessClean(field, '1')
+        self.failUnlessClean(field, None)
+        self.failUnlessClean(field, 'abc')
 
         # now add some constraints
         msg1 = 'error message'
         field.constraints.create(type='min_val', test='10', message=msg1)
         
-        self.failUnlessEqual(field.check_value('1'), msg1)
-        self.failUnlessEqual(field.check_value('10'), None)
+        self.failIfClean(field, '1')
+        self.failUnlessClean(field, '10')
 
         # add another constraint
         msg2 = 'error message 2'
         field.constraints.create(type='max_val', test='50', message=msg2)
-        self.failUnlessEqual(field.check_value('1'), msg1)
-        self.failUnlessEqual(field.check_value('10'), None)
-        self.failUnlessEqual(field.check_value('100'), msg2)
+        self.failIfClean(field, '1')
+        self.failUnlessClean(field, '10')
+        self.failIfClean(field, '100')
 
         # another, but set its order to be first
         msg3 = 'error message 3'
         field.constraints.create(type='min_val', test='5', message=msg3, order=0)
-        self.failUnlessEqual(field.check_value('1'), msg3)
-        self.failUnlessEqual(field.check_value('6'), msg1)
-
+        self.failIfClean(field, '1')
+        self.failIfClean(field, '6')
 
 class SubmisionTest(TestCase): #pragma: no cover
     

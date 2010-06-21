@@ -6,9 +6,11 @@
 <div class="details">
 
 <div class="name">{{ xform.name }} Submission</div>
-<span class="label">From:</span>{{ submission.connection }}<br>
-<span class="label">Sent:</span> {{ submission.created|date:"m/j/y G:i:s"}}<br>
-<span class="label">Message:</span> <code>{{ submission.raw }}</code><br>
+<table>
+<tr><td class="bold right">From:</td><td>{{ submission.connection }}</td></tr>
+<tr><td class="bold right">Sent:</td><td>{{ submission.created|date:"m/j/y G:i:s"}}</td></tr>
+<tr><td class="bold right">Message:</td><td>{{ submission.raw }}</td></tr>
+</table>
 </div>
 
 <h3>Values</h3>

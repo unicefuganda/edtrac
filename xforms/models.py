@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from rapidsms.models import Connection
+from django.core.exceptions import ValidationError
+from decimal import Decimal
 import django.dispatch
 import re
 
@@ -117,12 +119,11 @@ class XForm(models.Model):
                     found = True
                     value = ' '.join(segment.strip().split(' ')[1:])
 
-                    error = field.check_value(value)
-
-                    if error:
-                        errors.append(error)
-                    else:
+                    try:
+                        cleaned = field.clean(value)
                         submission.values.create(field=field, value=value)
+                    except ValueError as (err, msg):
+                        errors.append(msg)
 
         # if we had errors
         if errors:
@@ -170,62 +171,68 @@ class XFormField(models.Model):
     description = models.CharField(max_length=64)
     order = models.IntegerField(default=0)
 
-    def check_value(self, value):
+    def clean(self, value):
         """
-        Checks the passed in string value to see if it matches the constraints that have been set
-        on this field.  There are implicit cosntraints created by the type of the field, ie: int
-        fields must be integers, and there are explicit constriants created by the user.  Implicit
-        constraints are evaluated first before implicit ones.
+        Takes the passed in string value and does two steps:
 
-        The return value is None in the case of no errors or the first error message if one of the
-        constraints fails.
+        1) tries to coerce the value into the appropriate type for the field.  This means changing
+        a string to an integer or decimal, or splitting it into two for a gps location.
+
+        2) if the coercion into the appropriate type succeeds, then validates then validates the
+        value against any constraints on this field.  
+
+        If either of these steps fails, a ValidationError is raised.  If both are successful
+        then the cleaned, Python typed value is returned.
         """
+
+
+        # this will be our properly Python typed value
+        cleaned_value = None
 
         # check against our type first if we have a value
-
         if value is not None and len(value) > 0:
             if self.type == 'integer':
                 try:
-                    test = int(value)
+                    cleaned_value = int(value)
                 except ValueError:
-                    return "+%s parameter must be an even number." % self.command
+                    raise ValidationError("+%s parameter must be an even number." % self.command)
 
             if self.type == 'decimal':
                 try:
-                    test = float(value)
+                    cleaned_value = float(value)
                 except ValueError:
-                    return "+%s parameter must be a number." % self.command
+                    raise ValidationError("+%s parameter must be a number." % self.command)
 
 
             # for gps, we expect values like 1.241 1.543, so basically two numbers
             if self.type == 'geopoint':
                 coords = value.split(' ')
                 if len(coords) != 2:
-                    return "+%s parameter must be GPS coordinates in the format 'lat long'" % self.command
+                    raise ValidationError("+%s parameter must be GPS coordinates in the format 'lat long'" % self.command)
                 for coord in coords:
                     try:
                         test = float(coord)
                     except ValueError:
-                        return "+%s parameter must be GPS coordinates the format 'lat long'" % self.command
+                        raise ValidationError("+%s parameter must be GPS coordinates the format 'lat long'" % self.command)
 
                 # lat needs to be between -90 and 90
                 if float(coords[0]) < -90 or float(coords[0]) > 90:
-                        return "+%s parameter has invalid latitude, must be between -90 and 90" % self.command
+                    raise ValidationError("+%s parameter has invalid latitude, must be between -90 and 90" % self.command)
 
                 # lng needs to be between -180 and 180
                 if float(coords[1]) < -180 or float(coords[1]) > 180:
-                        return "+%s parameter has invalid longitude, must be between -180 and 180" % self.command
+                    raise ValidationError("+%s parameter has invalid longitude, must be between -180 and 180" % self.command)
+
+                # our cleaned value is the coordinates as a tuple
+                cleaned_value = (Decimal(coords[0]), Decimal(coords[1]))
 
             # anything goes for strings
 
         # now check our actual constraints if any
         for constraint in self.constraints.order_by('order'):
-            error = constraint.check_value(value)
-            if error:
-                return error
+            constraint.validate(value)
         
-        return None
-
+        return cleaned_value
 
     def constraints_as_xform(self):
         """
@@ -311,10 +318,17 @@ class XFormFieldConstraint(models.Model):
     message = models.CharField(max_length=100)
     order = models.IntegerField(default=1000)
 
-    def check_value(self, value):
+    def validate(self, value):
+        """
+        Follows a similar pattern to Django's Form validation.  Validate takes a value and checks
+        it against the constraints passed in.
+
+        Throws a ValidationError if it doesn't meet the constraint.
+        """
+
         if self.type == 'req_val':
             if not value:
-                return self.message
+                raise ValidationError(self.message)
 
         # if our value is None, none of these other constraints apply
         if value is None:
@@ -327,29 +341,29 @@ class XFormFieldConstraint(models.Model):
 
                 if self.type == 'min_val':
                     if float(value) < float(self.test):
-                        return self.message
+                        raise ValidationError(self.message)
 
                 elif self.type == 'max_val':
                     if float(value) > float(self.test):
-                        return self.message
+                        raise ValidationError(self.message)
 
             except ValueError:
-                return self.message
+                raise ValidationError(self.message)
 
         # check our other constraints
         elif self.type == 'min_len':
             if len(value) < int(self.test):
-                return self.message
+                raise ValidationError(self.message)
 
         elif self.type == 'max_len':
             if len(value) > int(self.test):
-                return self.message
+                raise ValidationError(self.message)
 
         elif self.type == 'regex':
             if not re.match(self.test, value, re.IGNORECASE):
-                return self.message
+                raise ValidationError(self.message)
 
-        return None
+        return value
 
     def __unicode__(self): # pragma: no cover
         return "%s (%s)" % (self.type, self.value)
@@ -393,6 +407,13 @@ class XFormSubmissionValue(models.Model):
     submission = models.ForeignKey(XFormSubmission, related_name='values')
     field = models.ForeignKey(XFormField, related_name="submission_values")
     value = models.CharField(max_length=255)
+    
+    # transient value set to a Python object appropriate for the type:
+    #    string - string
+    #    int - int
+    #    decimal - decimal
+    #    geolocation - decimal tuple (lat, lng)
+    cleaned = None
 
     def __unicode__(self): # pragma: no cover
         return "%s=%s" % (self.field, self.value)

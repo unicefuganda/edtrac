@@ -2,6 +2,7 @@ from django.views.decorators.http import require_GET, require_POST
 from django.shortcuts import redirect, get_object_or_404
 from django.conf import settings
 from django import forms
+from django.core.exceptions import ValidationError
 
 from rapidsms.utils import render_to_response
 from .models import XForm, XFormSubmission, XFormField, XFormFieldConstraint
@@ -32,12 +33,13 @@ def odk_submission(req):
         root = dom.childNodes[0]
         for child in root.childNodes:
             tag = child.tagName
-            body = child.childNodes[0].wholeText
+            if child.childNodes:
+                body = child.childNodes[0].wholeText
             
-            if tag == 'xform-keyword':
-                xform = get_object_or_404(XForm, keyword=body)
-            else:
-                values[tag] = body
+                if tag == 'xform-keyword':
+                    xform = get_object_or_404(XForm, keyword=body)
+                else:
+                    values[tag] = body
 
     # if we found the xform
     submission = xform.process_odk_submission(raw, values)
@@ -184,12 +186,14 @@ def make_submission_form(xform):
             command = field.command
             if command in cleaned_data:
                 field_val = str(cleaned_data.get(command))
-                error_msg = field.check_value(field_val)
 
-                # if there is an error, remove it from our cleaned data and 
-                # add the error to our list of errors for this form
-                if error_msg:
-                    self._errors[field.command] = self.error_class([error_msg])
+                try:
+                    cleaned_val = field.clean(field_val)
+                except ValidationError as err:
+                    # if there is an error, remove it from our cleaned data and 
+                    # add the error to our list of errors for this form
+                    import pdb; pdb.set_trace()
+                    self._errors[field.command] = (self.error_class(err))
                     del cleaned_data[field.command]
 
         return cleaned_data
