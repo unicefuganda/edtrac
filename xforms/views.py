@@ -8,6 +8,18 @@ from rapidsms.utils import render_to_response
 from .models import XForm, XFormSubmission, XFormField, XFormFieldConstraint
 from xml.dom.minidom import parse, parseString
 
+# CSV Export
+@require_GET
+def submissions_as_csv(req, pk):
+    xform = get_object_or_404(XForm, pk=pk)
+
+    submissions = xform.submissions.all().order_by('-pk')
+    fields = xform.fields.all().order_by('pk')
+
+    resp = render_to_response(req, "xforms/submissions.csv", {'xform': xform, 'submissions': submissions, 'fields': fields}, mimetype="text/csv")
+    resp['Content-Disposition'] = 'attachment;filename="%s.csv"' % xform.keyword
+    return resp
+
 # ODK Endpoints
 @require_GET
 def odk_list_forms(req):

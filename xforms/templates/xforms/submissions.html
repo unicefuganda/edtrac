@@ -5,6 +5,12 @@
 
 <div class="details">
 <div class="name">{{ xform.name }} Submissions</div>
+<div class="buttons">
+  <a href="/xforms/{{ xform.pk }}/submissions.csv">
+    <img src="{{ MEDIA_URL }}xforms/icons/silk/table_save.png" alt=""/> Export
+  </a>
+  <br/>
+</div>
 </div>
 
 <table width="100%" class="form_table"> 
@@ -27,7 +33,7 @@
       <img src="{{ MEDIA_URL }}xforms/icons/silk/application_form.png" title="XForms Submission" >
       {% endifequal %}
       {% ifequal submission.type "sms" %}
-      <img src="{{ MEDIA_URL }}xforms/icons/silk/cell.png" title="SMS Submission" >
+      <img src="{{ MEDIA_URL }}xforms/icons/silk/phone.png" title="SMS Submission" >
       {% endifequal %}
     </td>
     <td>
@@ -43,7 +49,7 @@
     <td>
       {% for value in submission.values.all %}
       {% ifequal field value.field %}
-      {{ value.value }}
+      {{ value.value_string }}
       {% endifequal %}
       {% endfor %}
     </td>

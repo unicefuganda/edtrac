@@ -407,13 +407,21 @@ class XFormSubmissionValue(models.Model):
     submission = models.ForeignKey(XFormSubmission, related_name='values')
     field = models.ForeignKey(XFormField, related_name="submission_values")
     value = models.CharField(max_length=255)
+
+    def cleaned(self):
+        return self.field.clean(self.value)
     
-    # transient value set to a Python object appropriate for the type:
-    #    string - string
-    #    int - int
-    #    decimal - decimal
-    #    geolocation - decimal tuple (lat, lng)
-    cleaned = None
+    def value_string(self):
+        """
+        Returns a nicer version of our value, mostly just shortening decimals to be more sane.
+        """
+        if self.field.type == 'geopoint':
+            coords = self.cleaned()
+            return "%.2f %.2f" % (coords[0], coords[1])
+        elif self.field.type == 'decimal':
+            return "%.2f" % (self.cleaned())
+        else:
+            return self.value
 
     def __unicode__(self): # pragma: no cover
         return "%s=%s" % (self.field, self.value)
