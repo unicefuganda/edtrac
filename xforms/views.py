@@ -186,7 +186,8 @@ def make_submission_form(xform):
     fields = {}
     for field in xform.fields.all().order_by('order'):
         fields[field.command] = forms.CharField(required=False,
-                                                help_text=field.description)
+                                                help_text=field.description,
+                                                label = field.caption)
 
     # this method overloads Django's form clean() method and makes sure all the fields
     # pass the constraints determined by our XForm.  This guarantees that even the Admin
@@ -204,7 +205,6 @@ def make_submission_form(xform):
                 except ValidationError as err:
                     # if there is an error, remove it from our cleaned data and 
                     # add the error to our list of errors for this form
-                    import pdb; pdb.set_trace()
                     self._errors[field.command] = (self.error_class(err))
                     del cleaned_data[field.command]
 

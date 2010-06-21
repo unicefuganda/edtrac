@@ -208,6 +208,7 @@ class ModelTest(TestCase): #pragma: no cover
         field.constraints.create(type='min_val', test='10', message=msg1)
         
         self.failIfClean(field, '1')
+        self.failIfClean(field, '-1')
         self.failUnlessClean(field, '10')
 
         # add another constraint
@@ -233,12 +234,23 @@ class SubmisionTest(TestCase): #pragma: no cover
         self.xform = XForm(name='test', keyword='survey', owner=self.user)
         self.xform.save()
 
-        self.xform.fields.create(type='integer', caption='age', command='age')
+        field = self.xform.fields.create(type='integer', caption='age', command='age')
+        field.constraints.create(type='req_val', test='None', message="You must include an age")
         self.xform.fields.create(type='string', caption='name', command='name')
 
     def testSMSSubmission(self):
         submission = self.xform.process_sms_submission("survey +age 10 +name matt berg", None)
         self.failUnlessEqual(len(submission.values.all()), 2)
+
+        # make sure we record errors if there is a missing age
+        submission = self.xform.process_sms_submission("survey +name luke skywalker", None)
+        self.failUnlessEqual(submission.has_errors, True)
+        self.failUnlessEqual(1, len(submission.errors))
+
+        # make sure we record errors if there is just the keyword
+        submission = self.xform.process_sms_submission("survey", None)
+        self.failUnlessEqual(submission.has_errors, True)
+        self.failUnlessEqual(1, len(submission.errors))
 
     def testSignal(self):
         # add a listener to our signal

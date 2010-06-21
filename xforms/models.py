@@ -108,6 +108,9 @@ class XForm(models.Model):
         submission = XFormSubmission(xform=self, type='sms', raw=message, connection=connection)
         submission.save()
 
+        # the values we have pulled out
+        values = {}
+
         # now for each segment
         for segment in segments:
             # grab the command
@@ -122,8 +125,15 @@ class XForm(models.Model):
                     try:
                         cleaned = field.clean(value)
                         submission.values.create(field=field, value=value)
-                    except ValueError as (err, msg):
-                        errors.append(msg)
+                        values[field.command] = cleaned
+                    except ValidationError as err:
+                        errors.append(err)
+
+        # check that all required fields had a value set
+        for field in self.fields.all():
+            required_const = field.constraints.all().filter(type="req_val")
+            if required_const and field.command not in values:
+                errors.append(required_const[0].message)                
 
         # if we had errors
         if errors:
@@ -133,7 +143,6 @@ class XForm(models.Model):
             # and set our db state as well
             submission.has_errors = True
             submission.save()
-
 
         # trigger our signal
         xform_received.send(sender=self, xform=self, submission=submission)
@@ -366,7 +375,7 @@ class XFormFieldConstraint(models.Model):
         return value
 
     def __unicode__(self): # pragma: no cover
-        return "%s (%s)" % (self.type, self.value)
+        return "%s (%s)" % (self.type, self.test)
 
 
 SUBMISSION_CHOICES = (
