@@ -1,8 +1,9 @@
 import rapidsms
 
+from rapidsms.apps.base import AppBase
 from .models import XForm
 
-class App (rapidsms.App):
+class App (AppBase):
 
 
     def handle (self, message):
