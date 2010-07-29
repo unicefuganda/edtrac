@@ -123,7 +123,7 @@ class XForm(models.Model):
                     value = ' '.join(segment.strip().split(' ')[1:])
 
                     try:
-                        cleaned = field.clean(value)
+                        cleaned = field.clean_submission(value)
                         submission.values.create(field=field, value=value)
                         values[field.command] = cleaned
                     except ValidationError as err:
@@ -180,7 +180,7 @@ class XFormField(models.Model):
     description = models.CharField(max_length=64)
     order = models.IntegerField(default=0)
 
-    def clean(self, value):
+    def clean_submission(self, value):
         """
         Takes the passed in string value and does two steps:
 
@@ -418,7 +418,7 @@ class XFormSubmissionValue(models.Model):
     value = models.CharField(max_length=255)
 
     def cleaned(self):
-        return self.field.clean(self.value)
+        return self.field.clean_submission(self.value)
     
     def value_string(self):
         """
