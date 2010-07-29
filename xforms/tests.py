@@ -82,14 +82,14 @@ class ModelTest(TestCase): #pragma: no cover
 
     def failIfClean(self, field, value):
         try:
-            field.clean(value)
+            field.clean_submission(value)
             self.fail("Should have failed cleaning: %s" % value)
         except ValidationError:
             pass
 
     def failUnlessClean(self, field, value):
         try:
-            field.clean(value)
+            field.clean_submission(value)
         except ValidationError:
             self.fail("Should have passed cleaning: %s" % value)
 
