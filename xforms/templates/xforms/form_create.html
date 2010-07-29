@@ -4,6 +4,7 @@
 {% block content %}
 
 {% load uni_form_tags %}
+{% load forms_tags %}
 <form action="/xforms/new/" method="post" class="uniForm" id="newForm">
 <fieldset>
 {{ form|as_uni_form }}
@@ -19,6 +20,7 @@
 </div>
 
 </fieldset>
+{% csrf_token %}
 </form>
 
 {% endblock %}
