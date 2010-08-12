@@ -34,18 +34,19 @@ You can install the latest version of the rapidsms-xforms library straight from 
 
    % pip install rapidsms-xforms
 
-Then to use xforms, edit your ``settings.py``:
-
-.. sourcecode:: python
+Then to use xforms, edit your ``settings.py`` to add ``rapidsms_xforms`` and ``uni_form``::
 
   INSTALLED_APPS = ( "rapidsms",
+                       .. other apps ..
   		     "uni_form",
   		     "rapidsms_xforms" )
 
+You will probably also want to add XForms as one of the main RapidSMS tabs::
+
   TABS = [
-    ('rapidsms.views.dashboard', 'Dashboard'),
+    ('rapidsms.views.dashboard', 'Dashboard'),	
+        .. other tabs ..
     ('rapidsms_xforms.views.xforms', 'XForms'),
-    ('rapidsms.contrib.httptester.views.generate_identity', 'HttpTester'),
   ]
 
 Finally sync your database with ``python manage.py syncdb``.
