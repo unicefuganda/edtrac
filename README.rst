@@ -3,7 +3,7 @@ rapidsms-xforms
 
 The RapidSMS xforms application provides an interactive web based form builder.  Created forms support data being submitted to them via freehand formatted SMS, standard XForm HTTP posts or structured SMS.  Applications can choose to use xforms to quickly prototype systems, or even use them as their primary interface, using Django signals to perform more complicated logic on new submissions.
 
-Distinct features:
+**Distinct features**
 
 - Interactive Web UI to build Forms
 - Flexible constraint architecture to allow for validation of inputs with customized error messaging
@@ -21,13 +21,11 @@ The official source code repository is:
 Installation
 ===========================================
 
-You can install the latest version of the rapidsms-xforms library straight from the cheese shop:
+You can install the latest version of the rapidsms-xforms library straight from the cheese shop::
 
    % pip install rapidsms-xforms
 
-Then to use xforms, edit your ``settings.py``:
-
-.. sourcecode:: python
+Then to use xforms, edit your ``settings.py``::
 
   INSTALLED_APPS = ( "rapidsms",
   		     "uni_form",
