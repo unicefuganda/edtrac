@@ -36,7 +36,7 @@ entry_points="""
 
 # compatible with distutils of python 2.3+ or later
 setup(
-    name='rapidsms-xforms-builder',
+    name='rapidsms-xforms',
     version=version,
     description='Provides an interactive form builder and xform compatibility for RapidSMS.',
     long_description=open('README.rst', 'r').read(),
@@ -82,7 +82,7 @@ options(
     )
 
 options.setup.package_data=paver.setuputils.find_package_data(
-    'xforms', package='xforms', only_in_packages=False)
+    'rapidsms_xforms', package='rapidsms_xforms', only_in_packages=False)
 
 if ALL_TASKS_LOADED:
     @task

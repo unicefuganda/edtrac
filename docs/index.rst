@@ -8,29 +8,41 @@ Introduction
 
 The RapidSMS xforms application provides an interactive web based form builder.  Created forms support data being submitted to them via freehand formatted SMS, standard XForm HTTP posts or structured SMS.  Applications can choose to use xforms to quickly prototype systems, or even use them as their primary interface, using Django signals to perform more complicated logic on new submissions.
 
-Distinct features:
-
 - Interactive Web UI to build Forms
 - Flexible constraint architecture to allow for validation of inputs with customized error messaging
 - Ability to submit forms either via hand entered SMS's or via HTTP Posts in XForm format
 - Display of submitted forms and editing of values by admin
 - Signal architecture to allow you to plug in your own handler for submitted forms
+- Integration with ODK Collect, an Android XForms client
+
+The full documentation can be found at:
+  http://nyaruka.github.com/rapidsms-xforms
+
+The official source code repository is:
+  http://www.github.com/nyaruka/rapidsms-xforms
 
 Installation
 ===========================================
-We depend on the ``uni-form`` library to provide us with better looking (and more accessible) forms for free.  You'll need to install this first::
 
-   % pip install django-uni-form
+You can install the latest version of the rapidsms-xforms library straight from the cheese shop:
 
-Then to use xforms, just put ``xforms`` on your Python path, then edit your ``settings.py`` to include ``xforms``:
+   % pip install rapidsms-xforms
+
+Then to use xforms, edit your ``settings.py``:
 
 .. sourcecode:: python
 
   INSTALLED_APPS = ( "rapidsms",
   		     "uni_form",
-  		     "xforms" )
+  		     "rapidsms_xforms" )
 
-Then sync your database with ``./manage.py syncdb``.
+  TABS = [
+    ('rapidsms.views.dashboard', 'Dashboard'),
+    ('rapidsms_xforms.views.xforms', 'XForms'),
+    ('rapidsms.contrib.httptester.views.generate_identity', 'HttpTester'),
+  ]
+
+Finally sync your database with ``python manage.py syncdb``.
 
 Once you restart RapidSMS a new tab will created letting you create, manage and view forms and their submissions.
 
@@ -42,6 +54,16 @@ XForms is fully documented.  To build the html docs, go to the /docs subdirector
        % make html
 
 The final docs will be found in ``docs/_build/html/index.html``
+
+
+Updating Github Docs
+====================
+
+We use some modified paver scripts fromthe github-tools package to manage uploading our built docs to github::
+
+    % easy_install github-tools[template]
+    % rm -rf docs/_build
+    % paver gh_pages_build gh_pages_update -m "update github docs"
 
 Running the Tests
 =================
@@ -56,11 +78,11 @@ And edit your ``INSTALLED_APPS`` in ``settings.py`` to include django-test-exten
     
   INSTALLED_APPS = ( "rapidsms",
   		     "django-test-extensions",
-  		     "xforms" )
+  		     "rapidsms_xforms" )
 
 You'll then be able to run the unit tests and get a full coverage report::
 
-       % ./manage.py test xforms --coverage       
+       % ./manage.py test rapidsms_xforms --coverage       
 
 NOTE: There is currently an issue in django-test-extensions that makes all module level elements (imports and the like) show up as non-covered.  We are trying to get to the bottom of this with the author.
 
@@ -72,14 +94,14 @@ Once installed, click on the XForms tab.  Here you can create a new form.  A for
 Once saved you can submit SMS messages to the system in the forms::
 
      survey +age 10 +name emily
-     survey + age 30   +name greg linden
+     survey + age 30   +name monty python
      survey +name eric +age 15.4
 
 You can view submitted reports after they come in, and edit them as you like.
 
 Now try experimenting with adding restrictions to the fields, whether they are required, their min and max values etc..  You'll find you can easily customize the error messages as they come in.
 
-You can also submit surveys using an XForms client.  From the XForm detail page, just click on the ``download specification`` link to get an XForm compliant view of the XForm.  By default forms will be submitted using HTTP POSTs, but if you are using our modified ODK client you will also be able to submit via SMS.
+You can also submit surveys using an XForms client, like ODK Collect.  The XForms application adds the appropriate endpoints to both discover available forms, download them to the device, and submit them to the server.  This makes RapidSMS a full XForms endpoint for simple forms, giving you the choice as to whether to submit via a rich XForms client or via SMS.
 
 Contents:
 ===========================================

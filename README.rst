@@ -1,47 +1,61 @@
 rapidsms-xforms
 ===============
 
-This module provides an interactive form builder for RapidSMS that also allows for XForm compliant submissions.
+The RapidSMS xforms application provides an interactive web based form builder.  Created forms support data being submitted to them via freehand formatted SMS, standard XForm HTTP posts or structured SMS.  Applications can choose to use xforms to quickly prototype systems, or even use them as their primary interface, using Django signals to perform more complicated logic on new submissions.
 
-Documentation can be found at:
-  http://nyaruka.github.com/rapidsms-xforms-builder
+Distinct features:
+
+- Interactive Web UI to build Forms
+- Flexible constraint architecture to allow for validation of inputs with customized error messaging
+- Ability to submit forms either via hand entered SMS's or via HTTP Posts in XForm format
+- Display of submitted forms and editing of values by admin
+- Signal architecture to allow you to plug in your own handler for submitted forms
+- Integration with ODK Collect, an Android XForms client
+
+The full documentation can be found at:
+  http://nyaruka.github.com/rapidsms-xforms
+
+The official source code repository is:
+  http://www.github.com/nyaruka/rapidsms-xforms
+
+Installation
+===========================================
+
+You can install the latest version of the rapidsms-xforms library straight from the cheese shop:
+
+   % pip install rapidsms-xforms
+
+Then to use xforms, edit your ``settings.py``:
+
+.. sourcecode:: python
+
+  INSTALLED_APPS = ( "rapidsms",
+  		     "uni_form",
+  		     "rapidsms_xforms" )
+
+  TABS = [
+    ('rapidsms.views.dashboard', 'Dashboard'),
+    ('rapidsms_xforms.views.xforms', 'XForms'),
+    ('rapidsms.contrib.httptester.views.generate_identity', 'HttpTester'),
+  ]
+
+Finally sync your database with ``python manage.py syncdb``.
+
+Once you restart RapidSMS a new tab will created letting you create, manage and view forms and their submissions.
 
 Getting started
 ---------------
 
-Quick start from a clone.  We don't encourage using the source, instead use the package (forthcoming) but this will get you going in the meantime::
+Once installed, click on the XForms tab.  Here you can create a new form.  A form represents a new SMS (or XForm) endpoint, allowing users enter data into the system according to the fields you have defined.  Try creating a new form, naving it ``survey`` and add one integer field named ``age`` and a string field named ``name``.
 
-  # we depend on django-uni-form being installed
-  % pip install django-uni-form
+Once saved you can submit SMS messages to the system in the forms::
 
-  # update our submodules
-  % git submodule init
-  % git submodule update
-  % cd submodules/rapidsms
-  % git submodule init
-  % git submodule update
-  % cd ../..
+     survey +age 10 +name emily
+     survey + age 30   +name monty python
+     survey +name eric +age 15.4
 
-  # create our tables
-  % ./manage.py syncdb
+You can view submitted reports after they come in, and edit them as you like.
 
-  # and we're off!
-  % ./manage.py runserver
+Now try experimenting with adding restrictions to the fields, whether they are required, their min and max values etc..  You'll find you can easily customize the error messages as they come in.
 
-Building Docs
--------------
-
-rapidsms-xforms has pretty decent documentation.  Please add to it if you find a need.  You build it::
-
-  % cd docs
-  % make html
-
-
-Updating GitHub Docs
---------------------
-
-We use some modified paver scripts fromthe github-tools package to manage uploading our built docs to github::
-
-  % easy_install github-tools[template]
-  % rm -rf docs/_build
-  % paver gh_pages_build gh_pages_update -m "update github docs"
+You can also submit surveys using an XForms client, like ODK Collect.  The XForms application adds the appropriate endpoints to both discover available forms, download them to the device, and submit them to the server.  This makes RapidSMS a full XForms endpoint for simple forms, giving you the choice as to whether to submit via a rich XForms client or via SMS.
