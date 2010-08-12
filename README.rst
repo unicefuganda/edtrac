@@ -43,7 +43,9 @@ Then to use xforms, edit your ``settings.py``::
     ('rapidsms.contrib.httptester.views.generate_identity', 'HttpTester'),
   ]
 
-Finally sync your database with ``python manage.py syncdb``.
+Finally sync your database with::
+
+    % python manage.py syncdb
 
 Once you restart RapidSMS a new tab will created letting you create, manage and view forms and their submissions.
 
