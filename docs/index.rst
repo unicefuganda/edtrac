@@ -21,10 +21,16 @@ The full documentation can be found at:
 The official source code repository is:
   http://www.github.com/nyaruka/rapidsms-xforms
 
+A little video showing this app in use:
+  http://www.youtube.com/watch?v=PyjEruT5uoU
+
+Build by Nyaruka Ltd under contract of UNICEF:
+  http://www.nyaruka.com
+
 Installation
 ===========================================
 
-You can install the latest version of the rapidsms-xforms library straight from the cheese shop:
+You can install the latest version of the rapidsms-xforms library straight from the cheese shop::
 
    % pip install rapidsms-xforms
 
