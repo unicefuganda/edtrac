@@ -7,7 +7,7 @@
 <div class="name">{{ xform.name }} Submissions</div>
 <div class="buttons">
   <a href="/xforms/{{ xform.pk }}/submissions.csv">
-    <img src="{{ MEDIA_URL }}xforms/icons/silk/table_save.png" alt=""/> Export
+    <img src="{{ MEDIA_URL }}rapidsms_xforms/icons/silk/table_save.png" alt=""/> Export
   </a>
   <br/>
 </div>
@@ -30,10 +30,10 @@
   <tr class="form_table_row">
     <td class="center">
       {% ifequal submission.type "odk-www" %}
-      <img src="{{ MEDIA_URL }}xforms/icons/silk/application_form.png" title="XForms Submission" >
+      <img src="{{ MEDIA_URL }}rapidsms_xforms/icons/silk/application_form.png" title="XForms Submission" >
       {% endifequal %}
       {% ifequal submission.type "sms" %}
-      <img src="{{ MEDIA_URL }}xforms/icons/silk/phone.png" title="SMS Submission" >
+      <img src="{{ MEDIA_URL }}rapidsms_xforms/icons/silk/phone.png" title="SMS Submission" >
       {% endifequal %}
     </td>
     <td>
@@ -57,7 +57,7 @@
     <td>
       <div class="buttons">
 	<a href="/xforms/submissions/{{ submission.pk }}/edit/">
-          <img src="{{ MEDIA_URL }}xforms/icons/silk/pencil.png" alt=""/> Edit
+          <img src="{{ MEDIA_URL }}rapidsms_xforms/icons/silk/pencil.png" alt=""/> Edit
 	</a>
       </div>
     </td>

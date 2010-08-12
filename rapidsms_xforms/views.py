@@ -176,7 +176,7 @@ class FieldForm(forms.ModelForm):
         model = XFormField
         fields = ('type', 'caption', 'command', 'description')
         widgets = {
-            'description': forms.Textarea(attrs={'cols': 80, 'rows': 20}),
+            'description': forms.Textarea(attrs={'cols': 35, 'rows': 2}),
         }
 
 class ConstraintForm(forms.ModelForm):
