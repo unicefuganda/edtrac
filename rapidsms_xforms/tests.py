@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 from .models import XForm, XFormField, XFormFieldConstraint, xform_received
 
 class ViewTest(TestCase): # pragma: no cover
-    urls = 'xforms.urls'
+    urls = 'rapidsms_xforms.urls'
 
     def setUp(self):
         self.user = User.objects.create_user('fred', 'fred@wilma.com', 'secret')
