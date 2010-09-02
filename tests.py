@@ -1,23 +1,29 @@
 """
-This file demonstrates two different styles of tests (one doctest and one
-unittest). These will both pass when you run "manage.py test".
-
-Replace these with more appropriate tests for your application.
+Test cases for 
 """
 
 from django.test import TestCase
 
-class SimpleTest(TestCase):
-    def test_basic_addition(self):
-        """
-        Tests that 1 + 1 always equals 2.
-        """
-        self.failUnlessEqual(1 + 1, 2)
+class BasicPatternTemplateTest(TestCase):
+    def test_basic_pattern_template(self):
+        from .models import BASIC_PATTERN_TEMPLATE
 
-__test__ = {"doctest": """
-Another way to test that 1 + 1 is equal to 2.
-
->>> 1 + 1 == 2
-True
-"""}
-
+        testregex = (BASIC_PATTERN_TEMPLATE % '|'.join(['my','three','keywords']))
+        
+        import re
+        rx = re.compile(testregex)
+        self.failIf(not rx.search('my'))
+        self.failIf(not rx.search(' my'))
+        self.failIf(not rx.search('my '))
+        self.failIf(not rx.search('three'))
+        self.failIf(not rx.search('keywords'))
+        self.failIf(not rx.search('my1'))
+        self.failIf(not rx.search('my1. some more text'))
+        self.failIf(rx.search('some text and then i say my'))
+        self.failIf(rx.search('some text and then i say my '))
+        self.failIf(rx.search('myopic'))
+        
+        
+        
+    
+    
