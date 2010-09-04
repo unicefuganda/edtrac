@@ -1,6 +1,9 @@
 from django.db import models
 
 from django.contrib.auth.models import User
+from django.contrib.auth.models import Permission
+
+from rapidsms.models import ContactBase
 
 class AuthenticatedContact(models.Model):
     """
@@ -18,6 +21,24 @@ class AuthenticatedContact(models.Model):
     'Storing additional information about users' for more information.
     """
     user = models.ForeignKey(User, unique=True)
+    perms = models.ManyToManyField(Permission, blank=True)
+    
+    @property
+    def user_permissions(self):
+        """
+        There are basically two options for 
+        """
+        if self.user:
+            return self.user.permissions
+        else:
+            return self.perms
+    
+    def save(self, force_insert=False, force_update=False, using=None):
+        super(ContactBase, self).save(force_insert, force_update, using)
+        if self.user and not self.user.user_permissions:
+            self.user.user_permissions = self.perms
+            self.perms = None
+            self.save()
 
     class Meta:
         abstract = True
