@@ -10,7 +10,7 @@ from eav.models import EavValue
 from eav.models import EavAttribute
 from eav.utils import EavRegistry
 
-TYPE_GPS = 'gps'
+from rapidsms.contrib.locations.models import Point
 
 class XForm(models.Model):
     """
@@ -47,10 +47,11 @@ class XForm(models.Model):
         # first update any existing values, removing them from our dict as we work
         for value in submission.values.all():
             # we have a new value, update it
-            if value.field.command in values:
-                value.value = values[value.field.command]
+            field = XFormField.objects.get(pk=value.attribute.pk)
+            if field.command in values:
+                value.value = values[field.command]
                 value.save()
-                del values[value.field.command]
+                del values[field.command]
 
             # no new value, we need to remove this one
             else:
@@ -59,7 +60,7 @@ class XForm(models.Model):
         for key, value in values.items():
             # look up the field by key
             field = XFormField.objects.get(xform=self, command=key)
-            sub_value = submission.values.create(attribute=field, value=str(value), object=submission)
+            sub_value = submission.values.create(attribute=field, value=value, entity=submission)
 
         # clear out our error flag if there were some
         if submission.has_errors:
@@ -76,12 +77,12 @@ class XForm(models.Model):
 
         This mostly just coerces the 4 parameter ODK geo locations to our two parameter ones.
         """
-        for field in self.fields.filter(type=TYPE_GPS):
+        for field in self.fields.filter(type=TYPE_OBJECT):
 #            didn't the above filter just do this?
 #            if field.type == 'geopoint':
             if field.command in values:
                 geo_values = values[field.command].split(" ")
-                values[field.command] = "%s %s" % (geo_values[0], geo_values[1])
+                values[field.command] = Point.objects.create(longitude=geo_values[0], latitude=geo_values[1]) #"%s %s" % (geo_values[0], geo_values[1])
 
         # create our submission now
         submission = self.submissions.create(type='odk-www', raw=xml)
@@ -130,7 +131,7 @@ class XForm(models.Model):
 
                     try:
                         cleaned = field.clean_submission(value)
-                        submission.values.create(attribute=field, value=value, object=submission)
+                        submission.values.create(attribute=field, value=cleaned, entity=submission)
                         values[field.command] = cleaned
                     except ValidationError as err:
                         errors.append(err)
@@ -163,7 +164,7 @@ TYPE_CHOICES = (
     (EavAttribute.TYPE_INT, 'Integer'),
     (EavAttribute.TYPE_FLOAT, 'Decimal'),
     (EavAttribute.TYPE_TEXT, 'String'),
-    (TYPE_GPS, 'GPS Coordinates')
+    (EavAttribute.TYPE_OBJECT, 'GPS Coordinates')
 )
 
 class XFormField(EavAttribute):
@@ -216,7 +217,7 @@ class XFormField(EavAttribute):
 
 
             # for gps, we expect values like 1.241 1.543, so basically two numbers
-            if self.datatype == TYPE_GPS:
+            if self.datatype == EavAttribute.TYPE_OBJECT:
                 coords = value.split(' ')
                 if len(coords) != 2:
                     raise ValidationError("+%s parameter must be GPS coordinates in the format 'lat long'" % self.command)
@@ -235,7 +236,7 @@ class XFormField(EavAttribute):
                     raise ValidationError("+%s parameter has invalid longitude, must be between -180 and 180" % self.command)
 
                 # our cleaned value is the coordinates as a tuple
-                cleaned_value = (Decimal(coords[0]), Decimal(coords[1]))
+                cleaned_value = Point.objects.create(longitude=coords[0], latitude=coords[1])
 
             # anything goes for strings
 
@@ -293,7 +294,7 @@ class XFormField(EavAttribute):
 
 
     def __unicode__(self): # pragma: no cover
-        return self.caption
+        return self.name
 
 CONSTRAINT_CHOICES = (
     ('min_val', 'Minimum Value'),
@@ -419,8 +420,6 @@ class XFormSubmissionValue(EavValue):
     """
 
     submission = models.ForeignKey(XFormSubmission, related_name='values')
-    value_lat = models.FloatField(blank=True, null=True)
-    value_lon = models.FloatField(blank=True, null=True)
 
     def cleaned(self):
         return self.field.clean_submission(self.value)
@@ -429,16 +428,16 @@ class XFormSubmissionValue(EavValue):
         """
         Returns a nicer version of our value, mostly just shortening decimals to be more sane.
         """
-        if self.field.type == TYPE_GPS:
+        if self.field.type == EavAttribute.TYPE_OBJECT:
             coords = self.cleaned()
-            return "%.2f %.2f" % (coords[0], coords[1])
+            return "%.2f %.2f" % (coords.longitude, coords.latitude)
         elif self.field.type == EavAttribute.TYPE_FLOAT:
             return "%.2f" % (self.cleaned())
         else:
             return self.value
 
     def __unicode__(self): # pragma: no cover
-        return "%s=%s" % (self.field, self.value)
+        return "%s=%s" % (self.attribute, self.value)
 
 
 # Signal triggered whenever an xform is received.  The caller can derive from the submission
