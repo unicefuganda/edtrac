@@ -19,7 +19,7 @@
       <th class="center">Type</th>
       <th>Date</th>
       {% for field in fields.all %}
-      <th>{{ field.caption }}</th>
+      <th>{{ field.name }}</th>
       {% endfor %}
       <th></th>
     </tr>
@@ -48,8 +48,8 @@
     {% for field in fields.all %}
     <td>
       {% for value in submission.values.all %}
-      {% ifequal field value.field %}
-      {{ value.value_string }}
+      {% ifequal field.pk value.attribute.pk %}
+      {{ value.value }}
       {% endifequal %}
       {% endfor %}
     </td>

@@ -5,7 +5,7 @@ from django.conf import settings
 from django import forms
 from django.core.exceptions import ValidationError
 
-from .models import XForm, XFormSubmission, XFormField, XFormFieldConstraint
+from .models import XForm, XFormSubmission, XFormField, XFormFieldConstraint, TYPE_CHOICES
 from xml.dom.minidom import parse, parseString
 
 # CSV Export
@@ -172,11 +172,12 @@ def order_xform (req, form_id):
             context_instance=RequestContext(req))
 
 class FieldForm(forms.ModelForm):
+    
     class Meta:
         model = XFormField
-        fields = ('type', 'caption', 'command', 'description')
+        fields = ('datatype', 'name', 'command', 'help_text')
         widgets = {
-            'description': forms.Textarea(attrs={'cols': 35, 'rows': 2}),
+            'help_text': forms.Textarea(attrs={'cols': 35, 'rows': 2}),
         }
 
 class ConstraintForm(forms.ModelForm):
@@ -200,6 +201,7 @@ def add_field(req, form_id):
                 context_instance=RequestContext(req))
     else:
         form = FieldForm()
+        form.fields['datatype'].widget.choices = TYPE_CHOICES
 
     return render_to_response("xforms/field_edit.html", 
         { 'form': form, 'xform': xform },
@@ -221,8 +223,8 @@ def make_submission_form(xform):
     fields = {}
     for field in xform.fields.all().order_by('order'):
         fields[field.command] = forms.CharField(required=False,
-                                                help_text=field.description,
-                                                label = field.caption)
+                                                help_text=field.help_text,
+                                                label = field.name)
 
     # this method overloads Django's form clean() method and makes sure all the fields
     # pass the constraints determined by our XForm.  This guarantees that even the Admin
@@ -273,7 +275,8 @@ def edit_submission(req, submission_id):
         # our hash of bound values
         form_vals = {}
         for value in values:
-            form_vals[value.field.command] = value.value
+            field = XFormField.objects.get(pk=value.attribute.pk)
+            form_vals[field.command] = value.value
         print form_vals
 
         form = form_class(form_vals)
@@ -297,9 +300,9 @@ def view_field(req, form_id, field_id):
 def edit_field (req, form_id, field_id):
     xform = XForm.objects.get(pk=form_id)
     field = XFormField.objects.get(pk=field_id)
-    
     if req.method == 'POST':
         form = FieldForm(req.POST, instance=field)
+
         if form.is_valid():
             field = form.save(commit=False)
             field.xform = xform
@@ -312,6 +315,7 @@ def edit_field (req, form_id, field_id):
                             context_instance=RequestContext(req))
     else:
         form = FieldForm(instance=field)
+        form.fields['datatype'].widget.choices = TYPE_CHOICES
 
     return render_to_response("xforms/field_edit.html", 
         { 'form' : form, 'xform': xform, 'field' : field },

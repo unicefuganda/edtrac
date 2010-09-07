@@ -25,10 +25,10 @@
 <td class="field_name_col">
   {% if field %}
   
-  {% endif %} {{ form.caption }} {{ form.caption.errors}}</td>
-<td class="field_type_col">{{ form.type }} {{ form.type.errors }}</td>
+  {% endif %} {{ form.name }} {{ form.name.errors}}</td>
+<td class="field_type_col">{{ form.datatype }} {{ form.datatype.errors }}</td>
 <td class="field_command_col">{{ form.command }} {{form.command.errors}}</td>
-<td class="field_description_col">{{ form.description }} {{ form.description.errors }}</td>
+<td class="field_description_col">{{ form.help_text }} {{ form.help_text.errors }}</td>
 <td class="field_options_col">
   
   {% if field %}

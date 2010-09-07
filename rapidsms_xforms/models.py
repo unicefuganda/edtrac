@@ -1,10 +1,16 @@
-from django.db import models
-from django.contrib.auth.models import User
-from rapidsms.models import Connection
-from django.core.exceptions import ValidationError
 from decimal import Decimal
+from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.db import models
+from rapidsms.models import Connection
 import django.dispatch
 import re
+
+from eav.models import EavValue
+from eav.models import EavAttribute
+from eav.utils import EavRegistry
+
+TYPE_GPS = 'gps'
 
 class XForm(models.Model):
     """
@@ -49,12 +55,11 @@ class XForm(models.Model):
             # no new value, we need to remove this one
             else:
                 value.delete()
-
         # now add any remaining values in our dict
         for key, value in values.items():
             # look up the field by key
             field = XFormField.objects.get(xform=self, command=key)
-            sub_value = submission.values.create(field=field, value=str(value))
+            sub_value = submission.values.create(attribute=field, value=str(value), object=self)
 
         # clear out our error flag if there were some
         if submission.has_errors:
@@ -71,11 +76,12 @@ class XForm(models.Model):
 
         This mostly just coerces the 4 parameter ODK geo locations to our two parameter ones.
         """
-        for field in self.fields.filter(type='geopoint'):
-            if field.type == 'geopoint':
-                if field.command in values:
-                    geo_values = values[field.command].split(" ")
-                    values[field.command] = "%s %s" % (geo_values[0], geo_values[1])
+        for field in self.fields.filter(type=TYPE_GPS):
+#            didn't the above filter just do this?
+#            if field.type == 'geopoint':
+            if field.command in values:
+                geo_values = values[field.command].split(" ")
+                values[field.command] = "%s %s" % (geo_values[0], geo_values[1])
 
         # create our submission now
         submission = self.submissions.create(type='odk-www', raw=xml)
@@ -124,7 +130,7 @@ class XForm(models.Model):
 
                     try:
                         cleaned = field.clean_submission(value)
-                        submission.values.create(field=field, value=value)
+                        submission.values.create(attribute=field, value=value, object=self)
                         values[field.command] = cleaned
                     except ValidationError as err:
                         errors.append(err)
@@ -153,13 +159,18 @@ class XForm(models.Model):
         return self.name
 
 TYPE_CHOICES = (
-    ('integer', 'Integer'),
-    ('decimal', 'Decimal'),
-    ('string', 'String'),
-    ('geopoint', 'GPS Coordinates')
+    (None, u"---------"),
+    (EavAttribute.TYPE_INT, 'Integer'),
+    (EavAttribute.TYPE_FLOAT, 'Decimal'),
+    (EavAttribute.TYPE_TEXT, 'String'),
+    (TYPE_GPS, 'GPS Coordinates')
 )
 
-class XFormField(models.Model):
+# This sets up XForm as an EAV-able model (its attributes will in fact be
+# XFormFields
+EavRegistry.register(XForm)
+
+class XFormField(EavAttribute):
     """
     A field within an XForm.  Fields can be one of the types:
         int: An integer
@@ -170,14 +181,9 @@ class XFormField(models.Model):
     Note that when defining a field you must also define it's ``command`` which will
     be used to 'tag' the field in an SMS message.  ie: ``+age 10``
 
-    """
-
+    """ 
     xform = models.ForeignKey(XForm, related_name='fields')
-
-    type = models.CharField(max_length=16, choices=TYPE_CHOICES)
     command = models.SlugField(max_length=8)
-    caption = models.CharField(max_length=16)
-    description = models.CharField(max_length=64)
     order = models.IntegerField(default=0)
 
     def clean_submission(self, value):
@@ -200,13 +206,13 @@ class XFormField(models.Model):
 
         # check against our type first if we have a value
         if value is not None and len(value) > 0:
-            if self.type == 'integer':
+            if self.datatype == EavAttribute.TYPE_INT:
                 try:
                     cleaned_value = int(value)
                 except ValueError:
                     raise ValidationError("+%s parameter must be an even number." % self.command)
 
-            if self.type == 'decimal':
+            if self.datatype == EavAttribute.TYPE_FLOAT:
                 try:
                     cleaned_value = float(value)
                 except ValueError:
@@ -214,7 +220,7 @@ class XFormField(models.Model):
 
 
             # for gps, we expect values like 1.241 1.543, so basically two numbers
-            if self.type == 'geopoint':
+            if self.datatype == TYPE_GPS:
                 coords = value.split(' ')
                 if len(coords) != 2:
                     raise ValidationError("+%s parameter must be GPS coordinates in the format 'lat long'" % self.command)
@@ -405,7 +411,7 @@ class XFormSubmission(models.Model):
         return "%s (%s)" % (self.xform, self.type)
 
 
-class XFormSubmissionValue(models.Model):
+class XFormSubmissionValue(EavValue):
     """
     Stores a value for a field that was submitted.  Note that this is a rather inelegant
     representation of the data, in that nothing is typed.  This is by design.  It isn't
@@ -414,20 +420,20 @@ class XFormSubmissionValue(models.Model):
     """
 
     submission = models.ForeignKey(XFormSubmission, related_name='values')
-    field = models.ForeignKey(XFormField, related_name="submission_values")
-    value = models.CharField(max_length=255)
+    value_lat = models.FloatField(blank=True, null=True)
+    value_lon = models.FloatField(blank=True, null=True)
 
     def cleaned(self):
         return self.field.clean_submission(self.value)
     
-    def value_string(self):
+    def value_formatted(self):
         """
         Returns a nicer version of our value, mostly just shortening decimals to be more sane.
         """
-        if self.field.type == 'geopoint':
+        if self.field.type == TYPE_GPS:
             coords = self.cleaned()
             return "%.2f %.2f" % (coords[0], coords[1])
-        elif self.field.type == 'decimal':
+        elif self.field.type == EavAttribute.TYPE_FLOAT:
             return "%.2f" % (self.cleaned())
         else:
             return self.value
