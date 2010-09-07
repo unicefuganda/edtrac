@@ -59,7 +59,7 @@ class XForm(models.Model):
         for key, value in values.items():
             # look up the field by key
             field = XFormField.objects.get(xform=self, command=key)
-            sub_value = submission.values.create(attribute=field, value=str(value), object=self)
+            sub_value = submission.values.create(attribute=field, value=str(value), object=submission)
 
         # clear out our error flag if there were some
         if submission.has_errors:
@@ -130,7 +130,7 @@ class XForm(models.Model):
 
                     try:
                         cleaned = field.clean_submission(value)
-                        submission.values.create(attribute=field, value=value, object=self)
+                        submission.values.create(attribute=field, value=value, object=submission)
                         values[field.command] = cleaned
                     except ValidationError as err:
                         errors.append(err)
@@ -165,10 +165,6 @@ TYPE_CHOICES = (
     (EavAttribute.TYPE_TEXT, 'String'),
     (TYPE_GPS, 'GPS Coordinates')
 )
-
-# This sets up XForm as an EAV-able model (its attributes will in fact be
-# XFormFields
-EavRegistry.register(XForm)
 
 class XFormField(EavAttribute):
     """
@@ -410,6 +406,9 @@ class XFormSubmission(models.Model):
     def __unicode__(self): # pragma: no cover
         return "%s (%s)" % (self.xform, self.type)
 
+# This sets up XForm as an EAV-able model (its attributes will in fact be
+# XFormFields
+EavRegistry.register(XFormSubmission)
 
 class XFormSubmissionValue(EavValue):
     """

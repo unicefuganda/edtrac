@@ -277,7 +277,6 @@ def edit_submission(req, submission_id):
         for value in values:
             field = XFormField.objects.get(pk=value.attribute.pk)
             form_vals[field.command] = value.value
-        print form_vals
 
         form = form_class(form_vals)
 

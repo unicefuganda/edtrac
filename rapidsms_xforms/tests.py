@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.test.client import Client
 from django.core.exceptions import ValidationError
 from .models import XForm, XFormField, XFormFieldConstraint, xform_received
+from eav.models import EavAttribute
 
 class ViewTest(TestCase): # pragma: no cover
     urls = 'rapidsms_xforms.urls'
@@ -152,7 +153,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.failUnlessValid(c, 'FeV')
 
     def testIntField(self):
-        field = self.xform.fields.create(type='integer', caption='number', command='number')
+        field = self.xform.fields.create(type=EavAttribute.TYPE_INT, name='number', command='number')
 
         self.failUnlessClean(field, '1 ')
         self.failUnlessClean(field, None)
@@ -161,7 +162,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.failIfClean(field, '1.34')
 
     def testDecField(self):
-        field = self.xform.fields.create(type='decimal', caption='number', command='number')
+        field = self.xform.fields.create(type=EavAttribute.TYPE_FLOAT, name='number', command='number')
 
         self.failUnlessClean(field, '1')
         self.failUnlessClean(field, ' 1.1')
@@ -170,7 +171,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.failIfClean(field, 'abc')
 
     def testStrField(self):
-        field = self.xform.fields.create(type='string', caption='string', command='string')
+        field = self.xform.fields.create(type=EavAttribute.TYPE_TEXT, name='string', command='string')
 
         self.failUnlessClean(field, '1')
         self.failUnlessClean(field, '1.1')
@@ -179,7 +180,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.failUnlessClean(field, '')
 
     def testGPSField(self):
-        field = self.xform.fields.create(type='geopoint', caption='location', command='location')
+        field = self.xform.fields.create(type='geopoint', name='location', command='location')
 
         self.failUnlessClean(field, '1 2')
         self.failUnlessClean(field, '1.1 1')
@@ -196,7 +197,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.failIfClean(field, '2.1 181.123')
 
     def testFieldConstraints(self):
-        field = self.xform.fields.create(type='string', caption='number', command='number')
+        field = self.xform.fields.create(type=EavAttribute.TYPE_TEXT, name='number', command='number')
 
         # test that with no constraings, all values work
         self.failUnlessClean(field, '1')
