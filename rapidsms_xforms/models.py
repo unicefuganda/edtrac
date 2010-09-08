@@ -77,7 +77,7 @@ class XForm(models.Model):
 
         This mostly just coerces the 4 parameter ODK geo locations to our two parameter ones.
         """
-        for field in self.fields.filter(type=TYPE_OBJECT):
+        for field in self.fields.filter(datatype=EavAttribute.TYPE_OBJECT):
 #            didn't the above filter just do this?
 #            if field.type == 'geopoint':
             if field.command in values:

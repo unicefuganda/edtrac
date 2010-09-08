@@ -4,6 +4,7 @@ from django.shortcuts import redirect, get_object_or_404, render_to_response
 from django.conf import settings
 from django import forms
 from django.core.exceptions import ValidationError
+from django.views.decorators.csrf import csrf_exempt
 
 from .models import XForm, XFormSubmission, XFormField, XFormFieldConstraint, TYPE_CHOICES
 from xml.dom.minidom import parse, parseString
@@ -45,6 +46,7 @@ def odk_get_form(req, pk):
     return resp
 
 @require_POST
+@csrf_exempt
 def odk_submission(req):
     values = {}
     xform = None
