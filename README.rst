@@ -21,7 +21,7 @@ The official source code repository is:
 A little video showing this app in use:
   http://www.youtube.com/watch?v=PyjEruT5uoU
 
-Build by Nyaruka Ltd under contract of UNICEF:
+Built by Nyaruka Ltd under contract of UNICEF:
   http://www.nyaruka.com
 
 Installation
