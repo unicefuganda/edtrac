@@ -17,6 +17,7 @@
 
 {% load uni_form_tags %}
 <form action="/xforms/submissions/{{submission.pk}}/edit/" method="post" class="uniForm" id="subForm">
+{% csrf_token %}
 <fieldset>
 {{ form|as_uni_form }}
 

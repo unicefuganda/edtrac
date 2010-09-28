@@ -240,7 +240,8 @@ def make_submission_form(xform):
                 field_val = str(cleaned_data.get(command))
 
                 try:
-                    cleaned_val = field.clean(field_val)
+                    print "XFormField %s cleaning %s" % (field, field_val)
+                    cleaned_val = field.clean_submission(field_val)
                 except ValidationError as err:
                     # if there is an error, remove it from our cleaned data and 
                     # add the error to our list of errors for this form

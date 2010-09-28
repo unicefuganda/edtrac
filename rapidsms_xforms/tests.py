@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.test.client import Client
 from django.core.exceptions import ValidationError
 from .models import XForm, XFormField, XFormFieldConstraint, xform_received
-from eav.models import EavAttribute
+from eav.models import Attribute
 
 class ViewTest(TestCase): # pragma: no cover
     urls = 'rapidsms_xforms.urls'
@@ -153,7 +153,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.failUnlessValid(c, 'FeV')
 
     def testIntField(self):
-        field = self.xform.fields.create(datatype=EavAttribute.TYPE_INT, name='number', command='number')
+        field = self.xform.fields.create(datatype=Attribute.TYPE_INT, name='number', command='number')
 
         self.failUnlessClean(field, '1 ')
         self.failUnlessClean(field, None)
@@ -162,7 +162,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.failIfClean(field, '1.34')
 
     def testDecField(self):
-        field = self.xform.fields.create(datatype=EavAttribute.TYPE_FLOAT, name='number', command='number')
+        field = self.xform.fields.create(datatype=Attribute.TYPE_FLOAT, name='number', command='number')
 
         self.failUnlessClean(field, '1')
         self.failUnlessClean(field, ' 1.1')
@@ -171,7 +171,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.failIfClean(field, 'abc')
 
     def testStrField(self):
-        field = self.xform.fields.create(datatype=EavAttribute.TYPE_TEXT, name='string', command='string')
+        field = self.xform.fields.create(datatype=Attribute.TYPE_TEXT, name='string', command='string')
 
         self.failUnlessClean(field, '1')
         self.failUnlessClean(field, '1.1')
@@ -180,7 +180,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.failUnlessClean(field, '')
 
     def testGPSField(self):
-        field = self.xform.fields.create(datatype=EavAttribute.TYPE_OBJECT, name='location', command='location')
+        field = self.xform.fields.create(datatype=Attribute.TYPE_OBJECT, name='location', command='location')
 
         self.failUnlessClean(field, '1 2')
         self.failUnlessClean(field, '1.1 1')
@@ -197,7 +197,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.failIfClean(field, '2.1 181.123')
 
     def testFieldConstraints(self):
-        field = self.xform.fields.create(datatype=EavAttribute.TYPE_TEXT, name='number', command='number')
+        field = self.xform.fields.create(datatype=Attribute.TYPE_TEXT, name='number', command='number')
 
         # test that with no constraings, all values work
         self.failUnlessClean(field, '1')
@@ -235,9 +235,9 @@ class SubmisionTest(TestCase): #pragma: no cover
         self.xform = XForm(name='test', keyword='survey', owner=self.user)
         self.xform.save()
 
-        field = self.xform.fields.create(datatype=EavAttribute.TYPE_INT, name='age', command='age')
+        field = self.xform.fields.create(datatype=Attribute.TYPE_INT, name='age', command='age')
         field.constraints.create(type='req_val', test='None', message="You must include an age")
-        self.xform.fields.create(datatype=EavAttribute.TYPE_TEXT, name='name', command='name')
+        self.xform.fields.create(datatype=Attribute.TYPE_TEXT, name='name', command='name')
 
     def testSMSSubmission(self):
         submission = self.xform.process_sms_submission("survey +age 10 +name matt berg", None)
@@ -286,8 +286,8 @@ class SubmisionTest(TestCase): #pragma: no cover
         self.xform.update_submission_from_dict(submission, new_vals)
 
         self.failUnlessEqual(len(submission.values.all()), 2)
-        self.failUnlessEqual(submission.values.get(attribute__command='age').value, '20')
-        self.failUnlessEqual(submission.values.get(attribute__command='name').value, 'greg snider')
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, '20')
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'greg snider')
 
         # make sure removal case works
         new_vals = { 'age': 30 }

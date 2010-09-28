@@ -2,15 +2,13 @@ from decimal import Decimal
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
+from eav.models import Attribute, Value
+from eav.utils import EavRegistry
+from eav.managers import EntityManager
+from rapidsms.contrib.locations.models import Point
 from rapidsms.models import Connection
 import django.dispatch
 import re
-
-from eav.models import EavValue
-from eav.models import EavAttribute
-from eav.utils import EavRegistry
-
-from rapidsms.contrib.locations.models import Point
 
 class XForm(models.Model):
     """
@@ -77,7 +75,7 @@ class XForm(models.Model):
 
         This mostly just coerces the 4 parameter ODK geo locations to our two parameter ones.
         """
-        for field in self.fields.filter(datatype=EavAttribute.TYPE_OBJECT):
+        for field in self.fields.filter(datatype=Attribute.TYPE_OBJECT):
 #            didn't the above filter just do this?
 #            if field.type == 'geopoint':
             if field.command in values:
@@ -114,7 +112,6 @@ class XForm(models.Model):
         # create our new submission, we'll add field values as we parse them
         submission = XFormSubmission(xform=self, type='sms', raw=message, connection=connection)
         submission.save()
-
         # the values we have pulled out
         values = {}
 
@@ -122,7 +119,6 @@ class XForm(models.Model):
         for segment in segments:
             # grab the command
             command = segment.strip().split(' ')[0].lower()
-
             # find the corresponding field, check its value and save it if it passes
             for field in self.fields.all():
                 if field.command == command:
@@ -161,13 +157,13 @@ class XForm(models.Model):
 
 TYPE_CHOICES = (
     (None, u"---------"),
-    (EavAttribute.TYPE_INT, 'Integer'),
-    (EavAttribute.TYPE_FLOAT, 'Decimal'),
-    (EavAttribute.TYPE_TEXT, 'String'),
-    (EavAttribute.TYPE_OBJECT, 'GPS Coordinates')
+    (Attribute.TYPE_INT, 'Integer'),
+    (Attribute.TYPE_FLOAT, 'Decimal'),
+    (Attribute.TYPE_TEXT, 'String'),
+    (Attribute.TYPE_OBJECT, 'GPS Coordinates')
 )
 
-class XFormField(EavAttribute):
+class XFormField(Attribute):
     """
     A field within an XForm.  Fields can be one of the types:
         int: An integer
@@ -203,13 +199,13 @@ class XFormField(EavAttribute):
 
         # check against our type first if we have a value
         if value is not None and len(value) > 0:
-            if self.datatype == EavAttribute.TYPE_INT:
+            if self.datatype == Attribute.TYPE_INT:
                 try:
                     cleaned_value = int(value)
                 except ValueError:
                     raise ValidationError("+%s parameter must be an even number." % self.command)
 
-            if self.datatype == EavAttribute.TYPE_FLOAT:
+            if self.datatype == Attribute.TYPE_FLOAT:
                 try:
                     cleaned_value = float(value)
                 except ValueError:
@@ -217,7 +213,7 @@ class XFormField(EavAttribute):
 
 
             # for gps, we expect values like 1.241 1.543, so basically two numbers
-            if self.datatype == EavAttribute.TYPE_OBJECT:
+            if self.datatype == Attribute.TYPE_OBJECT:
                 coords = value.split(' ')
                 if len(coords) != 2:
                     raise ValidationError("+%s parameter must be GPS coordinates in the format 'lat long'" % self.command)
@@ -411,7 +407,7 @@ class XFormSubmission(models.Model):
 # XFormFields
 EavRegistry.register(XFormSubmission)
 
-class XFormSubmissionValue(EavValue):
+class XFormSubmissionValue(Value):
     """
     Stores a value for a field that was submitted.  Note that this is a rather inelegant
     representation of the data, in that nothing is typed.  This is by design.  It isn't
@@ -428,10 +424,10 @@ class XFormSubmissionValue(EavValue):
         """
         Returns a nicer version of our value, mostly just shortening decimals to be more sane.
         """
-        if self.field.type == EavAttribute.TYPE_OBJECT:
+        if self.field.type == Attribute.TYPE_OBJECT:
             coords = self.cleaned()
             return "%.2f %.2f" % (coords.longitude, coords.latitude)
-        elif self.field.type == EavAttribute.TYPE_FLOAT:
+        elif self.field.type == Attribute.TYPE_FLOAT:
             return "%.2f" % (self.cleaned())
         else:
             return self.value
