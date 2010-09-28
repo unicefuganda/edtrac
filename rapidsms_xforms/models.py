@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 from eav.models import Attribute, Value
-from eav.utils import EavRegistry
+from eav import register
 from eav.managers import EntityManager
 from rapidsms.contrib.locations.models import Point
 from rapidsms.models import Connection
@@ -405,7 +405,7 @@ class XFormSubmission(models.Model):
 
 # This sets up XForm as an EAV-able model (its attributes will in fact be
 # XFormFields
-EavRegistry.register(XFormSubmission)
+register(XFormSubmission)
 
 class XFormSubmissionValue(Value):
     """
