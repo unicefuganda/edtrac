@@ -77,7 +77,7 @@ class XForm(models.Model):
         """
         for field in self.fields.filter(datatype=XFormField.TYPE_OBJECT):
             if field.command in values:
-                values[field.command] = XFormField.getParser(field)(field.command, values[field.command])
+                values[field.command] = XFormField.lookup_parser(field)(field.command, values[field.command])
 
         # create our submission now
         submission = self.submissions.create(type='odk-www', raw=xml)
