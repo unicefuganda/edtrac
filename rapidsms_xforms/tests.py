@@ -235,23 +235,41 @@ class SubmisionTest(TestCase): #pragma: no cover
         self.xform = XForm(name='test', keyword='survey', owner=self.user)
         self.xform.save()
 
+        field = self.xform.fields.create(datatype=Attribute.TYPE_TEXT, name='gender', command='gender')
+        field.constraints.create(type='req_val', test='None', message="You must include a gender")
         field = self.xform.fields.create(datatype=Attribute.TYPE_INT, name='age', command='age')
         field.constraints.create(type='req_val', test='None', message="You must include an age")
         self.xform.fields.create(datatype=Attribute.TYPE_TEXT, name='name', command='name')
 
     def testSMSSubmission(self):
-        submission = self.xform.process_sms_submission("survey +age 10 +name matt berg", None)
+        submission = self.xform.process_sms_submission("survey +age 10 +name matt berg +gender male", None)
+        self.failUnlessEqual(len(submission.values.all()), 3)
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt berg')
+        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
+
+        # test with just an age and gender
+        submission = self.xform.process_sms_submission("survey male 10", None)
         self.failUnlessEqual(len(submission.values.all()), 2)
+        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
+
+        # mix of required and not
+        submission = self.xform.process_sms_submission("survey male 10 +name matt berg", None)
+        self.failUnlessEqual(len(submission.values.all()), 3)
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt berg')
+        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
 
         # make sure we record errors if there is a missing age
         submission = self.xform.process_sms_submission("survey +name luke skywalker", None)
         self.failUnlessEqual(submission.has_errors, True)
-        self.failUnlessEqual(1, len(submission.errors))
+        self.failUnlessEqual(2, len(submission.errors))
 
         # make sure we record errors if there is just the keyword
         submission = self.xform.process_sms_submission("survey", None)
         self.failUnlessEqual(submission.has_errors, True)
-        self.failUnlessEqual(1, len(submission.errors))
+        self.failUnlessEqual(2, len(submission.errors))
 
     def testSignal(self):
         # add a listener to our signal
@@ -266,7 +284,7 @@ class SubmisionTest(TestCase): #pragma: no cover
         listener = Listener()
         xform_received.connect(listener.handle_submission)
 
-        submission = self.xform.process_sms_submission("survey +age 10 +name matt berg", None)
+        submission = self.xform.process_sms_submission("survey male 10 +name matt berg", None)
         self.failUnlessEqual(listener.submission, submission)
         self.failUnlessEqual(listener.xform, self.xform)
 
@@ -274,12 +292,12 @@ class SubmisionTest(TestCase): #pragma: no cover
         new_vals = { 'age': 20, 'name': 'greg snider' }
         self.xform.update_submission_from_dict(submission, new_vals)
 
-        self.failUnlessEqual(listener.submission.values.get(field__command='age').value, '20')
-        self.failUnlessEqual(listener.submission.values.get(field__command='name').value, 'greg snider')
+        self.failUnlessEqual(listener.submission.values.get(attribute__name='age').value, 20)
+        self.failUnlessEqual(listener.submission.values.get(attribute__name='name').value, 'greg snider')
 
     def testUpdateFromDict(self):
-        submission = self.xform.process_sms_submission("survey +age 10 +name matt berg", None)
-        self.failUnlessEqual(len(submission.values.all()), 2)
+        submission = self.xform.process_sms_submission("survey male +age 10 +name matt berg", None)
+        self.failUnlessEqual(len(submission.values.all()), 3)
 
         # now update the form using a dict
         new_vals = { 'age': 20, 'name': 'greg snider' }
@@ -294,6 +312,6 @@ class SubmisionTest(TestCase): #pragma: no cover
         self.xform.update_submission_from_dict(submission, new_vals)
 
         self.failUnlessEqual(len(submission.values.all()), 1)
-        self.failUnlessEqual(submission.values.get(field__command='age').value, '30')
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 30)
 
 

@@ -96,11 +96,17 @@ class XForm(models.Model):
         The newly created submission object will be returned.
         """
 
-        # sms submissions must be in the form:
+        # sms submissions can have two formats, either explicitely marking each field:
         #    <keyword> +field_command1 [values] +field_command2 [values]
         #
-        # so first let's just split on +
-        segments = message.split('+')
+        # or ommitting the 'command' for all required fields:
+        #    <keyword> [first required field] [second required field] +field_command3 [first optional field]
+        #
+        # Note that if you are using the no-delimeter form, then all string fields are 'assumed' to be
+        # a single word.  TODO: this could probably be made to be smarter
+
+        # so first let's split on spaces
+        segments = message.split(' ')
 
         # ignore everything before the first '+' that is the keyword and/or other data we
         # aren't concerned with
@@ -115,15 +121,70 @@ class XForm(models.Model):
         # the values we have pulled out
         values = {}
 
-        # now for each segment
-        for segment in segments:
-            # grab the command
-            command = segment.strip().split(' ')[0].lower()
+        # we first try to deal with required fields... we skip out of this processing either when
+        # we reach a +command delimeter or we have processed all required fields
+        for field in self.fields.all().order_by('order', 'id'):
+            required = field.constraints.all().filter(type="req_val")
+
+            # we are at a field that isn't required?  pop out, these will be dealt with 
+            # in the next block
+            if not required:
+                break
+
+            # no more text in the message, break out
+            if not segments:
+                break
+
+            segment = segments.pop(0)
+
+            # segment starts with '+' this is actually a command
+            if segment.startswith('+'):
+                # push it back on our segments, it will be dealt with later
+                segments.insert(0, segment)
+                break
+                
+            # ok, this looks like a valid required field value, clean it up
+            try:
+                cleaned = field.clean_submission(segment)
+                submission.values.create(attribute=field, value=cleaned, entity=submission)
+                values[field.command] = cleaned
+            except ValidationError as err:
+                errors.append(err)
+                break
+
+        # for any remaining segments, deal with them as command / value pairings
+        while segments:
+            # search for our command
+            command = None
+            while segments:
+                command = segments.pop(0)
+                if command.startswith('+'):
+                    break
+
+            # no command found?  break out
+            if not command:
+                break
+
+            command = command[1:].lower()
+
+            # now read in the value, basically up to the next command, joining segments
+            # with spaces
+            value = None
+            while segments:
+                segment = segments.pop(0)
+                if segment.startswith('+'):
+                    segments.insert(0, segment)
+                    break
+                else:
+                    if not value:
+                        value = segment
+                    else:
+                        value += ' ' + segment
+
             # find the corresponding field, check its value and save it if it passes
             for field in self.fields.all():
                 if field.command == command:
                     found = True
-                    value = ' '.join(segment.strip().split(' ')[1:])
 
                     try:
                         cleaned = field.clean_submission(value)
