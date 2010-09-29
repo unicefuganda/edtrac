@@ -286,7 +286,7 @@ class SubmisionTest(TestCase): #pragma: no cover
         self.xform.update_submission_from_dict(submission, new_vals)
 
         self.failUnlessEqual(len(submission.values.all()), 2)
-        self.failUnlessEqual(submission.values.get(attribute__name='age').value, '20')
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 20)
         self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'greg snider')
 
         # make sure removal case works
