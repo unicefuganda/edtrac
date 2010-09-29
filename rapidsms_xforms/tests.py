@@ -294,6 +294,6 @@ class SubmisionTest(TestCase): #pragma: no cover
         self.xform.update_submission_from_dict(submission, new_vals)
 
         self.failUnlessEqual(len(submission.values.all()), 1)
-        self.failUnlessEqual(submission.values.get(attribute__xformfield__command='age').value, '30')
+        self.failUnlessEqual(submission.values.get(attribute__xformfield__command='age').value, 30)
 
 
