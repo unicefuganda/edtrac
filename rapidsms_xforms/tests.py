@@ -10,7 +10,7 @@ from .models import XForm, XFormField, XFormFieldConstraint, xform_received
 from eav.models import Attribute
 
 class ViewTest(TestCase): # pragma: no cover
-    urls = 'rapidsms_xforms.urls'
+    urls = 'rapidsms_xforms.test_urls'
 
     def setUp(self):
         self.user = User.objects.create_user('fred', 'fred@wilma.com', 'secret')
@@ -286,7 +286,7 @@ class SubmisionTest(TestCase): #pragma: no cover
         self.xform.update_submission_from_dict(submission, new_vals)
 
         self.failUnlessEqual(len(submission.values.all()), 2)
-        self.failUnlessEqual(submission.values.get(attribute__name='age').value, '20')
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 20)
         self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'greg snider')
 
         # make sure removal case works

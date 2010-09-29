@@ -46,7 +46,7 @@ You will probably also want to add XForms as one of the main RapidSMS tabs::
   TABS = [
     ('rapidsms.views.dashboard', 'Dashboard'),	
         .. other tabs ..
-    ('rapidsms_xforms.views.xforms', 'XForms'),
+    ('xforms', 'XForms'),
   ]
 
 Finally sync your database with ``python manage.py syncdb``.

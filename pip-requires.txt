@@ -1,0 +1,2 @@
+rapidsms>=0.9.5a
+django-uni-form>=0.7.0

@@ -179,7 +179,7 @@ class FieldForm(forms.ModelForm):
         model = XFormField
         fields = ('datatype', 'name', 'command', 'description')
         widgets = {
-            'description': forms.Textarea(attrs={'cols': 35, 'rows': 2}),
+            'description': forms.Textarea(attrs={'cols': 30, 'rows': 2}),
         }
 
 class ConstraintForm(forms.ModelForm):
