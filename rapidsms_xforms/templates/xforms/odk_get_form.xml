@@ -14,7 +14,7 @@
         <translation lang="eng">
 	  {% for field in xform.fields.all %}
           <text id="/data/{{ field.command }}:label">
-            <value>{{ field.caption }}</value>
+            <value>{{ field.name }}</value>
           </text>
           <text id="/data/{{ field.command }}:hint">
             <value>{{ field.description }}</value>
