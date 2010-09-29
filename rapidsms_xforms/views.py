@@ -177,9 +177,9 @@ class FieldForm(forms.ModelForm):
     
     class Meta:
         model = XFormField
-        fields = ('datatype', 'name', 'command', 'help_text')
+        fields = ('datatype', 'name', 'command', 'description')
         widgets = {
-            'help_text': forms.Textarea(attrs={'cols': 35, 'rows': 2}),
+            'description': forms.Textarea(attrs={'cols': 35, 'rows': 2}),
         }
 
 class ConstraintForm(forms.ModelForm):
@@ -225,7 +225,7 @@ def make_submission_form(xform):
     fields = {}
     for field in xform.fields.all().order_by('order'):
         fields[field.command] = forms.CharField(required=False,
-                                                help_text=field.help_text,
+                                                help_text=field.description,
                                                 label = field.name)
 
     # this method overloads Django's form clean() method and makes sure all the fields

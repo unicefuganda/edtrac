@@ -193,7 +193,6 @@ class XFormField(Attribute):
         then the cleaned, Python typed value is returned.
         """
 
-
         # this will be our properly Python typed value
         cleaned_value = None
 
@@ -235,6 +234,8 @@ class XFormField(Attribute):
                 cleaned_value = Point.objects.create(longitude=coords[0], latitude=coords[1])
 
             # anything goes for strings
+            if self.datatype == Attribute.TYPE_TEXT:
+                cleaned_value = value
 
         # now check our actual constraints if any
         for constraint in self.constraints.order_by('order'):
