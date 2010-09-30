@@ -24,7 +24,7 @@ A little video showing this app in use:
 Built by Nyaruka Ltd under contract of UNICEF:
   http://www.nyaruka.com
 
-Installation
+Installation From Cheese Shop
 ===========================================
 
 You can install the latest version of the rapidsms-xforms library straight from the cheese shop::
@@ -35,6 +35,37 @@ Then to use xforms, edit your ``settings.py`` to add ``rapidsms_xforms`` and ``u
 
   INSTALLED_APPS = ( "rapidsms",
    		       .. other apps ..
+  		     "uni_form",
+  		     "rapidsms_xforms" )
+
+You will probably also want to add XForms as one of the main RapidSMS tabs::
+
+  TABS = [
+    ('rapidsms.views.dashboard', 'Dashboard'),	
+        .. other tabs ..
+    ('xforms', 'XForms'),
+  ]
+
+Finally sync your database with::
+
+    % python manage.py syncdb
+
+Once you restart RapidSMS a new tab will created letting you create, manage and view forms and their submissions.
+
+Installation From Github
+===========================================
+
+You can always get the latest version of rapidsms-xforms from github.  Note that the tip of the repo is not guaranteed to be stable.  You should use the verison available via pip unless you have a specific reason not to.
+
+You can install the requirements using the pip-requires.txt file.
+
+   % pip install -r pip-requires.txt
+
+Then to use xforms, edit your ``settings.py`` to add ``eav``, ``rapidsms_xforms`` and ``uni_form``::
+
+  INSTALLED_APPS = ( "rapidsms",
+   		       .. other apps ..
+		     "eav",
   		     "uni_form",
   		     "rapidsms_xforms" )
 
