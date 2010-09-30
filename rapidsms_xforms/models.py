@@ -75,12 +75,9 @@ class XForm(models.Model):
 
         This mostly just coerces the 4 parameter ODK geo locations to our two parameter ones.
         """
-        for field in self.fields.filter(datatype=Attribute.TYPE_OBJECT):
-#            didn't the above filter just do this?
-#            if field.type == 'geopoint':
+        for field in self.fields.filter(datatype=XFormField.TYPE_OBJECT):
             if field.command in values:
-                geo_values = values[field.command].split(" ")
-                values[field.command] = Point.objects.create(longitude=geo_values[0], latitude=geo_values[1]) #"%s %s" % (geo_values[0], geo_values[1])
+                values[field.command] = XFormField.lookup_parser(field)(field.command, values[field.command])
 
         # create our submission now
         submission = self.submissions.create(type='odk-www', raw=xml)
@@ -216,13 +213,7 @@ class XForm(models.Model):
     def __unicode__(self): # pragma: no cover
         return self.name
 
-TYPE_CHOICES = (
-    (None, u"---------"),
-    (Attribute.TYPE_INT, 'Integer'),
-    (Attribute.TYPE_FLOAT, 'Decimal'),
-    (Attribute.TYPE_TEXT, 'String'),
-    (Attribute.TYPE_OBJECT, 'GPS Coordinates')
-)
+
 
 class XFormField(Attribute):
     """
@@ -236,9 +227,70 @@ class XFormField(Attribute):
     be used to 'tag' the field in an SMS message.  ie: ``+age 10``
 
     """ 
+
+    TYPE_INT = Attribute.TYPE_INT
+    TYPE_FLOAT = Attribute.TYPE_FLOAT
+    TYPE_TEXT = Attribute.TYPE_TEXT
+    TYPE_OBJECT = Attribute.TYPE_OBJECT
+    TYPE_GEOPOINT = 'geopoint'
+
+    # These are the choices of types available for XFormFields.
+    #
+    # The first field is the field 'field_type'
+    # The second is the label displayed in the XForm UI for this type
+    # The third is the EAV datatype used for this type
+    # And the last field is a method pointer to a parsing method which takes care of
+    # deriving a field value from a string
+    #
+    # This list is manipulated when new fields are added at runtime via the register_field_type
+    # hook.
+
+    TYPE_CHOICES = [
+        (TYPE_INT, 'Integer', TYPE_INT, None),
+        (TYPE_FLOAT, 'Decimal', TYPE_FLOAT, None),
+        (TYPE_TEXT, 'String', TYPE_TEXT, None),
+    ]
+
     xform = models.ForeignKey(XForm, related_name='fields')
+    field_type = models.SlugField(max_length=8, null=True, blank=True)
     command = models.SlugField(max_length=8)
     order = models.IntegerField(default=0)
+
+    @classmethod
+    def register_field_type(cls, field_type, name, parserFunc):
+        XFormField.TYPE_CHOICES.append((field_type, name, XFormField.TYPE_OBJECT, parserFunc))
+
+    @classmethod
+    def lookup_parser(cls, otype):
+        for (field_type, name, datatype, func) in XFormField.TYPE_CHOICES:
+            if otype == field_type:
+                return func
+
+        raise ValidationError("Unable to find parser for field: '%s'" % otype)
+
+
+    def derive_datatype(self):
+        """
+        We map our field_type to the appropriate data_type here.
+        """
+        if self.datatype:
+            return
+
+        for (field_type, name, datatype, func) in XFormField.TYPE_CHOICES:
+            if field_type == self.field_type:
+                self.datatype = datatype
+                break
+
+        if not self.datatype:
+            raise ValidationError("Field '%s' has an unknown data type: %s" % (self.command, self.datatype))
+
+    def full_clean(self, exclude=None):
+        self.derive_datatype()
+        return super(XFormField, self).full_clean(exclude)
+
+    def save(self, force_insert=False, force_update=False, using=None):
+        self.derive_datatype()
+        return super(XFormField, self).save(force_insert, force_update, using)
 
     def clean_submission(self, value):
         """
@@ -273,26 +325,8 @@ class XFormField(Attribute):
 
 
             # for gps, we expect values like 1.241 1.543, so basically two numbers
-            if self.datatype == Attribute.TYPE_OBJECT:
-                coords = value.split(' ')
-                if len(coords) != 2:
-                    raise ValidationError("+%s parameter must be GPS coordinates in the format 'lat long'" % self.command)
-                for coord in coords:
-                    try:
-                        test = float(coord)
-                    except ValueError:
-                        raise ValidationError("+%s parameter must be GPS coordinates the format 'lat long'" % self.command)
-
-                # lat needs to be between -90 and 90
-                if float(coords[0]) < -90 or float(coords[0]) > 90:
-                    raise ValidationError("+%s parameter has invalid latitude, must be between -90 and 90" % self.command)
-
-                # lng needs to be between -180 and 180
-                if float(coords[1]) < -180 or float(coords[1]) > 180:
-                    raise ValidationError("+%s parameter has invalid longitude, must be between -180 and 180" % self.command)
-
-                # our cleaned value is the coordinates as a tuple
-                cleaned_value = Point.objects.create(longitude=coords[0], latitude=coords[1])
+            if self.datatype == XFormField.TYPE_OBJECT:
+                cleaned_value = XFormField.lookup_parser(self.field_type)(self.command, value)
 
             # anything goes for strings
             if self.datatype == Attribute.TYPE_TEXT:
@@ -486,10 +520,7 @@ class XFormSubmissionValue(Value):
         """
         Returns a nicer version of our value, mostly just shortening decimals to be more sane.
         """
-        if self.field.type == Attribute.TYPE_OBJECT:
-            coords = self.cleaned()
-            return "%.2f %.2f" % (coords.longitude, coords.latitude)
-        elif self.field.type == Attribute.TYPE_FLOAT:
+        if self.field.type == Attribute.TYPE_FLOAT:
             return "%.2f" % (self.cleaned())
         else:
             return self.value
@@ -502,4 +533,36 @@ class XFormSubmissionValue(Value):
 # whether it was successfully parsed or not and do what they like with it.
 
 xform_received = django.dispatch.Signal(providing_args=["xform", "submission"])
+
+def create_geopoint(command, value):
+    """
+    Used by our arbitrary field saving / lookup.  This takes the command and the string value representing
+    a geolocation and return a Point location.
+    """
+    coords = value.split(' ')
+    if len(coords) != 2:
+        raise ValidationError("+%s parameter must be GPS coordinates in the format 'lat long'" % command)
+
+    for coord in coords:
+        try:
+            test = float(coord)
+        except ValueError:
+            raise ValidationError("+%s parameter must be GPS coordinates the format 'lat long'" % command)
+        
+    # lat needs to be between -90 and 90
+    if float(coords[0]) < -90 or float(coords[0]) > 90:
+        raise ValidationError("+%s parameter has invalid latitude, must be between -90 and 90" % command)
+        
+    # lng needs to be between -180 and 180
+    if float(coords[1]) < -180 or float(coords[1]) > 180:
+        raise ValidationError("+%s parameter has invalid longitude, must be between -180 and 180" % command)
+
+    # our cleaned value is the coordinates as a tuple
+    cleaned_value = Point.objects.create(longitude=coords[0], latitude=coords[1])
+    return cleaned_value
+
+# register geopoints as a type
+XFormField.register_field_type(XFormField.TYPE_GEOPOINT, 'GPS Coordinate', create_geopoint)
+
+
 

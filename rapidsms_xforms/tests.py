@@ -9,55 +9,6 @@ from django.core.exceptions import ValidationError
 from .models import XForm, XFormField, XFormFieldConstraint, xform_received
 from eav.models import Attribute
 
-class ViewTest(TestCase): # pragma: no cover
-    urls = 'rapidsms_xforms.test_urls'
-
-    def setUp(self):
-        self.user = User.objects.create_user('fred', 'fred@wilma.com', 'secret')
-        self.user.save()
-        self.client = Client()
-        self.client.login(username='fred', password='secret')
-
-    def testAuthenticated(self):
-        self.client.logout()
-        response = self.client.get("/xforms/")
-        self.failUnlessEqual(response.status_code, 302)
-
-    def testList(self):
-        x1 = XForm.objects.create(name="form1", keyword="form1", description="nothing", owner=self.user)
-        response = self.client.get("/xforms/")
-        self.failUnlessEqual(response.status_code, 200)
-        self.failUnlessEqual(len(response.context['xforms']), 1)
-
-    def testNew(self):
-        response = self.client.post("/xforms/new/",
-                                    { 'name': 'form2',
-                                      'keyword': 'keyword2',
-                                      'description': 'desc2',
-                                      'response': 'response2'}, follow=True)
-
-        self.failUnlessEqual(response.status_code, 200)
-
-        # make sure we have the newly created xform
-        xform = response.context['xform']
-
-        self.failUnlessEqual(xform.pk, 1)
-        self.failUnlessEqual(xform.name, 'form2')
-        self.failUnlessEqual(xform.keyword, 'keyword2')
-        self.failUnlessEqual(xform.description, 'desc2')
-        self.failUnlessEqual(xform.owner, self.user)
-
-
-        # check that dupe doesn't work
-        response = self.client.post("/xforms/new/",
-                                    { 'name': 'form2',
-                                      'keyword': 'keyword2',
-                                      'description': 'desc2' }, follow=True)
-        self.failUnlessEqual(response.status_code, 200)
-
-        # we shouldnt have an xform created
-        self.failIf('xform' in response.context)
-
 class ModelTest(TestCase): #pragma: no cover
 
     def setUp(self):
@@ -153,7 +104,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.failUnlessValid(c, 'FeV')
 
     def testIntField(self):
-        field = self.xform.fields.create(datatype=Attribute.TYPE_INT, name='number', command='number')
+        field = self.xform.fields.create(field_type=XFormField.TYPE_INT, name='number', command='number')
 
         self.failUnlessClean(field, '1 ')
         self.failUnlessClean(field, None)
@@ -162,7 +113,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.failIfClean(field, '1.34')
 
     def testDecField(self):
-        field = self.xform.fields.create(datatype=Attribute.TYPE_FLOAT, name='number', command='number')
+        field = self.xform.fields.create(field_type=XFormField.TYPE_FLOAT, name='number', command='number')
 
         self.failUnlessClean(field, '1')
         self.failUnlessClean(field, ' 1.1')
@@ -171,7 +122,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.failIfClean(field, 'abc')
 
     def testStrField(self):
-        field = self.xform.fields.create(datatype=Attribute.TYPE_TEXT, name='string', command='string')
+        field = self.xform.fields.create(field_type=XFormField.TYPE_TEXT, name='string', command='string')
 
         self.failUnlessClean(field, '1')
         self.failUnlessClean(field, '1.1')
@@ -180,7 +131,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.failUnlessClean(field, '')
 
     def testGPSField(self):
-        field = self.xform.fields.create(datatype=Attribute.TYPE_OBJECT, name='location', command='location')
+        field = self.xform.fields.create(field_type=XFormField.TYPE_GEOPOINT, name='location', command='location')
 
         self.failUnlessClean(field, '1 2')
         self.failUnlessClean(field, '1.1 1')
@@ -197,7 +148,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.failIfClean(field, '2.1 181.123')
 
     def testFieldConstraints(self):
-        field = self.xform.fields.create(datatype=Attribute.TYPE_TEXT, name='number', command='number')
+        field = self.xform.fields.create(field_type=XFormField.TYPE_TEXT, name='number', command='number')
 
         # test that with no constraings, all values work
         self.failUnlessClean(field, '1')
@@ -235,11 +186,11 @@ class SubmisionTest(TestCase): #pragma: no cover
         self.xform = XForm(name='test', keyword='survey', owner=self.user)
         self.xform.save()
 
-        field = self.xform.fields.create(datatype=Attribute.TYPE_TEXT, name='gender', command='gender')
+        field = self.xform.fields.create(field_type=XFormField.TYPE_TEXT, name='gender', command='gender', order=1)
         field.constraints.create(type='req_val', test='None', message="You must include a gender")
-        field = self.xform.fields.create(datatype=Attribute.TYPE_INT, name='age', command='age')
+        field = self.xform.fields.create(field_type=XFormField.TYPE_INT, name='age', command='age', order=2)
         field.constraints.create(type='req_val', test='None', message="You must include an age")
-        self.xform.fields.create(datatype=Attribute.TYPE_TEXT, name='name', command='name')
+        self.xform.fields.create(field_type=XFormField.TYPE_TEXT, name='name', command='name', order=10)
 
     def testSMSSubmission(self):
         submission = self.xform.process_sms_submission("survey +age 10 +name matt berg +gender male", None)
@@ -275,7 +226,6 @@ class SubmisionTest(TestCase): #pragma: no cover
         # add a listener to our signal
         class Listener:
             def handle_submission(self, sender, **args):
-                print "FRIKKIN GOT HERE"
                 if args['xform'].keyword == 'survey':
                     self.submission = args['submission']
                     self.xform = args['xform']
@@ -313,5 +263,24 @@ class SubmisionTest(TestCase): #pragma: no cover
 
         self.failUnlessEqual(len(submission.values.all()), 1)
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, 30)
+
+
+    def testCustomField(self):
+        # register Users as being an XForm field
+        def lookup_user(command, username):
+            return User.objects.get(username=username)
+
+        XFormField.register_field_type('user', 'User', lookup_user)
+
+        # add a user field to our xform
+        field = self.xform.fields.create(field_type='user', name='user', command='user', order=3)
+        field.constraints.create(type='req_val', test='None', message="You must include a user")
+
+        submission = self.xform.process_sms_submission("survey male 10 fred", None)
+
+        self.failUnlessEqual(len(submission.values.all()), 3)
+        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
+        self.failUnlessEqual(submission.values.get(attribute__name='user').value, self.user)
 
 

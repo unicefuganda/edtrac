@@ -6,7 +6,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import XForm, XFormSubmission, XFormField, XFormFieldConstraint, TYPE_CHOICES
+from .models import XForm, XFormSubmission, XFormField, XFormFieldConstraint
 from xml.dom.minidom import parse, parseString
 
 # CSV Export
@@ -175,11 +175,15 @@ def order_xform (req, form_id):
 
 class FieldForm(forms.ModelForm):
     
+    def updateTypes(self):
+        self.fields['field_type'].widget.choices = [choice[0:2] for choice in XFormField.TYPE_CHOICES]
+
     class Meta:
         model = XFormField
-        fields = ('datatype', 'name', 'command', 'description')
+        fields = ('field_type', 'name', 'command', 'description')
         widgets = {
             'description': forms.Textarea(attrs={'cols': 30, 'rows': 2}),
+            'field_type': forms.Select()
         }
 
 class ConstraintForm(forms.ModelForm):
@@ -193,6 +197,7 @@ def add_field(req, form_id):
 
     if req.method == 'POST':
         form = FieldForm(req.POST)
+        form.updateTypes()
         if form.is_valid():
             field = form.save(commit=False)
             field.xform = xform
@@ -203,7 +208,7 @@ def add_field(req, form_id):
                 context_instance=RequestContext(req))
     else:
         form = FieldForm()
-        form.fields['datatype'].widget.choices = TYPE_CHOICES
+        form.updateTypes()
 
     return render_to_response("xforms/field_edit.html", 
         { 'form': form, 'xform': xform },
@@ -304,6 +309,7 @@ def edit_field (req, form_id, field_id):
     field = XFormField.objects.get(pk=field_id)
     if req.method == 'POST':
         form = FieldForm(req.POST, instance=field)
+        form.updateTypes()
 
         if form.is_valid():
             field = form.save(commit=False)
@@ -317,7 +323,7 @@ def edit_field (req, form_id, field_id):
                             context_instance=RequestContext(req))
     else:
         form = FieldForm(instance=field)
-        form.fields['datatype'].widget.choices = TYPE_CHOICES
+        form.updateTypes()
 
     return render_to_response("xforms/field_edit.html", 
         { 'form' : form, 'xform': xform, 'field' : field },
