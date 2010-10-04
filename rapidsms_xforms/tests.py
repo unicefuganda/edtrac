@@ -8,6 +8,7 @@ from django.test.client import Client
 from django.core.exceptions import ValidationError
 from .models import XForm, XFormField, XFormFieldConstraint, xform_received
 from eav.models import Attribute
+from django.contrib.sites.models import Site
 
 class ModelTest(TestCase): #pragma: no cover
 
@@ -15,9 +16,8 @@ class ModelTest(TestCase): #pragma: no cover
         self.user = User.objects.create_user('fred', 'fred@wilma.com', 'secret')
         self.user.save()
 
-        self.xform = XForm(name='test', keyword='test', owner=self.user)
-        self.xform.save()
-
+        self.xform = XForm.on_site.create(name='test', keyword='test', owner=self.user, 
+                                          site=Site.objects.get_current())
 
     def failIfValid(self, constraint, value):
         try:
@@ -88,6 +88,7 @@ class ModelTest(TestCase): #pragma: no cover
         c = XFormFieldConstraint(type='req_val', message=msg)
 
         self.failUnlessValid(c, 'a')
+        self.failUnlessValid(c, 0)
         self.failUnlessValid(c, '1.20')
         self.failIfValid(c, '')
         self.failIfValid(c, None)
@@ -183,17 +184,39 @@ class SubmisionTest(TestCase): #pragma: no cover
         self.user = User.objects.create_user('fred', 'fred@wilma.com', 'secret')
         self.user.save()
 
-        self.xform = XForm(name='test', keyword='survey', owner=self.user)
-        self.xform.save()
+        self.xform = XForm.on_site.create(name='test', keyword='survey', owner=self.user,
+                                          site=Site.objects.get_current())
 
-        field = self.xform.fields.create(field_type=XFormField.TYPE_TEXT, name='gender', command='gender', order=1)
-        field.constraints.create(type='req_val', test='None', message="You must include a gender")
+        gender_field = self.xform.fields.create(field_type=XFormField.TYPE_TEXT, name='gender', command='gender', order=1)
+        gender_field.constraints.create(type='req_val', test='None', message="You must include a gender")
         field = self.xform.fields.create(field_type=XFormField.TYPE_INT, name='age', command='age', order=2)
         field.constraints.create(type='req_val', test='None', message="You must include an age")
         self.xform.fields.create(field_type=XFormField.TYPE_TEXT, name='name', command='name', order=10)
 
+    def testDataTypes(self):
+        field = self.xform.fields.create(field_type=XFormField.TYPE_TEXT, name='field', command='field', order=1)
+        self.failUnlessEqual(field.datatype, 'text')
+        field.field_type=XFormField.TYPE_INT;
+        field.save()
+        self.failUnlessEqual(field.datatype, 'int')
+
+    def testSlugs(self):
+        field = self.xform.fields.create(field_type=XFormField.TYPE_TEXT, name='field', command='foo', order=1)
+        self.failUnlessEqual(field.slug, 'survey_foo')
+        field.command = 'bar'
+        field.save()
+        self.failUnlessEqual(field.slug, 'survey_bar')
+
+        # rename our form
+        self.xform.keyword = 'roger'
+        self.xform.save()
+
+        field = XFormField.on_site.get(pk=field)
+        self.failUnlessEqual(field.slug, 'roger_bar')
+
     def testSMSSubmission(self):
         submission = self.xform.process_sms_submission("survey +age 10 +name matt berg +gender male", None)
+        self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 3)
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
         self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt berg')
@@ -201,6 +224,7 @@ class SubmisionTest(TestCase): #pragma: no cover
 
         # test with just an age and gender
         submission = self.xform.process_sms_submission("survey male 10", None)
+        self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 2)
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
@@ -208,6 +232,7 @@ class SubmisionTest(TestCase): #pragma: no cover
         # mix of required and not
         submission = self.xform.process_sms_submission("survey male 10 +name matt berg", None)
         self.failUnlessEqual(len(submission.values.all()), 3)
+        self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
         self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt berg')
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')

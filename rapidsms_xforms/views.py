@@ -8,6 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .models import XForm, XFormSubmission, XFormField, XFormFieldConstraint
 from xml.dom.minidom import parse, parseString
+from eav.fields import EavSlugField
 
 # CSV Export
 @require_GET
@@ -28,7 +29,7 @@ def submissions_as_csv(req, pk):
 # ODK Endpoints
 @require_GET
 def odk_list_forms(req):
-    xforms = XForm.objects.all().filter(active=True)
+    xforms = XForm.on_site.all().filter(active=True)
     return render_to_response(
         "xforms/odk_list_forms.xml", 
         { 'xforms': xforms, 'host':  settings.XFORMS_HOST }, 
@@ -85,7 +86,7 @@ def odk_submission(req):
 
 @require_GET
 def xforms(req): 
-    xforms = XForm.objects.all()
+    xforms = XForm.on_site.all()
     breadcrumbs = (('XForms', ''),)
     return render_to_response(
         "xforms/form_index.html", 
@@ -125,7 +126,7 @@ def new_xform(req):
 
 
 def view_form(req, form_id):
-    xform = XForm.objects.get(pk=form_id)
+    xform = XForm.on_site.get(pk=form_id)
     fields = XFormField.objects.order_by('order').filter(xform=xform)
     breadcrumbs = (('XForms', '/xforms'),('Edit Form', ''))
     return render_to_response("xforms/form_view.html", 
@@ -133,13 +134,13 @@ def view_form(req, form_id):
         context_instance=RequestContext(req))
 
 def view_form_details(req, form_id):
-    xform = XForm.objects.get(pk=form_id)
+    xform = XForm.on_site.get(pk=form_id)
     return render_to_response("xforms/form_details.html",
         { 'xform': xform },
         context_instance=RequestContext(req))
 
 def edit_form(req, form_id):
-    xform = XForm.objects.get(pk=form_id)
+    xform = XForm.on_site.get(pk=form_id)
     fields = XFormField.objects.order_by('order').filter(xform=xform)
 
     breadcrumbs = (('XForms', '/xforms'),('Edit Form', ''))
@@ -192,7 +193,7 @@ class ConstraintForm(forms.ModelForm):
         fields = ('type', 'test', 'message') # Why do we need order?
         
 def add_field(req, form_id):
-    xform = XForm.objects.get(pk=form_id)
+    xform = XForm.on_site.get(pk=form_id)
     fields = XFormField.objects.filter(xform=xform)
 
     if req.method == 'POST':
@@ -215,7 +216,7 @@ def add_field(req, form_id):
         context_instance=RequestContext(req))
 
 def view_submissions(req, form_id):
-    xform = XForm.objects.get(pk=form_id)
+    xform = XForm.on_site.get(pk=form_id)
 
     submissions = xform.submissions.all().order_by('-pk')
     fields = xform.fields.all().order_by('pk')
@@ -297,7 +298,7 @@ def edit_submission(req, submission_id):
         context_instance=RequestContext(req))
 
 def view_field(req, form_id, field_id):
-    xform = XForm.objects.get(pk=form_id)
+    xform = XForm.on_site.get(pk=form_id)
     field = XFormField.objects.get(pk=field_id)
     return render_to_response("xforms/field_view.html", 
         { 'xform': xform, 'field' : field },
@@ -305,7 +306,7 @@ def view_field(req, form_id, field_id):
     
 
 def edit_field (req, form_id, field_id):
-    xform = XForm.objects.get(pk=form_id)
+    xform = XForm.on_site.get(pk=form_id)
     field = XFormField.objects.get(pk=field_id)
     if req.method == 'POST':
         form = FieldForm(req.POST, instance=field)
@@ -331,14 +332,14 @@ def edit_field (req, form_id, field_id):
 
 
 def delete_xform (req, form_id):
-    xform = XForm.objects.get(pk=form_id)
+    xform = XForm.on_site.get(pk=form_id)
     if req.method == 'POST':
         xform.delete()
         
     return redirect("/xforms")
 
 def delete_field (req, form_id, field_id):
-    xform = XForm.objects.get(pk=form_id)
+    xform = XForm.on_site.get(pk=form_id)
     field = XFormField.objects.get(pk=field_id)
 
     if req.method == 'POST':
@@ -347,7 +348,7 @@ def delete_field (req, form_id, field_id):
     return redirect("/xforms/%d/edit/" % xform.pk)
 
 def add_constraint(req, form_id, field_id):
-    xform = XForm.objects.get(pk=form_id)
+    xform = XForm.on_site.get(pk=form_id)
     field = XFormField.objects.get(pk=field_id)
     constraints = XFormFieldConstraint.objects.order_by('order').filter(field=field)
     form = ConstraintForm()
@@ -371,7 +372,7 @@ def add_constraint(req, form_id, field_id):
 
 def edit_constraint(req, form_id, field_id, constraint_id) :
     
-    xform = XForm.objects.get(pk=form_id)
+    xform = XForm.on_site.get(pk=form_id)
     field = XFormField.objects.get(pk=field_id)
     constraint = XFormFieldConstraint.objects.get(pk=constraint_id)
     
@@ -397,7 +398,7 @@ def edit_constraint(req, form_id, field_id, constraint_id) :
 
 def view_constraint(req, form_id, field_id, constraint_id) :
     
-    xform = XForm.objects.get(pk=form_id)
+    xform = XForm.on_site.get(pk=form_id)
     field = XFormField.objects.get(pk=field_id)
     constraint = XFormFieldConstraint.objects.get(pk=constraint_id)
     return render_to_response("xforms/table_row_view.html", 
@@ -406,7 +407,7 @@ def view_constraint(req, form_id, field_id, constraint_id) :
     
     
 def view_constraints(req, form_id, field_id):
-    xform = XForm.objects.get(pk=form_id)
+    xform = XForm.on_site.get(pk=form_id)
     field = XFormField.objects.get(pk=field_id)
     constraints = XFormFieldConstraint.objects.order_by('order').filter(field=field)
 

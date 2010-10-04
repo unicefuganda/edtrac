@@ -9,6 +9,10 @@ from rapidsms.contrib.locations.models import Point
 from rapidsms.models import Connection
 import django.dispatch
 import re
+from django.contrib.sites.models import Site
+from django.contrib.sites.managers import CurrentSiteManager
+from rapidsms.models import ExtensibleModelBase
+from eav.fields import EavSlugField
 
 class XForm(models.Model):
     """
@@ -18,8 +22,8 @@ class XForm(models.Model):
     """
     name = models.CharField(max_length=32, unique=True,
                             help_text="Human readable name.")
-    keyword = models.SlugField(max_length=32, unique=True,
-                               help_text="The SMS keyword for this form, must be a slug.")
+    keyword = EavSlugField(max_length=32, unique=True,
+                           help_text="The SMS keyword for this form, must be a slug.")
     description = models.TextField(max_length=255,
                                help_text="The purpose of this form.")
     response = models.CharField(max_length=255,
@@ -30,6 +34,33 @@ class XForm(models.Model):
     owner = models.ForeignKey(User)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
+
+    site = models.ForeignKey(Site)
+    objects = models.Manager()
+    on_site = CurrentSiteManager()
+
+    _original_keyword = None
+
+    def __init__(self, *args, **kwargs):
+        """
+        We overload init so we can keep track of our original keyword.  This is because when
+        the user changes the keyword we need to remap all the slugs for our fields as well.
+        """
+        super(XForm, self).__init__(*args, **kwargs)
+        self.__original_keyword = self.keyword
+
+    def save(self, force_insert=False, force_update=False, using=None):
+        """
+        On saves we check to see if the keyword has changed, if so loading all our fields
+        and resaving them to update their slugs.
+        """
+        super(XForm, self).save(force_insert, force_update, using)
+
+        # keyword has changed, load all our fields and update their slugs
+        # TODO, damnit, is this worth it?
+        if self.keyword != self.__original_keyword:
+            for field in self.fields.all():
+                field.save(force_update=True, using=using)
 
     def update_submission_from_dict(self, submission, values):
         """
@@ -85,14 +116,7 @@ class XForm(models.Model):
 
         return submission
 
-    def process_sms_submission(self, message, connection):
-        """
-        Given an incoming SMS message, will create a new submission.  If there is an error
-        we will throw with the appropriate error message.
-        
-        The newly created submission object will be returned.
-        """
-
+    def parse_sms_submission(self, message):
         # sms submissions can have two formats, either explicitely marking each field:
         #    <keyword> +field_command1 [values] +field_command2 [values]
         #
@@ -102,21 +126,28 @@ class XForm(models.Model):
         # Note that if you are using the no-delimeter form, then all string fields are 'assumed' to be
         # a single word.  TODO: this could probably be made to be smarter
 
+        # we'll return a hash of values and/or errors
+        submission = {}
+        values = []
+        errors = []
+
+        submission['values'] = values
+        submission['message'] = message
+        submission['has_errors'] = True
+        submission['errors'] = errors
+
         # so first let's split on spaces
         segments = message.split(' ')
+
+        # make sure our keyword is right
+        keyword = segments[0]
+        if not self.keyword.lower() == keyword:
+            errors.append(ValidationError("Incorrect keyword.  Keyword must be '%s'" % self.keyword))
+            return submission
 
         # ignore everything before the first '+' that is the keyword and/or other data we
         # aren't concerned with
         segments = segments[1:]
-
-        # the errors in this submission
-        errors = []
-
-        # create our new submission, we'll add field values as we parse them
-        submission = XFormSubmission(xform=self, type='sms', raw=message, connection=connection)
-        submission.save()
-        # the values we have pulled out
-        values = {}
 
         # we first try to deal with required fields... we skip out of this processing either when
         # we reach a +command delimeter or we have processed all required fields
@@ -143,8 +174,7 @@ class XForm(models.Model):
             # ok, this looks like a valid required field value, clean it up
             try:
                 cleaned = field.clean_submission(segment)
-                submission.values.create(attribute=field, value=cleaned, entity=submission)
-                values[field.command] = cleaned
+                values.append(dict(name=field.command, value=cleaned))
             except ValidationError as err:
                 errors.append(err)
                 break
@@ -185,25 +215,77 @@ class XForm(models.Model):
 
                     try:
                         cleaned = field.clean_submission(value)
-                        submission.values.create(attribute=field, value=cleaned, entity=submission)
-                        values[field.command] = cleaned
+                        values.append(dict(name=field.command, value=cleaned))
                     except ValidationError as err:
                         errors.append(err)
+
+        # build a map of the number of values we have for each included field
+        # TOD: for the love of god, someone show me how to do this in one beautiful Python 
+        # lambda, just don't have time now
+        value_count = {}
+        for value_dict in values:
+            name = value_dict['name']
+            if name in value_count:
+                value_count[name] += 1
+            else:
+                value_count[name] = 1
 
         # check that all required fields had a value set
         for field in self.fields.all():
             required_const = field.constraints.all().filter(type="req_val")
-            if required_const and field.command not in values:
-                errors.append(required_const[0].message)                
+            if required_const and field.command not in value_count:
+                errors.append(ValidationError(required_const[0].message))
+
+        # no errors?  wahoo
+        if not errors:
+            submission['response'] = self.response
+            submission['has_errors'] = False
+        else:
+            error = submission['errors'][0]
+            if getattr(error, 'messages', None):
+                submission['response'] = str(error.messages[0])
+            else:
+                submission['response'] = str(error)
+            submission['has_errors'] = True
+
+        return submission
+
+    def process_sms_submission(self, message, connection):
+        """
+        Given an incoming SMS message, will create a new submission.  If there is an error
+        we will throw with the appropriate error message.
+        
+        The newly created submission object will be returned.
+        """
+
+        # parse our submission
+        sub_dict = self.parse_sms_submission(message)
+
+        # create our new submission, we'll add field values as we parse them
+        submission = XFormSubmission(xform=self, type='sms', raw=message, connection=connection)
+        submission.save()
+
+        # the values we've pulled out
+        values = {}
+
+        # for each of our values create the attribute
+        for field_value in sub_dict['values']:
+            field = XFormField.on_site.get(xform=self, command=field_value['name'])
+            submission.values.create(attribute=field, value=field_value['value'], entity=submission)
 
         # if we had errors
-        if errors:
+        if sub_dict['has_errors']:
             # stuff them as a transient variable in our submission, our caller may message back
-            submission.errors = errors
+            submission.errors = sub_dict['errors']
             
             # and set our db state as well
             submission.has_errors = True
             submission.save()
+
+        print "ERRORS: %s" % sub_dict['errors']
+
+        # set our transient response
+        submission.response = sub_dict['response']
 
         # trigger our signal
         xform_received.send(sender=self, xform=self, submission=submission)
@@ -253,8 +335,11 @@ class XFormField(Attribute):
 
     xform = models.ForeignKey(XForm, related_name='fields')
     field_type = models.SlugField(max_length=8, null=True, blank=True)
-    command = models.SlugField(max_length=8)
+    command = EavSlugField(max_length=32)
     order = models.IntegerField(default=0)
+
+    objects = models.Manager()
+    on_site = CurrentSiteManager()    
 
     @classmethod
     def register_field_type(cls, field_type, name, parserFunc):
@@ -273,8 +358,8 @@ class XFormField(Attribute):
         """
         We map our field_type to the appropriate data_type here.
         """
-        if self.datatype:
-            return
+        # set our slug based on our command and keyword
+        self.slug = "%s_%s" % (self.xform.keyword, EavSlugField.create_slug_from_name(self.command))
 
         for (field_type, name, datatype, func) in XFormField.TYPE_CHOICES:
             if field_type == self.field_type:
@@ -324,7 +409,7 @@ class XFormField(Attribute):
                     raise ValidationError("+%s parameter must be a number." % self.command)
 
 
-            # for gps, we expect values like 1.241 1.543, so basically two numbers
+            # for objects, we use our parser function to try to look up the value
             if self.datatype == XFormField.TYPE_OBJECT:
                 cleaned_value = XFormField.lookup_parser(self.field_type)(self.command, value)
 
@@ -413,8 +498,6 @@ class XFormFieldConstraint(models.Model):
     Constraints are evaluated in order, the first constraint to fail shortcuts all subsequent 
     constraints.
     """
-
-
     field = models.ForeignKey(XFormField, related_name='constraints')
     
     type = models.CharField(max_length=10, choices=CONSTRAINT_CHOICES)
@@ -431,7 +514,7 @@ class XFormFieldConstraint(models.Model):
         """
 
         if self.type == 'req_val':
-            if not value:
+            if value == None or value == '':
                 raise ValidationError(self.message)
 
         # if our value is None, none of these other constraints apply
