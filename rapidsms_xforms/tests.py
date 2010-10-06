@@ -187,18 +187,36 @@ class SubmisionTest(TestCase): #pragma: no cover
         self.xform = XForm.on_site.create(name='test', keyword='survey', owner=self.user,
                                           site=Site.objects.get_current())
 
-        gender_field = self.xform.fields.create(field_type=XFormField.TYPE_TEXT, name='gender', command='gender', order=1)
-        gender_field.constraints.create(type='req_val', test='None', message="You must include a gender")
-        field = self.xform.fields.create(field_type=XFormField.TYPE_INT, name='age', command='age', order=2)
-        field.constraints.create(type='req_val', test='None', message="You must include an age")
-        self.xform.fields.create(field_type=XFormField.TYPE_TEXT, name='name', command='name', order=10)
+        self.gender_field = self.xform.fields.create(field_type=XFormField.TYPE_TEXT, name='gender', command='gender', order=1)
+        self.gender_field.constraints.create(type='req_val', test='None', message="You must include a gender")
+        self.field = self.xform.fields.create(field_type=XFormField.TYPE_INT, name='age', command='age', order=2)
+        self.field.constraints.create(type='req_val', test='None', message="You must include an age")
+        self.name_field = self.xform.fields.create(field_type=XFormField.TYPE_TEXT, name='name', command='name', order=4)
 
     def testDataTypes(self):
         field = self.xform.fields.create(field_type=XFormField.TYPE_TEXT, name='field', command='field', order=1)
         self.failUnlessEqual(field.datatype, 'text')
-        field.field_type=XFormField.TYPE_INT;
+        field.field_type=XFormField.TYPE_INT
         field.save()
         self.failUnlessEqual(field.datatype, 'int')
+
+    def testOrdering(self):
+        # submit a record, some errors only occur after there is at least one
+        submission = self.xform.process_sms_submission("survey +age 10 +name matt berg +gender male", None)
+
+        fields = self.xform.fields.all()
+        self.failUnlessEqual(self.gender_field.pk, fields[0].pk)
+        self.failUnlessEqual(self.field.pk, fields[1].pk)
+        self.failUnlessEqual(self.name_field.pk, fields[2].pk)
+
+        # move gender to the back
+        self.gender_field.order = 10
+        self.gender_field.save()
+
+        fields = self.xform.fields.all()
+        self.failUnlessEqual(self.field.pk, fields[0].pk)
+        self.failUnlessEqual(self.name_field.pk, fields[1].pk)
+        self.failUnlessEqual(self.gender_field.pk, fields[2].pk)
 
     def testSlugs(self):
         field = self.xform.fields.create(field_type=XFormField.TYPE_TEXT, name='field', command='foo', order=1)

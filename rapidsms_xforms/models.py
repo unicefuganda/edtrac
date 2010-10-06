@@ -341,6 +341,9 @@ class XFormField(Attribute):
     objects = models.Manager()
     on_site = CurrentSiteManager()    
 
+    class Meta:
+        ordering = ('order', 'id')
+
     @classmethod
     def register_field_type(cls, field_type, name, parserFunc):
         XFormField.TYPE_CHOICES.append((field_type, name, XFormField.TYPE_OBJECT, parserFunc))
@@ -371,7 +374,7 @@ class XFormField(Attribute):
 
     def full_clean(self, exclude=None):
         self.derive_datatype()
-        return super(XFormField, self).full_clean(exclude)
+        return super(XFormField, self).full_clean(['datatype'])
 
     def save(self, force_insert=False, force_update=False, using=None):
         self.derive_datatype()
