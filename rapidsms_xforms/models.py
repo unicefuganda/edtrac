@@ -20,9 +20,9 @@ class XForm(models.Model):
 
     XForms also define their keyword which will be used when submitting via SMS.
     """
-    name = models.CharField(max_length=32, unique=True,
+    name = models.CharField(max_length=32,
                             help_text="Human readable name.")
-    keyword = EavSlugField(max_length=32, unique=True,
+    keyword = EavSlugField(max_length=32,
                            help_text="The SMS keyword for this form, must be a slug.")
     description = models.TextField(max_length=255,
                                help_text="The purpose of this form.")
@@ -38,6 +38,8 @@ class XForm(models.Model):
     site = models.ForeignKey(Site)
     objects = models.Manager()
     on_site = CurrentSiteManager()
+
+    unique_together = (("name", "site"), ("keyword", "site"))
 
     _original_keyword = None
 
@@ -143,6 +145,7 @@ class XForm(models.Model):
         keyword = segments[0]
         if not self.keyword.lower() == keyword:
             errors.append(ValidationError("Incorrect keyword.  Keyword must be '%s'" % self.keyword))
+            submission['response'] = "Incorrect keyword.  Keyword must be '%s'" % self.keyword
             return submission
 
         # ignore everything before the first '+' that is the keyword and/or other data we
@@ -281,8 +284,6 @@ class XForm(models.Model):
             # and set our db state as well
             submission.has_errors = True
             submission.save()
-
-        print "ERRORS: %s" % sub_dict['errors']
 
         # set our transient response
         submission.response = sub_dict['response']
