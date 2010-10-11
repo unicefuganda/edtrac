@@ -128,7 +128,7 @@ def new_xform(req):
 def view_form(req, form_id):
     xform = XForm.on_site.get(pk=form_id)
     fields = XFormField.objects.order_by('order').filter(xform=xform)
-    breadcrumbs = (('XForms', '/xforms'),('Edit Form', ''))
+    breadcrumbs = (('XForms', '/xforms/'),('Edit Form', ''))
     return render_to_response("xforms/form_view.html", 
         { 'xform': xform, 'fields': fields, 'field_count' : len(fields), 'breadcrumbs' : breadcrumbs },
         context_instance=RequestContext(req))
@@ -143,7 +143,7 @@ def edit_form(req, form_id):
     xform = XForm.on_site.get(pk=form_id)
     fields = XFormField.objects.order_by('order').filter(xform=xform)
 
-    breadcrumbs = (('XForms', '/xforms'),('Edit Form', ''))
+    breadcrumbs = (('XForms', '/xforms/'),('Edit Form', ''))
 
     if req.method == 'POST':
         form = EditXFormForm(req.POST, instance=xform)
@@ -221,7 +221,7 @@ def view_submissions(req, form_id):
     submissions = xform.submissions.all().order_by('-pk')
     fields = xform.fields.all().order_by('pk')
 
-    breadcrumbs = (('XForms', '/xforms'),('Submissions', ''))
+    breadcrumbs = (('XForms', '/xforms/'),('Submissions', ''))
     
     return render_to_response("xforms/submissions.html", 
         { 'xform': xform, 'fields': fields, 'submissions': submissions, 'breadcrumbs': breadcrumbs },
@@ -279,7 +279,7 @@ def edit_submission(req, submission_id):
             xform.update_submission_from_dict(submission, form.cleaned_data)
 
             # redirect to the xform submission page
-            return redirect("/xforms/%d/submissions" % xform.pk)
+            return redirect("/xforms/%d/submissions/" % xform.pk)
     else:
         # our hash of bound values
         form_vals = {}
@@ -289,7 +289,7 @@ def edit_submission(req, submission_id):
 
         form = form_class(form_vals)
 
-    breadcrumbs = (('XForms', '/xforms'),('Submissions', '/xforms/%d/submissions' % xform.pk), ('Edit Submission', ''))
+    breadcrumbs = (('XForms', '/xforms/'),('Submissions', '/xforms/%d/submissions/' % xform.pk), ('Edit Submission', ''))
 
     return render_to_response("xforms/submission_edit.html", 
         { 'xform': xform, 'submission': submission,
@@ -336,7 +336,7 @@ def delete_xform (req, form_id):
     if req.method == 'POST':
         xform.delete()
         
-    return redirect("/xforms")
+    return redirect("/xforms/")
 
 def delete_field (req, form_id, field_id):
     xform = XForm.on_site.get(pk=form_id)
@@ -411,7 +411,7 @@ def view_constraints(req, form_id, field_id):
     field = XFormField.objects.get(pk=field_id)
     constraints = XFormFieldConstraint.objects.order_by('order').filter(field=field)
 
-    breadcrumbs = (('XForms', '/xforms'),(xform.name, "/xforms/%s/view/" % xform.pk), ("Constraints", ''))
+    breadcrumbs = (('XForms', '/xforms/'),(xform.name, "/xforms/%s/view/" % xform.pk), ("Constraints", ''))
 
     return render_to_response("xforms/constraints.html", 
         {  'xform' : xform, 'field' : field, 'table' : constraints, 'buttons' : constraint_buttons, 'columns' : constraint_columns, 'breadcrumbs': breadcrumbs },
