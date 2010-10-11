@@ -113,6 +113,9 @@ def new_xform(req):
             # set the user
             xform.owner = req.user
 
+            from django.contrib.sites.models import Site
+            xform.site = Site.objects.get_current()
+
             # commit it
             xform.save()
 
