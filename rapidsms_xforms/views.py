@@ -5,6 +5,7 @@ from django.conf import settings
 from django import forms
 from django.core.exceptions import ValidationError
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.sites.models import Site
 
 from .models import XForm, XFormSubmission, XFormField, XFormFieldConstraint
 from xml.dom.minidom import parse, parseString
@@ -113,7 +114,7 @@ def new_xform(req):
             # set the user
             xform.owner = req.user
 
-            from django.contrib.sites.models import Site
+            # and the site
             xform.site = Site.objects.get_current()
 
             # commit it

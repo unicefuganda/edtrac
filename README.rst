@@ -46,6 +46,10 @@ You will probably also want to add XForms as one of the main RapidSMS tabs::
     ('xforms', 'XForms'),
   ]
 
+If you are going to use XForms with ODK Collect or another XForms client, you need to specify your host in you settings as well::
+
+   XFORMS_HOST = 'www.rapidsms-server.com'
+
 Finally sync your database with::
 
     % python manage.py syncdb
