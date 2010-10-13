@@ -1,0 +1,19 @@
+<div class="buttons">
+    {% if not poll.started %}
+    <a onclick="editPollDetails('{{ poll.pk }}');" href="javascript:void(0);">
+        <img src="{{ MEDIA_URL }}poll/icons/silk/pencil.png" alt=""/> 
+        Edit
+    </a>
+    <form style="border:0px" action="/polls/{{ poll.pk }}/start/" method="POST" id="startPollForm">
+    <a onclick="submitForm(this, '#poll_header');" href="javascript:void(0);">
+        <img src="{{ MEDIA_URL }}poll/icons/silk/phone.png" alt=""/> 
+        Start Poll
+    </a>
+    </form>
+    {% endif %}
+</div>
+<div class="name">{{ poll.name }} 
+  <span class="participants">({{ poll.contacts.count }} participant{% if poll.contacts.count > 1 %}s{% endif %})</span>
+</div>
+<div class="question">{{ poll.question }}</div>
+<div class="response">Response: {{ poll.default_response }}</div>

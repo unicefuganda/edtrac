@@ -1,0 +1,38 @@
+{% extends "xforms/layout.html" %}
+{% block title %}XForms{% endblock %}
+
+{% block content %}
+
+<div class="details">
+
+<div class="name">{{ xform.name }} Submission</div>
+<table>
+<tr><td class="bold right">From:</td><td>{{ submission.connection }}</td></tr>
+<tr><td class="bold right">Sent:</td><td>{{ submission.created|date:"m/j/y G:i:s"}}</td></tr>
+<tr><td class="bold right">Message:</td><td>{{ submission.raw }}</td></tr>
+</table>
+</div>
+
+<h3>Values</h3>
+
+{% load uni_form_tags %}
+<form action="/xforms/submissions/{{submission.pk}}/edit/" method="post" class="uniForm" id="subForm">
+{% csrf_token %}
+<fieldset>
+{{ form|as_uni_form }}
+
+<div class="buttons" style="float:left;margin-bottom:10px;margin-top:10px">
+  <a href="/xforms/{{ xform.pk }}/submissions" class="negative">
+    <img src="{{ MEDIA_URL }}rapidsms/icons/silk/decline.png" alt=""/> 
+    Cancel
+  </a>
+  <a onclick="$('#subForm').submit();" href="javascript:void(0);">
+    <img src="{{ MEDIA_URL }}rapidsms_xforms/icons/silk/disk.png" alt=""/> 
+    Save Submission
+  </a>
+</div>
+
+</fieldset>
+</form>
+
+{% endblock %}

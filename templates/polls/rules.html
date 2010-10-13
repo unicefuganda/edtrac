@@ -1,0 +1,88 @@
+{% extends "polls/layout_table.html" %}
+
+<script>
+{% block table_scripts %}
+
+  function viewRow(row, id) {
+    row.load("/polls/{{ poll.pk }}/category/{{ category.pk }}/rule/" + id + "/");
+  }
+  
+  function editRow(link) {
+    var itemId = $(link).parents(".item_table").attr("id");
+    var url = "/polls/{{ poll.pk }}/category/{{ category.pk }}/rule/" + itemId + "/edit/";
+    var row = $(link).parents(".row");
+    row.load(url);
+    
+  }
+  
+  function addRule() {
+    $.get("/polls/{{ poll.pk }}/category/{{ category.pk }}/rules/add/", function(data) {
+      $("#sortable").append("<li class='row'>" + data + "</li>");
+    });
+  }
+  
+  function cancelSave(link) {
+    if (confirm("Are you sure you want to cancel this new Rule?")) {
+      $(link).parents(".row").remove();
+    }
+  }
+  
+  
+  function add(link) {
+    
+    var row = $(link).parents(".row");
+    var form = $(link).parents(".form");
+    
+    var form_data = form.serializeArray();
+    
+    $.post(form.attr("action"), form_data, function(data) {
+      row.empty();
+      row.append(data);
+    });
+
+  }
+  
+  /*function cancelSave(link) {
+    var id = $(link).parents(".item_table").attr("id");
+    viewRow($(link).parents(".row"), id)    
+  }*/
+  
+  function saveRow(link) {
+    form = $(link).parents(".form");
+    form_data = form.serializeArray();
+    
+    var row = $(link).parents(".row");
+    row.load(form.attr("action"), form_data);
+  }
+  
+  function deleteRow(link) {
+    var itemId = $(link).parents(".item_table").attr("id");
+    if (confirm("Are you sure you want to delete this rule?")) {
+      $.post('/polls/{{ poll.pk }}/category/{{ category.pk }}/rule/' + itemId + '/delete/' , function(data) {
+        $(link).parents(".row").remove();
+      }); 
+    }
+  }
+  
+{% endblock %}
+</script>
+
+
+
+{% block table_header %}
+<div class="details">
+<div class="name">{{ category.name }} Rules</div>
+</div>
+{% endblock %}
+
+
+{% block table_footer %}
+
+<br/>
+  <div class="buttons">
+      <a href="javascript:addRule();" style="float:left">
+        <img border="0" src="{{ MEDIA_URL }}rapidsms/icons/silk/add.png" alt=""/>Add Rule
+      </a>
+  </div>
+
+{% endblock %}

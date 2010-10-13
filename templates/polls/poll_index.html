@@ -1,0 +1,68 @@
+{% extends "polls/layout.html" %}
+{% block title %}Polls{% endblock %}
+
+{% block content %}
+
+<script type="text/javascript">
+function deletePoll(poll_id, poll_name) {
+	if (confirm("Are you sure you want to delete \"" + poll_name + "\" ?")) {
+		document.form.action += poll_id + "/delete/";
+		document.form.submit();
+	}
+}
+</script>
+
+<table width="100%" class="poll_table"> 
+  <thead> 
+    <tr>  
+      <th class="poll_question_col">Question</th> 
+      <th class="poll_options_col"></th> 
+    </tr> 
+  </thead> 
+  <tbody>
+    {% if polls %}
+    {% for poll in polls %}
+    <tr class="poll_table_row">
+      <td><b>{% if poll.started %}{{ poll.question }}{% else %}<font color="grey">{{ poll.question }}</font>{% endif %}</b></td>
+      <td>
+           <a style="float:right;padding-top:7px;" href="javascript:void(0);" onclick="deletePoll('{{poll.pk}}','{{poll.question|addslashes}}');"><img border="0" src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png"/></a>
+	
+	<div class="buttons">
+       
+	  <a href="/polls/{{ poll.pk }}/responses/">
+            <img src="{{ MEDIA_URL }}poll/icons/silk/database_table.png" alt=""/> Responses ({{ poll.responses.all.count }})
+	  </a>
+	  <a href="/polls/{{ poll.pk }}/view/">
+            <img src="{{ MEDIA_URL }}poll/icons/silk/zoom.png" alt=""/> View
+	  </a>
+	</div>
+      </td>
+    </tr>
+    {% endfor %}
+    {% else %}
+    <tr class="poll_table_row">
+      <td colspan=3><i>No existing Polls.  Click 'Add New Poll' to create one.</i></td>
+    </tr>
+    {% endif %}
+  </tbody>
+</table>
+<br/>
+
+<div class="buttons"> 
+    <a href="/polls/new/" style="float:left"> 
+      <img border="0" src="/static/rapidsms/icons/silk/add.png" alt=""/>Add New Poll
+    </a> 
+</div> 
+
+<br/><br/>
+
+</div>
+
+
+<form name="form" method="post" action="/polls/">
+{% csrf_token %}
+</form>
+
+</div>
+
+{% endblock %}

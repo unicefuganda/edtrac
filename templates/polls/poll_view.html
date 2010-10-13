@@ -1,0 +1,162 @@
+{% extends "polls/layout.html" %}
+{% block title %}Polls{% endblock %}
+
+{% block content %}
+
+<script type="text/javascript">
+	
+	// Add a new box for entering a new category
+	function addNewCategoryBox() {
+		var newBox = $("#new_category_box").clone();
+		newBox.load( "/polls/" + {{ poll.pk }} + "/categories/add/", function() {
+			newBox.show();
+			newBox.id = "category_box_" + Math.floor((new Date()).getTime() / 1000);
+			$("#sortable").append(newBox);
+		});
+		
+	}
+	
+	function refreshCategories() {
+    $(".category_box").each(function() {
+      if (!$(this).children('.edit_category').length) {
+        category_id = parseInt($(this).parent().attr("id"));
+        if (!category_id) {
+          category_id = parseInt($(this).children("div:first").attr("id"));
+        }
+        if (category_id) {
+          $(this).load("/polls/{{ poll.pk }}/category/" + category_id + "/");
+        }
+      }
+    });	
+	}
+	
+	$( document ).ready( function() {
+
+		// hide our new category template
+		$('#new_category_box').hide();
+		
+		refreshCategories();
+		
+		showPollDetails();
+		
+		// if no categories, show the add new category form
+		if ({{category_count}} == 0) {
+			addNewCategoryBox();
+		}
+		
+	});
+	
+	function showPollDetails() {
+	  $("#poll_header").load("/polls/{{ poll.pk }}/details");
+	}
+	
+	function deleteCategory(link) {
+	  category_id = $(link).parents(".category_table").attr("id");
+	  if (confirm("Are you sure you want to delete this category?")) {
+      $.post('/polls/{{poll.pk}}/delete_category/' + category_id + "/", function(data) {
+        $(link).parents(".category_box").remove();
+      }); 
+    }
+  }
+  
+  function editCategory(link) {
+    category_id = $(link).parents(".category_table").attr("id");
+    url = "/polls/" +  {{poll.pk}} + "/edit_category/" + category_id + "/";
+    $(link).parents(".category_box").load(url);
+    selected = $(("#selection_" + category_id));
+    selected.addClass('form_selected');
+    selected.removeClass('form_unselected');
+  }
+  
+  function showConstraints(link) {
+    category_id = $(link).parents(".category_table").attr("id");
+    url = "/polls/" +  {{poll.pk}} + "/edit_category/" + category_id + "/";
+    
+  }
+	
+	function saveCategory(link) {
+    form = $(link).parents(".form");
+    form_data = form.serializeArray();
+    form.parents(".category_box").load(form.attr("action"), form_data);
+    refreshCategories();
+  }
+  
+  function cancelAdd(link) {
+    if (confirm("Are you sure you want to cancel this new category?")) {
+      $(link).parents(".category_box").remove();
+    }
+  }
+	
+	function cancelCategory(link) {
+	   category_id = $(link).parents(".category_table").attr("id");
+     $(link).parents(".category_box").load("/polls/{{poll.pk}}/category/" + category_id + "/");
+	}
+	
+	function editPollDetails(poll_id) {
+	  $("#poll_header").load("/polls/" + poll_id + "/edit/");
+	}
+	
+	function submitForm(link, resultDiv) {
+	  form = $(link).parents("form");
+    form_data = form.serializeArray();
+    console.log(resultDiv);
+    console.log($(resultDiv));
+    $(resultDiv).load(form.attr("action"), form_data);
+	}
+	
+	// Trap our ajax errors and put them where we can see them
+	$.ajaxSetup({
+		error:function(x,e){
+			if(x.status==0){
+				$("#error").html("Oopsie, network not found.");
+			} else if(x.status>=400){
+				$("#error").html(x.responseText);	
+			}
+		}
+	});
+	
+</script>
+  
+<div id="poll_header">
+</div>
+
+<table width="100%" class="poll_table">
+<thead>
+<tr>
+<th class="category_name_col">Name</th>
+<th class="category_response_col">Response Message</th>
+<th class="category_priority_col">Priority</th>
+<th class="category_color_col">Color</th>
+<th class="category_default_col">Default</th>
+<th class="category_options_col"></th>
+</tr>
+</thead>
+<tbody>
+<tr><td class="poll_categories_cell" colspan="7">
+			<ul id="sortable">
+				{% for category in categories %}
+				<li class="category ui-state-default form_unselected" id="{{category.pk}}">
+					<div class="category_box" id="category_box_{{forloop.counter}}">
+					</div>
+				</li>
+				{% endfor %}
+
+				<li class="category ui-state-default form_unselected">
+					<div class="category_box" id="new_category_box"></div>
+				</li>
+			</ul>
+</td></tr>
+</tbody>
+</table>
+<br/>
+<div class="buttons">
+    <a href="javascript:addNewCategoryBox();" style="float:left">
+      <img border="0" src="{{ MEDIA_URL }}rapidsms/icons/silk/add.png" alt=""/>Add New Category
+    </a>
+  </div>
+<br/><br/>
+
+
+<div id="error"></div>
+
+{% endblock %}

@@ -1,0 +1,22 @@
+[
+  {
+    "model": "eav.attribute",
+    "pk": null,    
+    "fields": {
+      "slug": "poll_number_value",
+      "name": "Number",
+      "description": "A response value for a Poll with expected numeric responses",
+      "datatype": "float"
+    }
+  },
+  {
+    "model": "eav.attribute",
+    "pk": null,    
+    "fields": {
+      "slug": "poll_text_value",
+      "name": "Text",
+      "description": "A response value for a Poll with expected text responses",
+      "datatype": "text"
+    }
+  }
+]

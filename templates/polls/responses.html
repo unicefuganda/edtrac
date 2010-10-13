@@ -1,0 +1,69 @@
+{% extends "polls/layout.html" %}
+{% block title %}Polls{% endblock %}
+
+{% block content %}
+
+<div class="details">
+<div class="name">'{{ poll.question }}' Responses</div>
+<div class="buttons">
+  <a href="/polls/{{ poll.pk }}/submissions.csv">
+    <img src="{{ MEDIA_URL }}poll/icons/silk/table_save.png" alt=""/> Export
+  </a>
+  <br/>
+</div>
+</div>
+
+<table width="100%" class="poll_table"> 
+  <thead>
+    <tr>
+      <th>Text</th>
+      <th>Category</th>
+      <th></th>
+    </tr>
+  </thead>
+
+  {% if responses %}
+  {% for response in responses %}
+  <tr class="poll_table_row">
+    <td class="center">
+      {% ifequal poll.type "t" %}
+        {{ response.eav.poll_text_value }}
+      {% else %}
+        {% ifequal poll.type "n" %}
+          {{ response.eav.poll_number_value }}
+        {% endifequal %}
+      {% endifequal %}
+    </td>
+    <td>
+      {% if response.categories %}
+        <ul class="category_list">
+          {% for responsecategory in response.categories.all %}
+          <li {% if responsecategory.category.color %}style="width:100%;background-color:#{{ responsecategory.category.color }}"{% endif %}>
+            {{ responsecategory.category.name }}
+          </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </td>
+    <td>
+      <div class="buttons">
+	       <a href="/polls/responses/{{ response.pk }}/edit/">
+          <img src="{{ MEDIA_URL }}poll/icons/silk/pencil.png" alt=""/> Edit
+	       </a>
+      </div>
+    </td>
+  </tr>
+  {% endfor %}
+  {% else %}
+  <tr class="poll_table_row">
+    <td colspan="10">
+      <i>No submissions for this form.</i>
+    </td>
+  </tr>
+  {% endif %}
+</table>
+<br/>
+
+</div>
+
+{% endblock %}
