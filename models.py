@@ -221,7 +221,10 @@ class Category(models.Model):
     def clear_defaults(cls, poll):
         for c in Category.objects.filter(poll=poll, default=True):
             c.default=False
-            c.save()        
+            c.save()
+    
+    def __unicode__(self):
+        return u'%s' % self.name  
     
 class Response(models.Model):
     """
@@ -232,6 +235,14 @@ class Response(models.Model):
     """
     message = models.ForeignKey(Message, null=True)
     poll = models.ForeignKey(Poll, related_name='responses')
+
+    def update_categories(self, categories, user):
+        for c in categories:
+            if not self.categories.filter(category=c).count():
+                ResponseCategory.objects.create(response=self, category=c, is_override=True, user=user)
+        for rc in self.categories.all():
+            if not rc.category in categories:
+                rc.delete()    
 
 register(Response)
 

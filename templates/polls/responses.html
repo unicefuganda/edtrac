@@ -2,6 +2,49 @@
 {% block title %}Polls{% endblock %}
 
 {% block content %}
+<script type="text/javascript">
+
+  function deleteResponse(link) {
+    response_id = $(link).parents(".response_table").attr("id");
+    if (confirm("Are you sure you want to remove this response from the poll?")) {
+      $.post('/polls/responses/' + response_id + "/delete/", function(data) {
+        $(link).parents(".response_box").remove();
+      }); 
+    }
+  }
+  
+  function cancelResponse(link) {
+     response_id = $(link).parents(".response_table").attr("id");
+     $(link).parents(".response_box").load("/polls/responses/" + response_id + "/view/");
+  }
+
+  function saveResponse(link) {
+    form = $(link).parents(".form");
+    form_data = form.serializeArray();
+    form.parents(".response_box").load(form.attr("action"), form_data);
+  }
+
+  function editResponse(link) {
+    response_id = $(link).parents(".response_table").attr("id");
+    url = "/polls/responses/" +  response_id + "/edit/";
+    $(link).parents(".response_box").load(url);
+    selected = $(("#selection_" + response_id));
+    selected.addClass('form_selected');
+    selected.removeClass('form_unselected');
+  }
+
+  $( document ).ready( 
+    function() {    
+      $(".response_box").each(
+        function() {
+          response_id = parseInt($(this).parent().attr("id"));
+          if (response_id) {
+            $(this).load("/polls/responses/" + response_id + "/view/");
+          }
+        }
+      );
+    });  
+</script>
 
 <div class="details">
 <div class="name">'{{ poll.question }}' Responses</div>
@@ -16,14 +59,37 @@
 <table width="100%" class="poll_table"> 
   <thead>
     <tr>
-      <th>Text</th>
-      <th>Category</th>
-      <th></th>
+      <th class="response_sender_col">Sender</th>
+      <th class="response_text_col">Text</th>
+      <th class="response_categories_col">Categories</th>
+      <th class="response_options_col"></th>
     </tr>
   </thead>
 
-  {% if responses %}
-  {% for response in responses %}
+<tbody>
+{% if responses %}
+<tr class="poll_table_row"><td class="poll_responses_cell" colspan="7">
+      <ul id="sortable">
+        {% for response in responses %}
+        <li class="category ui-state-default form_unselected" id="{{response.pk}}">
+          <div class="response_box" id="response_box_{{forloop.counter}}">
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+</td></tr>
+{% else %}
+  <tr class="poll_table_row">
+    <td colspan="4">
+      <i>No responses for this poll.</i>
+    </td>
+  </tr>
+{% endif %}
+</tbody>
+</table>
+
+
+<!--  {% for response in responses %}
   <tr class="poll_table_row">
     <td class="center">
       {% ifequal poll.type "t" %}
@@ -53,14 +119,7 @@
       </div>
     </td>
   </tr>
-  {% endfor %}
-  {% else %}
-  <tr class="poll_table_row">
-    <td colspan="10">
-      <i>No submissions for this form.</i>
-    </td>
-  </tr>
-  {% endif %}
+  {% endfor %}  -->
 </table>
 <br/>
 

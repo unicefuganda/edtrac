@@ -109,6 +109,13 @@
 	background-color:white;
 }
 
+.poll_responses_cell {
+  padding:0px;
+  padding-right:2px;
+  padding-left:-4px;
+  background-color:white;
+}
+
 #div_id_start_immediately {
   white-space:nowrap;
 }
@@ -233,6 +240,10 @@
   margin:0px;
 }
 
+.response_table table tr td th form {
+  padding:0px;
+  margin:0px;
+}
 
 .category_table {
   margin-left:0px;
@@ -241,6 +252,35 @@
 .category_table td {
   font-size:12px;
   color:#666;
+}
+
+.response_options_col {
+  padding:0px;
+  padding-left:5px;
+  margin:0px;
+  width:100px;
+}      
+
+.response_categories_col {
+  padding:0px;
+  padding-left:5px;
+  margin:0px;
+  width:100px;
+}      
+      
+.response_sender_col {
+  padding:0px;
+  padding-left:5px;
+  margin:0px;
+  width:100px;
+}      
+      
+.response_text_col {
+  padding:0px;
+  padding-left:5px;
+  margin:0px;
+  width:100px;
+  font-weight:bold;
 }
 
 

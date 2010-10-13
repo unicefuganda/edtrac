@@ -7,25 +7,24 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import Poll, Category, Rule, Response, STARTSWITH_PATTERN_TEMPLATE, CONTAINS_PATTERN_TEMPLATE
+from .models import Poll, Category, Rule, Response, ResponseCategory, STARTSWITH_PATTERN_TEMPLATE, CONTAINS_PATTERN_TEMPLATE
 from rapidsms.models import Contact
 from xml.dom.minidom import parse, parseString
 
 # CSV Export
-#@require_GET
-#def submissions_as_csv(req, pk):
-#    xform = get_object_or_404(XForm, pk=pk)
-#
-#    submissions = xform.submissions.all().order_by('-pk')
-#    fields = xform.fields.all().order_by('pk')
-#
-#    resp = render_to_response(
-#        "xforms/submissions.csv", 
-#        {'xform': xform, 'submissions': submissions, 'fields': fields},
-#        mimetype="text/csv",
-#        context_instance=RequestContext(req))
-#    resp['Content-Disposition'] = 'attachment;filename="%s.csv"' % xform.keyword
-#    return resp
+@require_GET
+def responses_as_csv(req, pk):
+    poll = get_object_or_404(Poll, pk=pk)
+
+    responses = poll.responses.all().order_by('-pk')
+
+    resp = render_to_response(
+        "polls/responses.csv", 
+        {'responses': responses},
+        mimetype="text/csv",
+        context_instance=RequestContext(req))
+    resp['Content-Disposition'] = 'attachment;filename="%s.csv"' % poll.name
+    return resp
 
 @require_GET
 def polls(req): 
@@ -149,38 +148,52 @@ def view_responses(req, poll_id):
         { 'poll': poll, 'responses': responses, 'breadcrumbs': breadcrumbs },
         context_instance=RequestContext(req))
 
-
+class ResponseForm(forms.Form):
+    def __init__(self, data=None, **kwargs):
+        response = kwargs.pop('response')
+        if data:
+            forms.Form.__init__(self, data, **kwargs)
+        else:
+            forms.Form.__init__(self, **kwargs)
+        self.fields['categories'] = forms.ModelMultipleChoiceField(required=False, queryset=response.poll.categories.all(), initial=Category.objects.filter(pk=response.categories.values_list('category',flat=True)))            
+         
+@transaction.commit_on_success
 def edit_response(req, response_id):
-    submission = get_object_or_404(Response, pk=response_id)
-    poll = submission.poll
-
-    form_class = make_submission_form(xform)
+    response = get_object_or_404(Response, pk=response_id)
+    poll = response.poll 
+    
     if req.method == 'POST':
-        form = form_class(req.POST)
-
-        # no errors?  save and redirect
-        if form.is_valid():
-            # update our submission
-            xform.update_submission_from_dict(submission, form.cleaned_data)
-
-            # redirect to the xform submission page
-            return redirect("/polls/%d/submissions" % poll.pk)
+        form = ResponseForm(req.POST, response=response)
+        if form.is_valid():       
+            response.update_categories(form.cleaned_data['categories'], req.user)
+            return render_to_response("polls/response_view.html", 
+                { 'response' : response },
+                context_instance=RequestContext(req))
+        else:
+            return render_to_response("polls/response_edit.html", 
+                            { 'response' : response, 'form':form },
+                            context_instance=RequestContext(req))
     else:
-        # our hash of bound values
-        form_vals = {}
-        for value in values:
-            field = XFormField.objects.get(pk=value.attribute.pk)
-            form_vals[field.command] = value.value
-
-        form = form_class(form_vals)
-
-    breadcrumbs = (('Polls', '/polls'),('Responses', '/polls/%d/responses' % poll.pk), ('Edit Submission', ''))
+        form = ResponseForm(response=response)
 
     return render_to_response("polls/response_edit.html", 
-        { 'poll': xform, 'submission': submission,
-        'form': form,
-        'breadcrumbs': breadcrumbs },
+        { 'form' : form, 'response': response },
         context_instance=RequestContext(req))
+
+def view_response(req, response_id):
+    response = get_object_or_404(Response, pk=response_id)
+    return render_to_response("polls/response_view.html", 
+        { 'response': response },
+        context_instance=RequestContext(req))
+    
+def delete_response (req, response_id):
+    response = get_object_or_404(Response, pk=response_id)
+    poll = response.poll
+    if req.method == 'POST':
+        response.delete()
+        
+    return redirect("/polls/%d/responses/" % poll.pk)
+
 
 def view_category(req, poll_id, category_id):
     poll = get_object_or_404(Poll, pk=poll_id)
