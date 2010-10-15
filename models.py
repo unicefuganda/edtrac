@@ -59,7 +59,8 @@ class Poll(models.Model):
     messages = models.ManyToManyField(Message, null=True)
     contacts = models.ManyToManyField(Contact, related_name='polls')
     user = models.ForeignKey(User)
-    started = models.DateTimeField(null=True)
+    start_date = models.DateTimeField(null=True)
+    end_date = models.DateTimeField(null=True)
     type = models.CharField(
                 max_length=1,
                 choices=((TYPE_TEXT, 'Text-based'),(TYPE_NUMERIC, 'Numeric Response')))
@@ -151,7 +152,11 @@ class Poll(models.Model):
 #            call_router("poll", "send", 
 #               **{"identity": c.default_connection.identity, "text": self.question })
             pass
-        self.started = datetime.datetime.now()
+        self.start_date = datetime.datetime.now()
+        self.save()
+    
+    def end(self):
+        self.end_date = datetime.datetime.now()
         self.save()
     
     def reprocess_responses(self):

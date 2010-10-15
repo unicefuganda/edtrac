@@ -1,3 +1,0 @@
-type,date,source,{% for field in fields.all %}{{ field.command }},{% endfor %}
-{% for submission in submissions %}{{ submission.type }},{{ submission.created|date:"m/j/y G:i:s"}},{{ submission.connection }},{% for field in fields.all %}{% for value in submission.values.all %}{% ifequal field value.field %}"{{ value.value|safe }}"{% endifequal %}{% endfor %},{% endfor %}
-{% endfor %}

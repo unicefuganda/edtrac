@@ -1,5 +1,5 @@
 <div class="buttons">
-    {% if not poll.started %}
+    {% if not poll.start_date %}
     <a onclick="editPollDetails('{{ poll.pk }}');" href="javascript:void(0);">
         <img src="{{ MEDIA_URL }}poll/icons/silk/pencil.png" alt=""/> 
         Edit
@@ -10,6 +10,14 @@
         Start Poll
     </a>
     </form>
+    {% endif %}
+    {% if poll.start_date and not poll.end_date %}
+    <form style="border:0px" action="/polls/{{ poll.pk }}/end/" method="POST" id="closePollForm">
+    <a onclick="submitForm(this, '#poll_header');" href="javascript:void(0);">
+        <img src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png" alt=""/> 
+        Close Poll
+    </a>
+    </form>    
     {% endif %}
 </div>
 <div class="name">{{ poll.name }} 

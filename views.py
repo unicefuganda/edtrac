@@ -52,7 +52,6 @@ class NewPollForm(forms.Form): # pragma: no cover
     default_response = forms.CharField(max_length=160, required=True)
     start_immediately = forms.BooleanField(required=False)
 
-
 class EditPollForm(forms.ModelForm): # pragma: no cover
     class Meta:
         model = Poll
@@ -84,7 +83,6 @@ def new_poll(req):
     return render_to_response(
         "polls/poll_create.html", { 'form': form },
         context_instance=RequestContext(req))
-
 
 def view_poll(req, poll_id):
     poll = get_object_or_404(Poll, pk=poll_id)
@@ -194,7 +192,6 @@ def delete_response (req, response_id):
         
     return redirect("/polls/%d/responses/" % poll.pk)
 
-
 def view_category(req, poll_id, category_id):
     poll = get_object_or_404(Poll, pk=poll_id)
     category = get_object_or_404(Category, pk=category_id)
@@ -254,7 +251,6 @@ def add_category(req, poll_id):
         { 'form' : form, 'poll' : poll },
         context_instance=RequestContext(req))
 
-
 def delete_poll (req, poll_id):
     poll = get_object_or_404(Poll, pk=poll_id)
     if req.method == 'POST':
@@ -271,6 +267,14 @@ def start_poll (req, poll_id):
         {"poll" : poll},
         context_instance=RequestContext(req))
 
+def end_poll (req, poll_id):
+    poll = Poll.objects.get(pk=poll_id)
+    if req.method == 'POST':
+        poll.end()
+        
+    return render_to_response("polls/poll_details.html", 
+        {"poll" : poll},
+        context_instance=RequestContext(req))
 
 def delete_category (req, poll_id, category_id):
     poll = get_object_or_404(Poll, pk=poll_id)
@@ -379,4 +383,3 @@ rule_buttons = ({"image" : "rapidsms/icons/silk/delete.png", 'click' : 'deleteRo
                       { "text" : "Edit", "image" : "poll/icons/silk/pencil.png", 'click' : 'editRow'},)
 
 rule_columns = (('Rule', 'rule_type_friendly'), ('Text', 'rule_string'))
-
