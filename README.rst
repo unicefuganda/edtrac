@@ -40,11 +40,11 @@ Then to use xforms, edit your ``settings.py`` to add ``rapidsms_xforms`` and ``u
 
 You will probably also want to add XForms as one of the main RapidSMS tabs::
 
-  TABS = [
-    ('rapidsms.views.dashboard', 'Dashboard'),	
-        .. other tabs ..
-    ('xforms', 'XForms'),
-  ]
+   TABS = [
+     ('rapidsms.views.dashboard', 'Dashboard'),	
+         .. other tabs ..
+     ('xforms', 'XForms'),
+   ]
 
 If you are going to use XForms with ODK Collect or another XForms client, you need to specify your host in you settings as well::
 
@@ -52,7 +52,7 @@ If you are going to use XForms with ODK Collect or another XForms client, you ne
 
 Finally sync your database with::
 
-    % python manage.py syncdb
+   % python manage.py syncdb
 
 Once you restart RapidSMS a new tab will created letting you create, manage and view forms and their submissions.
 
