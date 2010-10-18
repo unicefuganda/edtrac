@@ -21,7 +21,7 @@
     {% endif %}
 </div>
 <div class="name">{{ poll.name }} 
-  <span class="participants">({{ poll.contacts.count }} participant{% if poll.contacts.count > 1 %}s{% endif %})</span>
+  <span class="participants">({{ poll.contacts.count }} participant{{ poll.contacts.count|pluralize }})</span>
 </div>
 <div class="question">{{ poll.question }}</div>
 <div class="response">Response: {{ poll.default_response }}</div>

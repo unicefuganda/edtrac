@@ -92,6 +92,26 @@ def view_poll(req, poll_id):
         { 'poll': poll, 'categories': categories, 'category_count' : len(categories), 'breadcrumbs' : breadcrumbs },
         context_instance=RequestContext(req))
 
+def view_report(req, poll_id):
+    poll = get_object_or_404(Poll, pk=poll_id)
+    breadcrumbs = (('Polls', '/polls'),)
+    template = None
+    context = { 'poll':poll, 'breadcrumbs':breadcrumbs }
+    if poll.type == Poll.TYPE_TEXT:
+        template = "polls/poll_report_text.html"
+        context.update(poll.get_text_report_data())
+        pass
+    elif poll.type == Poll.TYPE_NUMERIC:
+        template = "polls/poll_report_numeric.html"
+        context.update(poll.get_numeric_report_data())
+        pass
+    else:
+        return render_to_response(
+        "polls/poll_index.html", 
+        { 'polls': Poll.objects.all(), 'breadcrumbs': (('Polls', ''),) },
+        context_instance=RequestContext(req))
+    return render_to_response(template, context, context_instance=RequestContext(req))
+
 def view_poll_details(req, form_id):
     poll = get_object_or_404(Poll, pk=form_id)
     return render_to_response("polls/poll_details.html",

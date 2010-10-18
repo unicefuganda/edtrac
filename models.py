@@ -1,12 +1,15 @@
 import datetime
 
 from django.db import models
+from django.db.models import Sum, Avg
+from django.contrib.sites.models import Site
 from django.contrib.auth.models import User
 
 from rapidsms.contrib.messagelog.models import Message
 from rapidsms.models import Contact
 
 from eav import register
+from eav.models import Value
 
 import re
 
@@ -30,6 +33,7 @@ class ResponseCategory(models.Model):
     response = models.ForeignKey('Response', related_name='categories')
     is_override = models.BooleanField(default=False)
     user = models.ForeignKey(User, null=True)
+    sites = models.ManyToManyField(Site)
 
 class Poll(models.Model):
     """
@@ -65,6 +69,7 @@ class Poll(models.Model):
                 max_length=1,
                 choices=((TYPE_TEXT, 'Text-based'),(TYPE_NUMERIC, 'Numeric Response')))
     default_response = models.CharField(max_length=160)
+    sites = models.ManyToManyField(Site)
     
     @classmethod
     def create_yesno(cls, name, question, default_response, contacts, user):
@@ -206,6 +211,40 @@ class Poll(models.Model):
         else:
             return outgoing_message
 
+    def get_text_report_data(self):
+        context = {}
+        context['total_responses'] = Response.objects.filter(poll=self).count()
+        context['report_data'] = []
+        for c in self.categories.all():
+            category_responses = Response.objects.filter(categories__category=c).count()
+            category_percentage = 0
+            if context['total_responses']:
+                category_percentage = (float(category_responses) / float(context['total_responses'])) * 100.0
+            context['report_data'].append((c, category_responses, category_percentage)) 
+        return context
+
+    def get_numeric_report_data(self):
+        context = {}
+        context['total_responses'] = Response.objects.filter(poll=self).count()
+        responses = Response.objects.filter(poll=self)
+        vals = Value.objects.filter(entity_id__in=responses).values_list('value_float',flat=True)
+        context['total'] = sum(vals)
+        context['average'] = float(context['total']) / float(len(vals))
+        mode_dict = {}
+        mode = None
+        for v in vals:
+            if v in mode_dict:
+                mode_dict[v] = mode_dict[v] + 1
+            else:
+                mode_dict[v] = 1
+                if not mode:
+                    mode = v
+            if mode_dict[v] > mode_dict[mode]:
+                mode = v
+        context['mode'] = mode
+        return context
+
+
 class Category(models.Model):
     """
     A category is a 'bucket' that an incoming poll response is placed into.
@@ -221,6 +260,7 @@ class Category(models.Model):
     color = models.CharField(max_length=6)
     default = models.BooleanField(default=False)
     response = models.CharField(max_length=160, null=True)
+    sites = models.ManyToManyField(Site)
     
     @classmethod
     def clear_defaults(cls, poll):
@@ -240,6 +280,7 @@ class Response(models.Model):
     """
     message = models.ForeignKey(Message, null=True)
     poll = models.ForeignKey(Poll, related_name='responses')
+    sites = models.ManyToManyField(Site)
 
     def update_categories(self, categories, user):
         for c in categories:
@@ -276,6 +317,7 @@ class Rule(models.Model):
     category = models.ForeignKey(Category, related_name='rules')
     rule_type = models.CharField(max_length=2,  choices=RULE_CHOICES)
     rule_string = models.CharField(max_length=256, null=True)
+    sites = models.ManyToManyField(Site)
     
     @property
     def rule_type_friendly(self):

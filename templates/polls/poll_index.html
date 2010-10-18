@@ -28,12 +28,16 @@ function deletePoll(poll_id, poll_name) {
            <a style="float:right;padding-top:7px;" href="javascript:void(0);" onclick="deletePoll('{{poll.pk}}','{{poll.question|addslashes}}');"><img border="0" src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png"/></a>
 	
 	<div class="buttons">
-       
+      {% if poll.responses.all.count %}
+      <a href="/polls/{{ poll.pk }}/report/">
+            <img src="{{ MEDIA_URL }}poll/icons/silk/zoom.png" alt=""/> Report
+      </a>
 	  <a href="/polls/{{ poll.pk }}/responses/">
             <img src="{{ MEDIA_URL }}poll/icons/silk/database_table.png" alt=""/> Responses ({{ poll.responses.all.count }})
 	  </a>
+	  {% endif %}
 	  <a href="/polls/{{ poll.pk }}/view/">
-            <img src="{{ MEDIA_URL }}poll/icons/silk/zoom.png" alt=""/> View
+            <img src="{{ MEDIA_URL }}poll/icons/silk/bullet_wrench.png" alt=""/> Edit
 	  </a>
 	</div>
       </td>

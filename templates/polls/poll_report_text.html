@@ -1,0 +1,27 @@
+{% extends "polls/layout.html" %}
+{% block title %}Polls{% endblock %}
+
+{% block content %}
+<div id="poll_header">
+<div class="name">{{ poll.name }} :
+  <span class="participants">{{ poll.contacts.count }} participant{{ poll.contacts.count|pluralize }}, {{ total_responses }} total response{{ total_responses|pluralize }}</span>
+</div>
+<div class="question">{{ poll.question }}</div>
+<div class="response">Response: {{ poll.default_response }}</div>
+</div>
+<table width="100%" class="poll_table"> 
+    <thead>
+        {% for category, total, percent in report_data %}
+        <th>{{ category.name }}</th>
+        {% endfor %}
+    </thead>
+    <tbody>
+        {% for category, total, percent in report_data %}
+        <td {% if category.color %}style="background-color:#{{ category.color }}"{% endif %}>{{ total }} ({{ percent|floatformat }}%)</td>
+        {% endfor %}        
+    </tbody>
+
+
+
+</table>
+{% endblock %}
