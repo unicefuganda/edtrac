@@ -5,6 +5,7 @@ from django.shortcuts import redirect, get_object_or_404, render_to_response
 from django.conf import settings
 from django import forms
 from django.core.exceptions import ValidationError
+from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import Poll, Category, Rule, Response, ResponseCategory, STARTSWITH_PATTERN_TEMPLATE, CONTAINS_PATTERN_TEMPLATE
@@ -343,6 +344,8 @@ def edit_rule(req, poll_id, category_id, rule_id) :
 @transaction.commit_on_success
 def add_rule(req, poll_id, category_id):
     poll = get_object_or_404(Poll, pk=poll_id)
+    if poll.type != Poll.TYPE_TEXT:
+        return HttpResponse(status=404)
     category = get_object_or_404(Category, pk=category_id)
     form = RuleForm()
 

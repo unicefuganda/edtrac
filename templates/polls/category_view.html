@@ -25,9 +25,11 @@
             <img src="{{ MEDIA_URL }}poll/icons/silk/pencil.png" alt=""/> 
             Edit
         </a>
+        {% ifequal poll.type 't' %}
         <a href="/polls/{{ poll.pk }}/category/{{ category.pk }}/rules/" id="save_{{ category.pk }}">
           <img src="{{ MEDIA_URL }}poll/icons/silk/bullet_wrench.png" alt=""/>Rules ({{ category.rules.all.count }})
         </a>
+        {% endifequal %}
       </div>
     </td>
   </tr>
