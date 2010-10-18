@@ -107,7 +107,7 @@ def view_report(req, poll_id):
         pass
     else:
         return render_to_response(
-        "polls/poll_index.html", 
+        "polls/poll_index.html",
         { 'polls': Poll.objects.all(), 'breadcrumbs': (('Polls', ''),) },
         context_instance=RequestContext(req))
     return render_to_response(template, context, context_instance=RequestContext(req))

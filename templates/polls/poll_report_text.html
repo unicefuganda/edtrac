@@ -14,11 +14,13 @@
         {% for category, total, percent in report_data %}
         <th>{{ category.name }}</th>
         {% endfor %}
+        <th>Uncategorized</th>
     </thead>
     <tbody>
         {% for category, total, percent in report_data %}
         <td {% if category.color %}style="background-color:#{{ category.color }}"{% endif %}>{{ total }} ({{ percent|floatformat }}%)</td>
-        {% endfor %}        
+        {% endfor %}
+        <td>{{ uncategorized }} ({{ uncategorized_percent|floatformat }}%)</td>
     </tbody>
 
 

@@ -220,7 +220,11 @@ class Poll(models.Model):
             category_percentage = 0
             if context['total_responses']:
                 category_percentage = (float(category_responses) / float(context['total_responses'])) * 100.0
-            context['report_data'].append((c, category_responses, category_percentage)) 
+            context['report_data'].append((c, category_responses, category_percentage))
+        context['uncategorized'] = Response.objects.filter(poll=self).exclude(categories__in=ResponseCategory.objects.filter(category__poll=self)).count()
+        context['uncategorized_percent'] = 0
+        if context['total_responses']:
+            context['uncategorized_percent'] = (float(context['uncategorized']) / float(context['total_responses'])) * 100.0 
         return context
 
     def get_numeric_report_data(self):
