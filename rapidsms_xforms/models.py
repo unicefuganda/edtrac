@@ -9,6 +9,7 @@ from rapidsms.contrib.locations.models import Point
 from rapidsms.models import Connection
 import django.dispatch
 import re
+from django.template import Context, Template
 from django.contrib.sites.models import Site
 from django.contrib.sites.managers import CurrentSiteManager
 from rapidsms.models import ExtensibleModelBase
@@ -50,19 +51,6 @@ class XForm(models.Model):
         """
         super(XForm, self).__init__(*args, **kwargs)
         self.__original_keyword = self.keyword
-
-    def save(self, force_insert=False, force_update=False, using=None):
-        """
-        On saves we check to see if the keyword has changed, if so loading all our fields
-        and resaving them to update their slugs.
-        """
-        super(XForm, self).save(force_insert, force_update, using)
-
-        # keyword has changed, load all our fields and update their slugs
-        # TODO, damnit, is this worth it?
-        if self.keyword != self.__original_keyword:
-            for field in self.fields.all():
-                field.save(force_update=True, using=using)
 
     def update_submission_from_dict(self, submission, values):
         """
@@ -223,11 +211,14 @@ class XForm(models.Model):
                         errors.append(err)
 
         # build a map of the number of values we have for each included field
-        # TOD: for the love of god, someone show me how to do this in one beautiful Python 
+        # TODO: for the love of god, someone show me how to do this in one beautiful Python 
         # lambda, just don't have time now
         value_count = {}
-        for value_dict in values:
-            name = value_dict['name']
+        value_dict = {}
+        for value_pair in values:
+            name = value_pair['name']
+            value_dict[name] = value_pair['value']
+
             if name in value_count:
                 value_count[name] += 1
             else:
@@ -241,7 +232,10 @@ class XForm(models.Model):
 
         # no errors?  wahoo
         if not errors:
-            submission['response'] = self.response
+            # build our template
+            template = Template(self.response)
+            context = Context(value_dict)
+            submission['response'] = template.render(context)
             submission['has_errors'] = False
         else:
             error = submission['errors'][0]
@@ -292,6 +286,36 @@ class XForm(models.Model):
         xform_received.send(sender=self, xform=self, submission=submission)
 
         return submission
+
+    @classmethod
+    def check_template(cls, template):
+        """
+        Tries to compile and render our template to make sure it passes.
+        """
+        try:
+            t = Template(template)
+            t.render(Context({}))
+        except Exception as e:
+            raise ValidationError(str(e))
+
+    def full_clean(self, exclude=None):
+        XForm.check_template(self.response)
+        return super(XForm, self).full_clean(exclude)
+
+    def save(self, force_insert=False, force_update=False, using=None):
+        """
+        On saves we check to see if the keyword has changed, if so loading all our fields
+        and resaving them to update their slugs.
+        """
+        XForm.check_template(self.response)
+
+        super(XForm, self).save(force_insert, force_update, using)
+
+        # keyword has changed, load all our fields and update their slugs
+        # TODO, damnit, is this worth it?
+        if self.keyword != self.__original_keyword:
+            for field in self.fields.all():
+                field.save(force_update=True, using=using)
                         
     def __unicode__(self): # pragma: no cover
         return self.name

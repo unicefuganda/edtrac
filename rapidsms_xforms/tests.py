@@ -326,4 +326,34 @@ class SubmisionTest(TestCase): #pragma: no cover
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
         self.failUnlessEqual(submission.values.get(attribute__name='user').value, self.user)
 
+    def testTemplateResponse(self):
+        # first test no template
+        self.xform.response = "Thanks for sending your message"
+        self.xform.save()
 
+        # assert the message response is right
+        submission = self.xform.process_sms_submission("survey male 10", None)
+        self.failUnlessEqual(submission.response, self.xform.response)
+
+        # now change the xform to return the age and gender
+        self.xform.response = "You recorded an age of {{ age }} and a gender of {{ gender }}"
+        self.xform.save()
+
+        submission = self.xform.process_sms_submission("survey male 10", None)
+        self.failUnlessEqual(submission.response, "You recorded an age of 10 and a gender of male")
+
+        # if they insert a command that isn't there, it should just be empty
+        self.xform.response = "You recorded an age of {{ age }} and a gender of {{ gender }}.  {{ not_there }} Thanks."
+        self.xform.save()
+
+        submission = self.xform.process_sms_submission("survey male 10", None)
+        self.failUnlessEqual(submission.response, "You recorded an age of 10 and a gender of male.   Thanks.")
+
+        # assert we don't let forms save with templates that fail
+        self.xform.response = "You recorded an age of {{ bad template }}"
+        try:
+            self.xform.save()
+            self.fail("Should have failed in save.")
+        except Exception as e:
+            # expected exception because the template is bad, let it pass
+            pass
