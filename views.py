@@ -10,6 +10,9 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .models import Poll, Category, Rule, Response, ResponseCategory, STARTSWITH_PATTERN_TEMPLATE, CONTAINS_PATTERN_TEMPLATE
 from rapidsms.models import Contact
+from simple_locations.models import Area
+from mptt.forms import TreeNodeChoiceField
+
 from xml.dom.minidom import parse, parseString
 
 # CSV Export
@@ -44,8 +47,10 @@ class NewPollForm(forms.Form): # pragma: no cover
                required=True,
                choices=(
                     (Poll.TYPE_TEXT, 'Free-form'),
+                    (TYPE_YES_NO, 'Yes/No Question'),                    
                     (Poll.TYPE_NUMERIC, 'Numeric Response'),
-                    (TYPE_YES_NO, 'Yes/No Question')
+                    (Poll.TYPE_LOCATION, 'Location-based'),
+                    (Poll.TYPE_REGISTRATION, 'Name/registration-based'),
                 ))
     contacts = forms.ModelMultipleChoiceField(queryset=Contact.objects.all())
     name = forms.CharField(max_length=32, required=True)
@@ -69,11 +74,14 @@ def new_poll(req):
             name = form.cleaned_data['name']
             if form.cleaned_data['type'] == Poll.TYPE_TEXT:
                 poll = Poll.create_freeform(name, question, default_response, contacts, req.user)
+            elif form.cleaned_data['type'] == Poll.TYPE_REGISTRATION:
+                poll = Poll.create_registration(name, question, default_response, contacts, req.user)                
             elif form.cleaned_data['type'] == Poll.TYPE_NUMERIC:
                 poll = Poll.create_numeric(name, question, default_response, contacts, req.user)
             elif form.cleaned_data['type'] == NewPollForm.TYPE_YES_NO:
                 poll = Poll.create_yesno(name, question, default_response, contacts, req.user)
-                
+            elif form.cleaned_data['type'] == Poll.TYPE_LOCATION:
+                poll = Poll.create_location_based(name, question, default_response, contacts, req.user)
             if form.cleaned_data['start_immediately']:
                 poll.start()
             
@@ -164,7 +172,7 @@ def view_responses(req, poll_id):
     breadcrumbs = (('Polls', '/polls'),('Responses', ''))
     
     return render_to_response("polls/responses.html", 
-        { 'poll': poll, 'responses': responses, 'breadcrumbs': breadcrumbs },
+        { 'poll': poll, 'responses': responses, 'breadcrumbs': breadcrumbs, 'columns': columns_dict[poll.type]},
         context_instance=RequestContext(req))
 
 class ResponseForm(forms.Form):
@@ -174,34 +182,95 @@ class ResponseForm(forms.Form):
             forms.Form.__init__(self, data, **kwargs)
         else:
             forms.Form.__init__(self, **kwargs)
-        self.fields['categories'] = forms.ModelMultipleChoiceField(required=False, queryset=response.poll.categories.all(), initial=Category.objects.filter(pk=response.categories.values_list('category',flat=True)))            
-         
+        self.fields['categories'] = forms.ModelMultipleChoiceField(required=False, queryset=response.poll.categories.all(), initial=Category.objects.filter(pk=response.categories.values_list('category',flat=True)))
+
+class NumericResponseForm(ResponseForm):
+    value = forms.FloatField()
+
+class LocationResponseForm(ResponseForm):
+    value = TreeNodeChoiceField(queryset=Area.tree.all(),
+                 level_indicator=u'+--', required=True)
+    
+class NameResponseForm(ResponseForm):
+    value = forms.CharField()    
+
+def _get_response_edit_form(response, data=None):
+    if (response.poll.type == Poll.TYPE_TEXT):
+        if data:
+            return ResponseForm(data, response=response)
+        else:
+            return ResponseForm(response=response)
+    if (response.poll.type == Poll.TYPE_NUMERIC):
+        if data:
+            return NumericResponseForm(data, response=response)
+        else:
+            return NumericResponseForm(response=response, initial={'value':response.eav.poll_number_value})
+    if (response.poll.type == Poll.TYPE_LOCATION):
+        if data:
+            return LocationResponseForm(data, response=response)
+        else:
+            return LocationResponseForm(response=response, initial={'value':response.eav.poll_location_value})
+    if (response.poll.type == Poll.TYPE_REGISTRATION):
+        if data:
+            return NameResponseForm(data, response=response)
+        else:
+            return NameResponseForm(response=response, initial={'value':response.eav.poll_text_value})
+
+
+def apply_response(req, response_id):
+    response = get_object_or_404(Response, pk=response_id)
+    poll = response.poll
+    if poll.type == Poll.TYPE_REGISTRATION:
+        try:
+            response.message.connection.contact.name = response.eav.poll_text_value
+        except AttributeError:
+            pass
+    elif poll.type == Poll.TYPE_LOCATION:
+        #FIXME: logic here?
+        pass 
+    
+    responses = poll.responses.all().order_by('-pk')
+
+    breadcrumbs = (('Polls', '/polls'),('Responses', ''))
+    
+    return render_to_response("polls/responses.html", 
+        { 'poll': poll, 'responses': responses, 'breadcrumbs': breadcrumbs, 'columns': columns_dict[poll.type]},
+        context_instance=RequestContext(req))
+    
+
 @transaction.commit_on_success
 def edit_response(req, response_id):
     response = get_object_or_404(Response, pk=response_id)
     poll = response.poll 
     
     if req.method == 'POST':
-        form = ResponseForm(req.POST, response=response)
+        form = _get_response_edit_form(response, data=req.POST)
         if form.is_valid():       
             response.update_categories(form.cleaned_data['categories'], req.user)
-            return render_to_response("polls/response_view.html", 
+            if poll.type == Poll.TYPE_NUMERIC:
+                response.eav.poll_number_value = form.cleaned_data['value']
+            elif poll.type == Poll.TYPE_LOCATION:
+                response.eav.poll_location_value = form.cleaned_data['value']
+            elif poll.type == Poll.TYPE_REGISTRATION:
+                response.eav.poll_text_value = form.cleaned_data['value']
+            response.save()
+            return render_to_response(view_templates_dict[response.poll.type], 
                 { 'response' : response },
                 context_instance=RequestContext(req))
         else:
-            return render_to_response("polls/response_edit.html", 
+            return render_to_response(edit_templates_dict[response.poll.type], 
                             { 'response' : response, 'form':form },
                             context_instance=RequestContext(req))
     else:
-        form = ResponseForm(response=response)
+        form = _get_response_edit_form(response)
 
-    return render_to_response("polls/response_edit.html", 
+    return render_to_response(edit_templates_dict[response.poll.type], 
         { 'form' : form, 'response': response },
         context_instance=RequestContext(req))
 
 def view_response(req, response_id):
     response = get_object_or_404(Response, pk=response_id)
-    return render_to_response("polls/response_view.html", 
+    return render_to_response(view_templates_dict[response.poll.type], 
         { 'response': response },
         context_instance=RequestContext(req))
     
@@ -406,3 +475,25 @@ rule_buttons = ({"image" : "rapidsms/icons/silk/delete.png", 'click' : 'deleteRo
                       { "text" : "Edit", "image" : "poll/icons/silk/pencil.png", 'click' : 'editRow'},)
 
 rule_columns = (('Rule', 'rule_type_friendly'), ('Text', 'rule_string'))
+
+columns_dict = {
+    Poll.TYPE_LOCATION:(('Text','text'),('Location','location'),('Categories','categories')),
+    Poll.TYPE_TEXT:(('Text', 'text'),('Categories','categories')),
+    Poll.TYPE_NUMERIC:(('Text','text'),('Value','value'), ('Categories', 'categories')),
+    Poll.TYPE_REGISTRATION:(('Text','text'),('Categories','categories')),
+}
+
+view_templates_dict = {
+    Poll.TYPE_LOCATION:'polls/response_location_view.html',
+    Poll.TYPE_TEXT:'polls/response_text_view.html',
+    Poll.TYPE_NUMERIC:'polls/response_numeric_view.html',
+    Poll.TYPE_REGISTRATION:'polls/response_registration_view.html',
+}
+
+edit_templates_dict = {
+    Poll.TYPE_LOCATION:'polls/response_location_edit.html',
+    Poll.TYPE_TEXT:'polls/response_text_edit.html',
+    Poll.TYPE_NUMERIC:'polls/response_numeric_edit.html',
+    Poll.TYPE_REGISTRATION:'polls/response_registration_edit.html',
+}
+

@@ -60,8 +60,9 @@
   <thead>
     <tr>
       <th class="response_sender_col">Sender</th>
-      <th class="response_text_col">Text</th>
-      <th class="response_categories_col">Categories</th>
+      {% for column, colclass in columns %}
+      <th class="response_{{ colclass }}_col">{{ column }}</th>
+      {% endfor %}
       <th class="response_options_col"></th>
     </tr>
   </thead>

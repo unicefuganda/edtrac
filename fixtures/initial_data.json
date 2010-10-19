@@ -18,5 +18,15 @@
       "description": "A response value for a Poll with expected text responses",
       "datatype": "text"
     }
+  },
+  {
+    "model": "eav.attribute",
+    "pk": null,    
+    "fields": {
+      "slug": "poll_location_value",
+      "name": "Location",
+      "description": "A response value for a Poll with expected location-based responses",
+      "datatype": "object"
+    }
   }
 ]

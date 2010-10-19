@@ -1,4 +1,7 @@
 import datetime
+import difflib
+
+from code_generator.code_generator import generate_tracking_tag
 
 from django.db import models
 from django.db.models import Sum, Avg
@@ -10,6 +13,9 @@ from rapidsms.models import Contact
 
 from eav import register
 from eav.models import Value
+
+from simple_locations.models import Area
+
 
 import re
 
@@ -56,6 +62,8 @@ class Poll(models.Model):
     
     TYPE_TEXT = 't'
     TYPE_NUMERIC = 'n'
+    TYPE_LOCATION = 'l'
+    TYPE_REGISTRATION = 'r'
         
     name = models.CharField(max_length=32,
                             help_text="Human readable name.")
@@ -123,6 +131,29 @@ class Poll(models.Model):
                 type=Poll.TYPE_TEXT)
         poll.contacts = contacts        
         return poll
+
+    @classmethod
+    def create_registration(cls, name, question, default_response, contacts, user):
+        """
+        This creates a generic text-based poll from the various parameters,
+        but will allow the user to decide, after the results come in, whether or
+        not to apply responses to the associated contact's name.
+        question : The question to ask when the poll is started
+        contacts : a list or QuerySet of Contact objects
+        user : The logged-in user creating this poll
+        
+        returns:
+        A poll of type 'r' (Registration-based) with no categories (the user can
+        add them ad hoc as responses come in)
+        """
+        poll = Poll.objects.create(
+                name=name,
+                question=question,
+                default_response=default_response,                
+                user=user,
+                type=Poll.TYPE_REGISTRATION)
+        poll.contacts = contacts        
+        return poll
     
     @classmethod
     def create_numeric(cls, name, question, default_response, contacts, user):
@@ -141,6 +172,29 @@ class Poll(models.Model):
                 default_response=default_response,                
                 user=user,
                 type=Poll.TYPE_NUMERIC)
+        poll.contacts = contacts
+        return poll
+    
+    @classmethod
+    def create_location_based(cls, name, question, default_response, contacts, user):
+        """
+        This creates a generic text-based poll from the various parameters,
+        but will attempt to match incoming messages to a location already in
+        the system, or create new locations as they arrive.
+        question : The question to ask when the poll is started
+        contacts : a list or QuerySet of Contact objects
+        user : The logged-in user creating this poll
+        
+        returns:
+        A poll of type 'l' (Location-based) with no categories (the user can
+        add them ad hoc as responses come in)
+        """        
+        poll = Poll.objects.create(
+                name=name,
+                question=question,
+                default_response=default_response,                
+                user=user,
+                type=Poll.TYPE_LOCATION)
         poll.contacts = contacts
         return poll
     
@@ -183,12 +237,29 @@ class Poll(models.Model):
         # FIXME - incorporate new logger to retrieve incoming message id
         resp = Response.objects.create(poll=self)
         outgoing_message = self.default_response
-        if (self.type == Poll.TYPE_NUMERIC):
+        if (self.type == Poll.TYPE_LOCATION):
+            location_template = STARTSWITH_PATTERN_TEMPLATE % '[a-zA-Z]*'
+            regex = re.compile(location_template)
+            if regex.search(message.text):
+                spn = regex.search(message.text).span()
+                location_str = message.text[spn[0]:spn[1]]
+                area = None
+                area_names = Area.objects.all().values_list('name', flat=True)
+                area_names_lower = [ai.lower() for ai in area_names]
+                area_names_matches = difflib.get_close_matches(location_str.lower(), area_names_lower)
+                if area_names_matches:
+                    area = Area.objects.get(name__iexact=area_names_matches[0])
+                else:
+                    area = Area.objects.create(name=location_str, code=generate_tracking_tag())
+                resp.eav.poll_location_value = area
+                
+        elif (self.type == Poll.TYPE_NUMERIC):
             try:
                 resp.eav.poll_number_value = float(message.text)
             except ValueError:        
                 pass
-        elif (self.type == Poll.TYPE_TEXT):
+            
+        elif ((self.type == Poll.TYPE_TEXT) or (self.type == Poll.TYPE_REGISTRATION)):
             resp.eav.poll_text_value = message.text
             if self.categories:
                 for category in self.categories.all():
@@ -198,13 +269,13 @@ class Poll(models.Model):
                             rc = ResponseCategory.objects.create(response = resp, category=category)
                             resp.categories.add(rc)
                             break
-            if not resp.categories.all().count() and self.categories.filter(default=True).count():
-                resp.categories.add(ResponseCategory.objects.create(response = resp, category=self.categories.get(default=True)))
+        if not resp.categories.all().count() and self.categories.filter(default=True).count():
+            resp.categories.add(ResponseCategory.objects.create(response = resp, category=self.categories.get(default=True)))
             
-            for respcategory in resp.categories.order_by('category__priority'):
-                if respcategory.category.response:
-                    outgoing_message = respcategory.category.response
-                    break
+        for respcategory in resp.categories.order_by('category__priority'):
+            if respcategory.category.response:
+                outgoing_message = respcategory.category.response
+                break
         resp.save()
         if not outgoing_message:
             return "We have received your response, thank you!"

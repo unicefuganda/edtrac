@@ -258,8 +258,25 @@
   padding:0px;
   padding-left:5px;
   margin:0px;
-  width:100px;
-}      
+  width:200px;
+}
+
+.response_location_col {
+  padding:0px;
+  margin:0px;
+  width:100px;    
+}
+
+.response_value_col {
+  padding-left:5px;
+  margin:0px;
+  width:50px;    
+}
+
+.response_value_col input {
+  padding-left:5px;
+  width:40px;
+}
 
 .response_categories_col {
   padding:0px;
@@ -283,6 +300,9 @@
   font-weight:bold;
 }
 
+.response_text_col input {
+   width:80px;
+}
 
 form {
   padding:0px;
