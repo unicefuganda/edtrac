@@ -131,7 +131,7 @@ class XForm(models.Model):
 
         # make sure our keyword is right
         keyword = segments[0]
-        if not self.keyword.lower() == keyword:
+        if not self.keyword.lower() == keyword.lower():
             errors.append(ValidationError("Incorrect keyword.  Keyword must be '%s'" % self.keyword))
             submission['response'] = "Incorrect keyword.  Keyword must be '%s'" % self.keyword
             return submission
@@ -608,7 +608,7 @@ class XFormSubmission(models.Model):
     errors = []
 
     def __unicode__(self): # pragma: no cover
-        return "%s (%s)" % (self.xform, self.type)
+        return "%s (%s) - %s" % (self.xform, self.type, self.raw)
 
 # This sets up XForm as an EAV-able model (its attributes will in fact be
 # XFormFields

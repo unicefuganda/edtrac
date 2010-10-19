@@ -240,6 +240,10 @@ class SubmisionTest(TestCase): #pragma: no cover
         self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt berg')
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
 
+        # make sure case doesn't matter
+        submission = self.xform.process_sms_submission("Survey +age 10 +name matt berg +gender male", None)
+        self.failUnlessEqual(submission.has_errors, False)
+
         # test with just an age and gender
         submission = self.xform.process_sms_submission("survey male 10", None)
         self.failUnlessEqual(submission.has_errors, False)
