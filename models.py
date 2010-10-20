@@ -8,14 +8,17 @@ from django.db.models import Sum, Avg
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User
 
-from rapidsms.contrib.messagelog.models import Message
-from rapidsms.models import Contact
+from rapidsms.models import Contact, Connection
 
 from eav import register
 from eav.models import Value
 
 from simple_locations.models import Area
 
+from rapidsms_httprouter.models import Message
+from rapidsms_httprouter.router import get_router
+
+from rapidsms.messages.outgoing import OutgoingMessage
 
 import re
 
@@ -55,7 +58,6 @@ class Poll(models.Model):
     will be parsed (or attempted to be parsed) by this poll, and bucketed into a 
     particular category.
     
-    FIXME: probably need a short description field?
     FIXME: contact groups, if implemented in core or contrib, should be used here,
            instead of a many-to-many field
     """
@@ -205,11 +207,12 @@ class Poll(models.Model):
         All incoming messages from these users will be considered as
         potentially a response to this poll.
         """
-        from rapidsms.contrib.ajax.utils import call_router
-        for c in self.contacts.all():
-            # FIXME - incorporate new logger to retrieve the message id
-#            call_router("poll", "send", 
-#               **{"identity": c.default_connection.identity, "text": self.question })
+        router = get_router()
+        for contact in self.contacts.all():
+            for connection in Connection.objects.filter(contact=contact):
+                outgoing = OutgoingMessage(connection, self.question)
+                self.messages.add(router.handle_outgoing(outgoing))
+
             pass
         self.start_date = datetime.datetime.now()
         self.save()
@@ -234,8 +237,10 @@ class Poll(models.Model):
                 resp.categories.add(ResponseCategory.objects.create(response = resp, category=self.categories.get(default=True)))
     
     def process_response(self, message):
-        # FIXME - incorporate new logger to retrieve incoming message id
-        resp = Response.objects.create(poll=self)
+        db_message = None
+        if hasattr(message, 'db_message'):
+            db_message = message.db_message
+        resp = Response.objects.create(poll=self, message=message.db_message)
         outgoing_message = self.default_response
         if (self.type == Poll.TYPE_LOCATION):
             location_template = STARTSWITH_PATTERN_TEMPLATE % '[a-zA-Z]*'

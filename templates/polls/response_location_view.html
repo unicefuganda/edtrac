@@ -2,8 +2,8 @@
   <table width="100%">
     <tr>
     <td class="response_sender_col">
-      {% if response.message.contact %}
-        {{ response.message.contact }}
+      {% if response.message.connection.contact %}
+        {{ response.message.connection.contact.name }}
       {% else %}
         {{ response.message.connection.identity }}
       {% endif %} 

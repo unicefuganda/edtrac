@@ -223,20 +223,18 @@ def apply_response(req, response_id):
     if poll.type == Poll.TYPE_REGISTRATION:
         try:
             response.message.connection.contact.name = response.eav.poll_text_value
+            response.message.connection.contact.save()
         except AttributeError:
             pass
     elif poll.type == Poll.TYPE_LOCATION:
-        #FIXME: logic here?
-        pass 
-    
-    responses = poll.responses.all().order_by('-pk')
+        try:
+            response.message.connection.contact.reporting_location = response.eav.poll_location_value
+            response.message.connection.contact.save()
+        except AttributeError:
+            pass
 
-    breadcrumbs = (('Polls', '/polls'),('Responses', ''))
-    
-    return render_to_response("polls/responses.html", 
-        { 'poll': poll, 'responses': responses, 'breadcrumbs': breadcrumbs, 'columns': columns_dict[poll.type]},
-        context_instance=RequestContext(req))
-    
+    return redirect("/polls/%d/responses/" % poll.pk)
+
 
 @transaction.commit_on_success
 def edit_response(req, response_id):
