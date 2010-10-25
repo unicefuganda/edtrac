@@ -9,3 +9,7 @@
 #id_reporting_location {
     width: 100%;
 }
+
+.col-1 th, .col-1 td {
+    white-space: normal;
+}
