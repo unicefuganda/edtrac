@@ -7,6 +7,8 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+from django.contrib.sites.models import Site
 
 from .models import Poll, Category, Rule, Response, ResponseCategory, STARTSWITH_PATTERN_TEMPLATE, CONTAINS_PATTERN_TEMPLATE
 from rapidsms.models import Contact
@@ -84,7 +86,8 @@ def new_poll(req):
                 poll = Poll.create_location_based(name, question, default_response, contacts, req.user)
             if form.cleaned_data['start_immediately']:
                 poll.start()
-            
+            if settings.SITE_ID:
+                poll.sites.add(Site.objects.get_current())
             return redirect("/polls/%d/view/" % poll.pk)
     else:
         form = NewPollForm()
