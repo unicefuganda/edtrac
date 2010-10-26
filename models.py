@@ -45,8 +45,6 @@ class ResponseCategory(models.Model):
     response = models.ForeignKey('Response', related_name='categories')
     is_override = models.BooleanField(default=False)
     user = models.ForeignKey(User, null=True)
-    sites = models.ManyToManyField(Site)
-    objects = (CurrentSiteManager('sites') if settings.SITE_ID else models.Manager())
 
 class Poll(models.Model):
     """
@@ -345,8 +343,6 @@ class Category(models.Model):
     color = models.CharField(max_length=6)
     default = models.BooleanField(default=False)
     response = models.CharField(max_length=160, null=True)
-    sites = models.ManyToManyField(Site)
-    objects = (CurrentSiteManager('sites') if settings.SITE_ID else models.Manager())
     
     @classmethod
     def clear_defaults(cls, poll):
@@ -366,8 +362,6 @@ class Response(models.Model):
     """
     message = models.ForeignKey(Message, null=True)
     poll = models.ForeignKey(Poll, related_name='responses')
-    sites = models.ManyToManyField(Site)
-    objects = (CurrentSiteManager('sites') if settings.SITE_ID else models.Manager())
 
     def update_categories(self, categories, user):
         for c in categories:
@@ -404,8 +398,6 @@ class Rule(models.Model):
     category = models.ForeignKey(Category, related_name='rules')
     rule_type = models.CharField(max_length=2,  choices=RULE_CHOICES)
     rule_string = models.CharField(max_length=256, null=True)
-    sites = models.ManyToManyField(Site)
-    objects = (CurrentSiteManager('sites') if settings.SITE_ID else models.Manager())
     
     @property
     def rule_type_friendly(self):
