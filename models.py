@@ -6,6 +6,7 @@ from code_generator.code_generator import generate_tracking_tag
 from django.db import models
 from django.db.models import Sum, Avg
 from django.contrib.sites.models import Site
+from django.contrib.sites.managers import CurrentSiteManager
 from django.contrib.auth.models import User
 
 from rapidsms.models import Contact, Connection
@@ -19,6 +20,8 @@ from rapidsms_httprouter.models import Message
 from rapidsms_httprouter.router import get_router
 
 from rapidsms.messages.outgoing import OutgoingMessage
+
+from django.conf import settings
 
 import re
 
@@ -43,6 +46,7 @@ class ResponseCategory(models.Model):
     is_override = models.BooleanField(default=False)
     user = models.ForeignKey(User, null=True)
     sites = models.ManyToManyField(Site)
+    objects = (CurrentSiteManager('sites') if settings.SITE_ID else models.Manager())
 
 class Poll(models.Model):
     """
@@ -80,7 +84,8 @@ class Poll(models.Model):
                 choices=((TYPE_TEXT, 'Text-based'),(TYPE_NUMERIC, 'Numeric Response')))
     default_response = models.CharField(max_length=160)
     sites = models.ManyToManyField(Site)
-    
+    objects = (CurrentSiteManager('sites') if settings.SITE_ID else models.Manager())
+
     @classmethod
     def create_yesno(cls, name, question, default_response, contacts, user):
         """
@@ -341,6 +346,7 @@ class Category(models.Model):
     default = models.BooleanField(default=False)
     response = models.CharField(max_length=160, null=True)
     sites = models.ManyToManyField(Site)
+    objects = (CurrentSiteManager('sites') if settings.SITE_ID else models.Manager())
     
     @classmethod
     def clear_defaults(cls, poll):
@@ -361,6 +367,7 @@ class Response(models.Model):
     message = models.ForeignKey(Message, null=True)
     poll = models.ForeignKey(Poll, related_name='responses')
     sites = models.ManyToManyField(Site)
+    objects = (CurrentSiteManager('sites') if settings.SITE_ID else models.Manager())
 
     def update_categories(self, categories, user):
         for c in categories:
@@ -398,6 +405,7 @@ class Rule(models.Model):
     rule_type = models.CharField(max_length=2,  choices=RULE_CHOICES)
     rule_string = models.CharField(max_length=256, null=True)
     sites = models.ManyToManyField(Site)
+    objects = (CurrentSiteManager('sites') if settings.SITE_ID else models.Manager())
     
     @property
     def rule_type_friendly(self):
