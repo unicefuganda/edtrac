@@ -284,22 +284,36 @@ class XForm(models.Model):
 
         # trigger our signal
         xform_received.send(sender=self, xform=self, submission=submission)
-
         return submission
 
-    @classmethod
-    def check_template(cls, template):
+    def check_template(self, template):
         """
         Tries to compile and render our template to make sure it passes.
         """
         try:
             t = Template(template)
-            t.render(Context({}))
+
+            # we build a context that has dummy values for all required fields
+            context = {}
+            for field in self.fields.all():
+                required = field.constraints.all().filter(type="req_val")
+
+                # we are at a field that isn't required?  pop out, these will be dealt with 
+                # in the next block
+                if not required:
+                    continue
+
+                if field.type == XFormField.TYPE_INT or field.type == XFormField.TYPE_FLOAT:
+                    context[field.command] = "1"
+                else:
+                    context[field.command] = "test"
+
+            t.render(Context(context))
         except Exception as e:
             raise ValidationError(str(e))
 
     def full_clean(self, exclude=None):
-        XForm.check_template(self.response)
+        self.check_template(self.response)
         return super(XForm, self).full_clean(exclude)
 
     def save(self, force_insert=False, force_update=False, using=None):
@@ -307,7 +321,7 @@ class XForm(models.Model):
         On saves we check to see if the keyword has changed, if so loading all our fields
         and resaving them to update their slugs.
         """
-        XForm.check_template(self.response)
+        self.check_template(self.response)
 
         super(XForm, self).save(force_insert, force_update, using)
 
