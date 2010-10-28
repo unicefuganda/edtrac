@@ -54,7 +54,7 @@ class NewPollForm(forms.Form): # pragma: no cover
                     (Poll.TYPE_LOCATION, 'Location-based'),
                     (Poll.TYPE_REGISTRATION, 'Name/registration-based'),
                 ))
-    contacts = forms.ModelMultipleChoiceField(queryset=Contact.objects.all())
+    contacts = forms.ModelMultipleChoiceField(queryset=Contact.objects.filter(pk__in=ContactSite.objects.filter(site=Site.objects.get_current()).values_list('contact', flat=True)))
     name = forms.CharField(max_length=32, required=True)
     question = forms.CharField(max_length=160, required=True)
     default_response = forms.CharField(max_length=160, required=True)
