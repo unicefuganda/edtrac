@@ -9,6 +9,7 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.contrib.sites.models import Site
+from authsites.models import ContactSite
 
 from .models import Poll, Category, Rule, Response, ResponseCategory, STARTSWITH_PATTERN_TEMPLATE, CONTAINS_PATTERN_TEMPLATE
 from rapidsms.models import Contact
