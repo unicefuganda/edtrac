@@ -9,7 +9,6 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.contrib.sites.models import Site
-from authsites.models import ContactSite
 
 from .models import Poll, Category, Rule, Response, ResponseCategory, STARTSWITH_PATTERN_TEMPLATE, CONTAINS_PATTERN_TEMPLATE
 from rapidsms.models import Contact
@@ -55,16 +54,43 @@ class NewPollForm(forms.Form): # pragma: no cover
                     (Poll.TYPE_LOCATION, 'Location-based'),
                     (Poll.TYPE_REGISTRATION, 'Name/registration-based'),
                 ))
-    contacts = forms.ModelMultipleChoiceField(queryset=Contact.objects.filter(pk__in=ContactSite.objects.filter(site=Site.objects.get_current()).values_list('contact', flat=True)))
+
     name = forms.CharField(max_length=32, required=True)
     question = forms.CharField(max_length=160, required=True)
     default_response = forms.CharField(max_length=160, required=True)
     start_immediately = forms.BooleanField(required=False)
 
+    # This may seem like a hack, but this allows time for the Contact model's
+    # default manage to be replaced at run-time.  There are many applications
+    # for that, such as filtering contacts by site_id (as is done in the
+    # authsites app, see github.com/daveycrockett/authsites).
+    # This does, however, also make the polling app independent of authsites.  
+    def __init__(self, data=None, **kwargs):
+        if data:
+            forms.Form.__init__(self, data, **kwargs)
+        else:
+            forms.Form.__init__(self, **kwargs)
+        self.fields['contacts'] = forms.ModelMultipleChoiceField(queryset=Contact.objects.all())
+
 class EditPollForm(forms.ModelForm): # pragma: no cover
     class Meta:
         model = Poll
-        fields = ('name', 'contacts', 'default_response')
+        fields = ('name', 'default_response')
+
+    # This may seem like a hack, but this allows time for the Contact model's
+    # default manage to be replaced at run-time.  There are many applications
+    # for that, such as filtering contacts by site_id (as is done in the
+    # authsites app, see github.com/daveycrockett/authsites).
+    # This does, however, also make the polling app independent of authsites.    
+    def __init__(self, data=None, **kwargs):
+        if data:
+            forms.ModelForm.__init__(self, data, **kwargs)
+        else:
+            forms.ModelForm.__init__(self, **kwargs)
+        if 'instance' in kwargs:
+            self.fields['contacts'] = forms.ModelMultipleChoiceField(queryset=Contact.objects.all(), initial=kwargs['instance'].contacts.all())
+        else:
+            self.fields['contacts'] = forms.ModelMultipleChoiceField(queryset=Contact.objects.all())        
 
 def new_poll(req):
     if req.method == 'POST':
@@ -141,6 +167,7 @@ def edit_poll(req, poll_id):
         form = EditPollForm(req.POST, instance=poll)
         if form.is_valid():
             poll = form.save()
+            poll.contacts = form.cleaned_data['contacts']
             return render_to_response("polls/poll_details.html", 
                 {"poll" : poll},
                 context_instance=RequestContext(req))
