@@ -210,6 +210,8 @@ class Poll(models.Model):
         All incoming messages from these users will be considered as
         potentially a response to this poll.
         """
+        self.start_date = datetime.datetime.now()
+        self.save()
         router = get_router()
         for contact in self.contacts.all():
             for connection in Connection.objects.filter(contact=contact):
@@ -217,8 +219,6 @@ class Poll(models.Model):
                 self.messages.add(router.handle_outgoing(outgoing))
 
             pass
-        self.start_date = datetime.datetime.now()
-        self.save()
     
     def end(self):
         self.end_date = datetime.datetime.now()

@@ -111,10 +111,11 @@ def new_poll(req):
                 poll = Poll.create_yesno(name, question, default_response, contacts, req.user)
             elif form.cleaned_data['type'] == Poll.TYPE_LOCATION:
                 poll = Poll.create_location_based(name, question, default_response, contacts, req.user)
-            if form.cleaned_data['start_immediately']:
-                poll.start()
             if settings.SITE_ID:
                 poll.sites.add(Site.objects.get_current())
+            poll.save()                
+            if form.cleaned_data['start_immediately']:
+                poll.start()
             return redirect("/polls/%d/view/" % poll.pk)
     else:
         form = NewPollForm()
