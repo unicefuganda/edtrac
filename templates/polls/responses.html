@@ -33,17 +33,6 @@
     selected.removeClass('form_unselected');
   }
 
-  $( document ).ready( 
-    function() {    
-      $(".response_box").each(
-        function() {
-          response_id = parseInt($(this).parent().attr("id"));
-          if (response_id) {
-            $(this).load("/polls/responses/" + response_id + "/view/");
-          }
-        }
-      );
-    });  
 </script>
 
 <div class="details">
@@ -74,6 +63,21 @@
         {% for response in responses %}
         <li class="category ui-state-default form_unselected" id="{{response.pk}}">
           <div class="response_box" id="response_box_{{forloop.counter}}">
+            {% ifequal poll.type 't' %}
+                {% include "polls/response_text_view.html" %}
+            {% else %}
+                {% ifequal poll.type 'n' %}
+                    {% include "polls/response_numeric_view.html" %}
+                {% else %}
+                    {% ifequal poll.type 'l' %}
+                        {% include "polls/response_location_view.html" %}
+                    {% else %}
+                        {% ifequal poll.type 'r' %}
+                            {% include "polls/response_registration_view.html" %}
+                        {% endifequal %}
+                    {% endifequal %}
+                {% endifequal %}
+            {% endifequal %}
           </div>
         </li>
         {% endfor %}
