@@ -273,7 +273,7 @@ class Poll(models.Model):
                 for category in self.categories.all():
                     for rule in category.rules.all():
                         regex = re.compile(rule.regex)
-                        if regex.search(message.text):
+                        if regex.search(message.text.lower()):
                             rc = ResponseCategory.objects.create(response = resp, category=category)
                             resp.categories.add(rc)
                             break
