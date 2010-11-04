@@ -1,4 +1,4 @@
-{% load prop %}
+{% load attr %}
 
 <div class="field_box">
 <div class="field_table">
@@ -6,7 +6,7 @@
 {% for name,type in columns %}
 
   <td class="rule_{{type}}_col">
-    {{ item|prop:type }}
+    {{ item|attr:type }}
   </td>
 
 {% endfor %}
