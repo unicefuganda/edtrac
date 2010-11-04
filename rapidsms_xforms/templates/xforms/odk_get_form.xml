@@ -23,7 +23,7 @@
         </translation>
       </itext>
       {% for field in xform.fields.all %}
-      <bind nodeset="/data/{{ field.command }}" type="{{ field.type }}" {{ field.constraints_as_xform|safe }} />
+      <bind nodeset="/data/{{ field.command }}" type="{{ field.xform_type }}" {{ field.constraints_as_xform|safe }} />
       {% endfor %}
     </model>
   </h:head>

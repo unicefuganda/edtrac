@@ -98,7 +98,7 @@ class XForm(models.Model):
         """
         for field in self.fields.filter(datatype=XFormField.TYPE_OBJECT):
             if field.command in values:
-                values[field.command] = XFormField.lookup_parser(field)(field.command, values[field.command])
+                values[field.command] = XFormField.lookup_parser(field.field_type)(field.command, values[field.command])
 
         # create our submission now
         submission = self.submissions.create(type='odk-www', raw=xml)
@@ -367,9 +367,9 @@ class XFormField(Attribute):
     # hook.
 
     TYPE_CHOICES = [
-        (TYPE_INT, 'Integer', TYPE_INT, None),
-        (TYPE_FLOAT, 'Decimal', TYPE_FLOAT, None),
-        (TYPE_TEXT, 'String', TYPE_TEXT, None),
+        (TYPE_INT, 'Integer', TYPE_INT, None, 'integer'),
+        (TYPE_FLOAT, 'Decimal', TYPE_FLOAT, None, 'decimal'),
+        (TYPE_TEXT, 'String', TYPE_TEXT, None, 'string'),
     ]
 
     xform = models.ForeignKey(XForm, related_name='fields')
@@ -384,12 +384,12 @@ class XFormField(Attribute):
         ordering = ('order', 'id')
 
     @classmethod
-    def register_field_type(cls, field_type, name, parserFunc):
-        XFormField.TYPE_CHOICES.append((field_type, name, XFormField.TYPE_OBJECT, parserFunc))
+    def register_field_type(cls, field_type, name, parserFunc, xforms_type):
+        XFormField.TYPE_CHOICES.append((field_type, name, XFormField.TYPE_OBJECT, parserFunc, xforms_type))
 
     @classmethod
     def lookup_parser(cls, otype):
-        for (field_type, name, datatype, func) in XFormField.TYPE_CHOICES:
+        for (field_type, name, datatype, func, xforms_type) in XFormField.TYPE_CHOICES:
             if otype == field_type:
                 return func
 
@@ -403,7 +403,7 @@ class XFormField(Attribute):
         # set our slug based on our command and keyword
         self.slug = "%s_%s" % (self.xform.keyword, EavSlugField.create_slug_from_name(self.command))
 
-        for (field_type, name, datatype, func) in XFormField.TYPE_CHOICES:
+        for (field_type, name, datatype, func, xforms_type) in XFormField.TYPE_CHOICES:
             if field_type == self.field_type:
                 self.datatype = datatype
                 break
@@ -464,6 +464,16 @@ class XFormField(Attribute):
             constraint.validate(value)
         
         return cleaned_value
+
+    def xform_type(self):
+        """
+        Returns the XForms type for the field type.
+        """
+        for (field_type, name, datatype, func, xform_type) in XFormField.TYPE_CHOICES:
+            if self.field_type == field_type:
+                return xform_type
+
+        raise RuntimeError("Field type: '%s' not supported in XForms" % self.field_type)
 
     def constraints_as_xform(self):
         """
@@ -665,10 +675,10 @@ def create_geopoint(command, value):
     a geolocation and return a Point location.
     """
     coords = value.split(' ')
-    if len(coords) != 2:
+    if len(coords) < 2:
         raise ValidationError("+%s parameter must be GPS coordinates in the format 'lat long'" % command)
 
-    for coord in coords:
+    for coord in coords[0:2]:
         try:
             test = float(coord)
         except ValueError:
@@ -683,11 +693,16 @@ def create_geopoint(command, value):
         raise ValidationError("+%s parameter has invalid longitude, must be between -180 and 180" % command)
 
     # our cleaned value is the coordinates as a tuple
-    cleaned_value = Point.objects.create(longitude=coords[0], latitude=coords[1])
+    cleaned_value = Point.objects.create(latitude=coords[0], longitude=coords[1])
     return cleaned_value
 
 # register geopoints as a type
-XFormField.register_field_type(XFormField.TYPE_GEOPOINT, 'GPS Coordinate', create_geopoint)
+XFormField.register_field_type(XFormField.TYPE_GEOPOINT, 'GPS Coordinate', create_geopoint, 'geopoint')
+
+# add a to_dict to Point, yay for monkey patching
+def point_to_dict(self):
+    return dict(name='coord', lat=self.latitude, lng=self.longitude)
+Point.to_dict = point_to_dict
 
 
 

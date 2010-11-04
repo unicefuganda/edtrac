@@ -317,7 +317,7 @@ class SubmisionTest(TestCase): #pragma: no cover
         def lookup_user(command, username):
             return User.objects.get(username=username)
 
-        XFormField.register_field_type('user', 'User', lookup_user)
+        XFormField.register_field_type('user', 'User', lookup_user, 'string')
 
         # add a user field to our xform
         field = self.xform.fields.create(field_type='user', name='user', command='user', order=3)
