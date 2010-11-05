@@ -243,7 +243,7 @@ class Poll(models.Model):
         db_message = None
         if hasattr(message, 'db_message'):
             db_message = message.db_message
-        resp = Response.objects.create(poll=self, message=db_message, contact=db_message.contact, time=db_message.date)
+        resp = Response.objects.create(poll=self, message=db_message, contact=db_message.connection.contact, date=db_message.date)
         outgoing_message = self.default_response
         if (self.type == Poll.TYPE_LOCATION):
             location_template = STARTSWITH_PATTERN_TEMPLATE % '[a-zA-Z]*'
@@ -362,7 +362,7 @@ class Response(models.Model):
     """
     message = models.ForeignKey(Message, null=True)
     poll    = models.ForeignKey(Poll, related_name='responses')
-    contact = models.ForeignKey(Contact, null=True)
+    contact = models.ForeignKey(Contact, null=True, blank=True)
     date    = models.DateTimeField(auto_now_add=True)
 
     def update_categories(self, categories, user):
