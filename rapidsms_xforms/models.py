@@ -127,10 +127,11 @@ class XForm(models.Model):
         submission['errors'] = errors
 
         # so first let's split on spaces
-        segments = message.split(' ')
+        segments = message.split()
 
         # make sure our keyword is right
         keyword = segments[0]
+
         if not self.keyword.lower() == keyword.lower():
             errors.append(ValidationError("Incorrect keyword.  Keyword must be '%s'" % self.keyword))
             submission['response'] = "Incorrect keyword.  Keyword must be '%s'" % self.keyword

@@ -244,6 +244,10 @@ class SubmisionTest(TestCase): #pragma: no cover
         submission = self.xform.process_sms_submission("Survey +age 10 +name matt berg +gender male", None)
         self.failUnlessEqual(submission.has_errors, False)
 
+        # make sure it works with space in front of keyword
+        submission = self.xform.process_sms_submission("  survey male 10 +name matt berg", None)
+        self.failUnlessEqual(submission.has_errors, False)
+
         # test with just an age and gender
         submission = self.xform.process_sms_submission("survey male 10", None)
         self.failUnlessEqual(submission.has_errors, False)
