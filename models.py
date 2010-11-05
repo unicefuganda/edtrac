@@ -233,7 +233,7 @@ class Poll(models.Model):
                 for rule in category.rules.all():
                     regex = re.compile(rule.regex)
                     print resp.eav.poll_text_value
-                    if regex.search(resp.eav.poll_text_value) and not resp.categories.filter(category=category).count():
+                    if regex.search(resp.eav.poll_text_value.lower()) and not resp.categories.filter(category=category).count():
                         rc = ResponseCategory.objects.create(response = resp, category=category)
                         break
             if not resp.categories.all().count() and self.categories.filter(default=True).count():
@@ -243,7 +243,7 @@ class Poll(models.Model):
         db_message = None
         if hasattr(message, 'db_message'):
             db_message = message.db_message
-        resp = Response.objects.create(poll=self, message=message.db_message)
+        resp = Response.objects.create(poll=self, message=db_message, contact=db_message.contact, time=db_message.date)
         outgoing_message = self.default_response
         if (self.type == Poll.TYPE_LOCATION):
             location_template = STARTSWITH_PATTERN_TEMPLATE % '[a-zA-Z]*'
@@ -361,7 +361,9 @@ class Response(models.Model):
     category, which shouldn't be overridden by new rules.
     """
     message = models.ForeignKey(Message, null=True)
-    poll = models.ForeignKey(Poll, related_name='responses')
+    poll    = models.ForeignKey(Poll, related_name='responses')
+    contact = models.ForeignKey(Contact, null=True)
+    date    = models.DateTimeField(auto_now_add=True)
 
     def update_categories(self, categories, user):
         for c in categories:
