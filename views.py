@@ -176,9 +176,6 @@ def edit_poll(req, poll_id):
         if form.is_valid():
             poll = form.save()
             poll.contacts = form.cleaned_data['contacts']
-            if hasattr(Contact, 'groups'):
-                groups = form.cleaned_data['groups']
-                poll.contacts = Contact.objects.filter(Q(pk__in=contacts) | Q(groups__in=groups)).distinct()
             return render_to_response("polls/poll_details.html", 
                 {"poll" : poll},
                 context_instance=RequestContext(req))
