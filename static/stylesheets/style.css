@@ -1,3 +1,7 @@
+#id_contacts, #id_groups {
+    height:80px;
+}
+
 .poll_title {
 	font-size:20px;
 	padding-bottom:5px;

@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Q
 from django.views.decorators.http import require_GET, require_POST
 from django.template import RequestContext
 from django.shortcuts import redirect, get_object_or_404, render_to_response
@@ -10,12 +11,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.contrib.sites.models import Site
 
+from django.contrib.auth.models import Group
 from .models import Poll, Category, Rule, Response, ResponseCategory, STARTSWITH_PATTERN_TEMPLATE, CONTAINS_PATTERN_TEMPLATE
 from rapidsms.models import Contact
 from simple_locations.models import Area
 from mptt.forms import TreeNodeChoiceField
 
-from xml.dom.minidom import parse, parseString
+from xml.dom.minidom import parse,  parseString
 
 # CSV Export
 @require_GET
@@ -71,6 +73,8 @@ class NewPollForm(forms.Form): # pragma: no cover
         else:
             forms.Form.__init__(self, **kwargs)
         self.fields['contacts'] = forms.ModelMultipleChoiceField(queryset=Contact.objects.all())
+        if hasattr(Contact, 'groups'):
+            self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.all())
 
 class EditPollForm(forms.ModelForm): # pragma: no cover
     class Meta:
@@ -100,6 +104,9 @@ def new_poll(req):
             question = form.cleaned_data['question']
             default_response = form.cleaned_data['default_response']
             contacts = form.cleaned_data['contacts']
+            if hasattr(Contact, 'groups'):
+                groups = form.cleaned_data['groups']
+                contacts = Contact.objects.filter(Q(pk__in=contacts) | Q(groups__in=groups)).distinct()
             name = form.cleaned_data['name']
             if form.cleaned_data['type'] == Poll.TYPE_TEXT:
                 poll = Poll.create_freeform(name, question, default_response, contacts, req.user)
@@ -169,6 +176,9 @@ def edit_poll(req, poll_id):
         if form.is_valid():
             poll = form.save()
             poll.contacts = form.cleaned_data['contacts']
+            if hasattr(Contact, 'groups'):
+                groups = form.cleaned_data['groups']
+                poll.contacts = Contact.objects.filter(Q(pk__in=contacts) | Q(groups__in=groups)).distinct()
             return render_to_response("polls/poll_details.html", 
                 {"poll" : poll},
                 context_instance=RequestContext(req))
