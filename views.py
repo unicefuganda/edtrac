@@ -74,7 +74,7 @@ class NewPollForm(forms.Form): # pragma: no cover
             forms.Form.__init__(self, **kwargs)
         self.fields['contacts'] = forms.ModelMultipleChoiceField(queryset=Contact.objects.all())
         if hasattr(Contact, 'groups'):
-            self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.all())
+            self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.all(), required=False)
 
 class EditPollForm(forms.ModelForm): # pragma: no cover
     class Meta:
