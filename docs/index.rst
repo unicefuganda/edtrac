@@ -24,34 +24,70 @@ The official source code repository is:
 A little video showing this app in use:
   http://www.youtube.com/watch?v=PyjEruT5uoU
 
-Build by Nyaruka Ltd under contract of UNICEF:
+Built by Nyaruka Ltd under contract of UNICEF:
   http://www.nyaruka.com
 
-Installation
+Installation From Cheese Shop
 ===========================================
 
 You can install the latest version of the rapidsms-xforms library straight from the cheese shop::
 
    % pip install rapidsms-xforms
 
-Then to use xforms, edit your ``settings.py`` to add ``rapidsms_xforms`` and ``uni_form``::
+You'll also need to install django-eav from GitHub, which isn't in PyPi just yet::
+
+   % pip install -e git+http://github.com/mvpdev/django-eav.git#egg=django-eav
+
+Installation From Github
+===========================================
+
+You can always get the latest version of rapidsms-xforms from github.  Note that the tip of the repo is not guaranteed to be stable.  You should use the verison available via pip unless you have a specific reason not to.
+
+You can install the requirements using the ``pip-requires.txt`` file::
+
+   % pip install -r pip-requires.txt
+
+Configuration
+==============
+
+To enable XForms for your project, edit your ``settings.py`` to add ``rapidsms_xforms``, ``eav`` and ``uni_form``::
 
   INSTALLED_APPS = ( "rapidsms",
-                       .. other apps ..
+   		       .. other apps ..
+                     "eav",
   		     "uni_form",
   		     "rapidsms_xforms" )
 
 You will probably also want to add XForms as one of the main RapidSMS tabs::
 
-  TABS = [
-    ('rapidsms.views.dashboard', 'Dashboard'),	
-        .. other tabs ..
-    ('xforms', 'XForms'),
-  ]
+   RAPIDSMS_TABS = [
+     ('rapidsms.views.dashboard', 'Dashboard'),	
+         .. other tabs ..
+     ('xforms', 'XForms')
+   ]
 
-Finally sync your database with ``python manage.py syncdb``.
+While you are in ``settings.py`` might as well change your ``LOGIN_URL`` to match RapidSMS's::
+
+   # set our login url to match RapidSMS's url patterns
+   LOGIN_URL = "/account/login"
+
+Finally, include the XForms urls in your project's urls.py::
+
+   urlpatterns = patterns('',
+      .. other url patterns ..
+      ('', include('rapidsms_xforms.urls'))
+   )
+
+If you are going to use XForms with ODK Collect or another XForms client, you need to specify your host in you settings as well::
+
+   XFORMS_HOST = 'www.rapidsms-server.com'
+
+Finally sync your database with::
+
+   % python manage.py syncdb
 
 Once you restart RapidSMS a new tab will created letting you create, manage and view forms and their submissions.
+
 
 Building the Documentation
 ==========================

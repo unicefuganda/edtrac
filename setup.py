@@ -6,7 +6,7 @@ setup(
     license="BSD",
 
     install_requires = [
-        "rapidsms",
+        "rapidsms==0.9.6a",
         "django-uni-form"
     ],
 
