@@ -33,9 +33,9 @@
             Edit
         </a>
         {% ifnotequal response.message.connection.contact.name response.eav.poll_text_value %}
-        <a href="/polls/responses/{{ response.pk }}/apply/">
-          <img src="{{ MEDIA_URL }}poll/icons/silk/application_form_add.png" alt=""/>Register User
-        </a>
+            <a href="/polls/responses/{{ response.pk }}/apply/">
+              <img src="{{ MEDIA_URL }}poll/icons/silk/application_form_add.png" alt=""/>Register User
+            </a>
         {% endifnotequal %}
       </div>
     </td>  

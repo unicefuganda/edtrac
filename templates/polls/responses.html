@@ -38,9 +38,20 @@
 <div class="details">
 <div class="name">'{{ poll.question }}' Responses</div>
 <div class="buttons">
-  <a href="/polls/{{ poll.pk }}/submissions.csv">
-    <img src="{{ MEDIA_URL }}poll/icons/silk/table_save.png" alt=""/> Export
-  </a>
+    <a href="/polls/{{ poll.pk }}/submissions.csv">
+        <img src="{{ MEDIA_URL }}poll/icons/silk/table_save.png" alt=""/> Export
+    </a>
+    {% ifequal poll.type 'l' %}
+        <a href="/polls/responses/{{ poll.pk }}/apply_all/">
+            <img src="{{ MEDIA_URL }}poll/icons/silk/application_form_add.png" alt=""/>Register All
+        </a>
+    {% else %}
+        {% ifequal poll.type 'r' %}
+            <a href="/polls/responses/{{ poll.pk }}/apply_all/">
+                <img src="{{ MEDIA_URL }}poll/icons/silk/application_form_add.png" alt=""/>Register All
+            </a>
+        {% endifequal %}
+    {% endifequal %}
   <br/>
 </div>
 </div>

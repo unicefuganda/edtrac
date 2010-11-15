@@ -274,6 +274,22 @@ def apply_response(req, response_id):
 
     return redirect("/polls/%d/responses/" % poll.pk)
 
+def apply_all(req, poll_id):
+    poll = get_object_or_404(Poll, pk=poll_id)
+    for response in Response.objects.filter(poll=poll):
+        if poll.type == Poll.TYPE_REGISTRATION:
+            try:
+                response.message.connection.contact.name = response.eav.poll_text_value
+                response.message.connection.contact.save()
+            except AttributeError:
+                pass
+        elif poll.type == Poll.TYPE_LOCATION:
+            try:
+                response.message.connection.contact.reporting_location = response.eav.poll_location_value
+                response.message.connection.contact.save()
+            except AttributeError:
+                pass
+    return redirect("/polls/%d/responses/" % poll.pk)
 
 @transaction.commit_on_success
 def edit_response(req, response_id):

@@ -35,9 +35,11 @@
             <img src="{{ MEDIA_URL }}poll/icons/silk/pencil.png" alt=""/> 
             Edit
         </a>
-        <a href="/polls/responses/{{ response.pk }}/apply/">
-          <img src="{{ MEDIA_URL }}poll/icons/silk/application_form_add.png" alt=""/>Register User
-        </a>        
+        {% ifnotequal response.message.connection.contact.reporting_location response.eav.poll_location_value %}
+            <a href="/polls/responses/{{ response.pk }}/apply/">
+              <img src="{{ MEDIA_URL }}poll/icons/silk/application_form_add.png" alt=""/>Register User
+            </a>
+        {% endifnotequal %}
       </div>
     </td>  
     </tr>
