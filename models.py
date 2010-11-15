@@ -232,10 +232,10 @@ class Poll(models.Model):
             for category in self.categories.all():
                 for rule in category.rules.all():
                     regex = re.compile(rule.regex)
-                    print resp.eav.poll_text_value
-                    if regex.search(resp.eav.poll_text_value.lower()) and not resp.categories.filter(category=category).count():
-                        rc = ResponseCategory.objects.create(response = resp, category=category)
-                        break
+                    if resp.eav.poll_text_value:
+                        if regex.search(resp.eav.poll_text_value.lower()) and not resp.categories.filter(category=category).count():
+                            rc = ResponseCategory.objects.create(response = resp, category=category)
+                            break
             if not resp.categories.all().count() and self.categories.filter(default=True).count():
                 resp.categories.add(ResponseCategory.objects.create(response = resp, category=self.categories.get(default=True)))
     
