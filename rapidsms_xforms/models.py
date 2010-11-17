@@ -657,7 +657,7 @@ class XFormSubmission(models.Model):
                 last_confirmation = 0
 
                 last_submission = self.xform.submissions.all().order_by('-confirmation_id')
-                if last_submission:
+                if last_submission and last_submission[0].confirmation_id:
                     last_confirmation = last_submission[0].confirmation_id
 
                 self.confirmation_id = last_confirmation + 1
