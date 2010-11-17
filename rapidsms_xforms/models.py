@@ -1,3 +1,4 @@
+from threading import Lock
 from decimal import Decimal
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -98,7 +99,8 @@ class XForm(models.Model):
         """
         for field in self.fields.filter(datatype=XFormField.TYPE_OBJECT):
             if field.command in values:
-                values[field.command] = XFormField.lookup_parser(field.field_type)(field.command, values[field.command])
+                typedef = XFormField.lookup_type(field.field_type)
+                values[field.command] = typedef['parser'](field.command, values[field.command])
 
         # create our submission now
         submission = self.submissions.create(type='odk-www', raw=xml)
@@ -233,11 +235,8 @@ class XForm(models.Model):
 
         # no errors?  wahoo
         if not errors:
-            # build our template
-            template = Template(self.response)
-            context = Context(value_dict)
-            submission['response'] = template.render(context)
             submission['has_errors'] = False
+            submission['response'] = self.response
         else:
             error = submission['errors'][0]
             if getattr(error, 'messages', None):
@@ -262,6 +261,15 @@ class XForm(models.Model):
         # create our new submission, we'll add field values as we parse them
         submission = XFormSubmission(xform=self, type='sms', raw=message, connection=connection)
         submission.save()
+
+        # calculate our response
+        template = Template(sub_dict['response'])
+        template_vars = dict(confirmation_id=submission.confirmation_id)
+        for field_value in sub_dict['values']:
+            template_vars[field_value['name']] = field_value['value']
+
+        context = Context(template_vars)
+        sub_dict['response'] = template.render(context)
 
         # the values we've pulled out
         values = {}
@@ -296,6 +304,7 @@ class XForm(models.Model):
 
             # we build a context that has dummy values for all required fields
             context = {}
+            context['confirmation_id'] = 1
             for field in self.fields.all():
                 required = field.constraints.all().filter(type="req_val")
 
@@ -368,9 +377,9 @@ class XFormField(Attribute):
     # hook.
 
     TYPE_CHOICES = [
-        (TYPE_INT, 'Integer', TYPE_INT, None, 'integer'),
-        (TYPE_FLOAT, 'Decimal', TYPE_FLOAT, None, 'decimal'),
-        (TYPE_TEXT, 'String', TYPE_TEXT, None, 'string'),
+        dict( label='Integer', type=TYPE_INT, db_type=TYPE_INT, xforms_type='integer', parser=None ),
+        dict( label='Decimal', type=TYPE_FLOAT, db_type=TYPE_FLOAT, xforms_type='decimal', parser=None ),
+        dict( label='String', type=TYPE_TEXT, db_type=TYPE_TEXT, xforms_type='string', parser=None )
     ]
 
     xform = models.ForeignKey(XForm, related_name='fields')
@@ -386,13 +395,14 @@ class XFormField(Attribute):
 
     @classmethod
     def register_field_type(cls, field_type, name, parserFunc, xforms_type):
-        XFormField.TYPE_CHOICES.append((field_type, name, XFormField.TYPE_OBJECT, parserFunc, xforms_type))
+        XFormField.TYPE_CHOICES.append(dict(type=field_type, label=name, 
+                                            db_type=XFormField.TYPE_OBJECT, parser=parserFunc, xforms_type=xforms_type))
 
     @classmethod
-    def lookup_parser(cls, otype):
-        for (field_type, name, datatype, func, xforms_type) in XFormField.TYPE_CHOICES:
-            if otype == field_type:
-                return func
+    def lookup_type(cls, otype):
+        for typedef in XFormField.TYPE_CHOICES:
+            if otype == typedef['type']:
+                return typedef
 
         raise ValidationError("Unable to find parser for field: '%s'" % otype)
 
@@ -404,13 +414,12 @@ class XFormField(Attribute):
         # set our slug based on our command and keyword
         self.slug = "%s_%s" % (self.xform.keyword, EavSlugField.create_slug_from_name(self.command))
 
-        for (field_type, name, datatype, func, xforms_type) in XFormField.TYPE_CHOICES:
-            if field_type == self.field_type:
-                self.datatype = datatype
-                break
+        typedef = self.lookup_type(self.field_type)
 
-        if not self.datatype:
+        if not typedef:
             raise ValidationError("Field '%s' has an unknown data type: %s" % (self.command, self.datatype))
+
+        self.datatype = typedef['db_type']
 
     def full_clean(self, exclude=None):
         self.derive_datatype()
@@ -454,7 +463,8 @@ class XFormField(Attribute):
 
             # for objects, we use our parser function to try to look up the value
             if self.datatype == XFormField.TYPE_OBJECT:
-                cleaned_value = XFormField.lookup_parser(self.field_type)(self.command, value)
+                typedef = XFormField.lookup_type(self.field_type)
+                cleaned_value = typedef['parser'](self.command, value)
 
             # anything goes for strings
             if self.datatype == Attribute.TYPE_TEXT:
@@ -470,11 +480,11 @@ class XFormField(Attribute):
         """
         Returns the XForms type for the field type.
         """
-        for (field_type, name, datatype, func, xform_type) in XFormField.TYPE_CHOICES:
-            if self.field_type == field_type:
-                return xform_type
-
-        raise RuntimeError("Field type: '%s' not supported in XForms" % self.field_type)
+        typedef = self.lookup_type(self.field_type)
+        if typedef:
+            return typedef['xform_type']
+        else:
+            raise RuntimeError("Field type: '%s' not supported in XForms" % self.field_type)
 
     def constraints_as_xform(self):
         """
@@ -628,9 +638,33 @@ class XFormSubmission(models.Model):
     raw = models.TextField()
     has_errors = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
+    confirmation_id = models.IntegerField(default=0)
+
+    confirmation_lock = Lock()
 
     # transient, only populated when the submission first comes in
     errors = []
+
+    def save(self, force_insert=False, force_update=False, using=None):
+        """
+        Assigns our confirmation id.  We increment our confirmation id's for each form 
+        for every submission.  
+        """
+        # only create confirmation ids for submissions without errors and which don't already have one
+        if not self.confirmation_id:
+            try:
+                XFormSubmission.confirmation_lock.acquire()
+                last_confirmation = 0
+
+                last_submission = self.xform.submissions.all().order_by('-confirmation_id')
+                if last_submission:
+                    last_confirmation = last_submission[0].confirmation_id
+
+                self.confirmation_id = last_confirmation + 1
+            finally:
+                XFormSubmission.confirmation_lock.release()
+
+        super(XFormSubmission, self).save(force_insert, force_update, using)
 
     def __unicode__(self): # pragma: no cover
         return "%s (%s) - %s" % (self.xform, self.type, self.raw)

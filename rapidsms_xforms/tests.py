@@ -2,7 +2,7 @@
 Basic tests for XForms
 """
 
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase
 from django.contrib.auth.models import User
 from django.test.client import Client
 from django.core.exceptions import ValidationError
@@ -17,7 +17,8 @@ class ModelTest(TestCase): #pragma: no cover
         self.user.save()
 
         self.xform = XForm.on_site.create(name='test', keyword='test', owner=self.user, 
-                                          site=Site.objects.get_current())
+                                          site=Site.objects.get_current(),
+                                          response='thanks')
 
     def failIfValid(self, constraint, value):
         try:
@@ -185,7 +186,7 @@ class SubmisionTest(TestCase): #pragma: no cover
         self.user.save()
 
         self.xform = XForm.on_site.create(name='test', keyword='survey', owner=self.user,
-                                          site=Site.objects.get_current())
+                                          site=Site.objects.get_current(), response='thanks')
 
         self.gender_field = self.xform.fields.create(field_type=XFormField.TYPE_TEXT, name='gender', command='gender', order=1)
         self.gender_field.constraints.create(type='req_val', test='None', message="You must include a gender")
@@ -233,6 +234,8 @@ class SubmisionTest(TestCase): #pragma: no cover
         self.failUnlessEqual(field.slug, 'roger_bar')
 
     def testSMSSubmission(self):
+        self.assertEquals('thanks', self.xform.response)
+
         submission = self.xform.process_sms_submission("survey +age 10 +name matt berg +gender male", None)
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 3)
@@ -257,6 +260,7 @@ class SubmisionTest(TestCase): #pragma: no cover
 
         # mix of required and not
         submission = self.xform.process_sms_submission("survey male 10 +name matt berg", None)
+        self.failUnlessEqual('thanks', submission.response)
         self.failUnlessEqual(len(submission.values.all()), 3)
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
@@ -266,6 +270,9 @@ class SubmisionTest(TestCase): #pragma: no cover
         # make sure we record errors if there is a missing age
         submission = self.xform.process_sms_submission("survey +name luke skywalker", None)
         self.failUnlessEqual(submission.has_errors, True)
+
+        # our response should be an error message
+        self.failIfEqual('thanks', submission.response)
         self.failUnlessEqual(2, len(submission.errors))
 
         # make sure we record errors if there is just the keyword
@@ -334,6 +341,35 @@ class SubmisionTest(TestCase): #pragma: no cover
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
         self.failUnlessEqual(submission.values.get(attribute__name='user').value, self.user)
 
+    def testConfirmationId(self):
+        self.xform.save()
+
+        submission = self.xform.process_sms_submission("survey male 10", None)
+        self.assertEquals(1, submission.confirmation_id)
+
+        # and another
+        submission2 = self.xform.process_sms_submission("survey male 12", None)
+        self.assertEquals(2, submission2.confirmation_id)
+
+        self.xform2 = XForm.on_site.create(name='test2', keyword='test2', owner=self.user,
+                                           site=Site.objects.get_current())
+
+        submission3 = self.xform2.process_sms_submission("test2", None)
+        self.assertEquals(1, submission3.confirmation_id)
+
+        submission4 = self.xform.process_sms_submission("survey male 21", None)
+        self.assertEquals(3, submission4.confirmation_id)
+
+        # that resaving the submission doesn't increment our id
+        submission5 = self.xform.process_sms_submission("survey male 22", None)
+        self.assertEquals(4, submission5.confirmation_id)
+        submission5.raw = "foo"
+        submission5.save()
+        self.assertEquals(4, submission5.confirmation_id)
+
+        submission6 = self.xform.process_sms_submission("survey male 23", None)
+        self.assertEquals(5, submission6.confirmation_id)
+
     def testTemplateResponse(self):
         # first test no template
         self.xform.response = "Thanks for sending your message"
@@ -344,11 +380,11 @@ class SubmisionTest(TestCase): #pragma: no cover
         self.failUnlessEqual(submission.response, self.xform.response)
 
         # now change the xform to return the age and gender
-        self.xform.response = "You recorded an age of {{ age }} and a gender of {{ gender }}"
+        self.xform.response = "You recorded an age of {{ age }} and a gender of {{ gender }}.  Your confirmation id is {{ confirmation_id }}."
         self.xform.save()
 
         submission = self.xform.process_sms_submission("survey male 10", None)
-        self.failUnlessEqual(submission.response, "You recorded an age of 10 and a gender of male")
+        self.failUnlessEqual(submission.response, "You recorded an age of 10 and a gender of male.  Your confirmation id is 2.")
 
         # if they insert a command that isn't there, it should just be empty
         self.xform.response = "You recorded an age of {{ age }} and a gender of {{ gender }}.  {{ not_there }} Thanks."
