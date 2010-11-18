@@ -5,7 +5,7 @@ from django import template
 #
 
 def multiply(input, property):
-    return float(input) * float(property)
+    return "%.2f" % (float(input) * float(property))
 
 register = template.Library()
 register.filter('multiply', multiply)
