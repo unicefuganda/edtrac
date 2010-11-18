@@ -263,7 +263,7 @@ class XForm(models.Model):
         submission.save()
 
         # calculate our response
-        template = Template(sub_dict['response'])
+        template = Template("{% load messages %}" + sub_dict['response'])
         template_vars = dict(confirmation_id=submission.confirmation_id)
         for field_value in sub_dict['values']:
             template_vars[field_value['name']] = field_value['value']
@@ -300,7 +300,7 @@ class XForm(models.Model):
         Tries to compile and render our template to make sure it passes.
         """
         try:
-            t = Template(template)
+            t = Template("{% load messages %}" + template)
 
             # we build a context that has dummy values for all required fields
             context = {}
@@ -313,7 +313,7 @@ class XForm(models.Model):
                 if not required:
                     continue
 
-                if field.type == XFormField.TYPE_INT or field.type == XFormField.TYPE_FLOAT:
+                if field.field_type == XFormField.TYPE_INT or field.field_type == XFormField.TYPE_FLOAT:
                     context[field.command] = "1"
                 else:
                     context[field.command] = "test"
