@@ -267,6 +267,15 @@ class SubmisionTest(TestCase): #pragma: no cover
         self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt berg')
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
 
+        # make sure optional works as well 
+        submission = self.xform.process_sms_submission("survey male 10 matt", None)
+        self.failUnlessEqual('thanks', submission.response)
+        self.failUnlessEqual(len(submission.values.all()), 3)
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt')
+        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
+
         # make sure we record errors if there is a missing age
         submission = self.xform.process_sms_submission("survey +name luke skywalker", None)
         self.failUnlessEqual(submission.has_errors, True)

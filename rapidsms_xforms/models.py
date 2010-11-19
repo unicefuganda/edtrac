@@ -148,11 +148,6 @@ class XForm(models.Model):
         for field in self.fields.all().order_by('order', 'id'):
             required = field.constraints.all().filter(type="req_val")
 
-            # we are at a field that isn't required?  pop out, these will be dealt with 
-            # in the next block
-            if not required:
-                break
-
             # no more text in the message, break out
             if not segments:
                 break
