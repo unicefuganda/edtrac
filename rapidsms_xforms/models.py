@@ -242,6 +242,26 @@ class XForm(models.Model):
 
         return submission
 
+    def build_template_vars(self, submission, sub_dict):
+        """
+        Given a submission builds the dict of values that will be available in the template.
+        """
+        template_vars = dict(confirmation_id=submission.confirmation_id)
+        for field_value in sub_dict['values']:
+            template_vars[field_value['name']] = field_value['value']
+
+        return template_vars
+
+    def build_template_response(self, response, template_vars):
+        """
+        Given a template string a dictionary of values, tries to compile the template and evaluate it.
+        """
+        # build our template
+        template = Template("{% load messages %}" + response)
+
+        context = Context(template_vars)
+        return template.render(context)
+
     def process_sms_submission(self, message, connection):
         """
         Given an incoming SMS message, will create a new submission.  If there is an error
@@ -257,14 +277,9 @@ class XForm(models.Model):
         submission = XFormSubmission(xform=self, type='sms', raw=message, connection=connection)
         submission.save()
 
-        # calculate our response
-        template = Template("{% load messages %}" + sub_dict['response'])
-        template_vars = dict(confirmation_id=submission.confirmation_id)
-        for field_value in sub_dict['values']:
-            template_vars[field_value['name']] = field_value['value']
-
-        context = Context(template_vars)
-        sub_dict['response'] = template.render(context)
+        # build our template response
+        template_vars = self.build_template_vars(submission, sub_dict)
+        sub_dict['response'] = self.build_template_response(sub_dict['response'], template_vars)
 
         # the values we've pulled out
         values = {}
