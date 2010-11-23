@@ -293,6 +293,7 @@ class Poll(models.Model):
     def get_text_report_data(self):
         context = {}
         context['total_responses'] = Response.objects.filter(poll=self).count()
+        context['response_rate'] = float(len(Response.objects.filter(poll=self).values_list('contact', flat=True).distinct())) / self.contacts.count()
         context['report_data'] = []
         for c in self.categories.all():
             category_responses = Response.objects.filter(categories__category=c).count()
@@ -309,6 +310,7 @@ class Poll(models.Model):
     def get_numeric_report_data(self):
         context = {}
         context['total_responses'] = Response.objects.filter(poll=self).count()
+        context['response_rate'] = float(len(Response.objects.filter(poll=self).values_list('contact', flat=True).distinct())) / self.contacts.count()
         responses = Response.objects.filter(poll=self)
         vals = Value.objects.filter(entity_id__in=responses).values_list('value_float',flat=True)
         context['total'] = sum(vals)
