@@ -36,7 +36,7 @@ def responses_as_csv(req, pk):
 
 @require_GET
 def polls(req): 
-    polls = Poll.objects.all()
+    polls = Poll.objects.order_by('start_date')
     breadcrumbs = (('Polls', ''),)
     return render_to_response(
         "polls/poll_index.html", 
