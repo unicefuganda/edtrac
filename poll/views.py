@@ -158,6 +158,12 @@ def view_report(req, poll_id):
     return render_to_response("polls/poll_report.html", context, context_instance=RequestContext(req))
 
 def view_numeric_report(req, poll_id):
+    """
+    This view is just a fragment of the poll report,
+    to be dynamically loaded into another container view (such as the 
+    dashboard in uReport). For a properly-formatted table within the base
+    template, use view_report
+    """
     poll = get_object_or_404(Poll, pk=poll_id)
     breadcrumbs = (('Polls', '/polls'),)
     context = { 'poll':poll, 'breadcrumbs':breadcrumbs }
@@ -169,6 +175,12 @@ def view_numeric_report(req, poll_id):
     return render_to_response("polls/poll_report_numeric.html", context, context_instance=RequestContext(req))
 
 def view_text_report(req, poll_id):
+    """
+    This view is just a fragment of the poll report,
+    to be dynamically loaded into another container view (such as the 
+    dashboard in uReport). For a properly-formatted table within the base
+    template, use view_report
+    """
     poll = get_object_or_404(Poll, pk=poll_id)
     breadcrumbs = (('Polls', '/polls'),)
     context = { 'poll':poll, 'breadcrumbs':breadcrumbs }
