@@ -1,0 +1,12 @@
+{% extends "polls/layout.html" %}
+{% block title %}Polls{% endblock %}
+
+{% block content %}
+            {% ifequal poll.type 't' %}
+                {% include "polls/poll_report_text.html" %}
+            {% else %}
+                {% ifequal poll.type 'n' %}
+                    {% include "polls/poll_report_numeric.html" %}
+                {% endifequal %}
+            {% endifequal %}
+{% endblock %}
