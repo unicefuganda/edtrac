@@ -1,7 +1,3 @@
-{% extends "polls/layout.html" %}
-{% block title %}Polls{% endblock %}
-
-{% block content %}
 <div id="poll_header">
 <div class="name">{{ poll.name }} :
   <span class="participants">{{ poll.contacts.count }} participant{{ poll.contacts.count|pluralize }}, {{ total_responses }} total response{{ total_responses|pluralize }} ({{ response_rate|floatformat }}% response rate)</span>
@@ -22,8 +18,4 @@
         {% endfor %}
         <td>{{ uncategorized }} ({{ uncategorized_percent|floatformat }}%)</td>
     </tbody>
-
-
-
 </table>
-{% endblock %}
