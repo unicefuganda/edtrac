@@ -4,7 +4,7 @@ import difflib
 from code_generator.code_generator import generate_tracking_tag
 
 from django.db import models
-from django.db.models import Sum, Avg
+from django.db.models import Sum, Avg, Q
 from django.contrib.sites.models import Site
 from django.contrib.sites.managers import CurrentSiteManager
 from django.contrib.auth.models import User
@@ -298,16 +298,19 @@ class Poll(models.Model):
 
     def get_text_report_data(self, location_id=None):
         context = {}
-        context['total_responses'] = Response.objects.filter(poll=self, contact__reporting_location=location_id).count()
-        context['response_rate'] = (float(len(Response.objects.filter(poll=self, contact__reporting_location=location_id).values_list('contact', flat=True).distinct())) / self.contacts.count()) * 100
+        sublocations = []
+        if location_id:
+            sub_locations = location_id.get_descendants()
+        context['total_responses'] = Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).count()
+        context['response_rate'] = (float(len(Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).values_list('contact', flat=True).distinct())) / self.contacts.count()) * 100
         context['report_data'] = []
         for c in self.categories.all():
-            category_responses = Response.objects.filter(categories__category=c, contact__reporting_location=location_id).count()
+            category_responses = Response.objects.filter(categories__category=c).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).count()
             category_percentage = 0
             if context['total_responses']:
                 category_percentage = (float(category_responses) / float(context['total_responses'])) * 100.0
             context['report_data'].append((c, category_responses, category_percentage))
-        context['uncategorized'] = Response.objects.filter(poll=self, contact__reporting_location=location_id).exclude(categories__in=ResponseCategory.objects.filter(category__poll=self)).count()
+        context['uncategorized'] = Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).exclude(categories__in=ResponseCategory.objects.filter(category__poll=self)).count()
         context['uncategorized_percent'] = 0
         if context['total_responses']:
             context['uncategorized_percent'] = (float(context['uncategorized']) / float(context['total_responses'])) * 100.0 
@@ -315,9 +318,12 @@ class Poll(models.Model):
 
     def get_numeric_report_data(self, location_id=None):
         context = {}
-        context['total_responses'] = Response.objects.filter(poll=self, contact__reporting_location=location_id).count()
-        context['response_rate'] = (float(len(Response.objects.filter(poll=self, contact__reporting_location=location_id).values_list('contact', flat=True).distinct())) / self.contacts.count()) * 100
-        responses = Response.objects.filter(poll=self, contact__reporting_location=location_id)
+        sub_locations = []
+        if location_id:
+            sublocations = location_id.get_descendants()
+        context['total_responses'] = Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).count()
+        context['response_rate'] = (float(len(Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).values_list('contact', flat=True).distinct())) / self.contacts.count()) * 100
+        responses = Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations))
         vals = Value.objects.filter(entity_id__in=responses).values_list('value_float',flat=True)
         context['total'] = sum(vals)
         context['average'] = float(context['total']) / float(len(vals))
