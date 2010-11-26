@@ -143,9 +143,9 @@ def view_report(req, poll_id, location_id=None, as_module=False):
     template = "polls/poll_report.html"
     poll = get_object_or_404(Poll, pk=poll_id)
     if location_id:
-        locations = get_object_or_404(Area, pk=location_id).get_children().all()
+        locations = get_object_or_404(Area, pk=location_id).get_children().order_by('name')
     else:
-        locations = Area.tree.root_nodes().all()
+        locations = Area.tree.root_nodes().order_by('name')
     
     if as_module:
         if poll.type == Poll.TYPE_TEXT:
