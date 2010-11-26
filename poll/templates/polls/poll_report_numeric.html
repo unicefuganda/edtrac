@@ -7,13 +7,27 @@
 </div>
 <table width="100%" class="poll_table"> 
     <thead>
+        <th>Location</th>
         <th>Response Average</th>
         <th>Response Total</th>
         <th>Most Often Occurring</th>
     </thead>
     <tbody>
-        <td>{{ average }}</td>
-        <td>{{ total }}</td>
-        <td>{{ mode }}</td>
+        {% for location_data in report_rows %}
+            <tr>
+                <td>
+                    {% if location_data.location %}
+                        <a href="javascript:void(0)" onclick="loadReportForLocation('{{ poll.pk }}','{{ location_data.location.pk }}')">
+                            {{ location_data.location.name }}
+                        </a>
+                    {% else %}
+                        No location
+                    {% endif %}
+                </td>   
+                <td>{{ location_data.average }}</td>
+                <td>{{ location_data.total }}</td>
+                <td>{{ location_data.mode }}</td>
+            </tr>
+        {% endfor %}
     </tbody>
 </table>

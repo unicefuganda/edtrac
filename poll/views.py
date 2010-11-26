@@ -139,57 +139,47 @@ def view_poll(req, poll_id):
         { 'poll': poll, 'categories': categories, 'category_count' : len(categories), 'breadcrumbs' : breadcrumbs },
         context_instance=RequestContext(req))
 
-def view_report(req, poll_id):
+def view_report(req, poll_id, location_id=None, as_module=False):
+    template = "polls/poll_report.html"
     poll = get_object_or_404(Poll, pk=poll_id)
-    breadcrumbs = (('Polls', '/polls'),)
-    template = None
-    context = { 'poll':poll, 'breadcrumbs':breadcrumbs }
-    if poll.type == Poll.TYPE_TEXT:
-        context.update(poll.get_text_report_data())
-        pass
-    elif poll.type == Poll.TYPE_NUMERIC:
-        context.update(poll.get_numeric_report_data())
-        pass
+    if location_id:
+        locations = get_object_or_404(Area, pk=location_id).get_children().all()
     else:
+        locations = Area.tree.root_nodes().all()
+    
+    if as_module:
+        if poll.type == Poll.TYPE_TEXT:
+            template = "polls/poll_report_text.html"
+        elif poll.type == Poll.TYPE_NUMERIC:
+            template = "polls/poll_report_numeric.html"
+    
+    breadcrumbs = (('Polls', '/polls'),)
+    context = { 'poll':poll, 'breadcrumbs':breadcrumbs }
+    context.update(poll.get_generic_report_data())
+    report_rows = []
+    for l in locations:
+        if poll.type == Poll.TYPE_TEXT:
+            report_row = poll.get_text_report_data(l)
+            report_row['location'] = l
+            report_rows.append(report_row)
+        elif poll.type == Poll.TYPE_NUMERIC:
+            report_row = poll.get_numeric_report_data(l)
+            report_row['location'] = l
+            report_rows.append(report_row)
+    if not location_id:
+        if poll.type == Poll.TYPE_TEXT:
+            report_rows.append(poll.get_text_report_data())
+        elif poll.type == Poll.TYPE_NUMERIC:
+            report_rows.append(poll.get_numeric_report_data())
+    context['report_rows'] = report_rows        
+    
+    if poll.type != Poll.TYPE_TEXT and poll.type != Poll.TYPE_NUMERIC:
         return render_to_response(
         "polls/poll_index.html",
-        { 'polls': Poll.objects.all(), 'breadcrumbs': (('Polls', ''),) },
+        { 'polls': Poll.objects.order_by('start_date'), 'breadcrumbs': (('Polls', ''),) },
         context_instance=RequestContext(req))
-    return render_to_response("polls/poll_report.html", context, context_instance=RequestContext(req))
-
-def view_numeric_report(req, poll_id):
-    """
-    This view is just a fragment of the poll report,
-    to be dynamically loaded into another container view (such as the 
-    dashboard in uReport). For a properly-formatted table within the base
-    template, use view_report
-    """
-    poll = get_object_or_404(Poll, pk=poll_id)
-    breadcrumbs = (('Polls', '/polls'),)
-    context = { 'poll':poll, 'breadcrumbs':breadcrumbs }
-    if poll.type == Poll.TYPE_NUMERIC:
-        context.update(poll.get_numeric_report_data())
-        pass
     else:
-        return HttpResponse(status=404)
-    return render_to_response("polls/poll_report_numeric.html", context, context_instance=RequestContext(req))
-
-def view_text_report(req, poll_id):
-    """
-    This view is just a fragment of the poll report,
-    to be dynamically loaded into another container view (such as the 
-    dashboard in uReport). For a properly-formatted table within the base
-    template, use view_report
-    """
-    poll = get_object_or_404(Poll, pk=poll_id)
-    breadcrumbs = (('Polls', '/polls'),)
-    context = { 'poll':poll, 'breadcrumbs':breadcrumbs }
-    if poll.type == Poll.TYPE_TEXT:
-        context.update(poll.get_text_report_data())
-        pass
-    else:
-        return HttpResponse(status=404)
-    return render_to_response("polls/poll_report_text.html", context, context_instance=RequestContext(req))
+        return render_to_response(template, context, context_instance=RequestContext(req))
 
 def view_poll_details(req, form_id):
     poll = get_object_or_404(Poll, pk=form_id)

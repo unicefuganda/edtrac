@@ -7,15 +7,29 @@
 </div>
 <table width="100%" class="poll_table"> 
     <thead>
-        {% for category, total, percent in report_data %}
-        <th>{{ category.name }}</th>
-        {% endfor %}
-        <th>Uncategorized</th>
+            <th>Location</th>
+            {% for category in poll.categories.all %}
+                <th>{{ category.name }}</th>
+            {% endfor %}
+            <th>Uncategorized</th>
     </thead>
     <tbody>
-        {% for category, total, percent in report_data %}
-        <td {% if category.color %}style="background-color:#{{ category.color }}"{% endif %}>{{ total }} ({{ percent|floatformat }}%)</td>
+        {% for location_data in report_rows %}
+            <tr>
+                <td>
+                    {% if location_data.location %}
+                        <a href="javascript:void(0)" onclick="loadReportForLocation('{{ poll.pk }}','{{ location_data.location.pk }}')">
+                            {{ location_data.location.name }}
+                        </a>
+                    {% else %}
+                        No location
+                    {% endif %}
+                </td>
+                {% for category, total, percent in location_data.report_data %}
+                    <td {% if category.color %}style="background-color:#{{ category.color }}"{% endif %}>{{ total }} ({{ percent|floatformat }}%)</td>
+                {% endfor %}
+                <td>{{ location_data.uncategorized }} ({{ location_data.uncategorized_percent|floatformat }}%)</td>
+            </tr>
         {% endfor %}
-        <td>{{ uncategorized }} ({{ uncategorized_percent|floatformat }}%)</td>
     </tbody>
 </table>

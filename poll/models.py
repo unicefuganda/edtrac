@@ -290,28 +290,34 @@ class Poll(models.Model):
         else:
             return outgoing_message
 
-    def get_text_report_data(self):
+    def get_generic_report_data(self):
         context = {}
         context['total_responses'] = Response.objects.filter(poll=self).count()
         context['response_rate'] = (float(len(Response.objects.filter(poll=self).values_list('contact', flat=True).distinct())) / self.contacts.count()) * 100
+        return context
+
+    def get_text_report_data(self, location_id=None):
+        context = {}
+        context['total_responses'] = Response.objects.filter(poll=self, contact__reporting_location=location_id).count()
+        context['response_rate'] = (float(len(Response.objects.filter(poll=self, contact__reporting_location=location_id).values_list('contact', flat=True).distinct())) / self.contacts.count()) * 100
         context['report_data'] = []
         for c in self.categories.all():
-            category_responses = Response.objects.filter(categories__category=c).count()
+            category_responses = Response.objects.filter(categories__category=c, contact__reporting_location=location_id).count()
             category_percentage = 0
             if context['total_responses']:
                 category_percentage = (float(category_responses) / float(context['total_responses'])) * 100.0
             context['report_data'].append((c, category_responses, category_percentage))
-        context['uncategorized'] = Response.objects.filter(poll=self).exclude(categories__in=ResponseCategory.objects.filter(category__poll=self)).count()
+        context['uncategorized'] = Response.objects.filter(poll=self).exclude(categories__in=ResponseCategory.objects.filter(category__poll=self), contact__reporting_location=location_id).count()
         context['uncategorized_percent'] = 0
         if context['total_responses']:
             context['uncategorized_percent'] = (float(context['uncategorized']) / float(context['total_responses'])) * 100.0 
         return context
 
-    def get_numeric_report_data(self):
+    def get_numeric_report_data(self, location_id=None):
         context = {}
-        context['total_responses'] = Response.objects.filter(poll=self).count()
-        context['response_rate'] = (float(len(Response.objects.filter(poll=self).values_list('contact', flat=True).distinct())) / self.contacts.count()) * 100
-        responses = Response.objects.filter(poll=self)
+        context['total_responses'] = Response.objects.filter(poll=self, contact__reporting_location=location_id).count()
+        context['response_rate'] = (float(len(Response.objects.filter(poll=self, contact__reporting_location=location_id).values_list('contact', flat=True).distinct())) / self.contacts.count()) * 100
+        responses = Response.objects.filter(poll=self, contact__reporting_location=location_id)
         vals = Value.objects.filter(entity_id__in=responses).values_list('value_float',flat=True)
         context['total'] = sum(vals)
         context['average'] = float(context['total']) / float(len(vals))
