@@ -300,7 +300,7 @@ class Poll(models.Model):
         context = {}
         sublocations = []
         if location_id:
-            sub_locations = location_id.get_descendants()
+            sublocations = location_id.get_descendants()
         context['total_responses'] = Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).count()
         context['response_rate'] = (float(len(Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).values_list('contact', flat=True).distinct())) / self.contacts.count()) * 100
         context['report_data'] = []
@@ -318,7 +318,7 @@ class Poll(models.Model):
 
     def get_numeric_report_data(self, location_id=None):
         context = {}
-        sub_locations = []
+        sublocations = []
         if location_id:
             sublocations = location_id.get_descendants()
         context['total_responses'] = Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).count()
