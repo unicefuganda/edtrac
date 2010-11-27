@@ -225,14 +225,17 @@ class CategoryForm(forms.ModelForm):
         fields = ('name', 'priority', 'color', 'default', 'response')
 
 
-def view_responses(req, poll_id):
+def view_responses(req, poll_id, as_module=False):
     poll = get_object_or_404(Poll,pk=poll_id)
 
     responses = poll.responses.all().order_by('-pk')
 
     breadcrumbs = (('Polls', '/polls'),('Responses', ''))
     
-    return render_to_response("polls/responses.html", 
+    template = "polls/responses.html"
+    if as_module:
+        template = "polls/response_table.html"
+    return render_to_response(template,
         { 'poll': poll, 'responses': responses, 'breadcrumbs': breadcrumbs, 'columns': columns_dict[poll.type]},
         context_instance=RequestContext(req))
 

@@ -1,0 +1,105 @@
+<script type="text/javascript">
+
+  function deleteResponse(link) {
+    response_id = $(link).parents(".response_table").attr("id");
+    if (confirm("Are you sure you want to remove this response from the poll?")) {
+      $.post('/polls/responses/' + response_id + "/delete/", function(data) {
+        $(link).parents(".response_box").remove();
+      }); 
+    }
+  }
+  
+  function cancelResponse(link) {
+     response_id = $(link).parents(".response_table").attr("id");
+     $(link).parents(".response_box").load("/polls/responses/" + response_id + "/view/");
+  }
+
+  function saveResponse(link) {
+    form = $(link).parents(".form");
+    form_data = form.serializeArray();
+    form.parents(".response_box").load(form.attr("action"), form_data);
+  }
+
+  function editResponse(link) {
+    response_id = $(link).parents(".response_table").attr("id");
+    url = "/polls/responses/" +  response_id + "/edit/";
+    $(link).parents(".response_box").load(url);
+    selected = $(("#selection_" + response_id));
+    selected.addClass('form_selected');
+    selected.removeClass('form_unselected');
+  }
+
+</script>
+
+<div class="details">
+    <div class="name">'{{ poll.question }}' Responses</div>
+    <div class="buttons">
+        <a href="/polls/{{ poll.pk }}/submissions.csv">
+            <img src="{{ MEDIA_URL }}poll/icons/silk/table_save.png" alt=""/> Export
+        </a>
+        {% ifequal poll.type 'l' %}
+            <a href="/polls/responses/{{ poll.pk }}/apply_all/">
+                <img src="{{ MEDIA_URL }}poll/icons/silk/application_form_add.png" alt=""/>Register All
+            </a>
+        {% else %}
+            {% ifequal poll.type 'r' %}
+                <a href="/polls/responses/{{ poll.pk }}/apply_all/">
+                    <img src="{{ MEDIA_URL }}poll/icons/silk/application_form_add.png" alt=""/>Register All
+                </a>
+            {% endifequal %}
+        {% endifequal %}
+      <br/>
+    </div>
+</div>
+
+<table width="100%" class="poll_table"> 
+  <thead>
+    <tr>
+      <th class="response_sender_col">Sender</th>
+      {% for column, colclass in columns %}
+      <th class="response_{{ colclass }}_col">{{ column }}</th>
+      {% endfor %}
+      <th class="response_options_col"></th>
+    </tr>
+  </thead>
+
+<tbody>
+{% if responses %}
+<tr class="poll_table_row"><td class="poll_responses_cell" colspan="7">
+      <ul id="sortable">
+        {% for response in responses %}
+        <li class="category ui-state-default form_unselected" id="{{response.pk}}">
+          <div class="response_box" id="response_box_{{forloop.counter}}">
+            {% ifequal poll.type 't' %}
+                {% include "polls/response_text_view.html" %}
+            {% else %}
+                {% ifequal poll.type 'n' %}
+                    {% include "polls/response_numeric_view.html" %}
+                {% else %}
+                    {% ifequal poll.type 'l' %}
+                        {% include "polls/response_location_view.html" %}
+                    {% else %}
+                        {% ifequal poll.type 'r' %}
+                            {% include "polls/response_registration_view.html" %}
+                        {% endifequal %}
+                    {% endifequal %}
+                {% endifequal %}
+            {% endifequal %}
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+</td></tr>
+{% else %}
+  <tr class="poll_table_row">
+    <td colspan="4">
+      <i>No responses for this poll.</i>
+    </td>
+  </tr>
+{% endif %}
+</tbody>
+</table>
+<br/>
+
+</div>
+
