@@ -72,9 +72,20 @@ class NewPollForm(forms.Form): # pragma: no cover
             forms.Form.__init__(self, data, **kwargs)
         else:
             forms.Form.__init__(self, **kwargs)
-        self.fields['contacts'] = forms.ModelMultipleChoiceField(queryset=Contact.objects.all())
+        self.fields['contacts'] = forms.ModelMultipleChoiceField(queryset=Contact.objects.all(), required=False)
         if hasattr(Contact, 'groups'):
             self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.all(), required=False)
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        contacts = cleaned_data.get('contacts')
+        groups = cleaned_data.get('groups')
+
+        if not contacts and not groups:
+            raise forms.ValidationError("You must provide a set of recipients (either a group or a contact)")
+
+        # Always return the full collection of cleaned data.
+        return cleaned_data
 
 class EditPollForm(forms.ModelForm): # pragma: no cover
     class Meta:
