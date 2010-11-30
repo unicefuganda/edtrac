@@ -8,7 +8,7 @@ from rapidsms.models import Contact
 from simple_locations.models import Area
 from mptt.forms import TreeNodeChoiceField
 
-from xml.dom.minidom import parse,  parseString
+import re
 
 class NewPollForm(forms.Form): # pragma: no cover
     
@@ -116,3 +116,17 @@ class RuleForm(forms.ModelForm):
         model = Rule
         fields = ('rule_type', 'rule_string')
 
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        rule_string = cleaned_data.get('rule_string')
+        rule_type = cleaned_data.get('rule_type')
+        print rule_string
+        if rule_type == 'r':
+            try:
+                re.compile(rule_string)
+            except:
+                self._errors['rule_string'] = self.error_class([u"You must provide a valid regular expression"])
+                del cleaned_data['rule_string']
+
+        # Always return the full collection of cleaned data.
+        return cleaned_data
