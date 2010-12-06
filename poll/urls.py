@@ -33,6 +33,7 @@ urlpatterns = patterns('',
     url(r"^polls/(\d+)/category/(\d+)/rule/(\d+)/delete/$", login_required(views.delete_rule)),
     url(r"^polls/(\d+)/category/(\d+)/rules/$", login_required(views.view_rules)),
     url(r"^polls/(\d+)/categories/add/$", login_required(views.add_category)),
+    url(r"^polls/(\d+)/demo/", login_required(views.demo)),
 
     # CSV Export
 #    url(r"^polls/(\d+)/submissions.csv$", views.submissions_as_csv)

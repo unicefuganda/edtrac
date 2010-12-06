@@ -7,6 +7,11 @@
 {% endblock %}
 
 {% block content %}
+    <div class="buttons">
+        <a href="/polls/{{ poll.pk }}/demo/" style="float:right"> 
+          <img border="0" src="/static/rapidsms/icons/silk/package_go.png" alt=""/>Send Alerts
+        </a>
+    </div>
     <div id="poll_report">
         {% ifequal poll.type 't' %}
             {% include "polls/poll_report_text.html" %}

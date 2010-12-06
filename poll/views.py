@@ -7,11 +7,13 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.contrib.sites.models import Site
-
+from rapidsms_httprouter.router import get_router
+from rapidsms.messages.outgoing import OutgoingMessage
 from django.contrib.auth.models import Group
 from .models import Poll, Category, Rule, Response, ResponseCategory, STARTSWITH_PATTERN_TEMPLATE, CONTAINS_PATTERN_TEMPLATE
 from rapidsms.models import Contact
 from simple_locations.models import Area
+from rapidsms.models import Connection, Backend
 
 from .forms import *
 
@@ -39,6 +41,23 @@ def polls(req):
         { 'polls': polls, 'breadcrumbs': breadcrumbs },
         context_instance=RequestContext(req))
 
+def demo(req, poll_id):
+    poll = get_object_or_404(Poll, pk=poll_id)
+    b1, created = Backend.objects.get_or_create(name="dmark")
+    c1, created = Connection.objects.get_or_create(identity="256785137868", defaults={
+        'backend':b1,
+    })
+    b2, created = Backend.objects.get_or_create(name="utl")
+    c2, created = Connection.objects.get_or_create(identity="256717171100", defaults={
+        'backend':b2,
+    })    
+    router = get_router()
+    outgoing = OutgoingMessage(c1, "dear Iganga representative: uReport, Uganda's community-level monitoring system, found that 60%% of young reporters in your district DO NOT have soap or water at their school.")
+    router.handle_outgoing(outgoing)
+    outgoing = OutgoingMessage(c2, "dear Amuru representative: uReport, Uganda's community-level monitoring system, found that 38.9%% of young reporters in your district DO NOT have soap or water at their school.")
+    router.handle_outgoing(outgoing)
+    return redirect("/polls/%d/report/" % poll.pk)
+    
 def new_poll(req):
     if req.method == 'POST':
         form = NewPollForm(req.POST)
