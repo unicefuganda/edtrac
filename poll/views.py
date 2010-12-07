@@ -56,7 +56,7 @@ def demo(req, poll_id):
     router.handle_outgoing(outgoing)
     outgoing = OutgoingMessage(c2, "dear Amuru representative: uReport, Uganda's community-level monitoring system, found that 38.9%% of young reporters in your district DO NOT have soap or water at their school.")
     router.handle_outgoing(outgoing)
-    return redirect("/polls/%d/report/" % poll.pk)
+    return HttpResponse(status=200)
     
 def new_poll(req):
     if req.method == 'POST':

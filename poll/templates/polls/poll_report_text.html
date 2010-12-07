@@ -1,4 +1,9 @@
 <div id="poll_header">
+<div class="buttons">
+    <a href="javascript:void(0)" onclick="$.get('/polls/{{ poll.pk }}/demo/')" style="float:right"> 
+      <img border="0" src="/static/rapidsms/icons/silk/package_go.png" alt=""/>Send Alerts
+    </a>
+</div>
 <div class="name">{{ poll.name }} :
   <span class="participants">{{ poll.contacts.count }} participant{{ poll.contacts.count|pluralize }}, {{ total_responses }} total response{{ total_responses|pluralize }} ({{ response_rate|floatformat }}% response rate)</span>
 </div>
