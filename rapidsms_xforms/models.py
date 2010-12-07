@@ -174,15 +174,41 @@ class XForm(models.Model):
 
         return submission
 
+
+    def is_command(self, segment, commands):
+        """
+        Given a segment and commands dict, it checks if segment contains a command
+        the we return that command if it's true, otherwise None
+        """
+        # no comamnd prefix, check whether this is a command word
+        if not self.command_prefix:
+            segment_word = segment
+      
+            if segment.find(' ') >= 0:
+                # split the segment on spaces
+                (segment_word, rest) = segment.split(' ', 1)
+            
+            if segment_word.lower() in commands:
+                return segment_word
+
+        # we do have a command prefix, and this word begins with it
+        elif segment.startswith(self.command_prefix):
+            return segment
+
+        return None
+
+
     def parse_sms_submission(self, message):
-        # sms submissions can have two formats, either explicitely marking each field:
-        #    <keyword> +field_command1 [values] +field_command2 [values]
-        #
-        # or ommitting the 'command' for all required fields:
-        #    <keyword> [first required field] [second required field] +field_command3 [first optional field]
-        #
-        # Note that if you are using the no-delimeter form, then all string fields are 'assumed' to be
-        # a single word.  TODO: this could probably be made to be smarter
+        """
+        sms submissions can have two formats, either explicitely marking each field:
+            <keyword> +field_command1 [values] +field_command2 [values]
+        
+        or ommitting the 'command' for all required fields:
+            <keyword> [first required field] [second required field] +field_command3 [first optional field]
+        
+        Note that if you are using the no-delimeter form, then all string fields are 'assumed' to be
+        a single word.  TODO: this could probably be made to be smarter
+        """
 
         # we'll return a hash of values and/or errors
         submission = {}
@@ -242,7 +268,7 @@ class XForm(models.Model):
                     stripped_segments.append(segment)
 
         segments = stripped_segments
-
+        
         # build a dict of all our commands
         commands = dict()
         for field in self.fields.all():
@@ -259,20 +285,12 @@ class XForm(models.Model):
 
             segment = segments.pop(0)
 
-            # if we aren't using command prefixes
-            if not self.command_prefix:
-                # check if this segment IS a command
-                if segment.lower() in commands:
-                    # pop it back on and break
-                    segments.insert(0, segment)
-                    break
-
-            # segment starts with the command prefox (+) this is actually a command
-            elif segment.startswith(self.command_prefix):
-                # push it back on our segments, it will be dealt with later
+            # if this segment is a command
+            if self.is_command(segment, commands):
+                # pop it back on and break
                 segments.insert(0, segment)
                 break
-                
+
             # ok, this looks like a valid required field value, clean it up
             try:
                 cleaned = field.clean_submission(segment)
@@ -280,21 +298,18 @@ class XForm(models.Model):
             except ValidationError as err:
                 errors.append(err)
                 break
-
+            
         # for any remaining segments, deal with them as command / value pairings
         while segments:
             # search for our command
             command = None
             while segments:
-                command = segments.pop(0)
+                segment = segments.pop(0)
 
-                # no comamnd prefix, check whether this is a command word
-                if not self.command_prefix:
-                    if command.lower() in commands:
-                        break
-
-                # we do have a command prefix, and htis word begins with it
-                elif command.startswith(self.command_prefix):
+                # if this segment contains a command, set the segment as our command and 
+                # parse this segment
+                if self.is_command(segment, commands):
+                    command = segment
                     break
 
             # no command found?  break out
@@ -320,15 +335,7 @@ class XForm(models.Model):
             value = None
             while segments:
                 segment = segments.pop(0)
-
-                # no comamnd prefix, check whether this is a command word
-                if not self.command_prefix:
-                    if segment.lower() in commands:
-                        segments.insert(0, segment)
-                        break
-
-                # we do have a command prefix and this segment begins with it
-                elif segment.startswith(self.command_prefix):
+                if self.is_command(segment, commands):
                     segments.insert(0, segment)
                     break
 

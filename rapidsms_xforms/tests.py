@@ -564,7 +564,66 @@ class SubmissionTest(TestCase): #pragma: no cover
         # test that it works via update as well
         new_vals = { 'age': 20, 'name': 'greg snider' }
         self.xform.update_submission_from_dict(submission, new_vals)
-
+        
         self.failUnlessEqual(listener.submission.values.get(attribute__name='age').value, 20)
         self.failUnlessEqual(listener.submission.values.get(attribute__name='name').value, 'greg snider')
 
+    def test_epi(self):
+        
+        #+epi ma 12, bd 5
+
+        xform = XForm.on_site.create(name='epi_test', keyword='epi', owner=self.user, command_prefix=None, 
+                                     keyword_prefix = '+', separator = ',',
+                                     site=Site.objects.get_current(), response='thanks')
+
+        f1 = xform.fields.create(field_type=XFormField.TYPE_INT, name='ma', command='ma', order=0)        
+        f2 = xform.fields.create(field_type=XFormField.TYPE_INT, name='bd', command='bd', order=1)
+
+        submission = xform.process_sms_submission("+epi ma 12, bd 5", None)
+        
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 2)
+        self.failUnlessEqual(submission.values.get(attribute__name='ma').value, 12)
+        self.failUnlessEqual(submission.values.get(attribute__name='bd').value, 5)
+
+        #+muac davey crockett, m, 6 months, red
+
+        xform = XForm.on_site.create(name='muac_test', keyword='muac', owner=self.user, command_prefix=None, 
+                                     keyword_prefix = '+', separator = ',',
+                                     site=Site.objects.get_current(), response='thanks')
+
+        f1 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='name', command='name', order=0)     
+        f1.constraints.create(type='req_val', test='None', message="You must include a name")
+        f2 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='gender', command='gender', order=1)
+        f2.constraints.create(type='req_val', test='None', message="You must include a gender")
+        f3 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='age', command='age', order=2)
+        f3.constraints.create(type='req_val', test='None', message="You must include an age")
+        f4 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='length', command='length', order=3)
+        f4.constraints.create(type='req_val', test='None', message="You must include a length")
+
+        submission = xform.process_sms_submission("+muac davey crockett, m, 6 months, red", None)
+        
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 4)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, "davey crockett")
+        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, "m")
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, "6 months")
+        self.failUnlessEqual(submission.values.get(attribute__name='length').value, "red")
+
+        #+death malthe borg, m, 5day
+
+        xform = XForm.on_site.create(name='death_test', keyword='death', owner=self.user, command_prefix=None, 
+                                     keyword_prefix = '+', separator = ',',
+                                     site=Site.objects.get_current(), response='thanks')
+
+        f1 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='name', command='name', order=0)        
+        f2 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='gender', command='gender', order=1)
+        f3 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='age', command='age', order=2)
+
+        submission = xform.process_sms_submission("+death malthe borg, m, 5day", None)
+        
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 3)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, "malthe borg")
+        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, "m")
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, "5day")
