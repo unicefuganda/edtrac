@@ -178,7 +178,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.failIfClean(field, '1')
         self.failIfClean(field, '6')
 
-class SubmisionTest(TestCase): #pragma: no cover
+class SubmissionTest(TestCase): #pragma: no cover
     
     def setUp(self):
         # bootstrap a form
@@ -417,3 +417,154 @@ class SubmisionTest(TestCase): #pragma: no cover
         except Exception as e:
             # expected exception because the template is bad, let it pass
             pass
+
+    def testCommandPrefixes(self):
+        # set the prefix to '-' instead of '+'
+        self.xform.command_prefix = '-'
+        self.xform.save()
+
+        submission = self.xform.process_sms_submission("survey -age 10 -name matt berg -gender male", None)
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 3)
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt berg')
+        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
+
+        # test duplicating the prefix or having junk in it
+        submission = self.xform.process_sms_submission("survey -age 10 --name matt berg -+gender male", None)
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 3)
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt berg')
+        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
+
+        # set the prefix to nothing instead of '+'
+        self.xform.command_prefix = None
+        self.xform.save()
+
+        submission = self.xform.process_sms_submission("survey age 10 name matt berg gender male", None)
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 3)
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt berg')
+        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
+
+        # test mix of required and not required
+        submission = self.xform.process_sms_submission("survey male 10 name matt berg", None)
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 3)
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt berg')
+        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
+
+    def testSeparators(self):
+        self.xform.separator = ","
+        self.xform.save()
+
+        submission = self.xform.process_sms_submission("survey male 10 matt", None)
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 3)
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt')
+        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
+
+        submission = self.xform.process_sms_submission("survey,male,10,matt berg", None)
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 3)
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt berg')
+        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
+
+        submission = self.xform.process_sms_submission("survey male, 10, matt berg", None)
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 3)
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt berg')
+        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
+
+        submission = self.xform.process_sms_submission("survey male,10,matt berg", None)
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 3)
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt berg')
+        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
+
+        submission = self.xform.process_sms_submission("survey male, , 10,,, matt berg", None)
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 3)
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt berg')
+        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
+
+        submission = self.xform.process_sms_submission("survey male,10, +name bniz berg", None)
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 3)
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'bniz berg')
+        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
+
+        submission = self.xform.process_sms_submission("survey male,10 +name bniz berg", None)
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 3)
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'bniz berg')
+        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
+
+        submission = self.xform.process_sms_submission("survey male,10,, +name bniz berg", None)
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 3)
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'bniz berg')
+        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
+
+    def testCustomKeywordPrefix(self):
+        self.xform.keyword_prefix = '+'
+        
+        submission = self.xform.process_sms_submission(" +survey male 10 matt", None)
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 3)
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt')
+        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
+
+        submission = self.xform.process_sms_submission(" + survey male 10 matt", None)
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 3)
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt')
+        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
+
+        submission = self.xform.process_sms_submission(" ++ survey male 10 matt", None)
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 3)
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt')
+        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
+
+    def testCustomResponse(self):
+        # add a listener to our signal to change what our response will be
+        class Listener:
+            def handle_submission(self, sender, **args):
+                if args['xform'].keyword == 'survey':
+                    self.submission = args['submission']
+                    self.xform = args['xform']
+
+                    # set our response to 'hello world' instead of 'thanks'
+                    self.submission.response = "hello world"
+
+
+        listener = Listener()
+        xform_received.connect(listener.handle_submission)
+
+        submission = self.xform.process_sms_submission("survey male 10 +name matt berg", None)
+        self.failUnlessEqual(listener.submission, submission)
+        self.failUnlessEqual(listener.xform, self.xform)
+        self.failUnlessEqual("hello world", submission.response)
+
+        # test that it works via update as well
+        new_vals = { 'age': 20, 'name': 'greg snider' }
+        self.xform.update_submission_from_dict(submission, new_vals)
+
+        self.failUnlessEqual(listener.submission.values.get(attribute__name='age').value, 20)
+        self.failUnlessEqual(listener.submission.values.get(attribute__name='name').value, 'greg snider')
+

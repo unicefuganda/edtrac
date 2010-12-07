@@ -33,6 +33,15 @@ class XForm(models.Model):
     active = models.BooleanField(default=True,
                                  help_text="Inactive forms will not accept new submissions.")
 
+    command_prefix = models.CharField(max_length=1, null=True, default='+',
+                                      help_text="The prefix required for optional field commands, defaults to '+'")
+
+    keyword_prefix = models.CharField(max_length=1, null=True,
+                                      help_text="The prefix required for form keywords, defaults to no prefix.")
+    
+    separator = models.CharField(max_length=8, null=True,
+                                 help_text="The separator characters for fields, field values will be split on these.")
+
     owner = models.ForeignKey(User)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
@@ -52,6 +61,63 @@ class XForm(models.Model):
         """
         super(XForm, self).__init__(*args, **kwargs)
         self.__original_keyword = self.keyword
+
+    @classmethod
+    def find_form(cls, message):
+        """
+        This method is responsible for find a matching XForm on this site given the passed in message.
+
+        We do a few things to be agressive in matching the keyword, specifically:
+            - if no exact matches are found for the keyword, we tests for levenshtein distance of <= 1
+            - we also take into account each form's keyword prefix parameter
+
+        The return value is the matched form, as well as the remainder of the message apart from the keyword
+        """
+
+        # first pass, match exactly
+        matched = None
+        for form in XForm.on_site.filter(active=True):
+            remainder = form.parse_keyword(message)
+            if remainder:
+                matched = form
+                break
+
+        return matched
+
+    def parse_keyword(self, message):
+        """
+        Given a message, tries to parse the keyword for the form.  If it matches, then we return
+        the remainder of the message, otherwise if the message doesn't start with our keyword then
+        we return None
+        """
+
+        # remove leading and trailing whitespace
+        message = message.strip()
+
+        # empty string case
+        if message.lower() == self.keyword.lower():
+            return ""
+
+        # our default regex to match keywords
+        regex = "^" + self.keyword + "([^0-9a-z])(.*)"
+
+        # modify it if there is a keyword prefix
+        # with a keyword prefix of '+', we want to match cases like:
+        #       +survey,  + survey, ++survey +,survey
+        if self.keyword_prefix:
+            regex = "^" + re.escape(self.keyword_prefix) + "+[^0-9a-z]*" + self.keyword + "([^0-9a-z])(.*)"
+
+        # otherwise check that the message starts with our keyword, then a space or comma or whatnot, then
+        # the remainder of our message
+        match = re.match(regex, message, re.IGNORECASE)
+
+        # if we match, this is indeed a message for this form
+        if match:
+            return match.group(2)
+
+        # otherwise, return that we don't match this message
+        else:
+            return None
 
     def update_submission_from_dict(self, submission, values):
         """
@@ -128,23 +194,62 @@ class XForm(models.Model):
         submission['has_errors'] = True
         submission['errors'] = errors
 
-        # so first let's split on spaces
-        segments = message.split()
-
-        # make sure our keyword is right
-        keyword = segments[0]
-
-        if not self.keyword.lower() == keyword.lower():
+        # parse out our keyword
+        remainder = self.parse_keyword(message)
+        if remainder is None:
             errors.append(ValidationError("Incorrect keyword.  Keyword must be '%s'" % self.keyword))
             submission['response'] = "Incorrect keyword.  Keyword must be '%s'" % self.keyword
             return submission
 
-        # ignore everything before the first '+' that is the keyword and/or other data we
-        # aren't concerned with
-        segments = segments[1:]
+        # separator mode means we don't split on spaces
+        separator = None
+
+        # figure out if we are using separators
+        if self.separator and message.find(self.separator) >= 0:
+            separator = self.separator
+
+        # so first let's split on the separator passed in
+        segments = remainder.split(separator)
+
+        # remove any segments that are empty
+        stripped_segments = []
+        for segment in segments:
+            segment = segment.strip()
+            if segment:
+                # also split any of these up by prefix, we could have a segment at this point
+                # which looks like this:
+                #      asdf+name emile+age 10
+                # and which we want to turn it into three segments of:
+                #      ['asdf', '+name emile', '+age 10']
+                #
+                if self.command_prefix:
+                    prefix_index = segment.find(self.command_prefix)
+                    while prefix_index > 0:
+                        # take the left and right sides of the prefix
+                        left = segment[0:prefix_index]
+                        right = segment[prefix_index:]
+                    
+                        # append our left side to our list of stripped segments
+                        stripped_segments.append(left.strip())
+                    
+                        # make the right side our new segment
+                        segment = right.strip()
+                    
+                        # and see if it is worthy of stripping
+                        prefix_index = segment.find(self.command_prefix)
+
+                if segment:
+                    stripped_segments.append(segment)
+
+        segments = stripped_segments
+
+        # build a dict of all our commands
+        commands = dict()
+        for field in self.fields.all():
+            commands[field.command.lower()] = field
 
         # we first try to deal with required fields... we skip out of this processing either when
-        # we reach a +command delimeter or we have processed all required fields
+        # we reach a command prefix (+) or we have processed all required fields
         for field in self.fields.all().order_by('order', 'id'):
             required = field.constraints.all().filter(type="req_val")
 
@@ -154,8 +259,16 @@ class XForm(models.Model):
 
             segment = segments.pop(0)
 
-            # segment starts with '+' this is actually a command
-            if segment.startswith('+'):
+            # if we aren't using command prefixes
+            if not self.command_prefix:
+                # check if this segment IS a command
+                if segment.lower() in commands:
+                    # pop it back on and break
+                    segments.insert(0, segment)
+                    break
+
+            # segment starts with the command prefox (+) this is actually a command
+            elif segment.startswith(self.command_prefix):
                 # push it back on our segments, it will be dealt with later
                 segments.insert(0, segment)
                 break
@@ -174,28 +287,56 @@ class XForm(models.Model):
             command = None
             while segments:
                 command = segments.pop(0)
-                if command.startswith('+'):
+
+                # no comamnd prefix, check whether this is a command word
+                if not self.command_prefix:
+                    if command.lower() in commands:
+                        break
+
+                # we do have a command prefix, and htis word begins with it
+                elif command.startswith(self.command_prefix):
                     break
 
             # no command found?  break out
             if not command:
                 break
 
-            command = command[1:].lower()
+            # if there is a prefix, strip it off
+            command = command.lower()
+            if self.command_prefix:
+                # strip off any leading junk from the command, cases that should work:
+                #    ++age, +-age, +.age +++age
+                match = re.match("^([^0-9a-z]*)(.*)$", command)
+                command = match.group(2)
+
+            # if there are spaces in the command, then split on that space, commands can't have spaces
+            # so everything past the space must be part of the value
+            if command.find(' ') >= 0:
+                (command, value) = command.split(' ', 1)
+                segments.insert(0, value)
 
             # now read in the value, basically up to the next command, joining segments
             # with spaces
             value = None
             while segments:
                 segment = segments.pop(0)
-                if segment.startswith('+'):
+
+                # no comamnd prefix, check whether this is a command word
+                if not self.command_prefix:
+                    if segment.lower() in commands:
+                        segments.insert(0, segment)
+                        break
+
+                # we do have a command prefix and this segment begins with it
+                elif segment.startswith(self.command_prefix):
                     segments.insert(0, segment)
                     break
+
+                # this isn't a command, but rather part of the value
+                if not value:
+                    value = segment
                 else:
-                    if not value:
-                        value = segment
-                    else:
-                        value += ' ' + segment
+                    value += ' ' + segment
 
             # find the corresponding field, check its value and save it if it passes
             for field in self.fields.all():
@@ -303,6 +444,7 @@ class XForm(models.Model):
 
         # trigger our signal
         xform_received.send(sender=self, xform=self, submission=submission)
+        
         return submission
 
     def check_template(self, template):
@@ -478,7 +620,7 @@ class XFormField(Attribute):
 
             # anything goes for strings
             if self.datatype == Attribute.TYPE_TEXT:
-                cleaned_value = value
+                cleaned_value = value.strip()
 
         # now check our actual constraints if any
         for constraint in self.constraints.order_by('order'):

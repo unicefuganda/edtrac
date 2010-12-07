@@ -181,7 +181,7 @@ def order_xform (req, form_id):
 class FieldForm(forms.ModelForm):
     
     def updateTypes(self):
-        self.fields['field_type'].widget.choices = [choice[0:2] for choice in XFormField.TYPE_CHOICES]
+        self.fields['field_type'].widget.choices = [(choice['type'], choice['label']) for choice in XFormField.TYPE_CHOICES]
 
     class Meta:
         model = XFormField
