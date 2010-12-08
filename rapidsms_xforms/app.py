@@ -7,7 +7,7 @@ class App (AppBase):
 
     def handle (self, message):
         # see if this message matches any of our forms
-        (form, remainder) = XForm.find_form(message)
+        form = XForm.find_form(message.text)
 
         # if so, process it
         if form:

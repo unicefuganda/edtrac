@@ -77,20 +77,33 @@ class XForm(models.Model):
         # first pass, match exactly
         matched = None
         for form in XForm.on_site.filter(active=True):
-            remainder = form.parse_keyword(message)
+            remainder = form.parse_keyword(message, False)
             if remainder:
                 matched = form
                 break
 
-        return matched
+        # found it with an exact match, return it
+        if matched:
+            return matched
 
-    def parse_keyword(self, message):
+        matched = []
+        for form in XForm.on_site.filter(active=True):
+            remainder = form.parse_keyword(message, True)
+            if remainder:
+                matched.append(form)
+
+        # if we found one and only one match using fuzzy matching, return it
+        if len(matched) == 1:
+            return matched[0]
+        else:
+            return None
+
+    def parse_keyword(self, message, fuzzy=True):
         """
         Given a message, tries to parse the keyword for the form.  If it matches, then we return
         the remainder of the message, otherwise if the message doesn't start with our keyword then
         we return None
         """
-
         # remove leading and trailing whitespace
         message = message.strip()
 
@@ -99,20 +112,28 @@ class XForm(models.Model):
             return ""
 
         # our default regex to match keywords
-        regex = "^" + self.keyword + "([^0-9a-z])(.*)"
+        regex = "^[^0-9a-z]*([0-9a-z]+)[^0-9a-z](.*)"
 
         # modify it if there is a keyword prefix
         # with a keyword prefix of '+', we want to match cases like:
         #       +survey,  + survey, ++survey +,survey
         if self.keyword_prefix:
-            regex = "^" + re.escape(self.keyword_prefix) + "+[^0-9a-z]*" + self.keyword + "([^0-9a-z])(.*)"
+            regex = "^[^0-9a-z]*" + re.escape(self.keyword_prefix) + "+[^0-9a-z]*([0-9a-z]+)[^0-9a-z](.*)"
 
-        # otherwise check that the message starts with our keyword, then a space or comma or whatnot, then
-        # the remainder of our message
+        # run our regular expression to extract our keyword
         match = re.match(regex, message, re.IGNORECASE)
 
-        # if we match, this is indeed a message for this form
-        if match:
+        # if this in a format we don't understand, return nothing
+        if not match:
+            return None
+
+        # by default only match things that are exact
+        target_distance = 0
+        if fuzzy:
+            target_distance = 1
+
+        keyword = match.group(1)
+        if dl_distance(unicode(keyword.lower()), unicode(self.keyword.lower())) <= target_distance:
             return match.group(2)
 
         # otherwise, return that we don't match this message
@@ -897,6 +918,38 @@ XFormField.register_field_type(XFormField.TYPE_GEOPOINT, 'GPS Coordinate', creat
 def point_to_dict(self):
     return dict(name='coord', lat=self.latitude, lng=self.longitude)
 Point.to_dict = point_to_dict
+
+def dl_distance(s1, s2):
+    """
+    Computes the Damerau-Levenshtein distance between two strings.  Not the fastest implementation
+    in the world, but works for our purposes.
+
+    Ripped from: http://www.guyrutenberg.com/2008/12/15/damerau-levenshtein-distance-in-python/
+    """
+    d = {}
+    lenstr1 = len(s1)
+    lenstr2 = len(s2)
+    for i in xrange(-1,lenstr1+1):
+        d[(i,-1)] = i+1
+    for j in xrange(-1,lenstr2+1):
+        d[(-1,j)] = j+1
+ 
+    for i in xrange(0,lenstr1):
+        for j in xrange(0,lenstr2):
+            if s1[i] == s2[j]:
+                cost = 0
+            else:
+                cost = 1
+            d[(i,j)] = min(
+                           d[(i-1,j)] + 1, # deletion
+                           d[(i,j-1)] + 1, # insertion
+                           d[(i-1,j-1)] + cost, # substitution
+                          )
+            if i>1 and j>1 and s1[i]==s2[j-1] and s1[i-1] == s2[j]:
+                d[(i,j)] = min (d[(i,j)], d[i-2,j-2] + cost) # transposition
+ 
+    return d[lenstr1-1,lenstr2-1]
+
 
 
 

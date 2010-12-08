@@ -9,6 +9,8 @@ from django.core.exceptions import ValidationError
 from .models import XForm, XFormField, XFormFieldConstraint, xform_received
 from eav.models import Attribute
 from django.contrib.sites.models import Site
+from .app import App
+from rapidsms.messages.incoming import IncomingMessage
 
 class ModelTest(TestCase): #pragma: no cover
 
@@ -621,9 +623,117 @@ class SubmissionTest(TestCase): #pragma: no cover
         f3 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='age', command='age', order=2)
 
         submission = xform.process_sms_submission("+death malthe borg, m, 5day", None)
+        self.assertEquals(xform, XForm.find_form("+derth malthe borg, m, 5day"))
+        self.assertEquals(xform, XForm.find_form("+daeth malthe borg, m, 5day"))        
         
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 3)
         self.failUnlessEqual(submission.values.get(attribute__name='name').value, "malthe borg")
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, "m")
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, "5day")
+
+    def testFindForm(self):
+        """
+        Tests how we find which form a particular message matches.
+        """
+
+        # have another form that is similar, to test that we match correctly in exact matches
+        surve_form = XForm.on_site.create(name='surve', keyword='surve', owner=self.user,
+                                          site=Site.objects.get_current(), response='thanks')
+        
+        self.assertEquals(self.xform, XForm.find_form("survey hello world"))
+        self.assertFalse(XForm.find_form("foobar hello world"))
+
+        # make sure we match existing forms exactly
+        self.assertEquals(surve_form, XForm.find_form("surve hello world"))
+        
+        self.assertFalse(XForm.find_form("survy hello world"))
+        self.assertFalse(XForm.find_form("survye hello world"))
+        self.assertEquals(self.xform, XForm.find_form("0survey hello world"))
+        self.assertEquals(self.xform, XForm.find_form("  survey hello world"))
+        self.assertEquals(self.xform, XForm.find_form(".survey hello world"))
+        self.assertEquals(self.xform, XForm.find_form("furvey hello world"))
+        self.assertEquals(self.xform, XForm.find_form("..survey hello world"))
+        self.assertEquals(self.xform, XForm.find_form(".+survey hello world"))
+
+        # shouldn't pass, edit distance of 2
+        self.assertEquals(None, XForm.find_form("furvey1 hello world"))
+
+        surve_form.delete()
+
+        # wrong keyword
+        self.assertFalse(XForm.find_form("foobar hello world"))
+
+        # fuzzy match tests when only one form exists
+        self.assertEquals(self.xform, XForm.find_form("surve hello world"))
+        self.assertEquals(self.xform, XForm.find_form("survy hello world"))
+        self.assertEquals(self.xform, XForm.find_form("survye hello world"))
+        self.assertEquals(self.xform, XForm.find_form("0survey hello world"))
+        self.assertEquals(self.xform, XForm.find_form("  survey hello world"))
+        self.assertEquals(self.xform, XForm.find_form(".survey hello world"))
+        self.assertEquals(self.xform, XForm.find_form("furvey hello world"))
+        self.assertEquals(self.xform, XForm.find_form("..survey hello world"))
+        self.assertEquals(self.xform, XForm.find_form(".+survey hello world"))
+        self.assertEquals(self.xform, XForm.find_form("+survey hello world"))
+        self.assertEquals(self.xform, XForm.find_form("-+-survey hello world"))
+
+        # shouldn't pass, edit distance of 2
+        self.assertFalse(XForm.find_form("furvey1 hello world"))
+        self.assertFalse(XForm.find_form("10 + 20 +survey hello world"))
+        self.assertFalse(XForm.find_form("my survey hello world"))
+
+        # test when we have a keyword prefix
+        self.xform.keyword_prefix = '+'
+        self.xform.save()
+
+        # no prefix, no match
+        self.assertFalse(XForm.find_form("survey hello world"))
+
+        # wrong keyword
+        self.assertFalse(XForm.find_form("foobar hello world"))
+
+        # fuzzy match tests when only one form exists
+        self.assertEquals(self.xform, XForm.find_form("+surve hello world"))
+        self.assertEquals(self.xform, XForm.find_form("+survy hello world"))
+        self.assertEquals(self.xform, XForm.find_form("+survye hello world"))
+        self.assertEquals(self.xform, XForm.find_form("+0survey hello world"))
+        self.assertEquals(self.xform, XForm.find_form("+  survey hello world"))
+        self.assertEquals(self.xform, XForm.find_form("+.survey hello world"))
+        self.assertEquals(self.xform, XForm.find_form("+furvey hello world"))
+        self.assertEquals(self.xform, XForm.find_form("+..survey hello world"))
+        self.assertEquals(self.xform, XForm.find_form("+.+survey hello world"))
+        self.assertEquals(self.xform, XForm.find_form(".+survey hello world"))
+        self.assertEquals(self.xform, XForm.find_form("--+-survey hello world"))
+
+        # shouldn't pass, edit distance of 2
+        self.assertFalse(XForm.find_form("+furvey1 hello world"))
+        self.assertFalse(XForm.find_form("10 + 20 +survey hello world"))
+        self.assertFalse(XForm.find_form("my survey hello world"))
+
+
+    def testApp(self):
+        """
+        Tests that our main app.py handles messages correctly.  More detailed testing is done at a unit
+        level, this just makes sure that the main routing works.
+        """
+        
+        xforms_app = App(None)
+
+        msg = IncomingMessage(None, "survey male 10 matt")
+        self.assertTrue(xforms_app.handle(msg))
+        self.assertEquals(1, len(self.xform.submissions.all()))
+
+        msg = IncomingMessage(None, "foo male 10 matt")
+        self.assertFalse(xforms_app.handle(msg))
+        self.assertEquals(1, len(self.xform.submissions.all()))
+
+        
+
+
+        
+
+        
+
+
+
+
