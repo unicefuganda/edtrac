@@ -22,6 +22,17 @@ class XForm(models.Model):
 
     XForms also define their keyword which will be used when submitting via SMS.
     """
+    PREFIX_CHOICES = (
+        ('+','Plus (+)'),
+        ('-','Dash (-)'),
+    )
+    SEPARATOR_CHOICES = (
+        (',','Comma (,)'),
+        (';','Semicolon (;)'),
+        (':','Colon (:)'),
+        ('*','Asterisk (*)'),
+    )
+
     name = models.CharField(max_length=32,
                             help_text="Human readable name.")
     keyword = EavSlugField(max_length=32,
@@ -33,14 +44,14 @@ class XForm(models.Model):
     active = models.BooleanField(default=True,
                                  help_text="Inactive forms will not accept new submissions.")
 
-    command_prefix = models.CharField(max_length=1, null=True, default='+',
+    command_prefix = models.CharField(max_length=1, choices=PREFIX_CHOICES, null=True, blank=True,default='+',
                                       help_text="The prefix required for optional field commands, defaults to '+'")
 
-    keyword_prefix = models.CharField(max_length=1, null=True,
+    keyword_prefix = models.CharField(max_length=1, choices=PREFIX_CHOICES, null=True, blank=True,
                                       help_text="The prefix required for form keywords, defaults to no prefix.")
-    
-    separator = models.CharField(max_length=8, null=True,
-                                 help_text="The separator characters for fields, field values will be split on these.")
+
+    separator = models.CharField(max_length=1, choices=SEPARATOR_CHOICES, null=True, blank=True,
+                                 help_text="The separator character for fields, field values will be split on this character.")
 
     owner = models.ForeignKey(User)
     created = models.DateTimeField(auto_now_add=True)

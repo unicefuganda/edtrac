@@ -11,6 +11,9 @@ from .models import XForm, XFormSubmission, XFormField, XFormFieldConstraint
 from xml.dom.minidom import parse, parseString
 from eav.fields import EavSlugField
 
+from uni_form.helpers import FormHelper, Layout, Fieldset
+
+
 # CSV Export
 @require_GET
 def submissions_as_csv(req, pk):
@@ -94,15 +97,57 @@ def xforms(req):
         { 'xforms': xforms, 'breadcrumbs': breadcrumbs },
         context_instance=RequestContext(req))
 
+
 class NewXFormForm(forms.ModelForm): # pragma: no cover
     class Meta:
         model = XForm
-        fields = ('name', 'keyword', 'description', 'response')
+        fields = ('name', 'keyword','keyword_prefix', 'command_prefix', 'separator', 'description', 'response')
+
+    helper = FormHelper()
+        
+    layout = Layout(
+        # first fieldset shows the company
+        Fieldset('', 
+                 'name',
+                 'keyword',
+                 'description',
+                 'response'),
+        
+        # second fieldset shows the contact info
+        Fieldset('Advanced Settings',
+                 'keyword_prefix',
+                 'command_prefix',
+                 'separator'
+                 )
+        )
+    
+    helper.add_layout(layout)
 
 class EditXFormForm(forms.ModelForm): # pragma: no cover
     class Meta:
         model = XForm
-        fields = ('name', 'keyword', 'description', 'response', 'active')
+        fields = ('name', 'keyword','keyword_prefix', 'command_prefix', 'separator', 'description', 'response', 'active')
+
+    helper = FormHelper()
+        
+    layout = Layout(
+        # first fieldset shows the company
+        Fieldset('', 
+                 'name',
+                 'keyword',
+                 'description',
+                 'response',
+                 'active'),
+        
+        # second fieldset shows the contact info
+        Fieldset('Advanced Settings',
+                 'keyword_prefix',
+                 'command_prefix',
+                 'separator'
+                 )
+        )
+    
+    helper.add_layout(layout)
 
 def new_xform(req):
     if req.method == 'POST':
@@ -124,8 +169,10 @@ def new_xform(req):
     else:
         form = NewXFormForm()
 
+    breadcrumbs = (('XForms', '/xforms/'),('New XForm', ''))
+
     return render_to_response(
-        "xforms/form_create.html", { 'form': form },
+        "xforms/form_create.html", { 'form': form, 'breadcrumbs': breadcrumbs },
         context_instance=RequestContext(req))
 
 

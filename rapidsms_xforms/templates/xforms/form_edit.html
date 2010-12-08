@@ -4,7 +4,9 @@
 
 <form action="/xforms/{{xform.pk}}/edit/" method="post" class="uniForm">
 <fieldset>
-{{form|as_uni_form}}
+{% with form.helper as helper %}
+    {% uni_form form helper %}
+{% endwith %}
 
 <div class="buttons" style="float:left;margin-bottom:10px;margin-top:10px">
   <a onclick="showFormDetails('{{xform.pk}}');" href="javascript:void(0);" class="negative">
