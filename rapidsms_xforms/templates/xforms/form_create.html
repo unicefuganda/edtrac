@@ -11,7 +11,6 @@
 <form action="/xforms/new/" method="post" class="uniForm" id="newForm">
 {% csrf_token %}
 {{ form|render_layout }}
-</form>
 
 <div class="buttons" style="float:left;margin-bottom:10px;margin-top:10px">
   <a href="/xforms/">
@@ -23,5 +22,6 @@
     Create Form
   </a>
 </div>
+</form>
 
 {% endblock %}

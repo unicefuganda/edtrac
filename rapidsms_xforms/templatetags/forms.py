@@ -12,6 +12,9 @@ register = template.Library()
 ###################################################
 @register.filter
 def render_layout(form):
+    template = get_template('uni_form/errors.html')
+    c = Context({'form':form})
+    errors = template.render(c)
     form_html = form.helper.render_layout(form)
-    return form_html
+    return errors + form_html
 

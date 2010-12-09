@@ -1,11 +1,9 @@
 <div class="name">Edit '{{xform.name}}'</div>
-
 {% load forms %}
 
 <form action="/xforms/{{xform.pk}}/edit/" method="post" class="uniForm">
 {% csrf_token %}
 {{ form|render_layout }}
-</form>
 
 <div class="buttons" style="float:left;margin-bottom:10px;margin-top:10px">
   <a onclick="showFormDetails('{{xform.pk}}');" href="javascript:void(0);" class="negative">
@@ -17,3 +15,6 @@
     Save Form Details
   </a>
 </div>
+
+</form>
+
