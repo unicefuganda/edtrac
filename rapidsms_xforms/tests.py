@@ -339,7 +339,8 @@ class SubmissionTest(TestCase): #pragma: no cover
         def lookup_user(command, username):
             return User.objects.get(username=username)
 
-        XFormField.register_field_type('user', 'User', lookup_user, 'string')
+        XFormField.register_field_type('user', 'User', lookup_user, 
+                               xforms_type='string', db_type=XFormField.TYPE_OBJECT)
 
         # add a user field to our xform
         field = self.xform.fields.create(field_type='user', name='user', command='user', order=3)
@@ -570,68 +571,6 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.failUnlessEqual(listener.submission.values.get(attribute__name='age').value, 20)
         self.failUnlessEqual(listener.submission.values.get(attribute__name='name').value, 'greg snider')
 
-    def test_epi(self):
-        
-        #+epi ma 12, bd 5
-
-        xform = XForm.on_site.create(name='epi_test', keyword='epi', owner=self.user, command_prefix=None, 
-                                     keyword_prefix = '+', separator = ',',
-                                     site=Site.objects.get_current(), response='thanks')
-
-        f1 = xform.fields.create(field_type=XFormField.TYPE_INT, name='ma', command='ma', order=0)        
-        f2 = xform.fields.create(field_type=XFormField.TYPE_INT, name='bd', command='bd', order=1)
-
-        submission = xform.process_sms_submission("+epi ma 12, bd 5", None)
-        
-        self.failUnlessEqual(submission.has_errors, False)
-        self.failUnlessEqual(len(submission.values.all()), 2)
-        self.failUnlessEqual(submission.values.get(attribute__name='ma').value, 12)
-        self.failUnlessEqual(submission.values.get(attribute__name='bd').value, 5)
-
-        #+muac davey crockett, m, 6 months, red
-
-        xform = XForm.on_site.create(name='muac_test', keyword='muac', owner=self.user, command_prefix=None, 
-                                     keyword_prefix = '+', separator = ',',
-                                     site=Site.objects.get_current(), response='thanks')
-
-        f1 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='name', command='name', order=0)     
-        f1.constraints.create(type='req_val', test='None', message="You must include a name")
-        f2 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='gender', command='gender', order=1)
-        f2.constraints.create(type='req_val', test='None', message="You must include a gender")
-        f3 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='age', command='age', order=2)
-        f3.constraints.create(type='req_val', test='None', message="You must include an age")
-        f4 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='length', command='length', order=3)
-        f4.constraints.create(type='req_val', test='None', message="You must include a length")
-
-        submission = xform.process_sms_submission("+muac davey crockett, m, 6 months, red", None)
-        
-        self.failUnlessEqual(submission.has_errors, False)
-        self.failUnlessEqual(len(submission.values.all()), 4)
-        self.failUnlessEqual(submission.values.get(attribute__name='name').value, "davey crockett")
-        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, "m")
-        self.failUnlessEqual(submission.values.get(attribute__name='age').value, "6 months")
-        self.failUnlessEqual(submission.values.get(attribute__name='length').value, "red")
-
-        #+death malthe borg, m, 5day
-
-        xform = XForm.on_site.create(name='death_test', keyword='death', owner=self.user, command_prefix=None, 
-                                     keyword_prefix = '+', separator = ',',
-                                     site=Site.objects.get_current(), response='thanks')
-
-        f1 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='name', command='name', order=0)        
-        f2 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='gender', command='gender', order=1)
-        f3 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='age', command='age', order=2)
-
-        submission = xform.process_sms_submission("+death malthe borg, m, 5day", None)
-        self.assertEquals(xform, XForm.find_form("+derth malthe borg, m, 5day"))
-        self.assertEquals(xform, XForm.find_form("+daeth malthe borg, m, 5day"))        
-        
-        self.failUnlessEqual(submission.has_errors, False)
-        self.failUnlessEqual(len(submission.values.all()), 3)
-        self.failUnlessEqual(submission.values.get(attribute__name='name').value, "malthe borg")
-        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, "m")
-        self.failUnlessEqual(submission.values.get(attribute__name='age').value, "5day")
-
     def testFindForm(self):
         """
         Tests how we find which form a particular message matches.
@@ -726,6 +665,111 @@ class SubmissionTest(TestCase): #pragma: no cover
         msg = IncomingMessage(None, "foo male 10 matt")
         self.assertFalse(xforms_app.handle(msg))
         self.assertEquals(1, len(self.xform.submissions.all()))
+
+    def testEpi(self):
+        
+        #+epi ma 12, bd 5
+
+        xform = XForm.on_site.create(name='epi_test', keyword='epi', owner=self.user, command_prefix=None, 
+                                     keyword_prefix = '+', separator = ',',
+                                     site=Site.objects.get_current(), response='thanks')
+
+        f1 = xform.fields.create(field_type=XFormField.TYPE_INT, name='ma', command='ma', order=0)        
+        f2 = xform.fields.create(field_type=XFormField.TYPE_INT, name='bd', command='bd', order=1)
+
+        submission = xform.process_sms_submission("+epi ma 12, bd 5", None)
+        
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 2)
+        self.failUnlessEqual(submission.values.get(attribute__name='ma').value, 12)
+        self.failUnlessEqual(submission.values.get(attribute__name='bd').value, 5)
+
+        #+muac davey crockett, m, 6 months, red
+
+        xform = XForm.on_site.create(name='muac_test', keyword='muac', owner=self.user, command_prefix=None, 
+                                     keyword_prefix = '+', separator = ',',
+                                     site=Site.objects.get_current(), response='thanks')
+
+        f1 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='name', command='name', order=0)     
+        f1.constraints.create(type='req_val', test='None', message="You must include a name")
+        f2 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='gender', command='gender', order=1)
+        f2.constraints.create(type='req_val', test='None', message="You must include a gender")
+        f3 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='age', command='age', order=2)
+        f3.constraints.create(type='req_val', test='None', message="You must include an age")
+        f4 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='length', command='length', order=3)
+        f4.constraints.create(type='req_val', test='None', message="You must include a length")
+
+        submission = xform.process_sms_submission("+muac davey crockett, m, 6 months, red", None)
+        
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 4)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, "davey crockett")
+        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, "m")
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, "6 months")
+        self.failUnlessEqual(submission.values.get(attribute__name='length').value, "red")
+
+        #+death malthe borg, m, 5day
+
+        xform = XForm.on_site.create(name='death_test', keyword='death', owner=self.user, command_prefix=None, 
+                                     keyword_prefix = '+', separator = ',',
+                                     site=Site.objects.get_current(), response='thanks')
+
+        f1 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='name', command='name', order=0)        
+        f2 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='gender', command='gender', order=1)
+        f3 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='age', command='age', order=2)
+
+        submission = xform.process_sms_submission("+death malthe borg, m, 5day", None)
+        self.assertEquals(xform, XForm.find_form("+derth malthe borg, m, 5day"))
+        self.assertEquals(xform, XForm.find_form("+daeth malthe borg, m, 5day"))        
+        
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 3)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, "malthe borg")
+        self.failUnlessEqual(submission.values.get(attribute__name='gender').value, "m")
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, "5day")
+
+    def testAgeCustomField(self):
+        # creates a new field type that parses strings into an integer number of days
+        # ie, given a string like '5days' or '6 months' will return either 5, or 30
+
+        import re
+
+        # register a time parser
+        def parse_timespan(command, value):
+            match = re.match("(\d+)\W*months?", value, re.IGNORECASE)
+            if match:
+                return int(match.group(1))*30
+            match = re.match("(\d+)\W*days?", value, re.IGNORECASE)
+            if match:
+                return int(match.group(1))
+
+            raise ValidationError("%s parameter value of '%s' is not a valid timespan." % (command, value))
+
+        XFormField.register_field_type('timespan', 'Timespan', parse_timespan, 
+                                       xforms_type='string', db_type=XFormField.TYPE_INT)
+
+        # create a new form
+        xform = XForm.on_site.create(name='time', keyword='time', owner=self.user,
+                                     site=Site.objects.get_current(), response='thanks')
+
+        f1 = xform.fields.create(field_type='timespan', name='timespan', command='timespan', order=0)        
+
+        # try five months
+        submission = xform.process_sms_submission("time +timespan 5 months", None)
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 1)
+        self.failUnlessEqual(submission.values.get(attribute__name='timespan').value, 150)
+
+        # try 6 days
+        submission = xform.process_sms_submission("time +timespan 6days", None)
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 1)
+        self.failUnlessEqual(submission.values.get(attribute__name='timespan').value, 6)
+
+        # something invalid
+        submission = xform.process_sms_submission("time +timespan infinity plus one", None)
+        self.failUnlessEqual(submission.has_errors, True)
+
 
         
 
