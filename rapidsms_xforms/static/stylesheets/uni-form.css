@@ -5,7 +5,7 @@
 
   /* Generals */
   .uniForm fieldset{}
-    .uniForm fieldset legend{ color: #333; font-weight: bold; font-size: 100%; margin: 0; padding: 1.5em 0; }
+    .uniForm fieldset legend{ color: #333; font-weight: bold; font-size: 100%; margin: 0; padding: 1.5em .5em; }
     
     /* This is the main unit that contains our form elements */
     .uniForm .ctrlHolder{ padding: 7px; border-bottom: 1px solid #dfdfdf; }

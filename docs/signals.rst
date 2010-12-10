@@ -27,6 +27,8 @@ An example of a simple listener::
     # then wire it to the xform_received signal
     xform_received.connect(handle_submission)
 
+Note that you can alter the response sent to the user by changing the ``response`` attribute in the passed in submission.  This can be used to return more custom responses to incoming messages.
+
 Submission Editing
 ------------------
 

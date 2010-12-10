@@ -620,9 +620,25 @@ class XFormField(Attribute):
         ordering = ('order', 'id')
 
     @classmethod
-    def register_field_type(cls, field_type, name, parserFunc, xforms_type):
-        XFormField.TYPE_CHOICES.append(dict(type=field_type, label=name, 
-                                            db_type=XFormField.TYPE_OBJECT, parser=parserFunc, xforms_type=xforms_type))
+    def register_field_type(cls, field_type, label, parserFunc, db_type=TYPE_TEXT, xforms_type='string'):
+        """
+        Used to register a new field type for XForms.  You can use this method to build new field types that are
+        available when building XForms.  These types may just do custom parsing of the SMS text sent in, then stuff
+        those results in a normal core datatype, or they may lookup and reference completely custom attributes.
+
+        Refer to GeoPoint implementation to see an example of the latter.
+
+        Arguments are:
+           label: The label used for this field type in the user interface
+           field_type: A slug to identify this field type, must be unique across all field types
+           parser: The function called to turn the raw string into the appropriate type, should take two arguments.
+                   Takes two arguments, 'command', which is the command of the field, and 'value' the string value submitted.
+           db_type: How the value will be stored in the database, can be one of: TYPE_INT, TYPE_FLOAT, TYPE_TEXT or TYPE_OBJECT
+           xforms_type: The type as defined in an XML xforms specification, likely one of: 'integer', 'decimal' or 'string'
+
+        """
+        XFormField.TYPE_CHOICES.append(dict(type=field_type, label=label, 
+                                            db_type=db_type, parser=parserFunc, xforms_type=xforms_type))
 
     @classmethod
     def lookup_type(cls, otype):
@@ -674,27 +690,28 @@ class XFormField(Attribute):
 
         # check against our type first if we have a value
         if value is not None and len(value) > 0:
-            if self.datatype == Attribute.TYPE_INT:
+            # integer
+            if self.field_type == Attribute.TYPE_INT:
                 try:
                     cleaned_value = int(value)
                 except ValueError:
                     raise ValidationError("+%s parameter must be an even number." % self.command)
 
-            if self.datatype == Attribute.TYPE_FLOAT:
+            # float
+            elif self.field_type == Attribute.TYPE_FLOAT:
                 try:
                     cleaned_value = float(value)
                 except ValueError:
                     raise ValidationError("+%s parameter must be a number." % self.command)
 
+            # string
+            elif self.field_type == Attribute.TYPE_TEXT:
+                cleaned_value = value.strip()
 
-            # for objects, we use our parser function to try to look up the value
-            if self.datatype == XFormField.TYPE_OBJECT:
+            # something custom, pass it to our parser
+            else:
                 typedef = XFormField.lookup_type(self.field_type)
                 cleaned_value = typedef['parser'](self.command, value)
-
-            # anything goes for strings
-            if self.datatype == Attribute.TYPE_TEXT:
-                cleaned_value = value.strip()
 
         # now check our actual constraints if any
         for constraint in self.constraints.order_by('order'):
@@ -958,7 +975,8 @@ def create_geopoint(command, value):
     return cleaned_value
 
 # register geopoints as a type
-XFormField.register_field_type(XFormField.TYPE_GEOPOINT, 'GPS Coordinate', create_geopoint, 'geopoint')
+XFormField.register_field_type(XFormField.TYPE_GEOPOINT, 'GPS Coordinate', create_geopoint,
+                               xforms_type='geopoint', db_type=XFormField.TYPE_OBJECT)
 
 # add a to_dict to Point, yay for monkey patching
 def point_to_dict(self):
