@@ -44,17 +44,19 @@ def polls(req):
 def demo(req, poll_id):
     poll = get_object_or_404(Poll, pk=poll_id)
     b1, created = Backend.objects.get_or_create(name="dmark")
+    # Terra
     c1, created = Connection.objects.get_or_create(identity="256785137868", defaults={
         'backend':b1,
     })
+    # Sharad
     b2, created = Backend.objects.get_or_create(name="utl")
     c2, created = Connection.objects.get_or_create(identity="256717171100", defaults={
         'backend':b2,
     })    
     router = get_router()
-    outgoing = OutgoingMessage(c1, "dear Iganga representative: uReport, Uganda's community-level monitoring system, found that 60%% of young reporters in your district DO NOT have soap or water at their school.")
+    outgoing = OutgoingMessage(c1, "dear Bulambuli representative: uReport, Uganda's community-level monitoring system, shows that 75% of young reporters in your district found that their local water point IS NOT functioning.")
     router.handle_outgoing(outgoing)
-    outgoing = OutgoingMessage(c2, "dear Amuru representative: uReport, Uganda's community-level monitoring system, found that 38.9%% of young reporters in your district DO NOT have soap or water at their school.")
+    outgoing = OutgoingMessage(c2, "dear Amuru representative: uReport, Uganda's community-level monitoring system, shows that 46.7% of young reporters in your district found that their local water point IS NOT functioning.")
     router.handle_outgoing(outgoing)
     return HttpResponse(status=200)
     
