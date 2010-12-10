@@ -727,13 +727,47 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.assertFalse(xforms_app.handle(msg))
         self.assertEquals(1, len(self.xform.submissions.all()))
 
+    def testImportSubmissions(self):
+
+        # Our form has fields: gender, age, and name (optional)
+        # try passing a string for an int field
+        values = { 'gender': 'male', 'age': 'Should be number', 'name': 'Eugene'}
+        self.assertRaises(ValidationError, self.xform.process_import_submission, "", values)
+        self.assertEquals(0, len(self.xform.submissions.all()))
+
+        # try sending something that is not a string
+        values = { 'age': 25, 'gender': 'male', 'name': 'Eugene'}
+        self.assertRaises(TypeError, self.xform.process_import_submission, "", values)
+        self.assertEquals(0, len(self.xform.submissions.all()))
+
+        # try excluding an optional field
+        values = { 'age': '25', 'gender': 'male'}
+        self.xform.process_import_submission("", values)
+        self.assertEquals(1, len(self.xform.submissions.all()))
+
+        # try excluding a required field
+        values = { 'gender': 'male', 'name': 'Eugene'}
+        self.assertRaises(ValidationError, self.xform.process_import_submission, "", values)
+        self.assertEquals(1, len(self.xform.submissions.all()))
         
+        # check that constraint is upheld
+        self.field.constraints.create(type='max_val', test='100', message="Nobody is that old")
+        self.field.constraints.create(type='min_val', test='0', message="You are negative old")
 
+        values = { 'gender': 'male', 'age': '900', 'name': 'Eugene'}
+        self.assertRaises(ValidationError, self.xform.process_import_submission, "", values)
+        self.assertEquals(1, len(self.xform.submissions.all()))
 
-        
+        values = { 'gender': 'male', 'age': '-1', 'name': 'Eugene'}
+        self.assertRaises(ValidationError, self.xform.process_import_submission, "", values)
+        self.assertEquals(1, len(self.xform.submissions.all()))
 
-        
+        # try sending extra fields that are not in the form
+        values = { 'gender': 'male', 'age': 'Should be number', 'name': 'Eugene', 'extra': "This shouldn't be provided"}
+        self.assertRaises(ValidationError, self.xform.process_import_submission, "", values)
+        self.assertEquals(1, len(self.xform.submissions.all()))
 
-
-
-
+        # try sending extra fields that are not in the form
+        values = { 'gender': 'male', 'age': '99', 'name': 'Eugene'}
+        self.xform.process_import_submission("", values)
+        self.assertEquals(2, len(self.xform.submissions.all()))

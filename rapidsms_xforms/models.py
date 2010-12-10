@@ -206,6 +206,41 @@ class XForm(models.Model):
 
         return submission
 
+    def process_import_submission(self, raw, values):
+        """
+        Given a dict of values and the original row, import the data
+        as a submission. Validates against contraints including checking
+        for required fields.  Raises ValidationError if supplied could
+        not be processed.
+        """
+        fields = self.fields.all()
+        for field in fields:
+            required=len(field.constraints.all().filter(type='req_val')) > 0
+            if required and (field.command not in values or len(values[field.command]) == 0):
+                raise ValidationError('Required field %s not supplied' % field.command)
+
+            # pass it through our cleansing filter which will
+            # check for type and any constraint validation
+            # this raises ValidationError if it fails
+            if field.command in values:
+                field.clean_submission(values[field.command])
+
+        # check if the values contain extra fields not in our form
+        for command, value in values.items():
+            fields = self.fields.filter(command=command)
+            if len(fields) != 1:
+                raise ValidationError("Could not resolve field for %s" % command)
+
+        # resolve object types to their actual objects
+        for field in self.fields.filter(datatype=XFormField.TYPE_OBJECT):
+            if field.command in values:
+                typedef = XFormField.lookup_type(field.field_type)
+                values[field.command] = typedef['parser'](field.command, values[field.command])
+
+        # create submission and update the values
+        submission = self.submissions.create(type='import', raw=raw)
+        self.update_submission_from_dict(submission, values)
+        return submission
 
     def is_command(self, segment, commands):
         """
