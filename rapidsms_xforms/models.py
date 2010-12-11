@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db import connections, router, transaction, DEFAULT_DB_ALIAS
 from eav.models import Attribute, Value
 from eav import register
 from eav.managers import EntityManager
@@ -206,7 +207,7 @@ class XForm(models.Model):
 
         return submission
 
-    def process_import_submission(self, raw, values):
+    def process_import_submission(self, raw, connection, values):
         """
         Given a dict of values and the original row, import the data
         as a submission. Validates against contraints including checking
@@ -226,9 +227,9 @@ class XForm(models.Model):
                 field.clean_submission(values[field.command])
 
         # check if the values contain extra fields not in our form
-        for command, value in values.items():
+        for command, value in values.items():            
             fields = self.fields.filter(command=command)
-            if len(fields) != 1:
+            if len(fields) != 1 and command != "connection":
                 raise ValidationError("Could not resolve field for %s" % command)
 
         # resolve object types to their actual objects
@@ -238,7 +239,7 @@ class XForm(models.Model):
                 values[field.command] = typedef['parser'](field.command, values[field.command])
 
         # create submission and update the values
-        submission = self.submissions.create(type='import', raw=raw)
+        submission = self.submissions.create(type='import', raw=raw, connection=connection)
         self.update_submission_from_dict(submission, values)
         return submission
 

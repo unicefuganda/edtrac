@@ -11,6 +11,7 @@ from eav.models import Attribute
 from django.contrib.sites.models import Site
 from .app import App
 from rapidsms.messages.incoming import IncomingMessage
+from rapidsms.models import Connection, Backend
 
 class ModelTest(TestCase): #pragma: no cover
 
@@ -773,25 +774,29 @@ class SubmissionTest(TestCase): #pragma: no cover
 
     def testImportSubmissions(self):
 
+        # our fake submitter
+        backend, created = Backend.objects.get_or_create(name='test')
+        connection, created = Connection.objects.get_or_create(identity='123', backend=backend)
+        
         # Our form has fields: gender, age, and name (optional)
         # try passing a string for an int field
         values = { 'gender': 'male', 'age': 'Should be number', 'name': 'Eugene'}
-        self.assertRaises(ValidationError, self.xform.process_import_submission, "", values)
+        self.assertRaises(ValidationError, self.xform.process_import_submission, "", connection, values)
         self.assertEquals(0, len(self.xform.submissions.all()))
 
         # try sending something that is not a string
         values = { 'age': 25, 'gender': 'male', 'name': 'Eugene'}
-        self.assertRaises(TypeError, self.xform.process_import_submission, "", values)
+        self.assertRaises(TypeError, self.xform.process_import_submission, "", connection, values)
         self.assertEquals(0, len(self.xform.submissions.all()))
 
         # try excluding an optional field
         values = { 'age': '25', 'gender': 'male'}
-        self.xform.process_import_submission("", values)
+        self.xform.process_import_submission("", connection, values)
         self.assertEquals(1, len(self.xform.submissions.all()))
 
         # try excluding a required field
         values = { 'gender': 'male', 'name': 'Eugene'}
-        self.assertRaises(ValidationError, self.xform.process_import_submission, "", values)
+        self.assertRaises(ValidationError, self.xform.process_import_submission, "", connection, values)
         self.assertEquals(1, len(self.xform.submissions.all()))
         
         # check that constraint is upheld
@@ -799,19 +804,19 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.field.constraints.create(type='min_val', test='0', message="You are negative old")
 
         values = { 'gender': 'male', 'age': '900', 'name': 'Eugene'}
-        self.assertRaises(ValidationError, self.xform.process_import_submission, "", values)
+        self.assertRaises(ValidationError, self.xform.process_import_submission, "", connection, values)
         self.assertEquals(1, len(self.xform.submissions.all()))
 
         values = { 'gender': 'male', 'age': '-1', 'name': 'Eugene'}
-        self.assertRaises(ValidationError, self.xform.process_import_submission, "", values)
+        self.assertRaises(ValidationError, self.xform.process_import_submission, "", connection, values)
         self.assertEquals(1, len(self.xform.submissions.all()))
 
         # try sending extra fields that are not in the form
         values = { 'gender': 'male', 'age': 'Should be number', 'name': 'Eugene', 'extra': "This shouldn't be provided"}
-        self.assertRaises(ValidationError, self.xform.process_import_submission, "", values)
+        self.assertRaises(ValidationError, self.xform.process_import_submission, "", connection, values)
         self.assertEquals(1, len(self.xform.submissions.all()))
 
         # try sending extra fields that are not in the form
         values = { 'gender': 'male', 'age': '99', 'name': 'Eugene'}
-        self.xform.process_import_submission("", values)
+        self.xform.process_import_submission("", connection, values)
         self.assertEquals(2, len(self.xform.submissions.all()))
