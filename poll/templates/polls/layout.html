@@ -3,6 +3,7 @@
 {% block title %}Polls{% endblock %}
 
 {% block stylesheets %}
+{{ block.super }}
 <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/layout.css" />
 <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/splits.css" />
 <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/modules.css" />
@@ -10,7 +11,6 @@
 <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/forms.css" />
 <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/forms.css" />
 <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}poll/stylesheets/style.css" />
-
 <link rel="stylesheet" href="{{ MEDIA_URL }}poll/stylesheets/uni-form-generic.css" type="text/css" />
 <link rel="stylesheet" href="{{ MEDIA_URL }}poll/stylesheets/uni-form.css" type="text/css" />
 {% endblock %}
