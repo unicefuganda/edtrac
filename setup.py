@@ -7,7 +7,12 @@ setup(
 
     install_requires = [
         "rapidsms==0.9.6a",
-        "django-uni-form"
+        "django-uni-form",
+        "django-eav>=0.9.2"
+    ],
+
+    dependency_links = [
+        "https://github.com/mvpdev/django-eav/tarball/master#egg=django-eav-0.9.2"
     ],
 
     description='Interactive form builder for both XForms and SMS submissions into RapidSMS',
@@ -21,7 +26,7 @@ setup(
 
     include_package_data=True,
 
-    packages=['rapidsms_xforms'],
+    packages=find_packages(),
 
     zip_safe=False,
     classifiers=[

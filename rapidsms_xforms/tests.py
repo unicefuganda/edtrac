@@ -596,6 +596,11 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.assertEquals(self.xform, XForm.find_form("..survey hello world"))
         self.assertEquals(self.xform, XForm.find_form(".+survey hello world"))
 
+        # quotes
+        self.assertEquals(self.xform, XForm.find_form("'survey' hello world"))
+        self.assertEquals(self.xform, XForm.find_form("'survey', hello world"))
+        self.assertEquals(self.xform, XForm.find_form("survey,hello world"))
+
         # shouldn't pass, edit distance of 2
         self.assertEquals(None, XForm.find_form("furvey1 hello world"))
 
@@ -770,7 +775,6 @@ class SubmissionTest(TestCase): #pragma: no cover
         # something invalid
         submission = xform.process_sms_submission("time +timespan infinity plus one", None)
         self.failUnlessEqual(submission.has_errors, True)
-
 
     def testImportSubmissions(self):
 
