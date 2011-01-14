@@ -577,6 +577,10 @@ class SubmissionTest(TestCase): #pragma: no cover
         Tests how we find which form a particular message matches.
         """
 
+        # test simple case
+        self.assertEquals(self.xform, XForm.find_form("survey"))
+        self.assertEquals(None, XForm.find_form("missing"))
+
         # have another form that is similar, to test that we match correctly in exact matches
         surve_form = XForm.on_site.create(name='surve', keyword='surve', owner=self.user,
                                           site=Site.objects.get_current(), response='thanks')

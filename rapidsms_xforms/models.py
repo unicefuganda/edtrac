@@ -90,7 +90,7 @@ class XForm(models.Model):
         matched = None
         for form in XForm.on_site.filter(active=True):
             remainder = form.parse_keyword(message, False)
-            if remainder:
+            if not remainder is None:
                 matched = form
                 break
 
