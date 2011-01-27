@@ -6,3 +6,4 @@ def prop(input, property):
 
 register = template.Library()
 register.filter('prop', prop)
+

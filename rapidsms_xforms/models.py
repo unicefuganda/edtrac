@@ -477,14 +477,15 @@ class XForm(models.Model):
         context = Context(template_vars)
         return template.render(context)
 
-    def process_sms_submission(self, message, connection):
+    def process_sms_submission(self, message_obj):
         """
         Given an incoming SMS message, will create a new submission.  If there is an error
         we will throw with the appropriate error message.
         
         The newly created submission object will be returned.
         """
-
+        message = message_obj.text
+        connection = message_obj.connection
         # parse our submission
         sub_dict = self.parse_sms_submission(message)
 
@@ -515,10 +516,8 @@ class XForm(models.Model):
 
         # set our transient response
         submission.response = sub_dict['response']
-
         # trigger our signal
-        xform_received.send(sender=self, xform=self, submission=submission)
-        
+        xform_received.send(sender=self, xform=self, submission=submission, message=message_obj.db_message)
         return submission
 
     def check_template(self, template):
