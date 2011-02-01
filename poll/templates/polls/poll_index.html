@@ -18,6 +18,7 @@ function deletePoll(poll_id, poll_name) {
       <th class="poll_name_col">Name</th>  
       <th class="poll_question_col">Question</th>
       <th class="poll_date_col">Start Date</th>
+      <th class="poll_date_col">Closing Date</th>
       <th class="poll_options_col"></th> 
     </tr> 
   </thead> 
@@ -28,6 +29,7 @@ function deletePoll(poll_id, poll_name) {
       <td>{{ poll.name }}</td>
       <td><b>{% if poll.start_date %}{{ poll.question }}{% else %}<font color="grey">{{ poll.question }}</font>{% endif %}</b></td>
       <td>{% if poll.start_date %}{{ poll.start_date|date:"d/m/Y" }}{% endif %}</td>
+      <td>{% if poll.end_date %}{{ poll.end_date|date:"d/m/Y" }}{% else %}Open{% endif %}</td>      
       <td>
            <a style="float:right;padding-top:7px;" href="javascript:void(0);" onclick="deletePoll('{{poll.pk}}','{{poll.question|addslashes}}');"><img border="0" src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png"/></a>
 	
@@ -49,7 +51,7 @@ function deletePoll(poll_id, poll_name) {
     {% endfor %}
     {% else %}
     <tr class="poll_table_row">
-      <td colspan=3><i>No existing Polls.  Click 'Add New Poll' to create one.</i></td>
+      <td colspan="5"><i>No existing Polls.  Click 'Add New Poll' to create one.</i></td>
     </tr>
     {% endif %}
   </tbody>
