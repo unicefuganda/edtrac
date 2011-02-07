@@ -1,0 +1,26 @@
+
+<ul class="form" >
+
+{% for contact in contacts.object_list %}
+
+    <li><input type="checkbox">{{contact.name}}</input></li>
+
+
+{% endfor %}
+</ul>
+<div class="pagination">
+
+
+    {% for page in contacts.paginator.page_range %}
+      {% if page == contacts.number %}
+        {{ page }}
+      {% else %}
+
+        <a href="?page={{ page }}">{{ page }}</a>
+
+      {% endif %}
+    {% endfor %}
+
+</div>
+
+

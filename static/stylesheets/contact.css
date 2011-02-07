@@ -1,0 +1,14 @@
+#contacts ul  {
+    list-style:none;
+}
+
+
+#users{
+
+    margin-top:15px;
+    width:80%;
+}
+
+#add_new{
+   margin-left:30px;
+}

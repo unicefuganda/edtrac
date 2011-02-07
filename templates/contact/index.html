@@ -18,11 +18,26 @@
 
     <div id="filters" class="module">
     <h2>Filters</h2>
+    
+    <form action="/contact/search_filters" method="Get">
+        <label for="filters_search">Search Filters:</label>
+        <input type="text" name="search" id="filters_search">
+    </form>
 
     </div>
 
     <div id="contacts" class="module" >
     <h2>Users</h2>
+<div id="new_contact">
+
+</div>
+        <div id="users">
+           <span> <input type="checkbox" name="select all" onchange="toggle_select_all()">Select All  <a id="add_new" href="javascript:void(0)" onclick="load_new()" name="add new">Add New</a></span>
+    <div id="contacts_list">
+
+    </div>
+
+            </div>
 
     </div>
     <div id="actions" class="module">
