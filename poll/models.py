@@ -84,6 +84,12 @@ class Poll(models.Model):
     sites = models.ManyToManyField(Site)
     objects = (CurrentSiteManager('sites') if settings.SITE_ID else models.Manager())
 
+    class Meta:
+        permissions = (
+            ("can_poll", "Can send polls"),
+            ("can_edit_poll", "Can edit poll rules, categories, and responses"),
+        )
+
     @classmethod
     def create_yesno(cls, name, question, default_response, contacts, user):
         """

@@ -7,6 +7,7 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django.contrib.auth.decorators import login_required, permission_required
 from rapidsms_httprouter.router import get_router
 from rapidsms.messages.outgoing import OutgoingMessage
 from django.contrib.auth.models import Group
@@ -33,6 +34,7 @@ def responses_as_csv(req, pk):
     return resp
 
 @require_GET
+@login_required
 def polls(req): 
     polls = Poll.objects.order_by('start_date')
     breadcrumbs = (('Polls', ''),)
@@ -59,7 +61,8 @@ def demo(req, poll_id):
     outgoing = OutgoingMessage(c2, "dear Amuru representative: uReport, Uganda's community-level monitoring system, shows that 46.7% of young reporters in your district found that their local water point IS NOT functioning.")
     router.handle_outgoing(outgoing)
     return HttpResponse(status=200)
-    
+
+@permission_required('polls.can_poll')
 def new_poll(req):
     if req.method == 'POST':
         form = NewPollForm(req.POST)
@@ -95,6 +98,7 @@ def new_poll(req):
         "polls/poll_create.html", { 'form': form },
         context_instance=RequestContext(req))
 
+@login_required
 def view_poll(req, poll_id):
     poll = get_object_or_404(Poll, pk=poll_id)
     categories = Category.objects.filter(poll=poll)
@@ -103,6 +107,7 @@ def view_poll(req, poll_id):
         { 'poll': poll, 'categories': categories, 'category_count' : len(categories), 'breadcrumbs' : breadcrumbs },
         context_instance=RequestContext(req))
 
+@login_required
 def view_report(req, poll_id, location_id=None, as_module=False):
     template = "polls/poll_report.html"
     poll = get_object_or_404(Poll, pk=poll_id)
@@ -145,12 +150,14 @@ def view_report(req, poll_id, location_id=None, as_module=False):
     else:
         return render_to_response(template, context, context_instance=RequestContext(req))
 
+@login_required
 def view_poll_details(req, form_id):
     poll = get_object_or_404(Poll, pk=form_id)
     return render_to_response("polls/poll_details.html",
         { 'poll': poll },
         context_instance=RequestContext(req))
 
+@permission_required('polls.can_edit_poll')
 def edit_poll(req, poll_id):
     poll = get_object_or_404(Poll,pk=poll_id)
     categories = Category.objects.filter(poll=poll)
@@ -172,6 +179,7 @@ def edit_poll(req, poll_id):
         { 'form': form, 'poll': poll, 'categories': categories, 'category_count' : len(categories), 'breadcrumbs' : breadcrumbs },
         context_instance=RequestContext(req))
 
+@login_required
 def view_responses(req, poll_id, as_module=False):
     poll = get_object_or_404(Poll,pk=poll_id)
 
@@ -208,7 +216,7 @@ def _get_response_edit_form(response, data=None):
         else:
             return NameResponseForm(response=response, initial={'value':response.eav.poll_text_value})
 
-
+@permission_required('polls.can_edit_poll')
 def apply_response(req, response_id):
     response = get_object_or_404(Response, pk=response_id)
     poll = response.poll
@@ -227,6 +235,7 @@ def apply_response(req, response_id):
 
     return redirect("/polls/%d/responses/" % poll.pk)
 
+@login_required
 def apply_all(req, poll_id):
     poll = get_object_or_404(Poll, pk=poll_id)
     for response in Response.objects.filter(poll=poll):
@@ -245,6 +254,7 @@ def apply_all(req, poll_id):
     return redirect("/polls/%d/responses/" % poll.pk)
 
 @transaction.commit_on_success
+@permission_required('polls.can_edit_poll')
 def edit_response(req, response_id):
     response = get_object_or_404(Response, pk=response_id)
     poll = response.poll 
@@ -274,12 +284,14 @@ def edit_response(req, response_id):
         { 'form' : form, 'response': response },
         context_instance=RequestContext(req))
 
+@login_required
 def view_response(req, response_id):
     response = get_object_or_404(Response, pk=response_id)
     return render_to_response(view_templates_dict[response.poll.type], 
         { 'response': response },
         context_instance=RequestContext(req))
-    
+
+@permission_required('polls.can_edit_poll')
 def delete_response (req, response_id):
     response = get_object_or_404(Response, pk=response_id)
     poll = response.poll
@@ -288,14 +300,16 @@ def delete_response (req, response_id):
         
     return redirect("/polls/%d/responses/" % poll.pk)
 
+@login_required
 def view_category(req, poll_id, category_id):
     poll = get_object_or_404(Poll, pk=poll_id)
     category = get_object_or_404(Category, pk=category_id)
     return render_to_response("polls/category_view.html", 
         { 'poll': poll, 'category' : category },
         context_instance=RequestContext(req))
-    
+
 @transaction.commit_on_success
+@permission_required('polls.can_edit_poll')
 def edit_category (req, poll_id, category_id):
     poll = get_object_or_404(Poll, pk=poll_id)
     category = get_object_or_404(Category, pk=category_id)
@@ -322,6 +336,7 @@ def edit_category (req, poll_id, category_id):
         { 'form' : form, 'poll': poll, 'category' : category },
         context_instance=RequestContext(req))
 
+@permission_required('polls.can_edit_poll')
 def add_category(req, poll_id):
     poll = get_object_or_404(Poll, pk=poll_id)
     form = CategoryForm()
@@ -347,6 +362,7 @@ def add_category(req, poll_id):
         { 'form' : form, 'poll' : poll },
         context_instance=RequestContext(req))
 
+@permission_required('polls.can_edit_poll')
 def delete_poll (req, poll_id):
     poll = get_object_or_404(Poll, pk=poll_id)
     if req.method == 'POST':
@@ -354,6 +370,7 @@ def delete_poll (req, poll_id):
         
     return redirect("/polls")
 
+@permission_required('polls.can_poll')
 def start_poll (req, poll_id):
     poll = Poll.objects.get(pk=poll_id)
     if req.method == 'POST':
@@ -363,6 +380,7 @@ def start_poll (req, poll_id):
         {"poll" : poll},
         context_instance=RequestContext(req))
 
+@permission_required('polls.can_edit_poll')
 def end_poll (req, poll_id):
     poll = Poll.objects.get(pk=poll_id)
     if req.method == 'POST':
@@ -372,6 +390,7 @@ def end_poll (req, poll_id):
         {"poll" : poll},
         context_instance=RequestContext(req))
 
+@permission_required('polls.can_edit_poll')
 def delete_category (req, poll_id, category_id):
     poll = get_object_or_404(Poll, pk=poll_id)
     category = get_object_or_404(Category, pk=category_id)
@@ -381,7 +400,7 @@ def delete_category (req, poll_id, category_id):
         
     return redirect("/polls/%d/edit/" % poll.pk)
 
-@transaction.commit_on_success
+@permission_required('polls.can_edit_poll')
 def edit_rule(req, poll_id, category_id, rule_id) :
     
     poll = get_object_or_404(Poll, pk=poll_id)
@@ -409,7 +428,7 @@ def edit_rule(req, poll_id, category_id, rule_id) :
         { 'buttons' : save_button, 'form' : form, 'poll': poll, 'category' : category, 'item' : rule },
         context_instance=RequestContext(req))
 
-@transaction.commit_on_success
+@permission_required('polls.can_edit_poll')
 def add_rule(req, poll_id, category_id):
     poll = get_object_or_404(Poll, pk=poll_id)
     if poll.type != Poll.TYPE_TEXT:
@@ -434,7 +453,8 @@ def add_rule(req, poll_id, category_id):
     return render_to_response("polls/table_row_edit.html", 
         { 'buttons' : save_button, 'form' : form, 'poll': poll, 'category' : category },
         context_instance=RequestContext(req))
-    
+
+@login_required
 def view_rule(req, poll_id, category_id, rule_id) :
     
     poll = get_object_or_404(Poll, pk=poll_id)
@@ -444,7 +464,7 @@ def view_rule(req, poll_id, category_id, rule_id) :
         { 'columns' : rule_columns, 'buttons' : rule_buttons, 'item' : rule, 'poll' : poll, 'category' : category },
         context_instance=RequestContext(req))
     
-    
+@login_required
 def view_rules(req, poll_id, category_id):
     poll = get_object_or_404(Poll, pk=poll_id)
     category = get_object_or_404(Category, pk=category_id)
@@ -457,6 +477,7 @@ def view_rules(req, poll_id, category_id):
         context_instance=RequestContext(req))
 
 @transaction.commit_on_success
+@permission_required('polls.can_edit_poll')
 def delete_rule (req, poll_id, category_id, rule_id):
     rule = get_object_or_404(Rule, pk=rule_id)
     category = rule.category
