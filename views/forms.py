@@ -38,8 +38,10 @@ class contactsActionForm(forms.Form):
         pass
 
 class filterGroups(contactsFilterForm):
+    """ concrete implementation of filter form """
     group=forms.ModelMultipleChoiceField(queryset=Team.objects.all().order_by('name'), required=False)
-    def filter():
+    def filter(self):
+        queryset=Contact.objects.all()
         return queryset.filter(group__in=self.cleaned_data['group'])
 
 class NewContactForm(forms.ModelForm):
