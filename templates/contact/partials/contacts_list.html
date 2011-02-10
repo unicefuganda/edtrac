@@ -1,13 +1,12 @@
-
-<ul class="form" >
-
+{{ contacts.objects_list }}
 {% for contact in contacts.object_list %}
+    <ul>
+<li><input type="checkbox" id="{{contact.pk}}"  name="{{ contact.name }}">
 
-    <li><input type="checkbox">{{contact.name}}</input></li>
-
-
-{% endfor %}
+</input>{{ contact.name }}</li>
 </ul>
+{% endfor %}
+
 <div class="pagination">
 
 
@@ -16,11 +15,9 @@
         {{ page }}
       {% else %}
 
-        <a href="?page={{ page }}">{{ page }}</a>
+        <a href="javascript:void(0)" onclick="load_page({{ page }})" >{{ page }}</a>
 
       {% endif %}
     {% endfor %}
 
 </div>
-
-

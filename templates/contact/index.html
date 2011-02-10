@@ -19,10 +19,11 @@
     <div id="filters" class="module">
         <h2>Filters</h2>
 {{ filter_forms }}
-        <form action="/contact/search_filters" method="Get">
-           {% for f in filter_forms %}
-               {{ f.as_html }}
+        <form action="/contact/contact_list" method="Get" id="filter">
+           {% for f in filter_form_instances %}
+               {{ f}}
             {% endfor %}
+        <a href="javascript:void(0)" onclick="filter_contacts(this)">  Update </a>
         </form>
 
     </div>
@@ -35,13 +36,15 @@
 
         </div>
         <div id="users">
-            <span> <input type="checkbox" name="select all" onchange="toggle_select_all()">Select All  <a id="add_new"
+            <span> <input type="checkbox" name="select all" value="all" onchange="toggle_select_all()">Select All  <a id="add_new"
                                                                                                           href="javascript:void(0)"
                                                                                                           onclick="load_new()"
                                                                                                           name="add new">Add
                 New</a></span>
 
             <div id="contacts_list">
+
+                {{ contacts_form.contacts }}
 
             </div>
 
