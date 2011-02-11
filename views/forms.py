@@ -24,22 +24,28 @@ class contactsWidget(Widget):
         data.update(contacts=contacts)
         template = get_template('contact/partials/contacts_list.html')
         return template.render(Context(data))
+    def value_from_datadict(self,data,files,name):
+        try:
+            d=[int(val) for val in dict(data)[name]]
+        except KeyError:
+            d=[]
+        return Contact.objects.filter(pk__in=d)
 
 class contactsForm(forms.Form):
-    contacts=forms.CharField(widget=contactsWidget)
+    contacts=forms.CharField(required=False,widget=contactsWidget)
 class contactsFilterForm(forms.Form):
     """ abstract filter class for filtering contacts"""
     @property
-    def perform(self):
+    def filter(self):
         raise NotImplementedError("subclasses pleaseimplent this")
-
-
-
 
 class contactsActionForm(forms.Form):
     """ abstract class for all the filter forms"""
+    def __init__(self,queryset=None,*args,**kwargs):
+        self.queryset=queryset
+        super(contactsActionForm,self).__init__(*args,**kwargs)
     @property    
-    def filter(queryset):
+    def perform(self):
         raise NotImplementedError("subclasses pleaseimplent this")
 
 
@@ -64,3 +70,12 @@ class freeSearchForm(contactsFilterForm):
             | Q(charges__icontains=term)
             | Q(reporting_location__icontains=term))
         return qs
+class MassTextForm(contactsActionForm):
+    text = forms.CharField(max_length=160, required=True)
+    def parform(self):
+        connections = Connection.objects.filter(contact__in=queryset).distinct()
+        router = get_router()
+        text=self.cleaned_data['text']
+        for conn in connections:
+            outgoing = OutgoingMessage(conn, text)
+            router.handle_outgoing(outgoing)

@@ -4,7 +4,7 @@ from rapidsms.models import Contact
 from contact.views.forms import  NewContactForm,freeSearchForm,contactsForm
 from django.core.paginator import Paginator, InvalidPage
 from status160.models import  Team
-from django.http import Http404
+from django.http import Http404,HttpResponseRedirect
 
 def index(request,template, form_types=[], action_types=[]):
     action_form_instances=[]
@@ -35,7 +35,10 @@ def contacts_list(request, page=None,form_types=[]):
         for form in form_types:
             filter_form=form(request.POST)
             if filter_form.is_valid():
-                contact_list=contact_list & filter_form.filter()
+                if form_types.index(form)==0:
+                    contact_list = filter_form.filter()
+                else:
+                    contact_list=contact_list | filter_form.filter()
         request.session['contact_list']=contact_list
         request.session['filtered']=True
         paginator = Paginator(contact_list, 20, allow_empty_first_page=True)
@@ -65,8 +68,21 @@ def contacts_list(request, page=None,form_types=[]):
 def add_contact(request):
     contact = Contact.create(name=request.POST.get('name', ''))
 
-def handle_actions(request,actions_list=[]):
-    pass
+def form_actions(request,actions_list=[]):
+    if request.method=="POST":
+        contact_form_instance=contactsForm(request.POST)
+        if "all" in request.POST:
+            contacts=Contact.objects.all()
+        else:
+            if contact_form_instance.is_valid():
+                contacts=contact_form_instance.cleaned_data['contacts']
+
+        for form in actions_list:
+            aform=form(request.POST,contacts)
+            if a_form.is_valid():
+                a_form.perform()
+    return HttpResponseRedirect('/contact/index')
+
 def new_contact(request):
     new_contact_form = NewContactForm()
     return render_to_response('contact/partials/new_contact.html', {'new_contact_form':new_contact_form})

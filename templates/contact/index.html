@@ -18,12 +18,12 @@
 
     <div id="filters" class="module">
         <h2>Filters</h2>
-{{ filter_forms }}
+        {{ filter_forms }}
         <form action="/contact/contact_list" method="Get" id="filter">
-           {% for f in filter_form_instances %}
-               {{ f}}
+            {% for f in filter_form_instances %}
+                {{ f }}
             {% endfor %}
-        <a href="javascript:void(0)" onclick="filter_contacts(this)">  Update </a>
+            <a href="javascript:void(0)" onclick="filter_contacts(this)"> Update </a>
         </form>
 
     </div>
@@ -36,28 +36,32 @@
 
         </div>
         <div id="users">
-            <span> <input type="checkbox" name="select all" value="all" onchange="toggle_select_all()">Select All  <a id="add_new"
-                                                                                                          href="javascript:void(0)"
-                                                                                                          onclick="load_new()"
-                                                                                                          name="add new">Add
+            <span> <input type="checkbox" name="select all" value="all" onchange="toggle_select_all()">Select All  <a
+                    id="add_new"
+                    href="javascript:void(0)"
+                    onclick="load_new()"
+                    name="add new">Add
                 New</a></span>
 
-            <div id="contacts_list">
+            <form action="/contact/actions" method="POST">
+                <div id="contacts_list">
 
-                {{ contacts_form.contacts }}
+                    {{ contacts_form.contacts }}
 
-            </div>
+                </div>
 
         </div>
 
     </div>
     <div id="actions" class="module">
         <h2>Actions</h2>
-    <form action="/contact/actions" method="POST" >
-    {% for form in action_forms %}
-               {{ form.as_html }}
-            {% endfor %}
-</form>
+
+
+        {% for f in action_forms %}
+            {{ f }}
+        {% endfor %}
+        <input type="submit" name="submit" value="execute">
+        </form>
     </div>
 
 {% endblock %}
