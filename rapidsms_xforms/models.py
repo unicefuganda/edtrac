@@ -424,7 +424,15 @@ class XForm(models.Model):
 
                     try:
                         cleaned = field.clean_submission(value)
-                        values.append(dict(name=field.command, value=cleaned))
+                        # check for duplicate values
+                        duplicate = False
+                        for d in values:
+                            if d['name'] == field.command:
+                                duplicate = True
+                                errors.append(ValidationError("Expected one value for %s, more than one was given." % field.description))                                
+                                break
+                        if not duplicate:
+                            values.append(dict(name=field.command, value=cleaned))        
                     except ValidationError as err:
                         errors.append(err)
 
@@ -442,11 +450,15 @@ class XForm(models.Model):
             else:
                 value_count[name] = 1
 
-        # check that all required fields had a value set
+        # do basic sanity checks over all fields
         for field in self.fields.all():
             required_const = field.constraints.all().filter(type="req_val")
+            # check that all required fields had a value set
             if required_const and field.command not in value_count:
                 errors.append(ValidationError(required_const[0].message))
+            # check that all fields actually have values
+            if field.command in value_dict and not value_dict[field.command]:
+                errors.append(ValidationError("Expected a value for %s, none given." % field.description))
 
         # no errors?  wahoo
         if not errors:
