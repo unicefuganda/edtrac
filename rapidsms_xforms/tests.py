@@ -291,6 +291,13 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.failUnlessEqual(submission.has_errors, True)
         self.failUnlessEqual(2, len(submission.errors))
 
+    def testSingleFieldSpecialCase(self):
+        special_xform = XForm.on_site.create(name='test special', keyword='reg', owner=self.user, separator=',',
+                                          site=Site.objects.get_current(), response='thanks')        
+        field = special_xform.fields.create(field_type=XFormField.TYPE_TEXT, name='name', command='name')
+        submission = special_xform.process_sms_submission(IncomingMessage(None, "+reg davey crockett"))
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'davey crockett')
+
     def testSignal(self):
         # add a listener to our signal
         class Listener:

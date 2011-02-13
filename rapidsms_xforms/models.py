@@ -297,12 +297,17 @@ class XForm(models.Model):
         # separator mode means we don't split on spaces
         separator = None
 
-        # figure out if we are using separators
-        if self.separator and message.find(self.separator) >= 0:
-            separator = self.separator
+        # if the separator is some non-whitespace character, and this form has only
+        # one text-type field, the entire remainder can be considered its [command]-value pair
+        if self.separator and self.separator.strip() and self.fields.count() == 1 and self.fields.all()[0].field_type == XFormField.TYPE_TEXT:
+            segments = [remainder,]
+        else:
+            # figure out if we are using separators
+            if self.separator and message.find(self.separator) >= 0:
+                separator = self.separator
 
-        # so first let's split on the separator passed in
-        segments = remainder.split(separator)
+            # so first let's split on the separator passed in
+            segments = remainder.split(separator)
 
         # remove any segments that are empty
         stripped_segments = []
