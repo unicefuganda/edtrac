@@ -205,7 +205,7 @@ class SubmissionTest(TestCase): #pragma: no cover
 
     def testOrdering(self):
         # submit a record, some errors only occur after there is at least one
-        submission = self.xform.process_sms_submission("survey +age 10 +name matt berg +gender male", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey +age 10 +name matt berg +gender male"))
 
         fields = self.xform.fields.all()
         self.failUnlessEqual(self.gender_field.pk, fields[0].pk)
@@ -238,7 +238,7 @@ class SubmissionTest(TestCase): #pragma: no cover
     def testSMSSubmission(self):
         self.assertEquals('thanks', self.xform.response)
 
-        submission = self.xform.process_sms_submission("survey +age 10 +name matt berg +gender male", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey +age 10 +name matt berg +gender male"))
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 3)
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
@@ -246,22 +246,22 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
 
         # make sure case doesn't matter
-        submission = self.xform.process_sms_submission("Survey +age 10 +name matt berg +gender male", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "Survey +age 10 +name matt berg +gender male"))
         self.failUnlessEqual(submission.has_errors, False)
 
         # make sure it works with space in front of keyword
-        submission = self.xform.process_sms_submission("  survey male 10 +name matt berg", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "  survey male 10 +name matt berg"))
         self.failUnlessEqual(submission.has_errors, False)
 
         # test with just an age and gender
-        submission = self.xform.process_sms_submission("survey male 10", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 10"))
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 2)
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
 
         # mix of required and not
-        submission = self.xform.process_sms_submission("survey male 10 +name matt berg", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 10 +name matt berg"))
         self.failUnlessEqual('thanks', submission.response)
         self.failUnlessEqual(len(submission.values.all()), 3)
         self.failUnlessEqual(submission.has_errors, False)
@@ -270,7 +270,7 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
 
         # make sure optional works as well 
-        submission = self.xform.process_sms_submission("survey male 10 matt", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 10 matt"))
         self.failUnlessEqual('thanks', submission.response)
         self.failUnlessEqual(len(submission.values.all()), 3)
         self.failUnlessEqual(submission.has_errors, False)
@@ -279,7 +279,7 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
 
         # make sure we record errors if there is a missing age
-        submission = self.xform.process_sms_submission("survey +name luke skywalker", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey +name luke skywalker"))
         self.failUnlessEqual(submission.has_errors, True)
 
         # our response should be an error message
@@ -287,7 +287,7 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.failUnlessEqual(2, len(submission.errors))
 
         # make sure we record errors if there is just the keyword
-        submission = self.xform.process_sms_submission("survey", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey"))
         self.failUnlessEqual(submission.has_errors, True)
         self.failUnlessEqual(2, len(submission.errors))
 
@@ -303,7 +303,7 @@ class SubmissionTest(TestCase): #pragma: no cover
         listener = Listener()
         xform_received.connect(listener.handle_submission)
 
-        submission = self.xform.process_sms_submission("survey male 10 +name matt berg", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 10 +name matt berg"))
         self.failUnlessEqual(listener.submission, submission)
         self.failUnlessEqual(listener.xform, self.xform)
 
@@ -315,7 +315,7 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.failUnlessEqual(listener.submission.values.get(attribute__name='name').value, 'greg snider')
 
     def testUpdateFromDict(self):
-        submission = self.xform.process_sms_submission("survey male +age 10 +name matt berg", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male +age 10 +name matt berg"))
         self.failUnlessEqual(len(submission.values.all()), 3)
 
         # now update the form using a dict
@@ -346,7 +346,7 @@ class SubmissionTest(TestCase): #pragma: no cover
         field = self.xform.fields.create(field_type='user', name='user', command='user', order=3)
         field.constraints.create(type='req_val', test='None', message="You must include a user")
 
-        submission = self.xform.process_sms_submission("survey male 10 fred", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 10 fred"))
 
         self.failUnlessEqual(len(submission.values.all()), 3)
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
@@ -356,30 +356,30 @@ class SubmissionTest(TestCase): #pragma: no cover
     def testConfirmationId(self):
         self.xform.save()
 
-        submission = self.xform.process_sms_submission("survey male 10", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 10"))
         self.assertEquals(1, submission.confirmation_id)
 
         # and another
-        submission2 = self.xform.process_sms_submission("survey male 12", None)
+        submission2 = self.xform.process_sms_submission(IncomingMessage(None, "survey male 12"))
         self.assertEquals(2, submission2.confirmation_id)
 
         self.xform2 = XForm.on_site.create(name='test2', keyword='test2', owner=self.user,
                                            site=Site.objects.get_current())
 
-        submission3 = self.xform2.process_sms_submission("test2", None)
+        submission3 = self.xform2.process_sms_submission(IncomingMessage(None, "test2"))
         self.assertEquals(1, submission3.confirmation_id)
 
-        submission4 = self.xform.process_sms_submission("survey male 21", None)
+        submission4 = self.xform.process_sms_submission(IncomingMessage(None, "survey male 21"))
         self.assertEquals(3, submission4.confirmation_id)
 
         # that resaving the submission doesn't increment our id
-        submission5 = self.xform.process_sms_submission("survey male 22", None)
+        submission5 = self.xform.process_sms_submission(IncomingMessage(None, "survey male 22"))
         self.assertEquals(4, submission5.confirmation_id)
         submission5.raw = "foo"
         submission5.save()
         self.assertEquals(4, submission5.confirmation_id)
 
-        submission6 = self.xform.process_sms_submission("survey male 23", None)
+        submission6 = self.xform.process_sms_submission(IncomingMessage(None, "survey male 23"))
         self.assertEquals(5, submission6.confirmation_id)
 
     def testTemplateResponse(self):
@@ -388,28 +388,28 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.xform.save()
 
         # assert the message response is right
-        submission = self.xform.process_sms_submission("survey male 10", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 10"))
         self.failUnlessEqual(submission.response, self.xform.response)
 
         # now change the xform to return the age and gender
         self.xform.response = "You recorded an age of {{ age }} and a gender of {{ gender }}.  Your confirmation id is {{ confirmation_id }}."
         self.xform.save()
 
-        submission = self.xform.process_sms_submission("survey male 10", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 10"))
         self.failUnlessEqual(submission.response, "You recorded an age of 10 and a gender of male.  Your confirmation id is 2.")
 
         # if they insert a command that isn't there, it should just be empty
         self.xform.response = "You recorded an age of {{ age }} and a gender of {{ gender }}.  {{ not_there }} Thanks."
         self.xform.save()
 
-        submission = self.xform.process_sms_submission("survey male 10", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 10"))
         self.failUnlessEqual(submission.response, "You recorded an age of 10 and a gender of male.   Thanks.")
 
         # make sure template arguments work
         self.xform.response = "The two values together are: {{ age|add:gender }}."
         self.xform.save()
 
-        submission = self.xform.process_sms_submission("survey male 10", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 10"))
         self.failUnlessEqual(submission.response, "The two values together are: 10.")
 
         # assert we don't let forms save with templates that fail
@@ -426,7 +426,7 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.xform.command_prefix = '-'
         self.xform.save()
 
-        submission = self.xform.process_sms_submission("survey -age 10 -name matt berg -gender male", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey -age 10 -name matt berg -gender male"))
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 3)
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
@@ -434,7 +434,7 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
 
         # test duplicating the prefix or having junk in it
-        submission = self.xform.process_sms_submission("survey -age 10 --name matt berg -+gender male", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey -age 10 --name matt berg -+gender male"))
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 3)
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
@@ -445,7 +445,7 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.xform.command_prefix = None
         self.xform.save()
 
-        submission = self.xform.process_sms_submission("survey age 10 name matt berg gender male", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey age 10 name matt berg gender male"))
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 3)
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
@@ -453,7 +453,7 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
 
         # test mix of required and not required
-        submission = self.xform.process_sms_submission("survey male 10 name matt berg", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 10 name matt berg"))
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 3)
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
@@ -464,56 +464,56 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.xform.separator = ","
         self.xform.save()
 
-        submission = self.xform.process_sms_submission("survey male 10 matt", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 10 matt"))
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 3)
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
         self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt')
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
 
-        submission = self.xform.process_sms_submission("survey,male,10,matt berg", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey,male,10,matt berg"))
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 3)
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
         self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt berg')
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
 
-        submission = self.xform.process_sms_submission("survey male, 10, matt berg", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male, 10, matt berg"))
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 3)
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
         self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt berg')
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
 
-        submission = self.xform.process_sms_submission("survey male,10,matt berg", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male,10,matt berg"))
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 3)
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
         self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt berg')
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
 
-        submission = self.xform.process_sms_submission("survey male, , 10,,, matt berg", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male, , 10,,, matt berg"))
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 3)
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
         self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt berg')
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
 
-        submission = self.xform.process_sms_submission("survey male,10, +name bniz berg", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male,10, +name bniz berg"))
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 3)
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
         self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'bniz berg')
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
 
-        submission = self.xform.process_sms_submission("survey male,10 +name bniz berg", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male,10 +name bniz berg"))
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 3)
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
         self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'bniz berg')
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
 
-        submission = self.xform.process_sms_submission("survey male,10,, +name bniz berg", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male,10,, +name bniz berg"))
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 3)
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
@@ -523,21 +523,21 @@ class SubmissionTest(TestCase): #pragma: no cover
     def testCustomKeywordPrefix(self):
         self.xform.keyword_prefix = '+'
         
-        submission = self.xform.process_sms_submission(" +survey male 10 matt", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, " +survey male 10 matt"))
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 3)
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
         self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt')
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
 
-        submission = self.xform.process_sms_submission(" + survey male 10 matt", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, " + survey male 10 matt"))
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 3)
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
         self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt')
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
 
-        submission = self.xform.process_sms_submission(" ++ survey male 10 matt", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, " ++ survey male 10 matt"))
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 3)
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
@@ -559,7 +559,7 @@ class SubmissionTest(TestCase): #pragma: no cover
         listener = Listener()
         xform_received.connect(listener.handle_submission)
 
-        submission = self.xform.process_sms_submission("survey male 10 +name matt berg", None)
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 10 +name matt berg"))
         self.failUnlessEqual(listener.submission, submission)
         self.failUnlessEqual(listener.xform, self.xform)
         self.failUnlessEqual("hello world", submission.response)
@@ -677,7 +677,7 @@ class SubmissionTest(TestCase): #pragma: no cover
         f1 = xform.fields.create(field_type=XFormField.TYPE_INT, name='ma', command='ma', order=0)        
         f2 = xform.fields.create(field_type=XFormField.TYPE_INT, name='bd', command='bd', order=1)
 
-        submission = xform.process_sms_submission("+epi ma 12, bd 5", None)
+        submission = xform.process_sms_submission(IncomingMessage(None, "+epi ma 12, bd 5"))
         
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 2)
@@ -699,7 +699,7 @@ class SubmissionTest(TestCase): #pragma: no cover
         f4 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='length', command='length', order=3)
         f4.constraints.create(type='req_val', test='None', message="You must include a length")
 
-        submission = xform.process_sms_submission("+muac davey crockett, m, 6 months, red", None)
+        submission = xform.process_sms_submission(IncomingMessage(None, "+muac davey crockett, m, 6 months, red"))
         
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 4)
@@ -718,7 +718,7 @@ class SubmissionTest(TestCase): #pragma: no cover
         f2 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='gender', command='gender', order=1)
         f3 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='age', command='age', order=2)
 
-        submission = xform.process_sms_submission("+death malthe borg, m, 5day", None)
+        submission = xform.process_sms_submission(IncomingMessage(None, "+death malthe borg, m, 5day"))
         self.assertEquals(xform, XForm.find_form("+derth malthe borg, m, 5day"))
         self.assertEquals(xform, XForm.find_form("+daeth malthe borg, m, 5day"))        
         
@@ -755,19 +755,19 @@ class SubmissionTest(TestCase): #pragma: no cover
         f1 = xform.fields.create(field_type='timespan', name='timespan', command='timespan', order=0)        
 
         # try five months
-        submission = xform.process_sms_submission("time +timespan 5 months", None)
+        submission = xform.process_sms_submission(IncomingMessage(None, "time +timespan 5 months"))
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 1)
         self.failUnlessEqual(submission.values.get(attribute__name='timespan').value, 150)
 
         # try 6 days
-        submission = xform.process_sms_submission("time +timespan 6days", None)
+        submission = xform.process_sms_submission(IncomingMessage(None, "time +timespan 6days"))
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 1)
         self.failUnlessEqual(submission.values.get(attribute__name='timespan').value, 6)
 
         # something invalid
-        submission = xform.process_sms_submission("time +timespan infinity plus one", None)
+        submission = xform.process_sms_submission(IncomingMessage(None, "time +timespan infinity plus one"))
         self.failUnlessEqual(submission.has_errors, True)
 
 

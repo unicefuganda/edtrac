@@ -517,7 +517,7 @@ class XForm(models.Model):
         # set our transient response
         submission.response = sub_dict['response']
         # trigger our signal
-        xform_received.send(sender=self, xform=self, submission=submission, message=message_obj.db_message)
+        xform_received.send(sender=self, xform=self, submission=submission, message=message_obj)
         return submission
 
     def check_template(self, template):
