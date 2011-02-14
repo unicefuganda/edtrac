@@ -5,6 +5,7 @@ from contact.views.forms import  NewContactForm,freeSearchForm,contactsForm
 from django.core.paginator import Paginator, InvalidPage
 from status160.models import  Team
 from django.http import Http404,HttpResponseRedirect
+from contact.views import forms
 
 def index(request,template, form_types=[], action_types=[]):
     action_form_instances=[]
@@ -70,6 +71,7 @@ def add_contact(request):
         contact_form=NewContactForm(request.POST)
         if contact_form.is_valid():
             contact_form.save()
+        
 
     return HttpResponseRedirect("/contact/index")
 
@@ -81,11 +83,11 @@ def form_actions(request,actions_list=[]):
         else:
             if contact_form_instance.is_valid():
                 contacts=contact_form_instance.cleaned_data['contacts']
-
-        for form in actions_list:
-            aform=form(request.POST,contacts)
-            if a_form.is_valid():
-                a_form.perform()
+        form_name=str(dict(request.POST).get('form_type')[0])
+        form_c=getattr(forms,form_name)
+        aform=form_c(request.POST,contacts)
+        if aform.is_valid():
+            a_form.perform()
     return HttpResponseRedirect('/contact/index')
 
 def new_contact(request):
