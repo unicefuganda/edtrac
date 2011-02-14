@@ -11,7 +11,7 @@ class App (AppBase):
 
         # if so, process it
         if form:
-            submission = form.process_sms_submission(message.text, message.connection)
+            submission = form.process_sms_submission(message)
             message.respond(submission.response)
             return True
 

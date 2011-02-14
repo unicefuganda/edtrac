@@ -298,12 +298,17 @@ class XForm(models.Model):
         # separator mode means we don't split on spaces
         separator = None
 
-        # figure out if we are using separators
-        if self.separator and message.find(self.separator) >= 0:
-            separator = self.separator
+        # if the separator is some non-whitespace character, and this form has only
+        # one text-type field, the entire remainder can be considered its [command]-value pair
+        if self.separator and self.separator.strip() and self.fields.count() == 1 and self.fields.all()[0].field_type == XFormField.TYPE_TEXT:
+            segments = [remainder,]
+        else:
+            # figure out if we are using separators
+            if self.separator and message.find(self.separator) >= 0:
+                separator = self.separator
 
-        # so first let's split on the separator passed in
-        segments = remainder.split(separator)
+            # so first let's split on the separator passed in
+            segments = remainder.split(separator)
 
         # remove any segments that are empty
         stripped_segments = []
@@ -420,7 +425,15 @@ class XForm(models.Model):
 
                     try:
                         cleaned = field.clean_submission(value)
-                        values.append(dict(name=field.command, value=cleaned))
+                        # check for duplicate values
+                        duplicate = False
+                        for d in values:
+                            if d['name'] == field.command:
+                                duplicate = True
+                                errors.append(ValidationError("Expected one value for %s, more than one was given." % field.description))                                
+                                break
+                        if not duplicate:
+                            values.append(dict(name=field.command, value=cleaned))        
                     except ValidationError as err:
                         errors.append(err)
 
@@ -438,11 +451,15 @@ class XForm(models.Model):
             else:
                 value_count[name] = 1
 
-        # check that all required fields had a value set
+        # do basic sanity checks over all fields
         for field in self.fields.all():
             required_const = field.constraints.all().filter(type="req_val")
+            # check that all required fields had a value set
             if required_const and field.command not in value_count:
                 errors.append(ValidationError(required_const[0].message))
+            # check that all fields actually have values
+            if field.command in value_dict and not value_dict[field.command]:
+                errors.append(ValidationError("Expected a value for %s, none given." % field.description))
 
         # no errors?  wahoo
         if not errors:
@@ -478,14 +495,15 @@ class XForm(models.Model):
         context = Context(template_vars)
         return template.render(context)
 
-    def process_sms_submission(self, message, connection):
+    def process_sms_submission(self, message_obj):
         """
         Given an incoming SMS message, will create a new submission.  If there is an error
         we will throw with the appropriate error message.
         
         The newly created submission object will be returned.
         """
-
+        message = message_obj.text
+        connection = message_obj.connection
         # parse our submission
         sub_dict = self.parse_sms_submission(message)
 
@@ -516,10 +534,8 @@ class XForm(models.Model):
 
         # set our transient response
         submission.response = sub_dict['response']
-
         # trigger our signal
-        xform_received.send(sender=self, xform=self, submission=submission)
-        
+        xform_received.send(sender=self, xform=self, submission=submission, message=message_obj)
         return submission
 
     def check_template(self, template):
