@@ -25,8 +25,7 @@ Built by Nyaruka Ltd under contract of UNICEF:
   http://www.nyaruka.com
 
 You may want to check the history for list of changes for each version:
-  http://www.github.com/nyaruka/rapidsms-xforms/CHANGES.rst
-
+  http://github.com/nyaruka/rapidsms-xforms/blob/master/CHANGES.rst
 
 Installation From Cheese Shop
 ===========================================
