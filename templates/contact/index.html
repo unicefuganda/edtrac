@@ -36,8 +36,7 @@
 
         </div>
         <div id="users">
-            <span> <input type="checkbox" name="select all" value="all" onchange="toggle_select_all()">Select All  <a
-                    id="add_new"
+            <span> <input type="checkbox" name="select all" value="all" onchange="toggle_select_all()">Select All<a                  id="add_new"
                     href="javascript:void(0)"
                     onclick="load_new()"
                     name="add new">Add
@@ -56,7 +55,7 @@
     <div id="actions" class="module">
         <h2>Actions</h2>
 
-
+<span>Group</span>
         {% for f in action_forms %}
             {{ f }}
         {% endfor %}
