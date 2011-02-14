@@ -66,7 +66,12 @@ def contacts_list(request, page=None,form_types=[]):
                               context_instance=RequestContext(request))
 
 def add_contact(request):
-    contact = Contact.create(name=request.POST.get('name', ''))
+    if request.method=="POST":
+        contact_form=NewContactForm(request.POST)
+        if contact_form.is_valid():
+            contact_form.save()
+
+    return HttpResponseRedirect("/contact/index")
 
 def form_actions(request,actions_list=[]):
     if request.method=="POST":
