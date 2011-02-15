@@ -6,7 +6,7 @@ from django.template.context import Context
 from django.core.paginator import Paginator, Page
 from status160.models import  Team
 from django.db.models import Q
-
+from django.forms.widgets import HiddenInput
 class contactsWidget(Widget):
     def __init__(self, language=None, attrs=None, **kwargs):
         super(contactsWidget, self).__init__(attrs)
@@ -72,10 +72,21 @@ class freeSearchForm(contactsFilterForm):
         return qs
 class MassTextForm(contactsActionForm):
     text = forms.CharField(max_length=160, required=True)
-    def parform(self):
+    form_type=forms.CharField(widget=HiddenInput(attrs ={'value':'MassTextForm'}))
+
+    def perform(self):
         connections = Connection.objects.filter(contact__in=queryset).distinct()
         router = get_router()
         text=self.cleaned_data['text']
         for conn in connections:
             outgoing = OutgoingMessage(conn, text)
             router.handle_outgoing(outgoing)
+
+class CreateGroup(contactsActionForm):
+    name = forms.CharField(max_length=160, required=True)
+    def parform(self):
+        group_name=self.cleaned_data['text']
+        for conn in connections:
+            outgoing = OutgoingMessage(conn, text)
+            router.handle_outgoing(outgoing)
+
