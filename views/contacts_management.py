@@ -11,10 +11,9 @@ def index(request,template, form_types=[], action_types=[]):
     action_form_instances=[]
     filter_form_instances=[]
     contacts_form=contactsForm(settings.CONTACTS_TEMPLATE)
-    qs=Contact._default_manager.all()
+    qs=Contact.objects.all()
 
     for f_form in form_types:
-
         temp_form = f_form()
         filter_form_instances.append(temp_form)
 
@@ -22,7 +21,7 @@ def index(request,template, form_types=[], action_types=[]):
         temp_form = a_form()
         action_form_instances.append(temp_form)
 
-    return render_to_response(template, {'action_forms':action_form_instances,'contacts_form':contacts_form,'filter_form_instances':filter_form_instances}, context_instance=RequestContext(request))
+    return render_to_response(template, {'action_forms':action_form_instances,'contacts_form':contacts_form,'filter_form_instances':filter_form_instances,}, context_instance=RequestContext(request))
 
 def contacts_list(request,template,form_types=[]):
     """ view that works with the contacts form to handle the pagination"""

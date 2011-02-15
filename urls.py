@@ -5,7 +5,6 @@ from contact import settings
 
 
 urlpatterns = patterns('',
-
 url(r'^contact/index', contacts_management.index,{'form_types':[filterGroups,freeSearchForm],'action_types':[MassTextForm],'template':'contact/index.html'},name='contact',),
 url(r'^contact/contact_list', contacts_management.contacts_list,{'template':settings.CONTACTS_TEMPLATE,'form_types':[filterGroups,freeSearchForm]}),
 url(r'^contact/add', contacts_management.add_contact),
