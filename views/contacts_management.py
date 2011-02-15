@@ -6,7 +6,7 @@ from django.core.paginator import Paginator, InvalidPage
 from status160.models import  Team
 from django.http import Http404,HttpResponseRedirect
 
-def index(request,template, form_types=[], action_types=[]):
+def index(request,template,partial, form_types=[], action_types=[]):
     action_form_instances=[]
     filter_form_instances=[]
     contacts_form=contactsForm()
@@ -21,7 +21,7 @@ def index(request,template, form_types=[], action_types=[]):
         temp_form = a_form()
         action_form_instances.append(temp_form)
 
-    return render_to_response(template, {'action_forms':action_form_instances,'contacts_form':contacts_form,'filter_form_instances':filter_form_instances}, context_instance=RequestContext(request))
+    return render_to_response(template, {'action_forms':action_form_instances,'contacts_form':contacts_form,'filter_form_instances':filter_form_instances, 'partial':partial}, context_instance=RequestContext(request))
 
 def contacts_list(request, page=None,form_types=[]):
     """ view that works with the contacts form to handle the pagination"""

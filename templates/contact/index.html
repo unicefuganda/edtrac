@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% load renderPartial %}
 {% block title %}
     Contacts Management - {{ block.super }}
 {% endblock %}
@@ -27,26 +28,21 @@
         </form>
 
     </div>
-
-
+<form action="/contact/actions" method="POST">
     <div id="contacts" class="module">
         <h2>Users</h2>
 
         <div id="new_contact">
-
         </div>
         <div id="users">
             <span> <input type="checkbox" name="select all" value="all" onchange="toggle_select_all()">Select All  <a
                     id="add_new"
                     href="javascript:void(0)"
                     onclick="load_new()"
-                    name="add new">Add
-                New</a></span>
-
-            <form action="/contact/actions" method="POST">
+                    name="add new">Add New</a></span>
                 <div id="contacts_list">
 
-                    {{ contacts_form.contacts }}
+                    {{ contacts_form.contacts|renders:partial }}
 
                 </div>
 
@@ -61,7 +57,7 @@
             {{ f }}
         {% endfor %}
         <input type="submit" name="submit" value="execute">
-        </form>
     </div>
+ </form>
 
 {% endblock %}
