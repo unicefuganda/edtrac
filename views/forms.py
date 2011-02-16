@@ -72,8 +72,7 @@ class freeSearchForm(contactsFilterForm):
         queryset=Contact.objects.all()
         term=self.cleaned_data['term']
         qs=queryset.filter(Q(name__icontains=term)
-            | Q(charges__icontains=term)
-            | Q(reporting_location__icontains=term))
+            | Q(reporting_location__name__icontains=term))
         return qs
 class MassTextForm(contactsActionForm):
     text = forms.CharField(max_length=160, required=True)
