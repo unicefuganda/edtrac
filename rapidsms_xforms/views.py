@@ -242,7 +242,8 @@ class ConstraintForm(forms.ModelForm):
     class Meta:
         model = XFormFieldConstraint
         fields = ('type', 'test', 'message') # Why do we need order?
-        
+
+@csrf_exempt        
 def add_field(req, form_id):
     xform = XForm.on_site.get(pk=form_id)
     fields = XFormField.objects.filter(xform=xform)
@@ -355,7 +356,7 @@ def view_field(req, form_id, field_id):
         { 'xform': xform, 'field' : field },
         context_instance=RequestContext(req))
     
-
+@csrf_exempt
 def edit_field (req, form_id, field_id):
     xform = XForm.on_site.get(pk=form_id)
     field = XFormField.objects.get(pk=field_id)
