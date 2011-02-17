@@ -298,12 +298,12 @@ def make_submission_form(xform):
                 field_val = str(cleaned_data.get(command))
 
                 try:
-                    print "XFormField %s cleaning %s" % (field, field_val)
                     cleaned_val = field.clean_submission(field_val)
+                    cleaned_data[command] = cleaned_val
                 except ValidationError as err:
                     # if there is an error, remove it from our cleaned data and 
                     # add the error to our list of errors for this form
-                    self._errors[field.command] = (self.error_class(err))
+                    self._errors[field.command] = self.error_class(err.messages)
                     del cleaned_data[field.command]
 
         return cleaned_data
@@ -399,6 +399,7 @@ def delete_field (req, form_id, field_id):
         
     return redirect("/xforms/%d/edit/" % xform.pk)
 
+@csrf_exempt
 def add_constraint(req, form_id, field_id):
     xform = XForm.on_site.get(pk=form_id)
     field = XFormField.objects.get(pk=field_id)
@@ -422,6 +423,7 @@ def add_constraint(req, form_id, field_id):
         { 'buttons' : add_button, 'form' : form, 'xform' : xform, 'field' : field },
         context_instance=RequestContext(req))
 
+@csrf_exempt
 def edit_constraint(req, form_id, field_id, constraint_id) :
     
     xform = XForm.on_site.get(pk=form_id)

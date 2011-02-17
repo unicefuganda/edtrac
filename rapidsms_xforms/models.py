@@ -175,6 +175,7 @@ class XForm(models.Model):
             # no new value, we need to remove this one
             else:
                 value.delete()
+                
         # now add any remaining values in our dict
         for key, value in values.items():
             # look up the field by key
