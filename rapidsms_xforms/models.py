@@ -426,15 +426,7 @@ class XForm(models.Model):
 
                     try:
                         cleaned = field.clean_submission(value)
-                        # check for duplicate values
-                        duplicate = False
-                        for d in values:
-                            if d['name'] == field.command:
-                                duplicate = True
-                                errors.append(ValidationError("Expected one value for %s, more than one was given." % field.description))                                
-                                break
-                        if not duplicate:
-                            values.append(dict(name=field.command, value=cleaned))        
+                        values.append(dict(name=field.command, value=cleaned))        
                     except ValidationError as err:
                         errors.append(err)
 
@@ -443,21 +435,27 @@ class XForm(models.Model):
         # lambda, just don't have time now
         value_count = {}
         value_dict = {}
-        for value_pair in values:
-            name = value_pair['name']
-            value_dict[name] = value_pair['value']
 
+        # not we iterate over a copy of the list since we'll be modifying our original list in the case of dupes
+        for value_pair in list(values):
+            name = value_pair['name']
+
+            # if we already have a value for this field
             if name in value_count:
-                value_count[name] += 1
+                # add an error and remove the duplicate
+                errors.append(ValidationError("Expected one value for %s, more than one was given." % name))
+                values.remove(value_pair)                
             else:
                 value_count[name] = 1
+                value_dict[name] = value_pair['value']
 
         # do basic sanity checks over all fields
         for field in self.fields.all():
-            required_const = field.constraints.all().filter(type="req_val")
             # check that all required fields had a value set
+            required_const = field.constraints.all().filter(type="req_val")
             if required_const and field.command not in value_count:
                 errors.append(ValidationError(required_const[0].message))
+
             # check that all fields actually have values
             if field.command in value_dict and not value_dict[field.command]:
                 errors.append(ValidationError("Expected a value for %s, none given." % field.description))
