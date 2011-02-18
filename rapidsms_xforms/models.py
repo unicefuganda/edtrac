@@ -430,6 +430,11 @@ class XForm(models.Model):
                     except ValidationError as err:
                         errors.append(err)
 
+
+        # now do any pull parsing
+        for field in self.fields.all():
+            
+
         # build a map of the number of values we have for each included field
         # TODO: for the love of god, someone show me how to do this in one beautiful Python 
         # lambda, just don't have time now
@@ -464,6 +469,8 @@ class XForm(models.Model):
         if not errors:
             submission['has_errors'] = False
             submission['response'] = self.response
+
+        # boo!
         else:
             error = submission['errors'][0]
             if getattr(error, 'messages', None):
@@ -503,6 +510,7 @@ class XForm(models.Model):
         """
         message = message_obj.text
         connection = message_obj.connection
+
         # parse our submission
         sub_dict = self.parse_sms_submission(message)
 
@@ -533,8 +541,10 @@ class XForm(models.Model):
 
         # set our transient response
         submission.response = sub_dict['response']
+
         # trigger our signal
         xform_received.send(sender=self, xform=self, submission=submission, message=message_obj)
+
         return submission
 
     def check_template(self, template):
@@ -618,10 +628,10 @@ class XFormField(Attribute):
     # This list is manipulated when new fields are added at runtime via the register_field_type
     # hook.
 
-    TYPE_CHOICES = [
-        dict( label='Integer', type=TYPE_INT, db_type=TYPE_INT, xforms_type='integer', parser=None ),
-        dict( label='Decimal', type=TYPE_FLOAT, db_type=TYPE_FLOAT, xforms_type='decimal', parser=None ),
-        dict( label='String', type=TYPE_TEXT, db_type=TYPE_TEXT, xforms_type='string', parser=None )
+    TYPE_CHOICES = {
+        TYPE_INT:   dict( label='Integer', type=TYPE_INT, db_type=TYPE_INT, xforms_type='integer', parser=None, pull=False),
+        TYPE_FLOAT: dict( label='Decimal', type=TYPE_FLOAT, db_type=TYPE_FLOAT, xforms_type='decimal', parser=None, pull=False),
+        TYPE_TEXT:  dict( label='String', type=TYPE_TEXT, db_type=TYPE_TEXT, xforms_type='string', parser=None, pull=False)
     ]
 
     xform = models.ForeignKey(XForm, related_name='fields')
@@ -636,7 +646,7 @@ class XFormField(Attribute):
         ordering = ('order', 'id')
 
     @classmethod
-    def register_field_type(cls, field_type, label, parserFunc, db_type=TYPE_TEXT, xforms_type='string'):
+    def register_field_type(cls, field_type, label, parserFunc, db_type=TYPE_TEXT, xforms_type='string', pull=False):
         """
         Used to register a new field type for XForms.  You can use this method to build new field types that are
         available when building XForms.  These types may just do custom parsing of the SMS text sent in, then stuff
@@ -645,24 +655,26 @@ class XFormField(Attribute):
         Refer to GeoPoint implementation to see an example of the latter.
 
         Arguments are:
-           label: The label used for this field type in the user interface
-           field_type: A slug to identify this field type, must be unique across all field types
-           parser: The function called to turn the raw string into the appropriate type, should take two arguments.
-                   Takes two arguments, 'command', which is the command of the field, and 'value' the string value submitted.
-           db_type: How the value will be stored in the database, can be one of: TYPE_INT, TYPE_FLOAT, TYPE_TEXT or TYPE_OBJECT
+           label:       The label used for this field type in the user interface
+           field_type:  A slug to identify this field type, must be unique across all field types
+           parser:      The function called to turn the raw string into the appropriate type, should take two arguments.
+                        Takes two arguments, 'command', which is the command of the field, and 'value' the string value submitted.
+           db_type:     How the value will be stored in the database, can be one of: TYPE_INT, TYPE_FLOAT, TYPE_TEXT or TYPE_OBJECT
            xforms_type: The type as defined in an XML xforms specification, likely one of: 'integer', 'decimal' or 'string'
-
+           pull:        Whether this field should be 'pulled' from a submission or 'pushed' to it.  By default, the parser function
+                        will have the command name value pushed to it by the appropriate parser.  If pull is set to True, then instead
+                        the parser function will be given the entire submission and allowed to pull the value out.
         """
-        XFormField.TYPE_CHOICES.append(dict(type=field_type, label=label, 
-                                            db_type=db_type, parser=parserFunc, xforms_type=xforms_type))
+        XFormField.TYPE_CHOICES[field_type] = dict(type=field_type, label=label, 
+                                                   db_type=db_type, parser=parserFunc,
+                                                   xforms_type=xforms_type, pull=pull))
 
     @classmethod
     def lookup_type(cls, otype):
-        for typedef in XFormField.TYPE_CHOICES:
-            if otype == typedef['type']:
-                return typedef
-
-        raise ValidationError("Unable to find parser for field: '%s'" % otype)
+        if otype in XFormField.TYPE_CHOICES:
+            return XFormField[otype]
+        else:
+            raise ValidationError("Unable to find parser for field: '%s'" % otype)
 
 
     def derive_datatype(self):
