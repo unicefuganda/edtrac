@@ -266,8 +266,7 @@ class XForm(models.Model):
 
         return None
 
-
-    def parse_sms_submission(self, message):
+    def parse_sms_submission(self, message_obj):
         """
         sms submissions can have two formats, either explicitely marking each field:
             <keyword> +field_command1 [values] +field_command2 [values]
@@ -278,6 +277,7 @@ class XForm(models.Model):
         Note that if you are using the no-delimeter form, then all string fields are 'assumed' to be
         a single word.  TODO: this could probably be made to be smarter
         """
+        message = message_obj.text
 
         # we'll return a hash of values and/or errors
         submission = {}
@@ -430,10 +430,20 @@ class XForm(models.Model):
                     except ValidationError as err:
                         errors.append(err)
 
-
         # now do any pull parsing
         for field in self.fields.all():
-            
+            typedef = XFormField.lookup_type(field.field_type)
+
+            # if this is a pull field
+            if typedef['puller']:
+                try:
+                    # try to parse it out
+                    value = typedef['puller'](field.command, message_obj)
+                    if not value is None:
+                        cleaned = field.clean_submission(value)
+                        values.append(dict(name=field.command, value=cleaned))
+                except ValidationError as err:
+                    errors.append(err)
 
         # build a map of the number of values we have for each included field
         # TODO: for the love of god, someone show me how to do this in one beautiful Python 
@@ -441,7 +451,7 @@ class XForm(models.Model):
         value_count = {}
         value_dict = {}
 
-        # not we iterate over a copy of the list since we'll be modifying our original list in the case of dupes
+        # NOTE: we iterate over a copy of the list since we'll be modifying our original list in the case of dupes
         for value_pair in list(values):
             name = value_pair['name']
 
@@ -512,7 +522,7 @@ class XForm(models.Model):
         connection = message_obj.connection
 
         # parse our submission
-        sub_dict = self.parse_sms_submission(message)
+        sub_dict = self.parse_sms_submission(message_obj)
 
         # create our new submission, we'll add field values as we parse them
         submission = XFormSubmission(xform=self, type='sms', raw=message, connection=connection)
@@ -629,10 +639,10 @@ class XFormField(Attribute):
     # hook.
 
     TYPE_CHOICES = {
-        TYPE_INT:   dict( label='Integer', type=TYPE_INT, db_type=TYPE_INT, xforms_type='integer', parser=None, pull=False),
-        TYPE_FLOAT: dict( label='Decimal', type=TYPE_FLOAT, db_type=TYPE_FLOAT, xforms_type='decimal', parser=None, pull=False),
-        TYPE_TEXT:  dict( label='String', type=TYPE_TEXT, db_type=TYPE_TEXT, xforms_type='string', parser=None, pull=False)
-    ]
+        TYPE_INT:   dict( label='Integer', type=TYPE_INT, db_type=TYPE_INT, xforms_type='integer', parser=None, puller=None),
+        TYPE_FLOAT: dict( label='Decimal', type=TYPE_FLOAT, db_type=TYPE_FLOAT, xforms_type='decimal', parser=None, puller=None),
+        TYPE_TEXT:  dict( label='String', type=TYPE_TEXT, db_type=TYPE_TEXT, xforms_type='string', parser=None, puller=None)
+    }
 
     xform = models.ForeignKey(XForm, related_name='fields')
     field_type = models.SlugField(max_length=8, null=True, blank=True)
@@ -646,7 +656,7 @@ class XFormField(Attribute):
         ordering = ('order', 'id')
 
     @classmethod
-    def register_field_type(cls, field_type, label, parserFunc, db_type=TYPE_TEXT, xforms_type='string', pull=False):
+    def register_field_type(cls, field_type, label, parserFunc, db_type=TYPE_TEXT, xforms_type='string', puller=None):
         """
         Used to register a new field type for XForms.  You can use this method to build new field types that are
         available when building XForms.  These types may just do custom parsing of the SMS text sent in, then stuff
@@ -661,21 +671,20 @@ class XFormField(Attribute):
                         Takes two arguments, 'command', which is the command of the field, and 'value' the string value submitted.
            db_type:     How the value will be stored in the database, can be one of: TYPE_INT, TYPE_FLOAT, TYPE_TEXT or TYPE_OBJECT
            xforms_type: The type as defined in an XML xforms specification, likely one of: 'integer', 'decimal' or 'string'
-           pull:        Whether this field should be 'pulled' from a submission or 'pushed' to it.  By default, the parser function
-                        will have the command name value pushed to it by the appropriate parser.  If pull is set to True, then instead
-                        the parser function will be given the entire submission and allowed to pull the value out.
+           puller:      A method that can be used to 'pull' the value from an SMS submission.  This can be useful when the value of
+                        the field is actually derived from attributes in the message itself.  Note that the string value returned will
+                        then be passed off to the parser.
         """
         XFormField.TYPE_CHOICES[field_type] = dict(type=field_type, label=label, 
                                                    db_type=db_type, parser=parserFunc,
-                                                   xforms_type=xforms_type, pull=pull))
+                                                   xforms_type=xforms_type, puller=puller)
 
     @classmethod
     def lookup_type(cls, otype):
         if otype in XFormField.TYPE_CHOICES:
-            return XFormField[otype]
+            return XFormField.TYPE_CHOICES[otype]
         else:
             raise ValidationError("Unable to find parser for field: '%s'" % otype)
-
 
     def derive_datatype(self):
         """

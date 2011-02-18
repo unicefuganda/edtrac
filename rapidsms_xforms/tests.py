@@ -753,6 +753,58 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, "m")
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, "5day")
 
+
+    def testPullerCustomerField(self):
+        # Tests creating a field that is based on the connection of the message, not anything in the message
+        # itself.
+
+        def parse_connection(command, value):
+            # we should be able to find a connection with this identity
+            matches = Connection.objects.filter(identity=value)
+            if matches:
+                return matches[0]
+
+            raise ValidationError("%s parameter value of '%s' does not match any connections.")
+
+        def pull_connection(command, message):
+            # this pulls the actual hone number from the message and returns it as a string
+            # note that in this case we will actually only match if the phone number starts with '072'
+            identity = message.connection.identity
+            if identity.startswith('072'):
+                return identity
+            else:
+                return None
+
+        XFormField.register_field_type('conn', 'Connection', parse_connection,
+                                       xforms_type='string', db_type=XFormField.TYPE_OBJECT, puller=pull_connection)
+        
+
+        # create a new form
+        xform = XForm.on_site.create(name='sales', keyword='sales', owner=self.user,
+                                     site=Site.objects.get_current(), response='thanks for submitting your report')
+
+        # create a single field for our connection puller
+        f1 = xform.fields.create(field_type='conn', name='conn', command='conn', order=0)
+
+        # and make it required
+        f1.constraints.create(type='req_val', test='None', message="Missing connection.")        
+
+        # create some connections to work with
+        butt = Backend.objects.create(name='foo')
+        conn1 = Connection.objects.create(identity='0721234567', backend=butt)
+        conn2 = Connection.objects.create(identity='0781234567', backend=butt)
+
+        # check that we parse out the connection correctly
+        submission = xform.process_sms_submission(IncomingMessage(conn1, "sales"))
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 1)
+        self.failUnlessEqual(submission.values.get(attribute__name='conn').value, conn1)
+
+        # now try with a connection that shouldn't match
+        submission = xform.process_sms_submission(IncomingMessage(conn2, "sales"))
+        self.failUnlessEqual(submission.has_errors, True)
+        self.failUnlessEqual(len(submission.values.all()), 0)
+
     def testAgeCustomField(self):
         # creates a new field type that parses strings into an integer number of days
         # ie, given a string like '5days' or '6 months' will return either 5, or 30
