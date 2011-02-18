@@ -54,6 +54,9 @@ class XForm(models.Model):
     separator = models.CharField(max_length=1, choices=SEPARATOR_CHOICES, null=True, blank=True,
                                  help_text="The separator character for fields, field values will be split on this character.")
 
+    locked = models.BooleanField(default=False,
+                                 help_text="Marks this form as locked, which means that changes cannot be made via the normal interface.")
+
     owner = models.ForeignKey(User)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)

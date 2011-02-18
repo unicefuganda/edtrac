@@ -128,6 +128,7 @@ class EditXFormForm(forms.ModelForm): # pragma: no cover
         model = XForm
         fields = ('name', 'keyword','keyword_prefix', 'command_prefix', 'separator', 'description', 'response', 'active')
 
+
     helper = FormHelper()
         
     layout = Layout(
@@ -192,6 +193,7 @@ def view_form_details(req, form_id):
 
 def edit_form(req, form_id):
     xform = XForm.on_site.get(pk=form_id)
+
     fields = XFormField.objects.order_by('order').filter(xform=xform)
 
     breadcrumbs = (('XForms', '/xforms/'),('Edit Form', ''))
@@ -228,7 +230,7 @@ def order_xform (req, form_id):
 class FieldForm(forms.ModelForm):
     
     def updateTypes(self):
-        self.fields['field_type'].widget.choices = [(choice['type'], choice['label']) for choice in XFormField.TYPE_CHOICES]
+        self.fields['field_type'].widget.choices = [(choice['type'], choice['label']) for choice in XFormField.TYPE_CHOICES.values()]
 
     class Meta:
         model = XFormField
