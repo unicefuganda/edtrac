@@ -79,8 +79,6 @@ class MassTextForm(contactsActionForm):
     form_type=forms.CharField(widget=HiddenInput(attrs ={'value':'MassTextForm'}))
 
     def perform(self,queryset):
-        import pdb
-        pdb.set_trace()
         connections = Connection.objects.filter(contact__in=queryset).distinct()
         router = get_router()
         text=self.cleaned_data['text']
