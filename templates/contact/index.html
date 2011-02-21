@@ -10,7 +10,6 @@
 
 {% block javascripts %}
     {{ block.super }}
-
     <script src="{{MEDIA_URL}}contact/javascripts/contact.js" type="text/javascript"></script>
 {% endblock %}
 
@@ -30,7 +29,6 @@
 <form action="/contact/actions" method="POST">
     <div id="contacts" class="module">
         <h2>Users</h2>
-
         <div id="new_contact">
         </div>
         <div id="users">
@@ -39,21 +37,14 @@
                     onclick="load_new()"
                     name="add new">Add New</a></span>
                 <div id="contacts_list">
-
                     {{ contacts_form.contacts }}
-
                 </div>
-
         </div>
-
     </div>
     <div id="actions" class="module">
         <h2>Actions</h2>
-
-<span>Group</span>
         {% for f in action_forms %}
             {{ f }}
-            
         {% endfor %}
         <input type="submit" name="submit" value="execute">
     </div>
