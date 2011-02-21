@@ -10,10 +10,11 @@ from django.forms.widgets import HiddenInput
 from rapidsms_httprouter.router import get_router
 from rapidsms.messages.outgoing import OutgoingMessage
 from contact import settings
-class contactsWidget(Widget):
+
+class ContactsWidget(Widget):
     def __init__(self, contacts_template,language=None, attrs=None, **kwargs):
         self.contacts_template=contacts_template
-        super(contactsWidget, self).__init__(attrs)
+        super(ContactsWidget, self).__init__(attrs)
 
     def id_for_label(self, id):
         return id
@@ -28,6 +29,7 @@ class contactsWidget(Widget):
         data.update(contacts=contacts)
         template = get_template(self.contacts_template)
         return template.render(Context(data))
+
     def value_from_datadict(self,data,files,name):
         try:
             d=[int(val) for val in dict(data)[name]]
@@ -35,26 +37,26 @@ class contactsWidget(Widget):
             d=[]
         return d
 
-class contactsForm(forms.Form):
+class ContactsForm(forms.Form):
+
     def __init__(self,template, *args, **kwargs):
         self.template=template
-        super(contactsForm, self).__init__(*args, **kwargs)
-    contacts=forms.CharField(required=False,widget=contactsWidget(settings.CONTACTS_TEMPLATE))
+        super(ContactsForm, self).__init__(*args, **kwargs)
+    contacts=forms.CharField(required=False,widget=ContactsWidget(settings.CONTACTS_TEMPLATE))
 
-class contactsFilterForm(forms.Form):
+class ContactsFilterForm(forms.Form):
     """ abstract filter class for filtering contacts"""
     @property
     def filter(self):
-        raise NotImplementedError("subclasses pleaseimplent this")
+        raise NotImplementedError("Subclasses of ContactsFilterForm must implement the filter() method!")
 
-class contactsActionForm(forms.Form):
+class ContactsActionForm(forms.Form):
     """ abstract class for all the filter forms"""
     @property    
     def perform(self,queryset):
-        raise NotImplementedError("subclasses pleaseimplent this")
+        raise NotImplementedError("Subclasses of ContactsActionForm must implement the perform() method!")
 
-
-class filterGroups(contactsFilterForm):
+class FilterGroupsForm(ContactsFilterForm):
     """ concrete implementation of filter form """
     group=forms.ModelMultipleChoiceField(queryset=Team.objects.all().order_by('name'), required=False)
     def filter(self):
@@ -62,19 +64,24 @@ class filterGroups(contactsFilterForm):
         return queryset.filter(groups__in=self.cleaned_data['group'])
 
 class NewContactForm(forms.ModelForm):
+
     class Meta:
         model = Contact
 
-class freeSearchForm(contactsFilterForm):
+class FreeSearchForm(ContactsFilterForm):
     """ concrete implementation of filter form """
+
     term = forms.CharField(max_length=100)
+
     def filter(self):
         queryset=Contact.objects.all()
         term=self.cleaned_data['term']
         qs=queryset.filter(Q(name__icontains=term)
             | Q(reporting_location__name__icontains=term))
         return qs
-class MassTextForm(contactsActionForm):
+
+class MassTextForm(ContactsActionForm):
+
     text = forms.CharField(max_length=160, required=True)
     form_type=forms.CharField(widget=HiddenInput(attrs ={'value':'MassTextForm'}))
 
@@ -86,11 +93,12 @@ class MassTextForm(contactsActionForm):
             outgoing = OutgoingMessage(conn, text)
             router.handle_outgoing(outgoing)
 
-class CreateGroup(contactsActionForm):
+class CreateGroup(ContactsActionForm):
+
     name = forms.CharField(max_length=160, required=True)
-    def parform(self):
+
+    def perform(self):
         group_name=self.cleaned_data['text']
         for conn in connections:
             outgoing = OutgoingMessage(conn, text)
             router.handle_outgoing(outgoing)
-
