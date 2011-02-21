@@ -12,7 +12,7 @@ def contacts(request,template, form_types=[], action_types=[]):
     action_form_instances = []
     filter_form_instances = []
     contacts_form = ContactsForm(settings.CONTACTS_TEMPLATE)
-    qs=Contact.objects.all()
+    qs = Contact.objects.all()
 
     for f_form in form_types:
         temp_form = f_form()

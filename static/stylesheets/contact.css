@@ -1,14 +1,12 @@
-#contacts ul  {
+#contacts ul {
     list-style:none;
 }
 
-
-#users{
-
+#users {
     margin-top:15px;
     width:80%;
 }
 
-#add_new{
+#add_new {
    margin-left:30px;
 }
