@@ -17,6 +17,18 @@ from django.contrib.sites.managers import CurrentSiteManager
 from rapidsms.models import ExtensibleModelBase
 from eav.fields import EavSlugField
 
+try:
+    from django_franca.decorators import I18n
+except:
+    # django-franca isn't installed, oh well, create a dummy decorator instead
+    class I18n:
+        def __init__(self, *localized_fields):
+            pass
+        
+        def __call__(self, cls):
+            return cls
+
+@I18n('response')
 class XForm(models.Model):
     """
     An XForm, which is just a collection of fields.
@@ -53,9 +65,6 @@ class XForm(models.Model):
 
     separator = models.CharField(max_length=1, choices=SEPARATOR_CHOICES, null=True, blank=True,
                                  help_text="The separator character for fields, field values will be split on this character.")
-
-    locked = models.BooleanField(default=False,
-                                 help_text="Marks this form as locked, which means that changes cannot be made via the normal interface.")
 
     owner = models.ForeignKey(User)
     created = models.DateTimeField(auto_now_add=True)
@@ -609,8 +618,6 @@ class XForm(models.Model):
     def __unicode__(self): # pragma: no cover
         return self.name
 
-
-
 class XFormField(Attribute):
     """
     A field within an XForm.  Fields can be one of the types:
@@ -828,6 +835,7 @@ CONSTRAINT_CHOICES = (
     ('regex', 'Regular Expression')
 )
 
+@I18n('message')
 class XFormFieldConstraint(models.Model):
     """
     Constraint on a field.  A field can have 0..n constraints.  Constraints can be of
