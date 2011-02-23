@@ -1,0 +1,27 @@
+<h2>Results</h2>
+{% if status_message %}
+    {{ status_message }}
+{% endif %}
+{% block list_wrapper %}
+<table>
+{% endblock %}
+
+{% include partial_header %}
+
+{% block partial_base_content %}
+    {% for object in object_list %}
+      {% include partial_row %}
+    {% endfor %}
+{% endblock %}
+
+{% block list_wrapper_close %}
+</table>
+{% endblock %}
+
+{% block pagination %}
+{% if paginated %}
+    <input type="hidden" id="input_page_num" name="page_num" value="{{ page }}"/>
+    <input type="hidden" id="input_page_action" name="page_action" value=""/>
+    {% include paginator_template %}
+{% endif %}
+{% endblock %}

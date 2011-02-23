@@ -1,0 +1,5 @@
+<tr>
+    <td>
+    <input {% if selected %}checked="true"{% endif %} type="checkbox" onclick="$('#id_select_all').attr('checked', false)" name="results" value="{{ object.pk }}"/>    
+    {{ object }}</td>
+</tr>

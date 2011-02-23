@@ -1,0 +1,14 @@
+<p class="paginator">
+{% for range in ranges %}
+    {% for p in range %}
+        {% if p == page %}
+            {{ p }}
+        {% else %}
+            <a href="javascript:void(0)" onclick="page(this, {{ p }})">{{ p }}</a>
+        {% endif %}
+    {% endfor %}
+    {% if not forloop.last %}
+    ...
+    {% endif %}
+{% endfor %}
+</p>
