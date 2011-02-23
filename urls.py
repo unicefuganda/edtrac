@@ -1,12 +1,12 @@
 from django.conf.urls.defaults import *
-from . import views
-from contact.forms import FreeSearchForm, FilterGroupsForm, MassTextForm
+from .views import add_contact, new_contact
+from .forms import FreeSearchForm, FilterGroupsForm, MassTextForm
 from contact import settings
+from rapidsms.models import Contact
+from generic.views import generic
 
 urlpatterns = patterns('',
-   url(r'^contact/index', views.contacts,{'form_types':[FilterGroupsForm,FreeSearchForm],'action_types':[MassTextForm],'template':'contact/index.html'},name='contact',),
-   url(r'^contact/contact_list', views.contacts_list,{'template':settings.CONTACTS_TEMPLATE,'form_types':[FilterGroupsForm,FreeSearchForm]}),
-   url(r'^contact/add', views.add_contact),
-   url(r'^contact/new', views.new_contact),
-   url(r'^contact/actions', views.form_actions),
+   url(r'^contact/index/$', generic, {'model':Contact, 'filter_forms':[FreeSearchForm, FilterGroupsForm], 'action_forms':[MassTextForm],'objects_per_page':25}),
+   url(r'^contact/add', add_contact),
+   url(r'^contact/new', new_contact),
 )

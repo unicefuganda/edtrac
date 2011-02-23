@@ -1,1 +1,0 @@
-CONTACTS_TEMPLATE="contact/partials/contacts_list.html"
