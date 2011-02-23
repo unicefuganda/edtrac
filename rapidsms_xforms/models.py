@@ -760,7 +760,7 @@ class XFormField(Attribute):
         """
         typedef = self.lookup_type(self.field_type)
         if typedef:
-            return typedef['xform_type']
+            return typedef['xforms_type']
         else:
             raise RuntimeError("Field type: '%s' not supported in XForms" % self.field_type)
 
@@ -928,7 +928,7 @@ class XFormSubmission(models.Model):
         Assigns our confirmation id.  We increment our confirmation id's for each form 
         for every submission.  
         """
-        # only create confirmation ids for submissions without errors and which don't already have one
+        # everybody gets a confirmation id
         if not self.confirmation_id:
             try:
                 XFormSubmission.confirmation_lock.acquire()
