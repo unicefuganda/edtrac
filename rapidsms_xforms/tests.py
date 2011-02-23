@@ -469,15 +469,19 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
 
     def testSeparators(self):
-        self.xform.separator = ","
+        self.xform.separator = None
         self.xform.save()
 
-        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 10 matt"))
+        # this is also testing an edge case of a value being 0
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 0 matt"))
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 3)
-        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 0)
         self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt')
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
+
+        self.xform.separator = ","
+        self.xform.save()
 
         submission = self.xform.process_sms_submission(IncomingMessage(None, "survey,male,10,matt berg"))
         self.failUnlessEqual(submission.has_errors, False)

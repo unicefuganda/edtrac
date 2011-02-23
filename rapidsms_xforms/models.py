@@ -315,7 +315,7 @@ class XForm(models.Model):
         stripped_segments = []
         for segment in segments:
             segment = segment.strip()
-            if segment:
+            if len(segment):
                 # also split any of these up by prefix, we could have a segment at this point
                 # which looks like this:
                 #      asdf+name emile+age 10
@@ -338,7 +338,7 @@ class XForm(models.Model):
                         # and see if it is worthy of stripping
                         prefix_index = segment.find(self.command_prefix)
 
-                if segment:
+                if len(segment):
                     stripped_segments.append(segment)
 
         segments = stripped_segments
@@ -472,8 +472,8 @@ class XForm(models.Model):
                 errors.append(ValidationError(required_const[0].message))
 
             # check that all fields actually have values
-            if field.command in value_dict and not value_dict[field.command]:
-                errors.append(ValidationError("Expected a value for %s, none given." % field.description))
+            if field.command in value_dict and value_dict[field.command] is None:
+                errors.append(ValidationError("Expected a value for %s, none given." % field.name))
 
         # no errors?  wahoo
         if not errors:
