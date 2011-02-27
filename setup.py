@@ -5,7 +5,7 @@ setup(
     version='0.1',
     license="BSD",
 
-    requires = ["rapidsms (>=0.9.6a)", 'rapidsms-generic'],
+    requires = ["rapidsms", 'rapidsms-generic'],
 
     dependency_links = [
         "http://github.com/daveycrockett/rapidsms-generic/tarball/master#egg=rapidsms-generic"
