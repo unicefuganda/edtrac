@@ -5,7 +5,7 @@ setup(
     version='0.1',
     license="BSD",
 
-    requires = ["rapidsms", 'python (>= 2.5)', 'django (>= 1.2)'],
+    install_requires = ["rapidsms", 'python (>= 2.5)', 'django (>= 1.2)'],
 
     description='An extension for associating contacts with django users and groups.',
     long_description=open('README.rst').read(),
