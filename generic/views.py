@@ -59,13 +59,15 @@ def generic(request,
             if resultsform.is_valid():
                 results = resultsform.cleaned_data['results']
                 action_class = class_dict[action_taken]
-                action_instance = action_class()
-                status_message = action_instance.perform(request, results)
+                action_instance = action_class(request.POST)
+                if action_instance.is_valid():
+                    status_message = action_instance.perform(request, results)
 
         else:
             for form_class in filter_forms:
                 form_instance = form_class(request.POST)
-                object_list = form_instance.filter(request, object_list)
+                if form_instance.is_valid():
+                    object_list = form_instance.filter(request, object_list)
         selected = True
         response_template = partial_base
 
@@ -125,4 +127,5 @@ def generic(request,
             'ranges':ranges,
             'selected':selected,
             'status_message':status_message,
+            'base_template':'layout.html',
         },context_instance=RequestContext(request))
