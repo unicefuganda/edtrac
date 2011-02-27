@@ -9,7 +9,7 @@ setup(
 
     dependency_links = [
         "http://github.com/mvpdev/django-eav/tarball/master#egg=django-eav",
-        "http://github.com/mossplix/simple_location/tarball/master#egg=simple_locations",
+        "http://github.com/mossplix/simple_locations/tarball/master#egg=simple_locations",
     ],
 
     description='An application for a simple communication modality with SMS users: prompted questions, simple, training-less answers.',
