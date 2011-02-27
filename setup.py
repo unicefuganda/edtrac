@@ -5,7 +5,7 @@ setup(
     version='0.1',
     license="BSD",
 
-    requires = ["rapidsms", 'django-uni-form', 'django-eav', 'simple_locations'],
+    install_requires = ["rapidsms", 'django-uni-form', 'django-eav', 'simple_locations'],
 
     dependency_links = [
         "http://github.com/mvpdev/django-eav/tarball/master#egg=django-eav",
