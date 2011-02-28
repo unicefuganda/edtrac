@@ -568,7 +568,7 @@ class SubmissionTest(TestCase): #pragma: no cover
                     template_vars = self.submission.template_vars
 
                     # set our response to 'hello world' instead of 'thanks'
-                    self.submission.response = XForm.build_template_response("hello world {{ age }}", template_vars)
+                    self.submission.response = XForm.render_response("hello world {{ age }}", template_vars)
 
 
         listener = Listener()
