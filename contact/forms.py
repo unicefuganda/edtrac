@@ -9,10 +9,12 @@ from django.db.models import Q
 from django.forms.widgets import HiddenInput
 from rapidsms_httprouter.router import get_router, start_sending_mass_messages, stop_sending_mass_messages
 from rapidsms.messages.outgoing import OutgoingMessage
-from contact import settings
 from generic.forms import ActionForm, FilterForm
 from ureport.models import MassText
 from django.contrib.sites.models import Site
+from django.shortcuts import get_object_or_404
+
+from simple_locations.models import Area
 
 class FilterGroupsForm(FilterForm):
     """ concrete implementation of filter form """
@@ -35,6 +37,35 @@ class FreeSearchForm(FilterForm):
         term=self.cleaned_data['term']
         return queryset.filter(Q(name__icontains=term)
             | Q(reporting_location__name__icontains=term))
+class DistictFilterForm(FilterForm):
+    """ filter cvs districs on their districts """
+    district=forms.ChoiceField(choices=(('','-----'),)+tuple([(int(d.pk),d.name) for d in Area.objects.filter(kind__slug='district') ])+((-1,'No District'),))
+    def filter(self,request,queryset):
+        district_pk=self.cleaned_data['district']
+        if district_pk=='':
+            return queryset
+        elif int(district_pk)==-1:
+            return queryset.filter(healthproviderbase__location=None)
+        else:
+
+            try:
+                district=Area.objects.get(pk=district_pk)
+            except Area.DoesNotExist:
+                district=None
+            if district:
+                return queryset.filter(healthproviderbase__location__in=district.get_descendants())
+            else:
+                return queryset
+
+class FacilityFilterForm(FilterForm):
+    """ filter form for cvs facilities """
+    has_no_facility = forms.BooleanField(required=False)
+    def filter(self,request,queryset):
+        if self.cleaned_data['has_no_facility']:
+            return queryset.filter(healthproviderbase__location=None)
+        else:
+            return queryset
+
 
 class MassTextForm(ActionForm):
 
@@ -54,3 +85,4 @@ class MassTextForm(ActionForm):
             router.handle_outgoing(outgoing)
         stop_sending_mass_messages()
         return "Message successfully sent to %d numbers" % connections.count()
+
