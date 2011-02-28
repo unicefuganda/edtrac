@@ -508,7 +508,8 @@ class XForm(models.Model):
 
         return template_vars
 
-    def build_template_response(self, response, template_vars):
+    @classmethod
+    def build_template_response(cls, response, template_vars):
         """
         Given a template string a dictionary of values, tries to compile the template and evaluate it.
         """
@@ -537,7 +538,11 @@ class XForm(models.Model):
 
         # build our template response
         template_vars = self.build_template_vars(submission, sub_dict)
-        sub_dict['response'] = self.build_template_response(sub_dict['response'], template_vars)
+        sub_dict['response'] = XForm.build_template_response(sub_dict['response'], template_vars)
+
+        # save our template vars as a temporary value in our submission, this can be used by the
+        # signal later on
+        submission.template_vars = template_vars
 
         # the values we've pulled out
         values = {}

@@ -564,8 +564,11 @@ class SubmissionTest(TestCase): #pragma: no cover
                     self.submission = args['submission']
                     self.xform = args['xform']
 
+                    # make sure our template variables are set on the submission
+                    template_vars = self.submission.template_vars
+
                     # set our response to 'hello world' instead of 'thanks'
-                    self.submission.response = "hello world"
+                    self.submission.response = XForm.build_template_response("hello world {{ age }}", template_vars)
 
 
         listener = Listener()
@@ -574,7 +577,7 @@ class SubmissionTest(TestCase): #pragma: no cover
         submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 10 +name matt berg"))
         self.failUnlessEqual(listener.submission, submission)
         self.failUnlessEqual(listener.xform, self.xform)
-        self.failUnlessEqual("hello world", submission.response)
+        self.failUnlessEqual("hello world 10", submission.response)
 
         # test that it works via update as well
         new_vals = { 'age': 20, 'name': 'greg snider' }
