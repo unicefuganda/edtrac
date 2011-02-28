@@ -1,13 +1,14 @@
 <tr>
-{% block first_cell %}
-    <td>
-    {% block check_box %}
-        <input {% if selected %}checked="true"{% endif %} type="checkbox" onclick="$('#id_select_all').attr('checked', false)" name="results" value="{{ object.pk }}"/>
-    {% endblock %}
-    {% block first_cell_content %}    
-        {{ object }}
-    {% endblock %}
-    </td>
+    {% block first_cell %}
+        <td>
+            {% block check_box %}
+                <input {% if selected %}checked="true"{% endif %} type="checkbox" onclick="$('#id_select_all').attr('checked', false)" name="results" value="{{ object.pk }}"/>
+            {% endblock %}
+            {% block first_cell_content %}
+                {{ object }}
+            {% endblock %}
+        </td>
+    {% endblock %}    
     {% block remaining_row_content %}
     {% endblock %}
 </tr>
