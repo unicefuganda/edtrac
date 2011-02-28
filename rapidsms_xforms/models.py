@@ -353,9 +353,16 @@ class XForm(models.Model):
         for field in self.fields.all().order_by('order', 'id'):
             required = field.constraints.all().filter(type="req_val")
 
+            # lookup our field type
+            field_type = XFormField.lookup_type(field.field_type)
+
             # no more text in the message, break out
             if not segments:
                 break
+
+            # this field is pulled, not pushed, ignore
+            if not field_type['puller'] is None:
+                continue
 
             segment = segments.pop(0)
 

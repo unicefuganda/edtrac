@@ -789,9 +789,9 @@ class SubmissionTest(TestCase): #pragma: no cover
 
         # create a single field for our connection puller
         f1 = xform.fields.create(field_type='conn', name='conn', command='conn', order=0)
+        f1.constraints.create(type='req_val', test='None', message="Missing connection.")
 
-        # and make it required
-        f1.constraints.create(type='req_val', test='None', message="Missing connection.")        
+        f2 = xform.fields.create(field_type=XFormField.TYPE_INT, name='age', command='age', order=2)        
 
         # create some connections to work with
         butt = Backend.objects.create(name='foo')
@@ -799,10 +799,11 @@ class SubmissionTest(TestCase): #pragma: no cover
         conn2 = Connection.objects.create(identity='0781234567', backend=butt)
 
         # check that we parse out the connection correctly
-        submission = xform.process_sms_submission(IncomingMessage(conn1, "sales"))
+        submission = xform.process_sms_submission(IncomingMessage(conn1, "sales 123"))
         self.failUnlessEqual(submission.has_errors, False)
-        self.failUnlessEqual(len(submission.values.all()), 1)
+        self.failUnlessEqual(len(submission.values.all()), 2)
         self.failUnlessEqual(submission.values.get(attribute__name='conn').value, conn1)
+        self.failUnlessEqual(123, submission.eav.sales_age)
 
         # now try with a connection that shouldn't match
         submission = xform.process_sms_submission(IncomingMessage(conn2, "sales"))
