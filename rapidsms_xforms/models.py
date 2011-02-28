@@ -457,7 +457,7 @@ class XForm(models.Model):
             if required_const and field.command not in value_count:
                 errors.append(ValidationError(required_const[0].message))
             # check that all fields actually have values
-            if field.command in value_dict and not value_dict[field.command]:
+            if field.command in value_dict and value_dict[field.command] is None:
                 errors.append(ValidationError("Expected a value for %s, none given." % field.description))
 
         # no errors?  wahoo

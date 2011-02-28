@@ -699,6 +699,10 @@ class SubmissionTest(TestCase): #pragma: no cover
         submission = xform.process_sms_submission(IncomingMessage(None, "+epi ma 12, ma 5"))
         self.failUnless(submission.has_errors)
 
+        # zero values
+        submission = xform.process_sms_submission(IncomingMessage(None, "+epi ma 0"))
+        self.failIf(submission.has_errors)
+
         #+muac davey crockett, m, 6 months, red
 
         xform = XForm.on_site.create(name='muac_test', keyword='muac', owner=self.user, command_prefix=None, 
