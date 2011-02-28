@@ -21,10 +21,10 @@ def generic(request,
     if not model:
         return HttpResponseServerError
 
-    class ResultsForm(forms.Form):
-        results = forms.ModelMultipleChoiceField(queryset=model.objects.all(), widget=forms.CheckboxSelectMultiple())
-
     object_list = queryset or model.objects.all()
+
+    class ResultsForm(forms.Form):
+        results = forms.ModelMultipleChoiceField(queryset=object_list, widget=forms.CheckboxSelectMultiple())
 
     class_dict = {}
     action_form_instances = []
@@ -68,7 +68,7 @@ def generic(request,
                 form_instance = form_class(request.POST)
                 if form_instance.is_valid():
                     object_list = form_instance.filter(request, object_list)
-        selected = True
+            selected = True
         response_template = partial_base
 
     request.session['object_list'] = object_list
