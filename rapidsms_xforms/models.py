@@ -855,7 +855,7 @@ class XFormFieldConstraint(models.Model):
     
     type = models.CharField(max_length=10, choices=CONSTRAINT_CHOICES)
     test = models.CharField(max_length=255, null=True)
-    message = models.CharField(max_length=255)
+    message = models.CharField(max_length=160)
     order = models.IntegerField(default=1000)
 
     def validate(self, value):
