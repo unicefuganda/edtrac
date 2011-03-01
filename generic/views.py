@@ -1,7 +1,8 @@
+from django.db.models.query import RawQuerySet, RawQuerySet
 from django.template import RequestContext
 from django.shortcuts import  render_to_response
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
-from django.http import Http404,HttpResponseServerError,HttpResponseRedirect
+from django.http import Http404,HttpResponseServerError,HttpResponseRedirect, HttpResponse
 from django import forms
 
 def generic(request,
@@ -17,12 +18,14 @@ def generic(request,
             objects_per_page=25,
             filter_forms=[],
             action_forms=[]):
-
+    
     if not model:
         return HttpResponseServerError
 
     object_list = queryset or model.objects.all()
-
+    if type(object_list) == RawQuerySet:
+            object_list = list(object_list)
+    
     class ResultsForm(forms.Form):
         results = forms.ModelMultipleChoiceField(queryset=object_list, widget=forms.CheckboxSelectMultiple())
 
@@ -110,7 +113,7 @@ def generic(request,
 
         else:
             ranges.append(paginator.page_range)
-
+    
     return render_to_response(response_template, {
             'partial_base':partial_base,
             'partial_header':partial_header,
