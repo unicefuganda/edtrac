@@ -13,6 +13,7 @@ from generic.forms import ActionForm, FilterForm
 from ureport.models import MassText
 from django.contrib.sites.models import Site
 from django.shortcuts import get_object_or_404
+from healthmodels.models.HealthFacility import HealthFacility
 
 from simple_locations.models import Area
 
@@ -59,12 +60,24 @@ class DistictFilterForm(FilterForm):
 
 class FacilityFilterForm(FilterForm):
     """ filter form for cvs facilities """
-    has_no_facility = forms.BooleanField(required=False)
-    def filter(self,request,queryset):
-        if self.cleaned_data['has_no_facility']:
+#    has_no_facility = forms.BooleanField(required=False)
+#    def filter(self,request,queryset):
+#        if self.cleaned_data['has_no_facility']:
+#            return queryset.filter(facility=None)
+#        else:
+#            return queryset
+    facility=forms.ChoiceField(choices=(('','-----'),)+((-1,'Has No Facility'),)+tuple([(int(f.pk),f.name) for f in HealthFacility.objects.all() ]))
+    def filter(self, request, queryset):
+        facility_pk = self.cleaned_data['facility']
+        if facility_pk == '':
+            return queryset
+        elif int(facility_pk) == -1:
             return queryset.filter(facility=None)
         else:
-            return queryset
+            return queryset.filter(facility=facility_pk)
+
+
+
 
 
 class MassTextForm(ActionForm):
