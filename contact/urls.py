@@ -1,7 +1,6 @@
 from django.conf.urls.defaults import *
 from .views import add_contact, new_contact
 from .forms import FreeSearchForm, FilterGroupsForm, MassTextForm
-from contact import settings
 from rapidsms.models import Contact
 from generic.views import generic
 

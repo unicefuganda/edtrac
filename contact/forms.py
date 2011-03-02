@@ -9,7 +9,6 @@ from django.db.models import Q
 from django.forms.widgets import HiddenInput
 from rapidsms_httprouter.router import get_router, start_sending_mass_messages, stop_sending_mass_messages
 from rapidsms.messages.outgoing import OutgoingMessage
-from contact import settings
 from generic.forms import ActionForm, FilterForm
 from ureport.models import MassText
 from django.contrib.sites.models import Site
