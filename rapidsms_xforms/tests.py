@@ -11,6 +11,7 @@ from eav.models import Attribute
 from django.contrib.sites.models import Site
 from .app import App
 from rapidsms.messages.incoming import IncomingMessage
+from rapidsms.models import Connection, Backend
 
 class ModelTest(TestCase): #pragma: no cover
 
@@ -468,15 +469,19 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
 
     def testSeparators(self):
-        self.xform.separator = ","
+        self.xform.separator = None
         self.xform.save()
 
-        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 10 matt"))
+        # this is also testing an edge case of a value being 0
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 0 matt"))
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 3)
-        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 10)
+        self.failUnlessEqual(submission.values.get(attribute__name='age').value, 0)
         self.failUnlessEqual(submission.values.get(attribute__name='name').value, 'matt')
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, 'male')
+
+        self.xform.separator = ","
+        self.xform.save()
 
         submission = self.xform.process_sms_submission(IncomingMessage(None, "survey,male,10,matt berg"))
         self.failUnlessEqual(submission.has_errors, False)
@@ -559,8 +564,11 @@ class SubmissionTest(TestCase): #pragma: no cover
                     self.submission = args['submission']
                     self.xform = args['xform']
 
+                    # make sure our template variables are set on the submission
+                    template_vars = self.submission.template_vars
+
                     # set our response to 'hello world' instead of 'thanks'
-                    self.submission.response = "hello world"
+                    self.submission.response = XForm.render_response("hello world {{ age }}", template_vars)
 
 
         listener = Listener()
@@ -569,7 +577,7 @@ class SubmissionTest(TestCase): #pragma: no cover
         submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 10 +name matt berg"))
         self.failUnlessEqual(listener.submission, submission)
         self.failUnlessEqual(listener.xform, self.xform)
-        self.failUnlessEqual("hello world", submission.response)
+        self.failUnlessEqual("hello world 10", submission.response)
 
         # test that it works via update as well
         new_vals = { 'age': 20, 'name': 'greg snider' }
@@ -582,6 +590,10 @@ class SubmissionTest(TestCase): #pragma: no cover
         """
         Tests how we find which form a particular message matches.
         """
+
+        # test simple case
+        self.assertEquals(self.xform, XForm.find_form("survey"))
+        self.assertEquals(None, XForm.find_form("missing"))
 
         # have another form that is similar, to test that we match correctly in exact matches
         surve_form = XForm.on_site.create(name='surve', keyword='surve', owner=self.user,
@@ -601,6 +613,11 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.assertEquals(self.xform, XForm.find_form("furvey hello world"))
         self.assertEquals(self.xform, XForm.find_form("..survey hello world"))
         self.assertEquals(self.xform, XForm.find_form(".+survey hello world"))
+
+        # quotes
+        self.assertEquals(self.xform, XForm.find_form("'survey' hello world"))
+        self.assertEquals(self.xform, XForm.find_form("'survey', hello world"))
+        self.assertEquals(self.xform, XForm.find_form("survey,hello world"))
 
         # shouldn't pass, edit distance of 2
         self.assertEquals(None, XForm.find_form("furvey1 hello world"))
@@ -678,18 +695,23 @@ class SubmissionTest(TestCase): #pragma: no cover
         #+epi ma 12, bd 5
 
         xform = XForm.on_site.create(name='epi_test', keyword='epi', owner=self.user, command_prefix=None, 
-                                     keyword_prefix = '+', separator = ',',
+                                     keyword_prefix = '+', separator = ',;:*.\\s"',
                                      site=Site.objects.get_current(), response='thanks')
 
         f1 = xform.fields.create(field_type=XFormField.TYPE_INT, name='ma', command='ma', order=0)        
         f2 = xform.fields.create(field_type=XFormField.TYPE_INT, name='bd', command='bd', order=1)
+        f3 = xform.fields.create(field_type=XFormField.TYPE_INT, name='tb', command='tb', order=2)
+        f4 = xform.fields.create(field_type=XFormField.TYPE_INT, name='yf', command='yf', order=3)
 
-        submission = xform.process_sms_submission(IncomingMessage(None, "+epi ma 12, bd 5"))
+        # huge yellow fever outbreak, from a really poorly-trained texter
+        submission = xform.process_sms_submission(IncomingMessage(None, "+epi ma12, bd 5. tb0;yf314"))
         
         self.failUnlessEqual(submission.has_errors, False)
-        self.failUnlessEqual(len(submission.values.all()), 2)
+        self.failUnlessEqual(len(submission.values.all()), 4)
         self.failUnlessEqual(submission.values.get(attribute__name='ma').value, 12)
         self.failUnlessEqual(submission.values.get(attribute__name='bd').value, 5)
+        self.failUnlessEqual(submission.values.get(attribute__name='tb').value, 0)
+        self.failUnlessEqual(submission.values.get(attribute__name='yf').value, 314)
 
         # missing value
         submission = xform.process_sms_submission(IncomingMessage(None, "+epi ma"))
@@ -747,6 +769,59 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.failUnlessEqual(submission.values.get(attribute__name='gender').value, "m")
         self.failUnlessEqual(submission.values.get(attribute__name='age').value, "5day")
 
+
+    def testPullerCustomerField(self):
+        # Tests creating a field that is based on the connection of the message, not anything in the message
+        # itself.
+
+        def parse_connection(command, value):
+            # we should be able to find a connection with this identity
+            matches = Connection.objects.filter(identity=value)
+            if matches:
+                return matches[0]
+
+            raise ValidationError("%s parameter value of '%s' does not match any connections.")
+
+        def pull_connection(command, message):
+            # this pulls the actual hone number from the message and returns it as a string
+            # note that in this case we will actually only match if the phone number starts with '072'
+            identity = message.connection.identity
+            if identity.startswith('072'):
+                return identity
+            else:
+                return None
+
+        XFormField.register_field_type('conn', 'Connection', parse_connection,
+                                       xforms_type='string', db_type=XFormField.TYPE_OBJECT, puller=pull_connection)
+        
+
+        # create a new form
+        xform = XForm.on_site.create(name='sales', keyword='sales', owner=self.user,
+                                     site=Site.objects.get_current(), response='thanks for submitting your report')
+
+        # create a single field for our connection puller
+        f1 = xform.fields.create(field_type='conn', name='conn', command='conn', order=0)
+        f1.constraints.create(type='req_val', test='None', message="Missing connection.")
+
+        f2 = xform.fields.create(field_type=XFormField.TYPE_INT, name='age', command='age', order=2)        
+
+        # create some connections to work with
+        butt = Backend.objects.create(name='foo')
+        conn1 = Connection.objects.create(identity='0721234567', backend=butt)
+        conn2 = Connection.objects.create(identity='0781234567', backend=butt)
+
+        # check that we parse out the connection correctly
+        submission = xform.process_sms_submission(IncomingMessage(conn1, "sales 123"))
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 2)
+        self.failUnlessEqual(submission.values.get(attribute__name='conn').value, conn1)
+        self.failUnlessEqual(123, submission.eav.sales_age)
+
+        # now try with a connection that shouldn't match
+        submission = xform.process_sms_submission(IncomingMessage(conn2, "sales"))
+        self.failUnlessEqual(submission.has_errors, True)
+        self.failUnlessEqual(len(submission.values.all()), 0)
+
     def testAgeCustomField(self):
         # creates a new field type that parses strings into an integer number of days
         # ie, given a string like '5days' or '6 months' will return either 5, or 30
@@ -789,28 +864,31 @@ class SubmissionTest(TestCase): #pragma: no cover
         submission = xform.process_sms_submission(IncomingMessage(None, "time +timespan infinity plus one"))
         self.failUnlessEqual(submission.has_errors, True)
 
-
     def testImportSubmissions(self):
 
+        # our fake submitter
+        backend, created = Backend.objects.get_or_create(name='test')
+        connection, created = Connection.objects.get_or_create(identity='123', backend=backend)
+        
         # Our form has fields: gender, age, and name (optional)
         # try passing a string for an int field
         values = { 'gender': 'male', 'age': 'Should be number', 'name': 'Eugene'}
-        self.assertRaises(ValidationError, self.xform.process_import_submission, "", values)
+        self.assertRaises(ValidationError, self.xform.process_import_submission, "", connection, values)
         self.assertEquals(0, len(self.xform.submissions.all()))
 
         # try sending something that is not a string
         values = { 'age': 25, 'gender': 'male', 'name': 'Eugene'}
-        self.assertRaises(TypeError, self.xform.process_import_submission, "", values)
+        self.assertRaises(TypeError, self.xform.process_import_submission, "", connection, values)
         self.assertEquals(0, len(self.xform.submissions.all()))
 
         # try excluding an optional field
         values = { 'age': '25', 'gender': 'male'}
-        self.xform.process_import_submission("", values)
+        self.xform.process_import_submission("", connection, values)
         self.assertEquals(1, len(self.xform.submissions.all()))
 
         # try excluding a required field
         values = { 'gender': 'male', 'name': 'Eugene'}
-        self.assertRaises(ValidationError, self.xform.process_import_submission, "", values)
+        self.assertRaises(ValidationError, self.xform.process_import_submission, "", connection, values)
         self.assertEquals(1, len(self.xform.submissions.all()))
         
         # check that constraint is upheld
@@ -818,19 +896,19 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.field.constraints.create(type='min_val', test='0', message="You are negative old")
 
         values = { 'gender': 'male', 'age': '900', 'name': 'Eugene'}
-        self.assertRaises(ValidationError, self.xform.process_import_submission, "", values)
+        self.assertRaises(ValidationError, self.xform.process_import_submission, "", connection, values)
         self.assertEquals(1, len(self.xform.submissions.all()))
 
         values = { 'gender': 'male', 'age': '-1', 'name': 'Eugene'}
-        self.assertRaises(ValidationError, self.xform.process_import_submission, "", values)
+        self.assertRaises(ValidationError, self.xform.process_import_submission, "", connection, values)
         self.assertEquals(1, len(self.xform.submissions.all()))
 
         # try sending extra fields that are not in the form
         values = { 'gender': 'male', 'age': 'Should be number', 'name': 'Eugene', 'extra': "This shouldn't be provided"}
-        self.assertRaises(ValidationError, self.xform.process_import_submission, "", values)
+        self.assertRaises(ValidationError, self.xform.process_import_submission, "", connection, values)
         self.assertEquals(1, len(self.xform.submissions.all()))
 
         # try sending extra fields that are not in the form
         values = { 'gender': 'male', 'age': '99', 'name': 'Eugene'}
-        self.xform.process_import_submission("", values)
+        self.xform.process_import_submission("", connection, values)
         self.assertEquals(2, len(self.xform.submissions.all()))

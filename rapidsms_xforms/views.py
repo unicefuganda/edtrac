@@ -99,9 +99,14 @@ def xforms(req):
 
 
 class NewXFormForm(forms.ModelForm): # pragma: no cover
+    separator = forms.MultipleChoiceField(choices=XForm.SEPARATOR_CHOICES, required=False)
     class Meta:
         model = XForm
-        fields = ('name', 'keyword','keyword_prefix', 'command_prefix', 'separator', 'description', 'response')
+        fields = ('name', 'keyword','keyword_prefix', 'command_prefix', 'description', 'response')
+
+    def clean_separator(self):
+        """ separator should be joined into a string of all chosen separators"""
+        return ''.join(self.cleaned_data['separator'])
 
     helper = FormHelper()
         
@@ -124,9 +129,14 @@ class NewXFormForm(forms.ModelForm): # pragma: no cover
     helper.add_layout(layout)
 
 class EditXFormForm(forms.ModelForm): # pragma: no cover
+    separator = forms.MultipleChoiceField(choices=XForm.SEPARATOR_CHOICES, required=False)
     class Meta:
         model = XForm
-        fields = ('name', 'keyword','keyword_prefix', 'command_prefix', 'separator', 'description', 'response', 'active')
+        fields = ('name', 'keyword','keyword_prefix', 'command_prefix', 'description', 'response', 'active')
+
+    def clean_separator(self):
+        """ separator should be joined into a string of all chosen separators"""
+        return ''.join(self.cleaned_data['separator'])
 
     helper = FormHelper()
         
@@ -162,6 +172,8 @@ def new_xform(req):
             # and the site
             xform.site = Site.objects.get_current()
 
+            # add the separators
+            xform.separator = form.cleaned_data['separator']
             # commit it
             xform.save()
 
@@ -192,6 +204,7 @@ def view_form_details(req, form_id):
 
 def edit_form(req, form_id):
     xform = XForm.on_site.get(pk=form_id)
+
     fields = XFormField.objects.order_by('order').filter(xform=xform)
 
     breadcrumbs = (('XForms', '/xforms/'),('Edit Form', ''))
@@ -200,11 +213,13 @@ def edit_form(req, form_id):
         form = EditXFormForm(req.POST, instance=xform)
         if form.is_valid():
             xform = form.save()
+            xform.separator = form.cleaned_data['separator']
+            xform.save()
             return render_to_response("xforms/form_details.html", 
                 {"xform" : xform},
                 context_instance=RequestContext(req))
     else:
-        form = EditXFormForm(instance=xform)
+        form = EditXFormForm(instance=xform, initial={'separator':list(xform.separator) if xform.separator else None})
 
     return render_to_response("xforms/form_edit.html", 
         { 'form': form, 'xform': xform, 'fields': fields, 'field_count' : len(fields), 'breadcrumbs' : breadcrumbs },
@@ -228,21 +243,28 @@ def order_xform (req, form_id):
 class FieldForm(forms.ModelForm):
     
     def updateTypes(self):
-        self.fields['field_type'].widget.choices = [(choice['type'], choice['label']) for choice in XFormField.TYPE_CHOICES]
+        self.fields['field_type'].widget.choices = [(choice['type'], choice['label']) for choice in XFormField.TYPE_CHOICES.values()]
+
+    def clean_field_type(self):
+        toret = self.cleaned_data['field_type']
+        if self.xform.separator.find('.') >= 0 and XFormField.TYPE_CHOICES[toret]['db_type'] == XFormField.TYPE_FLOAT:
+            raise forms.ValidationError("You cannot have float values along with period (.) separators in an XForm.  Please edit the XForm separators and try again.")
+        return toret
 
     class Meta:
         model = XFormField
         fields = ('field_type', 'name', 'command', 'description')
         widgets = {
             'description': forms.Textarea(attrs={'cols': 30, 'rows': 2}),
-            'field_type': forms.Select()
+            'field_type': forms.Select(),
         }
 
 class ConstraintForm(forms.ModelForm):
     class Meta:
         model = XFormFieldConstraint
         fields = ('type', 'test', 'message') # Why do we need order?
-        
+
+@csrf_exempt        
 def add_field(req, form_id):
     xform = XForm.on_site.get(pk=form_id)
     fields = XFormField.objects.filter(xform=xform)
@@ -250,6 +272,7 @@ def add_field(req, form_id):
     if req.method == 'POST':
         form = FieldForm(req.POST)
         form.updateTypes()
+        form.xform = xform
         if form.is_valid():
             field = form.save(commit=False)
             field.xform = xform
@@ -297,12 +320,12 @@ def make_submission_form(xform):
                 field_val = str(cleaned_data.get(command))
 
                 try:
-                    print "XFormField %s cleaning %s" % (field, field_val)
                     cleaned_val = field.clean_submission(field_val)
+                    cleaned_data[command] = cleaned_val
                 except ValidationError as err:
                     # if there is an error, remove it from our cleaned data and 
                     # add the error to our list of errors for this form
-                    self._errors[field.command] = (self.error_class(err))
+                    self._errors[field.command] = self.error_class(err.messages)
                     del cleaned_data[field.command]
 
         return cleaned_data
@@ -355,14 +378,14 @@ def view_field(req, form_id, field_id):
         { 'xform': xform, 'field' : field },
         context_instance=RequestContext(req))
     
-
+@csrf_exempt
 def edit_field (req, form_id, field_id):
     xform = XForm.on_site.get(pk=form_id)
     field = XFormField.objects.get(pk=field_id)
     if req.method == 'POST':
         form = FieldForm(req.POST, instance=field)
         form.updateTypes()
-
+        form.xform = xform
         if form.is_valid():
             field = form.save(commit=False)
             field.xform = xform
@@ -398,6 +421,7 @@ def delete_field (req, form_id, field_id):
         
     return redirect("/xforms/%d/edit/" % xform.pk)
 
+@csrf_exempt
 def add_constraint(req, form_id, field_id):
     xform = XForm.on_site.get(pk=form_id)
     field = XFormField.objects.get(pk=field_id)
@@ -421,6 +445,7 @@ def add_constraint(req, form_id, field_id):
         { 'buttons' : add_button, 'form' : form, 'xform' : xform, 'field' : field },
         context_instance=RequestContext(req))
 
+@csrf_exempt
 def edit_constraint(req, form_id, field_id, constraint_id) :
     
     xform = XForm.on_site.get(pk=form_id)

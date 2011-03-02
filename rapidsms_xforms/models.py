@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db import connections, router, transaction, DEFAULT_DB_ALIAS
 from eav.models import Attribute, Value
 from eav import register
 from eav.managers import EntityManager
@@ -31,6 +32,9 @@ class XForm(models.Model):
         (';','Semicolon (;)'),
         (':','Colon (:)'),
         ('*','Asterisk (*)'),
+        ('.','Period (.)'),
+        ('\\s','Whitespace'),
+        ('"', 'Quotation Mark'),
     )
 
     name = models.CharField(max_length=32,
@@ -50,8 +54,8 @@ class XForm(models.Model):
     keyword_prefix = models.CharField(max_length=1, choices=PREFIX_CHOICES, null=True, blank=True,
                                       help_text="The prefix required for form keywords, defaults to no prefix.")
 
-    separator = models.CharField(max_length=1, choices=SEPARATOR_CHOICES, null=True, blank=True,
-                                 help_text="The separator character for fields, field values will be split on this character.")
+    separator = models.CharField(max_length=8, null=True, blank=True,
+                                 help_text="The separator character(s) for fields, field values will be split on these characters.")
 
     owner = models.ForeignKey(User)
     created = models.DateTimeField(auto_now_add=True)
@@ -89,7 +93,7 @@ class XForm(models.Model):
         matched = None
         for form in XForm.on_site.filter(active=True):
             remainder = form.parse_keyword(message, False)
-            if remainder:
+            if not remainder is None:
                 matched = form
                 break
 
@@ -174,6 +178,7 @@ class XForm(models.Model):
             # no new value, we need to remove this one
             else:
                 value.delete()
+                
         # now add any remaining values in our dict
         for key, value in values.items():
             # look up the field by key
@@ -206,7 +211,7 @@ class XForm(models.Model):
 
         return submission
 
-    def process_import_submission(self, raw, values):
+    def process_import_submission(self, raw, connection, values):
         """
         Given a dict of values and the original row, import the data
         as a submission. Validates against contraints including checking
@@ -226,9 +231,9 @@ class XForm(models.Model):
                 field.clean_submission(values[field.command])
 
         # check if the values contain extra fields not in our form
-        for command, value in values.items():
+        for command, value in values.items():            
             fields = self.fields.filter(command=command)
-            if len(fields) != 1:
+            if len(fields) != 1 and command != "connection":
                 raise ValidationError("Could not resolve field for %s" % command)
 
         # resolve object types to their actual objects
@@ -238,7 +243,7 @@ class XForm(models.Model):
                 values[field.command] = typedef['parser'](field.command, values[field.command])
 
         # create submission and update the values
-        submission = self.submissions.create(type='import', raw=raw)
+        submission = self.submissions.create(type='import', raw=raw, connection=connection)
         self.update_submission_from_dict(submission, values)
         return submission
 
@@ -264,8 +269,7 @@ class XForm(models.Model):
 
         return None
 
-
-    def parse_sms_submission(self, message):
+    def parse_sms_submission(self, message_obj):
         """
         sms submissions can have two formats, either explicitely marking each field:
             <keyword> +field_command1 [values] +field_command2 [values]
@@ -276,6 +280,7 @@ class XForm(models.Model):
         Note that if you are using the no-delimeter form, then all string fields are 'assumed' to be
         a single word.  TODO: this could probably be made to be smarter
         """
+        message = message_obj.text
 
         # we'll return a hash of values and/or errors
         submission = {}
@@ -294,26 +299,31 @@ class XForm(models.Model):
             submission['response'] = "Incorrect keyword.  Keyword must be '%s'" % self.keyword
             return submission
 
-        # separator mode means we don't split on spaces
-        separator = None
-
         # if the separator is some non-whitespace character, and this form has only
         # one text-type field, the entire remainder can be considered its [command]-value pair
-        if self.separator and self.separator.strip() and self.fields.count() == 1 and self.fields.all()[0].field_type == XFormField.TYPE_TEXT:
+        if self.separator and self.separator != '\\s' and self.fields.count() == 1 and self.fields.all()[0].field_type == XFormField.TYPE_TEXT:
             segments = [remainder,]
         else:
-            # figure out if we are using separators
-            if self.separator and message.find(self.separator) >= 0:
-                separator = self.separator
-
-            # so first let's split on the separator passed in
-            segments = remainder.split(separator)
+            # split up the segments based on the separators
+            segments = []
+            separators = []
+            separator = self.separator or '\\s'
+            search_str = '[%s]+' % separator
+            match = re.search(search_str, remainder)
+            while match:
+                segment = remainder[0:match.start()]
+                separator = remainder[match.start():match.end()]
+                segments.append(segment)
+                separators.append(separator)
+                remainder = remainder[match.end():]
+                match = re.search(search_str, remainder)
+            segments.append(remainder)
 
         # remove any segments that are empty
         stripped_segments = []
         for segment in segments:
             segment = segment.strip()
-            if segment:
+            if len(segment):
                 # also split any of these up by prefix, we could have a segment at this point
                 # which looks like this:
                 #      asdf+name emile+age 10
@@ -336,7 +346,7 @@ class XForm(models.Model):
                         # and see if it is worthy of stripping
                         prefix_index = segment.find(self.command_prefix)
 
-                if segment:
+                if len(segment):
                     stripped_segments.append(segment)
 
         segments = stripped_segments
@@ -351,9 +361,16 @@ class XForm(models.Model):
         for field in self.fields.all().order_by('order', 'id'):
             required = field.constraints.all().filter(type="req_val")
 
+            # lookup our field type
+            field_type = XFormField.lookup_type(field.field_type)
+
             # no more text in the message, break out
             if not segments:
                 break
+
+            # this field is pulled, not pushed, ignore
+            if not field_type['puller'] is None:
+                continue
 
             segment = segments.pop(0)
 
@@ -362,6 +379,19 @@ class XForm(models.Model):
                 # pop it back on and break
                 segments.insert(0, segment)
                 break
+ 
+            # check for cases where a fully-alpha command and an integer value
+            # are together with no separator (a common and unambiguous typeo),
+            # e.g. 'age27'
+            if field.command.isalpha() and field.field_type == XFormField.TYPE_INT:
+                match_num = re.search('[0-9]', segment)
+                if match_num:
+                    command_segment = segment[0:match_num.start()]
+                    num_segment = segment[match_num.start():]
+                    if self.is_command(command_segment, commands) and num_segment.isdigit():
+                        segments.insert(0, num_segment)
+                        segments.insert(0, command_segment)
+                        break
 
             # ok, this looks like a valid required field value, clean it up
             try:
@@ -370,7 +400,7 @@ class XForm(models.Model):
             except ValidationError as err:
                 errors.append(err)
                 break
-            
+          
         # for any remaining segments, deal with them as command / value pairings
         while segments:
             # search for our command
@@ -382,6 +412,20 @@ class XForm(models.Model):
                 # parse this segment
                 if self.is_command(segment, commands):
                     command = segment
+
+                # check for cases where a fully-alpha command and an integer value
+                # are together with no separator (a common and unambiguous typeo),
+                # e.g. 'age27'
+                match_num = re.search('[0-9]', segment)
+                if match_num:
+                    command_segment = segment[0:match_num.start()]
+                    num_segment = segment[match_num.start():]
+                    possible_command = self.is_command(command_segment, commands)                    
+                    if possible_command and commands[possible_command].field_type == XFormField.TYPE_INT and num_segment.isdigit():
+                        segments.insert(0, num_segment)
+                        command = command_segment
+                
+                if command:
                     break
 
             # no command found?  break out
@@ -411,6 +455,19 @@ class XForm(models.Model):
                     segments.insert(0, segment)
                     break
 
+                # check for cases where a fully-alpha command and an integer value
+                # are together with no separator (a common and unambiguous typeo),
+                # e.g. 'age27'
+                match_num = re.search('[0-9]', segment)
+                if match_num:
+                    command_segment = segment[0:match_num.start()]
+                    num_segment = segment[match_num.start():]
+                    possible_command = self.is_command(command_segment, commands)                    
+                    if possible_command and commands[possible_command].field_type == XFormField.TYPE_INT and num_segment.isdigit():
+                        segments.insert(0, num_segment)
+                        segments.insert(0, command_segment)
+                        break
+
                 # this isn't a command, but rather part of the value
                 if not value:
                     value = segment
@@ -424,38 +481,51 @@ class XForm(models.Model):
 
                     try:
                         cleaned = field.clean_submission(value)
-                        # check for duplicate values
-                        duplicate = False
-                        for d in values:
-                            if d['name'] == field.command:
-                                duplicate = True
-                                errors.append(ValidationError("Expected one value for %s, more than one was given." % field.description))                                
-                                break
-                        if not duplicate:
-                            values.append(dict(name=field.command, value=cleaned))        
+                        values.append(dict(name=field.command, value=cleaned))        
                     except ValidationError as err:
                         errors.append(err)
+
+        # now do any pull parsing
+        for field in self.fields.all():
+            typedef = XFormField.lookup_type(field.field_type)
+
+            # if this is a pull field
+            if typedef['puller']:
+                try:
+                    # try to parse it out
+                    value = typedef['puller'](field.command, message_obj)
+                    if not value is None:
+                        cleaned = field.clean_submission(value)
+                        values.append(dict(name=field.command, value=cleaned))
+                except ValidationError as err:
+                    errors.append(err)
 
         # build a map of the number of values we have for each included field
         # TODO: for the love of god, someone show me how to do this in one beautiful Python 
         # lambda, just don't have time now
         value_count = {}
         value_dict = {}
-        for value_pair in values:
-            name = value_pair['name']
-            value_dict[name] = value_pair['value']
 
+        # NOTE: we iterate over a copy of the list since we'll be modifying our original list in the case of dupes
+        for value_pair in list(values):
+            name = value_pair['name']
+
+            # if we already have a value for this field
             if name in value_count:
-                value_count[name] += 1
+                # add an error and remove the duplicate
+                errors.append(ValidationError("Expected one value for %s, more than one was given." % name))
+                values.remove(value_pair)                
             else:
                 value_count[name] = 1
+                value_dict[name] = value_pair['value']
 
         # do basic sanity checks over all fields
         for field in self.fields.all():
-            required_const = field.constraints.all().filter(type="req_val")
             # check that all required fields had a value set
+            required_const = field.constraints.all().filter(type="req_val")
             if required_const and field.command not in value_count:
                 errors.append(ValidationError(required_const[0].message))
+
             # check that all fields actually have values
             if field.command in value_dict and value_dict[field.command] is None:
                 errors.append(ValidationError("Expected a value for %s, none given." % field.description))
@@ -464,6 +534,8 @@ class XForm(models.Model):
         if not errors:
             submission['has_errors'] = False
             submission['response'] = self.response
+
+        # boo!
         else:
             error = submission['errors'][0]
             if getattr(error, 'messages', None):
@@ -484,7 +556,8 @@ class XForm(models.Model):
 
         return template_vars
 
-    def build_template_response(self, response, template_vars):
+    @classmethod
+    def render_response(cls, response, template_vars):
         """
         Given a template string a dictionary of values, tries to compile the template and evaluate it.
         """
@@ -503,8 +576,9 @@ class XForm(models.Model):
         """
         message = message_obj.text
         connection = message_obj.connection
+
         # parse our submission
-        sub_dict = self.parse_sms_submission(message)
+        sub_dict = self.parse_sms_submission(message_obj)
 
         # create our new submission, we'll add field values as we parse them
         submission = XFormSubmission(xform=self, type='sms', raw=message, connection=connection)
@@ -512,7 +586,11 @@ class XForm(models.Model):
 
         # build our template response
         template_vars = self.build_template_vars(submission, sub_dict)
-        sub_dict['response'] = self.build_template_response(sub_dict['response'], template_vars)
+        sub_dict['response'] = XForm.render_response(sub_dict['response'], template_vars)
+
+        # save our template vars as a temporary value in our submission, this can be used by the
+        # signal later on
+        submission.template_vars = template_vars
 
         # the values we've pulled out
         values = {}
@@ -533,8 +611,10 @@ class XForm(models.Model):
 
         # set our transient response
         submission.response = sub_dict['response']
+
         # trigger our signal
         xform_received.send(sender=self, xform=self, submission=submission, message=message_obj)
+
         return submission
 
     def check_template(self, template):
@@ -586,8 +666,6 @@ class XForm(models.Model):
     def __unicode__(self): # pragma: no cover
         return self.name
 
-
-
 class XFormField(Attribute):
     """
     A field within an XForm.  Fields can be one of the types:
@@ -618,11 +696,11 @@ class XFormField(Attribute):
     # This list is manipulated when new fields are added at runtime via the register_field_type
     # hook.
 
-    TYPE_CHOICES = [
-        dict( label='Integer', type=TYPE_INT, db_type=TYPE_INT, xforms_type='integer', parser=None ),
-        dict( label='Decimal', type=TYPE_FLOAT, db_type=TYPE_FLOAT, xforms_type='decimal', parser=None ),
-        dict( label='String', type=TYPE_TEXT, db_type=TYPE_TEXT, xforms_type='string', parser=None )
-    ]
+    TYPE_CHOICES = {
+        TYPE_INT:   dict( label='Integer', type=TYPE_INT, db_type=TYPE_INT, xforms_type='integer', parser=None, puller=None),
+        TYPE_FLOAT: dict( label='Decimal', type=TYPE_FLOAT, db_type=TYPE_FLOAT, xforms_type='decimal', parser=None, puller=None),
+        TYPE_TEXT:  dict( label='String', type=TYPE_TEXT, db_type=TYPE_TEXT, xforms_type='string', parser=None, puller=None)
+    }
 
     xform = models.ForeignKey(XForm, related_name='fields')
     field_type = models.SlugField(max_length=8, null=True, blank=True)
@@ -636,7 +714,7 @@ class XFormField(Attribute):
         ordering = ('order', 'id')
 
     @classmethod
-    def register_field_type(cls, field_type, label, parserFunc, db_type=TYPE_TEXT, xforms_type='string'):
+    def register_field_type(cls, field_type, label, parserFunc, db_type=TYPE_TEXT, xforms_type='string', puller=None):
         """
         Used to register a new field type for XForms.  You can use this method to build new field types that are
         available when building XForms.  These types may just do custom parsing of the SMS text sent in, then stuff
@@ -645,25 +723,26 @@ class XFormField(Attribute):
         Refer to GeoPoint implementation to see an example of the latter.
 
         Arguments are:
-           label: The label used for this field type in the user interface
-           field_type: A slug to identify this field type, must be unique across all field types
-           parser: The function called to turn the raw string into the appropriate type, should take two arguments.
-                   Takes two arguments, 'command', which is the command of the field, and 'value' the string value submitted.
-           db_type: How the value will be stored in the database, can be one of: TYPE_INT, TYPE_FLOAT, TYPE_TEXT or TYPE_OBJECT
+           label:       The label used for this field type in the user interface
+           field_type:  A slug to identify this field type, must be unique across all field types
+           parser:      The function called to turn the raw string into the appropriate type, should take two arguments.
+                        Takes two arguments, 'command', which is the command of the field, and 'value' the string value submitted.
+           db_type:     How the value will be stored in the database, can be one of: TYPE_INT, TYPE_FLOAT, TYPE_TEXT or TYPE_OBJECT
            xforms_type: The type as defined in an XML xforms specification, likely one of: 'integer', 'decimal' or 'string'
-
+           puller:      A method that can be used to 'pull' the value from an SMS submission.  This can be useful when the value of
+                        the field is actually derived from attributes in the message itself.  Note that the string value returned will
+                        then be passed off to the parser.
         """
-        XFormField.TYPE_CHOICES.append(dict(type=field_type, label=label, 
-                                            db_type=db_type, parser=parserFunc, xforms_type=xforms_type))
+        XFormField.TYPE_CHOICES[field_type] = dict(type=field_type, label=label, 
+                                                   db_type=db_type, parser=parserFunc,
+                                                   xforms_type=xforms_type, puller=puller)
 
     @classmethod
     def lookup_type(cls, otype):
-        for typedef in XFormField.TYPE_CHOICES:
-            if otype == typedef['type']:
-                return typedef
-
-        raise ValidationError("Unable to find parser for field: '%s'" % otype)
-
+        if otype in XFormField.TYPE_CHOICES:
+            return XFormField.TYPE_CHOICES[otype]
+        else:
+            raise ValidationError("Unable to find parser for field: '%s'" % otype)
 
     def derive_datatype(self):
         """
@@ -741,7 +820,7 @@ class XFormField(Attribute):
         """
         typedef = self.lookup_type(self.field_type)
         if typedef:
-            return typedef['xform_type']
+            return typedef['xforms_type']
         else:
             raise RuntimeError("Field type: '%s' not supported in XForms" % self.field_type)
 
@@ -893,7 +972,7 @@ class XFormSubmission(models.Model):
 
     xform = models.ForeignKey(XForm, related_name='submissions')
     type = models.CharField(max_length=8, choices=SUBMISSION_CHOICES)
-    connection = models.ForeignKey(Connection, null=True)
+    connection = models.ForeignKey(Connection, null=True, related_name='submissions')
     raw = models.TextField()
     has_errors = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
@@ -909,7 +988,7 @@ class XFormSubmission(models.Model):
         Assigns our confirmation id.  We increment our confirmation id's for each form 
         for every submission.  
         """
-        # only create confirmation ids for submissions without errors and which don't already have one
+        # everybody gets a confirmation id
         if not self.confirmation_id:
             try:
                 XFormSubmission.confirmation_lock.acquire()
