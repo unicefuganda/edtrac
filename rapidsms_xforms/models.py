@@ -421,7 +421,7 @@ class XForm(models.Model):
                     command_segment = segment[0:match_num.start()]
                     num_segment = segment[match_num.start():]
                     possible_command = self.is_command(command_segment, commands)                    
-                    if possible_command and commands[possible_command].field_type == XFormField.TYPE_INT and num_segment.isdigit():
+                    if possible_command and commands[possible_command.lower()].field_type == XFormField.TYPE_INT and num_segment.isdigit():
                         segments.insert(0, num_segment)
                         command = command_segment
                 
@@ -463,7 +463,7 @@ class XForm(models.Model):
                     command_segment = segment[0:match_num.start()]
                     num_segment = segment[match_num.start():]
                     possible_command = self.is_command(command_segment, commands)                    
-                    if possible_command and commands[possible_command].field_type == XFormField.TYPE_INT and num_segment.isdigit():
+                    if possible_command and commands[possible_command.lower()].field_type == XFormField.TYPE_INT and num_segment.isdigit():
                         segments.insert(0, num_segment)
                         segments.insert(0, command_segment)
                         break

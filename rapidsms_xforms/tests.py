@@ -704,7 +704,7 @@ class SubmissionTest(TestCase): #pragma: no cover
         f4 = xform.fields.create(field_type=XFormField.TYPE_INT, name='yf', command='yf', order=3)
 
         # huge yellow fever outbreak, from a really poorly-trained texter
-        submission = xform.process_sms_submission(IncomingMessage(None, "+epi ma12, bd 5. tb0;yf314"))
+        submission = xform.process_sms_submission(IncomingMessage(None, "+epi MA12, bd 5. tb0;yf314"))
         
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 4)
