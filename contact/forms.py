@@ -45,7 +45,7 @@ class DistictFilterForm(FilterForm):
         if district_pk=='':
             return queryset
         elif int(district_pk)==-1:
-            return queryset.filter(healthproviderbase__location=None)
+            return queryset.filter(location=None)
         else:
 
             try:
@@ -53,7 +53,7 @@ class DistictFilterForm(FilterForm):
             except Area.DoesNotExist:
                 district=None
             if district:
-                return queryset.filter(healthproviderbase__location__in=district.get_descendants())
+                return queryset.filter(location__in=district.get_descendants())
             else:
                 return queryset
 
@@ -62,7 +62,7 @@ class FacilityFilterForm(FilterForm):
     has_no_facility = forms.BooleanField(required=False)
     def filter(self,request,queryset):
         if self.cleaned_data['has_no_facility']:
-            return queryset.filter(healthproviderbase__location=None)
+            return queryset.filter(facility=None)
         else:
             return queryset
 
