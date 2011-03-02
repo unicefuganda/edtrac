@@ -528,7 +528,7 @@ class XForm(models.Model):
 
             # check that all fields actually have values
             if field.command in value_dict and value_dict[field.command] is None:
-                errors.append(ValidationError("Expected a value for %s, none given." % field.description))
+                errors.append(ValidationError("Expected a value for %s, none given." % field.name))
 
         # no errors?  wahoo
         if not errors:
