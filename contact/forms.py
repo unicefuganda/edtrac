@@ -32,10 +32,19 @@ class FilterGroupsForm(FilterForm):
         else:
             forms.Form.__init__(self, **kwargs)
         if hasattr(Contact, 'groups'):
-            self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.all().order_by('name'), required=True)    
+            choices = ((-1,'No Group'),) + tuple([(int(g.pk), g.name) for g in Group.objects.all().order_by('name')])
+            self.fields['groups'] = forms.MultipleChoiceField(choices=choices, required=True)
 
-    def filter(self,request, queryset):
-        return queryset.filter(groups__in=self.cleaned_data['groups'])
+    def filter(self, request, queryset):
+        groups_pk = self.cleaned_data['groups']
+        if '-1' in groups_pk:
+            groups_pk.remove('-1')
+            if len(groups_pk):
+                return queryset.filter(Q(groups=None) | Q(groups__in=groups_pk))
+            else:
+                return queryset.filter(groups=None)
+        else:
+            return queryset.filter(groups__in=groups_pk)
 
 class NewContactForm(forms.ModelForm):
 
