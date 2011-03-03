@@ -40,7 +40,7 @@ class FreeSearchForm(FilterForm):
 
 class DistictFilterForm(FilterForm):
     """ filter cvs districs on their districts """
-    district=forms.ChoiceField(choices=(('','-----'),)+tuple([(int(d.pk),d.name) for d in Area.objects.filter(kind__slug='district') ])+((-1,'No District'),))
+    district=forms.ChoiceField(choices=(('','-----'),(-1,'No District'),)+tuple([(int(d.pk),d.name) for d in Area.objects.filter(kind__slug='district').order_by('name') ]))
     def filter(self,request,queryset):
         district_pk=self.cleaned_data['district']
         if district_pk=='':
