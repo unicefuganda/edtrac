@@ -38,6 +38,7 @@ class FreeSearchForm(FilterForm):
         term=self.cleaned_data['term']
         return queryset.filter(Q(name__icontains=term)
             | Q(reporting_location__name__icontains=term))
+
 class DistictFilterForm(FilterForm):
     """ filter cvs districs on their districts """
     district=forms.ChoiceField(choices=(('','-----'),)+tuple([(int(d.pk),d.name) for d in Area.objects.filter(kind__slug='district') ])+((-1,'No District'),))
@@ -46,7 +47,7 @@ class DistictFilterForm(FilterForm):
         if district_pk=='':
             return queryset
         elif int(district_pk)==-1:
-            return queryset.filter(location=None)
+            return queryset.filter(reporting_location=None)
         else:
 
             try:
@@ -54,7 +55,7 @@ class DistictFilterForm(FilterForm):
             except Area.DoesNotExist:
                 district=None
             if district:
-                return queryset.filter(location__in=district.get_descendants())
+                return queryset.filter(reporting_location__in=district.get_descendants(include_self=True))
             else:
                 return queryset
 
