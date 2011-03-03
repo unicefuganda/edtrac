@@ -4,6 +4,7 @@ from django.forms.widgets import Widget
 from django.template.loader import get_template
 from django.template.context import Context
 from django.core.paginator import Paginator, Page
+from django.contrib.auth.models import Group
 from status160.models import  Team
 from django.db.models import Q
 from django.forms.widgets import HiddenInput
@@ -18,10 +19,21 @@ from simple_locations.models import Area
 
 class FilterGroupsForm(FilterForm):
     """ concrete implementation of filter form """
-    group=forms.ModelMultipleChoiceField(queryset=Team.objects.all().order_by('name'), required=True)
+    # This may seem like a hack, but this allows time for the Contact model's
+    # default manage to be replaced at run-time.  There are many applications
+    # for that, such as filtering contacts by site_id (as is done in the
+    # authsites app, see github.com/daveycrockett/authsites).
+    # This does, however, also make the polling app independent of authsites.
+    def __init__(self, data=None, **kwargs):
+        if data:
+            forms.Form.__init__(self, data, **kwargs)
+        else:
+            forms.Form.__init__(self, **kwargs)
+        if hasattr(Contact, 'groups'):
+            self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.all(), required=True)    
 
     def filter(self,request, queryset):
-        return queryset.filter(groups__in=self.cleaned_data['group'])
+        return queryset.filter(groups__in=self.cleaned_data['groups'])
 
 class NewContactForm(forms.ModelForm):
 
@@ -77,3 +89,26 @@ class MassTextForm(ActionForm):
         stop_sending_mass_messages()
         return "Message successfully sent to %d numbers" % connections.count()
 
+
+class AssignGroupForm(ActionForm):
+
+    action_label = 'Assign to group(s)'
+
+    # This may seem like a hack, but this allows time for the Contact model's
+    # default manage to be replaced at run-time.  There are many applications
+    # for that, such as filtering contacts by site_id (as is done in the
+    # authsites app, see github.com/daveycrockett/authsites).
+    # This does, however, also make the polling app independent of authsites.
+    def __init__(self, data=None, **kwargs):
+        if data:
+            forms.Form.__init__(self, data, **kwargs)
+        else:
+            forms.Form.__init__(self, **kwargs)
+        if hasattr(Contact, 'groups'):
+            self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.all(), required=False)
+
+    def perform(self, request, results):
+        groups = self.cleaned_data['groups']
+        for c in results:
+            for g in groups:
+                c.groups.add(g)
