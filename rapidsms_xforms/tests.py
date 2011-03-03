@@ -391,7 +391,25 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.assertEquals(5, submission6.confirmation_id)
 
     def testTemplateResponse(self):
-        # first test no template
+        # codify the confirmation id
+        self.xform.response = 'Your confirmation id is: {{ confirmation_id|codify:"SA" }}'
+        self.xform.save()
+
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 10"))
+
+        # should be safe to use a static value since we are the first test
+        self.failUnlessEqual(submission.response, "Your confirmation id is: SA0001")
+
+        # no prefix
+        self.xform.response = 'Your confirmation id is: {{ confirmation_id|codify }}'
+        self.xform.save()
+
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 10"))
+
+        # should be safe to use a static value since we are the first test
+        self.failUnlessEqual(submission.response, "Your confirmation id is: 0002")
+
+        # now test no template
         self.xform.response = "Thanks for sending your message"
         self.xform.save()
 
@@ -404,7 +422,7 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.xform.save()
 
         submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 10"))
-        self.failUnlessEqual(submission.response, "You recorded an age of 10 and a gender of male.  Your confirmation id is 2.")
+        self.failUnlessEqual(submission.response, "You recorded an age of 10 and a gender of male.  Your confirmation id is 4.")
 
         # if they insert a command that isn't there, it should just be empty
         self.xform.response = "You recorded an age of {{ age }} and a gender of {{ gender }}.  {{ not_there }} Thanks."
