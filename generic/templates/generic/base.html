@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% block title %}
-    Generic - {{ block.super }}
+    {{ block.super }}
 {% endblock %}
 
 {% block stylesheets %}
@@ -54,7 +54,7 @@
         {% csrf_token %}
         {% block actions %}
         <input type="hidden" id="input_action" name="action" value=""/>
-        <div class="module">
+        <div class="module" id="actions">
             <h2>Actions</h2>
             {% for cname, form in action_forms %}
                 <div class="actionform" id="div_action_{{ forloop.counter0 }}">

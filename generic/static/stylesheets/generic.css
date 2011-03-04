@@ -49,6 +49,7 @@ div.filterform {
 
 div.actionform table, div.filterform table, div.actionform td, div.filterform th {
     border-width: 0;
+    padding: 5px;
 }
 
 div.actionform table, div.filterform table {
