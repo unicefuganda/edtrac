@@ -1,0 +1,57 @@
+#span_select_everything {
+    float:right;
+}
+
+.status_success {
+    padding: 5px;
+    margin: 5px;
+    color: green;
+    font-size: 10px;
+    font-weight: bold;
+    border: solid 1px #352;
+    background-color: #9f7;
+}
+
+.results {
+    width: 100%;
+    border-collapse:collapse;
+}
+
+.results td {
+    border: solid 1px #f8f8f8;
+    padding-left: 5px;
+}
+
+.row_reg td {
+    background-color: #f8f8f8;
+}
+
+.row_alt td {
+    background-color: #ccccff;
+}
+
+form {
+    border: 0;
+    padding: 0;
+}
+
+div.module h2 {
+    margin-bottom: 1em;
+}
+
+div.actionform {
+    display:inline;
+}
+
+div.filterform {
+    display:inline;
+}
+
+div.actionform table, div.filterform table, div.actionform td, div.filterform th {
+    border-width: 0;
+}
+
+div.actionform table, div.filterform table {
+    border-collapse: collapse;
+}
+

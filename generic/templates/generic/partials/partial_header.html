@@ -18,17 +18,19 @@
     <tr>
         {% if selectable %}
             {% block select_header %}
+                <td>
+                    <input type="checkbox" id="input_select_all" onclick="select_all()" {% if selected %}checked="true"{% endif %}/>
+                </td>
                 <td {% if columns %}colspan="{{ columns|length }}"{% endif %}>
-                    <input type="checkbox" id="id_select_all" {% if selected %}checked="true"{% endif %}/>Select all
-                    <script language="javascript">
-                        $('#id_select_all').click(
-                            function() {
-                                $('input:checkbox[name=results]').attr('checked', $('#id_select_all').attr('checked'));
-                            }
-                        );
-                    </script>
+                    <span id="span_select_all">Select all</span>
+                    {% if paginated %}
+                        <span id="span_select_everything" {% if not selected %}style="display:none"{% endif %}>You have selected all items on this page.  <a href="javascript:void(0)" onclick="select_everything({{ total }})">Click here</a> to select all {{ total }} items.</span>
+                        <input type="hidden" id="input_select_everything" name="select_everything" value=""/>
+                    {% endif %}
                 </td>
             {% endblock %}
         {% endif %}
     </tr>
 {% endblock firstrow %}
+{% block secondrow %}
+{% endblock %}

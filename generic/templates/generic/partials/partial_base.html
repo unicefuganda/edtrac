@@ -1,16 +1,23 @@
 <h2>Results</h2>
 {% if status_message %}
-    {{ status_message }}
+    <span id="span_status_message" class="status_{{ status_message_type }}">
+        {{ status_message }}
+    </span>
+    <script language="javascript">
+        setTimeout(function() {
+            $("#span_status_message").hide(500, 'swing')
+        }, 5000);
+    </script>
 {% endif %}
 {% block list_wrapper %}
-<table>
+<table class="results">
 {% endblock %}
 
 {% include partial_header %}
 {% block partial_base_content %}
     {% for object in object_list %}
       {% block item_wrapper %}
-        <tr>
+        <tr class="row_{% cycle 'reg' 'alt' %}">
       {% endblock %}
       {% include partial_row %}
       {% block item_wrapper_close %}

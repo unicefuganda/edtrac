@@ -56,6 +56,7 @@ def generic(request,
     page = 1
     selected=False
     status_message=''
+    status_message_type=''
 
     if request.method == 'POST':
         page_action = request.POST.get('page_action', '')
@@ -67,13 +68,18 @@ def generic(request,
             except ValueError:
                 pass
         elif action_taken:
-            resultsform = ResultsForm(request.POST)
-            if resultsform.is_valid():
-                results = resultsform.cleaned_data['results']
-                action_class = class_dict[action_taken]
-                action_instance = action_class(request.POST)
-                if action_instance.is_valid():
-                    status_message = action_instance.perform(request, results)
+            everything_selected = request.POST.get('select_everything', None)
+            results = []
+            if everything_selected:
+                results = request.session['object_list']
+            else:
+                resultsform = ResultsForm(request.POST)
+                if resultsform.is_valid():
+                    results = resultsform.cleaned_data['results']
+            action_class = class_dict[action_taken]
+            action_instance = action_class(request.POST)
+            if action_instance.is_valid():
+                status_message, status_message_type = action_instance.perform(request, results)
 
         else:
             for form_class in filter_forms:
@@ -84,7 +90,7 @@ def generic(request,
         response_template = partial_base
 
     request.session['object_list'] = object_list
-
+    total = len(object_list)
     paginator = None
     ranges = []
     if paginated:
@@ -135,11 +141,13 @@ def generic(request,
             'filter_forms':filter_form_instances,
             'action_forms':action_form_instances,
             'paginated':paginated,
+            'total':total,
             'selectable':selectable,
             'columns':columns,
             'page':page,
             'ranges':ranges,
             'selected':selected,
             'status_message':status_message,
+            'status_message_type':status_message_type,
             'base_template':'layout.html',
         },context_instance=RequestContext(request))
