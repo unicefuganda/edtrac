@@ -1,21 +1,34 @@
 {% block tablehead %}
 <thead>
     <tr>
-        <td>Table header</td>
+        {% if selectable %}
+            <td>&nbsp;</td>
+        {% endif %}
+        {% if columns %}
+            {% for column_name, sortable, sort_param in columns %}
+                <td>
+                    {{ column_name }}
+                </td>
+            {% endfor %}
+        {% endif %}
     </tr>
 </thead>
 {% endblock %}
 {% block firstrow %}
-<tr>
-    <td>
-        <input type="checkbox" id="id_select_all" {% if selected %}checked="true"{% endif %}/>Select all
-        <script language="javascript">
-            $('#id_select_all').click(
-                function() {
-                    $('input:checkbox[name=results]').attr('checked', $('#id_select_all').attr('checked'));
-                }
-            );
-        </script>
-    </td>
-</tr>
+    <tr>
+        {% if selectable %}
+            {% block select_header %}
+                <td {% if columns %}colspan="{{ columns|length }}"{% endif %}>
+                    <input type="checkbox" id="id_select_all" {% if selected %}checked="true"{% endif %}/>Select all
+                    <script language="javascript">
+                        $('#id_select_all').click(
+                            function() {
+                                $('input:checkbox[name=results]').attr('checked', $('#id_select_all').attr('checked'));
+                            }
+                        );
+                    </script>
+                </td>
+            {% endblock %}
+        {% endif %}
+    </tr>
 {% endblock firstrow %}

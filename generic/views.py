@@ -1,9 +1,16 @@
 from django.db.models.query import RawQuerySet, RawQuerySet
 from django.template import RequestContext
-from django.shortcuts import  render_to_response
+from django.shortcuts import redirect, get_object_or_404, render_to_response
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.http import Http404,HttpResponseServerError,HttpResponseRedirect, HttpResponse
 from django import forms
+
+def generic_row(request, model=None, pk=None, partial_row='generic/partials/partial_row.html', selectable=True):
+    if not (model and pk):
+        return HttpResponseServerError
+    object = get_object_or_404(model, pk=pk)
+    return render_to_response(partial_row, {'object':object},
+        context_instance=RequestContext(request))
 
 def generic(request,
             model=None,
@@ -15,7 +22,9 @@ def generic(request,
             partial_row='generic/partials/partial_row.html',
             paginator_template='generic/partials/pagination.html',
             paginated=True,
+            selectable=True,
             objects_per_page=25,
+            columns=[('object', False, '')],
             filter_forms=[],
             action_forms=[]):
     
@@ -126,6 +135,8 @@ def generic(request,
             'filter_forms':filter_form_instances,
             'action_forms':action_form_instances,
             'paginated':paginated,
+            'selectable':selectable,
+            'columns':columns,
             'page':page,
             'ranges':ranges,
             'selected':selected,

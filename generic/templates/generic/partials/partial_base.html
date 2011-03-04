@@ -9,7 +9,13 @@
 {% include partial_header %}
 {% block partial_base_content %}
     {% for object in object_list %}
+      {% block item_wrapper %}
+        <tr>
+      {% endblock %}
       {% include partial_row %}
+      {% block item_wrapper_close %}
+        </tr>
+      {% endblock %}
     {% endfor %}
 {% endblock %}
 
