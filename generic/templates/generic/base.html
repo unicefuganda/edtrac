@@ -83,11 +83,15 @@
                 </div>
             {% endfor %}
         </div>
-        {% endblock %}    
+        {% endblock %}
         <div id="object_list" class="module">
-            {% block object_list %}
-                {% include partial_base %}
-            {% endblock %}
+            {% ifequal object_list|length 0 %}
+                No Results match your search.  Refresh to reset.
+            {% else %}
+                {% block object_list %}
+                    {% include partial_base %}
+                {% endblock %}
+            {% endif %}
         </div>
     </form>
 {% endblock %}
