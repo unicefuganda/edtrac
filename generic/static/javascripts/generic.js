@@ -10,6 +10,13 @@ function page(elem, num) {
     filter(elem);
 }
 
+function sort(elem, col, ascending) {
+    $('#input_sort_column').val(col);
+    $('#input_sort_action').val('true');
+    $('#input_sort_ascending').val(ascending);
+    filter(elem);
+}
+
 function action(elem, action) {
     $('#input_action').val(action);
     filter(elem);

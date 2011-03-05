@@ -9,6 +9,11 @@
         }, 5000);
     </script>
 {% endif %}
+{% block sort_fields %}
+    <input type="hidden" id="input_sort_column" name="sort_column" value="{{ sort_column }}"/>
+    <input type="hidden" id="input_sort_action" name="sort_action" value=""/>
+    <input type="hidden" id="input_sort_ascending" name="sort_ascending" value="{{ sort_ascending }}"/>    
+{% endblock %}
 {% block list_wrapper %}
 <table class="results">
 {% endblock %}

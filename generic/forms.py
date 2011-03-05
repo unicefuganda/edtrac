@@ -11,3 +11,4 @@ class ActionForm(forms.Form):
     
     def perform(self, request, results):
         raise NotImplementedError("Subclasses of ActionForm must implement the perform() method!")
+    

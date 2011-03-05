@@ -5,9 +5,26 @@
             <td>&nbsp;</td>
         {% endif %}
         {% if columns %}
-            {% for column_name, sortable, sort_param in columns %}
+            {% for column_name, sortable, sort_param, sorter in columns %}
                 <td>
-                    {{ column_name }}
+                    {% if sortable %}
+                        {% if sort_param == sort_column and sort_ascending %}
+                            <a href="javascript:void(0)" onclick="sort(this, '{{ sort_param }}', 'False')">
+                        {% else %}
+                            <a href="javascript:void(0)" onclick="sort(this, '{{ sort_param }}', 'True')">
+                        {% endif %}
+                    {% endif %}
+                        {{ column_name }}
+                    {% if sortable %}
+                        {% if sort_param == sort_column %}
+                            {% if not sort_ascending %}
+                                <img align="absmiddle" src="{{ MEDIA_URL }}rapidsms/icons/silk/sort_descending.png"/>
+                            {% else %}
+                                <img align="absmiddle" src="{{ MEDIA_URL }}rapidsms/icons/silk/sort_ascending.png"/>
+                            {% endif %}
+                        {% endif %}
+                        </a>
+                    {% endif %}
                 </td>
             {% endfor %}
         {% endif %}

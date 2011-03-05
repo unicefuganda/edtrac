@@ -31,6 +31,9 @@ def generic(request,
     if not model:
         return HttpResponseServerError
 
+    if callable(queryset):
+        queryset = queryset()
+
     object_list = queryset or model.objects.all()
     if type(object_list) == RawQuerySet:
             object_list = list(object_list)
@@ -57,9 +60,14 @@ def generic(request,
     selected=False
     status_message=''
     status_message_type=''
+    sort_column = ''
+    sort_ascending = True
 
     if request.method == 'POST':
         page_action = request.POST.get('page_action', '')
+        sort_action = request.POST.get('sort_action', '')
+        sort_column = request.POST.get('sort_column', '')
+        sort_ascending = request.POST.get('sort_ascending', 'True')
         action_taken = request.POST.get('action', '')
         if page_action:
             object_list = request.session['object_list']
@@ -67,6 +75,12 @@ def generic(request,
                 page = int(request.POST.get('page_num', '1'))
             except ValueError:
                 pass
+        elif sort_action:
+            object_list = request.session['object_list']
+            sort_ascending = (sort_ascending == 'True')
+            for column_name, sortable, sort_param, sorter in columns:
+                if sortable and sort_param == sort_column:
+                    object_list = sorter.sort(sort_column, object_list, sort_ascending)
         elif action_taken:
             everything_selected = request.POST.get('select_everything', None)
             results = []
@@ -80,7 +94,6 @@ def generic(request,
             action_instance = action_class(request.POST)
             if action_instance.is_valid():
                 status_message, status_message_type = action_instance.perform(request, results)
-
         else:
             for form_class in filter_forms:
                 form_instance = form_class(request.POST)
@@ -144,6 +157,8 @@ def generic(request,
             'total':total,
             'selectable':selectable,
             'columns':columns,
+            'sort_column':sort_column,
+            'sort_ascending':sort_ascending,
             'page':page,
             'ranges':ranges,
             'selected':selected,
