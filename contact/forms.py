@@ -56,12 +56,12 @@ class FreeSearchForm(FilterForm):
 
     """ concrete implementation of filter form """
 
-    term = forms.CharField(max_length=100, required=True)
+    search = forms.CharField(max_length=100, required=True)
 
     def filter(self, request, queryset):
-        term = self.cleaned_data['term']
-        return queryset.filter(Q(name__icontains=term)
-                               | Q(reporting_location__name__icontains=term))
+        search = self.cleaned_data['search']
+        return queryset.filter(Q(name__icontains=search)
+                               | Q(reporting_location__name__icontains=search))
 
 
 class DistictFilterForm(FilterForm):
@@ -111,8 +111,7 @@ class MassTextForm(ActionForm):
             outgoing = OutgoingMessage(conn, text)
             router.handle_outgoing(outgoing)
         stop_sending_mass_messages()
-        return 'Message successfully sent to %d numbers' \
-            % connections.count()
+        return ('Message successfully sent to %d numbers' % connections.count(), 'success',)
 
 
 
@@ -138,3 +137,4 @@ class AssignGroupForm(ActionForm):
         for c in results:
             for g in groups:
                 c.groups.add(g)
+        return ('%d Contacts assigned to %d groups.' % (len(results), len(groups)), 'success',)
