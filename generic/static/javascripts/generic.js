@@ -1,7 +1,22 @@
 function filter(elem) {
     form = $(elem).parents("form");
     form_data = form.serializeArray();
-    $('#object_list').load("./", form_data);
+    $('#div_results_loading').show();
+    $('#object_list').load("./", form_data, function() {
+        $('#div_results_loading').hide();
+    });
+}
+
+function overlay_loading_panel(elem) {
+    var off = elem.offset();
+    var parent_off = $('#div_panel_loading').parent().offset();
+    $('#div_panel_loading').css({
+        left:   (off.left - parent_off.left) + 'px',
+        top:    (off.top - parent_off.top) + 'px',
+        width:  elem.outerWidth() + 'px',
+        height: elem.outerHeight() + 'px'
+    })
+    $('#div_panel_loading').show();
 }
 
 function page(elem, num) {
