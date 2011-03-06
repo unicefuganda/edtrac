@@ -382,7 +382,7 @@ class Response(models.Model):
     """
     message = models.ForeignKey(Message, null=True)
     poll    = models.ForeignKey(Poll, related_name='responses')
-    contact = models.ForeignKey(Contact, null=True, blank=True)
+    contact = models.ForeignKey(Contact, null=True, blank=True, related_name='responses')
     date    = models.DateTimeField(auto_now_add=True)
 
     def update_categories(self, categories, user):
