@@ -14,6 +14,8 @@ from rapidsms.models import Contact, Connection
 from eav import register
 from eav.models import Value
 
+from .utils import init_attributes
+
 from simple_locations.models import Area
 
 from rapidsms_httprouter.models import Message
@@ -22,7 +24,7 @@ from rapidsms_httprouter.router import get_router
 from rapidsms.messages.outgoing import OutgoingMessage
 
 from django.conf import settings
-
+from django.db.models.signals import post_syncdb
 import re
 
 # The standard template allows for any amount of whitespace at the beginning,
@@ -432,3 +434,5 @@ class Rule(models.Model):
             self.regex = CONTAINS_PATTERN_TEMPLATE % self.rule_string
         elif self.rule_type == Rule.TYPE_REGEX:
             self.regex = self.rule_string
+
+post_syncdb.connect(init_attributes, weak=True)
