@@ -88,13 +88,9 @@
         </div>
         {% endblock %}
         <div id="object_list" class="module">
-            {% ifequal object_list|length 0 %}
-                No Results match your search.  Refresh to reset.
-            {% else %}
-                {% block object_list %}
-                    {% include partial_base %}
-                {% endblock %}
-            {% endifequal %}
+            {% block object_list %}
+                {% include partial_base %}
+            {% endblock %}
         </div>
     </form>
 {% endblock %}
