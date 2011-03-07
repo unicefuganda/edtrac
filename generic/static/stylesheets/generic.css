@@ -12,6 +12,16 @@
     background-color: #9f7;
 }
 
+.status_error {
+    padding: 5px;
+    margin: 5px;
+    color: red;
+    font-size: 10px;
+    font-weight: bold;
+    border: solid 1px #532;
+    background-color: #f97;
+}
+
 .results {
     width: 100%;
     border-collapse:collapse;
