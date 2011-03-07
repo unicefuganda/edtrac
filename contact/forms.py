@@ -98,22 +98,23 @@ class MassTextForm(ActionForm):
     action_label = 'Send Message'
 
     def perform(self, request, results):
-        connections = \
-            Connection.objects.filter(contact__in=results).distinct()
-        router = get_router()
-        text = self.cleaned_data['text']
-        mass_text = MassText.objects.create(user=request.user,
-                text=text)
-        mass_text.sites.add(Site.objects.get_current())
-        start_sending_mass_messages()
-        for conn in connections:
-            mass_text.contacts.add(conn.contact)
-            outgoing = OutgoingMessage(conn, text)
-            router.handle_outgoing(outgoing)
-        stop_sending_mass_messages()
-        return ('Message successfully sent to %d numbers' % connections.count(), 'success',)
-
-
+        if request.user and request.user.has_perm('ureport.can_message'):
+            connections = \
+                Connection.objects.filter(contact__in=results).distinct()
+            router = get_router()
+            text = self.cleaned_data['text']
+            mass_text = MassText.objects.create(user=request.user,
+                    text=text)
+            mass_text.sites.add(Site.objects.get_current())
+            start_sending_mass_messages()
+            for conn in connections:
+                mass_text.contacts.add(conn.contact)
+                outgoing = OutgoingMessage(conn, text)
+                router.handle_outgoing(outgoing)
+            stop_sending_mass_messages()
+            return ('Message successfully sent to %d numbers' % connections.count(), 'success',)
+        else:
+            return ("You don't have permission to send messages!", 'error',)
 
 class AssignGroupForm(ActionForm):
 
