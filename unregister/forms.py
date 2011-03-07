@@ -12,4 +12,4 @@ class BlacklistForm(ActionForm):
                 Blacklist.objects.get_or_create(connection=c)
             return ('You blacklisted %d numbers' % len(connections), 'success',)
         else:
-            return ("You don't have permissions to blacklist numbers" % len(connections), 'error',)
+            return ("You don't have permissions to blacklist numbers", 'error',)
