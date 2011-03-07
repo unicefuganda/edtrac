@@ -157,6 +157,7 @@ class HttpRouter(object, LoggerMixin):
     """
 
     incoming_phases = ("filter", "parse", "handle", "default", "cleanup")
+    outgoing_phases = ("outgoing",)
 
     def __init__(self):
         # the apps we'll run through
@@ -275,10 +276,6 @@ class HttpRouter(object, LoggerMixin):
         db_message.save()
         outgoing_db_lock.release()
         db_responses = []
-        
-        # respond with a default message if one exists
-        if (not msg.responses) and getattr(settings, 'DEFAULT_RESPONSE', None):
-            msg.responses.append(OutgoingMessage(db_message.connection, settings.DEFAULT_RESPONSE))
             
         # now send the message responses
         while msg.responses:
@@ -290,7 +287,6 @@ class HttpRouter(object, LoggerMixin):
         msg.processed = True
 
         return db_message
-
 
     def add_outgoing(self, connection, text, source=None, status='Q'):
         """
@@ -313,6 +309,29 @@ class HttpRouter(object, LoggerMixin):
         """
         global outgoing_worker_threads
         
+        for phase in self.outgoing_phases:
+            self.debug("Out %s phase" % phase)
+            continue_sending = True
+
+            # call outgoing phases in the opposite order of the incoming
+            # phases, so the first app called with an  incoming message
+            # is the last app called with an outgoing message
+            for app in reversed(self.apps):
+                self.debug("Out %s app" % app)
+
+                try:
+                    func = getattr(app, phase)
+                    continue_sending = func(msg)
+
+                except Exception, err:
+                    app.exception()
+
+                # during any outgoing phase, an app can return True to
+                # abort ALL further processing of this message
+                if continue_sending is False:
+                    self.warning("Message cancelled")
+                    return None
+
         # add it to our db/queue
         db_message = self.add_outgoing(msg.connection, msg.text, source, status='P')
 
