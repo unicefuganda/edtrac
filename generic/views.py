@@ -76,7 +76,9 @@ def generic(request,
             except ValueError:
                 pass
         elif sort_action:
-            object_list = request.session['object_list']
+            # retrieve the original, unsorted, unpaginated list,
+            # as some sorts will turn the initial queryset into a list
+            object_list = request.session['filtered_list']
             sort_ascending = (sort_ascending == 'True')
             for column_name, sortable, sort_param, sorter in columns:
                 if sortable and sort_param == sort_column:
@@ -100,7 +102,14 @@ def generic(request,
                 if form_instance.is_valid():
                     object_list = form_instance.filter(request, object_list)
             selected = True
+            # store the original, unsorted, unpaginated list,
+            # as some sorts will turn the initial queryset into a list
+            request.session['filtered_list'] = object_list
         response_template = partial_base
+    else:
+        # store the full set of models, in queryset form, in the
+        # session, for the case of sorting the full list
+        request.session['filtered_list'] = object_list
 
     request.session['object_list'] = object_list
     total = len(object_list)
