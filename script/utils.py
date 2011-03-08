@@ -12,7 +12,8 @@ def incoming_progress(message):
     function should only be updating the ScriptProgress model accordingly.
 
     This function SHOULD, however, do all processing of the message (i.e.,
-    updating the ScriptProgress table, calling Poll.process_response, etc.)
+    updating the ScriptProgress table, calling Poll.process_response, etc.),
+    and also fire any signals on script progression or completion.
 
     Returns: any immediate response (as a string) that is necessary (based on
     the rules of the script), or None if none are needed.
