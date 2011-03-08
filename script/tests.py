@@ -7,7 +7,8 @@ from django.test.client import Client
 from django.core.exceptions import ValidationError
 from django.contrib.sites.models import Site
 from rapidsms.models import Contact
-from script.utils import incoming_progress, check_progress
+from script.utils.incoming import incoming_progress
+from script.utils.outgoing import check_progress
 from script.models import *
 from rapidsms.models import Contact, Connection, Backend
 from rapidsms.messages.incoming import IncomingMessage

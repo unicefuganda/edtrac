@@ -2,7 +2,7 @@ import rapidsms
 import datetime
 
 from rapidsms.apps.base import AppBase
-from script.utils import incoming_progress
+from script.utils.incoming import incoming_progress
 from .models import *
 
 class App (AppBase):

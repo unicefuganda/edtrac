@@ -11,7 +11,7 @@ from django.db import transaction
 
 from rapidsms.messages.outgoing import OutgoingMessage
 
-from script.utils import check_progress
+from script.utils.outgoing import check_progress
 
 class Command(BaseCommand):
     
