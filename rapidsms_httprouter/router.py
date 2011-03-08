@@ -259,6 +259,10 @@ class HttpRouter(object, LoggerMixin):
                             # mark the message handled to avoid the 
                             # default phase firing unnecessarily
                             msg.handled = True
+                            outgoing_db_lock.acquire()
+                            db_message.handled_by = app
+                            db_message.save()
+                            outgoing_db_lock.release()
                             break
                     
                     elif phase == "default":
