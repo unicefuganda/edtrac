@@ -23,7 +23,7 @@ class ScriptStep(models.Model):
     script = models.ForeignKey(Script, related_name='steps')
     poll = models.ForeignKey(Poll, null=True)
     message = models.CharField(max_length=160)
-
+    order = models.IntegerField()
     LENIENT = 'l'
     WAIT_MOVEON = 'w'
     WAIT_GIVEUP = 'g'
