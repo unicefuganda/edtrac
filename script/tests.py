@@ -21,6 +21,6 @@ class ModelTest(TestCase): #pragma: no cover
         Create a default script for all test cases
         """
         pass
-    
+
     def testIncomingProgress(self):
-        self.assertEquals(1 + 1, 2)    
+        self.assertEquals(1 + 1, 2)
