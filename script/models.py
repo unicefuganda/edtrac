@@ -34,7 +34,7 @@ class ScriptStep(models.Model):
 
 class ScriptProgress(models.Model):
     connection = models.ForeignKey(Connection, unique=True)
-    script_step = models.ForeignKey(ScriptStep)
+    script_step = models.ForeignKey(ScriptStep, null=True, blank=True)
     status = models.CharField(
                 max_length=1,
                 choices=(('C', 'Complete'),
