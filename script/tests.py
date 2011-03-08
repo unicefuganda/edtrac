@@ -24,7 +24,9 @@ class ModelTest(TestCase): #pragma: no cover
         """
         Create a default script for all test cases
         """
-        site = Site.objects.create(domain='example.com', pk=settings.SITE_ID)
+        site = Site.objects.get_or_create(pk=settings.SITE_ID, defaults={
+            'domain':'example.com', 
+        })
         user = User.objects.create_user('admin', 'test@test.com', 'p4ssw0rd')
         connection = Connection.objects.create(identity='8675309', backend=Backend.objects.create(name='TEST'))
         script = Script.objects.create(slug="test_autoreg", name="The dummy registration script")
