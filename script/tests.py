@@ -102,7 +102,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(prog.status, 'P')
 
         # wait a day, with no response
-        prog.elapseTime(prog, 86401)
+        self.elapseTime(prog, 86401)
         response = check_progress(connection)
         self.assertEquals(response, 'Second question: Do you like CHEESE?')
         prog = ScriptProgress.objects.get(connection=connection)

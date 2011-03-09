@@ -25,18 +25,23 @@ def check_progress(connection):
     if not progress.step:
         progress.status='P'
         progress.save()
-        progress.step=progress.script.steps.get(order=0)
+        progress.step=progress.get_initial_step()
         progress.save()
-        return progress.step.message
+        if progress.step.poll:
+            return progress.step.poll.question
+        else:
+            return progress.step.message
 
 
-    elif progress.step.order==0 and progress.status:
-        progress.step=ScriptStep.objects.get(script=progress.script,order=1)
-        progress.step.save()
+    elif progress.step==progress.get_initial_step() and progress.status:
+        progress.step=progress.get_next_step()
         progress.status='P'
         progress.save()
         if progress.step.poll:
             return progress.step.poll.question
+        else:
+            progress.step.message
+            
 
     elif current_time >= progress.time:
 
@@ -44,7 +49,7 @@ def check_progress(connection):
             progress.status='C'
             progress.save()
             return None
-        progress.step=ScriptStep.objects.get(script=progress.script,order=progress.step.order+1)
+        progress.step=progress.get_next_step()
         progress.step.save()
         progress.save()
         if progress.step.poll:
