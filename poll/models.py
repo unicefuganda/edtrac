@@ -121,7 +121,7 @@ class Poll(models.Model):
             regex=(STARTSWITH_PATTERN_TEMPLATE % '|'.join(NO_WORDS)),
             rule_type=Rule.TYPE_REGEX,
             rule_string=(STARTSWITH_PATTERN_TEMPLATE % '|'.join(NO_WORDS)))
-        poll.categories.create(name='unknown', default=True)
+        poll.categories.create(name='unknown', default=True, error_response=True)
         return poll
     
     @classmethod
@@ -237,15 +237,21 @@ class Poll(models.Model):
             rc.delete()
 
         for resp in Response.objects.filter(poll=self):
+            resp.has_errors = False
             for category in self.categories.all():
                 for rule in category.rules.all():
                     regex = re.compile(rule.regex)
                     if resp.eav.poll_text_value:
                         if regex.search(resp.eav.poll_text_value.lower()) and not resp.categories.filter(category=category).count():
+                            if category.error_response:
+                                resp.has_errors = True
                             rc = ResponseCategory.objects.create(response = resp, category=category)
                             break
             if not resp.categories.all().count() and self.categories.filter(default=True).count():
+                if self.categories.get(default=True).error_response:
+                    resp.has_errors = True
                 resp.categories.add(ResponseCategory.objects.create(response = resp, category=self.categories.get(default=True)))
+            resp.save()
     
     def process_response(self, message):
         db_message = None
@@ -268,12 +274,14 @@ class Poll(models.Model):
                 else:
                     area = Area.objects.create(name=location_str, code=generate_tracking_tag())
                 resp.eav.poll_location_value = area
+            else:
+                resp.has_errors = True
                 
         elif (self.type == Poll.TYPE_NUMERIC):
             try:
                 resp.eav.poll_number_value = float(message.text)
-            except ValueError:        
-                pass
+            except ValueError:
+                resp.has_errors = True  
             
         elif ((self.type == Poll.TYPE_TEXT) or (self.type == Poll.TYPE_REGISTRATION)):
             resp.eav.poll_text_value = message.text
@@ -284,9 +292,13 @@ class Poll(models.Model):
                         if regex.search(message.text.lower()):
                             rc = ResponseCategory.objects.create(response = resp, category=category)
                             resp.categories.add(rc)
+                            if category.error_category:
+                                resp.has_errors = True
                             break
         if not resp.categories.all().count() and self.categories.filter(default=True).count():
             resp.categories.add(ResponseCategory.objects.create(response = resp, category=self.categories.get(default=True)))
+            if self.categories.get(default=True).error_response:
+                resp.has_errors = True
             
         for respcategory in resp.categories.order_by('category__priority'):
             if respcategory.category.response:
@@ -294,9 +306,9 @@ class Poll(models.Model):
                 break
         resp.save()
         if not outgoing_message:
-            return "We have received your response, thank you!"
+            return (resp, None,)
         else:
-            return outgoing_message
+            return (resp,outgoing_message,)
 
     def get_generic_report_data(self):
         context = {}
@@ -365,6 +377,7 @@ class Category(models.Model):
     color = models.CharField(max_length=6)
     default = models.BooleanField(default=False)
     response = models.CharField(max_length=160, null=True)
+    error_category = models.BooleanField(default=False)
     
     @classmethod
     def clear_defaults(cls, poll):
@@ -386,6 +399,7 @@ class Response(models.Model):
     poll    = models.ForeignKey(Poll, related_name='responses')
     contact = models.ForeignKey(Contact, null=True, blank=True, related_name='responses')
     date    = models.DateTimeField(auto_now_add=True)
+    has_errors = models.BooleanField(default=False)
 
     def update_categories(self, categories, user):
         for c in categories:

@@ -12,8 +12,8 @@ class App (AppBase):
         if (message.connection.contact):
             try:
                 poll = Poll.objects.filter(contacts=message.connection.contact).exclude(start_date=None).filter(Q(end_date=None) | (~Q(end_date=None) & Q(end_date__gt=datetime.datetime.now()))).latest('start_date')
-                response = poll.process_response(message)    
-                message.respond(response)
+                response_obj, response_msg = poll.process_response(message)
+                message.respond(response_msg)
                 # play nice, let other things handle responses
                 return False
             except Poll.DoesNotExist:
