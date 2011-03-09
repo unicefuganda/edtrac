@@ -1,4 +1,6 @@
 import datetime
+from script.models import ScriptStep,ScriptProgress,Script
+from rapidsms.models import  Connection
 
 def check_progress(connection):
     """
