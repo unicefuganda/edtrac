@@ -121,7 +121,7 @@ class Poll(models.Model):
             regex=(STARTSWITH_PATTERN_TEMPLATE % '|'.join(NO_WORDS)),
             rule_type=Rule.TYPE_REGEX,
             rule_string=(STARTSWITH_PATTERN_TEMPLATE % '|'.join(NO_WORDS)))
-        poll.categories.create(name='unknown', default=True, error_response=True)
+        poll.categories.create(name='unknown', default=True, error_category=True)
         return poll
     
     @classmethod
@@ -224,7 +224,9 @@ class Poll(models.Model):
         for contact in self.contacts.all():
             for connection in Connection.objects.filter(contact=contact):
                 outgoing = OutgoingMessage(connection, self.question)
-                self.messages.add(router.handle_outgoing(outgoing))
+                outgoing_obj = router.handle_outgoing(outgoing)
+                if outgoing_obj:
+                    self.messages.add(outgoing_obj)
 
             pass
     
@@ -243,12 +245,12 @@ class Poll(models.Model):
                     regex = re.compile(rule.regex)
                     if resp.eav.poll_text_value:
                         if regex.search(resp.eav.poll_text_value.lower()) and not resp.categories.filter(category=category).count():
-                            if category.error_response:
+                            if category.error_category:
                                 resp.has_errors = True
                             rc = ResponseCategory.objects.create(response = resp, category=category)
                             break
             if not resp.categories.all().count() and self.categories.filter(default=True).count():
-                if self.categories.get(default=True).error_response:
+                if self.categories.get(default=True).error_category:
                     resp.has_errors = True
                 resp.categories.add(ResponseCategory.objects.create(response = resp, category=self.categories.get(default=True)))
             resp.save()
@@ -281,7 +283,7 @@ class Poll(models.Model):
             try:
                 resp.eav.poll_number_value = float(message.text)
             except ValueError:
-                resp.has_errors = True  
+                resp.has_errors = True
             
         elif ((self.type == Poll.TYPE_TEXT) or (self.type == Poll.TYPE_REGISTRATION)):
             resp.eav.poll_text_value = message.text
@@ -297,7 +299,7 @@ class Poll(models.Model):
                             break
         if not resp.categories.all().count() and self.categories.filter(default=True).count():
             resp.categories.add(ResponseCategory.objects.create(response = resp, category=self.categories.get(default=True)))
-            if self.categories.get(default=True).error_response:
+            if self.categories.get(default=True).error_category:
                 resp.has_errors = True
             
         for respcategory in resp.categories.order_by('category__priority'):
