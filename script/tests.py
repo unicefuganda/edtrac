@@ -32,7 +32,6 @@ class ModelTest(TestCase): #pragma: no cover
         script = Script.objects.create(
                 slug="test_autoreg",
                 name="The dummy registration script",
-                num_tries=3,
 
                 )
         script.sites.add(Site.objects.get_current())
