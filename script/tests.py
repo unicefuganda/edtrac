@@ -84,6 +84,21 @@ class ModelTest(TestCase): #pragma: no cover
         incomingmessage = IncomingMessage(connection, message)
         incomingmessage.db_message = Message.objects.create(direction='I', connection=connection, text=message)
         return incomingmessage
+    def update_state(self,progress,*args,**kwargs):
+        """ update the script progress"""
+        if 'status' in kwargs:
+            progress.status=kwargs['status']
+            progress.save()
+        if 'num_tries' in kwargs:
+            progress.num_tries=kwargs['num_tries']
+            progress.save()
+        if 'rule' in kwargs:
+            progress.step.rule=kwargs['rule']
+            progress.step.save()
+        if 'num_tries' in kwargs:
+            progress.step.num_tries=kwargs['num_tries']
+            progress.step.save()
+
 
     def testCheckProgress(self):
         connection = Connection.objects.all()[0]
@@ -106,6 +121,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(prog.status, 'P')
 
         #user message error
+        
 
         # wait a day, with no response
         self.elapseTime(prog, 86401)
