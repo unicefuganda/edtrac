@@ -29,7 +29,12 @@ class ModelTest(TestCase): #pragma: no cover
         })
         user = User.objects.create_user('admin', 'test@test.com', 'p4ssw0rd')
         connection = Connection.objects.create(identity='8675309', backend=Backend.objects.create(name='TEST'))
-        script = Script.objects.create(slug="test_autoreg", name="The dummy registration script")
+        script = Script.objects.create(
+                slug="test_autoreg",
+                name="The dummy registration script",
+                num_tries=3,
+
+                )
         script.sites.add(Site.objects.get_current())
         script.steps.add(ScriptStep.objects.create(
             script=script,
@@ -101,6 +106,8 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(prog.step.order, 1)
         self.assertEquals(prog.status, 'P')
 
+        #user message error
+
         # wait a day, with no response
         self.elapseTime(prog, 86401)
         response = check_progress(connection)
@@ -160,3 +167,13 @@ class ModelTest(TestCase): #pragma: no cover
         # check that this correct poll response updated the progress
         self.assertEquals(prog.step.order, 2)
         self.assertEquals(prog.status, 'C')
+
+
+    def testScriptSignals(self):
+        def receive(sender, **kwargs):
+            pass
+
+        signals.script_progression.connect(receive)
+
+
+
