@@ -58,7 +58,7 @@ class ModelTest(TestCase): #pragma: no cover
             poll=poll2,
             order=2,
             rule=ScriptStep.LENIENT, # we really want to know how the user feels about cheese
-            start_offset=1, #start immediately after the giveup time has elapsed from the previous step
+            start_offset=0, #start immediately after the giveup time has elapsed from the previous step
         ))
         script.steps.add(ScriptStep.objects.create(
             script=script,
