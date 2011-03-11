@@ -30,27 +30,12 @@ def incoming_progress(message):
     current_poll_question = current_step.poll.question
     current_time = datetime.datetime.now()
 
-    if next_step.start_offset:
-        next_step_start_time = progress.time + datetime.timedelta(days = 0, seconds=next_step.start_offset)
-    else:
-        next_step_start_time = None
-
-    if current_step.retry_offset:
-        current_step_retry_time = progress.time + datetime.timedelta(days = 0, seconds=current_step.retry_offset)
-    else:
-        current_step_retry_time = None
-
-    if current_step.giveup_offset:
-        current_step_giveup_time = progress.time + datetime.timedelta(days = 0, seconds=current_step.giveup_offset)
-    else:
-        current_step_giveup_time = None
-
 #    if current step status is pending
     if progress.status == 'P':
         if progress.step.rule == 'l':
 #            its a poll but answered incorrectly!
             if response and response[0].has_errors:
-                if current_step_retry_time and current_step_retry_time >= current_time:
+                if progress.retry_now():
                     if response[1] is None:
                         return current_poll_question
                     else:
@@ -66,7 +51,7 @@ def incoming_progress(message):
                     progress.save()
 
 #                   New step start
-                    if next_step_start_time and next_step_start_time >= current_time:
+                    if progress.proceed():
                         progress.step = next_step
                         progress.status = 'P'
                         progress.save()
@@ -85,7 +70,7 @@ def incoming_progress(message):
                     return response[1]
 #            its not a poll but a simple message
             else:
-                if next_step_start_time and next_step_start_time >= current_time:
+                if progress.proceed():
                     progress.step = next_step
                     progress.status = 'P'
                     progress.save()
@@ -99,8 +84,8 @@ def incoming_progress(message):
 #        retry move-on and retry give-up
         elif progress.step.rule == 'R' or progress.step.rule == 'r':
             if response and response[0].has_errors:
-                if current_step.num_tries and progress.num_tries < current_step.num_tries:
-                    if current_step_retry_time and current_step_retry_time >= current_time:
+                if progress.keep_retrying():
+                    if progress.retry_now():
                         if progress.current_step.rule == 'r':
     #                        if rule is resend-giveup, delete connection!
                             progress.delete()
@@ -115,7 +100,7 @@ def incoming_progress(message):
                 else:
                     progress.status = 'C'
                     progress.save()
-                    if next_step_start_time and next_step_start_time > current_time:
+                    if progress.proceed():
                         progress.step = next_step
                         progress.status = 'P'
                         progress.save()
@@ -128,37 +113,6 @@ def incoming_progress(message):
         else:
             progress.status = 'C'
             progress.save()
-#        Step status is 'Pending'
-#        response = poll.process_response(message)
-#        if response[0].has_errors:
-##            message has errors, handle it according to the current step's rules'
-#            if progress.step.rule == 'l':
-#                progress.status = 'C'
-#                if script_last_step == num_script_steps:
-#                    progress.status = 'C'
-#                    return None
-#                else:
-#                    progress.step = next_step
-#                    progress.num_tries = 1
-#                    progress.save()
-#                    return None
-#            elif progress.step.rule == 'R' or progress.step.rule == 'r':
-#                if progress.num_tries < current_step.retry_offset:
-#                    progress.num_tries = progress.num_tries + 1
-#                    if progress.current_step.rule == 'r':
-##                        in case of resend move-on, mark progress as complete as oposed to perhaps
-##                        deleting the connection from the scriptprogress table
-#                        progress.status = 'C'
-#                    return current_poll_question
-#                else:
-#                    progress.step = next_step
-#                    return None
-#            else:
-##                rule is wait move-on or wait-give-up
-#                pass
-#        else:
-##            message has no errors handle it according to the current step's rules
-#            return response[1]
     else:
 #        step is 'Complete'
         response = poll.process_response(message)

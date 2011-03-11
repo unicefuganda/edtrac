@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.db import models
 from poll.models import Poll
 from rapidsms.models import Connection
@@ -102,8 +103,47 @@ class ScriptProgress(models.Model):
         except ValueError:
             return None 
 
+#    should we retry the current step now?
+    def retry_now(self):
+        if self.step.retry_offset:
+            retry_time = self.time + datetime.timedelta(days = 0, seconds=self.step.retry_offset)
+            if retry_time and retry_time >= datetime.datetime.now():
+                return True
+            else:
+                return False
+        else:
+            return True
 
+#    should we move on to the next step now?
+    def proceed(self):
+        next_step = self.get_next_step()
+        if next_step.start_offset:
+            start_time = self.time + datetime.timedelta(days = 0, seconds=next_step.start_offset)
+            if start_time and start_time >= datetime.datetime.now():
+                return True
+            else:
+                return False
+        else:
+            return True
 
+#    should we give up now?
+    def give_up_now(self):
+        if self.step.giveup_offset:
+            give_up_time = self.time + datetime.timedelta(days = 0, seconds=self.step.giveup_offset)
+            if give_up_time and give_up_time >= datetime.datetime.now():
+                return True
+            else:
+                return False
+        else:
+            return True
+
+#    should we keep retry the current step?
+    def keep_retrying(self):
+        if self.step.num_tries and self.num_tries < self.step.num_tries:
+            return True
+        else:
+            False
+            
 def get_script_progress(sender, instance, signal, *args, **kwargs):
     script_progress=ScriptProgress .objects.get_for_model(instance)
     return script_progress.step.order
