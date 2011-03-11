@@ -14,6 +14,8 @@ class Script(models.Model):
                             help_text="Human readable name.")
     sites = models.ManyToManyField(Site)
     objects = (CurrentSiteManager('sites') if settings.SITE_ID else models.Manager())    
+    def __unicode__(self):
+        return "%s"%self.name
 
 class ScriptStep(models.Model):
     """
@@ -24,8 +26,8 @@ class ScriptStep(models.Model):
     and the time elapsed since the previous step or action.
     """
     script = models.ForeignKey(Script, related_name='steps')
-    poll = models.ForeignKey(Poll, null=True)
-    message = models.CharField(max_length=160)
+    poll = models.ForeignKey(Poll, null=True, blank=True)
+    message = models.CharField(max_length=160,blank=True)
     order = models.IntegerField()
     LENIENT = 'l'
     WAIT_MOVEON = 'w'
@@ -58,7 +60,7 @@ class ScriptStep(models.Model):
     num_tries = models.IntegerField(blank=True,null=True)
 
     def __unicode__(self):
-        return self.order
+        return "%d"%self.order
 
 
 class ScriptProgress(models.Model):
@@ -79,7 +81,11 @@ class ScriptProgress(models.Model):
     num_tries = models.IntegerField(blank=True,null=True)
 
     def __unicode__(self):
-        return self.step
+        return "%d"%self.step.order
+
+    def save(self, *args, **kwargs):
+        self.time=datetime.now()
+        super(ScriptProgress,self).save(*args, **kwargs)
 
     def get_next_step(self):
         if self.status=='C':
