@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 from django.db import models
 from poll.models import Poll
 from rapidsms.models import Connection
@@ -106,7 +106,7 @@ class ScriptProgress(models.Model):
 #    should we retry the current step now?
     def retry_now(self):
         if self.step.retry_offset:
-            retry_time = self.time + datetime.timedelta(days = 0, seconds=self.step.retry_offset)
+            retry_time = self.time + datetime.timedelta(seconds=self.step.retry_offset)
             if retry_time and retry_time >= datetime.datetime.now():
                 return True
             else:
@@ -117,8 +117,8 @@ class ScriptProgress(models.Model):
 #    should we move on to the next step now?
     def proceed(self):
         next_step = self.get_next_step()
-        if next_step.start_offset:
-            start_time = self.time + datetime.timedelta(days = 0, seconds=next_step.start_offset)
+        if next_step and next_step.start_offset:
+            start_time = self.time + datetime.timedelta(seconds=next_step.start_offset)
             if start_time and start_time >= datetime.datetime.now():
                 return True
             else:
@@ -126,10 +126,22 @@ class ScriptProgress(models.Model):
         else:
             return True
 
+#    should we move on to the next step now?
+#    def give_up_proceed(self):
+#        next_step = self.get_next_step()
+#        if next_step and next_step.start_offset:
+#            start_time = self.time + datetime.timedelta(seconds=next_step.start_offset)
+#            if start_time and start_time >= datetime.datetime.now():
+#                return True
+#            else:
+#                return False
+#        else:
+#            return True
+
 #    should we give up now?
     def give_up_now(self):
         if self.step.giveup_offset:
-            give_up_time = self.time + datetime.timedelta(days = 0, seconds=self.step.giveup_offset)
+            give_up_time = self.time + datetime.timedelta(seconds=self.step.giveup_offset)
             if give_up_time and give_up_time >= datetime.datetime.now():
                 return True
             else:
