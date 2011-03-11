@@ -137,7 +137,7 @@ class ScriptProgress(models.Model):
         else:
             return True
 
-#    should we keep retry the current step?
+#    should we keep retrying the current step?
     def keep_retrying(self):
         if self.step.num_tries and self.num_tries < self.step.num_tries:
             return True
