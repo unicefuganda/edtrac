@@ -49,11 +49,11 @@ def incoming_progress(message):
             elif response and not response[0].has_errors:
 #                if we have a valid message from process_response()
                 if response[1] is None:
-#                Old step complete
+#                    This step is complete
                     progress.status = 'C'
                     progress.save()
 
-#                   New step start
+#                   Try next step
                     if progress.proceed():
                         progress.step = next_step
                         progress.status = 'P'
@@ -170,8 +170,6 @@ def incoming_progress(message):
 
 #           EVALUATE THE WAIT MOVE-ON and WAIT GIVE-UP Rules together for PENDING state ******************************
 
-#            TODO: evaluate Wait Move-on and Wait Give up rules
-
 #            is it time to give up?
             if progress.give_up_now():
                 if progress.step.rule == 'g':
@@ -179,29 +177,27 @@ def incoming_progress(message):
                     progress.delete()
                     return None
                 else:
-#                    Complete this step before trying to move on
+                    
+#                    Simply Complete this step
                     progress.status = 'C'
                     progress.save()
                     return None
 
-##                Proceed to next step?
-#                    if progress.proceed():
-#                        progress.step = next_step
-#                        progress.status = 'P'
-#                        progress.save()
-#                        if next_step.poll:
-#                            return next_step.poll.question
-#                        else:
-#                            return next_step.message
-#                    else:
-#                        return None
 #            Not yet time to give up!
             else:
                 return None
     else:
 
 #    Current step status is COMPLETE 'C' ********************************
-#        TODO: evaluate all rules for the COMPLETE state
 
-        response = poll.process_response(message)
-        return response[1]
+#        Try next step
+        if progress.proceed():
+            progress.step = next_step
+            progress.status = 'P'
+            if next_step.poll:
+                return next_step.poll.question
+            else:
+                return next_step.message
+        else:
+            return None
+            
