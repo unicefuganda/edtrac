@@ -83,7 +83,10 @@ class ScriptProgress(models.Model):
     num_tries = models.IntegerField(blank=True,null=True)
 
     def __unicode__(self):
-        return "%d"%self.step.order
+        if script.step:
+            return "%d"%self.step.order
+        else:
+            return "Not Started"
 
     def get_next_step(self):
         if self.status=='C':
