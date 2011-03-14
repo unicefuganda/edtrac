@@ -188,8 +188,4 @@ def script_completion(sender, instance, signal, *args, **kwargs):
         return False
 
 
-
-#post_save.connect(get_script_progress, sender=IncomingMessage)
-#post_save.connect(script_completion, sender=IncomingMessage)
-
     
