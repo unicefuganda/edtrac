@@ -83,9 +83,9 @@ class ScriptProgress(models.Model):
     def __unicode__(self):
         return "%d"%self.step.order
 
-    def save(self, *args, **kwargs):
-        self.time=datetime.now()
-        super(ScriptProgress,self).save(*args, **kwargs)
+#    def save(self, *args, **kwargs):
+#        self.time=datetime.now()
+#        super(ScriptProgress,self).save(*args, **kwargs)
 
     def get_next_step(self):
         if self.status=='C':
