@@ -29,7 +29,11 @@ class ModelTest(TestCase): #pragma: no cover
         })
         user = User.objects.create_user('admin', 'test@test.com', 'p4ssw0rd')
         connection = Connection.objects.create(identity='8675309', backend=Backend.objects.create(name='TEST'))
-        script = Script.objects.create(slug="test_autoreg", name="The dummy registration script")
+        script = Script.objects.create(
+                slug="test_autoreg",
+                name="The dummy registration script",
+
+                )
         script.sites.add(Site.objects.get_current())
         script.steps.add(ScriptStep.objects.create(
             script=script,
@@ -54,7 +58,7 @@ class ModelTest(TestCase): #pragma: no cover
             poll=poll2,
             order=2,
             rule=ScriptStep.LENIENT, # we really want to know how the user feels about cheese
-            start_offset=1, #start immediately after the giveup time has elapsed from the previous step
+            start_offset=0, #start immediately after the giveup time has elapsed from the previous step
         ))
         script.steps.add(ScriptStep.objects.create(
             script=script,
@@ -80,6 +84,21 @@ class ModelTest(TestCase): #pragma: no cover
         incomingmessage = IncomingMessage(connection, message)
         incomingmessage.db_message = Message.objects.create(direction='I', connection=connection, text=message)
         return incomingmessage
+    def update_state(self,progress,*args,**kwargs):
+        """ update the script progress"""
+        if 'status' in kwargs:
+            progress.status=kwargs['status']
+            progress.save()
+        if 'num_tries' in kwargs:
+            progress.num_tries=kwargs['num_tries']
+            progress.save()
+        if 'rule' in kwargs:
+            progress.step.rule=kwargs['rule']
+            progress.step.save()
+        if 'num_tries' in kwargs:
+            progress.step.num_tries=kwargs['num_tries']
+            progress.step.save()
+
 
     def testCheckProgress(self):
         connection = Connection.objects.all()[0]
@@ -100,6 +119,9 @@ class ModelTest(TestCase): #pragma: no cover
         prog = ScriptProgress.objects.get(connection=connection)
         self.assertEquals(prog.step.order, 1)
         self.assertEquals(prog.status, 'P')
+
+        #user message error
+        
 
         # wait a day, with no response
         self.elapseTime(prog, 86401)
@@ -160,3 +182,13 @@ class ModelTest(TestCase): #pragma: no cover
         # check that this correct poll response updated the progress
         self.assertEquals(prog.step.order, 2)
         self.assertEquals(prog.status, 'C')
+
+
+    def testScriptSignals(self):
+        def receive(sender, **kwargs):
+            pass
+
+        signals.script_progression.connect(receive)
+
+
+
