@@ -167,7 +167,7 @@ class ScriptSession(models.Model):
     end_time=models.DateTimeField()
 
     def get_step(self):
-        return ScriptProgress.filter(connection=self.connection,script=self.script)
+        return ScriptProgress.get(connection=self.connection,script=self.script)
 
 
 
