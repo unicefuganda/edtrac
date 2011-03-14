@@ -56,13 +56,12 @@ class FreeSearchForm(FilterForm):
 
     """ concrete implementation of filter form """
 
-    search = forms.CharField(max_length=100, required=True)
+    search = forms.CharField(max_length=100, required=True, label="Free-form search", help_text="Use 'or' to search for multiple names")
 
     def filter(self, request, queryset):
         search = self.cleaned_data['search']
         return queryset.filter(Q(name__icontains=search)
                                | Q(reporting_location__name__icontains=search))
-
 
 class DistictFilterForm(FilterForm):
 
@@ -91,13 +90,15 @@ class DistictFilterForm(FilterForm):
             else:
                 return queryset
 
-
 class MassTextForm(ActionForm):
 
     text = forms.CharField(max_length=160, required=True)
     action_label = 'Send Message'
 
     def perform(self, request, results):
+        if results is None or len(results) == 0:
+            return ('A message must have one or more recipients!', 'error')
+
         if request.user and request.user.has_perm('ureport.can_message'):
             connections = \
                 Connection.objects.filter(contact__in=results).distinct()
