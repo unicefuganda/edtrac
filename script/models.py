@@ -83,10 +83,6 @@ class ScriptProgress(models.Model):
     def __unicode__(self):
         return "%d"%self.step.order
 
-    def save(self, *args, **kwargs):
-        self.time=datetime.now()
-        super(ScriptProgress,self).save(*args, **kwargs)
-
     def get_next_step(self):
         if self.status=='C':
             return None
@@ -101,12 +97,12 @@ class ScriptProgress(models.Model):
     def get_initial_step(self):
         try:
             return self.script.steps.order_by('order')[0]
-        except ValueError:
+        except IndexError:
             return None
     def get_last_step(self):
         try:
             return self.script.steps.order_by('-order')[0]
-        except ValueError:
+        except IndexError:
             return None 
 
 #    should we retry the current step now?
