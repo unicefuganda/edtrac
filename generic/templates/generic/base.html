@@ -35,6 +35,9 @@
                                             {% endfor %}
                                         {% endif %}
                                         {{ field.label_tag }}
+                                        {% if field.help_text %}
+                                            <span class="filter_form_help">{{ field.help_text }}</span>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         {{ field }}
@@ -59,32 +62,37 @@
         <input type="hidden" id="input_action" name="action" value=""/>
         <div class="module" id="actions">
             <h2>Actions</h2>
-            {% for cname, form in action_forms %}
-                <div class="actionform" id="div_action_{{ forloop.counter0 }}">
-                    <table>
-                        {% for field in form.visible_fields %}
+            {% block action_forms %}
+                {% for cname, form in action_forms %}
+                    <div class="actionform" id="div_action_{{ forloop.counter0 }}">
+                        <table>
+                            {% for field in form.visible_fields %}
+                                <tr>
+                                    <td>
+                                        {% if forloop.first %}
+                                            {% for hidden in form.hidden_fields %}
+                                                {{ hidden }}
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ field.label_tag }}
+                                        {% if field.help_text %}
+                                            <span class="action_form_help">{{ field.help_text }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ field }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
                             <tr>
-                                <td>
-                                    {% if forloop.first %}
-                                        {% for hidden in form.hidden_fields %}
-                                            {{ hidden }}
-                                        {% endfor %}
-                                    {% endif %}
-                                    {{ field.label_tag }}
-                                </td>
-                                <td>
-                                    {{ field }}
+                                <td colspan="2">
+                                    <a href="javascript:void(0)" onclick="action(this, '{{ cname }}')">{{ form.action_label }}</a>
                                 </td>
                             </tr>
-                        {% endfor %}
-                        <tr>
-                            <td colspan="2">
-                                <a href="javascript:void(0)" onclick="action(this, '{{ cname }}')">{{ form.action_label }}</a>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            {% endfor %}
+                        </table>
+                    </div>
+                {% endfor %}
+            {% endblock %}
         </div>
         {% endblock %}
         <div id="object_list" class="module">
