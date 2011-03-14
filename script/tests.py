@@ -16,6 +16,7 @@ from rapidsms_httprouter.models import Message
 from django.contrib.auth.models import User
 from poll.models import Poll, Response
 from django.conf import settings
+from django.db import connection
 import datetime
 
 class ModelTest(TestCase): #pragma: no cover
@@ -53,11 +54,17 @@ class ModelTest(TestCase): #pragma: no cover
             giveup_offset=86400, # we'll give them a full day to respond
         ))
         poll2 = Poll.create_yesno('question2', 'Second question: Do you like CHEESE?', 'Thanks for your cheesy response!', [], user)
+        poll2yes = poll2.categories.get(name='yes')
+        poll2yes.response = "It's very good to know that you like cheese!"
+        poll2yes.save()
+        poll2unknown = poll2.categories.get(name='unknown')
+        poll2unknown.response = "We didn't understand your response and it's very important to know about your cheese desires.  Please resend."
+        poll2unknown.save()
         script.steps.add(ScriptStep.objects.create(
             script=script,
             poll=poll2,
             order=2,
-            rule=ScriptStep.LENIENT, # we really want to know how the user feels about cheese
+            rule=ScriptStep.STRICT, # we really want to know how the user feels about cheese
             start_offset=0, #start immediately after the giveup time has elapsed from the previous step
         ))
         script.steps.add(ScriptStep.objects.create(
@@ -74,8 +81,10 @@ class ModelTest(TestCase): #pragma: no cover
         This hack mimics the progression of time, from the perspective of a linear test case,
         by actually *subtracting* from the value that's currently stored (usually datetime.datetime.now())
         """
-        progress.time = progress.time - datetime.timedelta(seconds=seconds)
-        progress.save()
+        cursor = connection.cursor()
+        newtime = progress.time - datetime.timedelta(seconds=seconds)
+        cursor.execute("update script_scriptprogress set time = '%s' where id = %d" %
+                       (newtime.strftime('%Y-%m-%d %H:%M:%S.%f'), progress.pk))
 
     def fakeIncoming(self, message, connection=None):
         if connection is None:
@@ -84,21 +93,6 @@ class ModelTest(TestCase): #pragma: no cover
         incomingmessage = IncomingMessage(connection, message)
         incomingmessage.db_message = Message.objects.create(direction='I', connection=connection, text=message)
         return incomingmessage
-    def update_state(self,progress,*args,**kwargs):
-        """ update the script progress"""
-        if 'status' in kwargs:
-            progress.status=kwargs['status']
-            progress.save()
-        if 'num_tries' in kwargs:
-            progress.num_tries=kwargs['num_tries']
-            progress.save()
-        if 'rule' in kwargs:
-            progress.step.rule=kwargs['rule']
-            progress.step.save()
-        if 'num_tries' in kwargs:
-            progress.step.num_tries=kwargs['num_tries']
-            progress.step.save()
-
 
     def testCheckProgress(self):
         connection = Connection.objects.all()[0]
@@ -121,7 +115,6 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(prog.status, 'P')
 
         #user message error
-        
 
         # wait a day, with no response
         self.elapseTime(prog, 86401)
@@ -164,17 +157,23 @@ class ModelTest(TestCase): #pragma: no cover
         prog.save()
 
         incomingmessage = self.fakeIncoming('Jack cheese is a cheese that I like')
-        incoming_progress(incomingmessage)
+        response_message = incoming_progress(incomingmessage)
+        self.assertEquals(response_message, "We didn't understand your response and it's very important to know about your cheese desires.  Please resend.")
         self.assertEquals(Response.objects.count(), 2)
 
         # refresh progress
         prog = ScriptProgress.objects.get(connection=connection)
         # check that this erroneous poll response didn't update the progress
+        r = Response.objects.order_by('-date')[0]
+        self.failUnless(r.has_errors)
         self.assertEquals(prog.step.order, 2)
         self.assertEquals(prog.status, 'P')
 
         incomingmessage = self.fakeIncoming('YES I like jack cheese you silly poll!!!eleventyone')
-        incoming_progress(incomingmessage)
+        response_message = incoming_progress(incomingmessage)
+        self.assertEquals(response_message, "It's very good to know that you like cheese!")
+        r = Response.objects.order_by('-date')[0]
+        self.failIf(r.has_errors)
         self.assertEquals(Response.objects.count(), 3)
 
         # refresh progress
@@ -183,12 +182,116 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(prog.step.order, 2)
         self.assertEquals(prog.status, 'C')
 
+    def testLenient(self):
+        step = ScriptStep.objects.get(order=2)
+        # modify setUp() ScriptStep 2 to be LENIENT
+        step.rule = ScriptStep.LENIENT
+        step.save()
 
-    def testScriptSignals(self):
-        def receive(sender, **kwargs):
-            pass
+        # dummy progress, the question for step two has been sent out, now we check
+        # that any response (even erroneous) advances progress
+        connection = Connection.objects.all()[0]
+        script = Script.objects.all()[0]
+        step = ScriptStep.objects.get(order=2)
+        prog = ScriptProgress.objects.create(connection=connection, script=script, step=step, status='P')
 
-        signals.script_progression.connect(receive)
+        incomingmessage = self.fakeIncoming('Jack cheese is a cheese that I like')
+        response_message = incoming_progress(incomingmessage)
+        self.assertEquals(response_message, "We didn't understand your response and it's very important to know about your cheese desires.  Please resend.")
+        self.assertEquals(Response.objects.count(), 1)
 
+        # refresh progress
+        prog = ScriptProgress.objects.get(connection=connection)
+        # check that this erroneous poll response DID update the progress,
+        # since the rule is now lenient
+        r = Response.objects.order_by('-date')[0]
+        self.failUnless(r.has_errors)
+        self.assertEquals(prog.step.order, 2)
+        self.assertEquals(prog.status, 'C')
 
+    def waitFlow(self, giveup = False):
+        step = ScriptStep.objects.get(order=2)
+        if giveup:
+            step.rule = ScriptStep.WAIT_GIVEUP
+        else:
+            step.rule = ScriptStep.WAIT_MOVEON
+        step.giveup_offset = 3600
+        step.save()
 
+        # dummy progress, the question for step two has been sent out, now we check
+        # that any response (even erroneous) advances progress
+        connection = Connection.objects.all()[0]
+        script = Script.objects.all()[0]
+        prog = ScriptProgress.objects.create(connection=connection, script=script, step=step, status='P')
+
+        self.elapseTime(prog, 3601)
+        check_progress(connection)
+        # refresh progress
+        if giveup:
+            self.assertEquals(ScriptProgress.objects.count(), 0)
+        else:
+            prog = ScriptProgress.objects.get(connection=connection)
+            self.assertEquals(prog.step.order, 2)
+            self.assertEquals(prog.status, 'C')
+
+    def resendFlow(self, giveup = False):
+        script = Script.objects.all()[0]
+        connection = Connection.objects.all()[0]
+        step = ScriptStep.objects.get(order=2)
+        if giveup:
+            step.rule = ScriptStep.RESEND_GIVEUP
+        else:
+            step.rule = ScriptStep.RESEND_MOVEON
+        step.retry_offset = 60
+        step.giveup_time = 3600
+        step.num_tries = 2
+        step.save()
+        prog = ScriptProgress.objects.create(connection=connection, script=script, step=step, status='P')
+        self.elapseTime(prog, 61)
+        response = check_progress(connection)
+        self.assertEquals(response, "Second question: Do you like CHEESE?")
+
+        # refresh progress
+        prog = ScriptProgress.objects.get(connection=connection)
+        self.assertEquals(prog.step.order, 2)
+        self.assertEquals(prog.status, 'P')
+        self.assertEquals(prog.num_tries, 1)
+
+        self.elapseTime(prog, 61)
+        response = check_progress(connection)
+        self.assertEquals(response, "Second question: Do you like CHEESE?")
+
+        # refresh progress
+        prog = ScriptProgress.objects.get(connection=connection)
+        self.assertEquals(prog.step.order, 2)
+        self.assertEquals(prog.status, 'P')
+        self.assertEquals(prog.num_tries, 2)
+
+        # check that we only retry twice
+        prog = ScriptProgress.objects.get(connection=connection)
+        self.elapseTime(prog, 61)
+        response = check_progress(connection)
+        self.assertEquals(response, None)
+
+        prog = ScriptProgress.objects.get(connection=connection)
+        self.elapseTime(prog, 3600)
+        response = check_progress(connection)
+        self.assertEquals(response, None)
+        if giveup:
+            self.assertEquals(ScriptProgress.objects.count(), 0)
+        else:
+            prog = ScriptProgress.objects.get(connection=connection)
+            self.assertEquals(script.step.order, 2)
+            self.assertEquals(script.status, 'C')
+
+    def testWaitMoveon(self):
+        self.waitFlow()
+
+    def testResendMoveon(self):
+        self.resendFlow()
+
+    def testWaitGiveup(self):
+        self.waitFlow(giveup=True)
+
+    def testResendGiveup(self):
+        self.resendFlow(giveup=True)
