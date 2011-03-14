@@ -30,6 +30,7 @@ class ScriptStep(models.Model):
     message = models.CharField(max_length=160,blank=True)
     order = models.IntegerField()
     LENIENT = 'l'
+    STRICT = 's'
     WAIT_MOVEON = 'w'
     WAIT_GIVEUP = 'g'
     RESEND_MOVEON = 'R'
@@ -37,7 +38,8 @@ class ScriptStep(models.Model):
 
     rule = models.CharField(
                 max_length=1,
-                choices=((LENIENT, 'Lenient (accept erroneous responses and wait for retry'),
+                choices=((LENIENT, 'Lenient (accept erroneous responses and move on to the next step)'),
+                         (STRICT, 'Strict (wait until the user submits a valid response with no errors)'),
                          (WAIT_MOVEON, 'Wait, then move to next step'),
                          (WAIT_GIVEUP, 'Wait, then stop the script for this user entirely (Giveup)'),
                          (RESEND_MOVEON, 'Resend <resend> times, then move to next step'),
