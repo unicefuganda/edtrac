@@ -28,13 +28,10 @@ def incoming_progress(message):
     else:
         response = None
     current_poll_question = current_step.poll.question
-    current_time = datetime.datetime.now()
 
 #    if current step status is PENDING ********************************
     if progress.status == 'P':
-
 #        EVALUATE THE LENIENT RULE for PENDING state************************************
-
         if progress.step.rule == 'l':
 #            its a poll but answered incorrectly!
             if response and response[0].has_errors:
@@ -52,45 +49,20 @@ def incoming_progress(message):
 #                    This step is complete
                     progress.status = 'C'
                     progress.save()
-
 #                   Try next step
-                    if progress.proceed():
-                        progress.step = next_step
-                        progress.status = 'P'
-                        progress.save()
-                        if next_step.poll:
-                            return next_step.poll.question
-#                        next step is not a poll but a message
-                        else:
-                            return next_step.message
-                    else:
-#                        Not yet time to start new step
-                        return None
+                    return try_next_step(progress, next_step)
                 else:
 #                    the response from poll processing is not none and there are no errors
                     progress.status = 'C'
                     progress.save()
                     return response[1]
-                
 #            its not a poll response but a simple message
             else:
                 progress.status = 'C'
                 progress.save()
-
 #                Proceed to next step?
-                if progress.proceed():
-                    progress.step = next_step
-                    progress.status = 'P'
-                    progress.save()
-                    if next_step.poll:
-                        return next_step.poll.question
-                    else:
-                        return next_step.message
-                else:
-                    return None
-                
+                return try_next_step(progress, next_step)
 #        EVALUATE THE RETRY MOVE-ON and RETRY GIVE-UP Rules together for PENDING state ***************************
-
         elif progress.step.rule == 'R' or progress.step.rule == 'r':
             if response and response[0].has_errors:
                 if progress.keep_retrying():
@@ -110,66 +82,28 @@ def incoming_progress(message):
                 else:
                     progress.status = 'C'
                     progress.save()
-                    
 #                    Proceed to next step?
-                    if progress.proceed():
-                        progress.step = next_step
-                        progress.status = 'P'
-                        progress.save()
-                        if next_step.poll:
-                            return next_step.poll.question
-                        else:
-                            return next_step.message
-                    else:
-                        return None
-
+                    return try_next_step(progress, next_step)
 #            its a correct poll response
             elif response and not response[0].has_errors:
                 if response[1] is None:
                     progress.status = 'C'
                     progress.save()
-
 #                    Try to move to the next step
-                    if progress.proceed():
-                        progress.step = next_step
-                        progress.status = 'P'
-                        progress.save()
-                        if next_step.poll:
-                            return next_step.poll.question
-#                        next step is not a poll but a message
-                        else:
-                            return next_step.message
-                    else:
-#                        Not yet time to start new step
-                        return None
-
-                    return None
+                    return try_next_step(progress, next_step)
 #                There is a valid response from poll processing
                 else:
                     progress.status = 'C'
                     progress.save()
                     return response[1]
-
 #            its a simple message
             else:
                 progress.status = 'C'
                 progress.save()
-
 #                Proceed to next step?
-                if progress.proceed():
-                    progress.step = next_step
-                    progress.status = 'P'
-                    progress.save()
-                    if next_step.poll:
-                        return next_step.poll.question
-                    else:
-                        return next_step.message
-                else:
-                    return None
+                return try_next_step(progress, next_step)
         else:
-
 #           EVALUATE THE WAIT MOVE-ON and WAIT GIVE-UP Rules together for PENDING state ******************************
-
 #            is it time to give up?
             if progress.give_up_now():
                 if progress.step.rule == 'g':
@@ -177,27 +111,31 @@ def incoming_progress(message):
                     progress.delete()
                     return None
                 else:
-                    
 #                    Simply Complete this step
                     progress.status = 'C'
                     progress.save()
                     return None
-
 #            Not yet time to give up!
             else:
                 return None
     else:
-
 #    Current step status is COMPLETE 'C' ********************************
-
 #        Try next step
-        if progress.proceed():
-            progress.step = next_step
-            progress.status = 'P'
-            if next_step.poll:
-                return next_step.poll.question
-            else:
-                return next_step.message
+        return try_next_step(progress, next_step)
+
+
+def try_next_step(progress, next_step):
+#    Is it time to proceed to next step?
+    if progress.proceed():
+        progress.step = next_step
+        progress.status = 'P'
+        progress.save()
+        if next_step.poll:
+            return next_step.poll.question
+#        next step is not a poll but a message
         else:
-            return None
+            return next_step.message
+    else:
+#        Not yet time to start new step
+        return None
             
