@@ -1,6 +1,6 @@
 import datetime
 from django.db import models
-from poll.models import Poll
+from poll.models import Poll,Response
 from rapidsms.models import Connection
 from django.contrib.sites.models import Site
 from django.contrib.sites.managers import CurrentSiteManager
@@ -160,12 +160,27 @@ class ScriptProgress(models.Model):
         else:
             False
             
+class ScriptSession(models.Model):
+    connection=models.ForeignKey(Connection, unique=True)
+    script=models.ForeignKey(Script)
+    start_time=models.DateTimeField(auto_now=True)
+    end_time=models.DateTimeField()
+
+    def get_step(self):
+        return ScriptProgress.filter(connection=self.connection,script=self.script)
+
+
+
+class ScriptResponse(models.Model):
+    session=models.ForeignKey(ScriptSession,related_name='responses')
+    response=models.ForeignKey(Response)
+
 def get_script_progress(sender, instance, signal, *args, **kwargs):
     script_progress=ScriptProgress .objects.get_for_model(instance)
     return script_progress.step.order
 
 def script_completion(sender, instance, signal, *args, **kwargs):
-    script_progress=IncomingMessage.objects.get_for_model(instance)
+    script_progress=ScriptProgress.objects.get_for_model(instance)
     last_script_step=script_progress.get_last_step()
     if  script_progress.step.order == last_script_step.order and script_progress.status == 'C':
         return True
