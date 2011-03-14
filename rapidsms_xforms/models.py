@@ -16,6 +16,7 @@ from django.contrib.sites.models import Site
 from django.contrib.sites.managers import CurrentSiteManager
 from rapidsms.models import ExtensibleModelBase
 from eav.fields import EavSlugField
+from rapidsms_httprouter.models import Message
 
 class XForm(models.Model):
     """
@@ -576,12 +577,14 @@ class XForm(models.Model):
         """
         message = message_obj.text
         connection = message_obj.connection
-
+        db_message = None
+        if hasattr(message, 'db_message'):
+            db_message = message.db_message
         # parse our submission
         sub_dict = self.parse_sms_submission(message_obj)
 
         # create our new submission, we'll add field values as we parse them
-        submission = XFormSubmission(xform=self, type='sms', raw=message, connection=connection)
+        submission = XFormSubmission(xform=self, type='sms', message=db_message, raw=message, connection=connection)
         submission.save()
 
         # build our template response
@@ -977,6 +980,7 @@ class XFormSubmission(models.Model):
     has_errors = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     confirmation_id = models.IntegerField(default=0)
+    message = models.ForeignKey(Message, null=True)
 
     confirmation_lock = Lock()
 
