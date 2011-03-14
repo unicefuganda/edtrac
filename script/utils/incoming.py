@@ -31,8 +31,8 @@ def incoming_progress(message):
 
 #    if current step status is PENDING ********************************
     if progress.status == 'P':
-#        EVALUATE THE LENIENT RULE for PENDING state************************************
-        if progress.step.rule == 'l':
+#        EVALUATE THE STRICT RULE for PENDING state************************************
+        if progress.step.rule == 's':
 #            its a poll but answered incorrectly!
             if response and response[0].has_errors:
                 if progress.retry_now():
@@ -62,6 +62,19 @@ def incoming_progress(message):
                 progress.save()
 #                Proceed to next step?
                 return try_next_step(progress, next_step)
+            
+#        EVALUATE THE LENIENT RULE for PENDING state************************************
+        elif progress.step.rule == 'l':
+            progress.status = 'C'
+            progress.save()
+            if response:
+                if not response[1] is None:
+                    return response[1]
+                else:
+                    return None
+            else:
+                return None
+
 #        EVALUATE THE RETRY MOVE-ON and RETRY GIVE-UP Rules together for PENDING state ***************************
         elif progress.step.rule == 'R' or progress.step.rule == 'r':
             if response and response[0].has_errors:
