@@ -75,10 +75,12 @@ class ScriptProgress(models.Model):
     # a null value here means the user just joined the script,
     # but hasn't passed even the first step
     step = models.ForeignKey(ScriptStep, null=True, blank=True)
+    COMPLETE = 'C'
+    PENDING = 'P'
     status = models.CharField(
                 max_length=1,
-                choices=(('C', 'Complete'),
-                         ('P', 'In Progress'),))
+                choices=((COMPLETE, 'Complete'),
+                         (PENDING, 'In Progress'),))
     time = models.DateTimeField(auto_now=True)
     num_tries = models.IntegerField(blank=True,null=True)
 

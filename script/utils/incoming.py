@@ -30,9 +30,9 @@ def incoming_progress(message):
     current_poll_question = current_step.poll.question
 
 #    if current step status is PENDING ********************************
-    if progress.status == 'P':
+    if progress.status == ScriptProgress.PENDING:
 #        EVALUATE THE STRICT RULE for PENDING state************************************
-        if progress.step.rule == 's':
+        if progress.step.rule == ScriptStep.STRICT:
 #            its a poll but answered incorrectly!
             if response and response[0].has_errors:
                 if progress.retry_now():
@@ -47,25 +47,25 @@ def incoming_progress(message):
 #                if we have a valid message from process_response()
                 if response[1] is None:
 #                    This step is complete
-                    progress.status = 'C'
+                    progress.status = ScriptProgress.COMPLETE
                     progress.save()
 #                   Try next step
                     return try_next_step(progress, next_step)
                 else:
 #                    the response from poll processing is not none and there are no errors
-                    progress.status = 'C'
+                    progress.status = ScriptProgress.COMPLETE
                     progress.save()
                     return response[1]
 #            its not a poll response but a simple message
             else:
-                progress.status = 'C'
+                progress.status = ScriptProgress.COMPLETE
                 progress.save()
 #                Proceed to next step?
                 return try_next_step(progress, next_step)
             
 #        EVALUATE THE LENIENT RULE for PENDING state************************************
-        elif progress.step.rule == 'l':
-            progress.status = 'C'
+        elif progress.step.rule == ScriptStep.LENIENT:
+            progress.status = ScriptProgress.COMPLETE
             progress.save()
             if response:
                 if not response[1] is None:
@@ -76,16 +76,16 @@ def incoming_progress(message):
                 return None
 
 #        EVALUATE THE RETRY MOVE-ON and RETRY GIVE-UP Rules together for PENDING state ***************************
-        elif progress.step.rule == 'R' or progress.step.rule == 'r':
+        elif progress.step.rule == ScriptStep.RESEND_MOVEON or progress.step.rule == ScriptStep.RESEND_GIVEUP:
             if response and response[0].has_errors:
                 if progress.keep_retrying():
                     if progress.retry_now():
-                        if progress.current_step.rule == 'r':
+                        if progress.current_step.rule == ScriptStep.RESEND_GIVEUP:
     #                        if rule is resend-giveup, delete connection!
                             progress.delete()
                         else:
                             progress.num_tries += 1
-                            progress.status = 'C'
+                            progress.status = ScriptProgress.COMPLETE
                             progress.save()
                             
                         return current_poll_question
@@ -93,25 +93,25 @@ def incoming_progress(message):
                         return None
 #                Don't keep retrying
                 else:
-                    progress.status = 'C'
+                    progress.status = ScriptProgress.COMPLETE
                     progress.save()
 #                    Proceed to next step?
                     return try_next_step(progress, next_step)
 #            its a correct poll response
             elif response and not response[0].has_errors:
                 if response[1] is None:
-                    progress.status = 'C'
+                    progress.status = ScriptProgress.COMPLETE
                     progress.save()
 #                    Try to move to the next step
                     return try_next_step(progress, next_step)
 #                There is a valid response from poll processing
                 else:
-                    progress.status = 'C'
+                    progress.status = ScriptProgress.COMPLETE
                     progress.save()
                     return response[1]
 #            its a simple message
             else:
-                progress.status = 'C'
+                progress.status = ScriptProgress.COMPLETE
                 progress.save()
 #                Proceed to next step?
                 return try_next_step(progress, next_step)
@@ -119,13 +119,13 @@ def incoming_progress(message):
 #           EVALUATE THE WAIT MOVE-ON and WAIT GIVE-UP Rules together for PENDING state ******************************
 #            is it time to give up?
             if progress.give_up_now():
-                if progress.step.rule == 'g':
+                if progress.step.rule == ScriptStep.WAIT_GIVEUP:
 #                    We are really not concerned with this connection any more, we are simply giving up
                     progress.delete()
                     return None
                 else:
 #                    Simply Complete this step
-                    progress.status = 'C'
+                    progress.status = ScriptProgress.COMPLETE
                     progress.save()
                     return None
 #            Not yet time to give up!
@@ -141,7 +141,7 @@ def try_next_step(progress, next_step):
 #    Is it time to proceed to next step?
     if progress.proceed():
         progress.step = next_step
-        progress.status = 'P'
+        progress.status = ScriptProgress.PENDING
         progress.save()
         if next_step.poll:
             return next_step.poll.question
