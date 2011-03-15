@@ -17,6 +17,8 @@ from django.contrib.sites.models import Site
 
 from simple_locations.models import Area
 
+from django.conf import settings
+
 
 class FilterGroupsForm(FilterForm):
 
@@ -63,6 +65,29 @@ class FreeSearchForm(FilterForm):
         return queryset.filter(Q(name__icontains=search)
                                | Q(reporting_location__name__icontains=search))
 
+class FreeSearchTextForm(FilterForm):
+
+    """ concrete implementation of filter form """
+
+    search = forms.CharField(max_length=100, required=True, label="Free-form search", help_text="Use 'or' to search for multiple names")
+
+    def filter(self, request, queryset):
+        search = self.cleaned_data['search']
+        return queryset.filter(text__icontains=search)
+
+class HandledByForm(FilterForm):
+    handled_by = forms.ChoiceField(choices=(('','-----'), ('*', 'Not Handled')) + tuple([(name, name) for name in settings.SMS_APPS]))
+
+    def filter(self, request, queryset):
+        handled_by = self.cleaned_data['handled_by']
+        if handled_by == '':
+            return queryset
+        elif handled_by == '*':
+            return queryset.filter(handled_by=None)
+        else:
+            return queryset.filter(handled_by=handled_by)
+
+
 class DistictFilterForm(FilterForm):
 
     """ filter cvs districs on their districts """
@@ -90,6 +115,33 @@ class DistictFilterForm(FilterForm):
             else:
                 return queryset
 
+class DistictFilterMessageForm(FilterForm):
+
+    """ filter cvs districs on their districts """
+
+    district = forms.ChoiceField(choices=(('', '-----'), (-1,
+                                 'No District')) + tuple([(int(d.pk),
+                                 d.name) for d in
+                                 Area.objects.filter(kind__slug='district'
+                                 ).order_by('name')]))
+
+    def filter(self, request, queryset):
+        district_pk = self.cleaned_data['district']
+        if district_pk == '':
+            return queryset
+        elif int(district_pk) == -1:
+            return queryset.filter(Q(connection__contact=None) | Q(connection__contact__reporting_location=None))
+        else:
+            try:
+                district = Area.objects.get(pk=district_pk)
+            except Area.DoesNotExist:
+                district = None
+            if district:
+                return queryset.filter(connection__contact__reporting_location__in=district.get_descendants(include_self=True))
+            else:
+                return queryset
+
+
 class MassTextForm(ActionForm):
 
     text = forms.CharField(max_length=160, required=True)
@@ -114,6 +166,27 @@ class MassTextForm(ActionForm):
                 router.handle_outgoing(outgoing)
             stop_sending_mass_messages()
             return ('Message successfully sent to %d numbers' % connections.count(), 'success',)
+        else:
+            return ("You don't have permission to send messages!", 'error',)
+
+class ReplyTextForm(ActionForm):
+
+    text = forms.CharField(max_length=160, required=True)
+    action_label = 'Reply to selected'
+
+    def perform(self, request, results):
+        if results is None or len(results) == 0:
+            return ('A message must have one or more recipients!', 'error')
+
+        if request.user and request.user.has_perm('ureport.can_message'):
+            router = get_router()
+            text = self.cleaned_data['text']
+            start_sending_mass_messages()
+            for msg in results:
+                outgoing = OutgoingMessage(msg.connection, text)
+                router.handle_outgoing(outgoing, msg)
+            stop_sending_mass_messages()
+            return ('%d messages sent successfully' % results.count(), 'success',)
         else:
             return ("You don't have permission to send messages!", 'error',)
 

@@ -3,7 +3,6 @@ from django.shortcuts import  render_to_response
 from rapidsms.models import Contact
 from contact.forms import NewContactForm,FreeSearchForm
 from django.core.paginator import Paginator, InvalidPage
-from status160.models import Team
 from django.http import Http404,HttpResponseRedirect
 from . import forms
 
