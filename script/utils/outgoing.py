@@ -2,6 +2,23 @@ import datetime
 from script.models import ScriptStep,ScriptProgress,Script
 from rapidsms.models import  Connection
 
+def prog_msg(progress):
+    if progress.step:
+        if progress.step.poll:
+            return progress.step.poll.question
+        else:
+            return progress.step.message
+
+    else:
+        return None
+
+def can_moveon(progress):
+    if (datetime.datetime.now() >= progress.time+datetime.timedelta(seconds=progress.get_next_step().start_offset)):
+        return True
+    elif  progress.status=='P' and progress.step.rule==ScriptStep.STRICT:
+        return False
+    else:
+        return False
 def check_progress(connection):
     """
     This function should check if a given connection
@@ -20,7 +37,6 @@ def check_progress(connection):
     needed.
     """
     progress=ScriptProgress.objects.get(connection=connection)
-    number_of_script_steps=progress.script.steps.order_by('-order')[0].order
     current_time=datetime.datetime.now()
     #means its the first step in the script . get the initial step and check if its due to be sent.
     if not progress.step:
@@ -28,45 +44,79 @@ def check_progress(connection):
             progress.step=progress.get_initial_step()
             progress.status='P'
             progress.save()
+            return prog_msg(progress)
+        else:
+            return None
     else:
         ##check for completed step
         if progress.step=='C':
             #is this the last step?
-            if progress.step.order == number_of_script_steps:
+            if progress.step == progress.get_last_step():
                 return None
+
             #get the next step and check its start_offset offset
             elif current_time>=datetime.timedelta(seconds=progress.get_next_step().start_offset)+progress.time:
                 progress.step=progress.get_next_step()
                 progress.status='P'
                 progress.save()
-        #current progress is in progress
-        else:
-            #check giveup offset
-            if current_time >= progress.time+datetime.timedelta(seconds=progress.step.giveup_offset):
-                progress.status='C'
-                progress.save()
-                return None
-            #check number of tries
-            elif progress.num_tries==progress.step.num_tries :
-                if progress.step.rule in ['r','g']:
-                    progress.status='C'
-                    progress.save()
-                    return None
-                elif progress.step.rule in ['R','w']:
-                    progress.step=progress.get_next_step()
-                    progress.status='P'
-                    progress.save()
-
-
-            elif current_time >= progress.time+datetime.timedelta(seconds=progress.step.start_offset):
-                progress.step=progress.get_next_step()
-                progress.step.save()
-                progress.save()
-
+                return prog_msg(progress)
             else:
                 return None
-    if progress.step.poll:
+        #current progress is in progress
+        else:
 
-        return progress.step.poll.question
-    else:
-        return progress.step.message
+            #check giveup offset
+            giveup_offset=progress.step.giveup_offset
+            if giveup_offset:
+                if current_time >= progress.time+datetime.timedelta(seconds=giveup_offset) :
+                    if progress.step.rule==ScriptStep.WAIT_MOVEON:
+                        next_step=progress.get_next_step()
+                        if next_step:
+                            if can_moveon(progress):
+                                progress.step=next_step
+                                progress.save()
+                                return prog_msg(progress)
+                            else:
+                                return None
+                        else:
+                            progress.status='C'
+                            progress.save()
+                            return None
+                    if  progress.step.rule==ScriptStep.WAIT_GIVEUP:
+                        progress.delete()
+                        return None
+
+            #check number of tries
+            if progress.num_tries==progress.step.num_tries :
+                if progress.step.rule ==ScriptStep.RESEND_MOVEON and can_moveon(progress):
+                    step=progress.get_next_step()
+                    if step:
+                        progress.step=step
+                        progress.save()
+                        return prog_msg(progress)
+                    else:
+                        progress.status='C'
+                        progress.save()
+                        return None
+                elif progress.step.rule ==ScriptStep.RESEND_GIVEUP:
+                    progress.delete()
+                    return None
+                else:
+                    return None
+            elif progress.num_tries<progress.step.num_tries:
+                if progress.num_tries:
+                    progress.num_tries+=1
+                    progress.save()
+                else:
+                    progress.num_tries=1
+                    progress.save()
+                return prog_msg(progress)
+
+            if current_time >= progress.time+datetime.timedelta(seconds=progress.step.start_offset):
+                progress.step=progress.get_next_step()
+                progress.save()
+                return prog_msg(progress)
+
+    return prog_msg(progress)
+
+
