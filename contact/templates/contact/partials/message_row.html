@@ -1,0 +1,42 @@
+{% extends 'generic/partials/partial_row.html' %}
+{% block remaining_row_content %}
+<td>
+    <span class="textmessage">
+    {{ object.text }}
+    </span>
+</td>
+<td>
+    {% if object.connection.contact %}
+        {{ object.connection.contact.name }} (
+    {% endif %}
+    {{ object.connection.identity }}
+    {% if object.connection.contact %}
+        )
+    {% endif %}
+    <ul>
+        <li>
+            <a href="/ureport/{{ object.connection.pk }}/message_history/">
+                Show history
+            </a>
+        </li>
+    </ul>
+</td>
+<td>
+    {{ object.date|date:"m/d/Y H:i:s" }}
+</td>
+<td>
+    {{ object.status }}
+    {% if object.handled_by %}
+        (handled by {{ object.handled_by }})
+    {% endif %}
+</td>
+<td>
+    {% if object.responses %}
+        <ul>
+            {% for r in object.responses.all %}
+                <li>&lt;&lt;{{ r.text }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</td>
+{% endblock %}

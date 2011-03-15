@@ -1,0 +1,19 @@
+.results ul {
+    list-style-type:none;
+    margin:2px;
+    padding:0;
+}
+
+.results li {
+    padding:1px;
+    font-size:6pt;
+}
+
+.textmessage {
+    font-size:6pt;
+}
+
+.filter_form_help {
+    font-size:8pt;
+    color:gray; 
+}
