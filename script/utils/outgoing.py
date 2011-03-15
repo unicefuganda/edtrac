@@ -13,7 +13,7 @@ def prog_msg(progress):
         return None
 
 def can_moveon(progress):
-    if (datetime.datetime.now() >= progress.time+datetime.timedelta(seconds=progress.get_next_step().start_offset)):
+    if progress.get_next_step() and (datetime.datetime.now() >= progress.time+datetime.timedelta(seconds=progress.get_next_step().start_offset)):
         return True
     elif  progress.status=='P' and progress.step.rule==ScriptStep.STRICT:
         return False
@@ -79,15 +79,16 @@ def check_progress(connection):
                             else:
                                 return None
                         else:
-                            progress.status='C'
-                            progress.save()
+                            if progress.step == progress.get_last_step():
+                                progress.status='C'
+                                progress.save()
                             return None
                     if  progress.step.rule==ScriptStep.WAIT_GIVEUP:
                         progress.delete()
                         return None
 
             #check number of tries
-            if progress.num_tries==progress.step.num_tries :
+            if progress.num_tries and progress.num_tries==progress.step.num_tries :
                 if progress.step.rule ==ScriptStep.RESEND_MOVEON and can_moveon(progress):
                     step=progress.get_next_step()
                     if step:
@@ -95,8 +96,9 @@ def check_progress(connection):
                         progress.save()
                         return prog_msg(progress)
                     else:
-                        progress.status='C'
-                        progress.save()
+                        if progress.step == progress.get_last_step():
+                            progress.status='C'
+                            progress.save()
                         return None
                 elif progress.step.rule ==ScriptStep.RESEND_GIVEUP:
                     progress.delete()
@@ -112,10 +114,15 @@ def check_progress(connection):
                     progress.save()
                 return prog_msg(progress)
 
-            if current_time >= progress.time+datetime.timedelta(seconds=progress.step.start_offset):
+            if can_moveon(progress):
                 progress.step=progress.get_next_step()
                 progress.save()
                 return prog_msg(progress)
+
+            elif progress.step == progress.get_last_step():
+                progress.status='C'
+                progress.save()
+                return None
 
     return prog_msg(progress)
 
