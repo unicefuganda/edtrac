@@ -10,6 +10,7 @@ from rapidsms.models import Contact
 from script.utils.incoming import incoming_progress
 from script.utils.outgoing import check_progress
 from script.models import *
+from script.signals import *
 from rapidsms.models import Contact, Connection, Backend
 from rapidsms.messages.incoming import IncomingMessage
 from rapidsms_httprouter.models import Message
@@ -295,3 +296,21 @@ class ModelTest(TestCase): #pragma: no cover
 
     def testResendGiveup(self):
         self.resendFlow(giveup=True)
+
+    #test signals
+    def testScriptSignals(self):
+        connection = Connection.objects.all()[0]
+        script = Script.objects.all()[0]
+        prog = ScriptProgress.objects.create(connection=connection, script=script)
+        prog.step= ScriptStep.objects.get(order=2)
+        prog.save()
+        n_step=ScriptStep.objects.get(order=3)
+        #call back
+        def receive_script_progression(sender, **kwargs):
+            self.assertEquals(kwargs['connection'], connection)
+            self.assertEquals(kwargs['step'],n_step)
+        prog.get_next_step()
+        script_progress.connect(receive_script_progression)
+
+
+
