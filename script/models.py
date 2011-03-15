@@ -98,7 +98,6 @@ class ScriptProgress(models.Model):
             try:
                 steps_list=list(self.script.steps.order_by('order').values_list('order', flat=True))
                 next_step=steps_list[steps_list.index(self.step.order)+1]
-                script_progress.send(sender=self, connection=self.connection,steps_list=self.step)
 
             except IndexError:
                 return None
@@ -166,7 +165,13 @@ class ScriptProgress(models.Model):
             return True
         else:
             False
-            
+
+    def fire_pre_transition_signal(self):
+        script_progress_pre_change.send(sender=self, connection=self.connection,steps_list=self.step)
+    def fire_post_transition_signal(self):
+        script_progress.send(sender=self, connection=self.connection,steps_list=self.step)
+    def fire_script_completed_signal(self):
+        fire_script_completed_signal(sender=self, connection=self.connection)
 class ScriptSession(models.Model):
     connection=models.ForeignKey(Connection, unique=True)
     script=models.ForeignKey(Script)

@@ -304,6 +304,7 @@ class ModelTest(TestCase): #pragma: no cover
         prog = ScriptProgress.objects.create(connection=connection, script=script)
         prog.step= ScriptStep.objects.get(order=2)
         prog.save()
+        prog.fire_post_transition_signal()
         n_step=ScriptStep.objects.get(order=3)
         #call back
         def receive_script_progression(sender, **kwargs):
