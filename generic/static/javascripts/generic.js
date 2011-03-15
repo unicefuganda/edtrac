@@ -69,3 +69,21 @@ function deselect_everything(count) {
     $('#input_select_all').attr('checked', false);
     select_all();
 }
+
+function disable_enter() {
+    if ($.browser.mozilla) {
+        $('#filters input:text').keypress(function(event) {
+            if (event.keyCode == 13) return false;
+        });
+        $('#actions input:text').keypress(function(event) {
+            if (event.keyCode == 13) return false;
+        });
+    } else {
+        $('#filters input:text').keydown(function(event) {
+            if (event.keyCode == 13) return false;
+        });
+        $('#actions input:text').keydown(function(event) {
+            if (event.keyCode == 13) return false;
+        });
+    }
+}
