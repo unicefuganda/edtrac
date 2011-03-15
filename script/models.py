@@ -7,7 +7,7 @@ from django.contrib.sites.managers import CurrentSiteManager
 from django.conf import settings
 from django.db.models.signals import post_save
 from rapidsms.messages.incoming import IncomingMessage
-
+import difflib
 class Script(models.Model):
     slug = models.SlugField(max_length=64, primary_key=True)
     name = models.CharField(max_length=128,
@@ -83,7 +83,7 @@ class ScriptProgress(models.Model):
     num_tries = models.IntegerField(blank=True,null=True)
 
     def __unicode__(self):
-        if script.step:
+        if self.step:
             return "%d"%self.step.order
         else:
             return "Not Started"
@@ -108,8 +108,7 @@ class ScriptProgress(models.Model):
         try:
             return self.script.steps.order_by('-order')[0]
         except IndexError:
-            return None 
-
+            return None
 #    should we retry the current step now?
     def retry_now(self):
         if self.step.retry_offset:
@@ -120,7 +119,7 @@ class ScriptProgress(models.Model):
                 return False
         else:
             return True
-
+    
 #    should we move on to the next step now?
     def proceed(self):
         next_step = self.get_next_step()
@@ -170,8 +169,10 @@ class ScriptSession(models.Model):
     end_time=models.DateTimeField()
 
     def get_step(self):
-        return ScriptProgress.get(connection=self.connection,script=self.script)
-
+        return ScriptProgress.objects.get(connection=self.connection)
+    """get all the script session objects for each connection """
+    def get_audit_trail(connection):
+        return ScriptSession.objects.filter(connection=connection)
 
 
 class ScriptResponse(models.Model):
