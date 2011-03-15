@@ -273,13 +273,13 @@ class ModelTest(TestCase): #pragma: no cover
         response = check_progress(connection)
         self.assertEquals(response, None)
 
-        prog = ScriptProgress.objects.get(connection=connection)
-        self.elapseTime(prog, 3600)
-        response = check_progress(connection)
         if giveup:
             self.assertEquals(ScriptProgress.objects.count(), 0)
         else:
-            self.assertEquals(response, prog.script.steps.filter(order=3).message)            
+            prog = ScriptProgress.objects.get(connection=connection)
+            self.elapseTime(prog, 3600)
+            response = check_progress(connection)
+            self.assertEquals(response, prog.step.script.steps.get(order=3).message)            
             prog = ScriptProgress.objects.get(connection=connection)
             self.assertEquals(prog.step.order, 3)
             self.assertEquals(prog.status, 'P')
