@@ -231,8 +231,8 @@ class ModelTest(TestCase): #pragma: no cover
             self.assertEquals(ScriptProgress.objects.count(), 0)
         else:
             prog = ScriptProgress.objects.get(connection=connection)
-            self.assertEquals(prog.step.order, 2)
-            self.assertEquals(prog.status, 'C')
+            self.assertEquals(prog.step.order, 3)
+            self.assertEquals(prog.status, 'P')
 
     def resendFlow(self, giveup = False):
         script = Script.objects.all()[0]
@@ -276,13 +276,13 @@ class ModelTest(TestCase): #pragma: no cover
         prog = ScriptProgress.objects.get(connection=connection)
         self.elapseTime(prog, 3600)
         response = check_progress(connection)
-        self.assertEquals(response, None)
         if giveup:
             self.assertEquals(ScriptProgress.objects.count(), 0)
         else:
+            self.assertEquals(response, prog.script.steps.filter(order=3).message)            
             prog = ScriptProgress.objects.get(connection=connection)
-            self.assertEquals(script.step.order, 2)
-            self.assertEquals(script.status, 'C')
+            self.assertEquals(prog.step.order, 3)
+            self.assertEquals(prog.status, 'P')
 
     def testWaitMoveon(self):
         self.waitFlow()
