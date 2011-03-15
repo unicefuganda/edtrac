@@ -125,7 +125,7 @@ class ScriptProgress(models.Model):
 #    should we move on to the next step now?
     def proceed(self):
         next_step = self.get_next_step()
-        if next_step and next_step.start_offset:
+        if next_step.start_offset:
             start_time = self.time + datetime.timedelta(seconds=next_step.start_offset)
             if start_time and start_time >= datetime.datetime.now():
                 return True
@@ -133,18 +133,6 @@ class ScriptProgress(models.Model):
                 return False
         else:
             return True
-
-#    should we move on to the next step now?
-#    def give_up_proceed(self):
-#        next_step = self.get_next_step()
-#        if next_step and next_step.start_offset:
-#            start_time = self.time + datetime.timedelta(seconds=next_step.start_offset)
-#            if start_time and start_time >= datetime.datetime.now():
-#                return True
-#            else:
-#                return False
-#        else:
-#            return True
 
 #    should we give up now?
     def give_up_now(self):

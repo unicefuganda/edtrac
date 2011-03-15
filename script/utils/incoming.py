@@ -139,7 +139,7 @@ def incoming_progress(message):
 
 def try_next_step(progress, next_step):
 #    Is it time to proceed to next step?
-    if progress.proceed():
+    if next_step and progress.proceed():
         progress.step = next_step
         progress.status = ScriptProgress.PENDING
         progress.save()
@@ -148,7 +148,22 @@ def try_next_step(progress, next_step):
 #        next step is not a poll but a message
         else:
             return next_step.message
+#    is this the last step for this connection
+    elif is_last_step(progress):
+#        end of the road for this connection
+        progress.delete()        
+        return None
     else:
 #        Not yet time to start new step
         return None
+    
+def record_trail(connection, script, response):
+    pass
+
+def is_last_step(progress):   
+    if progress.step == progress.get_last_step():
+        return True
+    else:
+        return False
+    
             
