@@ -279,7 +279,7 @@ class ModelTest(TestCase): #pragma: no cover
         if giveup:
             self.assertEquals(ScriptProgress.objects.count(), 0)
         else:
-            self.assertEquals(response, prog.script.steps.filter(order=3).message)            
+            self.assertEquals(response, prog.step.script.steps.get(order=3).message)            
             prog = ScriptProgress.objects.get(connection=connection)
             self.assertEquals(prog.step.order, 3)
             self.assertEquals(prog.status, 'P')
