@@ -5,6 +5,7 @@ from rapidsms.models import Connection
 from django.contrib.sites.models import Site
 from django.contrib.sites.managers import CurrentSiteManager
 from django.conf import settings
+from script.signals import script_progress
 from django.db.models.signals import post_save
 from rapidsms.messages.incoming import IncomingMessage
 import difflib
@@ -89,12 +90,14 @@ class ScriptProgress(models.Model):
             return "Not Started"
 
     def get_next_step(self):
-        if self.status=='C':
+        if self.step==self.get_last_step():
             return None
         else:
             try:
                 steps_list=list(self.script.steps.order_by('order').values_list('order', flat=True))
                 next_step=steps_list[steps_list.index(self.step.order)+1]
+                script_progress.send(sender=self, connection=self.connection,steps_list=self.step)
+
             except IndexError:
                 return None
             return self.script.steps.get(order=next_step)
@@ -179,17 +182,6 @@ class ScriptResponse(models.Model):
     session=models.ForeignKey(ScriptSession,related_name='responses')
     response=models.ForeignKey(Response)
 
-def get_script_progress(sender, instance, signal, *args, **kwargs):
-    script_progress=ScriptProgress .objects.get_for_model(instance)
-    return script_progress.step.order
-
-def script_completion(sender, instance, signal, *args, **kwargs):
-    script_progress=ScriptProgress.objects.get_for_model(instance)
-    last_script_step=script_progress.get_last_step()
-    if  script_progress.step.order == last_script_step.order and script_progress.status == 'C':
-        return True
-    else:
-        return False
 
 
     
