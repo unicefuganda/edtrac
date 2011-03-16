@@ -5,14 +5,9 @@
     {{ object.text }}
     </span>
 </td>
-<td>
-    {% if object.connection.contact %}
-        {{ object.connection.contact.name }} (
-    {% endif %}
-    {{ object.connection.identity }}
-    {% if object.connection.contact %}
-        )
-    {% endif %}
+<td><span class="small">
+        {% if object.connection.contact %}
+            {{ object.connection.contact.name }} ({% endif %}{{ object.connection.identity }}{% if object.connection.contact %}){% endif %}
     <ul>
         <li>
             <a href="/ureport/{{ object.connection.pk }}/message_history/">
@@ -20,14 +15,26 @@
             </a>
         </li>
     </ul>
+    </span>
 </td>
 <td>
-    {{ object.date|date:"m/d/Y H:i:s" }}
+    <span class="small">
+        {{ object.date|date:"m/d/Y H:i:s" }}
+    </span>
 </td>
 <td>
-    {{ object.status }}
     {% if object.handled_by %}
-        (handled by {{ object.handled_by }})
+        {% ifequal object.handled_by 'poll' %}
+            Poll Response
+        {% else %}
+            {% ifequal object.handled_by 'rapidsms_xforms' %}
+                Report
+            {% else %}
+                Other
+            {% endifequal %}
+        {% endifequal %}
+    {% else %}
+        Other
     {% endif %}
 </td>
 <td>

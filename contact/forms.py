@@ -76,7 +76,7 @@ class FreeSearchTextForm(FilterForm):
         return queryset.filter(text__icontains=search)
 
 class HandledByForm(FilterForm):
-    handled_by = forms.ChoiceField(choices=(('','-----'), ('*', 'Not Handled')) + tuple([(name, name) for name in settings.SMS_APPS]))
+    handled_by = forms.ChoiceField(choices=(('','-----'), ('*', 'Not Handled'), ('poll', 'Poll Response'), ('rapidsms_xforms', 'Report')))
 
     def filter(self, request, queryset):
         handled_by = self.cleaned_data['handled_by']
