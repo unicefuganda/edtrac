@@ -55,9 +55,7 @@ def check_progress(connection):
         if current_time \
             >= datetime.timedelta(seconds=progress.get_initial_step().start_offset) \
             + progress.time:
-            progress.step = progress.get_initial_step()
-            progress.status = 'P'
-            progress.save()
+            progress.move_to_nextstep()
             return prog_msg(progress)
         else:
             return None
@@ -77,9 +75,7 @@ def check_progress(connection):
 
             # get the next step and check its start_offset offset
 
-                progress.step = progress.get_next_step()
-                progress.status = 'P'
-                progress.save()
+                progress.move_to_nextstep()
                 return prog_msg(progress)
             else:
                 return None
@@ -97,8 +93,7 @@ def check_progress(connection):
                         next_step = progress.get_next_step()
                         if next_step:
                             if can_moveon(progress):
-                                progress.step = next_step
-                                progress.save()
+                                progress.move_to_nextstep()
                                 return prog_msg(progress)
                             else:
                                 return None
@@ -120,8 +115,7 @@ def check_progress(connection):
                     and can_moveon(progress):
                     step = progress.get_next_step()
                     if step:
-                        progress.step = step
-                        progress.save()
+                        progress.move_to_nextstep()
                         return prog_msg(progress)
                     else:
                         if progress.step == progress.get_last_step():
@@ -143,8 +137,7 @@ def check_progress(connection):
                 return prog_msg(progress)
 
             if can_moveon(progress):
-                progress.step = progress.get_next_step()
-                progress.save()
+                progress.move_to_nextstep()
                 return prog_msg(progress)
             elif progress.step == progress.get_last_step():
 

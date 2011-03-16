@@ -27,7 +27,7 @@ class ModelTest(TestCase): #pragma: no cover
         Create a default script for all test cases
         """
         site = Site.objects.get_or_create(pk=settings.SITE_ID, defaults={
-            'domain':'example.com', 
+            'domain':'example.com',
         })
         user = User.objects.create_user('admin', 'test@test.com', 'p4ssw0rd')
         connection = Connection.objects.create(identity='8675309', backend=Backend.objects.create(name='TEST'))
@@ -304,14 +304,19 @@ class ModelTest(TestCase): #pragma: no cover
         prog = ScriptProgress.objects.create(connection=connection, script=script)
         prog.step= ScriptStep.objects.get(order=2)
         prog.save()
-        prog.fire_post_transition_signal()
         n_step=ScriptStep.objects.get(order=3)
         #call back
-        def receive_script_progression(sender, **kwargs):
-            self.assertEquals(kwargs['connection'], connection)
-            self.assertEquals(kwargs['step'],n_step)
-        prog.get_next_step()
-        script_progress.connect(receive_script_progression)
+        def receive(sender, **kwargs):
+            self.assertEqual(kwargs['connection'], connection)
+            #self.assertEqual(kwargs['step'],n_step)
+            received_signals.append(kwargs.get('signal'))
+        # Connect signals and keep track of handled ones
+        received_signals = []
+        expected_signals=[script_progress_pre_change,script_progress]
+        for signal in expected_signals:
+            signal.connect(receive,weak=False)
+        prog.move_to_nextstep()
+        self.assertEqual(received_signals, expected_signals)
 
 
 
