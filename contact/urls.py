@@ -46,5 +46,5 @@ urlpatterns = patterns('',
       'sort_column':'date',
       'sort_ascending':False,
       'selectable':False,
-    }, name="contact-messagelog"),
+    }),
 )
