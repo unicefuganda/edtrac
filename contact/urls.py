@@ -27,5 +27,7 @@ urlpatterns = patterns('',
                  ('Type', True, 'handled_by', SimpleSorter(),),
                  ('Response', False, 'response', None,),
                  ],
+      'sort_column':'date',
+      'sort_ascending':False,
     }, name="contact-messagelog"),
 )
