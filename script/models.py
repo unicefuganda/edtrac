@@ -117,7 +117,7 @@ class ScriptProgress(models.Model):
     def retry_now(self):
         if self.step.retry_offset:
             retry_time = self.time + datetime.timedelta(seconds=self.step.retry_offset)
-            if retry_time and retry_time >= datetime.datetime.now():
+            if retry_time and retry_time <= datetime.datetime.now():
                 return True
             else:
                 return False
@@ -129,7 +129,7 @@ class ScriptProgress(models.Model):
         next_step = self.get_next_step()
         if next_step.start_offset:
             start_time = self.time + datetime.timedelta(seconds=next_step.start_offset)
-            if start_time and start_time >= datetime.datetime.now():
+            if start_time and start_time <= datetime.datetime.now():
                 return True
             else:
                 return False
@@ -140,7 +140,7 @@ class ScriptProgress(models.Model):
     def give_up_now(self):
         if self.step.giveup_offset:
             give_up_time = self.time + datetime.timedelta(seconds=self.step.giveup_offset)
-            if give_up_time and give_up_time >= datetime.datetime.now():
+            if give_up_time and give_up_time <= datetime.datetime.now():
                 return True
             else:
                 return False
@@ -161,10 +161,10 @@ class ScriptProgress(models.Model):
     def fire_script_completed_signal(self):
         fire_script_completed_signal(sender=self, connection=self.connection)
 class ScriptSession(models.Model):
-    connection=models.ForeignKey(Connection, unique=True)
+    connection=models.ForeignKey(Connection)
     script=models.ForeignKey(Script)
     start_time=models.DateTimeField(auto_now=True)
-    end_time=models.DateTimeField()
+    end_time=models.DateTimeField(null=True)
 
     def get_step(self):
         return ScriptProgress.objects.get(connection=self.connection)
