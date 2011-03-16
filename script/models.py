@@ -5,8 +5,7 @@ from rapidsms.models import Connection
 from django.contrib.sites.models import Site
 from django.contrib.sites.managers import CurrentSiteManager
 from django.conf import settings
-from script.signals import script_progress
-from django.db.models.signals import post_save
+from script.signals import *
 from rapidsms.messages.incoming import IncomingMessage
 import difflib
 class Script(models.Model):
@@ -92,6 +91,8 @@ class ScriptProgress(models.Model):
             return "Not Started"
 
     def get_next_step(self):
+        if not self.step:
+            return self.get_initial_step()
         if self.step==self.get_last_step():
             return None
         else:
@@ -154,10 +155,22 @@ class ScriptProgress(models.Model):
         else:
             False
 
+    def move_to_nextstep(self):
+        if self.get_next_step():
+            script_progress_pre_change.send(sender=self, connection=self.connection,step=self.step)
+            self.step=self.get_next_step()
+            self.status='P'
+            self.save()
+            script_progress.send(sender=self, connection=self.connection,step=self.step)
+            return True
+        else:
+            return False
+
+    #manually fire the signals
     def fire_pre_transition_signal(self):
-        script_progress_pre_change.send(sender=self, connection=self.connection,steps_list=self.step)
+        script_progress_pre_change.send(sender=self, connection=self.connection,step=self.step)
     def fire_post_transition_signal(self):
-        script_progress.send(sender=self, connection=self.connection,steps_list=self.step)
+        script_progress.send(sender=self, connection=self.connection,step=self.step)
     def fire_script_completed_signal(self):
         fire_script_completed_signal(sender=self, connection=self.connection)
 class ScriptSession(models.Model):
