@@ -52,3 +52,11 @@ class QuickSorter(object):
         temp = object_list[index1]
         object_list[index1] = object_list[index2]
         object_list[index2] = temp
+
+class TupleSorter(object):
+    def __init__(self, index):
+        self.index = index
+
+    def sort(self, column, object_list, ascending=True):
+        return sorted(object_list, key=lambda tuple: tuple[self.index], reverse=(not ascending))
+

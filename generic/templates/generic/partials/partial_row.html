@@ -1,9 +1,11 @@
 {% block selectable_cell %}
-    <td>
-        {% block select_cell_row %}
-            <input {% if selected %}checked="true"{% endif %} type="checkbox" onclick="deselect_all()" name="results" value="{{ object.pk }}"/>
-        {% endblock %}
-    </td>
+    {% if selectable %}
+        <td>
+            {% block select_cell_row %}
+                <input {% if selected %}checked="true"{% endif %} type="checkbox" onclick="deselect_all()" name="results" value="{{ object.pk }}"/>
+            {% endblock %}
+        </td>
+    {% endif %}
 {% endblock %}
 {% block remaining_row_content %}
     <td>
