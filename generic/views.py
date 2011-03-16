@@ -25,19 +25,27 @@ def generic(request,
             selectable=True,
             objects_per_page=25,
             columns=[('object', False, '')],
+            sort_column='',
+            sort_ascending=True,
             filter_forms=[],
             action_forms=[]):
     
+    # model parameter is required
     if not model:
         return HttpResponseServerError
 
+    # querysets can be calls to a function for dynamic, run-time retrieval
     if callable(queryset):
         queryset = queryset()
 
+    # the default list is either a queryset parameter, or all
+    # objects from the model parameter
     object_list = queryset or model.objects.all()
     if type(object_list) == RawQuerySet:
             object_list = list(object_list)
-    
+
+    # dynamically create a form class to represent the list of selected results,
+    # for performing actions
     class ResultsForm(forms.Form):
         results = forms.ModelMultipleChoiceField(queryset=object_list, widget=forms.CheckboxSelectMultiple())
 
@@ -46,8 +54,9 @@ def generic(request,
     for action_class in action_forms:
         form_instance = action_class()
         fully_qualified_class_name = "%s.%s" % (form_instance.__module__, form_instance.__class__.__name__)
+        # we need both a dictionary of action forms (for looking up actions performed)
+        # and a list of tuple for rendering within the template in a particular order
         class_dict[fully_qualified_class_name] = action_class
-
         action_form_instances.append((fully_qualified_class_name,action_class(),))
 
     filter_form_instances = []
@@ -55,13 +64,12 @@ def generic(request,
         form_instance = filter_class()
         filter_form_instances.append(form_instance)
 
+    # define some defaults
     response_template = base_template
     page = 1
     selected=False
     status_message=''
     status_message_type=''
-    sort_column = ''
-    sort_ascending = True
 
     if request.method == 'POST':
         page_action = request.POST.get('page_action', '')
@@ -110,6 +118,13 @@ def generic(request,
         # store the full set of models, in queryset form, in the
         # session, for the case of sorting the full list
         request.session['filtered_list'] = object_list
+
+        # calls to this view can define a default sorting order,
+        # if it's an initial GET request we should perform this sort here
+        if sort_column:
+            for column_name, sortable, sort_param, sorter in columns:
+                if sortable and sort_param == sort_column:
+                    object_list = sorter.sort(sort_column, object_list, sort_ascending)            
 
     request.session['object_list'] = object_list
     total = len(object_list)
