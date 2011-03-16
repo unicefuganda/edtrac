@@ -10,3 +10,7 @@
     {{ block.super }}
     <script src="{{MEDIA_URL}}contact/javascripts/messages.js" type="text/javascript"></script>
 {% endblock %}
+{% block content %}
+<a href="/contact/massmessages/" style="font-size:12pt">Show Mass Messages &gt;&gt;</a>
+{{ block.super }}
+{% endblock %}
