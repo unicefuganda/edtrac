@@ -102,6 +102,8 @@ class ModelTest(TestCase): #pragma: no cover
         response = check_progress(connection)
 
         self.assertEquals(response, 'Welcome to Script!  This system is awesome!  We will spam you with some personal questions now')
+        self.assertEquals(ScriptSession.objects.count(), 1)
+        self.assertEquals(ScriptSession.objects.all()[0].responses.count(), 0)
         # refresh the progress object
         prog = ScriptProgress.objects.get(connection=connection)
         self.assertEquals(prog.step.order, 0)
@@ -132,10 +134,13 @@ class ModelTest(TestCase): #pragma: no cover
         self.elapseTime(prog, 2)
         response = check_progress(connection)
         # we've manually moved to the next step, which should merely close the script
-        # and update the state
+        # and delete from ScriptProgress
         self.assertEquals(response, None)
-        prog = ScriptProgress.objects.get(connection=connection)
-        self.assertEquals(prog.status, 'C')
+        self.assertEquals(ScriptProgress.objects.count(), 0)
+        
+        # make sure the ScriptSession table is still correct
+        self.assertEquals(ScriptSession.objects.count(), 1)
+        self.assertEquals(ScriptSession.objects.all()[0].responses.count(), 0)
 
     def testIncomingProgress(self):
         connection = Connection.objects.all()[0]
@@ -143,9 +148,13 @@ class ModelTest(TestCase): #pragma: no cover
         step = ScriptStep.objects.get(order=1)
         prog = ScriptProgress.objects.create(connection=connection, script=script, step=step, status='P')
 
+        # create a dummy session
+        session = ScriptSession.objects.create(connection=connection, script=script)
         incomingmessage = self.fakeIncoming('I like all forms of spam, but typically Nigerian email spam is the best.')
         incoming_progress(incomingmessage)
         self.assertEquals(Response.objects.count(), 1)
+        self.assertEquals(ScriptSession.objects.count(), 1)
+        self.assertEquals(ScriptSession.objects.all()[0].responses.count(), 1)
 
         # refresh progress
         prog = ScriptProgress.objects.get(connection=connection)
