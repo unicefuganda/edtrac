@@ -260,7 +260,7 @@ class HttpRouter(object, LoggerMixin):
                             # default phase firing unnecessarily
                             msg.handled = True
                             outgoing_db_lock.acquire()
-                            db_message.handled_by = app
+                            db_message.application = app
                             db_message.save()
                             outgoing_db_lock.release()
                             break
@@ -284,7 +284,7 @@ class HttpRouter(object, LoggerMixin):
         # now send the message responses
         while msg.responses:
             response = msg.responses.pop(0)
-            self.handle_outgoing(response, db_message)
+            self.handle_outgoing(response, db_message, db_message.application)
 
         # we are no longer interested in this message... but some crazy
         # synchronous backends might be, so mark it as processed.
@@ -292,7 +292,7 @@ class HttpRouter(object, LoggerMixin):
 
         return db_message
 
-    def add_outgoing(self, connection, text, source=None, status='Q'):
+    def add_outgoing(self, connection, text, source=None, status='Q', application=None):
         """
         Adds a message to our outgoing queue, this is a non-blocking action
         """
@@ -302,11 +302,12 @@ class HttpRouter(object, LoggerMixin):
                                             text=text,
                                             direction='O',
                                             status=status,
-                                            in_response_to=source)
+                                            in_response_to=source,
+                                            application=application)
         outgoing_db_lock.release()
         return db_message
                 
-    def handle_outgoing(self, msg, source=None):
+    def handle_outgoing(self, msg, source=None, application=None):
         """
         Passes the message through the appropriate outgoing steps for all our apps,
         then sends it off if it wasn't cancelled.
@@ -337,7 +338,7 @@ class HttpRouter(object, LoggerMixin):
                     return None
 
         # add it to our db/queue
-        db_message = self.add_outgoing(msg.connection, msg.text, source, status='P')
+        db_message = self.add_outgoing(msg.connection, msg.text, source, status='P', application=application)
 
         #check for available worker threads in the pool, add one if necessary
         num_workers = getattr(settings, 'ROUTER_WORKERS', 5)

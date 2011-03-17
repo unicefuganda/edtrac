@@ -30,7 +30,7 @@ class Message(models.Model):
     date       = models.DateTimeField(auto_now_add=True)
 
     in_response_to = models.ForeignKey('self', related_name='responses', null=True)
-    handled_by = models.CharField(max_length=100, null=True)
+    application = models.CharField(max_length=100, null=True)
 
     def __unicode__(self):
         # crop the text (to avoid exploding the admin)
