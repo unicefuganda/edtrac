@@ -980,7 +980,7 @@ class XFormSubmission(models.Model):
     has_errors = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     confirmation_id = models.IntegerField(default=0)
-    message = models.ForeignKey(Message, null=True)
+    message = models.ForeignKey(Message, null=True, related_name='submissions')
 
     confirmation_lock = Lock()
 
