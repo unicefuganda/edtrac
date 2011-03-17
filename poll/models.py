@@ -397,7 +397,7 @@ class Response(models.Model):
     able to override a particular response as belonging to a particular
     category, which shouldn't be overridden by new rules.
     """
-    message = models.ForeignKey(Message, null=True)
+    message = models.ForeignKey(Message, null=True, related_name='poll_responses')
     poll    = models.ForeignKey(Poll, related_name='responses')
     contact = models.ForeignKey(Contact, null=True, blank=True, related_name='responses')
     date    = models.DateTimeField(auto_now_add=True)
