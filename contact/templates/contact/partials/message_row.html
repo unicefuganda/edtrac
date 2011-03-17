@@ -23,11 +23,11 @@
     </span>
 </td>
 <td>
-    {% if object.handled_by %}
-        {% ifequal object.handled_by 'poll' %}
+    {% if object.application %}
+        {% ifequal object.application 'poll' %}
             Poll Response
         {% else %}
-            {% ifequal object.handled_by 'rapidsms_xforms' %}
+            {% ifequal object.application 'rapidsms_xforms' %}
                 Report
             {% else %}
                 Other
@@ -41,7 +41,31 @@
     {% if object.responses %}
         <ul>
             {% for r in object.responses.all %}
-                <li>&lt;&lt;{{ r.text }}</li>
+                <li>&lt;&lt;
+                {% ifequal object.application r.application %}
+                    {% if object.application == 'poll' %}
+                        {% if object.poll_responses.all.0.has_errors %}
+                            <span class="errormessage">
+                        {% else %}
+                            <span class="successmessage">
+                        {% endif %}
+                    {% else %}
+                        {% if object.application == 'rapidsms_xforms' %}
+                            {% if object.submissions.all.0.has_errors %}
+                                <span class="errormessage">
+                            {% else %}
+                                <span class="successmessage">
+                            {% endif %}
+                        {% else %}
+                            <span class="othermessage">
+                        {% endif %}
+                    {% endif %}
+                {% else %}
+                    <span class="othermessage">
+                {% endifequal %}
+                {{ r.text }}
+                </span>
+                </li>
             {% endfor %}
         </ul>
     {% endif %}

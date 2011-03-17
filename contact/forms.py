@@ -76,16 +76,16 @@ class FreeSearchTextForm(FilterForm):
         return queryset.filter(text__icontains=search)
 
 class HandledByForm(FilterForm):
-    type = forms.ChoiceField(choices=(('','-----'), ('*', 'Not Handled'), ('poll', 'Poll Response'), ('rapidsms_xforms', 'Report')))
+    type = forms.ChoiceField(choices=(('','-----'), ('poll', 'Poll Response'), ('rapidsms_xforms', 'Report'), ('*', 'Other'),))
 
     def filter(self, request, queryset):
         handled_by = self.cleaned_data['type']
         if handled_by == '':
             return queryset
         elif handled_by == '*':
-            return queryset.filter(handled_by=None)
+            return queryset.filter(application=None)
         else:
-            return queryset.filter(handled_by=handled_by)
+            return queryset.filter(application=handled_by)
 
 
 class DistictFilterForm(FilterForm):
