@@ -196,22 +196,28 @@ def response_trail(progress, response):
         resp = response[0]
 #        is this the initial step?
         if progress.get_initial_step():
-            session = ScriptSession.objects.create(
-                                    connection= connection,
-                                    script = script
-                                    )
-            session.save()
-            session.responses.create(response = resp)
-            session.save()
+#            make sure the session for this connection doesn't exist already?
+            if not ScriptSession.objects.get(connection=connection, script=script):
+                session = ScriptSession.objects.create(
+                                        connection= connection,
+                                        script = script
+                                        )
+                session.save()
+                session.responses.create(response = resp)
+                session.save()
+#            somehow session exists already
+            else:
+                session = ScriptSession.objects.get(connection=connection, script=script)
+                session.responses.create(response = resp)
 #        is this the last step?
         elif is_last_step(progress=progress):
-            session = ScriptSession.objects.filter(connection=connection, script=script)
+            session = ScriptSession.objects.get(connection=connection, script=script)
             session.end_time = datetime.datetime.now()
             session.responses.create(response = resp)
             session.save()
 #        not an initial step and not the last step
         else:
-            session = ScriptSession.objects.filter(connection=connection, script=script)
+            session = ScriptSession.objects.get(connection=connection, script=script)
             session.responses.create(response = resp)
     
 
