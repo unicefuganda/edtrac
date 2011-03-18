@@ -426,7 +426,7 @@ class ModelTest(TestCase): #pragma: no cover
         # potential race contidion
         incomingmessage = self.fakeIncoming('I like spam, Im just a little late to mention anything about it')
         response_message = incoming_progress(incomingmessage)
-        self.assertEQuals(response, None)
+        self.assertEquals(response, None)
         progress = self.assertProgress(connection, 1, 'P', 1, 0)
         # check that this call to check_progress sends out the
         # next question
