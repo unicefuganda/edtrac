@@ -19,13 +19,13 @@ def incoming_progress(message):
     Returns: any immediate response (as a string) that is necessary (based on
     the rules of the script), or None if none are needed.
     """
+    
+#    first establish the current progress
     progress = ScriptProgress.objects.get(connection=message.connection)
-    current_step = progress.step
-
 #    if check_progress has fired up the initial step
-    if current_step:
+    if progress.step:
 #        if the step is a poll
-        if current_step.poll:
+        if progress.step.poll:
         #    if current step status is PENDING ********************************
             if progress.status == ScriptProgress.PENDING:
         #        EVALUATE THE STRICT RULE for PENDING state************************************
@@ -94,13 +94,12 @@ def incoming_progress(message):
 
     
 def response_trail(progress, response):
-#    is this a poll
-    if progress.step.poll:
-        connection = progress.connection
-        script = progress.step.script
-        resp = response[0]
-        session = ScriptSession.objects.get(connection=connection, script=script)
-        session.responses.create(response = resp)
+#    log response
+    connection = progress.connection
+    script = progress.step.script
+    resp = response[0]
+    session = ScriptSession.objects.get(connection=connection, script=script)
+    session.responses.create(response = resp)
 
     
             
