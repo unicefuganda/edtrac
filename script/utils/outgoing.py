@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import datetime
-from script.models import ScriptStep, ScriptProgress, Script
+from script.models import ScriptStep, ScriptProgress, Script,ScriptSession
 from rapidsms.models import Connection
 
 
@@ -11,12 +11,23 @@ def prog_msg(progress):
     """
 
     if progress.step:
+        try:
+            session = ScriptSession.objects.get(
+                                            connection= progress.connection,
+                                            script = progress.script
+                                            )
+        except ScriptSession.DoesNotExist:
+            session = ScriptSession.objects.create(
+                                            connection= progress.connection,
+                                            script = progress.script
+                                            )
+            session.save()
+
         if progress.step.poll:
             return progress.step.poll.question
         else:
             return progress.step.message
     else:
-
         return None
 
 
@@ -27,9 +38,6 @@ def can_moveon(progress):
         >= progress.time \
         + datetime.timedelta(seconds=progress.get_next_step().start_offset):
         return True
-    elif progress.status == 'P' and progress.step.rule \
-        == ScriptStep.STRICT:
-        return False
     else:
         return False
 
@@ -51,8 +59,10 @@ def check_progress(connection):
     queued (based on the rules of the script), on None if none are
     needed.
     """
-
-    progress = ScriptProgress.objects.get(connection=connection)
+    try:
+        progress = ScriptProgress.objects.get(connection=connection)
+    except ScriptProgress.DoesNotExist:
+        return None
     current_time = datetime.datetime.now()
 
 
@@ -89,8 +99,11 @@ def check_progress(connection):
                 return None
         else:
 
-        # current progress is in progress
-            if progress.step.giveup_offset:
+            ##step is already in pending
+
+
+            # current progress is in progress
+            if progress.step.giveup_offset or progress.step.giveup_offset==0 :
                 if current_time >= progress.time \
                     + datetime.timedelta(seconds=progress.step.giveup_offset):
                     if progress.step.rule == ScriptStep.WAIT_MOVEON:
@@ -100,9 +113,11 @@ def check_progress(connection):
                                 progress.move_to_nextstep()
                                 return prog_msg(progress)
                             else:
-                                return None
+                                    return None
+                                
                         else:
-                            return prog_msg(progress)
+                            progress.delete()
+                            return None
                     if progress.step.rule == ScriptStep.WAIT_GIVEUP:
                         progress.delete()
                         return None
@@ -147,5 +162,3 @@ def check_progress(connection):
                 return None
 
     return prog_msg(progress)
-
-
