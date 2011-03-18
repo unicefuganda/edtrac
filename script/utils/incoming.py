@@ -80,15 +80,8 @@ def incoming_progress(message):
                 else:
         #            is it time to give up?
                     if progress.give_up_now():
-                        if progress.step.rule == ScriptStep.WAIT_GIVEUP:
-        #                    We are really not concerned with this connection any more, we are simply giving up
-                            return None
-                        else:
-        #                    Simply Complete this step
-                            progress.status = ScriptProgress.COMPLETE
-                            progress.save()
-                            response_trail(progress, response)
-                            return None
+                        return None
+                        
         #            Not yet time to give up!
                     else:
         #                Simply Complete this step
