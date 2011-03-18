@@ -446,7 +446,8 @@ class ModelTest(TestCase): #pragma: no cover
         session = ScriptSession.objects.all()[0]
         session.start_time = datetime.datetime.now()
         session.end_time = None
-        session.responses.clear()
+        for r in session.responses.all():
+            r.delete()
         session.save()
 
         # test that an incoming message from a user in this portion
