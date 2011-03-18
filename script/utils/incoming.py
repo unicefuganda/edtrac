@@ -21,149 +21,89 @@ def incoming_progress(message):
     """
     progress = ScriptProgress.objects.get(connection=message.connection)
     current_step = progress.step
-    next_step = progress.get_next_step()
-    if progress.step.poll:
-        response = progress.step.poll.process_response(message)
-    else:
-        response = None
-    current_poll_question = current_step.poll.question
-#    if current step status is PENDING ********************************
-    if progress.status == ScriptProgress.PENDING:
-#        EVALUATE THE STRICT RULE for PENDING state************************************
-        if progress.step.rule == ScriptStep.STRICT:
-#            its a poll but answered incorrectly!
-            if response and response[0].has_errors:
-#                record response to this step
-                response_trail(progress, response)
-                if progress.retry_now():
-                    if response[1] is None:
-                        return current_poll_question
-                    else:
-                        return response[1]
-                else:
-                    return None
-#            its a poll response and answered correctly
-            elif response and not response[0].has_errors:
-#                if we have a valid message from process_response()
-                if response[1] is None:
-#                    This step is complete
-                    progress.status = ScriptProgress.COMPLETE
-                    progress.save()
-#                   Try next step
-                    return try_next_step(progress, next_step, response)
-                else:
-#                    the response from poll processing is not none and there are no errors
-                    progress.status = ScriptProgress.COMPLETE
-                    progress.save()
-                    response_trail(progress, response)
-                    return response[1]
-#            its not a poll response but a simple message
-            else:
-                progress.status = ScriptProgress.COMPLETE
-                progress.save()
-#                Proceed to next step?
-                return try_next_step(progress, next_step, response)
-            
-#        EVALUATE THE LENIENT RULE for PENDING state************************************
-        elif progress.step.rule == ScriptStep.LENIENT:
-            progress.status = ScriptProgress.COMPLETE
-            progress.save()
-            response_trail(progress, response)
-            if response:
-                if not response[1] is None:
-                    return response[1]
-                else:
-                    return None
-            else:
-                return None
 
-#        EVALUATE THE RETRY MOVE-ON and RETRY GIVE-UP Rules together for PENDING state ***************************
-        elif progress.step.rule == ScriptStep.RESEND_MOVEON or progress.step.rule == ScriptStep.RESEND_GIVEUP:
-            if response and response[0].has_errors:
-                if progress.keep_retrying():
-                    if progress.retry_now():
-                        if progress.current_step.rule == ScriptStep.RESEND_GIVEUP:
-    #                        if rule is resend-giveup, delete connection!
-                            progress.delete()
-                        else:
-                            progress.num_tries += 1
+#    if check_progress has fired up the initial step
+    if current_step:
+#        if the step is a poll
+        if current_step.poll:
+            response = progress.step.poll.process_response(message)
+        #    if current step status is PENDING ********************************
+            if progress.status == ScriptProgress.PENDING:
+        #        EVALUATE THE STRICT RULE for PENDING state************************************
+                if progress.step.rule == ScriptStep.STRICT:
+        #            its a poll but answered incorrectly!
+                    if response[0].has_errors:
+        #                record response to this step
+                        response_trail(progress, response)
+                        return response[1]
+
+        #            its a poll response and answered correctly
+                    else:
+        #                if we have a valid message from process_response()
+                        if response[1] is None:
+        #                    This step is complete
                             progress.status = ScriptProgress.COMPLETE
                             progress.save()
-                        
-#                        record the response
-                        response_trail(progress, response)    
-                        return current_poll_question
+                            response_trail(progress, response)
+                        else:
+        #                    the response from poll processing is not none and there are no errors
+                            progress.status = ScriptProgress.COMPLETE
+                            progress.save()
+                            response_trail(progress, response)
+                            return response[1]
+
+        #        EVALUATE THE LENIENT RULE for PENDING state************************************
+                elif progress.step.rule == ScriptStep.LENIENT:
+                    progress.status = ScriptProgress.COMPLETE
+                    progress.save()
+                    response_trail(progress, response)
+                    if response:
+                        return response[1]
                     else:
                         return None
-#                Don't keep retrying
+
+        #        EVALUATE THE RETRY MOVE-ON and RETRY GIVE-UP Rules together for PENDING state ***************************
+                elif progress.step.rule == ScriptStep.RESEND_MOVEON or progress.step.rule == ScriptStep.RESEND_GIVEUP:
+                    if progress.give_up_now():
+                        return None
+                    else:
+                        if response[0].has_errors:
+                            response_trail(progress, response)
+                            return response[1]
+                        else:
+                            progress.status = ScriptProgress.COMPLETE
+                            progress.save()
+                            response_trail(progress, response)
+                            return response[1]
+
+        #           EVALUATE THE WAIT MOVE-ON and WAIT GIVE-UP Rules together for PENDING state ******************************
                 else:
-                    progress.status = ScriptProgress.COMPLETE
-                    progress.save()
-#                    Proceed to next step?
-                    return try_next_step(progress, next_step, response)
-#            its a correct poll response
-            elif response and not response[0].has_errors:
-                if response[1] is None:
-                    progress.status = ScriptProgress.COMPLETE
-                    progress.save()
-#                    Try to move to the next step
-                    return try_next_step(progress, next_step, response)
-#                There is a valid response from poll processing
-                else:
-                    progress.status = ScriptProgress.COMPLETE
-                    progress.save()
-                    response_trail(progress, response)
-                    return response[1]
-#            its a simple message
+        #            is it time to give up?
+                    if progress.give_up_now():
+                        if progress.step.rule == ScriptStep.WAIT_GIVEUP:
+        #                    We are really not concerned with this connection any more, we are simply giving up
+                            return None
+                        else:
+        #                    Simply Complete this step
+                            progress.status = ScriptProgress.COMPLETE
+                            progress.save()
+                            response_trail(progress, response)
+                            return None
+        #            Not yet time to give up!
+                    else:
+        #                Simply Complete this step
+                        progress.status = ScriptProgress.COMPLETE
+                        progress.save()
+                        response_trail(progress, response)
+                        return None
+
+        #         Current step status is COMPLETE 'C' ********************************
             else:
-                progress.status = ScriptProgress.COMPLETE
-                progress.save()
-#                Proceed to next step?
-                return try_next_step(progress, next_step, response
-                )
-        else:
-#           EVALUATE THE WAIT MOVE-ON and WAIT GIVE-UP Rules together for PENDING state ******************************
-#            is it time to give up?
-            if progress.give_up_now():
-                if progress.step.rule == ScriptStep.WAIT_GIVEUP:
-#                    We are really not concerned with this connection any more, we are simply giving up
-                    progress.delete()
-                    return None
-                else:
-#                    Simply Complete this step
-                    progress.status = ScriptProgress.COMPLETE
-                    progress.save()
-                    response_trail(progress, response)
-                    return None
-#            Not yet time to give up!
-            else:
-#                Simply Complete this step
-                progress.status = ScriptProgress.COMPLETE
-                progress.save()
-                response_trail(progress, response)
                 return None
-    else:
-#    Current step status is COMPLETE 'C' ********************************
-#        Try next step
-#        return try_next_step(progress, next_step)
-#        Is it time to proceed to next step?
-        if next_step and progress.proceed():
-            progress.step = next_step
-            progress.status = ScriptProgress.PENDING
-            progress.save()
-            if next_step.poll:
-                return next_step.poll.question
-#        next step is not a poll but a message
-            else:
-                return next_step.message
-#    is this the last step for this connection
-        elif is_last_step(progress) and progress.status == ScriptProgress.COMPLETE:
-#        end of the road for this connection
-            progress.delete()        
-            return None
         else:
-#        Not yet time to start new step
             return None
+    else:
+        return None
 
 
 def try_next_step(progress, next_step, response):
@@ -221,10 +161,7 @@ def response_trail(progress, response):
             session.responses.create(response = resp)
     
 
-def is_last_step(progress):   
-    if progress.step == progress.get_last_step():
-        return True
-    else:
-        return False
+def is_last_step(progress):
+    return  progress.step == progress.get_initial_step
     
             

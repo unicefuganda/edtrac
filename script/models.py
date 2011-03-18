@@ -153,7 +153,7 @@ class ScriptProgress(models.Model):
         if self.step.num_tries and self.num_tries < self.step.num_tries:
             return True
         else:
-            False
+            return False
 
     def move_to_nextstep(self):
         if self.get_next_step():
