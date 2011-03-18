@@ -26,11 +26,13 @@ def incoming_progress(message):
     if current_step:
 #        if the step is a poll
         if current_step.poll:
-            response = progress.step.poll.process_response(message)
         #    if current step status is PENDING ********************************
             if progress.status == ScriptProgress.PENDING:
         #        EVALUATE THE STRICT RULE for PENDING state************************************
+
+#                is the rule strict?
                 if progress.step.rule == ScriptStep.STRICT:
+                    response = progress.step.poll.process_response(message)
         #            its a poll but answered incorrectly!
                     if response[0].has_errors:
         #                record response to this step
@@ -40,33 +42,24 @@ def incoming_progress(message):
         #            its a poll response and answered correctly
                     else:
         #                if we have a valid message from process_response()
-                        if response[1] is None:
-        #                    This step is complete
-                            progress.status = ScriptProgress.COMPLETE
-                            progress.save()
-                            response_trail(progress, response)
-                        else:
-        #                    the response from poll processing is not none and there are no errors
-                            progress.status = ScriptProgress.COMPLETE
-                            progress.save()
-                            response_trail(progress, response)
-                            return response[1]
+                        progress.status = ScriptProgress.COMPLETE
+                        progress.save()
+                        response_trail(progress, response)
 
         #        EVALUATE THE LENIENT RULE for PENDING state************************************
                 elif progress.step.rule == ScriptStep.LENIENT:
+                    response = progress.step.poll.process_response(message)
                     progress.status = ScriptProgress.COMPLETE
                     progress.save()
                     response_trail(progress, response)
-                    if response:
-                        return response[1]
-                    else:
-                        return None
+                    return response[1]
 
         #        EVALUATE THE RETRY MOVE-ON and RETRY GIVE-UP Rules together for PENDING state ***************************
                 elif progress.step.rule == ScriptStep.RESEND_MOVEON or progress.step.rule == ScriptStep.RESEND_GIVEUP:
                     if progress.give_up_now():
                         return None
                     else:
+                        response = progress.step.poll.process_response(message)
                         if response[0].has_errors:
                             response_trail(progress, response)
                             return response[1]
@@ -82,9 +75,10 @@ def incoming_progress(message):
                     if progress.give_up_now():
                         return None
                         
-        #            Not yet time to give up!
+        #            Not yet time to give up, Move on!
                     else:
         #                Simply Complete this step
+                        response = progress.step.poll.process_response(message)
                         progress.status = ScriptProgress.COMPLETE
                         progress.save()
                         response_trail(progress, response)
@@ -127,31 +121,34 @@ def response_trail(progress, response):
         connection = progress.connection
         script = progress.step.script
         resp = response[0]
-#        is this the initial step?
-        if progress.get_initial_step():
-#            make sure the session for this connection doesn't exist already?
-            if not ScriptSession.objects.get(connection=connection, script=script):
-                session = ScriptSession.objects.create(
-                                        connection= connection,
-                                        script = script
-                                        )
-                session.save()
-                session.responses.create(response = resp)
-                session.save()
-#            somehow session exists already
-            else:
-                session = ScriptSession.objects.get(connection=connection, script=script)
-                session.responses.create(response = resp)
-#        is this the last step?
-        elif is_last_step(progress=progress):
-            session = ScriptSession.objects.get(connection=connection, script=script)
-            session.end_time = datetime.datetime.now()
-            session.responses.create(response = resp)
-            session.save()
-#        not an initial step and not the last step
-        else:
-            session = ScriptSession.objects.get(connection=connection, script=script)
-            session.responses.create(response = resp)
+        session = ScriptSession.objects.get(connection=connection, script=script)
+        session.responses.create(response = resp)
+
+##        is this the initial step?
+#        if progress.get_initial_step():
+##            make sure the session for this connection doesn't exist already?
+#            if not ScriptSession.objects.get(connection=connection, script=script):
+#                session = ScriptSession.objects.create(
+#                                        connection= connection,
+#                                        script = script
+#                                        )
+#                session.save()
+#                session.responses.create(response = resp)
+#                session.save()
+##            somehow session exists already
+#            else:
+#                session = ScriptSession.objects.get(connection=connection, script=script)
+#                session.responses.create(response = resp)
+##        is this the last step?
+#        elif is_last_step(progress=progress):
+#            session = ScriptSession.objects.get(connection=connection, script=script)
+#            session.end_time = datetime.datetime.now()
+#            session.responses.create(response = resp)
+#            session.save()
+##        not an initial step and not the last step
+#        else:
+#            session = ScriptSession.objects.get(connection=connection, script=script)
+#            session.responses.create(response = resp)
     
 
 def is_last_step(progress):
