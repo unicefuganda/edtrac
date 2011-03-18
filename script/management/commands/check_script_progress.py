@@ -21,9 +21,10 @@ class Command(BaseCommand):
         try:
             router = get_router()
             for connection in ScriptProgress.objects.values_list('connection', flat=True).distinct():
+                connection=Connection.objects.get(pk=connection)
                 response = check_progress(connection)
+                print response
                 if response:
-                    connection = Connection.objects.get(pk=connection)
                     router.add_outgoing(connection, response)
                 transaction.commit()
         except Exception, exc:
