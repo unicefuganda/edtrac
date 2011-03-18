@@ -463,7 +463,7 @@ class ModelTest(TestCase): #pragma: no cover
         # be one response in the ScriptSession
         progress = self.assertProgress(connection, 1, 'C', 1, 1)
         # test that the response was processed correctly
-        self.assertEquals(Response.objects.all()[0], ScriptSession.objects.all()[0].responses.all()[0].response)
+        self.assertEquals(Response.objects.all()[0].pk, ScriptSession.objects.all()[0].responses.all()[0].response.pk)
         self.assertEquals(Response.objects.all()[0].eav.poll_text_value, step1response)
 
         # check that this call to check_progress sends out the
