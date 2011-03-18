@@ -345,6 +345,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptSession.objects.count(), session_count)
         if session_count:
             self.assertEquals(ScriptSession.objects.all()[0].responses.count(), response_count)
+        self.assertEquals(Response.objects.count(), response_count)
         # return the refreshed progress
         return progress
 
@@ -447,6 +448,8 @@ class ModelTest(TestCase): #pragma: no cover
         session.start_time = datetime.datetime.now()
         session.end_time = None
         for r in session.responses.all():
+            r.delete()
+        for r in Response.objects.all():
             r.delete()
         session.save()
 
