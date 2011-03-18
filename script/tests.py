@@ -339,7 +339,7 @@ class ModelTest(TestCase): #pragma: no cover
         script = Script.objects.all()[0]
         if step_num is not None:
             step = script.steps.get(order=step_num)
-            self.asssertEquals(progress.step, step)
+            self.assertEquals(progress.step, step)
         else:
             self.assertEquals(progress.step, None)
         self.assertEquals(ScriptSession.objects.count(), session_count)
@@ -444,5 +444,11 @@ class ModelTest(TestCase): #pragma: no cover
 
         # test that an incoming message from a user in this portion
         # of the script affects the progress
-        incomingmessage = self.fakeIncoming('My favorite form of spam is an overabundance of test cases ;-)')
+        step1response = 'My favorite form of spam is an overabundance of test cases ;-)'
+        incomingmessage = self.fakeIncoming(step1response)
         response_message = incoming_progress(incomingmessage)
+        self.failUnless(response_message == None or response_message == '')
+        # we should move the status of step 1 to complete, and there should
+        # be one response in the ScriptSession
+        progress = self.assertProgress(connection, 1, 'C', 1, 1)
+        self.assertEquals(Response)
