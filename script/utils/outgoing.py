@@ -23,10 +23,11 @@ def prog_msg(progress):
 def can_moveon(progress):
     """ tests if the scriptprogress can move to the next step"""
     current_time=datetime.datetime.now()
+    offset=progress.step.giveup_offset or 0
     if progress.get_next_step() and current_time \
         >= progress.time \
         + datetime.timedelta(seconds=progress.get_next_step().start_offset) and current_time >= progress.time \
-                    + datetime.timedelta(seconds=progress.step.giveup_offset):
+                    + datetime.timedelta(seconds=offset):
         return True
     else:
         return False
