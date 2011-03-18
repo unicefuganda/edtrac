@@ -41,8 +41,6 @@ def generic(request,
     # the default list is either a queryset parameter, or all
     # objects from the model parameter
     object_list = queryset or model.objects.all()
-    if type(object_list) == RawQuerySet:
-            object_list = list(object_list)
 
     # dynamically create a form class to represent the list of selected results,
     # for performing actions
@@ -76,6 +74,7 @@ def generic(request,
         sort_action = request.POST.get('sort_action', '')
         sort_column = request.POST.get('sort_column', '')
         sort_ascending = request.POST.get('sort_ascending', 'True')
+        sort_ascending = (sort_ascending == 'True')
         action_taken = request.POST.get('action', '')
         if page_action:
             object_list = request.session['object_list']
@@ -87,11 +86,11 @@ def generic(request,
             # retrieve the original, unsorted, unpaginated list,
             # as some sorts will turn the initial queryset into a list
             object_list = request.session['filtered_list']
-            sort_ascending = (sort_ascending == 'True')
             for column_name, sortable, sort_param, sorter in columns:
                 if sortable and sort_param == sort_column:
                     object_list = sorter.sort(sort_column, object_list, sort_ascending)
         elif action_taken:
+            object_list = request.session['object_list']
             everything_selected = request.POST.get('select_everything', None)
             results = []
             if everything_selected:
