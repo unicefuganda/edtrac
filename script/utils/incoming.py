@@ -30,28 +30,27 @@ def incoming_progress(message):
             if progress.status == ScriptProgress.PENDING:
         #        EVALUATE THE STRICT RULE for PENDING state************************************
 
-#                is the rule strict?
+        #        is the rule strict?
                 if progress.step.rule == ScriptStep.STRICT:
                     response = progress.step.poll.process_response(message)
-        #            its a poll but answered incorrectly!
+                    response_trail(progress, response)
+                    
+        #            answered incorrectly!
                     if response[0].has_errors:
-        #                record response to this step
-                        response_trail(progress, response)
                         return response[1]
 
-        #            its a poll response and answered correctly
+        #            answered correctly
                     else:
-        #                if we have a valid message from process_response()
                         progress.status = ScriptProgress.COMPLETE
                         progress.save()
-                        response_trail(progress, response)
+                        return response[1]
 
         #        EVALUATE THE LENIENT RULE for PENDING state************************************
                 elif progress.step.rule == ScriptStep.LENIENT:
                     response = progress.step.poll.process_response(message)
+                    response_trail(progress, response)
                     progress.status = ScriptProgress.COMPLETE
                     progress.save()
-                    response_trail(progress, response)
                     return response[1]
 
         #        EVALUATE THE RETRY MOVE-ON and RETRY GIVE-UP Rules together for PENDING state ***************************
@@ -64,9 +63,9 @@ def incoming_progress(message):
                             response_trail(progress, response)
                             return response[1]
                         else:
+                            response_trail(progress, response)
                             progress.status = ScriptProgress.COMPLETE
                             progress.save()
-                            response_trail(progress, response)
                             return response[1]
 
         #           EVALUATE THE WAIT MOVE-ON and WAIT GIVE-UP Rules together for PENDING state ******************************
@@ -74,14 +73,13 @@ def incoming_progress(message):
         #            is it time to give up?
                     if progress.give_up_now():
                         return None
-                        
         #            Not yet time to give up, Move on!
                     else:
         #                Simply Complete this step
                         response = progress.step.poll.process_response(message)
+                        response_trail(progress, response)
                         progress.status = ScriptProgress.COMPLETE
                         progress.save()
-                        response_trail(progress, response)
                         return None
 
         #         Current step status is COMPLETE 'C' ********************************
