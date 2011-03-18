@@ -421,10 +421,17 @@ class ModelTest(TestCase): #pragma: no cover
 
         # test the moveon scenario, wait a full day with no response
         self.elapseTime(progress, 86400)
-        step2 = script.steps.get(order=2)
+        # make sure that incoming_progress respects the giveup time of
+        # the previous step and drops any messages (otherwise it's a
+        # potential race contidion
+        incomingmessage = self.fakeIncoming('I like spam, Im just a little late to mention anything about it')
+        response_message = incoming_progress(incomingmessage)
+        self.assertEQuals(response, None)
+        progress = self.assertProgress(connection, 1, 'P', 1, 0)
         # check that this call to check_progress sends out the
         # next question
         response = check_progress(connection)
+        step2 = script.steps.get(order=2)
         # the first poll question should go out now
         self.assertEquals(response, step2.poll.question)
         # check that the step is now step 2, with status 'P'
