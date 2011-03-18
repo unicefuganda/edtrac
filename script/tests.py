@@ -515,7 +515,22 @@ class ModelTest(TestCase): #pragma: no cover
 
         # wait an hour
         self.elapseTime(progress, 3601)
+        step3 = script.steps.get(order=3)
         # this should complete the script
+        response = check_progress(connection)
+        self.assertEquals(response, step3.message)
+        progress = self.assertProgress(connection, 3, 'P', 1, 3)
+
+        # incoming messages shouldn't do anything here
+        # (in fact, the shouldn't be added even as responses to the poll, since
+        # the status of this step is complete)
+        incomingmessage = self.fakeIncoming('im done with the script, just sending random stuff')
+        response_message = incoming_progress(incomingmessage)
+        self.failUnless(response_message == None or response_message == '')
+        progress = self.assertProgress(connection, 3, 'P', 1, 3)
+
+        # wait a few more seconds, then check that the script is closed out
+        self.elapseTime(progress, 10)
         response = check_progress(connection)
         self.assertEquals(response, None)
         self.assertEquals(ScriptProgress.objects.count(), 0)
