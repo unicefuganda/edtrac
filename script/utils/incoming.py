@@ -95,11 +95,12 @@ def incoming_progress(message):
     
 def response_trail(progress, response):
 #    is this a poll
-    connection = progress.connection
-    script = progress.step.script
-    resp = response[0]
-    session = ScriptSession.objects.get(connection=connection, script=script)
-    session.responses.create(response = resp)
+    if progress.step.poll:
+        connection = progress.connection
+        script = progress.step.script
+        resp = response[0]
+        session = ScriptSession.objects.get(connection=connection, script=script)
+        session.responses.create(response = resp)
 
     
             
