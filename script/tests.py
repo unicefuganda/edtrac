@@ -86,6 +86,12 @@ class ModelTest(TestCase): #pragma: no cover
         newtime = progress.time - datetime.timedelta(seconds=seconds)
         cursor.execute("update script_scriptprogress set time = '%s' where id = %d" %
                        (newtime.strftime('%Y-%m-%d %H:%M:%S.%f'), progress.pk))
+        try:
+            session = ScriptSession.objects.get(connection=progress.connection, end_time=None)
+            session.start_time = session.start_time - datetime.timedelta(seconds=seconds)
+            session.save()
+        except ScriptSession.DoesNotExist:
+            pass
 
     def fakeIncoming(self, message, connection=None):
         if connection is None:
@@ -204,7 +210,8 @@ class ModelTest(TestCase): #pragma: no cover
         script = Script.objects.all()[0]
         step = ScriptStep.objects.get(order=2)
         prog = ScriptProgress.objects.create(connection=connection, script=script, step=step, status='P')
-
+        # create a dummy session
+        session = ScriptSession.objects.create(connection=connection, script=script)
         incomingmessage = self.fakeIncoming('Jack cheese is a cheese that I like')
         response_message = incoming_progress(incomingmessage)
         self.assertEquals(response_message, "We didn't understand your response and it's very important to know about your cheese desires.  Please resend.")
@@ -233,7 +240,7 @@ class ModelTest(TestCase): #pragma: no cover
         connection = Connection.objects.all()[0]
         script = Script.objects.all()[0]
         prog = ScriptProgress.objects.create(connection=connection, script=script, step=step, status='P')
-
+        session = ScriptSession.objects.create(connection=connection, script=script)
         self.elapseTime(prog, 3601)
         check_progress(connection)
         # refresh progress
@@ -257,6 +264,7 @@ class ModelTest(TestCase): #pragma: no cover
         step.num_tries = 2
         step.save()
         prog = ScriptProgress.objects.create(connection=connection, script=script, step=step, status='P')
+        session = ScriptSession.objects.create(connection=connection, script=script)
         self.elapseTime(prog, 61)
         response = check_progress(connection)
         self.assertEquals(response, "Second question: Do you like CHEESE?")
@@ -327,5 +335,10 @@ class ModelTest(TestCase): #pragma: no cover
         prog.move_to_nextstep()
         self.assertEqual(received_signals, expected_signals)
 
+    def testFullScriptFlow(self):
+        script = Script.objects.all()[0]
+        connection = Connection.objects.all()[0]
+        progress = ScriptProgress.objects.create(connection=connection, script=script)
+        pass
 
 
