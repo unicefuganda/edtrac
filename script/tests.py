@@ -451,4 +451,62 @@ class ModelTest(TestCase): #pragma: no cover
         # we should move the status of step 1 to complete, and there should
         # be one response in the ScriptSession
         progress = self.assertProgress(connection, 1, 'C', 1, 1)
-        self.assertEquals(Response)
+        # test that the response was processed correctly
+        self.assertEquals(Response.objects.all()[0], ScriptSession.objects.all()[0].responses.all()[0].response)
+        self.assertEquals(Response.objects.all()[0].eav.poll_text_value, step1response)
+
+        # check that this call to check_progress sends out the
+        # next question
+        response = check_progress(connection)
+        # the first poll question should go out now
+        self.assertEquals(response, step2.poll.question)
+        # check that the step is now step 2, with status 'P'
+        # there should still be a scriptsession, but only one
+        # and there still should be one response
+        progress = self.assertProgress(connection, 2, 'P', 1, 1)
+
+        # no movement until we get a response this time
+        response = check_progress(connection)
+        self.assertEquals(response, None)
+        progress = self.assertProgress(connection, 2, 'P', 1, 1)
+
+        step2errorResponse = 'I like cheese'
+        incomingmessage = self.fakeIncoming(step2errorResponse)
+        response_message = incoming_progress(incomingmessage)
+        self.assertEquals(response_message, step2.poll.categories.get(name='unknown').response)
+        # we should be in the same step, with one additional response
+        progress = self.assertProgress(connection, 2, 'P', 1, 2)
+
+        # no movement until we get a response this time
+        response = check_progress(connection)
+        self.assertEquals(response, None)
+        progress = self.assertProgress(connection, 2, 'P', 1, 2)
+
+        step2yesResponse = 'YES I like cheese'
+        incomingmessage = self.fakeIncoming(step2yesResponse)
+        response_message = incoming_progress(incomingmessage)
+        self.assertEquals(response_message, step2.poll.categories.get(name='yes').response)
+        # we should be in the same step, with one additional response and 'C'omplete status
+        progress = self.assertProgress(connection, 2, 'C', 1, 3)
+
+        # no movement until for a full hour
+        response = check_progress(connection)
+        self.assertEquals(response, None)
+        progress = self.assertProgress(connection, 2, 'C', 1, 3)
+
+        # incoming messages shouldn't do anything here
+        # (in fact, the shouldn't be added even as responses to the poll, since
+        # the status of this step is complete)
+        incomingmessage = self.fakeIncoming('still just waiting around for another message')
+        response_message = incoming_progress(incomingmessage)
+        self.failUnless(response_message == None or response_message == '')
+        progress = self.assertProgress(connection, 2, 'C', 1, 3)
+
+        # wait an hour
+        self.elapseTime(progress, 3601)
+        # this should complete the script
+        response = check_progress(connection)
+        self.assertEquals(response, None)
+        self.assertEquals(ScriptProgress.objects.count(), 0)
+        self.assertEquals(ScriptSession.objects.all()[0].responses.count(), 3)
+        self.failIf(ScriptSession.objects.all()[0].end_time is None)
