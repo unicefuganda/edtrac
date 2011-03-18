@@ -52,7 +52,7 @@ def check_progress(connection):
     needed.
     """
 
-    progress = ScriptProgress.objects.get(connection__pk=connection)
+    progress = ScriptProgress.objects.get(connection=connection)
     current_time = datetime.datetime.now()
 
 
