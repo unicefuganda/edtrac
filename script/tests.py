@@ -334,6 +334,20 @@ class ModelTest(TestCase): #pragma: no cover
         prog.move_to_nextstep()
         self.assertEqual(received_signals, expected_signals)
 
+    def assertProgress(self, connection, step_num, step_status, session_count, response_count):
+        progress = ScriptProgress.objects.get(connection=connection)
+        script = Script.objects.all()[0]
+        if step_num is not None:
+            step = script.steps.get(order=step_num)
+            self.asssertEquals(progress.step, step)
+        else:
+            self.assertEquals(progress.step, None)
+        self.assertEquals(ScriptSession.objects.count(), session_count)
+        if session_count:
+            self.assertEquals(ScriptSession.objects.all()[0].responses.count(), response_count)
+        # return the refreshed progress
+        return progress
+
     def testFullScriptFlow(self):
         script = Script.objects.all()[0]
         connection = Connection.objects.all()[0]
@@ -345,13 +359,9 @@ class ModelTest(TestCase): #pragma: no cover
         response_message = incoming_progress(incomingmessage)
         # no response message
         self.assertEquals(response_message, None)
-        # refresh progress
-        progress = ScriptProgress.objects.get(connection=connection)
-        # no updates to progress
-        self.assertEquals(progress.step, None)
-        self.assertEquals(progress.status, None)
+        # refresh progress, no updates to progress should be made
         # no ScriptSession should be created, that's up to check_progress
-        self.assertEquals(ScriptSession.objects.count(), 0)
+        progress = self.assertProgress(connection, None, '', 0, 0)
 
         # modify step 1, check_progress should wait a full minute before sending out
         # the first message
@@ -368,16 +378,12 @@ class ModelTest(TestCase): #pragma: no cover
         # we're ready for the first message to go out
         self.assertEquals(response, step0.message)
         # refresh progress
-        progress = ScriptProgress.objects.get(connection=connection)
         # we should now be advanced to step 0, in 'P'ending status
         # because it's a WAIT_MOVEON step, so we have to wait for one
         # hour before advancing to the next step
-        self.assertEquals(progress.step, step0)
-        self.assertEquals(progress.status, 'P')
         # there should be a scriptsession at this point
-        self.assertEquals(ScriptSession.objects.count(), 1)
         # but there shouldn't be any responses
-        self.assertEquals(ScriptSession.objects.all()[0].responses.count(), 0)
+        progress = self.assertProgress(connection, 0, 'P', 1, 0)
 
         # test that an incoming message from a user in this portion
         # of the script doesn't affect the progress
@@ -386,14 +392,10 @@ class ModelTest(TestCase): #pragma: no cover
         # no response message
         self.assertEquals(response_message, None)
         # refresh progress
-        progress = ScriptProgress.objects.get(connection=connection)
         # no updates to progress
-        self.assertEquals(progress.step, step0)
-        self.assertEquals(progress.status, 'P')
         # there should still be a scriptsession, but only one
-        self.assertEquals(ScriptSession.objects.count(), 1)
         # and there still shouldn't be any responses
-        self.assertEquals(ScriptSession.objects.all()[0].responses.count(), 0)
+        progress = self.assertProgress(connection, 0, 'P', 1, 0)
 
         # now let's wait a full hour
         self.elapseTime(progress, 3600)
@@ -402,29 +404,20 @@ class ModelTest(TestCase): #pragma: no cover
         # the first poll question should go out now
         self.assertEquals(response, step1.poll.question)
         # refresh progress
-        progress = ScriptProgress.objects.get(connection=connection)
         # check that the step is now step 1, with status 'P'
-        self.assertEquals(progress.step, step1)
-        self.assertEquals(progress.status, 'P')
         # there should still be a scriptsession, but only one
-        self.assertEquals(ScriptSession.objects.count(), 1)
         # and there still shouldn't be any responses
-        self.assertEquals(ScriptSession.objects.all()[0].responses.count(), 0)
+        progress = self.assertProgress(connection, 1, 'P', 1, 0)
 
         # check that an additional call to check_progress doesn't re-send the
         # question
         response = check_progress(connection)
         # the first poll question should go out now
         self.assertEquals(response, None)
-        # refresh progress
-        progress = ScriptProgress.objects.get(connection=connection)
         # check that the step is still step 1, with status 'P'
-        self.assertEquals(progress.step, step1)
-        self.assertEquals(progress.status, 'P')
         # there should still be a scriptsession, but only one
-        self.assertEquals(ScriptSession.objects.count(), 1)
         # and there still shouldn't be any responses
-        self.assertEquals(ScriptSession.objects.all()[0].responses.count(), 0)
+        progress = self.assertProgress(connection, 1, 'P', 1, 0)
 
         # test the moveon scenario, wait a full day with no response
         self.elapseTime(progress, 86400)
@@ -434,12 +427,22 @@ class ModelTest(TestCase): #pragma: no cover
         response = check_progress(connection)
         # the first poll question should go out now
         self.assertEquals(response, step2.poll.question)
-        # refresh progress
-        progress = ScriptProgress.objects.get(connection=connection)
-        # check that the step is still step 1, with status 'P'
-        self.assertEquals(progress.step, step2)
-        self.assertEquals(progress.status, 'P')
+        # check that the step is now step 2, with status 'P'
         # there should still be a scriptsession, but only one
-        self.assertEquals(ScriptSession.objects.count(), 1)
         # and there still shouldn't be any responses
-        self.assertEquals(ScriptSession.objects.all()[0].responses.count(), 0)
+        progress = self.assertProgress(connection, 2, 'P', 1, 0)
+
+        # test the scenario where a response is received
+        progress.step = step1
+        progress.status = 'P'
+        progress.save()
+        session = ScriptSession.objects.all()[0]
+        session.start_time = datetime.datetime.now()
+        session.end_time = None
+        session.responses.clear()
+        session.save()
+
+        # test that an incoming message from a user in this portion
+        # of the script affects the progress
+        incomingmessage = self.fakeIncoming('My favorite form of spam is an overabundance of test cases ;-)')
+        response_message = incoming_progress(incomingmessage)
