@@ -11,17 +11,6 @@ def prog_msg(progress):
     """
 
     if progress.step:
-        try:
-            session = ScriptSession.objects.get(
-                                            connection= progress.connection,
-                                            script = progress.script
-                                            )
-        except ScriptSession.DoesNotExist:
-            session = ScriptSession.objects.create(
-                                            connection= progress.connection,
-                                            script = progress.script
-                                            )
-            session.save()
 
         if progress.step.poll:
             return progress.step.poll.question
@@ -66,7 +55,18 @@ def check_progress(connection):
         return None
     current_time = datetime.datetime.now()
 
+    try:
 
+        session = ScriptSession.objects.get(
+                                            connection= progress.connection,
+                                            script = progress.script
+                                            )
+    except ScriptSession.DoesNotExist:
+        session = ScriptSession.objects.create(
+                                            connection= progress.connection,
+                                            script = progress.script
+                                            )
+        session.save()
     # having no step means the ScriptProgress is unstarted . get the initial step and check if its due to be sent.
     #put the progress script in the initial sate
 
@@ -114,9 +114,13 @@ def check_progress(connection):
                                     return None
                                 
                         else:
+                            session.end_time=datetime.datetime.now()
+                            session.save()
                             progress.delete()
                             return None
                     if progress.step.rule == ScriptStep.WAIT_GIVEUP:
+                        session.end_time=datetime.datetime.now()
+                        session.save()
                         progress.delete()
                         return None
 
@@ -130,6 +134,8 @@ def check_progress(connection):
                             progress.move_to_nextstep()
                             return prog_msg(progress)
                     if progress.step.rule == ScriptStep.RESEND_GIVEUP:
+                        session.end_time=datetime.datetime.now()
+                        session.save()
                         progress.delete()
                         return None
 
