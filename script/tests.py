@@ -240,12 +240,22 @@ class ModelTest(TestCase): #pragma: no cover
         script = Script.objects.all()[0]
         prog = ScriptProgress.objects.create(connection=connection, script=script, step=step, status='P')
         session = ScriptSession.objects.create(connection=connection, script=script)
+        # elapse past the moveon time
         self.elapseTime(prog, 3601)
         check_progress(connection)
         # refresh progress
         if giveup:
             self.assertEquals(ScriptProgress.objects.count(), 0)
         else:
+            prog = ScriptProgress.objects.get(connection=connection)
+            self.assertEquals(prog.step.order, 2)
+            self.assertEquals(prog.status, 'C')
+
+            # elapse past the start time of the next step
+            self.elapseTime(prog, 3610)
+            response = check_progress(connection)
+            self.assertEquals(response, prog.step.script.steps.get(order=3).message)
+
             prog = ScriptProgress.objects.get(connection=connection)
             self.assertEquals(prog.step.order, 3)
             self.assertEquals(prog.status, 'P')
@@ -259,7 +269,7 @@ class ModelTest(TestCase): #pragma: no cover
         else:
             step.rule = ScriptStep.RESEND_MOVEON
         step.retry_offset = 60
-        step.giveup_time = 3600
+        step.giveup_offset = 3600
         step.num_tries = 2
         step.save()
         prog = ScriptProgress.objects.create(connection=connection, script=script, step=step, status='P')
@@ -290,13 +300,24 @@ class ModelTest(TestCase): #pragma: no cover
         response = check_progress(connection)
         self.assertEquals(response, None)
 
+        # elapse past the giveup time
+        prog = ScriptProgress.objects.get(connection=connection)
+        self.elapseTime(prog, 3600)
+        response = check_progress(connection)
+
         if giveup:
             self.assertEquals(ScriptProgress.objects.count(), 0)
         else:
+            self.assertEquals(response, None)
             prog = ScriptProgress.objects.get(connection=connection)
-            self.elapseTime(prog, 3600)
+            self.assertEquals(prog.step.order, 2)
+            self.assertEquals(prog.status, 'C')
+
+            # elapse past the start time of the next step
+            self.elapseTime(prog, 3610)
             response = check_progress(connection)
-            self.assertEquals(response, prog.step.script.steps.get(order=3).message)            
+            self.assertEquals(response, prog.step.script.steps.get(order=3).message)
+
             prog = ScriptProgress.objects.get(connection=connection)
             self.assertEquals(prog.step.order, 3)
             self.assertEquals(prog.status, 'P')
@@ -323,7 +344,7 @@ class ModelTest(TestCase): #pragma: no cover
         n_step=ScriptStep.objects.get(order=3)
         #call back
         def receive(sender, **kwargs):
-            self.assertEqual(kwargs['connection'], connection)
+            self.assertEqual(kwargs['connection'].pk, connection.pk)
             #self.assertEqual(kwargs['step'],n_step)
             received_signals.append(kwargs.get('signal'))
         # Connect signals and keep track of handled ones

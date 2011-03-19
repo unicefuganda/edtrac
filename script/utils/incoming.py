@@ -2,6 +2,23 @@ import datetime
 from script.models import ScriptProgress, ScriptStep, ScriptSession
 
 def incoming_progress(message):
+    progress = None
+    try:
+        progress = ScriptProgress.objects.get(connection=message.connection)
+    except ScriptProgress.DoesNotExist:
+        # potential race condition where ScriptProgress is deleted by check_progress
+        pass
+    curtime = datetime.datetime.now()
+    if  progress and progress.accepts_incoming(curtime):
+        response = progress.step.poll.process_response(message)
+        response_trail(progress, response)
+        if not (response[0].has_errors and progress.step.rule == ScriptStep.STRICT):
+            progress.status = ScriptProgress.COMPLETE
+            progress.save()
+        return response[1]
+    return None
+
+def incoming_progress2(message):
     """
     This function should check if an incoming message
     (of type rapidsms.messages.incoming.IncomingMessage)

@@ -32,8 +32,38 @@ def can_moveon(progress):
     else:
         return False
 
-
 def check_progress(connection):
+    try:
+        progress = ScriptProgress.objects.get(connection=connection)
+    except ScriptProgress.DoesNotExist:
+        return None
+
+    d_now = datetime.datetime.now()
+    if progress.time_to_start(d_now):
+        progress.start()
+        return progress.outgoing_message()
+    elif progress.expired(d_now):
+        if progress.step.rule in [ScriptStep.WAIT_GIVEUP, ScriptStep.RESEND_GIVEUP]:
+            progress.giveup()
+        else:
+            progress.status = ScriptProgress.COMPLETE
+            progress.save()
+            # shortcircuit transitions in this case, if we can move on
+            # move immediately
+#            if progress.time_to_transition(datetime.datetime.now()) and progress.moveon():
+#                return progress.outgoing_message()
+    elif progress.time_to_resend(d_now):
+        progress.num_tries = (progress.num_tries or 0) + 1
+        progress.save()
+        return progress.outgoing_message()
+
+    d_now = datetime.datetime.now()
+    if progress.time_to_transition(d_now) and progress.moveon():
+            return progress.outgoing_message()
+
+    return None
+
+def check_progress2(connection):
     """
     This function should check if a given connection
     (of type rapidsms.models.Connection) needs to be prompted

@@ -148,6 +148,65 @@ class ScriptProgress(models.Model):
         else:
             return True
 
+    def expired(self, curtime):
+        if  self.step and self.status == ScriptProgress.PENDING and \
+            (self.step.rule in [ScriptStep.WAIT_MOVEON, ScriptStep.WAIT_GIVEUP] or \
+            ( \
+                (self.step.rule in [ScriptStep.RESEND_MOVEON, ScriptStep.RESEND_GIVEUP]) and \
+                (self.num_tries == self.step.num_tries) \
+            )):
+            return (self.time + datetime.timedelta(seconds=self.step.giveup_offset) <= curtime)
+        return False
+
+    def time_to_start(self, curtime):
+        return (not self.step and \
+                self.time + datetime.timedelta(seconds=self.script.steps.get(order=0).start_offset) <= curtime)
+
+    def time_to_resend(self, curtime):
+        return (self.step and self.step.rule in [ScriptStep.RESEND_MOVEON, ScriptStep.RESEND_GIVEUP] and \
+            self.num_tries < self.step.num_tries and self.time + datetime.timedelta(seconds=self.step.retry_offset) <= curtime)
+
+    def last_step(self):
+        return (self.step and \
+                self.script.steps.order_by('-order')[0].order == self.step.order)
+
+    def time_to_transition(self, curtime):
+        return (self.step and \
+                self.status == 'C' and \
+                (self.last_step() or \
+                self.time + datetime.timedelta(seconds=self.script.steps.get(order=(self.step.order + 1)).start_offset) <= curtime))
+
+    def giveup(self):
+        session = ScriptSession.objects.get(script=self.script, connection=self.connection, end_time=None)
+        session.end_time = datetime.datetime.now()
+        session.save()
+        self.delete()
+
+    def moveon(self, step_num=None):
+        if step_num is None:
+            step_num = self.step.order + 1
+        try:
+            step = self.script.steps.get(order=step_num)
+            script_progress_pre_change.send(sender=self, connection=self.connection,step=self.step)
+            self.step=step
+            self.status='P'
+            self.save()
+            script_progress.send(sender=self, connection=self.connection,step=self.step)
+            return True
+        except ScriptStep.DoesNotExist:
+            self.giveup()
+            return False
+
+    def start(self):
+        ScriptSession.objects.create(script=self.script, connection=self.connection)
+        self.moveon(step_num=0)
+
+    def outgoing_message(self):
+        return self.step.poll.question if self.step.poll else self.step.message
+
+    def accepts_incoming(self, curtime):
+        return (self.step and self.step.poll and self.status == ScriptProgress.PENDING and not self.expired(curtime)) 
+
 #    should we keep retrying the current step?
     def keep_retrying(self):
         if self.step.num_tries and self.num_tries < self.step.num_tries:
