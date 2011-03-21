@@ -14,7 +14,7 @@ class App (AppBase):
             if progress.step and progress.step.order == script_last_step.order and progress.status == 'C':
                 return False
             else:
-                response = utils.incoming_progress(message)
+                response = incoming_progress(message)
                 if response:
                     message.respond(response)
                 return True
