@@ -106,7 +106,7 @@ class ScriptProgress(models.Model):
         responds.  For WAIT_* rules, only the giveup time is checked,
         for RESEND_* rules, the number of resends must be reached, and then
         the giveup time exceeded.
-        
+
         Returns True if it the time for this step has elapsed, False otherwise
         """
         if  self.step and self.status == ScriptProgress.PENDING and \
@@ -123,7 +123,7 @@ class ScriptProgress(models.Model):
         Check if the current script progress needs to be started.  This applies when
         a ScriptProgress object has None for step (user hasn't even progressed to step
         0), and the start_offset for the first step has elapsed.
-        
+
         Returns True if the above case applies, False otherwise
         """
         return (not self.step and \
@@ -133,7 +133,7 @@ class ScriptProgress(models.Model):
         """
         Check to see if the time to resend a message/poll has elapsed, based on the
         step, rules, status, num_tries, and retry_offset.
-        
+
         Returns True if the step has the appropriate rule, and the proper amount of time
         has passed, False otherwise.
         """
@@ -151,7 +151,7 @@ class ScriptProgress(models.Model):
         """
         For steps that are complete, check the start time of the
         next step (or check if the current step is the last one).
-        
+
         If the start_offset of the next step has elapsed, returns
         True, False otherwise.
         """
@@ -215,7 +215,7 @@ class ScriptProgress(models.Model):
 
     def log(self, response):
         """
-        Log the response in the current ScriptSession for this connection. 
+        Log the response in the current ScriptSession for this connection.
         """
         session = ScriptSession.objects.get(connection=self.connection, script=self.script)
         session.responses.create(response=response)
