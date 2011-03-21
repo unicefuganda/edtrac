@@ -352,7 +352,7 @@ class ModelTest(TestCase): #pragma: no cover
         expected_signals=[script_progress_pre_change,script_progress]
         for signal in expected_signals:
             signal.connect(receive,weak=False)
-        prog.move_to_nextstep()
+        prog.moveon()
         self.assertEqual(received_signals, expected_signals)
 
     def assertProgress(self, connection, step_num, step_status, session_count, response_count):

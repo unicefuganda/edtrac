@@ -8,6 +8,7 @@ from django.conf import settings
 from script.signals import *
 from rapidsms.messages.incoming import IncomingMessage
 import difflib
+
 class Script(models.Model):
     slug = models.SlugField(max_length=64, primary_key=True)
     name = models.CharField(max_length=128,
@@ -40,10 +41,10 @@ class ScriptStep(models.Model):
                 max_length=1,
                 choices=((LENIENT, 'Lenient (accept erroneous responses and move on to the next step)'),
                          (STRICT, 'Strict (wait until the user submits a valid response with no errors)'),
-                         (WAIT_MOVEON, 'Wait, then move to next step'),
-                         (WAIT_GIVEUP, 'Wait, then stop the script for this user entirely (Giveup)'),
-                         (RESEND_MOVEON, 'Resend <resend> times, then move to next step'),
-                         (RESEND_GIVEUP, 'Resend <resend> times, then stop the script for this user entirely'),))
+                         (WAIT_MOVEON, 'Wait for <giveup_offset> seconds, then move to next step'),
+                         (WAIT_GIVEUP, 'Wait for <giveup_offset> seconds, then stop the script for this user entirely'),
+                         (RESEND_MOVEON, 'Resend message/question <num_tries> times, then move to next step'),
+                         (RESEND_GIVEUP, 'Resend message/question <num_tries> times, then stop the script for this user entirely'),))
     # the number of seconds after completion of the previous step that this rule should
     # begin to take effect (i.e., a message gets sent out)
     start_offset = models.IntegerField(blank=True,null=True)
@@ -54,7 +55,7 @@ class ScriptStep(models.Model):
     retry_offset = models.IntegerField(blank=True,null=True)
 
     # The time (in seconds) to wait before moving on to the
-    # next step, or giving up entirely (for WAIT_MOVEON and WAIT_GIVEUP
+    # next step, or giving up entirely (for WAIT_MOVEON and WAIT_GIVEUP)
     giveup_offset = models.IntegerField(blank=True,null=True)
 
     # The number of times to retry sending a question
@@ -64,8 +65,16 @@ class ScriptStep(models.Model):
     def __unicode__(self):
         return "%d"%self.order
 
-
 class ScriptProgress(models.Model):
+    """
+    This model keeps track of any Connections actively involved in a
+    script currently, including the last time there was an interaction,
+    the current step the user has progressed to, and the
+    number of times a message has been resent (if any).  This only keeps
+    actively-running script participants and their current progress,
+    the full list of responses sent by a user is tracked elsewhere,
+    and upon script completion the Connection is deleted from this table.
+    """
     # each connection should belong to only ONE script at a time,
     # and only be at ONE point in the script
     connection = models.ForeignKey(Connection, unique=True)
@@ -90,65 +99,16 @@ class ScriptProgress(models.Model):
         else:
             return "Not Started"
 
-    def get_next_step(self):
-        if not self.step:
-            return self.get_initial_step()
-        if self.step==self.get_last_step():
-            return None
-        else:
-            try:
-                steps_list=list(self.script.steps.order_by('order').values_list('order', flat=True))
-                next_step=steps_list[steps_list.index(self.step.order)+1]
-
-            except IndexError:
-                return None
-            return self.script.steps.get(order=next_step)
-
-    def get_initial_step(self):
-        try:
-            return self.script.steps.order_by('order')[0]
-        except IndexError:
-            return None
-    def get_last_step(self):
-        try:
-            return self.script.steps.order_by('-order')[0]
-        except IndexError:
-            return None
-#    should we retry the current step now?
-    def retry_now(self):
-        if self.step.retry_offset:
-            retry_time = self.time + datetime.timedelta(seconds=self.step.retry_offset)
-            if retry_time and retry_time <= datetime.datetime.now():
-                return True
-            else:
-                return False
-        else:
-            return True
-    
-#    should we move on to the next step now?
-    def proceed(self):
-        next_step = self.get_next_step()
-        if next_step.start_offset:
-            start_time = self.time + datetime.timedelta(seconds=next_step.start_offset)
-            if start_time and start_time <= datetime.datetime.now():
-                return True
-            else:
-                return False
-        else:
-            return True
-
-#    should we give up now?
-    def give_up_now(self):
-        if self.step.giveup_offset:
-            give_up_time = self.time + datetime.timedelta(seconds=self.step.giveup_offset)
-            if give_up_time and give_up_time <= datetime.datetime.now():
-                return True
-            else:
-                return False
-        else:
-            return True
-
     def expired(self, curtime):
+        """
+        Check if the wait time for this step is completed.  This applies to all
+        rules except LENIENT and STRICT, which only take action when a user
+        responds.  For WAIT_* rules, only the giveup time is checked,
+        for RESEND_* rules, the number of resends must be reached, and then
+        the giveup time exceeded.
+        
+        Returns True if it the time for this step has elapsed, False otherwise
+        """
         if  self.step and self.status == ScriptProgress.PENDING and \
             (self.step.rule in [ScriptStep.WAIT_MOVEON, ScriptStep.WAIT_GIVEUP] or \
             ( \
@@ -159,30 +119,63 @@ class ScriptProgress(models.Model):
         return False
 
     def time_to_start(self, curtime):
+        """
+        Check if the current script progress needs to be started.  This applies when
+        a ScriptProgress object has None for step (user hasn't even progressed to step
+        0), and the start_offset for the first step has elapsed.
+        
+        Returns True if the above case applies, False otherwise
+        """
         return (not self.step and \
                 self.time + datetime.timedelta(seconds=self.script.steps.get(order=0).start_offset) <= curtime)
 
     def time_to_resend(self, curtime):
+        """
+        Check to see if the time to resend a message/poll has elapsed, based on the
+        step, rules, status, num_tries, and retry_offset.
+        
+        Returns True if the step has the appropriate rule, and the proper amount of time
+        has passed, False otherwise.
+        """
         return (self.step and self.step.rule in [ScriptStep.RESEND_MOVEON, ScriptStep.RESEND_GIVEUP] and \
             self.num_tries < self.step.num_tries and self.time + datetime.timedelta(seconds=self.step.retry_offset) <= curtime)
 
     def last_step(self):
+        """
+        Returns true if the current step is the last step, False otherwise.
+        """
         return (self.step and \
                 self.script.steps.order_by('-order')[0].order == self.step.order)
 
     def time_to_transition(self, curtime):
+        """
+        For steps that are complete, check the start time of the
+        next step (or check if the current step is the last one).
+        
+        If the start_offset of the next step has elapsed, returns
+        True, False otherwise.
+        """
         return (self.step and \
                 self.status == 'C' and \
                 (self.last_step() or \
                 self.time + datetime.timedelta(seconds=self.script.steps.get(order=(self.step.order + 1)).start_offset) <= curtime))
 
     def giveup(self):
+        """
+        Remove this ScriptProgress from the table, update ScriptSession, and
+        fire the appropriate signal.
+        """
         session = ScriptSession.objects.get(script=self.script, connection=self.connection, end_time=None)
         session.end_time = datetime.datetime.now()
         session.save()
+        script_progress_was_completed.send(sender=self, connection=self.connection)
         self.delete()
 
     def moveon(self, step_num=None):
+        """
+        Move the step to the next in order (if one exists, otherwise end the script),
+        sending the appropriate signals.
+        """
         if step_num is None:
             step_num = self.step.order + 1
         try:
@@ -198,57 +191,46 @@ class ScriptProgress(models.Model):
             return False
 
     def start(self):
+        """
+        start the ScriptProgress, by advancing to the zeroeth step.
+        """
         ScriptSession.objects.create(script=self.script, connection=self.connection)
         self.moveon(step_num=0)
 
     def outgoing_message(self):
+        """
+        Return the appropriate outgoing message for this step, either the poll question
+        or the message.
+        """
         return self.step.poll.question if self.step.poll else self.step.message
 
     def accepts_incoming(self, curtime):
+        """
+        Check to see if the current progress within the ScriptProgress is waiting
+        for an incoming message: the script should be started, the current step
+        should have a poll, the status should be pending and the step should not
+        be past its expiry time.  Returns True if this is the case, False otherwise.
+        """
         return (self.step and self.step.poll and self.status == ScriptProgress.PENDING and not self.expired(curtime)) 
 
-#    should we keep retrying the current step?
-    def keep_retrying(self):
-        if self.step.num_tries and self.num_tries < self.step.num_tries:
-            return True
-        else:
-            return False
+    def log(self, response):
+        """
+        Log the response in the current ScriptSession for this connection. 
+        """
+        session = ScriptSession.objects.get(connection=self.connection, script=self.script)
+        session.responses.create(response=response)
 
-    def move_to_nextstep(self):
-        if self.get_next_step():
-            script_progress_pre_change.send(sender=self, connection=self.connection,step=self.step)
-            self.step=self.get_next_step()
-            self.status='P'
-            self.save()
-            script_progress.send(sender=self, connection=self.connection,step=self.step)
-            return True
-        else:
-            return False
-
-    #manually fire the signals
-    def fire_pre_transition_signal(self):
-        script_progress_pre_change.send(sender=self, connection=self.connection,step=self.step)
-    def fire_post_transition_signal(self):
-        script_progress.send(sender=self, connection=self.connection,step=self.step)
-    def fire_script_completed_signal(self):
-        fire_script_completed_signal(sender=self, connection=self.connection)
 class ScriptSession(models.Model):
+    """
+    This model provides a full audit trail of all the responses during a particular
+    progression through a script.
+    """
     connection=models.ForeignKey(Connection)
     script=models.ForeignKey(Script)
-    start_time=models.DateTimeField(auto_now=True)
+    start_time=models.DateTimeField(auto_now_add=True)
     end_time=models.DateTimeField(null=True)
-
-    def get_step(self):
-        return ScriptProgress.objects.get(connection=self.connection)
-    """get all the script session objects for each connection """
-    def get_audit_trail(connection):
-        return ScriptSession.objects.filter(connection=connection)
-
 
 class ScriptResponse(models.Model):
     session=models.ForeignKey(ScriptSession,related_name='responses')
     response=models.ForeignKey(Response)
 
-
-
-    
