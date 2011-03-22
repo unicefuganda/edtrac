@@ -309,13 +309,13 @@ def edit_response(req, response_id):
                 { 'response' : response },
                 context_instance=RequestContext(req))
         else:
-            return render_to_response(edit_template, 
+            return render_to_response(edit_template,
                             { 'response' : response, 'form':form },
                             context_instance=RequestContext(req))
     else:
         form = _get_response_edit_form(response)
 
-    return render_to_response(edit_template, 
+    return render_to_response(edit_template,
         { 'form' : form, 'response': response },
         context_instance=RequestContext(req))
 
@@ -324,7 +324,7 @@ def view_response(req, response_id):
     response = get_object_or_404(Response, pk=response_id)
     db_type = Poll.TYPE_CHOICES[response.poll.type]['db_type']
     view_template = Poll.TYPE_CHOICES[response.poll.type]['view_template']
-    return render_to_response(view_template, 
+    return render_to_response(view_template,
         { 'response': response, 'db_type': db_type},
         context_instance=RequestContext(req))
 
