@@ -8,11 +8,13 @@ from django.db.models import Sum, Avg, Q
 from django.contrib.sites.models import Site
 from django.contrib.sites.managers import CurrentSiteManager
 from django.contrib.auth.models import User
-
+from django.core.exceptions import ValidationError
+from django import forms
+from mptt.forms import TreeNodeChoiceField
 from rapidsms.models import Contact, Connection
 
 from eav import register
-from eav.models import Value
+from eav.models import Value, Attribute
 
 from .utils import init_attributes
 
@@ -22,7 +24,6 @@ from rapidsms_httprouter.models import Message
 from rapidsms_httprouter.router import get_router
 
 from rapidsms.messages.outgoing import OutgoingMessage
-
 from django.conf import settings
 from django.db.models.signals import post_syncdb
 import re
@@ -41,6 +42,25 @@ YES_WORDS = ['yes','yeah','yep','yay','y']
 # This can be configurable from settings, but here's a default list of
 # accepted no keywords
 NO_WORDS = ['no','nope','nah','nay','n']
+
+class ResponseForm(forms.Form):
+    def __init__(self, data=None, **kwargs):
+        response = kwargs.pop('response')
+        if data:
+            forms.Form.__init__(self, data, **kwargs)
+        else:
+            forms.Form.__init__(self, **kwargs)
+        self.fields['categories'] = forms.ModelMultipleChoiceField(required=False, queryset=response.poll.categories.all(), initial=Category.objects.filter(pk=response.categories.values_list('category',flat=True)))
+
+class NumericResponseForm(ResponseForm):
+    value = forms.FloatField()
+
+class LocationResponseForm(ResponseForm):
+    value = TreeNodeChoiceField(queryset=Area.tree.all(),
+                 level_indicator=u'.', required=True)
+
+class NameResponseForm(ResponseForm):
+    value = forms.CharField()
 
 class ResponseCategory(models.Model):
     category = models.ForeignKey('Category')
@@ -70,7 +90,46 @@ class Poll(models.Model):
     TYPE_NUMERIC = 'n'
     TYPE_LOCATION = 'l'
     TYPE_REGISTRATION = 'r'
-        
+
+    TYPE_CHOICES = {
+        TYPE_LOCATION: dict(
+                        label='Location-based',
+                        type=TYPE_LOCATION,
+                        db_type=Attribute.TYPE_OBJECT,
+                        parser=None,
+                        view_template='polls/response_location_view.html',
+                        edit_template='polls/response_location_edit.html',
+                        report_columns=(('Text','text'),('Location','location'),('Categories','categories')),
+                        edit_form=LocationResponseForm),
+        TYPE_NUMERIC: dict(
+                        label='Numeric Response',
+                        type=TYPE_NUMERIC,
+                        db_type=Attribute.TYPE_FLOAT,
+                        parser=None,
+                        view_template='polls/response_numeric_view.html',
+                        edit_template='polls/response_numeric_edit.html',
+                        report_columns=(('Text','text'),('Value','value'), ('Categories', 'categories')),
+                        edit_form=NumericResponseForm),
+        TYPE_TEXT:  dict(
+                        label='Free-form',
+                        type=TYPE_TEXT,
+                        db_type=Attribute.TYPE_TEXT,
+                        parser=None,
+                        view_template='polls/response_text_view.html',
+                        edit_template='polls/response_text_edit.html',
+                        report_columns=(('Text', 'text'),('Categories','categories')),
+                        edit_form=ResponseForm),
+        TYPE_REGISTRATION:  dict(
+                        label='Name/registration-based',
+                        type=TYPE_REGISTRATION,
+                        db_type=Attribute.TYPE_TEXT,
+                        parser=None,
+                        view_template='polls/response_registration_view.html',
+                        edit_template='polls/response_registration_edit.html',
+                        report_columns=(('Text','text'),('Categories','categories')),
+                        edit_form=NameResponseForm),
+    }
+
     name = models.CharField(max_length=32,
                             help_text="Human readable name.")
     question = models.CharField(max_length=160)
@@ -79,6 +138,7 @@ class Poll(models.Model):
     user = models.ForeignKey(User)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
+    type = models.SlugField(max_length=8, null=True, blank=True)
     type = models.CharField(
                 max_length=1,
                 choices=((TYPE_TEXT, 'Text-based'),(TYPE_NUMERIC, 'Numeric Response')))
@@ -91,6 +151,46 @@ class Poll(models.Model):
             ("can_poll", "Can send polls"),
             ("can_edit_poll", "Can edit poll rules, categories, and responses"),
         )
+
+    @classmethod
+    def register_poll_type(cls, field_type, label, parserFunc, \
+                           db_type=TYPE_TEXT, \
+                           view_template=None,\
+                           edit_template=None,\
+                           report_columns=None,\
+                           edit_form=None):
+        """
+        Used to register a new question type for Polls.  You can use this method to build new question types that are
+        available when building Polls.  These types may just do custom parsing of the SMS text sent in, then stuff
+        those results in a normal core datatype, or they may lookup and reference completely custom attributes.
+
+        Arguments are:
+           label:       The label used for this field type in the user interface
+           field_type:  A slug to identify this field type, must be unique across all field types
+           parser:      The function called to turn the raw string into the appropriate type, should take one argument:
+                        'value' the string value submitted.
+           db_type:     How the value will be stored in the database, can be one of: TYPE_FLOAT, TYPE_TEXT or TYPE_OBJECT
+                        (defaults to TYPE_TEXT)
+           [view_template]: A template that renders an individual row in a table displaying responses
+           [edit_template]: A template that renders an individual row for editing a response
+           [report_columns]: the column labels for a table of responses for a poll of a particular type
+           [edit_form]: A custom edit form for editing responses
+        """
+        # set the defaults
+        if view_template is None:
+            view_template = 'polls/response_custom_view.html'
+        if edit_template is None:
+            edit_template = 'polls/response_custom_edit.html'
+        if report_columns is None:
+            report_columns = (('Text','text'),)
+
+        Poll.TYPE_CHOICES[field_type] = dict(
+            type=field_type, label=label,
+            db_type=db_type, parser=parserFunc,
+            view_template=view_template,
+            edit_template=edit_template,
+            report_columns=report_columns,
+            edit_form=edit_form)
 
     @classmethod
     def create_yesno(cls, name, question, default_response, contacts, user):
@@ -210,7 +310,28 @@ class Poll(models.Model):
                 type=Poll.TYPE_LOCATION)
         poll.contacts = contacts
         return poll
-    
+
+    @classmethod
+    def create_custom(cls, type, name, question, default_response, contacts, user):
+        """
+        This creates a poll of custom type from the various parameters.
+        question : The question to ask when the poll is started
+        contacts : a list or QuerySet of Contact objects
+        user : The logged-in user creating this poll
+
+        returns:
+        A poll of custom type with no categories (the user can
+        add them ad hoc as responses come in)
+        """
+        poll = Poll.objects.create(
+                name=name,
+                question=question,
+                default_response=default_response,
+                user=user,
+                type=type)
+        poll.contacts = contacts
+        return poll
+
     def start(self):
         """
         This starts the poll: outgoing messages are sent to all the contacts
@@ -296,16 +417,37 @@ class Poll(models.Model):
                             resp.categories.add(rc)
                             if category.error_category:
                                 resp.has_errors = True
+                                outgoing_message = category.response
                             break
+
+        elif self.type in Poll.TYPE_CHOICES:
+            typedef = Poll.TYPE_CHOICES[self.type]
+            try:
+                cleaned_value = typedef['parser'](message.text)
+                if typedef['db_type'] == Attribute.TYPE_TEXT:
+                    resp.eav.poll_text_value = cleaned_value
+                elif typedef['db_type'] == Attribute.TYPE_FLOAT:
+                    resp.eav.poll_number_value = cleaned_value
+                elif typedef['db_type'] == Attribute.TYPE_OBJECT:
+                    resp.eav.poll_location_value = cleaned_value
+            except ValidationError as e:
+                resp.has_errors = True
+                if getattr(e, 'messages', None):
+                    outgoing_message = str(e.messages[0])
+                else:
+                    outgoing_message = None
+
         if not resp.categories.all().count() and self.categories.filter(default=True).count():
             resp.categories.add(ResponseCategory.objects.create(response = resp, category=self.categories.get(default=True)))
             if self.categories.get(default=True).error_category:
                 resp.has_errors = True
-            
-        for respcategory in resp.categories.order_by('category__priority'):
-            if respcategory.category.response:
-                outgoing_message = respcategory.category.response
-                break
+                outgoing_message = self.categories.get(default=True).response
+
+        if (not resp.has_errors or not outgoing_message):
+            for respcategory in resp.categories.order_by('category__priority'):
+                if respcategory.category.response:
+                    outgoing_message = respcategory.category.response
+                    break
         resp.save()
         if not outgoing_message:
             return (resp, None,)

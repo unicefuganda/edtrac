@@ -17,12 +17,11 @@ class NewPollForm(forms.Form): # pragma: no cover
     type = forms.ChoiceField(
                required=True,
                choices=(
-                    (Poll.TYPE_TEXT, 'Free-form'),
                     (TYPE_YES_NO, 'Yes/No Question'),                    
-                    (Poll.TYPE_NUMERIC, 'Numeric Response'),
-                    (Poll.TYPE_LOCATION, 'Location-based'),
-                    (Poll.TYPE_REGISTRATION, 'Name/registration-based'),
                 ))
+
+    def updateTypes(self):
+        self.fields['type'].widget.choices += [(choice['type'], choice['label']) for choice in Poll.TYPE_CHOICES.values()]
 
     name = forms.CharField(max_length=32, required=True)
     question = forms.CharField(max_length=160, required=True)
@@ -89,25 +88,6 @@ class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
         fields = ('name', 'priority', 'color', 'default', 'response')
-
-class ResponseForm(forms.Form):
-    def __init__(self, data=None, **kwargs):
-        response = kwargs.pop('response')
-        if data:
-            forms.Form.__init__(self, data, **kwargs)
-        else:
-            forms.Form.__init__(self, **kwargs)
-        self.fields['categories'] = forms.ModelMultipleChoiceField(required=False, queryset=response.poll.categories.all(), initial=Category.objects.filter(pk=response.categories.values_list('category',flat=True)))
-
-class NumericResponseForm(ResponseForm):
-    value = forms.FloatField()
-
-class LocationResponseForm(ResponseForm):
-    value = TreeNodeChoiceField(queryset=Area.tree.all(),
-                 level_indicator=u'+--', required=True)
-    
-class NameResponseForm(ResponseForm):
-    value = forms.CharField()
 
 class RuleForm(forms.ModelForm):
     rule_string = forms.CharField(max_length=256, required=True)

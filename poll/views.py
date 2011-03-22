@@ -15,8 +15,10 @@ from .models import Poll, Category, Rule, Response, ResponseCategory, STARTSWITH
 from rapidsms.models import Contact
 from simple_locations.models import Area
 from rapidsms.models import Connection, Backend
+from eav.models import Attribute
 
 from .forms import *
+from .models import ResponseForm, NameResponseForm, NumericResponseForm, LocationResponseForm
 
 # CSV Export
 @require_GET
@@ -66,6 +68,7 @@ def demo(req, poll_id):
 def new_poll(req):
     if req.method == 'POST':
         form = NewPollForm(req.POST)
+        form.updateTypes()
         if form.is_valid():
             # create our XForm
             question = form.cleaned_data['question']
@@ -85,6 +88,8 @@ def new_poll(req):
                 poll = Poll.create_yesno(name, question, default_response, contacts, req.user)
             elif form.cleaned_data['type'] == Poll.TYPE_LOCATION:
                 poll = Poll.create_location_based(name, question, default_response, contacts, req.user)
+            else:
+                poll = Poll.create_custom(form.cleaned_data['type'], name, question, default_response, contacts, req.user)
             if settings.SITE_ID:
                 poll.sites.add(Site.objects.get_current())
             poll.save()                
@@ -93,6 +98,7 @@ def new_poll(req):
             return redirect("/polls/%d/view/" % poll.pk)
     else:
         form = NewPollForm()
+        form.updateTypes()
 
     return render_to_response(
         "polls/poll_create.html", { 'form': form },
@@ -190,31 +196,55 @@ def view_responses(req, poll_id, as_module=False):
     template = "polls/responses.html"
     if as_module:
         template = "polls/response_table.html"
+
+    typedef = Poll.TYPE_CHOICES[poll.type]
     return render_to_response(template,
-        { 'poll': poll, 'responses': responses, 'breadcrumbs': breadcrumbs, 'columns': columns_dict[poll.type]},
+        { 'poll': poll, 'responses': responses, 'breadcrumbs': breadcrumbs, 'columns': typedef['report_columns'], 'db_type': typedef['db_type'],'row_template':typedef['view_template']},
         context_instance=RequestContext(req))
 
 def _get_response_edit_form(response, data=None):
-    if (response.poll.type == Poll.TYPE_TEXT):
-        if data:
-            return ResponseForm(data, response=response)
-        else:
-            return ResponseForm(response=response)
-    if (response.poll.type == Poll.TYPE_NUMERIC):
-        if data:
-            return NumericResponseForm(data, response=response)
-        else:
-            return NumericResponseForm(response=response, initial={'value':response.eav.poll_number_value})
-    if (response.poll.type == Poll.TYPE_LOCATION):
-        if data:
-            return LocationResponseForm(data, response=response)
-        else:
-            return LocationResponseForm(response=response, initial={'value':response.eav.poll_location_value})
-    if (response.poll.type == Poll.TYPE_REGISTRATION):
-        if data:
-            return NameResponseForm(data, response=response)
-        else:
-            return NameResponseForm(response=response, initial={'value':response.eav.poll_text_value})
+    typedef = Poll.TYPE_CHOICES[response.poll.type]
+    form = None
+    if typedef['edit_form']:
+        form = typedef['edit_form']
+    else:
+        parser = typedef['parser']
+        class CustomForm(forms.Form):
+            def __init__(self, data=None, **kwargs):
+                response = kwargs.pop('response')
+                if data:
+                    forms.Form.__init__(self, data, **kwargs)
+                else:
+                    forms.Form.__init__(self, **kwargs)
+
+            value = forms.CharField()
+            def clean(self):
+                cleaned_data = self.cleaned_data
+                value = cleaned_data.get('value')
+                try:
+                    cleaned_data['value'] = parser(value)
+                except ValidationError as e:
+                    if getattr(e, 'messages', None):
+                        self._errors['value'] = self.error_class([str(e.messages[0])])
+                    else:
+                        self._errors['value'] = self.error_class([u"Invalid value"])
+                    del cleaned_data['value']
+                return cleaned_data
+        form = CustomForm
+
+    if data:
+        return form(data, response=response)
+    else:
+        value = None
+        if not typedef['edit_form']:
+            value = response.message.text
+        elif typedef['db_type'] == Attribute.TYPE_TEXT:
+            value = response.eav.poll_text_value
+        elif typedef['db_type'] == Attribute.TYPE_FLOAT:
+            value = response.eav.poll_number_value
+        elif typedef['db_type'] == Attribute.TYPE_OBJECT:
+            value = response.eav.poll_location_value
+        return form(response=response, initial={'value':value})
 
 @permission_required('poll.can_edit_poll')
 def apply_response(req, response_id):
@@ -257,38 +287,45 @@ def apply_all(req, poll_id):
 @permission_required('poll.can_edit_poll')
 def edit_response(req, response_id):
     response = get_object_or_404(Response, pk=response_id)
-    poll = response.poll 
-    
+    poll = response.poll
+    typedef = Poll.TYPE_CHOICES[poll.type]
+    view_template = typedef['view_template']
+    edit_template = typedef['edit_template']
     if req.method == 'POST':
         form = _get_response_edit_form(response, data=req.POST)
-        if form.is_valid():       
-            response.update_categories(form.cleaned_data['categories'], req.user)
-            if poll.type == Poll.TYPE_NUMERIC:
-                response.eav.poll_number_value = form.cleaned_data['value']
-            elif poll.type == Poll.TYPE_LOCATION:
-                response.eav.poll_location_value = form.cleaned_data['value']
-            elif poll.type == Poll.TYPE_REGISTRATION:
-                response.eav.poll_text_value = form.cleaned_data['value']
+        if form.is_valid():
+            if 'categories' in form.cleaned_data:
+                response.update_categories(form.cleaned_data['categories'], req.user)
+            db_type = typedef['db_type']
+            if 'value' in form.cleaned_data:
+                if db_type == Attribute.TYPE_FLOAT:
+                    response.eav.poll_number_value = form.cleaned_data['value']
+                elif db_type == Attribute.TYPE_OBJECT:
+                    response.eav.poll_location_value = form.cleaned_data['value']
+                elif db_type == Attibute.TYPE_TEXT:
+                    response.eav.poll_text_value = form.cleaned_data['value']
             response.save()
-            return render_to_response(view_templates_dict[response.poll.type], 
+            return render_to_response(view_template, 
                 { 'response' : response },
                 context_instance=RequestContext(req))
         else:
-            return render_to_response(edit_templates_dict[response.poll.type], 
+            return render_to_response(edit_template, 
                             { 'response' : response, 'form':form },
                             context_instance=RequestContext(req))
     else:
         form = _get_response_edit_form(response)
 
-    return render_to_response(edit_templates_dict[response.poll.type], 
+    return render_to_response(edit_template, 
         { 'form' : form, 'response': response },
         context_instance=RequestContext(req))
 
 @login_required
 def view_response(req, response_id):
     response = get_object_or_404(Response, pk=response_id)
-    return render_to_response(view_templates_dict[response.poll.type], 
-        { 'response': response },
+    db_type = Poll.TYPE_CHOICES[response.poll.type]['db_type']
+    view_template = Poll.TYPE_CHOICES[response.poll.type]['view_template']
+    return render_to_response(view_template, 
+        { 'response': response, 'db_type': db_type},
         context_instance=RequestContext(req))
 
 @permission_required('poll.can_edit_poll')
@@ -495,25 +532,4 @@ rule_buttons = ({"image" : "rapidsms/icons/silk/delete.png", 'click' : 'deleteRo
                       { "text" : "Edit", "image" : "poll/icons/silk/pencil.png", 'click' : 'editRow'},)
 
 rule_columns = (('Rule', 'rule_type_friendly'), ('Text', 'rule_string'))
-
-columns_dict = {
-    Poll.TYPE_LOCATION:(('Text','text'),('Location','location'),('Categories','categories')),
-    Poll.TYPE_TEXT:(('Text', 'text'),('Categories','categories')),
-    Poll.TYPE_NUMERIC:(('Text','text'),('Value','value'), ('Categories', 'categories')),
-    Poll.TYPE_REGISTRATION:(('Text','text'),('Categories','categories')),
-}
-
-view_templates_dict = {
-    Poll.TYPE_LOCATION:'polls/response_location_view.html',
-    Poll.TYPE_TEXT:'polls/response_text_view.html',
-    Poll.TYPE_NUMERIC:'polls/response_numeric_view.html',
-    Poll.TYPE_REGISTRATION:'polls/response_registration_view.html',
-}
-
-edit_templates_dict = {
-    Poll.TYPE_LOCATION:'polls/response_location_edit.html',
-    Poll.TYPE_TEXT:'polls/response_text_edit.html',
-    Poll.TYPE_NUMERIC:'polls/response_numeric_edit.html',
-    Poll.TYPE_REGISTRATION:'polls/response_registration_edit.html',
-}
 
