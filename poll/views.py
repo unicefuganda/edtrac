@@ -335,8 +335,7 @@ def delete_response (req, response_id):
     poll = response.poll
     if req.method == 'POST':
         response.delete()
-        
-    return redirect("/polls/%d/responses/" % poll.pk)
+    return HttpResponse(status=200)
 
 @login_required
 def view_category(req, poll_id, category_id):

@@ -1,14 +1,5 @@
-<div class="response_table" id="{{response.id}}">
-  <table width="100%">
-    <tr>
-    <td class="response_sender_col">
-      {% if response.message.connection.contact %}
-        {{ response.message.connection.contact.name }}
-      {% else %}
-        {{ response.message.connection.identity }}
-      {% endif %} 
-       at {{ response.message.date|date:"d/m/Y H:i" }}
-    </td>
+{% extends "polls/response_base_view.html" %}
+{% block remaining_content %}
     <td class="center response_text_col">
         {{ response.message.text }} 
     </td>
@@ -26,22 +17,12 @@
         </ul>
       {% endif %}
     </td>
-    <td class="response_options_col">
-      <a onclick="deleteResponse(this);" class="negative" style="float:right">
-      <img style="vertical-alignment:bottom;padding-top:7px" src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png" alt=""/>
-      </a>
-      <div class="buttons">
-        <a onclick="editResponse(this);" href="javascript:void(0);">
-            <img src="{{ MEDIA_URL }}poll/icons/silk/pencil.png" alt=""/> 
-            Edit
+{% endblock %}
+{% block actions_contexnt %}
+    {{ block.super }}
+    {% ifnotequal response.message.connection.contact.reporting_location response.eav.poll_location_value %}
+        <a href="/polls/responses/{{ response.pk }}/apply/">
+          <img src="{{ MEDIA_URL }}poll/icons/silk/application_form_add.png" alt=""/>Register User
         </a>
-        {% ifnotequal response.message.connection.contact.reporting_location response.eav.poll_location_value %}
-            <a href="/polls/responses/{{ response.pk }}/apply/">
-              <img src="{{ MEDIA_URL }}poll/icons/silk/application_form_add.png" alt=""/>Register User
-            </a>
-        {% endifnotequal %}
-      </div>
-    </td>  
-    </tr>
-  </table>
-</div>
+    {% endifnotequal %}
+{% endblock %}

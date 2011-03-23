@@ -1,28 +1,5 @@
-
-<script language="javascript">
-  $(document).ready(function() {
-    // highlight the save button when changes are detected
-    $("input,select").change(function() { 
-        response_id = $(this).parents(".response_table").attr("id");
-        $("#save_" + response_id).addClass("positive");
-    });
-  });
-  
-</script>
-
-<div class="edit_category">
-<form class="form" action="/polls/responses/{{ response.pk }}/edit/" method="post">
-<table class="response_table" width="100%" id="{{response.pk}}">
-<tbody>
-<tr>
-<td class="response_sender_col">
-    {% if response.message.connection.contact %}
-      {{ response.message.connection.contact }}
-    {% else %}
-      {{ response.message.connection.identity }}
-    {% endif %} 
-     at {{ response.message.date|date:"d/m/Y H:i" }}
-</td>
+{% extends "polls/response_base_edit.html" %}
+{% block remaining_content %}
 <td class="center response_text_col">
     {{ form.value }} {{ form.value.errors }}
 </td>
@@ -39,19 +16,4 @@
           {% endifequal %}
       {% endifequal %}
 </td>
-<td class="response_options_col">
-  <a style="float:right;padding-top:7px;" href="javascript:void(0);"><img onclick="cancelResponse(this);" src="{{ MEDIA_URL }}rapidsms/icons/silk/decline.png" alt="" border="0"/></a>
-  
-  <div class="buttons">
-    <a onclick="saveResponse(this);" href="javascript:void(0);" id="save_{{ response.pk }}">
-      <img src="{{ MEDIA_URL }}poll/icons/silk/bullet_disk.png" alt=""/>Save
-    </a>
-  </div>
-  </td>
-</tr>
-</tbody>
-</table>
-</form>
-
-</div>
-
+{% endblock %}

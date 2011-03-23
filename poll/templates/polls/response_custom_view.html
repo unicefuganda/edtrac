@@ -1,14 +1,5 @@
-<div class="response_table" id="{{response.id}}">
-  <table width="100%">
-    <tr>
-    <td class="response_sender_col">
-      {% if response.message.connection.contact %}
-        {{ response.message.connection.contact }}
-      {% else %}
-        {{ response.message.connection.identity }}
-      {% endif %} 
-       at {{ response.message.date|date:"d/m/Y H:i" }}
-    </td>
+{% extends "polls/response_base_view.html" %}
+{% block remaining_content %} 
     <td class="center response_text_col">
         {{ response.message.text }}
     </td>
@@ -25,17 +16,4 @@
           {% endifequal %}
       {% endifequal %}
     </td>
-    <td class="response_options_col">
-      <a onclick="deleteResponse(this);" class="negative" style="float:right">
-      <img style="vertical-alignment:bottom;padding-top:7px" src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png" alt=""/>
-      </a>
-      <div class="buttons">
-        <a onclick="editResponse(this);" href="javascript:void(0);">
-            <img src="{{ MEDIA_URL }}poll/icons/silk/pencil.png" alt=""/> 
-            Edit
-        </a>
-      </div>
-    </td>  
-    </tr>
-  </table>
-</div>
+{% endblock %}
