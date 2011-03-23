@@ -26,6 +26,19 @@
 <td class="center response_text_col">
     {{ form.value }} {{ form.value.errors }}
 </td>
+<td class="center response_custom_col">
+      {% ifequal db_type 'text' %}
+          {{ response.eav.poll_text_value }}
+      {% else %}
+          {% ifequal db_type 'float' %}
+              {{ response.eav.poll_number_value
+          {% else %}
+              {% ifequal db_type 'object' %}
+                  {{ response.eav.poll_location_value }}
+              {% endifequal %}
+          {% endifequal %}
+      {% endifequal %}
+</td>
 <td class="response_options_col">
   <a style="float:right;padding-top:7px;" href="javascript:void(0);"><img onclick="cancelResponse(this);" src="{{ MEDIA_URL }}rapidsms/icons/silk/decline.png" alt="" border="0"/></a>
   

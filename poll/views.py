@@ -291,12 +291,13 @@ def edit_response(req, response_id):
     typedef = Poll.TYPE_CHOICES[poll.type]
     view_template = typedef['view_template']
     edit_template = typedef['edit_template']
+    db_type = typedef['db_type']
     if req.method == 'POST':
         form = _get_response_edit_form(response, data=req.POST)
         if form.is_valid():
             if 'categories' in form.cleaned_data:
                 response.update_categories(form.cleaned_data['categories'], req.user)
-            db_type = typedef['db_type']
+
             if 'value' in form.cleaned_data:
                 if db_type == Attribute.TYPE_FLOAT:
                     response.eav.poll_number_value = form.cleaned_data['value']
@@ -306,17 +307,17 @@ def edit_response(req, response_id):
                     response.eav.poll_text_value = form.cleaned_data['value']
             response.save()
             return render_to_response(view_template, 
-                { 'response' : response },
+                { 'response' : response, 'db_type':db_type },
                 context_instance=RequestContext(req))
         else:
             return render_to_response(edit_template,
-                            { 'response' : response, 'form':form },
+                            { 'response' : response, 'form':form, 'db_type':db_type },
                             context_instance=RequestContext(req))
     else:
         form = _get_response_edit_form(response)
 
     return render_to_response(edit_template,
-        { 'form' : form, 'response': response },
+        { 'form' : form, 'response': response, 'db_type':db_type },
         context_instance=RequestContext(req))
 
 @login_required

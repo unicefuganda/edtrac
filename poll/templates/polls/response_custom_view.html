@@ -10,6 +10,9 @@
        at {{ response.message.date|date:"d/m/Y H:i" }}
     </td>
     <td class="center response_text_col">
+        {{ response.message.text }}
+    </td>
+    <td class="center response_custom_col">
       {% ifequal db_type 'text' %}
           {{ response.eav.poll_text_value }}
       {% else %}

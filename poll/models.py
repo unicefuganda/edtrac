@@ -182,7 +182,7 @@ class Poll(models.Model):
         if edit_template is None:
             edit_template = 'polls/response_custom_edit.html'
         if report_columns is None:
-            report_columns = (('Text','text'),)
+            report_columns = (('Original Text','text'),('Value','custom'))
 
         Poll.TYPE_CHOICES[field_type] = dict(
             type=field_type, label=label,
