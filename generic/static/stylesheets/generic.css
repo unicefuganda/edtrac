@@ -1,5 +1,9 @@
 #span_select_everything {
     float:right;
+    background-color:black;
+    color:white;
+    font-weight:bold;
+    padding:2px;
 }
 
 .status_success {

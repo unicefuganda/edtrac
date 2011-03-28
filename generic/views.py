@@ -21,6 +21,7 @@ def generic(request,
             partial_header='generic/partials/partial_header.html',
             partial_row='generic/partials/partial_row.html',
             paginator_template='generic/partials/pagination.html',
+            results_title='Results',
             paginated=True,
             selectable=True,
             objects_per_page=25,
@@ -28,8 +29,9 @@ def generic(request,
             sort_column='',
             sort_ascending=True,
             filter_forms=[],
-            action_forms=[]):
-    
+            action_forms=[],
+            **kwargs):
+
     # model parameter is required
     if not model:
         return HttpResponseServerError
@@ -41,8 +43,6 @@ def generic(request,
     # the default list is either a queryset parameter, or all
     # objects from the model parameter
     object_list = queryset or model.objects.all()
-    if type(object_list) == RawQuerySet:
-            object_list = list(object_list)
 
     # dynamically create a form class to represent the list of selected results,
     # for performing actions
@@ -76,6 +76,7 @@ def generic(request,
         sort_action = request.POST.get('sort_action', '')
         sort_column = request.POST.get('sort_column', '')
         sort_ascending = request.POST.get('sort_ascending', 'True')
+        sort_ascending = (sort_ascending == 'True')
         action_taken = request.POST.get('action', '')
         if page_action:
             object_list = request.session['object_list']
@@ -87,11 +88,11 @@ def generic(request,
             # retrieve the original, unsorted, unpaginated list,
             # as some sorts will turn the initial queryset into a list
             object_list = request.session['filtered_list']
-            sort_ascending = (sort_ascending == 'True')
             for column_name, sortable, sort_param, sorter in columns:
                 if sortable and sort_param == sort_column:
                     object_list = sorter.sort(sort_column, object_list, sort_ascending)
         elif action_taken:
+            object_list = request.session['object_list']
             everything_selected = request.POST.get('select_everything', None)
             results = []
             if everything_selected:
@@ -124,7 +125,7 @@ def generic(request,
         if sort_column:
             for column_name, sortable, sort_param, sorter in columns:
                 if sortable and sort_param == sort_column:
-                    object_list = sorter.sort(sort_column, object_list, sort_ascending)            
+                    object_list = sorter.sort(sort_column, object_list, sort_ascending)
 
     request.session['object_list'] = object_list
     total = len(object_list)
@@ -159,35 +160,40 @@ def generic(request,
             else:
                 ranges.append(low_range)
                 ranges.append(range(10, max(0, page - 2), 10))
-                ranges.append(range(max(0, page - 2), min(paginator.num_pages, page + 3)))                
+                ranges.append(range(max(0, page - 2), min(paginator.num_pages, page + 3)))
                 ranges.append(range((round(min(paginator.num_pages, page+3)/10) + 1)*10, paginator.num_pages - 10, 10))
                 ranges.append(high_range)
 
         else:
             ranges.append(paginator.page_range)
-    
-    return render_to_response(response_template, {
-            'partial_base':partial_base,
-            'partial_header':partial_header,
-            'partial_row':partial_row,
-            'paginator_template':paginator_template,
-            template_object_name:object_list, # for custom templates
-            'object_list':object_list,        # allow generic templates to still
-                                              # access the object list in the same way
-            'paginator':paginator,
-            'filter_forms':filter_form_instances,
-            'action_forms':action_form_instances,
-            'paginated':paginated,
-            'total':total,
-            'selectable':selectable,
-            'columns':columns,
-            'sort_column':sort_column,
-            'sort_ascending':sort_ascending,
-            'page':page,
-            'ranges':ranges,
-            'selected':selected,
-            'status_message':status_message,
-            'status_message_type':status_message_type,
-            'base_template':'layout.html',
-        },context_instance=RequestContext(request))
-    
+
+    context_vars = {
+        'partial_base':partial_base,
+        'partial_header':partial_header,
+        'partial_row':partial_row,
+        'paginator_template':paginator_template,
+        'results_title':results_title,
+        template_object_name:object_list, # for custom templates
+        'object_list':object_list, # allow generic templates to still
+                                          # access the object list in the same way
+        'paginator':paginator,
+        'filter_forms':filter_form_instances,
+        'action_forms':action_form_instances,
+        'paginated':paginated,
+        'total':total,
+        'selectable':selectable,
+        'columns':columns,
+        'sort_column':sort_column,
+        'sort_ascending':sort_ascending,
+        'page':page,
+        'ranges':ranges,
+        'selected':selected,
+        'status_message':status_message,
+        'status_message_type':status_message_type,
+        'base_template':'layout.html',
+    }
+    context_vars.update(kwargs)
+    return render_to_response(response_template,context_vars,context_instance=RequestContext(request))
+
+def generic_dashboard(request,template):
+    return render_to_response(template)
