@@ -189,3 +189,5 @@ def generic(request,
             'status_message_type':status_message_type,
             'base_template':'layout.html',
         },context_instance=RequestContext(request))
+def generic_dashboard(request,template):
+    return render_to_response(template,context_instance=RequestContext(request))
