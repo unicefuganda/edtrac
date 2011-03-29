@@ -4,6 +4,9 @@ from django.shortcuts import redirect, get_object_or_404, render_to_response
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.http import Http404,HttpResponseServerError,HttpResponseRedirect, HttpResponse
 from django import forms
+from django.contrib.auth.models import User
+from generic.models import Dashboard, Module, ModuleParams
+from django.db.models import Count
 
 def generic_row(request, model=None, pk=None, partial_row='generic/partials/partial_row.html', selectable=True):
     if not (model and pk):
@@ -195,5 +198,16 @@ def generic(request,
     context_vars.update(kwargs)
     return render_to_response(response_template,context_vars,context_instance=RequestContext(request))
 
-def generic_dashboard(request,template):
-    return render_to_response(template)
+def generic_dashboard(request, slug, base_template='generic/dashboard_base.html'):
+    
+    dashboard = Dashboard.objects.get(user=request.user.pk, slug=slug)
+    columns = dashboard.modules.values('column').annotate(module_count=Count('column'))
+    modules = []
+    for col in columns:
+        modules.append(dashboard.modules.filter(column=col['column']).order_by('offset'))
+        
+        
+    return render_to_response(base_template,
+                              {
+                               'modules':modules 
+                              },context_instance=RequestContext(request))

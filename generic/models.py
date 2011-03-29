@@ -21,7 +21,8 @@ class Module(models.Model):
     """
     dashboard       = models.ForeignKey(Dashboard, related_name = "modules")
     view_name       = models.CharField(max_length=30)
-    order           = models.IntegerField()
+    offset          = models.IntegerField()
+    column          = models.IntegerField()
     
     def __unicode__(self):
         return "%s"%self.view_name
