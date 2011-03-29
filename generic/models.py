@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
 
 class Dashboard(models.Model):
     """
@@ -25,7 +26,7 @@ class Module(models.Model):
     column          = models.IntegerField()
     
     def get_absolute_url(self):
-        return "/generic/%s/" % self.view_name
+        return reverse(self.view_name)
     
     def __unicode__(self):
         return "%s"%self.view_name
