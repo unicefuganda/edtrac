@@ -1,15 +1,15 @@
 
-function addModule(column,url,title)
+function addModule(column,url,title,pk)
 {
   //create module div
  var module_head="";
  var module_content=$("<div>").addClass('widget-content').load(url);
-   var widget=$("<div>").addClass("widget").appendTo("#"+column);
+   var widget=$("<div>").addClass("widget").attr('id','mod'+String(pk)).appendTo("#"+column);
    var title="<h3>"+title+"<a href='javascript:void(0)' class='close'>[X]</a></h3>";
    $("<div>").addClass("widget-head  module").append(title).appendTo(widget).append(module_content);
 
 }
-function removeDiv(this){
+function removeDiv(elem){
     return $(this).remove();
 }
 $(function() {
@@ -24,23 +24,37 @@ $('.column').sortable({
             handle: '.widget-head',
             placeholder: 'widget-placeholder',
             forcePlaceholderSize: true,
-            revert: true,
             delay: 100,
             opacity: 0.8,
-            cancel: 'button',
-            dropOnEmpty: false,
+            dropOnEmpty: true,
             containment: 'document',
             start: function (e,ui) {
                 $(ui.helper).addClass('dragging');
+                var orig=ui.item;
             },
             stop: function (e,ui) {
                 $(ui.item).css({width:''}).removeClass('dragging');
                 $('.column').sortable('enable');
-                $col_orders=$("#column1").sortable("serialize",{key:"column1",attribute:'id'}) + "&" + $("#column2").sortable("serialize", {key:"column2",attribute:'id'})+ "&" + $("#column3").sortable("serialize", {key:"column3",attribute:'id'});
+            },
+            update: function(e, ui) {
+                
+                var columns=$('.column');
+                var col_orders=[];
+                jQuery.each(columns, function(key,value)
+                {
+                    
+                    var mods=$('#'+value.id).sortable('toArray');
+                    jQuery.each(mods,function(k,v)
+                    {
+                       col_orders.push('col'+key+1+'[' + k + ']=' + v);
 
+                    });
+                });
 
-                alert($col_orders);
+                var data = col_orders.join('&');
+                $.post("/cvs/dashboard", data);
 
+                
             }
         });
 
