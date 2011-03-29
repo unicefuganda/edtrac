@@ -24,6 +24,9 @@ class Module(models.Model):
     offset          = models.IntegerField()
     column          = models.IntegerField()
     
+    def get_absolute_url(self):
+        return "/generic/%s/" % self.view_name
+    
     def __unicode__(self):
         return "%s"%self.view_name
 

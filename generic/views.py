@@ -198,16 +198,26 @@ def generic(request,
     context_vars.update(kwargs)
     return render_to_response(response_template,context_vars,context_instance=RequestContext(request))
 
-def generic_dashboard(request, slug, base_template='generic/dashboard_base.html'):
-    
+def generic_dashboard(request, slug, module_types, base_template='generic/dashboard_base.html'):
+
     dashboard = Dashboard.objects.get(user=request.user.pk, slug=slug)
     columns = dashboard.modules.values('column').annotate(module_count=Count('column'))
     modules = []
     for col in columns:
-        modules.append(dashboard.modules.filter(column=col['column']).order_by('offset'))
-        
+        modules.append({'col':col['column'], 'modules':dashboard.modules.filter(column=col['column']).order_by('offset')})    
         
     return render_to_response(base_template,
                               {
-                               'modules':modules 
+                               'modules':modules,
+                               'module_types':module_types,
+                               'location':'lid', 
                               },context_instance=RequestContext(request))
+    
+def dummy(request):
+    return HttpResponse('dummy content here')
+
+def dummy2(request):
+    return HttpResponse('dummy2 content here')
+
+def dummy3(request):
+    return HttpResponse('dummy3 content here')
