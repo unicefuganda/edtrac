@@ -4,7 +4,7 @@ function addModule(column,url,title,pk)
   //create module div
  var module_head="";
  var module_content=$("<div>").addClass('widget-content').load(url);
-   var widget=$("<div>").addClass("widget").attr('id','mod'+String(pk)).appendTo("#"+column);
+   var widget=$("<div>").addClass("widget").attr('id',String(pk)).appendTo("#"+column);
    var title="<h3>"+title+"<a href='javascript:void(0)' class='close'>[X]</a></h3>";
    $("<div>").addClass("widget-head  module").append(title).appendTo(widget).append(module_content);
 
