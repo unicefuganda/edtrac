@@ -26,7 +26,13 @@ class Module(models.Model):
     column          = models.IntegerField()
     
     def get_absolute_url(self):
-        return reverse(self.view_name)
+        return "%s?%s" % (reverse(self.view_name, kwargs=self._param_dict()) , self._param_http())
+    
+    def _param_dict(self):
+        return dict([(m.param_name, m.param_value,) for m in self.params.filter(is_url_param=True)])
+    
+    def _param_http(self):
+        return '&'.join(['%s=%s' % (m.param_name, m.param_value) for m in self.params.filter(is_url_param=False)])
     
     def __unicode__(self):
         return "%s"%self.view_name
