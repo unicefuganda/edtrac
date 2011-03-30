@@ -4,6 +4,9 @@ from django.shortcuts import redirect, get_object_or_404, render_to_response
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.http import Http404,HttpResponseServerError,HttpResponseRedirect, HttpResponse
 from django import forms
+from django.contrib.auth.models import User
+from generic.models import Dashboard, Module, ModuleParams
+from django.db.models import Count
 
 def generic_row(request, model=None, pk=None, partial_row='generic/partials/partial_row.html', selectable=True):
     if not (model and pk):
@@ -31,7 +34,7 @@ def generic(request,
             filter_forms=[],
             action_forms=[],
             **kwargs):
-    
+
     # model parameter is required
     if not model:
         return HttpResponseServerError
@@ -125,7 +128,7 @@ def generic(request,
         if sort_column:
             for column_name, sortable, sort_param, sorter in columns:
                 if sortable and sort_param == sort_column:
-                    object_list = sorter.sort(sort_column, object_list, sort_ascending)            
+                    object_list = sorter.sort(sort_column, object_list, sort_ascending)
 
     request.session['object_list'] = object_list
     total = len(object_list)
@@ -160,13 +163,13 @@ def generic(request,
             else:
                 ranges.append(low_range)
                 ranges.append(range(10, max(0, page - 2), 10))
-                ranges.append(range(max(0, page - 2), min(paginator.num_pages, page + 3)))                
+                ranges.append(range(max(0, page - 2), min(paginator.num_pages, page + 3)))
                 ranges.append(range((round(min(paginator.num_pages, page+3)/10) + 1)*10, paginator.num_pages - 10, 10))
                 ranges.append(high_range)
 
         else:
             ranges.append(paginator.page_range)
-    
+
     context_vars = {
         'partial_base':partial_base,
         'partial_header':partial_header,
@@ -174,7 +177,7 @@ def generic(request,
         'paginator_template':paginator_template,
         'results_title':results_title,
         template_object_name:object_list, # for custom templates
-        'object_list':object_list,        # allow generic templates to still
+        'object_list':object_list, # allow generic templates to still
                                           # access the object list in the same way
         'paginator':paginator,
         'filter_forms':filter_form_instances,
@@ -194,3 +197,44 @@ def generic(request,
     }
     context_vars.update(kwargs)
     return render_to_response(response_template,context_vars,context_instance=RequestContext(request))
+
+def generic_dashboard(request, slug, module_types, base_template='generic/dashboard_base.html', num_columns=2):
+
+    if request.method=='POST':
+        data=request.POST.lists()
+        for col_val, offset_list in data:
+            offset = 0
+            column = int(col_val)
+            for mod_pk in offset_list:
+                mod_pk = int(mod_pk)
+                module = Module.objects.get(pk=mod_pk)
+                module.offset = offset
+                module.column = column
+                module.save()
+                offset += 1
+
+        print data
+
+    dashboard = Dashboard.objects.get(user=request.user.pk, slug=slug)
+    modules = [{'col':i, 'modules':[]} for i in range(0, num_columns)]
+    columns = dashboard.modules.values_list('column', flat=True).distinct()
+    print columns
+    for col in columns:
+        modules[col]['modules'] = list(dashboard.modules.filter(column=col).order_by('offset'))
+
+    print modules
+    return render_to_response(base_template,
+                              {
+                               'modules':modules,
+                               'module_types':module_types,
+                               'location':'lid', 
+                              },context_instance=RequestContext(request))
+    
+def dummy(request):
+    return HttpResponse('dummy content here')
+
+def dummy2(request):
+    return HttpResponse('dummy2 content here')
+
+def dummy3(request):
+    return HttpResponse('dummy3 content here')
