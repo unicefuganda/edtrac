@@ -27,10 +27,10 @@ class Module(models.Model):
     
     def get_absolute_url(self):
         return "%s?%s" % (reverse(self.view_name, kwargs=self._param_dict()) , self._param_http())
-    
+
     def _param_dict(self):
         return dict([(m.param_name, m.param_value,) for m in self.params.filter(is_url_param=True)])
-    
+
     def _param_http(self):
         return '&'.join(['%s=%s' % (m.param_name, m.param_value) for m in self.params.filter(is_url_param=False)])
     
