@@ -198,14 +198,31 @@ def generic(request,
     context_vars.update(kwargs)
     return render_to_response(response_template,context_vars,context_instance=RequestContext(request))
 
-def generic_dashboard(request, slug, module_types, base_template='generic/dashboard_base.html'):
+def generic_dashboard(request, slug, module_types, base_template='generic/dashboard_base.html', num_columns=2):
+
+    if request.method=='POST':
+        data=request.POST.lists()
+        for col_val, offset_list in data:
+            offset = 0
+            column = int(col_val)
+            for mod_pk in offset_list:
+                mod_pk = int(mod_pk)
+                module = Module.objects.get(pk=mod_pk)
+                module.offset = offset
+                module.column = column
+                module.save()
+                offset += 1
+
+        print data
 
     dashboard = Dashboard.objects.get(user=request.user.pk, slug=slug)
-    columns = dashboard.modules.values('column').annotate(module_count=Count('column'))
-    modules = []
+    modules = [{'col':i, 'modules':[]} for i in range(0, num_columns)]
+    columns = dashboard.modules.values_list('column', flat=True).distinct()
+    print columns
     for col in columns:
-        modules.append({'col':col['column'], 'modules':dashboard.modules.filter(column=col['column']).order_by('offset')})    
-        
+        modules[col]['modules'] = list(dashboard.modules.filter(column=col).order_by('offset'))
+
+    print modules
     return render_to_response(base_template,
                               {
                                'modules':modules,

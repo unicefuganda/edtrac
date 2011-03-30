@@ -1,4 +1,4 @@
-#columns #column1 {
+#columns #column0 {
     float: left;
     width: 28%;
     min-height: 400px;
@@ -6,7 +6,7 @@
     height: 400px;
 }
 
-#columns #column2 {
+#columns #column1 {
     float: left;
     width: 60%;
     min-height: 400px;
@@ -14,7 +14,7 @@
     height: 400px;
 }
 
-#columns #column3 {
+#columns #column2 {
     float: left;
     min-height: 400px;
     height: auto !important;
@@ -22,7 +22,7 @@
 }
 
 
-#columns #column1 .widget {
+#columns #column0 .widget {
     margin: 30px 20px 0 20px;
     padding: 2px;
     -moz-border-radius: 4px;
@@ -30,7 +30,7 @@
 
 }
 
-#columns #column2 .widget {
+#columns #column1 .widget {
     margin: 30px 20px 0 0;
     padding: 2px;
     -moz-border-radius: 4px;
@@ -80,7 +80,7 @@
     border: 2px dashed #999;
 }
 
-#column1 .widget-placeholder {
+#column0 .widget-placeholder {
     margin: 30px 35px 0 25px;
 }
 
@@ -105,6 +105,6 @@
 
 
 
-#column1 .widget-placeholder { margin: 30px 35px 0 25px; }
-#column2 .widget-placeholder { margin: 30px 20px 0 20px; }
-#column3 .widget-placeholder { margin: 30px 25px 0 35px; }
+#column0 .widget-placeholder { margin: 30px 35px 0 25px; }
+#column1 .widget-placeholder { margin: 30px 20px 0 20px; }
+#column2 .widget-placeholder { margin: 30px 25px 0 35px; }
