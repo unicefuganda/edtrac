@@ -1,6 +1,6 @@
 <div id="poll_header">
 <div class="buttons">
-    <a href="javascript:void(0)" onclick="$.get('/polls/{{ poll.pk }}/demo/')" style="float:right"> 
+    <a href="javascript:void(0)" onclick="$.get('{% url poll.views.demo poll.pk %}')" style="float:right"> 
       <img border="0" src="/static/rapidsms/icons/silk/package_go.png" alt=""/>Send Alerts
     </a>
 </div>
@@ -22,7 +22,7 @@
             <tr>
                 <td>
                     {% if location_data.location %}
-                        <a href="javascript:void(0)" onclick="loadReportForLocation('{{ poll.pk }}','{{ location_data.location.pk }}')">
+                        <a href="javascript:void(0)" onclick="$('#poll_report').load('{% url poll-report-location-module poll.pk location_data.location.pk %}')">
                             {{ location_data.location.name }}
                         </a>
                     {% else %}

@@ -1,26 +1,25 @@
 <script type="text/javascript">
 
-  function deleteResponse(link, response_id) {
+  function deleteResponse(link, delete_link) {
     if (confirm("Are you sure you want to remove this response from the poll?")) {
-      $.post('/polls/responses/' + response_id + "/delete/", function(data) {
+      $.post(delete_link, function(data) {
         $(link).parents("tr").remove();
-      }); 
+      });
     }
   }
   
-  function cancelResponse(link, response_id) {
-     $(link).parents("tr").load("/polls/responses/" + response_id + "/view/");
+  function cancelResponse(link, view_link) {
+     $(link).parents("tr").load(view_link);
   }
 
-  function saveResponse(link, response_id) {
+  function saveResponse(link, edit_link) {
     form = $(link).parents(".form");
     form_data = form.serializeArray();
-    $(link).parents("tr").load('/polls/responses/' + response_id + '/edit/', form_data);
+    $(link).parents("tr").load(edit_link, form_data);
   }
 
-  function editResponse(link, response_id) {
-    url = "/polls/responses/" +  response_id + "/edit/";
-    $(link).parents("tr").load(url);
+  function editResponse(link, edit_link) {
+    $(link).parents("tr").load(edit_link);
   }
 
 </script>
@@ -28,16 +27,16 @@
 <div class="details">
     <div class="name">'{{ poll.question }}' Responses</div>
     <div class="buttons">
-        <a href="/polls/{{ poll.pk }}/submissions.csv">
+        <a href="{% url poll.views.responses_as_csv poll.pk %}">
             <img src="{{ MEDIA_URL }}poll/icons/silk/table_save.png" alt=""/> Export
         </a>
         {% ifequal poll.type 'l' %}
-            <a href="/polls/responses/{{ poll.pk }}/apply_all/">
+            <a href="{% url poll.views.apply_all poll.pk %}">
                 <img src="{{ MEDIA_URL }}poll/icons/silk/application_form_add.png" alt=""/>Register All
             </a>
         {% else %}
             {% ifequal poll.type 'r' %}
-                <a href="/polls/responses/{{ poll.pk }}/apply_all/">
+                <a href="{% url poll.views.apply_all poll.pk %}">
                     <img src="{{ MEDIA_URL }}poll/icons/silk/application_form_add.png" alt=""/>Register All
                 </a>
             {% endifequal %}

@@ -4,10 +4,11 @@
 {% block content %}
 
 <script type="text/javascript">
-function deletePoll(poll_id, poll_name) {
+function deletePoll(link, poll_action, poll_name) {
 	if (confirm("Are you sure you want to delete \"" + poll_name + "\" ?")) {
-		document.form.action += poll_id + "/delete/";
-		document.form.submit();
+	    $.post(poll_action, function(data) {
+	       $(link).parents("tr").remove();
+	    });
 	}
 }
 </script>
@@ -24,28 +25,27 @@ function deletePoll(poll_id, poll_name) {
   </thead> 
   <tbody>
     {% if polls %}
-    {% for poll in polls %}
+    {% for poll_obj in polls %}
     <tr class="poll_table_row">
-      <td>{{ poll.name }}</td>
-      <td><b>{% if poll.start_date %}{{ poll.question }}{% else %}<font color="grey">{{ poll.question }}</font>{% endif %}</b></td>
-      <td>{% if poll.start_date %}{{ poll.start_date|date:"d/m/Y" }}{% endif %}</td>
-      <td>{% if poll.end_date %}{{ poll.end_date|date:"d/m/Y" }}{% else %}Open{% endif %}</td>      
+      <td>{{ poll_obj.name }}</td>
+      <td><b>{% if poll_obj.start_date %}{{ poll_obj.question }}{% else %}<font color="grey">{{ poll_obj.question }}</font>{% endif %}</b></td>
+      <td>{% if poll_obj.start_date %}{{ poll_obj.start_date|date:"d/m/Y" }}{% endif %}</td>
+      <td>{% if poll_obj.end_date %}{{ poll_obj.end_date|date:"d/m/Y" }}{% else %}Open{% endif %}</td>      
       <td>
-           <a style="float:right;padding-top:7px;" href="javascript:void(0);" onclick="deletePoll('{{poll.pk}}','{{poll.question|addslashes}}');"><img border="0" src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png"/></a>
-	
-	<div class="buttons">
-      {% if poll.responses.all.count %}
-      <a href="/polls/{{ poll.pk }}/report/">
-            <img src="{{ MEDIA_URL }}poll/icons/silk/zoom.png" alt=""/> Report
-      </a>
-	  <a href="/polls/{{ poll.pk }}/responses/">
-            <img src="{{ MEDIA_URL }}poll/icons/silk/database_table.png" alt=""/> Responses ({{ poll.responses.all.count }})
-	  </a>
-	  {% endif %}
-	  <a href="/polls/{{ poll.pk }}/view/">
-            <img src="{{ MEDIA_URL }}poll/icons/silk/bullet_wrench.png" alt=""/> Edit
-	  </a>
-	</div>
+          <a style="float:right;padding-top:7px;" href="javascript:void(0);" onclick="deletePoll(this, '{% url poll.views.delete_poll poll_obj.pk %}','{{poll_obj.question|addslashes}}');"><img border="0" src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png"/></a>
+          <div class="buttons">
+              {% if poll_obj.responses.all.count %}
+                  <a href="{% url poll-report poll_obj.pk %}">
+                        <img src="{{ MEDIA_URL }}poll/icons/silk/zoom.png" alt=""/> Report
+                  </a>
+            	  <a href="{% url poll-responses poll_obj.pk %}">
+                        <img src="{{ MEDIA_URL }}poll/icons/silk/database_table.png" alt=""/> Responses ({{ poll_obj.responses.all.count }})
+            	  </a>
+	          {% endif %}
+	          <a href="{% url poll.views.view_poll poll_obj.pk %}">
+                  <img src="{{ MEDIA_URL }}poll/icons/silk/bullet_wrench.png" alt=""/> Edit
+	          </a>
+	      </div>
       </td>
     </tr>
     {% endfor %}
@@ -59,7 +59,7 @@ function deletePoll(poll_id, poll_name) {
 <br/>
 
 <div class="buttons"> 
-    <a href="/polls/new/" style="float:left"> 
+    <a href="{% url poll.views.new_poll %}" style="float:left"> 
       <img border="0" src="/static/rapidsms/icons/silk/add.png" alt=""/>Add New Poll
     </a> 
 </div>
@@ -69,7 +69,7 @@ function deletePoll(poll_id, poll_name) {
 </div>
 
 
-<form name="form" method="post" action="/polls/">
+<form name="form" method="post" action="">
 {% csrf_token %}
 </form>
 

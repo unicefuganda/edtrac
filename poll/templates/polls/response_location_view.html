@@ -21,7 +21,7 @@
 {% block actions_contexnt %}
     {{ block.super }}
     {% ifnotequal response.message.connection.contact.reporting_location response.eav.poll_location_value %}
-        <a href="/polls/responses/{{ response.pk }}/apply/">
+        <a href="{% url poll.views.apply_response response.pk %}">
           <img src="{{ MEDIA_URL }}poll/icons/silk/application_form_add.png" alt=""/>Register User
         </a>
     {% endifnotequal %}

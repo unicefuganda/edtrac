@@ -2,7 +2,7 @@
 
 {% load uni_form_tags %}
 
-<form action="/polls/{{ poll.pk }}/edit/" method="post" class="uniForm">
+<form action="{% url poll.views.edit_poll poll.pk %}" method="post" class="uniForm">
 <fieldset>
 {{form|as_uni_form}}
 

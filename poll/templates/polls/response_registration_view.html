@@ -18,7 +18,7 @@
 {% block actions_content %}
     {{ block.super }}
     {% ifnotequal response.message.connection.contact.name response.eav.poll_text_value %}
-        <a href="/polls/responses/{{ response.pk }}/apply/">
+        <a href="{% url poll.views.apply_response response.pk %}">
           <img src="{{ MEDIA_URL }}poll/icons/silk/application_form_add.png" alt=""/>Register User
         </a>
     {% endifnotequal %}

@@ -16,6 +16,7 @@ from rapidsms.models import Contact
 from simple_locations.models import Area
 from rapidsms.models import Connection, Backend
 from eav.models import Attribute
+from django.core.urlresolvers import reverse
 
 from .forms import *
 from .models import ResponseForm, NameResponseForm, NumericResponseForm, LocationResponseForm
@@ -95,7 +96,7 @@ def new_poll(req):
             poll.save()                
             if form.cleaned_data['start_immediately']:
                 poll.start()
-            return redirect("/polls/%d/view/" % poll.pk)
+            return redirect(reverse('poll.views.view_poll', args=[poll.pk]))
     else:
         form = NewPollForm()
         form.updateTypes()
@@ -108,7 +109,7 @@ def new_poll(req):
 def view_poll(req, poll_id):
     poll = get_object_or_404(Poll, pk=poll_id)
     categories = Category.objects.filter(poll=poll)
-    breadcrumbs = (('Polls', '/polls'),('Edit Poll', ''))
+    breadcrumbs = (('Polls', reverse('polls')),('Edit Poll', ''))
     return render_to_response("polls/poll_view.html", 
         { 'poll': poll, 'categories': categories, 'category_count' : len(categories), 'breadcrumbs' : breadcrumbs },
         context_instance=RequestContext(req))
@@ -128,7 +129,7 @@ def view_report(req, poll_id, location_id=None, as_module=False):
         elif poll.type == Poll.TYPE_NUMERIC:
             template = "polls/poll_report_numeric.html"
     
-    breadcrumbs = (('Polls', '/polls'),)
+    breadcrumbs = (('Polls', reverse('polls')),)
     context = { 'poll':poll, 'breadcrumbs':breadcrumbs }
     context.update(poll.get_generic_report_data())
     report_rows = []
@@ -163,12 +164,13 @@ def view_poll_details(req, form_id):
         { 'poll': poll },
         context_instance=RequestContext(req))
 
+@login_required
 @permission_required('poll.can_edit_poll')
 def edit_poll(req, poll_id):
     poll = get_object_or_404(Poll,pk=poll_id)
     categories = Category.objects.filter(poll=poll)
 
-    breadcrumbs = (('Polls', '/polls'),('Edit Poll', ''))
+    breadcrumbs = (('Polls', reverse('polls')),('Edit Poll', ''))
 
     if req.method == 'POST':
         form = EditPollForm(req.POST, instance=poll)
@@ -191,7 +193,7 @@ def view_responses(req, poll_id, as_module=False):
 
     responses = poll.responses.all().order_by('-pk')
 
-    breadcrumbs = (('Polls', '/polls'),('Responses', ''))
+    breadcrumbs = (('Polls', reverse('polls')),('Responses', ''))
     
     template = "polls/responses.html"
     if as_module:
@@ -246,6 +248,7 @@ def _get_response_edit_form(response, data=None):
             value = response.eav.poll_location_value
         return form(response=response, initial={'value':value})
 
+@login_required
 @permission_required('poll.can_edit_poll')
 def apply_response(req, response_id):
     response = get_object_or_404(Response, pk=response_id)
@@ -263,7 +266,7 @@ def apply_response(req, response_id):
         except AttributeError:
             pass
 
-    return redirect("/polls/%d/responses/" % poll.pk)
+    return redirect(reverse('poll-responses', args=[poll.pk]))
 
 @login_required
 def apply_all(req, poll_id):
@@ -281,8 +284,9 @@ def apply_all(req, poll_id):
                 response.message.connection.contact.save()
             except AttributeError:
                 pass
-    return redirect("/polls/%d/responses/" % poll.pk)
+    return redirect(reverse('poll-responses', args=[poll.pk]))
 
+@login_required
 @transaction.commit_on_success
 @permission_required('poll.can_edit_poll')
 def edit_response(req, response_id):
@@ -329,6 +333,7 @@ def view_response(req, response_id):
         { 'response': response, 'db_type': db_type},
         context_instance=RequestContext(req))
 
+@login_required
 @permission_required('poll.can_edit_poll')
 def delete_response (req, response_id):
     response = get_object_or_404(Response, pk=response_id)
@@ -345,6 +350,7 @@ def view_category(req, poll_id, category_id):
         { 'poll': poll, 'category' : category },
         context_instance=RequestContext(req))
 
+@login_required
 @transaction.commit_on_success
 @permission_required('poll.can_edit_poll')
 def edit_category (req, poll_id, category_id):
@@ -373,6 +379,7 @@ def edit_category (req, poll_id, category_id):
         { 'form' : form, 'poll': poll, 'category' : category },
         context_instance=RequestContext(req))
 
+@login_required
 @permission_required('poll.can_edit_poll')
 def add_category(req, poll_id):
     poll = get_object_or_404(Poll, pk=poll_id)
@@ -399,14 +406,16 @@ def add_category(req, poll_id):
         { 'form' : form, 'poll' : poll },
         context_instance=RequestContext(req))
 
+@login_required
 @permission_required('poll.can_edit_poll')
 def delete_poll (req, poll_id):
     poll = get_object_or_404(Poll, pk=poll_id)
     if req.method == 'POST':
         poll.delete()
-        
-    return redirect("/polls")
+    
+    return HttpResponse(status=200)
 
+@login_required
 @permission_required('poll.can_poll')
 def start_poll (req, poll_id):
     poll = Poll.objects.get(pk=poll_id)
@@ -417,6 +426,7 @@ def start_poll (req, poll_id):
         {"poll" : poll},
         context_instance=RequestContext(req))
 
+@login_required
 @permission_required('poll.can_edit_poll')
 def end_poll (req, poll_id):
     poll = Poll.objects.get(pk=poll_id)
@@ -427,6 +437,7 @@ def end_poll (req, poll_id):
         {"poll" : poll},
         context_instance=RequestContext(req))
 
+@login_required
 @permission_required('poll.can_edit_poll')
 def delete_category (req, poll_id, category_id):
     poll = get_object_or_404(Poll, pk=poll_id)
@@ -434,9 +445,9 @@ def delete_category (req, poll_id, category_id):
 
     if req.method == 'POST':
         category.delete()
-        
-    return redirect("/polls/%d/edit/" % poll.pk)
+    return HttpResponse(status=200)
 
+@login_required
 @permission_required('poll.can_edit_poll')
 def edit_rule(req, poll_id, category_id, rule_id) :
     
@@ -451,20 +462,21 @@ def edit_rule(req, poll_id, category_id, rule_id) :
             rule.update_regex()
             rule.save()
             poll.reprocess_responses()
-            return render_to_response("polls/table_row_view.html", 
-                {  'columns' : rule_columns, 'buttons' : rule_buttons, 'item' : rule, 'form' : form, 'poll' : poll, 'category' : category },
+            return render_to_response("polls/rule_view.html", 
+                {  'rule' : rule, 'poll' : poll, 'category' : category },
                 context_instance=RequestContext(req))
         else:
-            return render_to_response("polls/table_row_edit.html", 
-                { 'buttons' : save_button, 'item' : rule, 'form' : form, 'poll' : poll, 'category' : category },
+            return render_to_response("polls/rule_edit.html", 
+                { 'rule' : rule, 'form' : form, 'poll' : poll, 'category' : category },
                 context_instance=RequestContext(req))
     else:
         form = RuleForm(instance=rule)
     
-    return render_to_response("polls/table_row_edit.html", 
-        { 'buttons' : save_button, 'form' : form, 'poll': poll, 'category' : category, 'item' : rule },
+    return render_to_response("polls/rule_edit.html", 
+        { 'form' : form, 'poll': poll, 'category' : category, 'rule' : rule },
         context_instance=RequestContext(req))
 
+@login_required
 @permission_required('poll.can_edit_poll')
 def add_rule(req, poll_id, category_id):
     poll = get_object_or_404(Poll, pk=poll_id)
@@ -481,14 +493,14 @@ def add_rule(req, poll_id, category_id):
             rule.update_regex()
             rule.save()
             poll.reprocess_responses()
-            return render_to_response("polls/table_row_view.html", 
-                {  'columns' : rule_columns, 'buttons' : rule_buttons, 'item' : rule, 'form' : form, 'poll' : poll, 'category' : category },
+            return render_to_response("polls/rule_view.html", 
+                {  'rule' : rule, 'form' : form, 'poll' : poll, 'category' : category },
                 context_instance=RequestContext(req))
     else:
         form = RuleForm()
 
-    return render_to_response("polls/table_row_edit.html", 
-        { 'buttons' : save_button, 'form' : form, 'poll': poll, 'category' : category },
+    return render_to_response("polls/rule_edit.html", 
+        { 'form' : form, 'poll': poll, 'category' : category },
         context_instance=RequestContext(req))
 
 @login_required
@@ -497,8 +509,8 @@ def view_rule(req, poll_id, category_id, rule_id) :
     poll = get_object_or_404(Poll, pk=poll_id)
     category = get_object_or_404(Category, pk=category_id)
     rule = get_object_or_404(Rule, pk=rule_id)
-    return render_to_response("polls/table_row_view.html", 
-        { 'columns' : rule_columns, 'buttons' : rule_buttons, 'item' : rule, 'poll' : poll, 'category' : category },
+    return render_to_response("polls/rule_view.html", 
+        { 'rule' : rule, 'poll' : poll, 'category' : category },
         context_instance=RequestContext(req))
     
 @login_required
@@ -507,12 +519,13 @@ def view_rules(req, poll_id, category_id):
     category = get_object_or_404(Category, pk=category_id)
     rules = Rule.objects.filter(category=category)
 
-    breadcrumbs = (('Polls', '/polls'),(poll.name, "/polls/%s/view/" % poll.pk), ("Categories", ''))
+    breadcrumbs = (('Polls', reverse('polls')),(poll.name, reverse("poll.views.view_poll", args=[poll.pk])), ("Categories", ''))
 
     return render_to_response("polls/rules.html", 
-        {  'poll' : poll, 'category' : category, 'table' : rules, 'buttons' : rule_buttons, 'columns' : rule_columns, 'breadcrumbs': breadcrumbs },
+        {  'poll' : poll, 'category' : category, 'rules' : rules, 'breadcrumbs': breadcrumbs },
         context_instance=RequestContext(req))
 
+@login_required
 @transaction.commit_on_success
 @permission_required('poll.can_edit_poll')
 def delete_rule (req, poll_id, category_id, rule_id):
@@ -521,15 +534,6 @@ def delete_rule (req, poll_id, category_id, rule_id):
     if req.method == 'POST':
         rule.delete()
     category.poll.reprocess_responses()
-    return redirect("/polls/%s/category/%s/rules/" % (poll_id, category_id))
+    return HttpResponse(status=200)
 
-add_button = ({ "image" : "rapidsms/icons/silk/decline.png", 'click' : 'cancelAdd'}, 
-              { "text" : "Add", "image" : "rapidsms/icons/silk/add.png" , 'click' : 'add'},)
-
-save_button = ( { "image" : "rapidsms/icons/silk/decline.png", 'click' : 'cancelSave'},
-                { "text" : "Save", "image" : "poll/icons/silk/bullet_disk.png", 'click' : 'saveRow'},)
-rule_buttons = ({"image" : "rapidsms/icons/silk/delete.png", 'click' : 'deleteRow'},
-                      { "text" : "Edit", "image" : "poll/icons/silk/pencil.png", 'click' : 'editRow'},)
-
-rule_columns = (('Rule', 'rule_type_friendly'), ('Text', 'rule_string'))
 
