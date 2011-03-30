@@ -2,9 +2,9 @@
 	{% for column in modules %}
 		<div id="column{{ column.col }}" class="column">
 		{% for mod in column.modules %}
-		<div class="widget " id="mod{{ mod.offset }}">
+		<div class="widget" id="{{ mod.pk }}">
 	            <div class="module widget-head">
-	                <h3>About<a href="javascript:void(0)" class="close">[X]</a></h3>
+	                <h3>About<a href="javascript:void(0)" class="close" onclick="removeDiv($(this).parents('.widget'))">[X]</a></h3>
 	            </div>
 	            <div class="widget-content" id="content{{ column.col }}{{ mod.offset }}">
 	                <p><script language="JavaScript">$('#content{{ column.col }}{{ mod.offset }}').load('{{ mod.get_absolute_url }}');</script></p>
@@ -13,5 +13,4 @@
 		{% endfor %}		
 	</div>
 	{% endfor %}
-
 </div>

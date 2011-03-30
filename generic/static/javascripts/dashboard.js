@@ -1,5 +1,35 @@
+
+function addModule(column,url,title,pk)
+{
+  //create module div
+ var module_head="";
+ var module_content=$("<div>").addClass('widget-content').load(url);
+   var widget=$("<div>").addClass("widget").attr('id',String(pk)).appendTo("#"+column);
+   var title="<h3>"+title+"<a href='javascript:void(0)' class='close'>[X]</a></h3>";
+   $("<div>").addClass("widget-head  module").append(title).appendTo(widget).append(module_content);
+
+}
 function removeDiv(elem){
-    return $(this).remove();
+   $(elem).remove();
+    sync_data();
+}
+
+function sync_data(){
+        var columns=$('.column');
+            var col_orders=[];
+            jQuery.each(columns, function(key,value)
+            {
+
+                var mods=$('#'+value.id).sortable('toArray');
+                jQuery.each(mods,function(k,v)
+                {
+                   col_orders.push(key+'=' + v);
+
+                });
+            });
+            var data = col_orders.join('&');
+            $.post("/cvs/dashboard/", data);
+
 }
 $(function() {
     $('.column').sortable({
@@ -22,20 +52,7 @@ $(function() {
         },
         update: function(e, ui) {
 
-            var columns=$('.column');
-            var col_orders=[];
-            jQuery.each(columns, function(key,value)
-            {
-
-                var mods=$('#'+value.id).sortable('toArray');
-                jQuery.each(mods,function(k,v)
-                {
-                   col_orders.push(key+'=' + v);
-
-                });
-            });
-            var data = col_orders.join('&');
-            $.post("/cvs/dashboard/", data);
+        sync_data();
         }
     });
 });
