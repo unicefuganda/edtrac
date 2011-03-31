@@ -13,7 +13,8 @@ function loadModule(elem, module_name) {
     form.children('.input_module_type').val($('#add_module').val());
     form_data = form.serializeArray();
     $.post('./', form_data, function(data, i, j) {
-        $('#mod').children('.column')[0].append(data);    
+        $($('#mod').find('.column')[0]).append(data);
+
     });
 }
 
