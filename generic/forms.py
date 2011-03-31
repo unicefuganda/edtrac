@@ -16,7 +16,14 @@ class ModuleForm(forms.Form):
     """ abstract class for module creation forms"""
 
     def createModule(self, dashboard):
-        return Module.objects.create(dashboard=dashboard)
+        module = Module.objects.create(dashboard=dashboard)
+        module.column = 0
+        if dashboard.modules.filter(column=0).count():
+            module.offset = dashboard.modules.filter(column=0).order_by('-offset')[0].offset + 1
+        else:
+            module.offset = 0
+        module.save()
+        return module
 
     def setModuleParams(self, dashboard, module=None):
         raise NotImplementedError("Subclasses of ModuleForm must implement the setModuleParams() method!")
