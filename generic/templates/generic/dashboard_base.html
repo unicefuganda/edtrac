@@ -4,7 +4,7 @@
 {% endblock %}
 
 {% block stylesheets %}
-{{ block.super }}
+    {{ block.super }}
     <link type="text/css" rel="stylesheet" href="{{MEDIA_URL}}generic/stylesheets/dashboard.css"/>
 {% endblock %}
 
@@ -12,16 +12,51 @@
     {{ block.super }}
 
     <script src="{{MEDIA_URL}}generic/javascripts/dashboard.js" type="text/javascript"></script>
-      <script src="{{MEDIA_URL}}generic/javascripts/jquery-ui-1.8.11.custom.min.js" type="text/javascript"></script>
+    <script src="{{MEDIA_URL}}generic/javascripts/jquery-ui-1.8.11.custom.min.js" type="text/javascript"></script>
     <script type="text/javascript" src="{{ MEDIA_URL }}cvs/javascripts/highcharts.js"></script>
 
 {% endblock %}
 
 {% block content %}
-<div id="head">
-    <h3>CVS Dashboard</h3>
-</div>
-<div id="mod">
-{% include "generic/partials/modules.html" %}
-</div>
+    <div id="head">
+        <h3>CVS Dashboard</h3>
+        <a href="javascript:void(0) " onclick="$('#add_module').show()">add Module</a>
+        <select style="display:none;" id="add_module" onchange="$('.moduleform').hide();$('#'+$(this).val()).show()">
+            {% for module_name, module_form, module_title in module_types %}
+                <option value="{{ module_name }}">{{ module_title }}</option>
+            {% endfor %}
+        </select>
+        {% for module_name, module_form, module_title in module_types %}
+            <div id="{{ module_name }}" class="moduleform" style="display:none;">
+                <form action="./" id="form_{{  module_name }}" method='Post'>
+                    {%  csrf_token %}
+                    <input type="hidden" name="action" value="" class="input_action"/>
+                    <input type="hidden" name="module_type" value="" class="input_module_type"/>
+                    <table>
+                        {% for field in module_form.visible_fields %}
+                            <tr>
+                                <td>
+                                    {% if forloop.first %}
+                                        {% for hidden in module_form.hidden_fields %}
+                                            {{ hidden }}
+                                        {% endfor %}
+                                    {% endif %}
+                                    {{ field.label_tag }}
+                                    {% if field.help_text %}
+                                        <span class="filter_form_help">{{ field.help_text }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ field }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        <tr><td colspan="2" ><button onclick="$('#{{ module_name }}').hide();loadModule(this, '{{ module_name }}')">Add</button></td></tr>
+                    </table>
+                </form>
+            </div>
+        {% endfor %}
+        <div id="mod">
+            {% include "generic/partials/modules.html" %}
+        </div>
 {% endblock %}

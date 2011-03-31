@@ -198,21 +198,35 @@ def generic(request,
     context_vars.update(kwargs)
     return render_to_response(response_template,context_vars,context_instance=RequestContext(request))
 
-def generic_dashboard(request, slug, module_types=[], base_template='generic/dashboard_base.html', num_columns=2):
+#from .forms import ModuleForm
+#class FormModules(ModuleForm):
+#    modules
+#    def setModuleParams(self, dashboard, module=None):
+#        pass
+def generic_dashboard(request,
+                      slug,
+                      module_types=[],
+                      base_template='generic/dashboard_base.html',
+                      module_partial_template='generic/partials/module.html',
+                      num_columns=2):
 
     module_dict = {}
     # Create mapping of module names to module forms
     for view_name, module_form, module_title in module_types:
         module_dict[view_name] = module_form
 
+    module_instances = [(view_name, module_form(), module_title) for view_name, module_form, module_title in module_types]
     if request.method=='POST':
         # FIXME pass action variable, set defaults, do sane things
-        if request.POST['action'] == 'createmodule':
-            form = module_dict[request.POST['type']](request.POST)
+        if request.POST.get('action',None) == 'createmodule':
+            form = module_dict[request.POST['module_type']](request.POST)
             if form.is_valid():
                 dashboard = Dashboard.objects.get(user=request.user.pk, slug=slug)
                 module = form.setModuleParams(dashboard)
-                return redirect(module.get_absolute_url())
+                return render_to_response(module_partial_template,
+                                          {
+                                           'mod':module,
+                                          },context_instance=RequestContext(request))
         else:
             data=request.POST.lists()
             for col_val, offset_list in data:
@@ -231,6 +245,7 @@ def generic_dashboard(request, slug, module_types=[], base_template='generic/das
                 for mod in old_user_modules:
                     if not mod in new_user_modules:
                         Dashboard.objects.get(user=request.user.pk, slug=slug).modules.get(pk=mod).delete()
+            return HttpResponse(status=200)
 
         print data
 
@@ -244,7 +259,8 @@ def generic_dashboard(request, slug, module_types=[], base_template='generic/das
     return render_to_response(base_template,
                               {
                                'modules':modules,
-                               'module_types':module_types,
+                               'module_types':module_instances,
+                               'module_partial_template':module_partial_template,
                                'location':'lid', 
                               },context_instance=RequestContext(request))
 

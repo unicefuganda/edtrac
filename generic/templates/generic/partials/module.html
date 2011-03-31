@@ -1,0 +1,10 @@
+<div class="widget" id="{{ mod.pk }}">
+    <div class="module widget-head">
+        <h3>{{ mod.title }}<a href="javascript:void(0)" class="close" onclick="removeDiv($(this).parents('.widget'))">[X]</a></h3>
+    </div>
+    <div class="widget-content" id="content{{ mod.pk }}">
+        <p>
+            <script language="JavaScript">$('#content{{ mod.pk }}').load('{{ mod.get_absolute_url }}');</script>
+        </p>
+    </div>
+</div>
