@@ -198,11 +198,6 @@ def generic(request,
     context_vars.update(kwargs)
     return render_to_response(response_template,context_vars,context_instance=RequestContext(request))
 
-#from .forms import ModuleForm
-#class FormModules(ModuleForm):
-#    modules
-#    def setModuleParams(self, dashboard, module=None):
-#        pass
 def generic_dashboard(request,
                       slug,
                       module_types=[],
@@ -214,19 +209,17 @@ def generic_dashboard(request,
     # Create mapping of module names to module forms
     for view_name, module_form, module_title in module_types:
         module_dict[view_name] = module_form
-
     module_instances = [(view_name, module_form(), module_title) for view_name, module_form, module_title in module_types]
     if request.method=='POST':
-        # FIXME pass action variable, set defaults, do sane things
-        if request.POST.get('action',None) == 'createmodule':
-            form = module_dict[request.POST['module_type']](request.POST)
+        page_action = request.POST.get('action',None)
+        if page_action == 'createmodule':
+            form_type = request.POST.get('module_type', None)
+            form = module_dict[form_type](request.POST)
             if form.is_valid():
                 dashboard = Dashboard.objects.get(user=request.user.pk, slug=slug)
                 module = form.setModuleParams(dashboard)
                 return render_to_response(module_partial_template,
-                                          {
-                                           'mod':module,
-                                          },context_instance=RequestContext(request))
+                    {'mod':module},context_instance=RequestContext(request))
         else:
             data=request.POST.lists()
             for col_val, offset_list in data:
@@ -245,9 +238,7 @@ def generic_dashboard(request,
                 for mod in old_user_modules:
                     if not mod in new_user_modules:
                         Dashboard.objects.get(user=request.user.pk, slug=slug).modules.get(pk=mod).delete()
-            return HttpResponse(status=200)
-
-        print data
+        return HttpResponse(status=200)
 
     dashboard = Dashboard.objects.get(user=request.user.pk, slug=slug)
     modules = [{'col':i, 'modules':[]} for i in range(0, num_columns)]
