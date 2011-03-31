@@ -49,7 +49,7 @@
                                 </td>
                             </tr>
                         {% endfor %}
-                        <tr><td colspan="2" ><button onclick="$('#{{ module_name }}').hide();loadModule(this, '{{ module_name }}')">Add</button></td></tr>
+                        <tr><td colspan="2" ><input type="button" value="Add" onclick="$('#{{ module_name }}').hide();loadModule(this, '{{ module_name }}');return false"/></td></tr>
                     </table>
                 </form>
             </div>

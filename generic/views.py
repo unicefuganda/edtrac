@@ -222,11 +222,11 @@ def generic_dashboard(request,
                     {'mod':module},context_instance=RequestContext(request))
         else:
             data=request.POST.lists()
+            old_user_modules=Dashboard.objects.get(user=request.user.pk, slug=slug).modules.values_list('pk', flat=True).distinct()
+            new_user_modules=[]
             for col_val, offset_list in data:
                 offset = 0
                 column = int(col_val)
-                old_user_modules=Dashboard.objects.get(user=request.user.pk, slug=slug).modules.values_list('pk', flat=True).distinct()
-                new_user_modules=[]
                 for mod_pk in offset_list:
                     mod_pk = int(mod_pk)
                     new_user_modules.append(mod_pk)
@@ -235,6 +235,7 @@ def generic_dashboard(request,
                     module.column = column
                     module.save()
                     offset += 1
+
             for mod in old_user_modules:
                 if not mod in new_user_modules:
                     Dashboard.objects.get(user=request.user.pk, slug=slug).modules.get(pk=mod).delete()
