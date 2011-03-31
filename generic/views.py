@@ -235,9 +235,9 @@ def generic_dashboard(request,
                     module.column = column
                     module.save()
                     offset += 1
-                for mod in old_user_modules:
-                    if not mod in new_user_modules:
-                        Dashboard.objects.get(user=request.user.pk, slug=slug).modules.get(pk=mod).delete()
+            for mod in old_user_modules:
+                if not mod in new_user_modules:
+                    Dashboard.objects.get(user=request.user.pk, slug=slug).modules.get(pk=mod).delete()
         return HttpResponse(status=200)
 
     dashboard = Dashboard.objects.get(user=request.user.pk, slug=slug)
