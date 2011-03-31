@@ -1,4 +1,5 @@
 from django import forms
+from generic.models import Module
 
 class FilterForm(forms.Form):
     """ abstract filter class for filtering contacts"""
