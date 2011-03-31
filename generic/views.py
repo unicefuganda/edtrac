@@ -198,20 +198,39 @@ def generic(request,
     context_vars.update(kwargs)
     return render_to_response(response_template,context_vars,context_instance=RequestContext(request))
 
-def generic_dashboard(request, slug, module_types, base_template='generic/dashboard_base.html', num_columns=2):
+def generic_dashboard(request, slug, module_types=[], base_template='generic/dashboard_base.html', num_columns=2):
+
+    module_dict = {}
+    # Create mapping of module names to module forms
+    for view_name, module_form, module_title in module_types:
+        module_dict[view_name] = module_form
 
     if request.method=='POST':
-        data=request.POST.lists()
-        for col_val, offset_list in data:
-            offset = 0
-            column = int(col_val)
-            for mod_pk in offset_list:
-                mod_pk = int(mod_pk)
-                module = Module.objects.get(pk=mod_pk)
-                module.offset = offset
-                module.column = column
-                module.save()
-                offset += 1
+        # FIXME pass action variable, set defaults, do sane things
+        if request.POST['action'] == 'createmodule':
+            form = module_dict[request.POST['type']](request.POST)
+            if form.is_valid():
+                dashboard = Dashboard.objects.get(user=request.user.pk, slug=slug)
+                module = form.setModuleParams(dashboard)
+                return redirect(module.get_absolute_url())
+        else:
+            data=request.POST.lists()
+            for col_val, offset_list in data:
+                offset = 0
+                column = int(col_val)
+                old_user_modules=Dashboard.objects.get(user=request.user.pk, slug=slug).modules.values_list('pk', flat=True).distinct()
+                new_user_modules=[]
+                for mod_pk in offset_list:
+                    mod_pk = int(mod_pk)
+                    new_user_modules.append(mod_pk)
+                    module = Module.objects.get(pk=mod_pk)
+                    module.offset = offset
+                    module.column = column
+                    module.save()
+                    offset += 1
+                for mod in old_user_modules:
+                    if not mod in new_user_modules:
+                        Dashboard.objects.get(user=request.user.pk, slug=slug).modules.get(pk=mod).delete()
 
         print data
 
@@ -222,14 +241,13 @@ def generic_dashboard(request, slug, module_types, base_template='generic/dashbo
     for col in columns:
         modules[col]['modules'] = list(dashboard.modules.filter(column=col).order_by('offset'))
 
-    print modules
     return render_to_response(base_template,
                               {
                                'modules':modules,
                                'module_types':module_types,
                                'location':'lid', 
                               },context_instance=RequestContext(request))
-    
+
 def dummy(request):
     return HttpResponse('dummy content here')
 
