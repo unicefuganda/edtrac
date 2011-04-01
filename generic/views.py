@@ -244,7 +244,7 @@ def generic_dashboard(request,
     dashboard = Dashboard.objects.get(user=request.user.pk, slug=slug)
     modules = [{'col':i, 'modules':[]} for i in range(0, num_columns)]
     columns = dashboard.modules.values_list('column', flat=True).distinct()
-    print columns
+
     for col in columns:
         modules[col]['modules'] = list(dashboard.modules.filter(column=col).order_by('offset'))
 
@@ -253,14 +253,4 @@ def generic_dashboard(request,
                                'modules':modules,
                                'module_types':module_instances,
                                'module_partial_template':module_partial_template,
-                               'location':'lid', 
                               },context_instance=RequestContext(request))
-
-def dummy(request):
-    return HttpResponse('dummy content here')
-
-def dummy2(request):
-    return HttpResponse('dummy2 content here')
-
-def dummy3(request):
-    return HttpResponse('dummy3 content here')
