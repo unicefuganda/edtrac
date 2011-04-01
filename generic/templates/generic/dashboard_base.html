@@ -18,7 +18,7 @@
 {% block content %}
     <div id="head">
         <h3>CVS Dashboard</h3>
-        <a href="javascript:void(0)" onclick="$('#add_module').show()">Add Module</a>
+        <a href="javascript:void(0)" onclick="$('#add_module').toggle(0)">Add Module</a>
         <select style="display:none;" id="add_module" onchange="$('.moduleform').hide();$('#'+$(this).val()).show()">
             {% for module_name, module_form, module_title in module_types %}
                 <option value="{{ module_name }}">{{ module_title }}</option>
