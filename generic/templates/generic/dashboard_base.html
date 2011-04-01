@@ -18,14 +18,14 @@
 {% block content %}
     <div id="head">
         <h3>CVS Dashboard</h3>
-        <a href="javascript:void(0)" onclick="$('#add_module').toggle(0)">Add Module</a>
+        <a href="javascript:void(0)" onclick="$('#add_module').toggle(0); if({{ module_types|length }} == 1){ $('.moduleform').hide();$('#{{ module_types|first|first }}_modules').show(); }">Add Module</a>
         <select style="display:none;" id="add_module" onchange="$('.moduleform').hide();$('#'+$(this).val()).show()">
             {% for module_name, module_form, module_title in module_types %}
                 <option value="{{ module_name }}">{{ module_title }}</option>
             {% endfor %}
         </select>
         {% for module_name, module_form, module_title in module_types %}
-            <div id="{{ module_name }}" class="moduleform" style="display:none;">
+            <div id="{{ module_name }}_modules" class="moduleform" style="display:none;">
                 <form id="form_{{ module_name }}" method="POST">
                     {%  csrf_token %}
                     <input type="hidden" name="action" value="" class="input_action"/>
