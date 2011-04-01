@@ -45,3 +45,4 @@ class Message(models.Model):
                     contact=self.connection.identity, backend=self.connection.backend.name,
                     direction=self.direction, status=self.status, text=self.text,
                     date=self.date.isoformat())
+

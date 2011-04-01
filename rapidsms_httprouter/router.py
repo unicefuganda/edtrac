@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.db import transaction
 from .models import Message
 from rapidsms.models import Backend, Connection
 from rapidsms.apps.base import AppBase
@@ -10,11 +11,22 @@ from threading import Lock, Thread
 from urllib import quote_plus
 from urllib2 import urlopen
 import time
+import re
 
+# we keep a list of all the messages currently being processed here
 outgoing_pk_queue = []
+
+# our lock for that queue
 outgoing_queue_lock = Lock()
+
+# we make sure only one thread is modifying db messages a time
 outgoing_db_lock = Lock()
+
+# our worker threads
 outgoing_worker_threads = []
+
+# whether we are currently sending mass messages, where we will queue up
+# many messages at once, used as an optimization
 sending_mass_messages = False
 
 def start_sending_mass_messages():
@@ -26,8 +38,10 @@ def stop_sending_mass_messages():
     sending_mass_messages = False
 
 class HttpRouterThread(Thread, LoggerMixin):
-
-    outgoing_phases = ("outgoing",)
+    """
+    This thread is just a worker thread for messages.  The run() method pops off a message to work on
+    and continues appropriately.
+    """
 
     def __init__(self, **kwargs):
         Thread.__init__(self, **kwargs)
@@ -41,63 +55,101 @@ class HttpRouterThread(Thread, LoggerMixin):
         global outgoing_queue_lock
         global outgoing_db_lock
         global sending_mass_messages
+        
         while self.is_alive():
             if not sending_mass_messages:
                 outgoing_queue_lock.acquire()
+                transaction.enter_transaction_management()
 
-                to_process = Message.objects.filter(direction='O',status__in=['P','Q']).order_by('status').exclude(pk__in=outgoing_pk_queue)
-                if to_process.count():
-                    self._isbusy = True
-                    outgoing_message = to_process[0]
-                    outgoing_pk_queue.append(outgoing_message.pk)
-                    outgoing_queue_lock.release()
+                try:
+                    # without this, our to_process list gets cached
+                    transaction.commit()
 
-                    msg = OutgoingMessage(outgoing_message.connection, outgoing_message.text.replace('%','%%'))
-                    msg.db_message = outgoing_message
-                    self.info("Outgoing (%s): %s" % (msg.connection, msg.text))
+                    # this gets any outgoing messages which are either pending or queued, excluding those
+                    # which are already being processed
+                    to_process = Message.objects.filter(direction='O',
+                                                        status__in=['P','Q']).order_by('status').exclude(pk__in=outgoing_pk_queue)
 
-                    cancelled = False
-                    for phase in self.outgoing_phases:
-                        self.debug("Out %s phase" % phase)
-                        continue_sending = True
+                    if to_process.count():
+                        self._isbusy = True
+                        outgoing_message = to_process[0]
+                        outgoing_pk_queue.append(outgoing_message.pk)
+                        outgoing_queue_lock.release()
 
-                        # call outgoing phases in the opposite order of the incoming
-                        # phases, so the first app called with an  incoming message
-                        # is the last app called with an outgoing message
-                        for app in reversed(get_router().apps):
-                            self.debug("Out %s app" % app)
+                        # process the outgoing phases for this message
+                        send_msg = get_router().process_outgoing_phases(outgoing_message)
 
-                            try:
-                                func = getattr(app, phase)
-                                continue_sending = func(msg)
+                        # if it wasn't cancelled, send it off
+                        if send_msg:
+                            self.send_message(outgoing_message)
 
-                            except Exception, err:
-                                app.exception()
-
-                            # during any outgoing phase, an app can return True to
-                            # abort ALL further processing of this message
-                            if continue_sending is False:
-                                outgoing_message.status = 'C'
-
-                                outgoing_db_lock.acquire()
-                                outgoing_message.save()
-                                outgoing_db_lock.release()
-
-                                self.warning("Message cancelled")
-                                cancelled = True
-                                break
-                    if not cancelled:
-                        # add the message to our outgoing queue
-                        self.send_message(outgoing_message)
-
-                    outgoing_queue_lock.acquire()
-                    outgoing_pk_queue.remove(outgoing_message.pk)
-                    outgoing_queue_lock.release()
-
-                else:
-                    outgoing_queue_lock.release()
+                        outgoing_queue_lock.acquire()
+                        outgoing_pk_queue.remove(outgoing_message.pk)
+                        outgoing_queue_lock.release()
+                except:
+                    import traceback
+                    traceback.print_exc()
+                        
+                finally:
+                    try:
+                        outgoing_queue_lock.release()
+                    except:
+                        # it's ok, it wasn't locked
+                        pass
             self._isbusy = False
             time.sleep(0.5)
+
+    def fetch_url(self, url):
+        """
+        Wrapper around url open, mostly here so we can monkey patch over it in unit tests.
+        """
+        # FIXME: clean this up
+        response = urlopen(url)
+        return response.getcode()
+
+    def build_send_url(self, msg, kwargs):
+        """
+        Constructs an appropriate send url for the given message.
+        """
+        # first build up our list of parameters
+        params = {
+            'backend': msg.connection.backend.name,
+            'recipient': msg.connection.identity,
+            'text': msg.text,
+            'id': msg.pk
+        }
+
+        # make sure our parameters are URL encoded
+        params.update(kwargs)
+        for k, v in params.items():
+            try:
+                params[k] = quote_plus(str(v))
+            except UnicodeEncodeError:
+                params[k] = quote_plus(str(v.encode('UTF-8')))
+
+        # get our router URL
+        router_url = settings.ROUTER_URL
+
+        # is this actually a dict?  if so, we want to look up the appropriate backend
+        if type(router_url) is dict:
+            router_dict = router_url
+            backend_name = msg.connection.backend.name
+            
+            # is there an entry for this backend?
+            if backend_name in router_dict:
+                router_url = router_dict[backend_name]
+
+            # if not, look for a default backend 
+            elif 'default' in router_dict:
+                router_url = router_dict['default']
+
+            # none?  blow the hell up
+            else:
+                self.error("No router url mapping found for backend '%s', check your settings.ROUTER_URL setting" % backend_name)
+                raise Exception("No router url mapping found for backend '%s', check your settings.ROUTER_URL setting" % backend_name)
+
+        # return our built up url with all our variables substituted in
+        return router_url % params
 
     def send_message(self, msg, **kwargs):
         """
@@ -105,45 +157,25 @@ class HttpRouterThread(Thread, LoggerMixin):
         if we fail, then we just add it to our outgoing queue.
         """
         global outgoing_db_lock
-        if not getattr(settings, 'ROUTER_URL', None):
-            msg.status = 'Q'
-            outgoing_db_lock.acquire()
-            msg.save()
-            outgoing_db_lock.release()
-            return
 
-        params = {
-            'backend': msg.connection.backend,
-            'recipient': msg.connection.identity,
-            'text': msg.text,
-            'id': msg.pk
-        }
-
-        # add any other backend-specific parameters from kwargs
-        params.update(kwargs)
-
-        for k, v in params.items():
-            try:
-                params[k] = quote_plus(str(v))
-            except UnicodeEncodeError:
-                params[k] = quote_plus(str(v.encode('UTF-8')))
+        # and actually hand the message off to our router URL
         try:
-            #FIXME: clean this up
-            response = urlopen(settings.ROUTER_URL % params)
+            url = self.build_send_url(msg, kwargs)
+            status_code = self.fetch_url(url)
             outgoing_db_lock.acquire()
             # kannel likes to send 202 responses, really any
             # 2xx value means things went okay
-            if int(response.getcode()/100) == 2:
-                self.info("Message: %s sent: " % msg.id)
+            if int(status_code/100) == 2:
+                self.info("SMS[%d] SENT" % msg.id)
                 msg.status = 'S'
                 msg.save()
             else:
-                self.error("Message not sent, got status: %s .. queued for later delivery." % response.getcode())
+                self.error("SMS[%d] Message not sent, got status: %s .. queued for later delivery." % (msg.id, status_code))
                 msg.status = 'Q'
                 msg.save()
             outgoing_db_lock.release()
         except Exception as e:
-            self.error("Message not sent: %s .. queued for later delivery." % str(e))
+            self.error("SMS[%d] Message not sent: %s .. queued for later delivery." % (msg.id, str(e)))
             outgoing_db_lock.acquire()
             msg.status = 'Q'
             msg.save()
@@ -166,36 +198,45 @@ class HttpRouter(object, LoggerMixin):
         # we need to be started
         self.started = False
 
+    @classmethod
+    def normalize_number(cls, number):
+        """
+        Normalizes the passed in number, they should be only digits, some backends prepend + and
+        maybe crazy users put in dashes or parentheses in the console.
+        """
+        return re.sub('[^0-9a-z]', '', number.lower())
+
     def add_message(self, backend, contact, text, direction, status):
         """
         Adds this message to the db.  This is both for logging, and we also keep state
         tied to it.
         """
         global outgoing_db_lock
+
         # lookup / create this backend
         # TODO: is this too flexible?  Perhaps we should do this upon initialization and refuse 
         # any backends not found in our settings.  But I hate dropping messages on the floor.
         backend, created = Backend.objects.get_or_create(name=backend)
-        
-        # some backends append a + to numbers, some don't
-        # this leads to duplications of numbers
-        if contact[0:1] == '+':
-            contact = contact[1:]
+
+        contact = HttpRouter.normalize_number(contact)
+
         # create our connection
         connection, created = Connection.objects.get_or_create(backend=backend, identity=contact)
+
         # finally, create our db message
         outgoing_db_lock.acquire()
         message = Message.objects.create(connection=connection,
                                          text=text,
-                                         direction='I',
+                                         direction=direction,
                                          status=status)
         outgoing_db_lock.release()
+        
         return message
 
 
-    def mark_sent(self, message_id):
+    def mark_delivered(self, message_id):
         """
-        Marks a message as sent by the backend.
+        Marks a message as delivered by the backend.
         """
         global outgoing_db_lock
 
@@ -204,7 +245,6 @@ class HttpRouter(object, LoggerMixin):
         message.status = 'D'
         message.save()
         outgoing_db_lock.release()
-
 
     def handle_incoming(self, backend, sender, text):
         """
@@ -221,7 +261,7 @@ class HttpRouter(object, LoggerMixin):
         # apps can make use of it during the handling phase
         msg.db_message = db_message
         
-        self.info("Incoming (%s): %s" % (msg.connection, msg.text))
+        self.info("SMS[%d] IN (%s) : %s" % (db_message.id, msg.connection, msg.text))
         try:
             for phase in self.incoming_phases:
                 self.debug("In %s phase" % phase)
@@ -279,8 +319,9 @@ class HttpRouter(object, LoggerMixin):
         db_message.status = 'H'
         db_message.save()
         outgoing_db_lock.release()
+        
         db_responses = []
-            
+
         # now send the message responses
         while msg.responses:
             response = msg.responses.pop(0)
@@ -305,18 +346,62 @@ class HttpRouter(object, LoggerMixin):
                                             in_response_to=source,
                                             application=application)
         outgoing_db_lock.release()
+
+        self.info("SMS[%d] OUT (%s) : %s" % (db_message.id, str(connection), text))
+
+        global outgoing_worker_threads
+
+        # if we have no ROUTER_URL configured, then immediately process our outgoing phases
+        # and leave the message in the queue
+        if not getattr(settings, 'ROUTER_URL', None):
+            if self.process_outgoing_phases(db_message):
+                outgoing_db_lock.acquire()
+                db_message.status = 'Q'
+                db_message.save()
+                outgoing_db_lock.release()
+
+        # otherwise, fire up any threads we need to send the message out
+        else:
+            # check for available worker threads in the pool, add one if necessary
+            num_workers = getattr(settings, 'ROUTER_WORKERS', 5)
+            all_busy = True
+            for worker in outgoing_worker_threads:
+                if not worker.is_busy():
+                    all_busy = False
+                    break
+
+            if all_busy and len(outgoing_worker_threads) < num_workers:
+                worker = HttpRouterThread()
+                worker.daemon = True # they don't need to quit gracefully
+                worker.start()
+                outgoing_worker_threads.append(worker)
+
         return db_message
                 
     def handle_outgoing(self, msg, source=None, application=None):
         """
-        Passes the message through the appropriate outgoing steps for all our apps,
-        then sends it off if it wasn't cancelled.
+        Sends the passed in RapidSMS message off.  Optionally ties the outgoing message to the incoming
+        message which triggered it.
         """
-        global outgoing_worker_threads
+        # add it to our outgoing queue
+        db_message = self.add_outgoing(msg.connection, msg.text, source, status='P', application=application)
         
+        return db_message
+
+    def process_outgoing_phases(self, outgoing):
+        """
+        Passes the passed in message through the outgoing phase for all our configured SMS apps.
+
+        Apps have the opportunity to cancel messages in this phase by returning False when
+        called with the message.  In that case this method will also return False
+        """
+        # create a RapidSMS outgoing message
+        msg = OutgoingMessage(outgoing.connection, outgoing.text.replace('%','%%'))
+        msg.db_message = outgoing
+        
+        send_msg = True
         for phase in self.outgoing_phases:
             self.debug("Out %s phase" % phase)
-            continue_sending = True
 
             # call outgoing phases in the opposite order of the incoming
             # phases, so the first app called with an  incoming message
@@ -326,34 +411,29 @@ class HttpRouter(object, LoggerMixin):
 
                 try:
                     func = getattr(app, phase)
-                    continue_sending = func(msg)
+                    keep_sending = func(msg)
 
+                    # we have to do things this way because by default apps return
+                    # None from outgoing()
+                    if keep_sending is False:
+                        send_msg = False
                 except Exception, err:
                     app.exception()
 
                 # during any outgoing phase, an app can return True to
                 # abort ALL further processing of this message
-                if continue_sending is False:
+                if not send_msg:
+                    outgoing.status = 'C'
+
+                    outgoing_db_lock.acquire()
+                    outgoing.save()
+                    outgoing_db_lock.release()
+
                     self.warning("Message cancelled")
-                    return None
+                    send_msg = False
+                    break
 
-        # add it to our db/queue
-        db_message = self.add_outgoing(msg.connection, msg.text, source, status='P', application=application)
-
-        #check for available worker threads in the pool, add one if necessary
-        num_workers = getattr(settings, 'ROUTER_WORKERS', 5)
-        all_busy = True
-        for worker in outgoing_worker_threads:
-            if not worker.is_busy():
-                 all_busy = False
-                 break
-        if all_busy and len(outgoing_worker_threads) < num_workers:
-            worker = HttpRouterThread()
-            worker.daemon = True # they don't need to quit gracefully
-            worker.start()
-            outgoing_worker_threads.append(worker)
-        
-        return db_message
+        return send_msg
 
     def add_app(self, module_name):
         """
@@ -364,9 +444,13 @@ class HttpRouter(object, LoggerMixin):
         try:
             cls = AppBase.find(module_name)
         except:
+            import traceback
+            traceback.print_exc()
             cls = None
 
-        if cls is None: return None
+        if cls is None:
+            self.error("Unable to find SMS application with module: '%s'" % module_name)
+            return None
 
         app = cls(self)
         self.apps.append(app)
