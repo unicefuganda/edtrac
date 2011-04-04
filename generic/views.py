@@ -240,8 +240,11 @@ def generic_dashboard(request,
                 if not mod in new_user_modules:
                     Dashboard.objects.get(user=request.user.pk, slug=slug).modules.get(pk=mod).delete()
         return HttpResponse(status=200)
+    try:
+        dashboard = Dashboard.objects.get(user=request.user.pk, slug=slug)
+    except Dashboard.DoesNotExist:
+        dashboard = Dashboard.objects.create(user=request.user, slug=slug)
 
-    dashboard = Dashboard.objects.get(user=request.user.pk, slug=slug)
     modules = [{'col':i, 'modules':[]} for i in range(0, num_columns)]
     columns = dashboard.modules.values_list('column', flat=True).distinct()
 
