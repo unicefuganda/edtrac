@@ -45,7 +45,7 @@ function sync_data() {
         });
     });
     var data = col_orders.join('&');
-    $.post("/cvs/dashboard/", data);
+    $.post("./", data);
 }
 
 $(function() {
