@@ -110,7 +110,6 @@
 #column2 .widget-placeholder { margin: 30px 25px 0 35px; }
 
 a.button{
-background:url(img/button.gif);
 display:block;
 color:#555555;
 font-weight:bold;
@@ -127,14 +126,4 @@ color:#0066CC;
 top:10px;
 text-indent:30px;
 display:block;
-}
-
-.addbutton{
-	background-color:#efefef;
-	padding:5px 5px 5px 5px;
-}
-
-.addbutton img{
-	padding:3px 3px 3px 3px;
-	border:1px solid #ccc;
 }

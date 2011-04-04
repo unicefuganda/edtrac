@@ -22,7 +22,7 @@ function loadModule(elem, module_name) {
     ajax_loading(to_element);
     form = $('#form_' + module_name);
     form.children('.input_action').val('createmodule');
-    form.children('.input_module_type').val($('#add_module').find('select').val());
+    form.children('.input_module_type').val($('#select_module').val());
     form_data = form.serializeArray();
     $.post('./', form_data, function(data, i, j) {
             $(to_element).append(data);
