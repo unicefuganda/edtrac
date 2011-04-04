@@ -1,6 +1,6 @@
 <div class="widget" id="{{ mod.pk }}">
     <div class="module widget-head">
-        <h3>{{ mod.title }}<a href="javascript:void(0)" class="close" onclick="removeDiv($(this).parents('.widget'))">[X]</a></h3>
+        <h3>{{ mod.title }}<span style="float:right"><a href="javascript:void(0)" class="close" onclick="removeDiv($(this).parents('.widget'))"><img src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png" title="DELETE" /></a></span></h3>
     </div>
     <div class="widget-content" id="content{{ mod.pk }}">
     </div>
