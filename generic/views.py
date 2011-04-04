@@ -202,6 +202,7 @@ def generic_dashboard(request,
                       slug,
                       module_types=[],
                       base_template='generic/dashboard_base.html',
+                      module_header_partial_template='generic/partials/module_header.html',
                       module_partial_template='generic/partials/module.html',
                       num_columns=2):
 
@@ -256,5 +257,6 @@ def generic_dashboard(request,
                                'dashboard':slug,
                                'modules':modules,
                                'module_types':module_instances,
+                               'module_header_partial_template':module_header_partial_template,
                                'module_partial_template':module_partial_template,
                               },context_instance=RequestContext(request))
