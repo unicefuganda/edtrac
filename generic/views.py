@@ -253,6 +253,7 @@ def generic_dashboard(request,
 
     return render_to_response(base_template,
                               {
+                               'dashboard':slug,
                                'modules':modules,
                                'module_types':module_instances,
                                'module_partial_template':module_partial_template,
