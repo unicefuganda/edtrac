@@ -12,7 +12,7 @@ def generic_row(request, model=None, pk=None, partial_row='generic/partials/part
     if not (model and pk):
         return HttpResponseServerError
     object = get_object_or_404(model, pk=pk)
-    return render_to_response(partial_row, {'object':object},
+    return render_to_response(partial_row, {'object':object, 'selectable':selectable},
         context_instance=RequestContext(request))
 
 def generic(request,
