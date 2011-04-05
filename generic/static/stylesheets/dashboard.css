@@ -127,3 +127,9 @@ top:10px;
 text-indent:30px;
 display:block;
 }
+
+.ajax_loading {
+    background-image:url("../images/ajax-loader.gif");
+    background-repeat:no-repeat;
+    background-position: center center;
+}
