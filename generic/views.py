@@ -12,7 +12,7 @@ def generic_row(request, model=None, pk=None, partial_row='generic/partials/part
     if not (model and pk):
         return HttpResponseServerError
     object = get_object_or_404(model, pk=pk)
-    return render_to_response(partial_row, {'object':object},
+    return render_to_response(partial_row, {'object':object, 'selectable':selectable},
         context_instance=RequestContext(request))
 
 def generic(request,
@@ -221,7 +221,9 @@ def generic_dashboard(request,
                 dashboard = Dashboard.objects.get(user=request.user.pk, slug=slug)
                 module = form.setModuleParams(dashboard)
                 return render_to_response(module_partial_template,
-                    {'mod':module},context_instance=RequestContext(request))
+                                          {'mod': module,
+                                           'module_header_partial_template': module_header_partial_template},
+                context_instance = RequestContext(request))
         else:
             data=request.POST.lists()
             old_user_modules=Dashboard.objects.get(user=request.user.pk, slug=slug).modules.values_list('pk', flat=True).distinct()
