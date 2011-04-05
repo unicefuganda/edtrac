@@ -48,7 +48,7 @@ function sync_data() {
     $.post("./", data);
 }
 
-$(function() {
+function make_draggable() {
     $('.column').sortable({
         items: '> div',
         connectWith: $('.column'),
@@ -71,5 +71,5 @@ $(function() {
             sync_data();
         }
     });
-});
+}
 
