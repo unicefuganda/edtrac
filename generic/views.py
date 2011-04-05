@@ -247,6 +247,7 @@ def generic_dashboard(request,
 
     if request.user.is_anonymous():
         dashboard = Dashboard.objects.get(slug=slug+'_default')
+        editable = False
     else:
         dashboard, created = Dashboard.objects.get_or_create(user=request.user, slug=slug)
         if created:
