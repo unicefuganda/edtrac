@@ -9,8 +9,8 @@ class Dashboard(models.Model):
     and the arrangement of the different modules and their individual behavior / configuration
     is customizable by the user.
     """
-    user            = models.ForeignKey(User)
-    slug            = models.CharField(max_length=50, unique=True)
+    user            = models.ForeignKey(User, null=True)
+    slug            = models.CharField(max_length=50)
     
     def __unicode__(self):
         return "%s"%self.user
