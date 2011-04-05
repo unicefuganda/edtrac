@@ -21,6 +21,7 @@ class Module(models.Model):
     customizable by the user in terms of where they display on the dashboard and how they behave.
     """
     dashboard       = models.ForeignKey(Dashboard, related_name = "modules")
+    title           = models.CharField(max_length=30)
     view_name       = models.CharField(max_length=30)
     offset          = models.IntegerField()
     column          = models.IntegerField()

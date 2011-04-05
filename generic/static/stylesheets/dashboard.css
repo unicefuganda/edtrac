@@ -108,3 +108,22 @@
 #column0 .widget-placeholder { margin: 30px 35px 0 25px; }
 #column1 .widget-placeholder { margin: 30px 20px 0 20px; }
 #column2 .widget-placeholder { margin: 30px 25px 0 35px; }
+
+a.button{
+display:block;
+color:#555555;
+font-weight:bold;
+height:30px;
+line-height:29px;
+margin-bottom:14px;
+text-decoration:none;
+width:191px;
+}
+a:hover.button{
+color:#0066CC;
+
+.add img{
+top:10px;
+text-indent:30px;
+display:block;
+}

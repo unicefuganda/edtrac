@@ -1,0 +1,8 @@
+<div class="module widget-head">
+	<h3>
+		{% if editable %}
+			<span style="float:right"><a href="javascript:void(0)" class="close" onclick="removeDiv($(this).parents('.widget'))"><img src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png" title="DELETE" /></a></span>
+		{% endif %}	
+		{{ mod.title }}
+	</h3>
+</div>

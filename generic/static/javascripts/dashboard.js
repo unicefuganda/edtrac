@@ -1,11 +1,33 @@
+function ajax_loading(element) {
+    var t = $(element);
+    var offset = t.offset();
+    var dim = {
+        left:    offset.left,
+        top:    offset.top,
+        width:    t.outerWidth(),
+        height:    t.outerHeight()
+    };
+    $('<div class="ajax_loading"></div>').css({
+        position:    'absolute',
+        left:        dim.left + 'px',
+        top:        dim.top + 'px',
+        width:        dim.width + 'px',
+        height:        dim.height + 'px'
+    }).appendTo(document.body).show();
+
+
+}
 function loadModule(elem, module_name) {
+    var to_element=$('#mod').find('.column')[0];
+    ajax_loading(to_element);
     form = $('#form_' + module_name);
     form.children('.input_action').val('createmodule');
-    form.children('.input_module_type').val($('#add_module').val());
+    form.children('.input_module_type').val($('#select_module').val());
     form_data = form.serializeArray();
     $.post('./', form_data, function(data, i, j) {
-            $($('#mod').find('.column')[0]).append(data);
+            $(to_element).append(data);
     });
+     $('.ajax_loading').remove();
 }
 
 function removeDiv(elem) {
@@ -23,7 +45,7 @@ function sync_data() {
         });
     });
     var data = col_orders.join('&');
-    $.post("/cvs/dashboard/", data);
+    $.post("./", data);
 }
 
 $(function() {

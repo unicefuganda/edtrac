@@ -200,8 +200,10 @@ def generic(request,
 
 def generic_dashboard(request,
                       slug,
+                      editable=True,
                       module_types=[],
                       base_template='generic/dashboard_base.html',
+                      module_header_partial_template='generic/partials/module_header.html',
                       module_partial_template='generic/partials/module.html',
                       num_columns=2):
 
@@ -240,27 +242,23 @@ def generic_dashboard(request,
                 if not mod in new_user_modules:
                     Dashboard.objects.get(user=request.user.pk, slug=slug).modules.get(pk=mod).delete()
         return HttpResponse(status=200)
+    try:
+        dashboard = Dashboard.objects.get(user=request.user.pk, slug=slug)
+    except Dashboard.DoesNotExist:
+        dashboard = Dashboard.objects.create(user=request.user, slug=slug)
 
-    dashboard = Dashboard.objects.get(user=request.user.pk, slug=slug)
     modules = [{'col':i, 'modules':[]} for i in range(0, num_columns)]
     columns = dashboard.modules.values_list('column', flat=True).distinct()
-    print columns
+
     for col in columns:
         modules[col]['modules'] = list(dashboard.modules.filter(column=col).order_by('offset'))
 
     return render_to_response(base_template,
                               {
+                               'dashboard':slug,
+                               'editable':editable,
                                'modules':modules,
                                'module_types':module_instances,
+                               'module_header_partial_template':module_header_partial_template,
                                'module_partial_template':module_partial_template,
-                               'location':'lid', 
                               },context_instance=RequestContext(request))
-
-def dummy(request):
-    return HttpResponse('dummy content here')
-
-def dummy2(request):
-    return HttpResponse('dummy2 content here')
-
-def dummy3(request):
-    return HttpResponse('dummy3 content here')
