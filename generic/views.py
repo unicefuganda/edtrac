@@ -219,6 +219,7 @@ def generic_dashboard(request,
     module_instances = [(view_name, module_form(), module_title) for view_name, module_form, module_title in module_types]
     if request.method=='POST':
         page_action = request.POST.get('action',None)
+        module_title_dict[view_name] = request.POST.get('title', module_title)
         if page_action == 'createmodule':
             form_type = request.POST.get('module_type', None)
             form = module_dict[form_type](request.POST)
