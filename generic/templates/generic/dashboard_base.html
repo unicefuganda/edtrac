@@ -22,7 +22,7 @@
         	<a href="javascript:void(0)" onclick="$('#add_module').toggle(0);$('.moduleform').hide();$('#{{ module_types|first|first }}_modules').show();" class="button"><img src="{{ MEDIA_URL }}rapidsms/icons/silk/add.png" title="Add Module" />Add Module</a>
 			<div id="add_module" style="display:none;">
 	        	<div>
-			        <select id="select_module" onchange="$('.moduleform').hide();$('#'+$(this).val()).show()">
+			        <select id="select_module" onchange="$('.moduleform').hide();$('#'+$(this).val() + '_modules').show()">
 			            {% for module_name, module_form, module_title in module_types %}
 			                <option value="{{ module_name }}">{{ module_title }}</option>
 			            {% endfor %}
