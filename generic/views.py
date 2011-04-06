@@ -221,7 +221,9 @@ def generic_dashboard(request,
                 dashboard = Dashboard.objects.get(user=request.user.pk, slug=slug)
                 module = form.setModuleParams(dashboard)
                 return render_to_response(module_partial_template,
-                    {'mod':module},context_instance=RequestContext(request))
+                                          {'mod': module,
+                                           'module_header_partial_template': module_header_partial_template},
+                context_instance = RequestContext(request))
         else:
             data=request.POST.lists()
             old_user_modules=Dashboard.objects.get(user=request.user.pk, slug=slug).modules.values_list('pk', flat=True).distinct()
@@ -242,11 +244,26 @@ def generic_dashboard(request,
                 if not mod in new_user_modules:
                     Dashboard.objects.get(user=request.user.pk, slug=slug).modules.get(pk=mod).delete()
         return HttpResponse(status=200)
-    try:
-        dashboard = Dashboard.objects.get(user=request.user.pk, slug=slug)
-    except Dashboard.DoesNotExist:
-        dashboard = Dashboard.objects.create(user=request.user, slug=slug)
 
+    if request.user.is_anonymous():
+        dashboard = Dashboard.objects.get(slug=slug+'_default')
+        editable = False
+    else:
+        dashboard, created = Dashboard.objects.get_or_create(user=request.user, slug=slug)
+        if created:
+            default_dash = Dashboard.objects.get(slug=slug+'_default')
+            for mod_obj in default_dash.modules.all():
+                mod = dashboard.modules.create(title = mod_obj.title, 
+                                               view_name = mod_obj.view_name,
+                                               column = mod_obj.column,
+                                               offset = mod_obj.offset)
+                mod.save()
+                for param in mod_obj.params.all():
+                    mod_params = mod.params.create(param_name = param.param_name, 
+                                                   param_value = param.param_value, 
+                                                   is_url_param = param.is_url_param)
+                    mod_params.save()
+        
     modules = [{'col':i, 'modules':[]} for i in range(0, num_columns)]
     columns = dashboard.modules.values_list('column', flat=True).distinct()
 

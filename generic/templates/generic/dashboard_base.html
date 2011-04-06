@@ -60,7 +60,13 @@
 	        {% endfor %}
 		{% endif %}
 	    </div>
+
         <div id="mod">
             {% include "generic/partials/modules.html" %}
         </div>
+    {% if editable %}
+    <script language="javascript" >
+        make_draggable()
+    </script>
+    {% endif %}
 {% endblock %}

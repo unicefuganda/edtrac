@@ -9,8 +9,8 @@ class Dashboard(models.Model):
     and the arrangement of the different modules and their individual behavior / configuration
     is customizable by the user.
     """
-    user            = models.ForeignKey(User)
-    slug            = models.CharField(max_length=50, unique=True)
+    user            = models.ForeignKey(User, null=True)
+    slug            = models.CharField(max_length=50)
     
     def __unicode__(self):
         return "%s"%self.user
@@ -30,7 +30,9 @@ class Module(models.Model):
         url = reverse(self.view_name, kwargs=self._param_dict())
         params = self._param_http()
         if params:
-            url = "%s?%s" % (url, params)
+            url = "%s?%s&module=true" % (url, params)
+        else:
+            url = "%s?module=true" % url
         return url
 
     def _param_dict(self):
