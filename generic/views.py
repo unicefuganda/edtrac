@@ -7,6 +7,7 @@ from django import forms
 from django.contrib.auth.models import User
 from generic.models import Dashboard, Module, ModuleParams
 from django.db.models import Count
+from django.views.decorators.cache import cache_control
 
 def generic_row(request, model=None, pk=None, partial_row='generic/partials/partial_row.html', selectable=True):
     if not (model and pk):
@@ -198,6 +199,7 @@ def generic(request,
     context_vars.update(kwargs)
     return render_to_response(response_template,context_vars,context_instance=RequestContext(request))
 
+@cache_control(no_cache=True, max_age=0)
 def generic_dashboard(request,
                       slug,
                       editable=True,
@@ -208,9 +210,12 @@ def generic_dashboard(request,
                       num_columns=2):
 
     module_dict = {}
+    module_title_dict = {}
     # Create mapping of module names to module forms
     for view_name, module_form, module_title in module_types:
         module_dict[view_name] = module_form
+        module_title_dict[view_name] = module_title
+
     module_instances = [(view_name, module_form(), module_title) for view_name, module_form, module_title in module_types]
     if request.method=='POST':
         page_action = request.POST.get('action',None)
@@ -219,7 +224,7 @@ def generic_dashboard(request,
             form = module_dict[form_type](request.POST)
             if form.is_valid():
                 dashboard = Dashboard.objects.get(user=request.user.pk, slug=slug)
-                module = form.setModuleParams(dashboard)
+                module = form.setModuleParams(dashboard, title=module_title_dict[form_type])
                 return render_to_response(module_partial_template,
                                           {'mod': module,
                                            'module_header_partial_template': module_header_partial_template},
