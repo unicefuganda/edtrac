@@ -94,13 +94,20 @@ class Command(BaseCommand):
 
                     print ">> %s" % message.strip()
 
+                    # create our DB message
+                    from rapidsms_httprouter.models import Message
+                    msg = Message.objects.create(connection=connection,
+                                                 text=message.strip(),
+                                                 direction='I',
+                                                 status='H')
+
                     # see if this message matches any of our forms
                     forms = XForm.objects.all().filter(active=True, keyword=keyword)
                     if not forms:
                         print "!! No matching xform for: %s" % message
                         error_count += 1
                     else:
-                        submission = forms[0].process_sms_submission(message.strip(), connection)
+                        submission = forms[0].process_sms_submission(msg)
 
 
                         # back date if appropriate
@@ -117,10 +124,12 @@ class Command(BaseCommand):
 
                         print "<< %s" % submission.response
 
+                    transaction.commit()
+
             except Exception as e:
                 traceback.print_exc(e)
 
-        transaction.commit()
+
 
         print
         print "%d messages processed.  (%d errors)" % ((message_count - error_count), error_count)
