@@ -5,19 +5,19 @@ setup(
     version='0.1',
     license="BSD",
 
-    install_requires = ["rapidsms", 'python (>= 2.5)', 'django (>= 1.2)'],
+    install_requires = ["rapidsms",],
 
     description='An extension for associating contacts with django users and groups.',
     long_description=open('README.rst').read(),
     author='David McCann',
     author_email='david.a.mccann@gmail.com',
 
-    url='http://github.com/daveycrockett/auth',
-    download_url='http://github.com/daveycrockett/auth/downloads',
+    url='http://github.com/daveycrockett/rapidsms-generic',
+    download_url='http://github.com/daveycrockett/rapidsms-generic/downloads',
 
     include_package_data=True,
 
-    packages=['auth'],
+    packages=['rapidsms-generic'],
 
     zip_safe=False,
     classifiers=[
