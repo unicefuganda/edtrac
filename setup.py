@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name='auth',
+    name='rapidsms-generic',
     version='0.1',
     license="BSD",
 
