@@ -1,0 +1,9 @@
+<div id="columns">
+	{% for column in modules %}
+		<div id="column{{ column.col }}" class="column">
+		{% for mod in column.modules %}
+                {% include module_partial_template %}
+		{% endfor %}		
+	</div>
+	{% endfor %}
+</div>

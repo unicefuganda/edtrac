@@ -4,12 +4,16 @@ from django.shortcuts import redirect, get_object_or_404, render_to_response
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.http import Http404,HttpResponseServerError,HttpResponseRedirect, HttpResponse
 from django import forms
+from django.contrib.auth.models import User
+from generic.models import Dashboard, Module, ModuleParams
+from django.db.models import Count
+from django.views.decorators.cache import cache_control
 
 def generic_row(request, model=None, pk=None, partial_row='generic/partials/partial_row.html', selectable=True):
     if not (model and pk):
         return HttpResponseServerError
     object = get_object_or_404(model, pk=pk)
-    return render_to_response(partial_row, {'object':object},
+    return render_to_response(partial_row, {'object':object, 'selectable':selectable},
         context_instance=RequestContext(request))
 
 def generic(request,
@@ -21,23 +25,31 @@ def generic(request,
             partial_header='generic/partials/partial_header.html',
             partial_row='generic/partials/partial_row.html',
             paginator_template='generic/partials/pagination.html',
+            results_title='Results',
             paginated=True,
             selectable=True,
             objects_per_page=25,
             columns=[('object', False, '')],
+            sort_column='',
+            sort_ascending=True,
             filter_forms=[],
-            action_forms=[]):
-    
+            action_forms=[],
+            **kwargs):
+
+    # model parameter is required
     if not model:
         return HttpResponseServerError
 
+    # querysets can be calls to a function for dynamic, run-time retrieval
     if callable(queryset):
         queryset = queryset()
 
+    # the default list is either a queryset parameter, or all
+    # objects from the model parameter
     object_list = queryset or model.objects.all()
-    if type(object_list) == RawQuerySet:
-            object_list = list(object_list)
-    
+
+    # dynamically create a form class to represent the list of selected results,
+    # for performing actions
     class ResultsForm(forms.Form):
         results = forms.ModelMultipleChoiceField(queryset=object_list, widget=forms.CheckboxSelectMultiple())
 
@@ -46,8 +58,9 @@ def generic(request,
     for action_class in action_forms:
         form_instance = action_class()
         fully_qualified_class_name = "%s.%s" % (form_instance.__module__, form_instance.__class__.__name__)
+        # we need both a dictionary of action forms (for looking up actions performed)
+        # and a list of tuple for rendering within the template in a particular order
         class_dict[fully_qualified_class_name] = action_class
-
         action_form_instances.append((fully_qualified_class_name,action_class(),))
 
     filter_form_instances = []
@@ -55,19 +68,19 @@ def generic(request,
         form_instance = filter_class()
         filter_form_instances.append(form_instance)
 
+    # define some defaults
     response_template = base_template
     page = 1
     selected=False
     status_message=''
     status_message_type=''
-    sort_column = ''
-    sort_ascending = True
 
     if request.method == 'POST':
         page_action = request.POST.get('page_action', '')
         sort_action = request.POST.get('sort_action', '')
         sort_column = request.POST.get('sort_column', '')
         sort_ascending = request.POST.get('sort_ascending', 'True')
+        sort_ascending = (sort_ascending == 'True')
         action_taken = request.POST.get('action', '')
         if page_action:
             object_list = request.session['object_list']
@@ -79,11 +92,11 @@ def generic(request,
             # retrieve the original, unsorted, unpaginated list,
             # as some sorts will turn the initial queryset into a list
             object_list = request.session['filtered_list']
-            sort_ascending = (sort_ascending == 'True')
             for column_name, sortable, sort_param, sorter in columns:
                 if sortable and sort_param == sort_column:
                     object_list = sorter.sort(sort_column, object_list, sort_ascending)
         elif action_taken:
+            object_list = request.session['object_list']
             everything_selected = request.POST.get('select_everything', None)
             results = []
             if everything_selected:
@@ -110,6 +123,13 @@ def generic(request,
         # store the full set of models, in queryset form, in the
         # session, for the case of sorting the full list
         request.session['filtered_list'] = object_list
+
+        # calls to this view can define a default sorting order,
+        # if it's an initial GET request we should perform this sort here
+        if sort_column:
+            for column_name, sortable, sort_param, sorter in columns:
+                if sortable and sort_param == sort_column:
+                    object_list = sorter.sort(sort_column, object_list, sort_ascending)
 
     request.session['object_list'] = object_list
     total = len(object_list)
@@ -144,34 +164,124 @@ def generic(request,
             else:
                 ranges.append(low_range)
                 ranges.append(range(10, max(0, page - 2), 10))
-                ranges.append(range(max(0, page - 2), min(paginator.num_pages, page + 3)))                
+                ranges.append(range(max(0, page - 2), min(paginator.num_pages, page + 3)))
                 ranges.append(range((round(min(paginator.num_pages, page+3)/10) + 1)*10, paginator.num_pages - 10, 10))
                 ranges.append(high_range)
 
         else:
             ranges.append(paginator.page_range)
-    
-    return render_to_response(response_template, {
-            'partial_base':partial_base,
-            'partial_header':partial_header,
-            'partial_row':partial_row,
-            'paginator_template':paginator_template,
-            template_object_name:object_list, # for custom templates
-            'object_list':object_list,        # allow generic templates to still
-                                              # access the object list in the same way
-            'paginator':paginator,
-            'filter_forms':filter_form_instances,
-            'action_forms':action_form_instances,
-            'paginated':paginated,
-            'total':total,
-            'selectable':selectable,
-            'columns':columns,
-            'sort_column':sort_column,
-            'sort_ascending':sort_ascending,
-            'page':page,
-            'ranges':ranges,
-            'selected':selected,
-            'status_message':status_message,
-            'status_message_type':status_message_type,
-            'base_template':'layout.html',
-        },context_instance=RequestContext(request))
+
+    context_vars = {
+        'partial_base':partial_base,
+        'partial_header':partial_header,
+        'partial_row':partial_row,
+        'paginator_template':paginator_template,
+        'results_title':results_title,
+        template_object_name:object_list, # for custom templates
+        'object_list':object_list, # allow generic templates to still
+                                          # access the object list in the same way
+        'paginator':paginator,
+        'filter_forms':filter_form_instances,
+        'action_forms':action_form_instances,
+        'paginated':paginated,
+        'total':total,
+        'selectable':selectable,
+        'columns':columns,
+        'sort_column':sort_column,
+        'sort_ascending':sort_ascending,
+        'page':page,
+        'ranges':ranges,
+        'selected':selected,
+        'status_message':status_message,
+        'status_message_type':status_message_type,
+        'base_template':'layout.html',
+    }
+    context_vars.update(kwargs)
+    return render_to_response(response_template,context_vars,context_instance=RequestContext(request))
+
+@cache_control(no_cache=True, max_age=0)
+def generic_dashboard(request,
+                      slug,
+                      editable=True,
+                      module_types=[],
+                      base_template='generic/dashboard_base.html',
+                      module_header_partial_template='generic/partials/module_header.html',
+                      module_partial_template='generic/partials/module.html',
+                      num_columns=2):
+
+    module_dict = {}
+    module_title_dict = {}
+    # Create mapping of module names to module forms
+    for view_name, module_form, module_title in module_types:
+        module_dict[view_name] = module_form
+        module_title_dict[view_name] = module_title
+
+    module_instances = [(view_name, module_form(), module_title) for view_name, module_form, module_title in module_types]
+    if request.method=='POST':
+        page_action = request.POST.get('action',None)
+        module_title_dict[view_name] = request.POST.get('title', module_title)
+        if page_action == 'createmodule':
+            form_type = request.POST.get('module_type', None)
+            form = module_dict[form_type](request.POST)
+            if form.is_valid():
+                dashboard = Dashboard.objects.get(user=request.user.pk, slug=slug)
+                module = form.setModuleParams(dashboard, title=module_title_dict[form_type])
+                return render_to_response(module_partial_template,
+                                          {'mod': module,
+                                           'module_header_partial_template': module_header_partial_template},
+                context_instance = RequestContext(request))
+        else:
+            data=request.POST.lists()
+            old_user_modules=Dashboard.objects.get(user=request.user.pk, slug=slug).modules.values_list('pk', flat=True).distinct()
+            new_user_modules=[]
+            for col_val, offset_list in data:
+                offset = 0
+                column = int(col_val)
+                for mod_pk in offset_list:
+                    mod_pk = int(mod_pk)
+                    new_user_modules.append(mod_pk)
+                    module = Module.objects.get(pk=mod_pk)
+                    module.offset = offset
+                    module.column = column
+                    module.save()
+                    offset += 1
+
+            for mod in old_user_modules:
+                if not mod in new_user_modules:
+                    Dashboard.objects.get(user=request.user.pk, slug=slug).modules.get(pk=mod).delete()
+        return HttpResponse(status=200)
+
+    if request.user.is_anonymous():
+        dashboard = Dashboard.objects.get(slug=slug+'_default')
+        editable = False
+    else:
+        dashboard, created = Dashboard.objects.get_or_create(user=request.user, slug=slug)
+        if created:
+            default_dash = Dashboard.objects.get(slug=slug+'_default')
+            for mod_obj in default_dash.modules.all():
+                mod = dashboard.modules.create(title = mod_obj.title, 
+                                               view_name = mod_obj.view_name,
+                                               column = mod_obj.column,
+                                               offset = mod_obj.offset)
+                mod.save()
+                for param in mod_obj.params.all():
+                    mod_params = mod.params.create(param_name = param.param_name, 
+                                                   param_value = param.param_value, 
+                                                   is_url_param = param.is_url_param)
+                    mod_params.save()
+        
+    modules = [{'col':i, 'modules':[]} for i in range(0, num_columns)]
+    columns = dashboard.modules.values_list('column', flat=True).distinct()
+
+    for col in columns:
+        modules[col]['modules'] = list(dashboard.modules.filter(column=col).order_by('offset'))
+
+    return render_to_response(base_template,
+                              {
+                               'dashboard':slug,
+                               'editable':editable,
+                               'modules':modules,
+                               'module_types':module_instances,
+                               'module_header_partial_template':module_header_partial_template,
+                               'module_partial_template':module_partial_template,
+                              },context_instance=RequestContext(request))

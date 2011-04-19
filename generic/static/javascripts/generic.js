@@ -34,7 +34,14 @@ function sort(elem, col, ascending) {
 
 function action(elem, action) {
     $('#input_action').val(action);
-    filter(elem);
+    form = $(elem).parents("form");
+    form_data = form.serializeArray();
+    $('#div_results_loading').show();
+    overlay_loading_panel($('#actions'));
+    $('#object_list').load("./", form_data, function() {
+        $('#div_results_loading').hide();
+        $('#div_panel_loading').hide();
+    });
 }
 
 function select_all() {
@@ -61,4 +68,22 @@ function deselect_everything(count) {
     $('#span_select_everything').html('You have selected all items on this page.  <a href="javascript:void(0)" onclick="select_everything(' + count + ')">Click here</a> to select all ' + count + ' items.');
     $('#input_select_all').attr('checked', false);
     select_all();
+}
+
+function disable_enter() {
+    if ($.browser.mozilla) {
+        $('#filters input:text').keypress(function(event) {
+            if (event.keyCode == 13) return false;
+        });
+        $('#actions input:text').keypress(function(event) {
+            if (event.keyCode == 13) return false;
+        });
+    } else {
+        $('#filters input:text').keydown(function(event) {
+            if (event.keyCode == 13) return false;
+        });
+        $('#actions input:text').keydown(function(event) {
+            if (event.keyCode == 13) return false;
+        });
+    }
 }
