@@ -142,7 +142,7 @@ def generic(request,
             object_list = paginator.page(page).object_list
         except (EmptyPage, InvalidPage):
             object_list = paginator.page(paginator.num_pages).object_list
-            page = num_pages
+            page = paginiator.num_pages
         if paginator.num_pages > 10:
             low_range = []
             mid_range = []
