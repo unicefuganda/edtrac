@@ -24,3 +24,5 @@ class ModuleForm(forms.Form):
 
     def setModuleParams(self, dashboard, module=None):
         raise NotImplementedError("Subclasses of ModuleForm must implement the setModuleParams() method!")
+class TimeRangeForm(forms.Form):
+    range=forms.ChoiceField(choices= (('w','Previous Calendar Week'),('m','Previous Calendar Month'),('q','Previous calendar quarter'),))
