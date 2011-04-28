@@ -156,6 +156,7 @@ class MassTextForm(ActionForm):
                 Connection.objects.filter(contact__in=results).distinct()
             router = get_router()
             text = self.cleaned_data['text']
+            text = text.replace('%', '%%')
             mass_text = MassText.objects.create(user=request.user,
                     text=text)
             mass_text.sites.add(Site.objects.get_current())
