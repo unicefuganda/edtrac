@@ -17,7 +17,9 @@
 
 {% block content %}
     <div id="head" class="module">
-        <h2>{{ dashboard|upper }} Dashboard</h2>
+        {% if title %}
+            <h2>{{ title }}</h2>
+        {% endif %}
 		{% if editable %}
         	<a href="javascript:void(0)" onclick="$('#add_module').toggle(0);$('.moduleform').hide();$('#{{ module_types|first|first }}_modules').show();" class="button"><img src="{{ MEDIA_URL }}rapidsms/icons/silk/add.png" title="Add Module" />Add Module</a>
 			<div id="add_module" style="display:none;">

@@ -207,10 +207,13 @@ def generic_dashboard(request,
                       base_template='generic/dashboard_base.html',
                       module_header_partial_template='generic/partials/module_header.html',
                       module_partial_template='generic/partials/module.html',
+                      title='Dashboard',
                       num_columns=2):
 
     module_dict = {}
     module_title_dict = {}
+    user = (not request.user.is_anonymous() and request.user) or None
+    dashboard = Dashboard.objects.get(user=user, slug=slug)
     # Create mapping of module names to module forms
     for view_name, module_form, module_title in module_types:
         module_dict[view_name] = module_form
@@ -224,7 +227,6 @@ def generic_dashboard(request,
             form_type = request.POST.get('module_type', None)
             form = module_dict[form_type](request.POST)
             if form.is_valid():
-                dashboard = Dashboard.objects.get(user=request.user.pk, slug=slug)
                 module = form.setModuleParams(dashboard, title=module_title_dict[form_type])
                 return render_to_response(module_partial_template,
                                           {'mod': module,
@@ -232,7 +234,7 @@ def generic_dashboard(request,
                 context_instance = RequestContext(request))
         else:
             data=request.POST.lists()
-            old_user_modules=Dashboard.objects.get(user=request.user.pk, slug=slug).modules.values_list('pk', flat=True).distinct()
+            old_user_modules=dashboard.modules.values_list('pk', flat=True).distinct()
             new_user_modules=[]
             for col_val, offset_list in data:
                 offset = 0
@@ -248,16 +250,15 @@ def generic_dashboard(request,
 
             for mod in old_user_modules:
                 if not mod in new_user_modules:
-                    Dashboard.objects.get(user=request.user.pk, slug=slug).modules.get(pk=mod).delete()
+                    dashboard.modules.get(pk=mod).delete()
         return HttpResponse(status=200)
 
     if request.user.is_anonymous():
-        dashboard = Dashboard.objects.get(slug=slug+'_default')
         editable = False
     else:
         dashboard, created = Dashboard.objects.get_or_create(user=request.user, slug=slug)
         if created:
-            default_dash = Dashboard.objects.get(slug=slug+'_default')
+            default_dash = Dashboard.objects.get(slug=slug, user=None)
             for mod_obj in default_dash.modules.all():
                 mod = dashboard.modules.create(title = mod_obj.title, 
                                                view_name = mod_obj.view_name,
@@ -278,9 +279,9 @@ def generic_dashboard(request,
 
     return render_to_response(base_template,
                               {
-                               'dashboard':slug,
                                'editable':editable,
                                'modules':modules,
+                               'title':title,
                                'module_types':module_instances,
                                'module_header_partial_template':module_header_partial_template,
                                'module_partial_template':module_partial_template,
