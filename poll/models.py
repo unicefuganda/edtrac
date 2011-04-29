@@ -504,6 +504,9 @@ class Poll(models.Model):
                 mode = v
         context['mode'] = mode
         return context
+    
+    def __unicode__(self):
+        return self.name
 
 
 class Category(models.Model):
