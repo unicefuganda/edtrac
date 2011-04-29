@@ -20,7 +20,7 @@ setup(
 
     include_package_data=True,
 
-    packages=['rapidsms-generic'],
+    packages=['generic'],
 
     zip_safe=False,
     classifiers=[
