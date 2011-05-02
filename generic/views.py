@@ -5,9 +5,10 @@ from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.http import Http404,HttpResponseServerError,HttpResponseRedirect, HttpResponse
 from django import forms
 from django.contrib.auth.models import User
-from generic.models import Dashboard, Module, ModuleParams
+from generic.models import Dashboard, Module, ModuleParams, StaticModuleContent
 from django.db.models import Count
 from django.views.decorators.cache import cache_control
+from .utils import copy_dashboard
 
 def generic_row(request, model=None, pk=None, partial_row='generic/partials/partial_row.html', selectable=True):
     if not (model and pk):
@@ -202,7 +203,6 @@ def generic(request,
 @cache_control(no_cache=True, max_age=0)
 def generic_dashboard(request,
                       slug,
-                      editable=True,
                       module_types=[],
                       base_template='generic/dashboard_base.html',
                       module_header_partial_template='generic/partials/module_header.html',
@@ -213,7 +213,7 @@ def generic_dashboard(request,
     module_dict = {}
     module_title_dict = {}
     user = (not request.user.is_anonymous() and request.user) or None
-    dashboard = Dashboard.objects.get(user=user, slug=slug)
+    dashboard, created = Dashboard.objects.get_or_create(user=user, slug=slug)
     # Create mapping of module names to module forms
     for view_name, module_form, module_title in module_types:
         module_dict[view_name] = module_form
@@ -232,6 +232,19 @@ def generic_dashboard(request,
                                           {'mod': module,
                                            'module_header_partial_template': module_header_partial_template},
                 context_instance = RequestContext(request))
+        elif page_action == 'publish':
+            user_pk = int(request.POST.get('user', -1))
+            if user_pk == -2: # anonymous user
+                copydashboard, created = Dashboard.objects.get_or_create(user=None, slug=slug)
+                copy_dashboard(dashboard, copydashboard)
+            elif user_pk == -3: # all users
+                for u in User.objects.all():
+                    copydashboard, created = Dashboard.objects.get_or_create(user=u, slug=slug)
+                    copy_dashboard(dashboard, copydashboard)
+            else:
+                user = User.objects.get(pk=user_pk)
+                copydashboard, created = Dashboard.objects.get_or_create(user=user, slug=slug)
+                copy_dashboard(dashboard, copydashboard)
         else:
             data=request.POST.lists()
             old_user_modules=dashboard.modules.values_list('pk', flat=True).distinct()
@@ -251,25 +264,11 @@ def generic_dashboard(request,
             for mod in old_user_modules:
                 if not mod in new_user_modules:
                     dashboard.modules.get(pk=mod).delete()
-        return HttpResponse(status=200)
+            return HttpResponse(status=200)
 
-    if request.user.is_anonymous():
-        editable = False
-    else:
-        dashboard, created = Dashboard.objects.get_or_create(user=request.user, slug=slug)
-        if created:
-            default_dash = Dashboard.objects.get(slug=slug, user=None)
-            for mod_obj in default_dash.modules.all():
-                mod = dashboard.modules.create(title = mod_obj.title, 
-                                               view_name = mod_obj.view_name,
-                                               column = mod_obj.column,
-                                               offset = mod_obj.offset)
-                mod.save()
-                for param in mod_obj.params.all():
-                    mod_params = mod.params.create(param_name = param.param_name, 
-                                                   param_value = param.param_value, 
-                                                   is_url_param = param.is_url_param)
-                    mod_params.save()
+    if created:
+        default_dash, created = Dashboard.objects.get_or_create(slug=slug, user=None)
+        copy_dashboard(default_dash, dashboard)
         
     modules = [{'col':i, 'modules':[]} for i in range(0, num_columns)]
     columns = dashboard.modules.values_list('column', flat=True).distinct()
@@ -277,12 +276,23 @@ def generic_dashboard(request,
     for col in columns:
         modules[col]['modules'] = list(dashboard.modules.filter(column=col).order_by('offset'))
 
+    user_list = []
+    for u in User.objects.order_by('username'):
+        if Dashboard.objects.filter(user=u, slug=slug).count():
+            user_list.append((u, Dashboard.objects.get(user=u, slug=slug),))
+        else:
+            user_list.append((u, None,))
+
     return render_to_response(base_template,
                               {
-                               'editable':editable,
                                'modules':modules,
                                'title':title,
                                'module_types':module_instances,
                                'module_header_partial_template':module_header_partial_template,
                                'module_partial_template':module_partial_template,
+                               'user_list':user_list,
                               },context_instance=RequestContext(request))
+
+def static_module(request, content_id):
+    content = get_object_or_404(StaticModuleContent, pk=content_id)
+    return render_to_response("generic/partials/static_module.html", {'content':content.content},context_instance=RequestContext(request))

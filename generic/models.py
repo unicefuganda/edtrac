@@ -15,6 +15,11 @@ class Dashboard(models.Model):
     def __unicode__(self):
         return "%s"%self.user
 
+    class Meta:
+        permissions = (
+            ("publish_dashboard", "Can publish dashboards"),
+        )
+
 class Module(models.Model):
     """
     Modules are the different applications that run / display on a user dashboard. Modules are
@@ -56,3 +61,9 @@ class ModuleParams(models.Model):
     
     def __unicode__(self):
         return "%s"%self.param_name
+
+class StaticModuleContent(models.Model):
+    def __unicode__(self):
+        return u"%s" % self.content
+
+    content = models.TextField()

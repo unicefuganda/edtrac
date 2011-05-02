@@ -30,6 +30,14 @@ function loadModule(elem, module_name) {
      $('.ajax_loading').remove();
 }
 
+function check_existing() {
+    user_pk = $('#user_list').val();
+    if ($('input[name="user_' + user_pk + '_dashboard"]').val() == 'true') {
+        return confirm('Overwrite existing dashboard for user?');
+    }
+    return true;
+}
+
 function removeDiv(elem) {
     $(elem).remove();
     sync_data();
