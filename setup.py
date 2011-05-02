@@ -18,7 +18,7 @@ setup(
     include_package_data=True,
 
     packages=['auth'],
-    package_data={'auth':['templates/*/*.html','templates/*/*/*.html']},
+        package_data={'generic':['templates/*/*.html','templates/*/*/*.html','static/*','static/*/*']},
     zip_safe=False,
     classifiers=[
         'Development Status :: 4 - Beta',
