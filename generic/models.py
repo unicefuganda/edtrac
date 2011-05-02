@@ -41,7 +41,7 @@ class Module(models.Model):
         return url
 
     def _param_dict(self):
-        return dict([(m.param_name, m.param_value,) for m in self.params.filter(is_url_param=True)])
+        return dict([(str(m.param_name), str(m.param_value),) for m in self.params.filter(is_url_param=True)])
 
     def _param_http(self):
         return '&'.join(['%s=%s' % (m.param_name, m.param_value) for m in self.params.filter(is_url_param=False)])
