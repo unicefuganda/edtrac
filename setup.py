@@ -23,7 +23,7 @@ setup(
     include_package_data=True,
 
     packages=['poll'],
-    package_data={'poll':['templates/*/*.html','templates/*/*/*.html','static/*','static/*/*']},
+    package_data={'poll':['templates/*/*.html','templates/*/*/*.html','static/*/*']},
     zip_safe=False,
     classifiers=[
         'Development Status :: 4 - Beta',
