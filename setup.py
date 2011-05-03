@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='rapidsms-auth',
@@ -17,7 +17,7 @@ setup(
 
     include_package_data=True,
 
-    packages=['auth'],
+    packages=find_packages(),
     package_data={'auth':['templates/*/*.html','templates/*/*/*.html','static/*/*']},
     zip_safe=False,
     classifiers=[
