@@ -23,7 +23,7 @@
 <td class="category_options_col">
   
   {% if category %}
-      <a style="float:right;padding-top:7px;" href="javascript:void(0);"><img onclick="cancelCategory(this, '{% poll.views.view_category poll.pk category.pk %}');" src="{{ MEDIA_URL }}rapidsms/icons/silk/decline.png" alt="" border="0"/></a>
+      <a style="float:right;padding-top:7px;" href="javascript:void(0);"><img onclick="cancelCategory(this, '{% url poll.views.view_category poll.pk category.pk %}');" src="{{ MEDIA_URL }}rapidsms/icons/silk/decline.png" alt="" border="0"/></a>
       <div class="buttons">
           <a onclick="saveCategory(this, '{% url poll.views.edit_category poll.pk category.pk %}');" href="javascript:void(0);" id="save_{{ category.pk }}">
               <img src="{{ MEDIA_URL }}poll/icons/silk/bullet_disk.png" alt=""/>Save
