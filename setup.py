@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='rapidsms-polls',
@@ -22,7 +22,7 @@ setup(
 
     include_package_data=True,
 
-    packages=['poll'],
+    packages=find_packages(),
     package_data={'poll':[
         'templates/*/*.html',
         'templates/*/*/*.html',
