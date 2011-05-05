@@ -393,7 +393,7 @@ class Poll(models.Model):
                 area_names_lower = [ai.lower() for ai in area_names]
                 area_names_matches = difflib.get_close_matches(location_str.lower(), area_names_lower)
                 if area_names_matches:
-                    area = Area.objects.get(name__iexact=area_names_matches[0])
+                    area = Area.objects.filter(name__iexact=area_names_matches[0])[0]
                 else:
                     area = Area.objects.create(name=location_str, code=generate_tracking_tag())
                 resp.eav.poll_location_value = area
