@@ -29,8 +29,15 @@ def incoming_progress(message):
     if  progress and progress.accepts_incoming(curtime):
         response = progress.step.poll.process_response(message)
         progress.log(response[0])
-        if not (response[0].has_errors and progress.step.rule == ScriptStep.STRICT):
+        if not (response[0].has_errors and\
+                progress.step.rule in [ScriptStep.STRICT,\
+                                       ScriptStep.STRICT_MOVEON,\
+                                       ScriptStep.STRICT_GIVEUP]):
             progress.status = ScriptProgress.COMPLETE
+            progress.save()
+        elif response[0].has_errors and progress.step.rule in [ScriptStep.STRICT_MOVEON,\
+                                                               ScriptStep.STRICT_GIVEUP]:
+            progress.num_tries = (progress.num_tries or 0) + 1
             progress.save()
         return response[1]
     return None

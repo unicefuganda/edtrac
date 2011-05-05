@@ -31,7 +31,7 @@ def check_progress(connection):
         progress.start()
         return progress.outgoing_message()
     elif progress.expired(d_now):
-        if progress.step.rule in [ScriptStep.WAIT_GIVEUP, ScriptStep.RESEND_GIVEUP]:
+        if progress.step.rule in [ScriptStep.WAIT_GIVEUP, ScriptStep.RESEND_GIVEUP, ScriptStep.STRICT_GIVEUP]:
             progress.giveup()
         else:
             progress.status = ScriptProgress.COMPLETE

@@ -32,6 +32,8 @@ class ScriptStep(models.Model):
     order = models.IntegerField()
     LENIENT = 'l'
     STRICT = 's'
+    STRICT_MOVEON = 'M'
+    STRICT_GIVEUP = 'S'
     WAIT_MOVEON = 'w'
     WAIT_GIVEUP = 'g'
     RESEND_MOVEON = 'R'
@@ -41,6 +43,8 @@ class ScriptStep(models.Model):
                 max_length=1,
                 choices=((LENIENT, 'Lenient (accept erroneous responses and move on to the next step)'),
                          (STRICT, 'Strict (wait until the user submits a valid response with no errors)'),
+                         (STRICT_MOVEON, 'Strict tries (give the user n tries to send a valid response with no errors, resend the question n times if no response, then move on to the next step)'),
+                         (STRICT_GIVEUP, 'Strict tries (give the user n tries to send a valid response with no errors, resend the question n times if no response, then give up )'),
                          (WAIT_MOVEON, 'Wait for <giveup_offset> seconds, then move to next step'),
                          (WAIT_GIVEUP, 'Wait for <giveup_offset> seconds, then stop the script for this user entirely'),
                          (RESEND_MOVEON, 'Resend message/question <num_tries> times, then move to next step'),
@@ -112,8 +116,11 @@ class ScriptProgress(models.Model):
         if  self.step and self.status == ScriptProgress.PENDING and \
             (self.step.rule in [ScriptStep.WAIT_MOVEON, ScriptStep.WAIT_GIVEUP] or \
             ( \
-                (self.step.rule in [ScriptStep.RESEND_MOVEON, ScriptStep.RESEND_GIVEUP]) and \
-                (self.num_tries == self.step.num_tries) \
+                (self.step.rule in [ScriptStep.RESEND_MOVEON,\
+                                    ScriptStep.RESEND_GIVEUP,\
+                                    ScriptStep.STRICT_GIVEUP,\
+                                    ScriptStep.STRICT_MOVEON]) and \
+                (self.num_tries >= self.step.num_tries) \
             )):
             return (self.time + datetime.timedelta(seconds=self.step.giveup_offset) <= curtime)
         return False
@@ -137,7 +144,7 @@ class ScriptProgress(models.Model):
         Returns True if the step has the appropriate rule, and the proper amount of time
         has passed, False otherwise.
         """
-        return (self.step and self.step.rule in [ScriptStep.RESEND_MOVEON, ScriptStep.RESEND_GIVEUP] and \
+        return (self.step and self.step.rule in [ScriptStep.RESEND_MOVEON, ScriptStep.RESEND_GIVEUP, ScriptStep.STRICT_GIVEUP, ScriptStep.STRICT_MOVEON] and \
             self.num_tries < self.step.num_tries and self.time + datetime.timedelta(seconds=self.step.retry_offset) <= curtime)
 
     def last_step(self):

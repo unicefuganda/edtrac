@@ -225,6 +225,59 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(prog.step.order, 2)
         self.assertEquals(prog.status, 'C')
 
+    def testStrictRules(self):
+        step = ScriptStep.objects.get(order=2)
+        # modify setUp() ScriptStep 2 to be LENIENT
+        step.rule = ScriptStep.STRICT_MOVEON
+        step.num_tries = 2
+        step.retry_offset = 60
+        step.giveup_offset = 0
+        step.save()
+
+        # dummy progress, the question for step two has been sent out, now we check
+        # that any response (even erroneous) advances progress
+        connection = Connection.objects.all()[0]
+        script = Script.objects.all()[0]
+        step = ScriptStep.objects.get(order=2)
+        prog = ScriptProgress.objects.create(connection=connection, script=script, step=step, status='P')
+        # create a dummy session
+        session = ScriptSession.objects.create(connection=connection, script=script)
+        incomingmessage = self.fakeIncoming('Jack cheese is a cheese that I like')
+        response_message = incoming_progress(incomingmessage)
+        self.assertEquals(response_message, "We didn't understand your response and it's very important to know about your cheese desires.  Please resend.")
+        self.assertEquals(Response.objects.count(), 1)
+
+        # refresh progress
+        prog = ScriptProgress.objects.get(connection=connection)
+        # check that this erroneous poll response DID update the progress,
+        # since the rule is now lenient
+        r = Response.objects.order_by('-date')[0]
+        self.failUnless(r.has_errors)
+        self.assertEquals(prog.step.order, 2)
+        self.assertEquals(prog.status, 'P')
+        self.assertEquals(prog.num_tries, 1)
+
+        incomingmessage = self.fakeIncoming('Well, I also like cheddar')
+        response_message = incoming_progress(incomingmessage)
+        self.assertEquals(response_message, "We didn't understand your response and it's very important to know about your cheese desires.  Please resend.")
+        self.assertEquals(Response.objects.count(), 2)
+
+        # refresh progress
+        prog = ScriptProgress.objects.get(connection=connection)
+        # check that this erroneous poll response DID update the progress,
+        # since the rule is now lenient
+        r = Response.objects.order_by('-date')[0]
+        self.failUnless(r.has_errors)
+        self.assertEquals(prog.step.order, 2)
+        self.assertEquals(prog.status, 'P')
+        self.assertEquals(prog.num_tries, 2)
+
+        response = check_progress(connection)
+        # refresh progress
+        prog = ScriptProgress.objects.get(connection=connection)
+        self.assertEquals(prog.step.order, 2)
+        self.assertEquals(prog.status, 'C')
+
     def waitFlow(self, giveup = False):
         step = ScriptStep.objects.get(order=2)
         if giveup:
