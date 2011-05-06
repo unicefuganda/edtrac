@@ -139,9 +139,6 @@ class Poll(models.Model):
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
     type = models.SlugField(max_length=8, null=True, blank=True)
-    type = models.CharField(
-                max_length=1,
-                choices=((TYPE_TEXT, 'Text-based'),(TYPE_NUMERIC, 'Numeric Response')))
     default_response = models.CharField(max_length=160)
     sites = models.ManyToManyField(Site)
     objects = (CurrentSiteManager('sites') if settings.SITE_ID else models.Manager())
@@ -394,9 +391,11 @@ class Poll(models.Model):
                 area_names_matches = difflib.get_close_matches(location_str.lower(), area_names_lower)
                 if area_names_matches:
                     area = Area.objects.filter(name__iexact=area_names_matches[0])[0]
+                    resp.eav.poll_location_value = area
+                    resp.save()
                 else:
-                    area = Area.objects.create(name=location_str, code=generate_tracking_tag())
-                resp.eav.poll_location_value = area
+                    resp.has_errors = True
+                
             else:
                 resp.has_errors = True
                 
