@@ -36,7 +36,6 @@ def generic(request,
             filter_forms=[],
             action_forms=[],
             **kwargs):
-
     # model parameter is required
     if not model:
         return HttpResponseServerError
@@ -76,6 +75,8 @@ def generic(request,
     status_message=''
     status_message_type=''
 
+    OBJECT_LIST_KEY = "%s_object_list" % request.path
+    FILTERED_LIST_KEY = "%s_filtered_list" % request.path
     if request.method == 'POST':
         page_action = request.POST.get('page_action', '')
         sort_action = request.POST.get('sort_action', '')
@@ -83,18 +84,8 @@ def generic(request,
         sort_ascending = request.POST.get('sort_ascending', 'True')
         sort_ascending = (sort_ascending == 'True')
         action_taken = request.POST.get('action', '')
-        if not ('object_list' in request.session and 'filtered_list' in request.session):
-            if not 'filtered_list' in request.session:
-                request.session['filtered_list'] = object_list
-            if not 'object_list' in request.session:
-                if sort_column:
-                    for column_name, sortable, sort_param, sorter in columns:
-                        if sortable and sort_param == sort_column:
-                            object_list = sorter.sort(sort_column, object_list, sort_ascending)
-
-                request.session['object_list'] = object_list
         if page_action:
-            object_list = request.session['object_list']
+            object_list = request.session[OBJECT_LIST_KEY]
             try:
                 page = int(request.POST.get('page_num', '1'))
             except ValueError:
@@ -102,16 +93,16 @@ def generic(request,
         elif sort_action:
             # retrieve the original, unsorted, unpaginated list,
             # as some sorts will turn the initial queryset into a list
-            object_list = request.session['filtered_list']
+            object_list = request.session[FILTERED_LIST_KEY]
             for column_name, sortable, sort_param, sorter in columns:
                 if sortable and sort_param == sort_column:
                     object_list = sorter.sort(sort_column, object_list, sort_ascending)
         elif action_taken:
-            object_list = request.session['object_list']
+            object_list = request.session[OBJECT_LIST_KEY]
             everything_selected = request.POST.get('select_everything', None)
             results = []
             if everything_selected:
-                results = request.session['object_list']
+                results = request.session[OBJECT_LIST_KEY]
             else:
                 resultsform = ResultsForm(request.POST)
                 if resultsform.is_valid():
@@ -128,12 +119,12 @@ def generic(request,
             selected = True
             # store the original, unsorted, unpaginated list,
             # as some sorts will turn the initial queryset into a list
-            request.session['filtered_list'] = object_list
+            request.session[FILTERED_LIST_KEY] = object_list
         response_template = partial_base
     else:
         # store the full set of models, in queryset form, in the
         # session, for the case of sorting the full list
-        request.session['filtered_list'] = object_list
+        request.session[FILTERED_LIST_KEY] = object_list
 
         # calls to this view can define a default sorting order,
         # if it's an initial GET request we should perform this sort here
@@ -142,7 +133,7 @@ def generic(request,
                 if sortable and sort_param == sort_column:
                     object_list = sorter.sort(sort_column, object_list, sort_ascending)
 
-    request.session['object_list'] = object_list
+    request.session[OBJECT_LIST_KEY] = object_list
     total = len(object_list)
     paginator = None
     ranges = []
