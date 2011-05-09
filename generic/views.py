@@ -83,6 +83,16 @@ def generic(request,
         sort_ascending = request.POST.get('sort_ascending', 'True')
         sort_ascending = (sort_ascending == 'True')
         action_taken = request.POST.get('action', '')
+        if not ('object_list' in request.session and 'filtered_list' in request.session):
+            if not 'filtered_list' in request.session:
+                request.session['filtered_list'] = object_list
+            if not 'object_list' in request.session:
+                if sort_column:
+                    for column_name, sortable, sort_param, sorter in columns:
+                        if sortable and sort_param == sort_column:
+                            object_list = sorter.sort(sort_column, object_list, sort_ascending)
+
+                request.session['object_list'] = object_list
         if page_action:
             object_list = request.session['object_list']
             try:
