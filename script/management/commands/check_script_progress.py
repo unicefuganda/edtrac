@@ -25,7 +25,8 @@ class Command(BaseCommand):
 
     @transaction.commit_manually
     def handle(self, **options):
-        if datetime.datetime.now().hour in range(int(options['e']),int(options['l'])):
+        current = datetime.datetime.now()
+        if current.hour in range(int(options['e']),int(options['l'])):
             try:
                 router = get_router()
                 for connection in ScriptProgress.objects.values_list('connection', flat=True).distinct():
@@ -35,6 +36,8 @@ class Command(BaseCommand):
                     if response:
                         router.add_outgoing(connection, response)
                     transaction.commit()
+                    if datetime.datetime.now() - current > datetime.timedelta(seconds=35):
+                        return
             except Exception, exc:
                 transaction.rollback()
                 print traceback.format_exc(exc)
