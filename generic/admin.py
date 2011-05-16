@@ -12,3 +12,4 @@ class moduleParamsAdmin(admin.ModelAdmin):
 admin.site.register(Dashboard,dashboardAdmin)
 admin.site.register(Module,moduleAdmin)
 admin.site.register(ModuleParams,moduleParamsAdmin)
+admin.site.register(StaticModuleContent,admin.ModelAdmin)
