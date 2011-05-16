@@ -235,14 +235,14 @@ def generic_dashboard(request,
                 context_instance = RequestContext(request))
         elif page_action == 'publish':
             user_pk = int(request.POST.get('user', -1))
-            if user_pk == -2: # anonymous user
+            if user_pk == -2 or user_pk == -3: # anonymous user
                 copydashboard, created = Dashboard.objects.get_or_create(user=None, slug=slug)
                 copy_dashboard(dashboard, copydashboard)
-            elif user_pk == -3: # all users
+            if user_pk == -3: # all users
                 for u in User.objects.all():
                     copydashboard, created = Dashboard.objects.get_or_create(user=u, slug=slug)
                     copy_dashboard(dashboard, copydashboard)
-            else:
+            elif user_pk >= 0:  # any other single user
                 user = User.objects.get(pk=user_pk)
                 copydashboard, created = Dashboard.objects.get_or_create(user=user, slug=slug)
                 copy_dashboard(dashboard, copydashboard)
