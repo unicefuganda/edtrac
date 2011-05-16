@@ -239,13 +239,16 @@ def generic_dashboard(request,
                 copydashboard, created = Dashboard.objects.get_or_create(user=None, slug=slug)
                 copy_dashboard(dashboard, copydashboard)
             if user_pk == -3: # all users
-                for u in User.objects.all():
+                for u in User.objects.exclude(pk=request.user.pk):
                     copydashboard, created = Dashboard.objects.get_or_create(user=u, slug=slug)
                     copy_dashboard(dashboard, copydashboard)
             elif user_pk >= 0:  # any other single user
-                user = User.objects.get(pk=user_pk)
-                copydashboard, created = Dashboard.objects.get_or_create(user=user, slug=slug)
-                copy_dashboard(dashboard, copydashboard)
+                try:
+                    user = User.objects.exclude(pk=request.user.pk).get(pk=user_pk)
+                    copydashboard, created = Dashboard.objects.get_or_create(user=user, slug=slug)
+                    copy_dashboard(dashboard, copydashboard)
+                except:
+                    pass
         else:
             data=request.POST.lists()
             old_user_modules=dashboard.modules.values_list('pk', flat=True).distinct()
