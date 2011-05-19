@@ -3,6 +3,27 @@ template context. Each function takes the request object as its only parameter
 and returns a dictionary to add to the context.
 """
 from django.conf import settings
+from django.core.urlresolvers import reverse
+from rapidsms.templatetags.tabs_tags import Tab
+
+def authtabs(request):
+    """
+    a context processor that adds Tabs to layout.html in RapidSMS. Tab loading is reworked to allow for privileged 
+    user Tab access.                            
+    """
+    tabs = []
+    for view, caption in settings.RAPIDSMS_TABS:
+        tabs.append(Tab(view, caption))
+       
+    if not request.user.is_anonymous() and request.user:
+        auth_tabs = getattr(settings, 'AUTHENTICATED_TABS',[])
+        for view, caption in auth_tabs:
+            tabs.append(Tab(view, caption))
+           
+    return {
+        "tabs":tabs
+    }
+
 def layout(request):
     """
     a context processor that changes the base css of the layout.html in RapidSMS. This is useful in case you want to
