@@ -11,7 +11,6 @@ def authtabs(request):
     a context processor that adds Tabs to layout.html in RapidSMS. Tab loading is reworked to allow for privileged 
     user Tab access.                            
     """
-    print request.get_full_path()
     tabs = []
     for view, caption in settings.RAPIDSMS_TABS:
         tabs.append(Tab(view, caption))
