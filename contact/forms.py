@@ -56,7 +56,9 @@ class NewContactForm(forms.ModelForm):
 
 class FreeSearchForm(FilterForm):
 
-    """ concrete implementation of filter form """
+    """ concrete implementation of filter form 
+        TO DO: add ability to search for multiple search terms separated by 'or'
+    """
 
     search = forms.CharField(max_length=100, required=True, label="Free-form search", help_text="Use 'or' to search for multiple names")
 
