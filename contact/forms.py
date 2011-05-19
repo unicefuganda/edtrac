@@ -63,7 +63,8 @@ class FreeSearchForm(FilterForm):
     def filter(self, request, queryset):
         search = self.cleaned_data['search']
         return queryset.filter(Q(name__icontains=search)
-                               | Q(reporting_location__name__icontains=search))
+                               | Q(reporting_location__name__icontains=search)
+                               | Q(connection__identity__icontains=search))
 
 class FreeSearchTextForm(FilterForm):
 
