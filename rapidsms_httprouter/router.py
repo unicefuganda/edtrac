@@ -332,8 +332,6 @@ class HttpRouter(object, LoggerMixin):
 
         self.info("SMS[%d] OUT (%s) : %s" % (db_message.id, str(connection), text))
 
-        global outgoing_worker_threads
-
         # if we have no ROUTER_URL configured, then immediately process our outgoing phases
         # and leave the message in the queue
         if not getattr(settings, 'ROUTER_URL', None):
@@ -346,21 +344,26 @@ class HttpRouter(object, LoggerMixin):
         # otherwise, fire up any threads we need to send the message out
         else:
             # check for available worker threads in the pool, add one if necessary
-            num_workers = getattr(settings, 'ROUTER_WORKERS', 5)
-            all_busy = True
-            for worker in outgoing_worker_threads:
-                if not worker.is_busy():
-                    all_busy = False
-                    break
-
-            if all_busy and len(outgoing_worker_threads) < num_workers:
-                worker = HttpRouterThread()
-                worker.daemon = True # they don't need to quit gracefully
-                worker.start()
-                outgoing_worker_threads.append(worker)
+            check_workers()
 
         return db_message
-                
+
+    def check_workers(self):
+        global outgoing_worker_threads
+        # check for available worker threads in the pool, add one if necessary
+        num_workers = getattr(settings, 'ROUTER_WORKERS', 5)
+        all_busy = True
+        for worker in outgoing_worker_threads:
+            if not worker.is_busy():
+                all_busy = False
+                break
+
+        if all_busy and len(outgoing_worker_threads) < num_workers:
+            worker = HttpRouterThread()
+            worker.daemon = True # they don't need to quit gracefully
+            worker.start()
+            outgoing_worker_threads.append(worker)
+
     def handle_outgoing(self, msg, source=None, application=None):
         """
         Sends the passed in RapidSMS message off.  Optionally ties the outgoing message to the incoming
@@ -456,6 +459,9 @@ class HttpRouter(object, LoggerMixin):
         # the list of messages which need to be sent, we load this from the DB
         # upon first starting up
         self.outgoing = [message for message in Message.objects.filter(status='Q')]
+
+        # kick start one worker
+        self.check_workers()
 
         # mark ourselves as started
         self.started = True
