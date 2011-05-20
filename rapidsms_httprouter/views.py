@@ -4,7 +4,9 @@ from django import forms
 from django.http import HttpResponse
 from django.template import RequestContext
 from django.shortcuts import render_to_response
+from django.contrib.auth.decorators import login_required
 from django.conf import settings;
+from django.db.models import Count
 
 from rapidsms.messages.incoming import IncomingMessage
 from rapidsms.messages.outgoing import OutgoingMessage
@@ -156,3 +158,14 @@ def console(request):
         }, context_instance=RequestContext(request)
     )
 
+@login_required
+def summary(request):
+    messages = Message.objects.extra(
+                   {'year':'extract(year from date)',
+                    'month':'extract (month from date)'})\
+               .values('year','month','connection__backend__name','direction')\
+               .annotate(total=Count('id'))\
+               .extra(order_by=['year','month','connection__backend__name','direction'])
+    return render_to_response(
+        "router/summary.html",
+        { 'messages': messages},context_instance=RequestContext(request))
