@@ -464,45 +464,51 @@ class Poll(models.Model):
         sublocations = []
         if location_id:
             sublocations = location_id.get_descendants()
-        context['total_responses'] = Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).count()
-        context['response_rate'] = (float(len(Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).values_list('contact', flat=True).distinct())) / self.contacts.count()) * 100
-        context['report_data'] = []
-        for c in self.categories.all():
-            category_responses = Response.objects.filter(categories__category=c).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).count()
-            category_percentage = 0
+        if Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).count() <> 0:
+            context['total_responses'] = Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).count()
+            context['response_rate'] = (float(len(Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).values_list('contact', flat=True).distinct())) / self.contacts.count()) * 100
+            context['report_data'] = []
+            for c in self.categories.all():
+                category_responses = Response.objects.filter(categories__category=c).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).count()
+                category_percentage = 0
+                if context['total_responses']:
+                    category_percentage = (float(category_responses) / float(context['total_responses'])) * 100.0
+                context['report_data'].append((c, category_responses, category_percentage))
+            context['uncategorized'] = Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).exclude(categories__in=ResponseCategory.objects.filter(category__poll=self)).count()
+            context['uncategorized_percent'] = 0
             if context['total_responses']:
-                category_percentage = (float(category_responses) / float(context['total_responses'])) * 100.0
-            context['report_data'].append((c, category_responses, category_percentage))
-        context['uncategorized'] = Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).exclude(categories__in=ResponseCategory.objects.filter(category__poll=self)).count()
-        context['uncategorized_percent'] = 0
-        if context['total_responses']:
-            context['uncategorized_percent'] = (float(context['uncategorized']) / float(context['total_responses'])) * 100.0 
-        return context
+                context['uncategorized_percent'] = (float(context['uncategorized']) / float(context['total_responses'])) * 100.0 
+            return context
+        else:
+            return False
 
     def get_numeric_report_data(self, location_id=None):
         context = {}
         sublocations = []
         if location_id:
             sublocations = location_id.get_descendants()
-        context['total_responses'] = Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).count()
-        context['response_rate'] = (float(len(Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).values_list('contact', flat=True).distinct())) / self.contacts.count()) * 100
-        responses = Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations))
-        vals = Value.objects.filter(entity_id__in=responses).values_list('value_float',flat=True)
-        context['total'] = sum(vals)
-        context['average'] = float(context['total']) / float(len(vals))
-        mode_dict = {}
-        mode = None
-        for v in vals:
-            if v in mode_dict:
-                mode_dict[v] = mode_dict[v] + 1
-            else:
-                mode_dict[v] = 1
-                if not mode:
+        if Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).count() <> 0:
+            context['total_responses'] = Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).count()
+            context['response_rate'] = (float(len(Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).values_list('contact', flat=True).distinct())) / self.contacts.count()) * 100
+            responses = Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations))
+            vals = Value.objects.filter(entity_id__in=responses).values_list('value_float',flat=True)
+            context['total'] = sum(vals)
+            context['average'] = float(context['total']) / float(len(vals))
+            mode_dict = {}
+            mode = None
+            for v in vals:
+                if v in mode_dict:
+                    mode_dict[v] = mode_dict[v] + 1
+                else:
+                    mode_dict[v] = 1
+                    if not mode:
+                        mode = v
+                if mode_dict[v] > mode_dict[mode]:
                     mode = v
-            if mode_dict[v] > mode_dict[mode]:
-                mode = v
-        context['mode'] = mode
-        return context
+            context['mode'] = mode
+            return context
+        else:
+            return False
     
     def __unicode__(self):
         return self.name

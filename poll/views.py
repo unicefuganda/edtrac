@@ -135,18 +135,22 @@ def view_report(req, poll_id, location_id=None, as_module=False):
     report_rows = []
     for l in locations:
         if poll.type == Poll.TYPE_TEXT:
-            report_row = poll.get_text_report_data(l)
-            report_row['location'] = l
-            report_rows.append(report_row)
+            if poll.get_text_report_data(l):
+                report_row = poll.get_text_report_data(l)
+                report_row['location'] = l
+                report_rows.append(report_row)
         elif poll.type == Poll.TYPE_NUMERIC:
-            report_row = poll.get_numeric_report_data(l)
-            report_row['location'] = l
-            report_rows.append(report_row)
+            if poll.get_numeric_report_data(l):
+                report_row = poll.get_numeric_report_data(l)
+                report_row['location'] = l
+                report_rows.append(report_row)
     if not location_id:
         if poll.type == Poll.TYPE_TEXT:
-            report_rows.append(poll.get_text_report_data())
+            if poll.get_text_report_data():
+                report_rows.append(poll.get_text_report_data())
         elif poll.type == Poll.TYPE_NUMERIC:
-            report_rows.append(poll.get_numeric_report_data())
+            if poll.get_numeric_report_data():  
+                report_rows.append(poll.get_numeric_report_data())
     context['report_rows'] = report_rows        
     
     if poll.type != Poll.TYPE_TEXT and poll.type != Poll.TYPE_NUMERIC:
