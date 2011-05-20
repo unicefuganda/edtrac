@@ -344,7 +344,7 @@ class HttpRouter(object, LoggerMixin):
         # otherwise, fire up any threads we need to send the message out
         else:
             # check for available worker threads in the pool, add one if necessary
-            check_workers()
+            self.check_workers()
 
         return db_message
 
