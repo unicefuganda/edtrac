@@ -84,10 +84,11 @@
 	        {% endfor %}
 		{% endif %}
 	    </div>
-
+    {% block modules %}
         <div id="mod">
             {% include "generic/partials/modules.html" %}
         </div>
+    {% endblock %}
     {% if perms.generic.change_dashboard %}
         <script language="javascript" >
             make_draggable()
