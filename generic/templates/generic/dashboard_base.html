@@ -38,52 +38,54 @@
             <input type="submit" value="Publish" onclick="check_existing()"/>
         </form>
     {% endif %}
-    <div id="head" class="module">
-        {% if title %}
-            <h2>{{ title }}</h2>
-        {% endif %}
-		{% if perms.generic.change_dashboard %}
-        	<a href="javascript:void(0)" onclick="$('#add_module').toggle(0);$('.moduleform').hide();$('#{{ module_types|first|first }}_modules').show();" class="button"><img src="{{ MEDIA_URL }}rapidsms/icons/silk/add.png" title="Add Module" />Add Module</a>
-			<div id="add_module" style="display:none;">
-	        	<div>
-			        <select id="select_module" onchange="$('.moduleform').hide();$('#'+$(this).val() + '_modules').show()">
-			            {% for module_name, module_form, module_title in module_types %}
-			                <option value="{{ module_name }}">{{ module_title }}</option>
-			            {% endfor %}
-			        </select>
-			    </div>
-		        {% for module_name, module_form, module_title in module_types %}
-		            <div id="{{ module_name }}_modules" class="moduleform" style="display:none;">
-		                <form id="form_{{ module_name }}" method="POST">
-		                    {%  csrf_token %}
-		                    <input type="hidden" name="action" value="" class="input_action"/>
-		                    <input type="hidden" name="module_type" value="" class="input_module_type"/>
-		                    <table>
-		                        {% for field in module_form.visible_fields %}
-		                            <tr>
-		                                <td>
-		                                    {% if forloop.first %}
-		                                        {% for hidden in module_form.hidden_fields %}
-		                                            {{ hidden }}
-		                                        {% endfor %}
-		                                    {% endif %}
-		                                    {{ field.label_tag }}
-		                                    {% if field.help_text %}
-		                                        <span class="filter_form_help">{{ field.help_text }}</span>
-		                                    {% endif %}
-		                                </td>
-		                                <td>
-		                                    {{ field }}
-		                                </td>
-		                            </tr>
-		                        {% endfor %}
-		                        <tr><td colspan="2" ><input type="button" value="Add" onclick="$('#{{ module_name }}').hide();loadModule(this, '{{ module_name }}');return false"/></td></tr>
-		                    </table>
-		                </form>
-		            </div>
-	        {% endfor %}
-		{% endif %}
-	    </div>
+    {% if title or perms.generic.change_dashboard %}
+        <div id="head" class="module">
+            {% if title %}
+                <h2>{{ title }}</h2>
+            {% endif %}
+    		{% if perms.generic.change_dashboard %}
+            	<a href="javascript:void(0)" onclick="$('#add_module').toggle(0);$('.moduleform').hide();$('#{{ module_types|first|first }}_modules').show();" class="button"><img src="{{ MEDIA_URL }}rapidsms/icons/silk/add.png" title="Add Module" />Add Module</a>
+    			<div id="add_module" style="display:none;">
+    	        	<div>
+    			        <select id="select_module" onchange="$('.moduleform').hide();$('#'+$(this).val() + '_modules').show()">
+    			            {% for module_name, module_form, module_title in module_types %}
+    			                <option value="{{ module_name }}">{{ module_title }}</option>
+    			            {% endfor %}
+    			        </select>
+    			    </div>
+    		        {% for module_name, module_form, module_title in module_types %}
+    		            <div id="{{ module_name }}_modules" class="moduleform" style="display:none;">
+    		                <form id="form_{{ module_name }}" method="POST">
+    		                    {%  csrf_token %}
+    		                    <input type="hidden" name="action" value="" class="input_action"/>
+    		                    <input type="hidden" name="module_type" value="" class="input_module_type"/>
+    		                    <table>
+    		                        {% for field in module_form.visible_fields %}
+    		                            <tr>
+    		                                <td>
+    		                                    {% if forloop.first %}
+    		                                        {% for hidden in module_form.hidden_fields %}
+    		                                            {{ hidden }}
+    		                                        {% endfor %}
+    		                                    {% endif %}
+    		                                    {{ field.label_tag }}
+    		                                    {% if field.help_text %}
+    		                                        <span class="filter_form_help">{{ field.help_text }}</span>
+    		                                    {% endif %}
+    		                                </td>
+    		                                <td>
+    		                                    {{ field }}
+    		                                </td>
+    		                            </tr>
+    		                        {% endfor %}
+    		                        <tr><td colspan="2" ><input type="button" value="Add" onclick="$('#{{ module_name }}').hide();loadModule(this, '{{ module_name }}');return false"/></td></tr>
+    		                    </table>
+    		                </form>
+    		            </div>
+    	        {% endfor %}
+    		{% endif %}
+        </div>
+    {% endif %}
     {% block modules %}
         <div id="mod">
             {% include "generic/partials/modules.html" %}
