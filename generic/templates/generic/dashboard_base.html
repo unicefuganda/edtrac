@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block content %}
-`   {% if perms.generic.publish_dashboard %}
+   {% if perms.generic.publish_dashboard %}
         <form method="POST">
             {% csrf_token %}
             <input type="hidden" name="action" value="publish"/>
@@ -82,7 +82,8 @@
     		                    </table>
     		                </form>
     		            </div>
-    	        {% endfor %}
+    	           {% endfor %}
+	           </div>
     		{% endif %}
         </div>
     {% endif %}
