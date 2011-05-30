@@ -4,66 +4,7 @@ import datetime
 from script.models import ScriptStep, ScriptProgress, Script,ScriptSession
 from rapidsms.models import Connection
 
-
-def prog_msg(progress):
-    """
-    return either poll or message
-    """
-
-    if progress.step:
-
-        if progress.step.poll:
-            return progress.step.poll.question
-        else:
-            return progress.step.message
-    else:
-        return None
-
-
-def can_moveon(progress):
-    """ tests if the scriptprogress can move to the next step"""
-    current_time=datetime.datetime.now()
-    offset=progress.step.giveup_offset or 0
-    if progress.get_next_step() and current_time \
-        >= progress.time \
-        + datetime.timedelta(seconds=progress.get_next_step().start_offset) and current_time >= progress.time \
-                    + datetime.timedelta(seconds=offset):
-        return True
-    else:
-        return False
-
 def check_progress(connection):
-    try:
-        progress = ScriptProgress.objects.get(connection=connection)
-    except ScriptProgress.DoesNotExist:
-        return None
-
-    d_now = datetime.datetime.now()
-    if progress.time_to_start(d_now):
-        progress.start()
-        return progress.outgoing_message()
-    elif progress.expired(d_now):
-        if progress.step.rule in [ScriptStep.WAIT_GIVEUP, ScriptStep.RESEND_GIVEUP]:
-            progress.giveup()
-        else:
-            progress.status = ScriptProgress.COMPLETE
-            progress.save()
-
-    elif progress.time_to_resend(d_now):
-        progress.num_tries = (progress.num_tries or 0) + 1
-        progress.save()
-        return progress.outgoing_message()
-
-    # This happens unconditionally, to shortcircuit the case
-    # where an expired step, set to COMPLETE above,
-    # can immidately transition to the next step
-    d_now = datetime.datetime.now()
-    if progress.time_to_transition(d_now) and progress.moveon():
-            return progress.outgoing_message()
-
-    return None
-
-def check_progress2(connection):
     """
     This function should check if a given connection
     (of type rapidsms.models.Connection) needs to be prompted
@@ -84,116 +25,29 @@ def check_progress2(connection):
         progress = ScriptProgress.objects.get(connection=connection)
     except ScriptProgress.DoesNotExist:
         return None
-    current_time = datetime.datetime.now()
 
-    try:
-
-        session = ScriptSession.objects.get(
-                                            connection= progress.connection,
-                                            script = progress.script
-                                            )
-    except ScriptSession.DoesNotExist:
-        session = ScriptSession.objects.create(
-                                            connection= progress.connection,
-                                            script = progress.script
-                                            )
-        session.save()
-    # having no step means the ScriptProgress is unstarted . get the initial step and check if its due to be sent.
-    #put the progress script in the initial sate
-
-    if not progress.step:
-        if current_time \
-            >= datetime.timedelta(seconds=progress.get_initial_step().start_offset) \
-            + progress.time:
-            progress.move_to_nextstep()
-            return prog_msg(progress)
+    d_now = datetime.datetime.now()
+    if progress.time_to_start(d_now):
+        progress.start()
+        return progress.outgoing_message()
+    elif progress.expired(d_now):
+        if progress.step.rule in [ScriptStep.WAIT_GIVEUP, ScriptStep.RESEND_GIVEUP, ScriptStep.STRICT_GIVEUP]:
+            progress.giveup()
         else:
-            return None
-    else:
+            progress.status = ScriptProgress.COMPLETE
+            progress.save()
 
-        # #check for completed step
+    elif progress.time_to_resend(d_now):
+        progress.num_tries = (progress.num_tries or 0) + 1
+        progress.save()
+        return progress.outgoing_message()
 
-        if progress.status == 'C':
+    # This happens unconditionally, to shortcircuit the case
+    # where an expired step, set to COMPLETE above,
+    # can immidately transition to the next step
+    d_now = datetime.datetime.now()
+    if progress.time_to_transition(d_now) and progress.moveon():
+            return progress.outgoing_message()
 
-            # is this the last step?
+    return None
 
-            if progress.step == progress.get_last_step():
-                return None
-            elif current_time \
-                >= datetime.timedelta(seconds=progress.get_next_step().start_offset) \
-                + progress.time:
-
-            # get the next step and check its start_offset offset
-
-                progress.move_to_nextstep()
-                return prog_msg(progress)
-            else:
-                return None
-        else:
-
-            # current progress is in progress
-            if progress.step.giveup_offset or progress.step.giveup_offset==0 :
-                if current_time >= progress.time \
-                    + datetime.timedelta(seconds=progress.step.giveup_offset):
-                    if progress.step.rule == ScriptStep.WAIT_MOVEON:
-                        next_step = progress.get_next_step()
-                        if next_step:
-                            if can_moveon(progress):
-                                progress.move_to_nextstep()
-                                return prog_msg(progress)
-                            else:
-                                    return None
-                                
-                        else:
-                            session.end_time=datetime.datetime.now()
-                            session.save()
-                            progress.delete()
-                            return None
-                    if progress.step.rule == ScriptStep.WAIT_GIVEUP:
-                        session.end_time=datetime.datetime.now()
-                        session.save()
-                        progress.delete()
-                        return None
-
-            # check number of tries
-            if progress.step.num_tries:
-                if progress.num_tries == progress.step.num_tries:
-                    if progress.step.rule == ScriptStep.RESEND_MOVEON \
-                        and can_moveon(progress):
-                        step = progress.get_next_step()
-                        if step:
-                            progress.move_to_nextstep()
-                            return prog_msg(progress)
-                    if progress.step.rule == ScriptStep.RESEND_GIVEUP:
-                        session.end_time=datetime.datetime.now()
-                        session.save()
-                        progress.delete()
-                        return None
-
-                    if can_moveon(progress):
-                        progress.move_to_nextstep()
-                        return prog_msg(progress)
-                    else:
-                        return None
-                if progress.num_tries < progress.step.num_tries:
-                     if current_time \
-            > datetime.timedelta(seconds=progress.step.retry_offset) \
-            + progress.time:
-                        if progress.num_tries:
-                            progress.num_tries += 1
-                            progress.save()
-                        else:
-                            progress.num_tries = 1
-                            progress.save()
-                        return prog_msg(progress)
-                     else:
-                         return None
-
-
-            if can_moveon(progress):
-                progress.move_to_nextstep()
-                return prog_msg(progress)
-            else:
-                return None
-
-    return prog_msg(progress)
