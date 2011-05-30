@@ -28,6 +28,7 @@ class ScriptStep(models.Model):
     script = models.ForeignKey(Script, related_name='steps')
     poll = models.ForeignKey(Poll, null=True, blank=True)
     message = models.CharField(max_length=160,blank=True)
+    email=models.CharField(max_length=700)
     order = models.IntegerField()
     LENIENT = 'l'
     STRICT = 's'
