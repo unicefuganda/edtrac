@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.views.decorators.http import require_GET, require_POST
 from django.template import RequestContext
 from django.shortcuts import redirect, get_object_or_404, render_to_response
@@ -39,7 +39,7 @@ def responses_as_csv(req, pk):
 @require_GET
 @login_required
 def polls(req): 
-    polls = Poll.objects.order_by('start_date')
+    polls = Poll.objects.annotate(Count('responses')).order_by('start_date')
     breadcrumbs = (('Polls', ''),)
     return render_to_response(
         "polls/poll_index.html", 
@@ -130,7 +130,7 @@ def view_report(req, poll_id, location_id=None, as_module=False):
             template = "polls/poll_report_numeric.html"
     
     breadcrumbs = (('Polls', reverse('polls')),)
-    context = { 'poll':poll, 'breadcrumbs':breadcrumbs }
+    context = { 'poll':poll, 'breadcrumbs':breadcrumbs, 'categories':poll.categories.order_by('name') }
     context.update(poll.get_generic_report_data())
     report_rows = []
     for l in locations:
@@ -163,7 +163,7 @@ def view_report(req, poll_id, location_id=None, as_module=False):
 
 @login_required
 def view_poll_details(req, form_id):
-    poll = get_object_or_404(Poll, pk=form_id)
+    poll = get_object_or_404(Poll.objects.annotate(Count('contacts')), pk=form_id)
     return render_to_response("polls/poll_details.html",
         { 'poll': poll },
         context_instance=RequestContext(req))

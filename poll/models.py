@@ -1,13 +1,16 @@
 import datetime
 import difflib
+import time
+from threading import Thread, Lock
 
 from code_generator.code_generator import generate_tracking_tag
 
 from django.db import models
-from django.db.models import Sum, Avg, Q
+from django.db.models import Sum, Avg, Count
 from django.contrib.sites.models import Site
 from django.contrib.sites.managers import CurrentSiteManager
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django import forms
 from mptt.forms import TreeNodeChoiceField
@@ -42,6 +45,9 @@ YES_WORDS = ['yes','yeah','yep','yay','y']
 # This can be configurable from settings, but here's a default list of
 # accepted no keywords
 NO_WORDS = ['no','nope','nah','nay','n']
+
+poll_start_lock = Lock()
+poll_reprocess_lock = Lock()
 
 class ResponseForm(forms.Form):
     def __init__(self, data=None, **kwargs):
@@ -329,6 +335,27 @@ class Poll(models.Model):
         poll.contacts = contacts
         return poll
 
+    class PollStarter(Thread):
+        def __init__(self, poll, **kwargs):
+            Thread.__init__(self, **kwargs)
+            self.poll = poll
+
+        def run(self):
+            time.sleep(5)
+            global poll_start_lock
+            poll_start_lock.acquire()
+            router = get_router()
+            for contact in self.poll.contacts.all():
+                print contact
+                for connection in Connection.objects.filter(contact=contact):
+                    outgoing = OutgoingMessage(connection, self.poll.question)
+                    outgoing_obj = router.handle_outgoing(outgoing)
+                    if outgoing_obj:
+                        self.poll.messages.add(outgoing_obj)
+            self.poll.start_date = datetime.datetime.now()
+            self.poll.save()
+            poll_start_lock.release()
+
     def start(self):
         """
         This starts the poll: outgoing messages are sent to all the contacts
@@ -336,17 +363,8 @@ class Poll(models.Model):
         All incoming messages from these users will be considered as
         potentially a response to this poll.
         """
-        self.start_date = datetime.datetime.now()
-        self.save()
-        router = get_router()
-        for contact in self.contacts.all():
-            for connection in Connection.objects.filter(contact=contact):
-                outgoing = OutgoingMessage(connection, self.question)
-                outgoing_obj = router.handle_outgoing(outgoing)
-                if outgoing_obj:
-                    self.messages.add(outgoing_obj)
-
-            pass
+        worker = self.PollStarter(self)
+        worker.start()
     
     def end(self):
         self.end_date = datetime.datetime.now()
@@ -356,7 +374,7 @@ class Poll(models.Model):
         for rc in ResponseCategory.objects.filter(category__poll=self, is_override=False):
             rc.delete()
 
-        for resp in Response.objects.filter(poll=self):
+        for resp in self.responses.all():
             resp.has_errors = False
             for category in self.categories.all():
                 for rule in category.rules.all():
@@ -455,26 +473,40 @@ class Poll(models.Model):
 
     def get_generic_report_data(self):
         context = {}
-        context['total_responses'] = Response.objects.filter(poll=self).count()
-        context['response_rate'] = (float(len(Response.objects.filter(poll=self).values_list('contact', flat=True).distinct())) / self.contacts.count()) * 100
+        context['total_responses'] = self.responses.count()
+        if self.contacts.count():
+            context['response_rate'] = (float(self.responses.values_list('contact', flat=True).distinct().count()) / self.contacts.count()) * 100
+        else:
+            context['response_rate'] = 0.0
         return context
 
     def get_text_report_data(self, location_id=None):
         context = {}
-        sublocations = []
+        locations = []
         if location_id:
-            sublocations = location_id.get_descendants()
-        if Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).count() <> 0:
-            context['total_responses'] = Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).count()
-            context['response_rate'] = (float(len(Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).values_list('contact', flat=True).distinct())) / self.contacts.count()) * 100
+            locations = location_id.get_descendants(include_self=True)
+            lresponses = self.responses.filter(contact__reporting_location__in=locations)
+        else:
+            lresponses = self.responses.filter(contact__reporting_location=None) 
+        if lresponses.count() > 0:
+            context['total_responses'] = lresponses.count()
+            context['response_rate'] = (float(len(lresponses.values_list('contact', flat=True).distinct())) / self.contacts.count()) * 100
             context['report_data'] = []
-            for c in self.categories.all():
-                category_responses = Response.objects.filter(categories__category=c).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).count()
+            report_raw = ResponseCategory.objects.filter(response__contact__reporting_location__in=locations, response__poll=self).values_list('category__name','category__color').annotate(Count('category')).order_by('category__name')
+            i = 0
+            for c in self.categories.order_by('name'):
+                if len(report_raw) > i and report_raw[i][0] == c.name:
+                    category_name, category_color, category_responses = report_raw[i]
+                    i = i + 1
+                else:
+                    category_name = c.name
+                    category_color = c.color
+                    category_responses = 0
                 category_percentage = 0
                 if context['total_responses']:
                     category_percentage = (float(category_responses) / float(context['total_responses'])) * 100.0
-                context['report_data'].append((c, category_responses, category_percentage))
-            context['uncategorized'] = Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).exclude(categories__in=ResponseCategory.objects.filter(category__poll=self)).count()
+                context['report_data'].append((category_name, category_color, category_responses, category_percentage))
+            context['uncategorized'] = lresponses.exclude(categories__in=ResponseCategory.objects.filter(category__poll=self)).count()
             context['uncategorized_percent'] = 0
             if context['total_responses']:
                 context['uncategorized_percent'] = (float(context['uncategorized']) / float(context['total_responses'])) * 100.0 
@@ -484,28 +516,18 @@ class Poll(models.Model):
 
     def get_numeric_report_data(self, location_id=None):
         context = {}
-        sublocations = []
+        locations = []
         if location_id:
-            sublocations = location_id.get_descendants()
-        if Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).count() <> 0:
-            context['total_responses'] = Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).count()
-            context['response_rate'] = (float(len(Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations)).values_list('contact', flat=True).distinct())) / self.contacts.count()) * 100
-            responses = Response.objects.filter(poll=self).filter(Q(contact__reporting_location=location_id) | Q(contact__reporting_location__in=sublocations))
-            vals = Value.objects.filter(entity_id__in=responses).values_list('value_float',flat=True)
-            context['total'] = sum(vals)
-            context['average'] = float(context['total']) / float(len(vals))
-            mode_dict = {}
-            mode = None
-            for v in vals:
-                if v in mode_dict:
-                    mode_dict[v] = mode_dict[v] + 1
-                else:
-                    mode_dict[v] = 1
-                    if not mode:
-                        mode = v
-                if mode_dict[v] > mode_dict[mode]:
-                    mode = v
-            context['mode'] = mode
+            locations = location_id.get_descendants(include_self=True)
+            lresponses = self.responses.filter(contact__reporting_location__in=locations)
+        else:
+            lresponses = self.responses.filter(contact__reporting_location=None)
+        if lresponses.count() > 0:
+            context['total_responses'] = lresponses.count()
+            context['response_rate'] = (float(len(lresponses.values_list('contact', flat=True).distinct())) / self.contacts.count()) * 100
+            if lresponses.filter(has_errors=False).count():
+                context['total'], context['average'] = (Value.objects.filter(attribute__slug='poll_number_value',entity_ct=ContentType.objects.get_for_model(Response), entity_id__in=lresponses).values_list('attribute__slug').annotate(Sum('value_float'), Avg('value_float')))[0][1:]
+                context['mode'] = Value.objects.filter(attribute__slug='poll_number_value',entity_ct=ContentType.objects.get_for_model(Response), entity_id__in=lresponses).values_list('value_float').annotate(Count('value_float')).order_by('-value_float__count')[0][0]
             return context
         else:
             return False

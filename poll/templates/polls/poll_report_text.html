@@ -13,7 +13,7 @@
 <table width="100%" class="poll_table"> 
     <thead>
             <th>Location</th>
-            {% for category in poll.categories.all %}
+            {% for category in categories %}
                 <th>{{ category.name }}</th>
             {% endfor %}
             <th>Uncategorized</th>
@@ -30,8 +30,8 @@
                         Unknown location
                     {% endif %}
                 </td>
-                {% for category, total, percent in location_data.report_data %}
-                    <td {% if category.color %}style="background-color:#{{ category.color }}"{% endif %}>{{ total }} ({{ percent|floatformat }}%)</td>
+                {% for category_name, category_color, total, percent in location_data.report_data %}
+                    <td {% if category_color %}style="background-color:#{{ category_color }}"{% endif %}>{{ total }} ({{ percent|floatformat }}%)</td>
                 {% endfor %}
                 <td>{{ location_data.uncategorized }} ({{ location_data.uncategorized_percent|floatformat }}%)</td>
             </tr>
