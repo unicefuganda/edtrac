@@ -42,11 +42,11 @@ def generic(request,
 
     # querysets can be calls to a function for dynamic, run-time retrieval
     if callable(queryset):
-        queryset = queryset()
+        queryset = queryset(request=request)
 
     # the default list is either a queryset parameter, or all
     # objects from the model parameter
-    object_list = queryset or model.objects.all()
+    object_list = queryset if queryset is not None else model.objects.all()
 
     # dynamically create a form class to represent the list of selected results,
     # for performing actions
@@ -56,16 +56,16 @@ def generic(request,
     class_dict = {}
     action_form_instances = []
     for action_class in action_forms:
-        form_instance = action_class()
+        form_instance = action_class(**{'request':request})
         fully_qualified_class_name = "%s.%s" % (form_instance.__module__, form_instance.__class__.__name__)
         # we need both a dictionary of action forms (for looking up actions performed)
         # and a list of tuple for rendering within the template in a particular order
         class_dict[fully_qualified_class_name] = action_class
-        action_form_instances.append((fully_qualified_class_name,action_class(),))
+        action_form_instances.append((fully_qualified_class_name,form_instance,))
 
     filter_form_instances = []
     for filter_class in filter_forms:
-        form_instance = filter_class()
+        form_instance = filter_class(**{'request':request})
         filter_form_instances.append(form_instance)
 
     # define some defaults
@@ -108,12 +108,12 @@ def generic(request,
                 if resultsform.is_valid():
                     results = resultsform.cleaned_data['results']
             action_class = class_dict[action_taken]
-            action_instance = action_class(request.POST)
+            action_instance = action_class(request.POST, request=request)
             if action_instance.is_valid():
                 status_message, status_message_type = action_instance.perform(request, results)
         else:
             for form_class in filter_forms:
-                form_instance = form_class(request.POST)
+                form_instance = form_class(request.POST, request=request)
                 if form_instance.is_valid():
                     object_list = form_instance.filter(request, object_list)
             selected = True

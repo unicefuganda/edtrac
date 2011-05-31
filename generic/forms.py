@@ -3,12 +3,24 @@ from generic.models import Module, StaticModuleContent
 
 class FilterForm(forms.Form):
     """ abstract filter class for filtering contacts"""
+    def __init__(self, data=None, **kwargs):
+        self.request = kwargs.pop('request')
+        if data:
+            forms.Form.__init__(self, data, **kwargs)
+        else:
+            forms.Form.__init__(self, **kwargs)
 
     def filter(self, request, queryset):
         raise NotImplementedError("Subclasses of FilterForm must implement the filter() method!")
 
 class ActionForm(forms.Form):
     """ abstract class for all the filter forms"""
+    def __init__(self, data=None, **kwargs):
+        self.request = kwargs.pop('request')
+        if data:
+            forms.Form.__init__(self, data, **kwargs)
+        else:
+            forms.Form.__init__(self, **kwargs)
     
     def perform(self, request, results):
         raise NotImplementedError("Subclasses of ActionForm must implement the perform() method!")
