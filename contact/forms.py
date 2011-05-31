@@ -65,14 +65,17 @@ class NewContactForm(forms.ModelForm):
 
 class FreeSearchForm(FilterForm):
 
-    """ concrete implementation of filter form """
+    """ concrete implementation of filter form 
+        TO DO: add ability to search for multiple search terms separated by 'or'
+    """
 
     search = forms.CharField(max_length=100, required=True, label="Free-form search", help_text="Use 'or' to search for multiple names")
 
     def filter(self, request, queryset):
         search = self.cleaned_data['search']
         return queryset.filter(Q(name__icontains=search)
-                               | Q(reporting_location__name__icontains=search))
+                               | Q(reporting_location__name__icontains=search)
+                               | Q(connection__identity__icontains=search))
 
 class FreeSearchTextForm(FilterForm):
 
