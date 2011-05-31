@@ -4,6 +4,7 @@ from django.db.models.query import QuerySet, ValuesQuerySet
 from django.utils.text import capfirst
 from  django.db.models.base import ModelBase
 from rapidsms.models import  Backend
+from django.conf import settings
 
 def previous_calendar_week():
     end_date = datetime.datetime.now()
@@ -46,56 +47,6 @@ class ExcelResponse(HttpResponse):
     def __init__(self,data, output_name='excel_report',headers=None,force_csv=False, encoding='utf8'):
         # Make sure we've got the right type of data to work with
         valid_data = False
-
-        if isinstance(data, ValuesQuerySet):
-            data = list(data)
-        elif isinstance(data, QuerySet):
-            #data.query.select_related=True
-            #data = list(data.values())
-            model_instance=data.__dict__['model']
-
-            ##build data dict
-            field_list={}
-            choices_list={}
-            c_data=[]
-            for field in model_instance._meta.fields:
-                name=capfirst(field.verbose_name)
-                field_list[name]=field
-                ##add location field for the reporter
-                if name=='Reporter':
-                    field_list['Location']=field
-                ##check for field choices
-                if len(field.choices) >0:
-                    choices_list[name]=dict(field.choices)
-
-            #import pdb;pdb.set_trace()
-
-            for object in data:
-                print object
-                d={}
-                for k in field_list.keys():
-                    try:
-                        value=getattr(object,field_list[k].name)
-
-                        if choices_list.get(k,None):
-                            value=choices_list[k].get(value,value)
-
-                        d[k]=value
-                        if isinstance(d[k].__class__,ModelBase):
-                            d[k]=str(d[k])
-                        if isinstance(d[k],datetime.datetime):
-                            print d[k]
-                        d[k]=str(d[k])
-                    except:
-                        d[k]=''
-
-                c_data.append(d)
-            data=list(c_data)
-
-            ##check if the data is a django model
-        elif isinstance(data,ModelBase):
-            data=list(data.objects.all())
-
         if hasattr(data, '__getitem__'):
             if isinstance(data[0], dict):
                 if headers is None:
@@ -106,8 +57,9 @@ class ExcelResponse(HttpResponse):
                 valid_data = True
         import StringIO
         output = StringIO.StringIO()
+        # Excel has a limit on number of rows; if we have more than that, make a csv
         use_xls = False
-        if  force_csv is not True:
+        if len(data) <= 65536 and force_csv is not True:
             try:
                 import xlwt
             except ImportError:
@@ -179,5 +131,6 @@ class ExcelResponse(HttpResponse):
         output.seek(0)
         super(ExcelResponse, self).__init__(content=output.getvalue(),
                                             mimetype=mimetype)
+
         self['Content-Disposition'] = 'attachment;filename="%s.%s"' % \
             (output_name.replace('"', '\"'), file_ext)
