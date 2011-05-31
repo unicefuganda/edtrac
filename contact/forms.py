@@ -29,13 +29,22 @@ class FilterGroupsForm(FilterForm):
     # authsites app, see github.com/daveycrockett/authsites).
     # This does, however, also make the polling app independent of authsites.
     def __init__(self, data=None, **kwargs):
+        self.request=kwargs.pop('request')
         if data:
             forms.Form.__init__(self, data, **kwargs)
         else:
             forms.Form.__init__(self, **kwargs)
         if hasattr(Contact, 'groups'):
-            choices = ((-1,'No Group'),) + tuple([(int(g.pk), g.name) for g in Group.objects.all().order_by('name')])
-            self.fields['groups'] = forms.MultipleChoiceField(choices=choices, required=True)
+            if self.request.user.is_authenticated():
+                if self.request.user.groups.order_by('-pk') == Group.objects.order_by('-pk'):
+                    choices = ((-1,'No Group'),) + tuple([(int(g.pk), g.name) for g in Group.objects.all().order_by('name')])
+                    self.fields['groups'] = forms.MultipleChoiceField(choices=choices, required=True)
+                else:
+                    self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=self.request.user.groups.all(), required=False)
+            else:
+                choices = ((-1,'No Group'),) + tuple([(int(g.pk), g.name) for g in Group.objects.all().order_by('name')])
+                self.fields['groups'] = forms.MultipleChoiceField(choices=choices, required=True)
+
 
     def filter(self, request, queryset):
         groups_pk = self.cleaned_data['groups']
@@ -201,12 +210,16 @@ class AssignGroupForm(ActionForm):
     # authsites app, see github.com/daveycrockett/authsites).
     # This does, however, also make the polling app independent of authsites.
     def __init__(self, data=None, **kwargs):
+        self.request=kwargs.pop('request')
         if data:
             forms.Form.__init__(self, data, **kwargs)
         else:
             forms.Form.__init__(self, **kwargs)
         if hasattr(Contact, 'groups'):
-            self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.all(), required=False)
+            if self.request.user.is_authenticated():
+                self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=self.request.user.groups.all(), required=False)
+            else:
+                self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.all(), required=False)
 
     def perform(self, request, results):
         groups = self.cleaned_data['groups']
