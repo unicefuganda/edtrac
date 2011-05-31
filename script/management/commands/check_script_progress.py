@@ -32,9 +32,13 @@ class Command(BaseCommand):
                 for connection in ScriptProgress.objects.values_list('connection', flat=True).distinct():
                     connection=Connection.objects.get(pk=connection)
                     response = check_progress(connection)
-                    print response
                     if response:
-                        router.add_outgoing(connection, response)
+                        if type(response) == Email and connection.contact and connection.contact.user:
+                            response.recipients.clear()
+                            response.recipients.add(connection.contact.user)
+                            response.send()
+                        else:
+                            router.add_outgoing(connection, response)
                     transaction.commit()
                     if datetime.datetime.now() - current > datetime.timedelta(seconds=35):
                         return

@@ -8,6 +8,8 @@ from django.conf import settings
 from script.signals import *
 from rapidsms.messages.incoming import IncomingMessage
 import difflib
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
 
 class Script(models.Model):
     slug = models.SlugField(max_length=64, primary_key=True)
@@ -29,6 +31,7 @@ class ScriptStep(models.Model):
     script = models.ForeignKey(Script, related_name='steps')
     poll = models.ForeignKey(Poll, null=True, blank=True)
     message = models.CharField(max_length=160,blank=True)
+    email = models.ForeignKey('Email', null=True, blank=True)
     order = models.IntegerField()
     LENIENT = 'l'
     STRICT = 's'
@@ -209,7 +212,12 @@ class ScriptProgress(models.Model):
         Return the appropriate outgoing message for this step, either the poll question
         or the message.
         """
-        return self.step.poll.question if self.step.poll else self.step.message
+        if self.step.poll:
+            return self.step.poll.question
+        elif self.step.email:
+            return self.step.email
+        else:
+            return self.step.message
 
     def accepts_incoming(self, curtime):
         """
@@ -241,3 +249,12 @@ class ScriptResponse(models.Model):
     session=models.ForeignKey(ScriptSession,related_name='responses')
     response=models.ForeignKey(Response)
 
+class Email(models.Model):
+    subject=models.TextField()
+    sender=models.EmailField(default='no-reply@uganda.rapidsms.org')
+    message=models.TextField()
+    recipients=models.ManyToManyField(User, related_name='emails', null=True)
+
+    def send(self):
+        recipients = list(self.recipients.values_list('email',flat=True).distinct())
+        send_mail(self.subject, self.message, self.sender, recipients, fail_silently=False)
