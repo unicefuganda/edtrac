@@ -79,23 +79,21 @@ def new_poll(req):
                 groups = form.cleaned_data['groups']
                 contacts = Contact.objects.filter(Q(pk__in=contacts) | Q(groups__in=groups)).distinct()
             name = form.cleaned_data['name']
-            if form.cleaned_data['type'] == Poll.TYPE_TEXT:
-                poll = Poll.create_freeform(name, question, default_response, contacts, req.user)
-            elif form.cleaned_data['type'] == Poll.TYPE_REGISTRATION:
-                poll = Poll.create_registration(name, question, default_response, contacts, req.user)                
-            elif form.cleaned_data['type'] == Poll.TYPE_NUMERIC:
-                poll = Poll.create_numeric(name, question, default_response, contacts, req.user)
-            elif form.cleaned_data['type'] == NewPollForm.TYPE_YES_NO:
-                poll = Poll.create_yesno(name, question, default_response, contacts, req.user)
-            elif form.cleaned_data['type'] == Poll.TYPE_LOCATION:
-                poll = Poll.create_location_based(name, question, default_response, contacts, req.user)
-            else:
-                poll = Poll.create_custom(form.cleaned_data['type'], name, question, default_response, contacts, req.user)
+            type = form.cleaned_data['type']
+            poll_type = Poll.TYPE_TEXT if type == NewPollForm.TYPE_YES_NO else type
+            poll = Poll.objects.create(name=name,
+                                       type=poll_type,
+                                       question=question,
+                                       default_response=default_response,
+                                       user=req.user)
+            if type == NewPollForm.TYPE_YES_NO:
+                poll.add_yesno_categories()
+
             if settings.SITE_ID:
                 poll.sites.add(Site.objects.get_current())
-            poll.save()                
-            if form.cleaned_data['start_immediately']:
-                poll.start()
+            poll.save()
+            poll.add_participants(contacts, form.cleaned_data['start_immediately'])
+
             return redirect(reverse('poll.views.view_poll', args=[poll.pk]))
     else:
         form = NewPollForm()

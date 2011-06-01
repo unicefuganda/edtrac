@@ -195,145 +195,21 @@ class Poll(models.Model):
             report_columns=report_columns,
             edit_form=edit_form)
 
-    @classmethod
-    def create_yesno(cls, name, question, default_response, contacts, user):
+    def add_yesno_categories(self):
         """
-        This creates a generic yes/no poll from the various parameters
-        question : The question to ask when the poll is started
-        contacts : a list or QuerySet of Contact objects
-        user : The logged-in user creating this poll
-        
-        returns:
-        A poll of type 't' (Text-based) with two categories, 'yes', and 'no',
-        that allow basic responses starting with yes, no, or other aliases
+        This creates a generic yes/no poll categories for a particular poll
         """
-        poll = Poll.objects.create(
-                name=name,
-                question=question,
-                default_response=default_response,
-                user=user,
-                type=Poll.TYPE_TEXT)
-        poll.contacts = contacts
-        poll.categories.create(name='yes')
-        poll.categories.get(name='yes').rules.create(
+        self.categories.create(name='yes')
+        self.categories.get(name='yes').rules.create(
             regex=(STARTSWITH_PATTERN_TEMPLATE % '|'.join(YES_WORDS)),
             rule_type=Rule.TYPE_REGEX,
             rule_string=(STARTSWITH_PATTERN_TEMPLATE % '|'.join(YES_WORDS)))
-        poll.categories.create(name='no')
-        poll.categories.get(name='no').rules.create(
+        self.categories.create(name='no')
+        self.categories.get(name='no').rules.create(
             regex=(STARTSWITH_PATTERN_TEMPLATE % '|'.join(NO_WORDS)),
             rule_type=Rule.TYPE_REGEX,
             rule_string=(STARTSWITH_PATTERN_TEMPLATE % '|'.join(NO_WORDS)))
-        poll.categories.create(name='unknown', default=True, error_category=True)
-        return poll
-    
-    @classmethod
-    def create_freeform(cls, name, question, default_response, contacts, user):
-        """
-        This creates a generic text-based poll from the various parameters
-        question : The question to ask when the poll is started
-        contacts : a list or QuerySet of Contact objects
-        user : The logged-in user creating this poll
-        
-        returns:
-        A poll of type 't' (Text-based) with no categories (the user can
-        add them ad hoc as responses come in)
-        """        
-        poll = Poll.objects.create(
-                name=name,
-                question=question,
-                default_response=default_response,                
-                user=user,
-                type=Poll.TYPE_TEXT)
-        poll.contacts = contacts        
-        return poll
-
-    @classmethod
-    def create_registration(cls, name, question, default_response, contacts, user):
-        """
-        This creates a generic text-based poll from the various parameters,
-        but will allow the user to decide, after the results come in, whether or
-        not to apply responses to the associated contact's name.
-        question : The question to ask when the poll is started
-        contacts : a list or QuerySet of Contact objects
-        user : The logged-in user creating this poll
-        
-        returns:
-        A poll of type 'r' (Registration-based) with no categories (the user can
-        add them ad hoc as responses come in)
-        """
-        poll = Poll.objects.create(
-                name=name,
-                question=question,
-                default_response=default_response,                
-                user=user,
-                type=Poll.TYPE_REGISTRATION)
-        poll.contacts = contacts        
-        return poll
-    
-    @classmethod
-    def create_numeric(cls, name, question, default_response, contacts, user):
-        """
-        This creates a generic numeric poll from the various parameters
-        question : The question to ask when the poll is started
-        contacts : a list or QuerySet of Contact objects
-        user : The logged-in user creating this poll
-        
-        returns:
-        A poll of type 'n' (Numeric)
-        """
-        poll = Poll.objects.create(
-                name=name,
-                question=question,
-                default_response=default_response,                
-                user=user,
-                type=Poll.TYPE_NUMERIC)
-        poll.contacts = contacts
-        return poll
-    
-    @classmethod
-    def create_location_based(cls, name, question, default_response, contacts, user):
-        """
-        This creates a generic text-based poll from the various parameters,
-        but will attempt to match incoming messages to a location already in
-        the system, or create new locations as they arrive.
-        question : The question to ask when the poll is started
-        contacts : a list or QuerySet of Contact objects
-        user : The logged-in user creating this poll
-        
-        returns:
-        A poll of type 'l' (Location-based) with no categories (the user can
-        add them ad hoc as responses come in)
-        """        
-        poll = Poll.objects.create(
-                name=name,
-                question=question,
-                default_response=default_response,                
-                user=user,
-                type=Poll.TYPE_LOCATION)
-        poll.contacts = contacts
-        return poll
-
-    @classmethod
-    def create_custom(cls, type, name, question, default_response, contacts, user):
-        """
-        This creates a poll of custom type from the various parameters.
-        question : The question to ask when the poll is started
-        contacts : a list or QuerySet of Contact objects
-        user : The logged-in user creating this poll
-
-        returns:
-        A poll of custom type with no categories (the user can
-        add them ad hoc as responses come in)
-        """
-        poll = Poll.objects.create(
-                name=name,
-                question=question,
-                default_response=default_response,
-                user=user,
-                type=type)
-        poll.contacts = contacts
-        return poll
+        self.categories.create(name='unknown', default=True, error_category=True)
 
     class PollStarter(Thread):
         def __init__(self, poll, **kwargs):
@@ -355,6 +231,29 @@ class Poll(models.Model):
             self.poll.start_date = datetime.datetime.now()
             self.poll.save()
             poll_start_lock.release()
+            
+    class PollParticipants(Thread):
+        def __init__(self, poll, contacts, start_immediately, **kwargs):
+            Thread.__init__(self, **kwargs)
+            self.poll = poll
+            self.contacts = contacts
+            self.start_immediately = start_immediately
+        
+        def run(self):
+            time.sleep(5)
+            print "ADDING CONTACTS HERE"
+            self.poll.contacts = self.contacts
+            print "DONE"
+            if self.start_immediately:
+                worker = self.poll.PollStarter(self.poll)
+                worker.run()
+
+    def add_participants(self, contact_list, start_immediately):
+        worker = self.PollParticipants(self, contact_list, start_immediately)
+        if contact_list.count() > 100:
+            worker.start()
+        else:
+            worker.run()        
 
     def start(self):
         """
@@ -364,7 +263,10 @@ class Poll(models.Model):
         potentially a response to this poll.
         """
         worker = self.PollStarter(self)
-        worker.start()
+        if self.contacts.count() > 100:
+            worker.start()
+        else:
+            worker.run()
     
     def end(self):
         self.end_date = datetime.datetime.now()
