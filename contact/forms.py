@@ -14,11 +14,12 @@ from rapidsms.messages.outgoing import OutgoingMessage
 from generic.forms import ActionForm, FilterForm
 from ureport.models import MassText
 from django.contrib.sites.models import Site
-
+from threading import Thread, Lock
 from simple_locations.models import Area
-
+import time
 from django.conf import settings
 
+send_masstext_lock = Lock()
 
 class FilterGroupsForm(FilterForm):
 
@@ -40,7 +41,7 @@ class FilterGroupsForm(FilterForm):
                     choices = ((-1,'No Group'),) + tuple([(int(g.pk), g.name) for g in Group.objects.all().order_by('name')])
                     self.fields['groups'] = forms.MultipleChoiceField(choices=choices, required=True)
                 else:
-                    self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=self.request.user.groups.all(), required=False)
+                    self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.filter(pk__in=self.request.user.groups.values_list('pk',flat=True)), required=False)
             else:
                 choices = ((-1,'No Group'),) + tuple([(int(g.pk), g.name) for g in Group.objects.all().order_by('name')])
                 self.fields['groups'] = forms.MultipleChoiceField(choices=choices, required=True)
@@ -159,6 +160,24 @@ class MassTextForm(ActionForm):
     text = forms.CharField(max_length=160, required=True)
     action_label = 'Send Message'
 
+    class MassTexter(Thread):
+        def __init__(self, mass_text, **kwargs):
+            Thread.__init__(self, **kwargs)
+            self.mass_text = mass_text
+
+        def run(self):
+            time.sleep(5)
+            global send_masstext_lock
+            send_masstext_lock.acquire()
+            router = get_router()
+            start_sending_mass_messages()
+            for contact in self.mass_text.contacts.all():
+                if contact.default_connection:
+                    outgoing = OutgoingMessage(contact.default_connection, self.mass_text.text)
+                    router.handle_outgoing(outgoing)
+            stop_sending_mass_messages()
+            send_masstext_lock.release()
+
     def perform(self, request, results):
         if results is None or len(results) == 0:
             return ('A message must have one or more recipients!', 'error')
@@ -172,12 +191,15 @@ class MassTextForm(ActionForm):
             mass_text = MassText.objects.create(user=request.user,
                     text=text)
             mass_text.sites.add(Site.objects.get_current())
-            start_sending_mass_messages()
             for conn in connections:
                 mass_text.contacts.add(conn.contact)
-                outgoing = OutgoingMessage(conn, text)
-                router.handle_outgoing(outgoing)
-            stop_sending_mass_messages()
+
+            worker = self.MassTexter(mass_text)
+            if mass_text.contacts.count() > 100:
+                worker.start()
+            else:
+                worker.run()
+
             return ('Message successfully sent to %d numbers' % connections.count(), 'success',)
         else:
             return ("You don't have permission to send messages!", 'error',)
@@ -220,7 +242,7 @@ class AssignGroupForm(ActionForm):
             forms.Form.__init__(self, **kwargs)
         if hasattr(Contact, 'groups'):
             if self.request.user.is_authenticated():
-                self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=self.request.user.groups.all(), required=False)
+                self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.filter(pk__in=self.request.user.groups.values_list('pk',flat=True)), required=False)
             else:
                 self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.all(), required=False)
 
