@@ -161,9 +161,11 @@ class MassTextForm(ActionForm):
     action_label = 'Send Message'
 
     class MassTexter(Thread):
-        def __init__(self, mass_text, **kwargs):
+        def __init__(self, connections, text, user, **kwargs):
             Thread.__init__(self, **kwargs)
-            self.mass_text = mass_text
+            self.connections = connections
+            self.text = text
+            self.user = user
 
         def run(self):
             time.sleep(5)
@@ -171,10 +173,14 @@ class MassTextForm(ActionForm):
             send_masstext_lock.acquire()
             router = get_router()
             start_sending_mass_messages()
-            for contact in self.mass_text.contacts.all():
-                if contact.default_connection:
-                    outgoing = OutgoingMessage(contact.default_connection, self.mass_text.text)
-                    router.handle_outgoing(outgoing)
+            mass_text = MassText.objects.create(user=self.user,
+                    text=self.text)
+            mass_text.sites.add(Site.objects.get_current())
+            for conn in Connection.objects.filter(pk__in=self.connections):
+                mass_text.contacts.add(conn.contact)
+                outgoing = OutgoingMessage(conn, self.text)
+                print "sending to %s" % str(conn.identity)
+                router.handle_outgoing(outgoing)
             stop_sending_mass_messages()
             send_masstext_lock.release()
 
@@ -184,23 +190,18 @@ class MassTextForm(ActionForm):
 
         if request.user and request.user.has_perm('ureport.can_message'):
             connections = \
-                Connection.objects.filter(contact__in=results).distinct()
-            router = get_router()
+                list(Connection.objects.filter(contact__in=results).values_list('pk',flat=True).distinct())
+
             text = self.cleaned_data['text']
             text = text.replace('%', '%%')
-            mass_text = MassText.objects.create(user=request.user,
-                    text=text)
-            mass_text.sites.add(Site.objects.get_current())
-            for conn in connections:
-                mass_text.contacts.add(conn.contact)
 
-            worker = self.MassTexter(mass_text)
-            if mass_text.contacts.count() > 100:
+            worker = self.MassTexter(connections, text, request.user)
+            if len(connections) > 100:
                 worker.start()
             else:
                 worker.run()
 
-            return ('Message successfully sent to %d numbers' % connections.count(), 'success',)
+            return ('Message successfully sent to %d numbers' % len(connections), 'success',)
         else:
             return ("You don't have permission to send messages!", 'error',)
 
