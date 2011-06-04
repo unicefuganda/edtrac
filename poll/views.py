@@ -8,6 +8,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.contrib.auth.decorators import login_required, permission_required
+from django.utils import simplejson
+from django.utils.safestring import mark_safe
 from rapidsms_httprouter.router import get_router
 from rapidsms.messages.outgoing import OutgoingMessage
 from django.contrib.auth.models import Group
@@ -205,6 +207,13 @@ def view_responses(req, poll_id, as_module=False):
     return render_to_response(template,
         { 'poll': poll, 'responses': responses, 'breadcrumbs': breadcrumbs, 'columns': typedef['report_columns'], 'db_type': typedef['db_type'],'row_template':typedef['view_template']},
         context_instance=RequestContext(req))
+
+def stats(req, poll_id, location_id=None):
+    poll = get_object_or_404(Poll,pk=poll_id)
+    location = None
+    if location_id:
+        location = get_object_or_404(Area,pk=location_id)
+    return HttpResponse(mark_safe(simplejson.dumps(list(poll.responses_by_category(location)))))
 
 def _get_response_edit_form(response, data=None):
     typedef = Poll.TYPE_CHOICES[response.poll.type]

@@ -222,7 +222,6 @@ class Poll(models.Model):
             poll_start_lock.acquire()
             router = get_router()
             for contact in self.poll.contacts.all():
-                print contact
                 for connection in Connection.objects.filter(contact=contact):
                     outgoing = OutgoingMessage(connection, self.poll.question)
                     outgoing_obj = router.handle_outgoing(outgoing)
@@ -241,9 +240,7 @@ class Poll(models.Model):
         
         def run(self):
             time.sleep(5)
-            print "ADDING CONTACTS HERE"
             self.poll.contacts = self.contacts
-            print "DONE"
             if self.start_immediately:
                 worker = self.poll.PollStarter(self.poll)
                 worker.run()
@@ -433,7 +430,82 @@ class Poll(models.Model):
             return context
         else:
             return False
-    
+
+    def responses_by_category(self, location=None):
+        categorized = ResponseCategory.objects.filter(response__poll=self)
+
+        uncategorized = self.responses\
+                        .exclude(pk__in=ResponseCategory.objects.filter(response__poll=self)\
+                                 .values_list('response', flat=True))
+
+        if location:
+            if location.get_children().count() == 1:
+                location_where = 'T9.id = %d' % location.get_children()[0].pk
+                ulocation_where = 'T7.id = %d' % location.get_children()[0].pk
+            else:
+                location_where = 'T9.id in %s' % (str(tuple(location.get_children().values_list('pk', flat=True))))
+                ulocation_where = 'T7.id in %s' % (str(tuple(location.get_children().values_list('pk', flat=True))))
+            categorized = categorized\
+                    .values('response__message__connection__contact__reporting_location__name')\
+                    .extra(tables=['simple_locations_area','simple_locations_point'],\
+                           where=[\
+                                  'T9.lft <= simple_locations_area.lft',\
+                                  'T9.rght >= simple_locations_area.rght',\
+                                  'T9.location_id = simple_locations_point.id',\
+                                  location_where])\
+                    .extra(select = {
+                        'location_name':'T9.name',
+                        'location_id':'T9.id',
+                        'lat':'simple_locations_point.latitude',
+                        'lon':'simple_locations_point.longitude',
+                        'rght':'T9.rght',
+                        'lft':'T9.lft',
+                    })
+
+            uncategorized = uncategorized\
+                    .values('message__connection__contact__reporting_location__name')\
+                    .extra(tables=['simple_locations_area','simple_locations_point'],\
+                           where=[\
+                                  'T7.lft <= simple_locations_area.lft',\
+                                  'T7.rght >= simple_locations_area.rght',\
+                                  'T7.location_id = simple_locations_point.id',\
+                                  ulocation_where])\
+                    .extra(select = {
+                        'location_name':'T7.name',
+                        'location_id':'T7.id',
+                        'lat':'simple_locations_point.latitude',
+                        'lon':'simple_locations_point.longitude',
+                        'rght':'T7.rght',
+                        'lft':'T7.lft',
+                    }).values('location_name','lat','lon')
+
+            values_list = ['location_name','lat','lon','category__name']
+        else:
+            values_list = ['category__name']
+
+        categorized = categorized.values(*values_list)\
+                      .annotate(value=Count('pk'))\
+                      .order_by('category__name')
+
+        uncategorized = uncategorized.annotate(value=Count('pk'))
+
+        if location:
+            categorized = categorized.extra(order_by=['location_name'])
+            uncategorized = uncategorized.extra(order_by=['location_name'])
+            for d in uncategorized:
+                d['lat'] = float(d['lat'])
+                d['lon'] = float(d['lon'])
+            for d in categorized:
+                d['lat'] = float(d['lat'])
+                d['lon'] = float(d['lon'])
+
+        if len(uncategorized):
+            for d in uncategorized:
+                d.update({'category__name':'uncategorized'})
+            categorized = categorized + uncategorized
+
+        return categorized
+
     def __unicode__(self):
         return self.name
 
