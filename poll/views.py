@@ -215,6 +215,10 @@ def stats(req, poll_id, location_id=None):
         location = get_object_or_404(Area,pk=location_id)
     return HttpResponse(mark_safe(simplejson.dumps(list(poll.responses_by_category(location)))))
 
+def number_details(req, poll_id):
+    poll = get_object_or_404(Poll, pk=poll_id)
+    return HttpResponse(mark_safe(simplejson.dumps(list(poll.get_numeric_detailed_data()))))
+
 def _get_response_edit_form(response, data=None):
     typedef = Poll.TYPE_CHOICES[response.poll.type]
     form = None

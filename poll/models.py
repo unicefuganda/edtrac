@@ -431,6 +431,9 @@ class Poll(models.Model):
         else:
             return False
 
+    def get_numeric_detailed_data(self):
+        return Value.objects.filter(attribute__slug='poll_number_value',entity_ct=ContentType.objects.get_for_model(Response), entity_id__in=self.responses.all()).values_list('value_float').annotate(Count('value_float')).order_by('-value_float')
+
     def responses_by_category(self, location=None):
         categorized = ResponseCategory.objects.filter(response__poll=self)
 
