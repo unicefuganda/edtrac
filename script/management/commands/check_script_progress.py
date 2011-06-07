@@ -15,6 +15,8 @@ from script.utils.outgoing import check_progress
 from script.models import ScriptProgress, Email
 from optparse import OptionParser, make_option
 import datetime
+from django.core.mail import send_mail
+from django.conf import settings
 
 class Command(BaseCommand):
 
@@ -26,22 +28,28 @@ class Command(BaseCommand):
     @transaction.commit_manually
     def handle(self, **options):
         current = datetime.datetime.now()
+        recipients = getattr(settings, 'ADMINS', None)
+        if recipients:
+            recipients = [email for name,email in recipients]
         if current.hour in range(int(options['e']),int(options['l'])):
-            try:
                 router = get_router()
                 for connection in ScriptProgress.objects.values_list('connection', flat=True).distinct():
-                    connection=Connection.objects.get(pk=connection)
-                    response = check_progress(connection)
-                    if response:
-                        if type(response) == Email and connection.contact and connection.contact.user:
-                            response.recipients.clear()
-                            response.recipients.add(connection.contact.user)
-                            response.send()
-                        else:
-                            router.add_outgoing(connection, response)
-                    transaction.commit()
-                    if datetime.datetime.now() - current > datetime.timedelta(seconds=35):
-                        return
-            except Exception, exc:
-                transaction.rollback()
-                print traceback.format_exc(exc)
+                    try:
+                        connection=Connection.objects.get(pk=connection)
+                        response = check_progress(connection)
+                        if response:
+                            if type(response) == Email and connection.contact and connection.contact.user:
+                                response.recipients.clear()
+                                response.recipients.add(connection.contact.user)
+                                response.send()
+                            else:
+                                router.add_outgoing(connection, response)
+                        transaction.commit()
+                        if datetime.datetime.now() - current > datetime.timedelta(seconds=35):
+                            return
+                    except Exception, exc:
+                        transaction.rollback()
+                        print traceback.format_exc(exc)
+                        if recipients:
+                            send_mail('Error from check_script_progress cron', str(traceback.format_exc(exc)), 'root@uganda.rapidsms.org', recipients, fail_silently=True)
+                        continue
