@@ -41,7 +41,7 @@ class Command(BaseCommand):
                             if type(response) == Email and connection.contact and connection.contact.user:
                                 response.recipients.clear()
                                 response.recipients.add(connection.contact.user)
-                                response.send()
+                                response.send(context={'connection':connection})
                             else:
                                 router.add_outgoing(connection, response)
                         transaction.commit()
@@ -51,5 +51,5 @@ class Command(BaseCommand):
                         transaction.rollback()
                         print traceback.format_exc(exc)
                         if recipients:
-                            send_mail('Error from check_script_progress cron', str(traceback.format_exc(exc)), 'root@uganda.rapidsms.org', recipients, fail_silently=True)
+                            send_mail('[Django] Error: check_script_progress cron', str(traceback.format_exc(exc)), 'root@uganda.rapidsms.org', recipients, fail_silently=True)
                         continue

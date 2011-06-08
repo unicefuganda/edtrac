@@ -10,6 +10,7 @@ from rapidsms.messages.incoming import IncomingMessage
 import difflib
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
+from django.template import Context, Template
 
 class Script(models.Model):
     slug = models.SlugField(max_length=64, primary_key=True)
@@ -255,6 +256,14 @@ class Email(models.Model):
     message=models.TextField()
     recipients=models.ManyToManyField(User, related_name='emails', null=True)
 
-    def send(self):
+    def send(self, context={}):
         recipients = list(self.recipients.values_list('email',flat=True).distinct())
-        send_mail(self.subject, self.message, self.sender, recipients, fail_silently=False)
+        subject_template = Template(self.subject)
+        message_template = Template(self.message)
+        ctxt = Context(context)
+        subject = subject_template.render(ctxt)
+        message = message_template.render(ctxt)
+        if message.strip():
+            send_mail(subject, message, self.sender, recipients, fail_silently=False)
+
+        
