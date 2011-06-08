@@ -17,6 +17,7 @@ from optparse import OptionParser, make_option
 import datetime
 from django.core.mail import send_mail
 from django.conf import settings
+from django.template import Context, Template
 
 class Command(BaseCommand):
 
@@ -43,7 +44,9 @@ class Command(BaseCommand):
                                 response.recipients.add(connection.contact.user)
                                 response.send(context={'connection':connection})
                             else:
-                                router.add_outgoing(connection, response)
+                                template = Template(response)
+                                context = Context({'connection':connection})
+                                router.add_outgoing(connection, template.render(context))
                         transaction.commit()
                         if datetime.datetime.now() - current > datetime.timedelta(seconds=35):
                             return
