@@ -94,7 +94,6 @@ def expand_eav_filter(model_cls, key, value):
         value = Values.objects.filter(value_int=5, attribute__slug='height')
     '''
     fields = key.split('__')
-
     config_cls = getattr(model_cls, '_eav_config_cls', None)
     if len(fields) > 1 and config_cls and \
        fields[0] == config_cls.eav_attr:
@@ -103,7 +102,7 @@ def expand_eav_filter(model_cls, key, value):
         datatype = Attribute.objects.get(slug=slug).datatype
 
         lookup = '__%s' % fields[2] if len(fields) > 2 else ''
-        kwargs = {'value_%s%s' % (datatype, lookup): value,
+        kwargs = {str('value_%s%s' % (datatype, lookup)): value,
                   'attribute__slug': slug}
         value = Value.objects.filter(**kwargs)
 
