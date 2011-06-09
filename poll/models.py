@@ -6,7 +6,7 @@ from threading import Thread, Lock
 from code_generator.code_generator import generate_tracking_tag
 
 from django.db import models
-from django.db.models import Sum, Avg, Count
+from django.db.models import Sum, Avg, Count, Max, Min, StdDev
 from django.contrib.sites.models import Site
 from django.contrib.sites.managers import CurrentSiteManager
 from django.contrib.auth.models import User
@@ -370,71 +370,31 @@ class Poll(models.Model):
         else:
             return (resp,outgoing_message,)
 
-    def get_generic_report_data(self):
-        context = {}
-        context['total_responses'] = self.responses.count()
-        if self.contacts.count():
-            context['response_rate'] = (float(self.responses.values_list('contact', flat=True).distinct().count()) / self.contacts.count()) * 100
-        else:
-            context['response_rate'] = 0.0
-        return context
-
-    def get_text_report_data(self, location_id=None):
-        context = {}
-        locations = []
-        if location_id:
-            locations = location_id.get_descendants(include_self=True)
-            lresponses = self.responses.filter(contact__reporting_location__in=locations)
-        else:
-            lresponses = self.responses.filter(contact__reporting_location=None) 
-        if lresponses.count() > 0:
-            context['total_responses'] = lresponses.count()
-            context['response_rate'] = (float(len(lresponses.values_list('contact', flat=True).distinct())) / self.contacts.count()) * 100
-            context['report_data'] = []
-            report_raw = ResponseCategory.objects.filter(response__contact__reporting_location__in=locations, response__poll=self).values_list('category__name','category__color').annotate(Count('category')).order_by('category__name')
-            i = 0
-            for c in self.categories.order_by('name'):
-                if len(report_raw) > i and report_raw[i][0] == c.name:
-                    category_name, category_color, category_responses = report_raw[i]
-                    i = i + 1
-                else:
-                    category_name = c.name
-                    category_color = c.color
-                    category_responses = 0
-                category_percentage = 0
-                if context['total_responses']:
-                    category_percentage = (float(category_responses) / float(context['total_responses'])) * 100.0
-                context['report_data'].append((category_name, category_color, category_responses, category_percentage))
-            context['uncategorized'] = lresponses.exclude(categories__in=ResponseCategory.objects.filter(category__poll=self)).count()
-            context['uncategorized_percent'] = 0
-            if context['total_responses']:
-                context['uncategorized_percent'] = (float(context['uncategorized']) / float(context['total_responses'])) * 100.0 
-            return context
-        else:
-            return False
-
-    def get_numeric_report_data(self, location_id=None):
-        context = {}
-        locations = []
-        if location_id:
-            locations = location_id.get_descendants(include_self=True)
-            lresponses = self.responses.filter(contact__reporting_location__in=locations)
-        else:
-            lresponses = self.responses.filter(contact__reporting_location=None)
-        if lresponses.count() > 0:
-            context['total_responses'] = lresponses.count()
-            context['response_rate'] = (float(len(lresponses.values_list('contact', flat=True).distinct())) / self.contacts.count()) * 100
-            if lresponses.filter(has_errors=False).count():
-                context['total'], context['average'] = (Value.objects.filter(attribute__slug='poll_number_value',entity_ct=ContentType.objects.get_for_model(Response), entity_id__in=lresponses).values_list('attribute__slug').annotate(Sum('value_float'), Avg('value_float')))[0][1:]
-                context['mode'] = Value.objects.filter(attribute__slug='poll_number_value',entity_ct=ContentType.objects.get_for_model(Response), entity_id__in=lresponses).values_list('value_float').annotate(Count('value_float')).order_by('-value_float__count')[0][0]
-            return context
-        else:
-            return False
-
     def get_numeric_detailed_data(self):
         return Value.objects.filter(attribute__slug='poll_number_value',entity_ct=ContentType.objects.get_for_model(Response), entity_id__in=self.responses.all()).values_list('value_float').annotate(Count('value_float')).order_by('-value_float')
 
-    def responses_by_category(self, location=None):
+    def get_numeric_report_data(self, location=None, for_map=None):
+        if location:
+            q = Value.objects.filter(attribute__slug='poll_number_value',entity_ct=ContentType.objects.get_for_model(Response), entity_id__in=self.responses.all())
+            q = q.extra(tables=['poll_response','rapidsms_contact','simple_locations_area','simple_locations_area'],
+                    where=['poll_response.id = eav_value.entity_id',
+                           'rapidsms_contact.id = poll_response.contact_id',
+                           'simple_locations_area.id = rapidsms_contact.reporting_location_id',
+                           'T7.id in %s' % (str(tuple(location.get_children().values_list('pk', flat=True)))),
+                           'T7.lft <= simple_locations_area.lft',\
+                           'T7.rght >= simple_locations_area.rght',\
+                           ],
+                    select={
+                        'location_name':'T7.name',
+                        'location_id':'T7.id',
+                    }).values('location_name','location_id')
+
+        else:
+            q = Value.objects.filter(attribute__slug='poll_number_value',entity_ct=ContentType.objects.get_for_model(Response), entity_id__in=self.responses.all()).values('entity_ct')
+        q = q.annotate(Sum('value_float'),Count('value_float'),Avg('value_float'),StdDev('value_float'),Max('value_float'),Min('value_float'))
+        return q
+
+    def responses_by_category(self, location=None, for_map=True):
         categorized = ResponseCategory.objects.filter(response__poll=self)
 
         uncategorized = self.responses\
@@ -448,43 +408,65 @@ class Poll(models.Model):
             else:
                 location_where = 'T9.id in %s' % (str(tuple(location.get_children().values_list('pk', flat=True))))
                 ulocation_where = 'T7.id in %s' % (str(tuple(location.get_children().values_list('pk', flat=True))))
-            categorized = categorized\
-                    .values('response__message__connection__contact__reporting_location__name')\
-                    .extra(tables=['simple_locations_area','simple_locations_point'],\
-                           where=[\
-                                  'T9.lft <= simple_locations_area.lft',\
-                                  'T9.rght >= simple_locations_area.rght',\
-                                  'T9.location_id = simple_locations_point.id',\
-                                  location_where])\
-                    .extra(select = {
+
+            where_list = [\
+                          'T9.lft <= simple_locations_area.lft',\
+                          'T9.rght >= simple_locations_area.rght',\
+                          location_where,\
+                          'T9.location_id = simple_locations_point.id',] 
+            select = {
                         'location_name':'T9.name',
                         'location_id':'T9.id',
                         'lat':'simple_locations_point.latitude',
                         'lon':'simple_locations_point.longitude',
                         'rght':'T9.rght',
                         'lft':'T9.lft',
-                    })
+                    } 
+            tables = ['simple_locations_area','simple_locations_point']
+            if not for_map:
+                where_list = where_list[:3]
+                select.pop('lat')
+                select.pop('lon')
+                tables=tables[:1]
+            categorized = categorized\
+                    .values('response__message__connection__contact__reporting_location__name')\
+                    .extra(tables=tables,\
+                           where=where_list)\
+                    .extra(select = select)
 
-            uncategorized = uncategorized\
-                    .values('message__connection__contact__reporting_location__name')\
-                    .extra(tables=['simple_locations_area','simple_locations_point'],\
-                           where=[\
-                                  'T7.lft <= simple_locations_area.lft',\
-                                  'T7.rght >= simple_locations_area.rght',\
-                                  'T7.location_id = simple_locations_point.id',\
-                                  ulocation_where])\
-                    .extra(select = {
+            uwhere_list = [\
+                          'T7.lft <= simple_locations_area.lft',\
+                          'T7.rght >= simple_locations_area.rght',\
+                          ulocation_where,\
+                          'T7.location_id = simple_locations_point.id',]
+            uselect = {
                         'location_name':'T7.name',
                         'location_id':'T7.id',
                         'lat':'simple_locations_point.latitude',
                         'lon':'simple_locations_point.longitude',
                         'rght':'T7.rght',
                         'lft':'T7.lft',
-                    }).values('location_name','lat','lon')
+                    }
+            uvalues = ['location_name','location_id','lat','lon']
+            utables = ['simple_locations_area','simple_locations_point']
+            if not for_map:
+                uwhere_list = uwhere_list[:3]
+                uselect.pop('lat')
+                uselect.pop('lon')
+                uvalues = uvalues[:2]
+                utables = utables[:1]
 
-            values_list = ['location_name','lat','lon','category__name']
+            uncategorized = uncategorized\
+                    .values('message__connection__contact__reporting_location__name')\
+                    .extra(tables=utables,\
+                           where=uwhere_list)\
+                    .extra(select = uselect).values(*uvalues)
+
+            values_list = ['location_name','location_id','category__name','category__color','lat','lon',]
+            if not for_map:
+                values_list = values_list[:4]
         else:
-            values_list = ['category__name']
+            values_list = ['category__name','category__color']
 
         categorized = categorized.values(*values_list)\
                       .annotate(value=Count('pk'))\
@@ -495,16 +477,17 @@ class Poll(models.Model):
         if location:
             categorized = categorized.extra(order_by=['location_name'])
             uncategorized = uncategorized.extra(order_by=['location_name'])
-            for d in uncategorized:
-                d['lat'] = float(d['lat'])
-                d['lon'] = float(d['lon'])
-            for d in categorized:
-                d['lat'] = float(d['lat'])
-                d['lon'] = float(d['lon'])
+            if for_map:
+                for d in uncategorized:
+                    d['lat'] = float(d['lat'])
+                    d['lon'] = float(d['lon'])
+                for d in categorized:
+                    d['lat'] = float(d['lat'])
+                    d['lon'] = float(d['lon'])
 
         if len(uncategorized):
             for d in uncategorized:
-                d.update({'category__name':'uncategorized'})
+                d.update({'category__name':'uncategorized','category__color':''})
             categorized = categorized + uncategorized
 
         return categorized

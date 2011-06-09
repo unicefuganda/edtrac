@@ -118,41 +118,72 @@ def view_poll(req, poll_id):
 def view_report(req, poll_id, location_id=None, as_module=False):
     template = "polls/poll_report.html"
     poll = get_object_or_404(Poll, pk=poll_id)
-    if location_id:
-        locations = get_object_or_404(Area, pk=location_id).get_children().order_by('name')
-    else:
-        locations = Area.tree.root_nodes().order_by('name')
-    
+    response_rate = len(poll.contacts.all().distinct()) * 100.0 / len(poll.responses.values_list('contact__pk', flat=True).distinct())
     if as_module:
         if poll.type == Poll.TYPE_TEXT:
             template = "polls/poll_report_text.html"
         elif poll.type == Poll.TYPE_NUMERIC:
             template = "polls/poll_report_numeric.html"
     
+    report_function = None
+    is_text_poll = True
+    if Poll.TYPE_CHOICES[poll.type]['db_type'] == Attribute.TYPE_TEXT:
+        report_function = poll.responses_by_category
+    elif Poll.TYPE_CHOICES[poll.type]['db_type'] == Attribute.TYPE_FLOAT:
+        report_function = poll.get_numeric_report_data
+        is_text_poll = False
+
+    if location_id:
+        locations = get_object_or_404(Area, pk=location_id)
+        locations = [locations,]
+    else:
+        locations = Area.tree.root_nodes().order_by('name')
+
+    results = []
+    for location in locations:
+        report = report_function(location=location,for_map=False)
+        if len(report):
+            if is_text_poll:
+                offset = 0
+                while (offset < len(report)):
+                    #reset the current row
+                    row = {'location_name':report[offset]['location_name'],
+                           'location_id':report[offset]['location_id']}
+                    data = []
+                    total = 0.0
+
+                    for c in poll.categories.order_by('name'):
+                        if  offset < len(report) and \
+                            report[offset]['location_id'] == row['location_id'] and \
+                            report[offset]['category__name'] == c.name:
+                                total += report[offset]['value']
+                                data.append((report[offset]['category__name'],
+                                             report[offset]['category__color'],
+                                             report[offset]['value'],))
+                                offset += 1
+                        else:
+                            data.append((c.name, c.color, 0,))
+                    if  offset < len(report) and \
+                        report[offset]['location_id'] == row['location_id'] and \
+                        report[offset]['category__name'] == 'uncategorized':
+                            total += report[offset]['value']
+                            data.append((report[offset]['category__name'],
+                                         report[offset]['category__color'],
+                                         report[offset]['value'],))
+                            offset += 1
+                    else:
+                        data.append(('uncategorized','',0,))
+                    percent_data = []
+                    for d in data:
+                        percent_data.append((d + (d[2]*100.0/total,)))
+                    row['report_data'] = percent_data
+                    results.append(row)
+            elif Poll.TYPE_CHOICES[poll.type]['db_type'] == Attribute.TYPE_FLOAT:
+                results = results + list(report)
+
     breadcrumbs = (('Polls', reverse('polls')),)
-    context = { 'poll':poll, 'breadcrumbs':breadcrumbs, 'categories':poll.categories.order_by('name') }
-    context.update(poll.get_generic_report_data())
-    report_rows = []
-    for l in locations:
-        if poll.type == Poll.TYPE_TEXT:
-            if poll.get_text_report_data(l):
-                report_row = poll.get_text_report_data(l)
-                report_row['location'] = l
-                report_rows.append(report_row)
-        elif poll.type == Poll.TYPE_NUMERIC:
-            if poll.get_numeric_report_data(l):
-                report_row = poll.get_numeric_report_data(l)
-                report_row['location'] = l
-                report_rows.append(report_row)
-    if not location_id:
-        if poll.type == Poll.TYPE_TEXT:
-            if poll.get_text_report_data():
-                report_rows.append(poll.get_text_report_data())
-        elif poll.type == Poll.TYPE_NUMERIC:
-            if poll.get_numeric_report_data():  
-                report_rows.append(poll.get_numeric_report_data())
-    context['report_rows'] = report_rows        
-    
+    context = { 'poll':poll, 'breadcrumbs':breadcrumbs, 'categories':poll.categories.order_by('name'), 'report_rows':results, 'response_rate':response_rate }
+
     if poll.type != Poll.TYPE_TEXT and poll.type != Poll.TYPE_NUMERIC:
         return render_to_response(
         "polls/poll_index.html",
@@ -550,5 +581,4 @@ def delete_rule (req, poll_id, category_id, rule_id):
         rule.delete()
     category.poll.reprocess_responses()
     return HttpResponse(status=200)
-
 

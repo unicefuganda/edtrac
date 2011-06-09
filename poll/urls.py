@@ -12,6 +12,7 @@ urlpatterns = patterns('',
     url(r"^(\d+)/report/(\d+)/$", views.view_report),
     url(r"^(?P<poll_id>\d+)/report/module/$", views.view_report, {'as_module':True}, name="poll-report-module"),
     url(r"^(\d+)/report/(\d+)/module/$", views.view_report, {'as_module':True}, name="poll-report-location-module"),
+
     url(r"^responses/(\d+)/edit/$", views.edit_response),
     url(r"^responses/(\d+)/apply/$", views.apply_response),
     url(r"^responses/(\d+)/apply_all/$", views.apply_all),
