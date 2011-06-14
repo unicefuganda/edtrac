@@ -1,6 +1,6 @@
 import datetime
 import logging
-
+from logging import  handlers
 from django.core.management.base import BaseCommand
 import traceback
 from rapidsms.models import Contact, Connection, Backend
@@ -28,14 +28,10 @@ except ImportError:
     class NullHandler(logging.Handler):
         def emit(self, record):
             pass
-
-
-logging.basicConfig(filename="script.log",level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+logging.basicConfig(filename="script.log",level=logging.DEBUG)
 # Add the log message handler to the logger
-handler = logging.handlers.RotatingFileHandler(
-              "script.log", maxBytes=5242880, backupCount=5)
-
+handler = logging.handlers.RotatingFileHandler("script.log", maxBytes=5242880, backupCount=5)
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
