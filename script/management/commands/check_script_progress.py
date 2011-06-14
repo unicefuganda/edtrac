@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 from django.core.management.base import BaseCommand
 import traceback
@@ -19,6 +20,31 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.template import Context, Template
 
+# Make sure a NullHandler is available
+# This was added in Python 2.7/3.2
+try:
+    from logging import NullHandler
+except ImportError:
+    class NullHandler(logging.Handler):
+        def emit(self, record):
+            pass
+
+# Make sure that dictConfig is available
+# This was added in Python 2.7/3.2
+try:
+    from logging.config import dictConfig
+except ImportError:
+    from django.utils.dictconfig import dictConfig
+
+logging.basicConfig(filename="script.log",level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+# Add the log message handler to the logger
+handler = logging.handlers.RotatingFileHandler(
+              "script.log", maxBytes=5242880, backupCount=5)
+
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 class Command(BaseCommand):
 
     option_list = BaseCommand.option_list + (
@@ -36,8 +62,17 @@ class Command(BaseCommand):
                 router = get_router()
                 for connection in ScriptProgress.objects.values_list('connection', flat=True).distinct():
                     try:
+                        log_str=" PK:"+str(connection)
                         connection=Connection.objects.get(pk=connection)
+                        script_p=ScriptProgress.objects.get(connection=connection)
+                        log_str=log_str+" Step Before: "+str(script_p.step)
+                        if script_p.step:
+                            log_str=log_str+" start offset: "+str(script_p.step.start_offset)
+                            
                         response = check_progress(connection)
+                        log_str=log_str+" Step After: "+str(script_p.step)
+                        log_str=log_str+"Response: "+str(response)
+                        logger.info(log_str)
                         if response:
                             if type(response) == Email and connection.contact and connection.contact.user:
                                 response.recipients.clear()
@@ -53,6 +88,7 @@ class Command(BaseCommand):
                     except Exception, exc:
                         transaction.rollback()
                         print traceback.format_exc(exc)
+                        logger.debug(str(exc))
                         if recipients:
                             send_mail('[Django] Error: check_script_progress cron', str(traceback.format_exc(exc)), 'root@uganda.rapidsms.org', recipients, fail_silently=True)
                         continue
