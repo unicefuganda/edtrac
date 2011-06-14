@@ -29,12 +29,6 @@ except ImportError:
         def emit(self, record):
             pass
 
-# Make sure that dictConfig is available
-# This was added in Python 2.7/3.2
-try:
-    from logging.config import dictConfig
-except ImportError:
-    from django.utils.dictconfig import dictConfig
 
 logging.basicConfig(filename="script.log",level=logging.DEBUG)
 logger = logging.getLogger(__name__)
