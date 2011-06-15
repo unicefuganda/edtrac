@@ -50,7 +50,7 @@ class Command(BaseCommand):
             recipients = [email for name,email in recipients]
         if current.hour in range(int(options['e']),int(options['l'])):
                 router = get_router()
-                for connection in ScriptProgress.objects.values_list('connection', flat=True).distinct():
+                for connection in ScriptProgress.objects.order_by('-step').values_list('connection', flat=True).distinct():
                     try:
                         log_str=" PK:"+str(connection)
                         connection=Connection.objects.get(pk=connection)
