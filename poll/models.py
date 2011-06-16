@@ -486,9 +486,10 @@ class Poll(models.Model):
                     d['lon'] = float(d['lon'])
 
         if len(uncategorized):
+            uncategorized = list(uncategorized)
             for d in uncategorized:
                 d.update({'category__name':'uncategorized','category__color':''})
-            categorized = list(categorized) + list(uncategorized)
+            categorized = list(categorized) + uncategorized
 
         return categorized
 
