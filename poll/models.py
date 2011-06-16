@@ -5,7 +5,7 @@ from threading import Thread, Lock
 
 from code_generator.code_generator import generate_tracking_tag
 
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Sum, Avg, Count, Max, Min, StdDev
 from django.contrib.sites.models import Site
 from django.contrib.sites.managers import CurrentSiteManager
@@ -220,8 +220,10 @@ class Poll(models.Model):
             time.sleep(5)
             global poll_start_lock
             poll_start_lock.acquire()
+            transaction.enter_transaction_management()
             self.poll.start_date = datetime.datetime.now()
             self.poll.save()
+            transaction.commit()
             router = get_router()
             for contact in self.poll.contacts.all():
                 for connection in Connection.objects.filter(contact=contact):
@@ -231,6 +233,7 @@ class Poll(models.Model):
                         self.poll.messages.add(outgoing_obj)
 
             self.poll.save()
+            transaction.commit()
             poll_start_lock.release()
             
     class PollParticipants(Thread):
@@ -242,7 +245,9 @@ class Poll(models.Model):
         
         def run(self):
             time.sleep(5)
+            transaction.enter_transaction_management()
             self.poll.contacts = self.contacts
+            transaction.commit()
             if self.start_immediately:
                 worker = self.poll.PollStarter(self.poll)
                 worker.run()
