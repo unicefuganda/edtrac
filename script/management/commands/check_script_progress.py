@@ -1,5 +1,6 @@
 import datetime
 import logging
+import itertools
 from logging import  handlers
 from django.core.management.base import BaseCommand
 import traceback
@@ -50,7 +51,9 @@ class Command(BaseCommand):
             recipients = [email for name,email in recipients]
         if current.hour in range(int(options['e']),int(options['l'])):
                 router = get_router()
-                for connection in ScriptProgress.objects.order_by('-step').values_list('connection', flat=True).distinct():
+                unstarted = ScriptProgress.objects.filter(step=None).values_list('connection', flat=True).distinct()
+                started = ScriptProgress.objects.order_by('step').values_list('connection', flat=True).distinct()
+                for connection in itertools.chain(unstarted, started):
                     try:
                         log_str=" PK:"+str(connection)
                         connection=Connection.objects.get(pk=connection)
