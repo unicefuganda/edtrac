@@ -46,17 +46,23 @@ class NewPollForm(forms.Form): # pragma: no cover
         cleaned_data = self.cleaned_data
         contacts = cleaned_data.get('contacts')
         groups = cleaned_data.get('groups')
+        cleaned_data['question'] = cleaned_data.get('question').replace('%', '%%')
+        cleaned_data['default_response'] = cleaned_data.get('default_response').replace('%', '%%')
 
         if not contacts and not groups:
             raise forms.ValidationError("You must provide a set of recipients (either a group or a contact)")
 
-        # Always return the full collection of cleaned data.
         return cleaned_data
 
 class EditPollForm(forms.ModelForm): # pragma: no cover
     class Meta:
         model = Poll
         fields = ('name', 'default_response')
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        cleaned_data['default_response'] = cleaned_data.get('default_response').replace('%', '%%')
+        return cleaned_data
 
     # This may seem like a hack, but this allows time for the Contact model's
     # default manage to be replaced at run-time.  There are many applications
@@ -85,6 +91,12 @@ class CategoryForm(forms.ModelForm):
                 ('99ff77', 'green'),
                 ('7799ff', 'blue'),
                 ('ffff77', 'yellow'))))
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        cleaned_data['response'] = cleaned_data.get('response').replace('%', '%%')
+        return cleaned_data
+
     class Meta:
         model = Category
         fields = ('name', 'priority', 'color', 'default', 'response')
