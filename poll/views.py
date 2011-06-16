@@ -19,6 +19,7 @@ from simple_locations.models import Area
 from rapidsms.models import Connection, Backend
 from eav.models import Attribute
 from django.core.urlresolvers import reverse
+from django.views.decorators.cache import cache_control
 
 from .forms import *
 from .models import ResponseForm, NameResponseForm, NumericResponseForm, LocationResponseForm
@@ -193,6 +194,7 @@ def view_report(req, poll_id, location_id=None, as_module=False):
         return render_to_response(template, context, context_instance=RequestContext(req))
 
 @login_required
+@cache_control(no_cache=True, max_age=0)
 def view_poll_details(req, form_id):
     poll = get_object_or_404(Poll.objects.annotate(Count('contacts')), pk=form_id)
     return render_to_response("polls/poll_details.html",
