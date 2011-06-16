@@ -5,7 +5,7 @@ import traceback
 from rapidsms.models import Contact, Connection, Backend
 
 from rapidsms_httprouter.models import Message
-from rapidsms_httprouter.router import get_router
+from rapidsms_httprouter.router import HttpRouter
 
 from django.db import transaction
 
@@ -33,7 +33,7 @@ class Command(BaseCommand):
         if recipients:
             recipients = [email for name,email in recipients]
         if current.hour in range(int(options['e']),int(options['l'])):
-                router = get_router()
+                router = HttpRouter()
                 for connection in ScriptProgress.objects.values_list('connection', flat=True).distinct():
                     try:
                         connection=Connection.objects.get(pk=connection)
