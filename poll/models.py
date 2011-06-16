@@ -220,6 +220,8 @@ class Poll(models.Model):
             time.sleep(5)
             global poll_start_lock
             poll_start_lock.acquire()
+            self.poll.start_date = datetime.datetime.now()
+            self.poll.save()
             router = get_router()
             for contact in self.poll.contacts.all():
                 for connection in Connection.objects.filter(contact=contact):
@@ -227,7 +229,7 @@ class Poll(models.Model):
                     outgoing_obj = router.handle_outgoing(outgoing)
                     if outgoing_obj:
                         self.poll.messages.add(outgoing_obj)
-            self.poll.start_date = datetime.datetime.now()
+
             self.poll.save()
             poll_start_lock.release()
             
