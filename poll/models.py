@@ -396,10 +396,8 @@ class Poll(models.Model):
 
     def responses_by_category(self, location=None, for_map=True):
         categorized = ResponseCategory.objects.filter(response__poll=self)
-
-        uncategorized = self.responses\
-                        .exclude(pk__in=ResponseCategory.objects.filter(response__poll=self)\
-                                 .values_list('response', flat=True))
+        uncategorized = self.responses.exclude(pk__in=ResponseCategory.objects.filter(response__poll=self).values_list('response',flat=True))
+        uvalues = ['poll__pk']
 
         if location:
             if location.get_children().count() == 1:
@@ -460,7 +458,7 @@ class Poll(models.Model):
                     .values('message__connection__contact__reporting_location__name')\
                     .extra(tables=utables,\
                            where=uwhere_list)\
-                    .extra(select = uselect).values(*uvalues)
+                    .extra(select = uselect)
 
             values_list = ['location_name','location_id','category__name','category__color','lat','lon',]
             if not for_map:
@@ -472,7 +470,7 @@ class Poll(models.Model):
                       .annotate(value=Count('pk'))\
                       .order_by('category__name')
 
-        uncategorized = uncategorized.annotate(value=Count('pk'))
+        uncategorized = uncategorized.values(*uvalues).annotate(value=Count('pk'))
 
         if location:
             categorized = categorized.extra(order_by=['location_name'])
