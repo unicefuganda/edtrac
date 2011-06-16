@@ -488,7 +488,7 @@ class Poll(models.Model):
         if len(uncategorized):
             for d in uncategorized:
                 d.update({'category__name':'uncategorized','category__color':''})
-            categorized = categorized + uncategorized
+            categorized = list(categorized) + list(uncategorized)
 
         return categorized
 
