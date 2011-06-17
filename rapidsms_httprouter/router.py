@@ -74,6 +74,14 @@ class HttpRouterThread(Thread, LoggerMixin):
                         # if it wasn't cancelled, send it off
                         if send_msg:
                             self.send_message(outgoing_message)
+                        self._isbusy = False
+                        time.sleep(getattr(settings, 'WORKER_SLEEP_SHORT', 0.25))
+                    else:
+                        # if there weren't any messages queued, back off
+                        # from polling the DB
+                        self._isbusy = False
+                        time.sleep(getattr(settings, 'WORKER_SLEEP_LONG',1))
+
                 except:
                     import traceback
                     traceback.print_exc()
