@@ -14,12 +14,11 @@ from rapidsms.messages.outgoing import OutgoingMessage
 from generic.forms import ActionForm, FilterForm
 from ureport.models import MassText
 from django.contrib.sites.models import Site
-from threading import Thread, Lock
 from simple_locations.models import Area
 import time
 from django.conf import settings
-
-send_masstext_lock = Lock()
+import datetime
+from rapidsms_httprouter.models import Message
 
 class FilterGroupsForm(FilterForm):
 
@@ -154,35 +153,10 @@ class DistictFilterMessageForm(FilterForm):
             else:
                 return queryset
 
-
 class MassTextForm(ActionForm):
 
     text = forms.CharField(max_length=160, required=True)
     action_label = 'Send Message'
-
-    class MassTexter(Thread):
-        def __init__(self, connections, text, user, **kwargs):
-            Thread.__init__(self, **kwargs)
-            self.connections = connections
-            self.text = text
-            self.user = user
-
-        def run(self):
-            time.sleep(5)
-            global send_masstext_lock
-            send_masstext_lock.acquire()
-            router = get_router()
-            start_sending_mass_messages()
-            mass_text = MassText.objects.create(user=self.user,
-                    text=self.text)
-            mass_text.sites.add(Site.objects.get_current())
-            for conn in Connection.objects.filter(pk__in=self.connections):
-                mass_text.contacts.add(conn.contact)
-                outgoing = OutgoingMessage(conn, self.text)
-                print "sending to %s" % str(conn.identity)
-                router.handle_outgoing(outgoing)
-            stop_sending_mass_messages()
-            send_masstext_lock.release()
 
     def perform(self, request, results):
         if results is None or len(results) == 0:
@@ -190,16 +164,36 @@ class MassTextForm(ActionForm):
 
         if request.user and request.user.has_perm('ureport.can_message'):
             connections = \
-                list(Connection.objects.filter(contact__in=results).values_list('pk',flat=True).distinct())
+                list(Connection.objects.filter(contact__in=results).distinct())
 
             text = self.cleaned_data['text']
             text = text.replace('%', '%%')
+    
+            for connection in connections:
+                Message.bulk.bulk_insert(
+                    send_pre_save=False,
+                    text=text,
+                    direction='O',
+                    status='P',
+                    connection=connection)
+            messages = Message.bulk.bulk_insert_commit(send_post_save=False, autoclobber=True)
+    
+            if "authsites" in settings.INSTALLED_APPS:
+                from authsites.models import MessageSite
+                for m in messages:
+                    MessageSite.bulk.bulk_insert(send_pre_save=False,
+                                                 message=m,
+                                                 site=Site.objects.get_current())
+                MessageSite.bulk.bulk_insert_commit(send_post_save=False,autoclobber=True)
 
-            worker = self.MassTexter(connections, text, request.user)
-            if len(connections) > 100:
-                worker.start()
-            else:
-                worker.run()
+            MassText.bulk.bulk_insert(send_pre_save=False,
+                    user=request.user,
+                    text=text,
+                    contacts=list(results))
+            masstexts = MassText.bulk.bulk_insert_commit(send_post_save=False, autoclobber=True)
+            masstext = masstexts[0]
+            if settings.SITE_ID:
+                masstext.sites.add(Site.objects.get_current())
 
             return ('Message successfully sent to %d numbers' % len(connections), 'success',)
         else:
