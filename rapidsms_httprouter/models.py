@@ -1,9 +1,9 @@
 import datetime
-
-from django.db import models, connections
-from django.db.models.query import QuerySet
+from django.db import models
 
 from rapidsms.models import Contact, Connection
+
+from .managers import ForUpdateManager, BulkInsertManager
 
 DIRECTION_CHOICES = (
     ("I", "Incoming"),
@@ -31,18 +31,6 @@ STATUS_CHOICES = (
 # See: https://coderanger.net/2011/01/select-for-update/
 #
 
-class ForUpdateQuerySet(QuerySet):
-    def for_single_update(self):
-        if 'sqlite' in connections[self.db].settings_dict['ENGINE'].lower():
-            # Noop on SQLite since it doesn't support FOR UPDATE
-            return self
-        sql, params = self.query.get_compiler(self.db).as_sql()
-        return self.model._default_manager.raw(sql.rstrip() + ' LIMIT 1 FOR UPDATE', params)
-
-class ForUpdateManager(models.Manager):
-    def get_query_set(self):
-        return ForUpdateQuerySet(self.model, using=self._db)
-
 class Message(models.Model):
     connection = models.ForeignKey(Connection, related_name='messages')
     text       = models.TextField()
@@ -55,6 +43,7 @@ class Message(models.Model):
 
     # set our manager to our update manager
     objects = ForUpdateManager()
+    bulk = BulkInsertManager()
 
     def __unicode__(self):
         # crop the text (to avoid exploding the admin)
