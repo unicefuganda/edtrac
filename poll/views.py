@@ -84,18 +84,22 @@ def new_poll(req):
             name = form.cleaned_data['name']
             type = form.cleaned_data['type']
             poll_type = Poll.TYPE_TEXT if type == NewPollForm.TYPE_YES_NO else type
-            poll = Poll.objects.create(name=name,
-                                       type=poll_type,
-                                       question=question,
-                                       default_response=default_response,
-                                       user=req.user)
+
+            poll = Poll.create_with_bulk(\
+                                 name,
+                                 poll_type,
+                                 question,
+                                 default_response,
+                                 contacts,
+                                 req.user)
+
             if type == NewPollForm.TYPE_YES_NO:
                 poll.add_yesno_categories()
 
             if settings.SITE_ID:
                 poll.sites.add(Site.objects.get_current())
-            poll.save()
-            poll.add_participants(contacts, form.cleaned_data['start_immediately'])
+            if form.cleaned_data['start_immediately']:
+                poll.start()
 
             return redirect(reverse('poll.views.view_poll', args=[poll.pk]))
     else:

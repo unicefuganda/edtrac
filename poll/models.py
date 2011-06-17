@@ -1,7 +1,6 @@
 import datetime
 import difflib
 import time
-from threading import Thread, Lock
 
 from code_generator.code_generator import generate_tracking_tag
 
@@ -24,7 +23,7 @@ from .utils import init_attributes
 from simple_locations.models import Area
 
 from rapidsms_httprouter.models import Message
-from rapidsms_httprouter.router import get_router
+from rapidsms_httprouter.managers import BulkInsertManager
 
 from rapidsms.messages.outgoing import OutgoingMessage
 from django.conf import settings
@@ -45,9 +44,6 @@ YES_WORDS = ['yes','yeah','yep','yay','y']
 # This can be configurable from settings, but here's a default list of
 # accepted no keywords
 NO_WORDS = ['no','nope','nah','nay','n']
-
-poll_start_lock = Lock()
-poll_reprocess_lock = Lock()
 
 class ResponseForm(forms.Form):
     def __init__(self, data=None, **kwargs):
@@ -148,6 +144,7 @@ class Poll(models.Model):
     default_response = models.CharField(max_length=160)
     sites = models.ManyToManyField(Site)
     objects = (CurrentSiteManager('sites') if settings.SITE_ID else models.Manager())
+    bulk = BulkInsertManager()
 
     class Meta:
         permissions = (
@@ -195,6 +192,37 @@ class Poll(models.Model):
             report_columns=report_columns,
             edit_form=edit_form)
 
+    @classmethod
+    def create_with_bulk(cls, name, type, question, default_response, contacts, user):
+        connections = []
+        for connection in Connection.objects.filter(contact__in=list(contacts)).distinct():
+            Message.bulk.bulk_insert(
+                send_pre_save=False,
+                text=question,
+                direction='O',
+                status='L',
+                connection=connection)
+        messages = Message.bulk.bulk_insert_commit(send_post_save=False, autoclobber=True)
+
+        if "authsites" in settings.INSTALLED_APPS:
+            from authsites.models import MessageSite
+            for m in messages:
+                MessageSite.bulk.bulk_insert(send_pre_save=False,
+                                             message=m,
+                                             site=Site.objects.get_current())
+            MessageSite.bulk.bulk_insert_commit(send_post_save=False,autoclobber=True)
+
+        Poll.bulk.bulk_insert(name=name,
+                              type=type,
+                              question=question,
+                              default_response=default_response,
+                              user=user,
+                              contacts=list(contacts),
+                              messages=list(messages),
+                              send_pre_save=False)
+        polls = Poll.bulk.bulk_insert_commit(send_post_save=False, autoclobber=True)
+        return polls[0]
+
     def add_yesno_categories(self):
         """
         This creates a generic yes/no poll categories for a particular poll
@@ -211,54 +239,6 @@ class Poll(models.Model):
             rule_string=(STARTSWITH_PATTERN_TEMPLATE % '|'.join(NO_WORDS)))
         self.categories.create(name='unknown', default=True, error_category=True)
 
-    class PollStarter(Thread):
-        def __init__(self, poll, **kwargs):
-            Thread.__init__(self, **kwargs)
-            self.poll = poll
-
-        def run(self):
-            time.sleep(5)
-            global poll_start_lock
-            poll_start_lock.acquire()
-            transaction.enter_transaction_management()
-            self.poll.start_date = datetime.datetime.now()
-            self.poll.save()
-            transaction.commit()
-            router = get_router()
-            for contact in self.poll.contacts.all():
-                for connection in Connection.objects.filter(contact=contact):
-                    outgoing = OutgoingMessage(connection, self.poll.question)
-                    outgoing_obj = router.handle_outgoing(outgoing)
-                    if outgoing_obj:
-                        self.poll.messages.add(outgoing_obj)
-
-            self.poll.save()
-            transaction.commit()
-            poll_start_lock.release()
-            
-    class PollParticipants(Thread):
-        def __init__(self, poll, contacts, start_immediately, **kwargs):
-            Thread.__init__(self, **kwargs)
-            self.poll = poll
-            self.contacts = contacts
-            self.start_immediately = start_immediately
-        
-        def run(self):
-            time.sleep(5)
-            transaction.enter_transaction_management()
-            self.poll.contacts = self.contacts
-            transaction.commit()
-            if self.start_immediately:
-                worker = self.poll.PollStarter(self.poll)
-                worker.run()
-
-    def add_participants(self, contact_list, start_immediately):
-        worker = self.PollParticipants(self, contact_list, start_immediately)
-        if contact_list.count() > 100:
-            worker.start()
-        else:
-            worker.run()        
-
     def start(self):
         """
         This starts the poll: outgoing messages are sent to all the contacts
@@ -266,12 +246,11 @@ class Poll(models.Model):
         All incoming messages from these users will be considered as
         potentially a response to this poll.
         """
-        worker = self.PollStarter(self)
-        if self.contacts.count() > 100:
-            worker.start()
-        else:
-            worker.run()
-    
+        self.start_date = datetime.datetime.now()
+        self.save()
+        self.messages.update(status='P')
+
+
     def end(self):
         self.end_date = datetime.datetime.now()
         self.save()
@@ -500,7 +479,6 @@ class Poll(models.Model):
 
     def __unicode__(self):
         return self.name
-
 
 class Category(models.Model):
     """
