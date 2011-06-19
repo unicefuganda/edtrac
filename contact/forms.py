@@ -169,22 +169,11 @@ class MassTextForm(ActionForm):
             text = self.cleaned_data['text']
             text = text.replace('%', '%%')
 
-            for connection in connections:
-                Message.bulk.bulk_insert(
-                    send_pre_save=False,
-                    text=text,
-                    direction='O',
-                    status='P',
-                    connection=connection)
-            messages = Message.bulk.bulk_insert_commit(send_post_save=False, autoclobber=True)
+            messages = Message.mass_text(text,connections)
 
             if "authsites" in settings.INSTALLED_APPS:
                 from authsites.models import MessageSite
-                for m in messages:
-                    MessageSite.bulk.bulk_insert(send_pre_save=False,
-                                                 message=m,
-                                                 site=Site.objects.get_current())
-                MessageSite.bulk.bulk_insert_commit(send_post_save=False,autoclobber=True)
+                MessageSite.add_all(messages)
 
             MassText.bulk.bulk_insert(send_pre_save=False,
                     user=request.user,
