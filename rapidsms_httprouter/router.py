@@ -451,7 +451,7 @@ class HttpRouter(object, LoggerMixin):
         return app
 
 
-    def start(self):
+    def start(self, start_workers=False):
         """
         Initializes our router.
         TODO: this happens in the HTTP thread on the first call, that could be bad.
@@ -469,7 +469,8 @@ class HttpRouter(object, LoggerMixin):
         self.outgoing = [message for message in Message.objects.filter(status='Q')]
 
         # kick start one worker
-        self.check_workers()
+        if start_workers:
+            self.check_workers()
 
         # mark ourselves as started
         self.started = True
@@ -478,7 +479,7 @@ class HttpRouter(object, LoggerMixin):
 http_router = HttpRouter()
 http_router_lock = Lock()
 
-def get_router():
+def get_router(start_workers=False):
     """
     Takes care of performing lazy initialization of the www router.
     """
@@ -489,7 +490,7 @@ def get_router():
         http_router_lock.acquire()
         try:
             if not http_router.started:
-                http_router.start()
+                http_router.start(start_workers)
         finally:
             http_router_lock.release()
 

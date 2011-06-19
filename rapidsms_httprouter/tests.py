@@ -142,6 +142,28 @@ class RouterTest(TestCase):
         msg4 = router.add_message('test', 'asdfASDF', 'test', 'I', 'P')
         self.assertEquals('asdfasdf', msg4.connection.identity)
 
+    def testAddBulk(self):
+        connection2 = Connection.objects.create(backend=self.backend, identity='8675309')
+        connection3 = Connection.objects.create(backend=self.backend, identity='8675310')
+        connection4 = Connection.objects.create(backend=self.backend, identity='8675311')
+
+        # test that mass texting works with a single number
+        msgs = Message.mass_text('Jenny I got your number', [self.connection])
+
+        self.assertEquals(msgs.count(), 1)
+        self.assertEquals(msgs[0].text, 'Jenny I got your number')
+
+        # test no connections are re-created
+        self.assertEquals(msgs[0].connection.pk, self.connection.pk)
+
+        msgs = Message.mass_text('Jenny dont change your number', [self.connection,connection2,connection3,connection4],status='L')
+        self.assertEquals(str(msgs.values_list('status', flat=True).distinct()[0]), 'L')
+        self.assertEquals(msgs.count(), 4)
+
+        # test duplicate connections don't create duplicate messages
+        msgs = Message.mass_text('Turbo King is the greatest!', [self.connection,self.connection])
+        self.assertEquals(msgs.count(), 1)
+
     def testRouter(self):
         router = get_router()
 

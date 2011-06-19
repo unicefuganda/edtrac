@@ -58,3 +58,14 @@ class Message(models.Model):
                     contact=self.connection.identity, backend=self.connection.backend.name,
                     direction=self.direction, status=self.status, text=self.text,
                     date=self.date.isoformat())
+
+    @classmethod
+    def mass_text(cls, text, connections, status='P'):
+        for connection in connections:
+            Message.bulk.bulk_insert(
+                send_pre_save=False,
+                text=text,
+                direction='O',
+                status=status,
+                connection=connection)
+        return Message.bulk.bulk_insert_commit(send_post_save=False, autoclobber=True)
