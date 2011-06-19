@@ -194,23 +194,11 @@ class Poll(models.Model):
 
     @classmethod
     def create_with_bulk(cls, name, type, question, default_response, contacts, user):
-        connections = []
-        for connection in Connection.objects.filter(contact__in=list(contacts)).distinct():
-            Message.bulk.bulk_insert(
-                send_pre_save=False,
-                text=question,
-                direction='O',
-                status='L',
-                connection=connection)
-        messages = Message.bulk.bulk_insert_commit(send_post_save=False, autoclobber=True)
+        messages = Message.mass_text(question, Connection.objects.filter(contact__in=list(contacts)).distinct(), status='L')
 
         if "authsites" in settings.INSTALLED_APPS:
             from authsites.models import MessageSite
-            for m in messages:
-                MessageSite.bulk.bulk_insert(send_pre_save=False,
-                                             message=m,
-                                             site=Site.objects.get_current())
-            MessageSite.bulk.bulk_insert_commit(send_post_save=False,autoclobber=True)
+            MessageSite.add_all(messages)
 
         Poll.bulk.bulk_insert(name=name,
                               type=type,
