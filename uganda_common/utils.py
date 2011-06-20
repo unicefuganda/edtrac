@@ -34,14 +34,14 @@ TIME_RANGES = {
 PREFIXES = [('70', 'warid'), ('75', 'zain'), ('71', 'utl'), ('', 'dmark')]
 
 def assign_backend(number):
-            if number.startswith('0'):
-                number = '256%s' % number[1:]
-            backendobj = None
-            for prefix, backend in PREFIXES:
-                if number[3:].startswith(prefix):
-                    backendobj, created = Backend.objects.get_or_create(name=backend)
-                    break
-            return (number, backendobj)
+    if number.startswith('0')  or len(number) == 9:
+        number = '256%s' % number[1:]
+    backendobj = None
+    for prefix, backend in PREFIXES:
+        if number[3:].startswith(prefix):
+            backendobj, created = Backend.objects.get_or_create(name=backend)
+            break
+    return (number, backendobj)
 
 class ExcelResponse(HttpResponse):
     def __init__(self,data, output_name='excel_report',headers=None,force_csv=False, encoding='utf8'):
