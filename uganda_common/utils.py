@@ -29,16 +29,19 @@ TIME_RANGES = {
     'q': previous_calendar_quarter
 
 }
-
-
-PREFIXES = [('70', 'warid'), ('75', 'zain'), ('71', 'utl'), ('', 'dmark')]
-
+    
 def assign_backend(number):
-    if number.startswith('0')  or len(number) == 9:
-        number = '256%s' % number[1:]
+    """assign a backend to a given number"""
+    country_code = getattr(settings, 'COUNTRY_CALLING_CODE', None)
+    backends = getattr(settings, 'BACKEND_PREFIXES', [])
+    
+    if number.startswith('0'):
+        number = '%s%s'%(country_code, number[1:])
+    elif number[:len(country_code)] != country_code:
+        number = '%s%s'%(country_code, number)
     backendobj = None
-    for prefix, backend in PREFIXES:
-        if number[3:].startswith(prefix):
+    for prefix, backend in backends:
+        if number[len(country_code):].startswith(prefix):
             backendobj, created = Backend.objects.get_or_create(name=backend)
             break
     return (number, backendobj)
