@@ -1,6 +1,12 @@
 {% extends 'generic/partials/partial_row.html' %}
 {% block remaining_row_content %}
+{% load extra_tags %}
 <td>
+	{% if object|flags %}
+	<span class="messageflag">
+        <img src="{{MEDIA_URL}}ureport/images/flagged.png" width="15" height="15" />
+    </span>
+	{% endif %}
     <span class="textmessage">
     {{ object.text }}
     </span>

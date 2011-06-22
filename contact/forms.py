@@ -10,6 +10,7 @@ from django.contrib.auth.models import Group
 from django.db.models import Q
 from rapidsms_httprouter.router import get_router, \
     start_sending_mass_messages, stop_sending_mass_messages
+from rapidsms_httprouter.models import Message, MessageFlag
 from rapidsms.messages.outgoing import OutgoingMessage
 from generic.forms import ActionForm, FilterForm
 from ureport.models import MassText
@@ -253,3 +254,34 @@ class AssignGroupForm(ActionForm):
             for g in groups:
                 c.groups.add(g)
         return ('%d Contacts assigned to %d groups.' % (len(results), len(groups)), 'success',)
+    
+class FlaggedForm(FilterForm):
+
+    """ flagged content form """
+
+    flagged = forms.ChoiceField(choices=(('','-----'), (1, 'Flagged'), (0, 'Not flagged'),))
+    
+    def filter(self, request, queryset):
+        flagged = self.cleaned_data['flagged']
+        if flagged == '':
+            return queryset
+        elif int(flagged) == 1:
+            return queryset.exclude(flags=None)
+        else:
+            return queryset.filter(flags=None)
+
+class FlagMessageForm(ActionForm):
+    flag = forms.ChoiceField(choices=(('','-----'), ('flag', 'Flag'), ('unflag', 'Unflag'),))
+    action_label = 'Flag/Unflag selected'
+    
+    def perform(self, request, results):
+        if results is None or len(results) == 0:
+            return ('You must select one or more messages to Flag or Unflag them!', 'error')
+        flag = self.cleaned_data['flag']
+        for msg in results:
+            if flag == 'flag':
+                msg.flags.create()
+            else:
+                for msg_flag in msg.flags.all():
+                    msg_flag.delete()
+        return ('%d message(s) have been %sed' % (len(results), flag), 'successfully!',)

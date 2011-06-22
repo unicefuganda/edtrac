@@ -7,7 +7,7 @@ from .utils import get_messages, get_mass_messages
 from django.contrib.auth.decorators import login_required
 from rapidsms_httprouter.models import Message
 from generic.sorters import SimpleSorter, TupleSorter
-from .forms import FreeSearchTextForm, DistictFilterMessageForm, HandledByForm, ReplyTextForm
+from .forms import FreeSearchTextForm, DistictFilterMessageForm, HandledByForm, ReplyTextForm, FlaggedForm, FlagMessageForm
 from ureport.models import MassText
 
 urlpatterns = patterns('',
@@ -17,8 +17,8 @@ urlpatterns = patterns('',
    url(r'^contact/messagelog/$', login_required(generic), {
       'model':Message,
       'queryset':get_messages,
-      'filter_forms':[FreeSearchTextForm, DistictFilterMessageForm, HandledByForm],
-      'action_forms':[ReplyTextForm],
+      'filter_forms':[FreeSearchTextForm, DistictFilterMessageForm, HandledByForm, FlaggedForm],
+      'action_forms':[ReplyTextForm, FlagMessageForm],
       'objects_per_page':25,
       'partial_row':'contact/partials/message_row.html',
       'base_template':'contact/messages_base.html',
