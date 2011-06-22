@@ -1,8 +1,9 @@
 from django import template
+from ureport.models import MessageFlag
 
 
 def flags(msg):
-    if len(msg.flags.all()) > 0:
+    if MessageFlag.objects.filter(message__pk=msg.pk).count() > 0:
         return True
     else:
         return False

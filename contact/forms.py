@@ -10,7 +10,7 @@ from django.contrib.auth.models import Group
 from django.db.models import Q
 from rapidsms_httprouter.router import get_router, \
     start_sending_mass_messages, stop_sending_mass_messages
-from rapidsms_httprouter.models import Message, MessageFlag
+from rapidsms_httprouter.models import Message
 from rapidsms.messages.outgoing import OutgoingMessage
 from generic.forms import ActionForm, FilterForm
 from ureport.models import MassText
@@ -240,7 +240,7 @@ class AssignGroupForm(ActionForm):
     
 class FlaggedForm(FilterForm):
 
-    """ flagged content form """
+    """ filter flagged/unflagged messages form """
 
     flagged = forms.ChoiceField(choices=(('','-----'), (1, 'Flagged'), (0, 'Not flagged'),))
     
@@ -254,6 +254,9 @@ class FlaggedForm(FilterForm):
             return queryset.filter(flags=None)
 
 class FlagMessageForm(ActionForm):
+    
+    """ flag/unflag messages action form """
+    
     flag = forms.ChoiceField(choices=(('','-----'), ('flag', 'Flag'), ('unflag', 'Unflag'),))
     action_label = 'Flag/Unflag selected'
     
