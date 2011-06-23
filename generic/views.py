@@ -209,7 +209,7 @@ def generic_dashboard(request,
                       module_header_partial_template='generic/partials/module_header.html',
                       module_partial_template='generic/partials/module.html',
                       title='Dashboard',
-                      num_columns=2):
+                      num_columns=2, **kwargs):
 
     module_dict = {}
     module_title_dict = {}
