@@ -3,14 +3,11 @@ import os, sys
 import datetime
 from tempfile import mkstemp
 from django.conf import settings
-from django.db import models, connection
+from django.db import models, connection, connections
 from django.db.models import signals
 from django.db.models.fields import AutoField, DateTimeField, DateField, TimeField, FieldDoesNotExist
 from django.db.models.fields.related import ForeignKey, OneToOneField, ManyToManyField
-from django.db import models, connections
 from django.db.models.query import QuerySet
-
-from django.dispatch import dispatcher
 
 class ForUpdateQuerySet(QuerySet):
     def for_single_update(self):
@@ -437,20 +434,20 @@ class BulkInsertManager(models.Manager):
             watch[f.name] = val
             if isinstance(f, AutoField):
                 if f.name in kwargs.keys():
-                    kwargs[f.name] = f.get_db_prep_save(raw and val or f.pre_save(self.tempModel, True))
+                    kwargs[f.name] = f.get_db_prep_save(raw and val or f.pre_save(self.tempModel, True), connection)
             elif f.name in kwargs.keys():
-                kwargs[f.name] = f.get_db_prep_save(raw and val or f.pre_save(self.tempModel, True))
+                kwargs[f.name] = f.get_db_prep_save(raw and val or f.pre_save(self.tempModel, True), connection)
             else:
                 kwargs[f.name] = self.defaults[f.name]
                 
         #Presave could be called more than once for the same object
         if send_pre_save:
-            dispatcher.send(signal=signals.pre_save, sender=self.tempModel.__class__, instance=self.tempModel)
+            signals.pre_save.send(sender=self.tempModel.__class__, instance=self.tempModel)
             
         #Check for changes from pre_save
         for f in [field for field in self.tempModel._meta.fields if field.name in kwargs]:
             if watch[f.name] != getattr(self.tempModel, f.attname):
-                kwargs[f.name] = f.get_db_prep_save(raw and val or f.pre_save(self.tempModel, True))
+                kwargs[f.name] = f.get_db_prep_save(raw and val or f.pre_save(self.tempModel, True), connection)
 
         #hash to identify this arg:value set
         key = hash_dict(kwargs)
@@ -556,6 +553,7 @@ class BulkInsertManager(models.Manager):
                                 queue=queue,
                                 order = order,
                                 autoclobber=autoclobber)
+
             if model_results:
                 model_results = self.filter(pk__in=[obj[0] for obj in model_results])
 
@@ -577,7 +575,7 @@ class BulkInsertManager(models.Manager):
             for args in values:
                 for name in args.keys():
                     setattr(self.tempModel, self.tempModel._meta.get_field(name).attname, args[name])
-                dispatcher.send(signal=signals.post_save, sender=self.tempModel.__class__, instance=self.tempModel)
+                signals.post_save.send(sender=self.tempModel.__class__, instance=self.tempModel, created=True)
                 self._clear_tempModel()
             
         if depth > 0:
@@ -589,7 +587,7 @@ class BulkInsertManager(models.Manager):
             return queue, update_map
         self.reset()
 
-        if model_results:
+        if depth == 0 and model_results:
             return model_results
         return {}, {}
         
@@ -668,7 +666,7 @@ class BulkInsertManager(models.Manager):
                         self.defaults[f.name] = self.now.strftime('%H:%M:%S')
                     continue
             if not isinstance(f, AutoField):
-                self.defaults[f.name] = scrapModel._meta.get_field(f.name).get_db_prep_save(f.pre_save(scrapModel, True))
+                self.defaults[f.name] = scrapModel._meta.get_field(f.name).get_db_prep_save(f.pre_save(scrapModel, True), connection)
                 
     def _check_fields(self, no_related=False, kwargs={}):
         """
@@ -879,7 +877,7 @@ class BulkInsertManager(models.Manager):
         for f in obj._meta.fields:
             if isinstance(f, AutoField):
                 continue
-            args[f.name] = f.get_db_prep_save(f.pre_save(obj, True))
+            args[f.name] = f.get_db_prep_save(f.pre_save(obj, True), connection)
         return args
         
     def _m2m_enqueue(self, name, value, key):
