@@ -32,8 +32,8 @@ TIME_RANGES = {
     
 def assign_backend(number):
     """assign a backend to a given number"""
-    country_code = getattr(settings, 'COUNTRY_CALLING_CODE', None)
-    backends = getattr(settings, 'BACKEND_PREFIXES', [])
+    country_code = getattr(settings, 'COUNTRY_CALLING_CODE', '256')
+    backends = getattr(settings, 'BACKEND_PREFIXES', [('70', 'warid'), ('75', 'zain'), ('71', 'utl'), ('', 'dmark')])
     
     if number.startswith('0'):
         number = '%s%s'%(country_code, number[1:])
