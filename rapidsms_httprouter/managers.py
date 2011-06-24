@@ -933,15 +933,25 @@ class BulkInsertManager(models.Manager):
             for value in obj['values']:
                 key = update_map.get(obj['key'], obj['key'])
 
-                value_list += [queue[key][primary_key_name], value]
+                value_to_add = [queue[key][primary_key_name], value]
+                if value_to_add not in value_list:
+                    value_list.append(value_to_add)
 
                 if symmetrical:
-                    value_list += [value, queue[key][primary_key_name]]
-                
-        arg_string = ', '.join([u'(' + ','.join(['%s']*2) + ')'] * (len(value_list)/2))
+                    value_to_add = [value, queue[key][primary_key_name]]
+                    if value_to_add not in value_list:
+                        value_list.append(value_to_add)
+
+        arg_string = ', '.join([u'(%s,%s)'] * len(value_list))
         values = 'VALUES %s' % arg_string
+
+        flat_value_list = []
+        for v in value_list:
+            flat_value_list.append(v[0])
+            flat_value_list.append(v[1])
+
         sql = sql + values
-        cursor.execute(sql, value_list)
+        cursor.execute(sql, flat_value_list)
 
     def insert(self, table, fields, queue, order, autoclobber=False):
         """
