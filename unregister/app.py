@@ -7,7 +7,11 @@ from django.conf import settings
 class App (AppBase):
 
     def handle (self, message):
-        if Blacklist.objects.filter(connection=message.connection).count():
+        if message.text in settings.OPT_IN_WORDS and Blacklist.objects.filter(connection=message.connection).count():
+            for b in Blacklist.objects.filter(connection=message.connection):
+                b.delete()
+            message.reponsd(settings.OPT_IN_CONFIRMATION)
+        elif Blacklist.objects.filter(connection=message.connection).count():
             return True
         elif message.text.strip() in settings.OPT_OUT_WORDS:
             Blacklist.objects.create(connection=message.connection)
