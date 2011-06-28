@@ -143,7 +143,7 @@ class Poll(models.Model):
     type = models.SlugField(max_length=8, null=True, blank=True)
     default_response = models.CharField(max_length=160)
     sites = models.ManyToManyField(Site)
-    objects = (CurrentSiteManager('sites') if settings.SITE_ID else models.Manager())
+    objects = (CurrentSiteManager('sites') if 'django.contrib.sites' in settings.INSTALLED_APPS else models.Manager())
     bulk = BulkInsertManager()
 
     class Meta:
@@ -209,7 +209,10 @@ class Poll(models.Model):
                               messages=list(messages),
                               send_pre_save=False)
         polls = Poll.bulk.bulk_insert_commit(send_post_save=False, autoclobber=True)
-        return polls[0]
+        poll = polls[0]
+        if 'django.contrib.sites' in settings.INSTALLED_APPS:
+            poll.sites.add(Site.objects.get_current())
+        return poll
 
     def add_yesno_categories(self):
         """
