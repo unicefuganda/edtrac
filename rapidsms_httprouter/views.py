@@ -137,7 +137,7 @@ def console(request):
 
     queryset = Message.objects.all()
     
-    if request.method == 'POST':
+    if request.method == 'POST' and 'this_is_the_login_form' not in request.POST:
         if request.POST['action'] == 'test':
             form = SendForm(request.POST)
             if form.is_valid():
