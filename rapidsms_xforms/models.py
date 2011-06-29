@@ -578,8 +578,8 @@ class XForm(models.Model):
         message = message_obj.text
         connection = message_obj.connection
         db_message = None
-        if hasattr(message, 'db_message'):
-            db_message = message.db_message
+        if hasattr(message_obj, 'db_message'):
+            db_message = message_obj.db_message
         # parse our submission
         sub_dict = self.parse_sms_submission(message_obj)
 
