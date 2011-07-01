@@ -51,8 +51,8 @@ class Command(BaseCommand):
             recipients = [email for name,email in recipients]
         if current.hour in range(int(options['e']),int(options['l'])):
             router = HttpRouter()
-            unstarted = ScriptProgress.objects.filter(step=None).values_list('connection', flat=True).distinct()
-            started = ScriptProgress.objects.order_by('step').values_list('connection', flat=True).distinct()
+            unstarted = ScriptProgress.objects.filter(step=None, script__enabled=True).values_list('connection', flat=True).distinct()
+            started = ScriptProgress.objects.filter(script__enabled=True).order_by('step').values_list('connection', flat=True).distinct()
             for connection in itertools.chain(unstarted, started):
                 try:
                     log_str=" PK:"+str(connection)
@@ -74,7 +74,10 @@ class Command(BaseCommand):
                         else:
                             template = Template(response)
                             context = Context({'connection':connection})
-                            router.add_outgoing(connection, template.render(context))
+                            Message.objects.create(connection=connection,
+                                         text=template.render(context),
+                                         direction='O',
+                                         status='Q')
                     transaction.commit()
                     if datetime.datetime.now() - current > datetime.timedelta(seconds=95):
                         return

@@ -17,7 +17,8 @@ class Script(models.Model):
     name = models.CharField(max_length=128,
                             help_text="Human readable name.")
     sites = models.ManyToManyField(Site)
-    objects = (CurrentSiteManager('sites') if settings.SITE_ID else models.Manager())    
+    objects = (CurrentSiteManager('sites') if settings.SITE_ID else models.Manager())
+    enabled = models.BooleanField(default=True)    
     def __unicode__(self):
         return "%s"%self.name
 
