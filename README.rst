@@ -23,7 +23,8 @@ The script application attempts to provide as much flexibility as possible by pr
 
 Autoregistration
 ----------------
-One example use of a script is found in the Ureport auto registration process (https://github.com/daveycrockett/rapidsms-ureport/blob/master/ureport/management/commands/create_autoreg_script.py)::
+One example use of a script is found in the Ureport auto registration process (https://github.com/daveycrockett/rapidsms-ureport/blob/master/ureport/management/commands/create_autoreg_script.py):
+```
         script = Script.objects.create(
                 slug="ureport_autoreg",
                 name="uReport autoregistration script",
@@ -69,6 +70,6 @@ One example use of a script is found in the Ureport auto registration process (h
             giveup_offset=86400,
         ))
         # and so on...
-
+```
 The Ureport app then subscribes to the `script_progress_was_completed` signal to pull responses from a script into the associated fields of a Contact model.
 
