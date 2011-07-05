@@ -17,14 +17,13 @@ The main models used to create a script are Script and ScriptStep.  ScriptSteps 
 Signals/Progress
 ----------------
 The script application attempts to provide as much flexibility as possible by providing the above rules, however by design it avoids incorporating more complicated transition logic.  Rather, it emits three signals to allow other apps to change the normal, linear flow of a script.  Subscribers to any of these signals can change the associated ScriptProgress model, which maintains the state of a particular connection through a session of a script.
-
  - script_progress : sent just after a ScriptProgress goes to the next step
  - script_progress_pre_change : sent just after a ScriptProgress goes to the next step
  - script_progress_was_completed : sent just after ScriptProgress is completed
 
 Autoregistration
 ----------------
-One example use of a script is found in the Ureport auto registration process (http://www.github.com/daveycrockett/rapidsms-ureport):::
+One example use of a script is found in the Ureport auto registration process (http://www.github.com/daveycrockett/rapidsms-ureport)::
         script = Script.objects.create(
                 slug="ureport_autoreg",
                 name="uReport autoregistration script",
