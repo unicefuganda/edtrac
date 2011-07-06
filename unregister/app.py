@@ -7,15 +7,15 @@ from django.conf import settings
 class App (AppBase):
 
     def handle (self, message):
-        if message.text in settings.OPT_IN_WORDS and Blacklist.objects.filter(connection=message.connection).count():
+        if message.text in getattr(settings,'OPT_IN_WORDS',[]) and Blacklist.objects.filter(connection=message.connection).count():
             for b in Blacklist.objects.filter(connection=message.connection):
                 b.delete()
-            message.reponsd(settings.OPT_IN_CONFIRMATION)
+            message.respond(getattr(settings,'OPT_IN_CONFIRMATION',''))
         elif Blacklist.objects.filter(connection=message.connection).count():
             return True
-        elif message.text.strip() in settings.OPT_OUT_WORDS:
+        elif message.text.strip() in getattr(settings,'OPT_OUT_WORDS',[]):
             Blacklist.objects.create(connection=message.connection)
-            message.respond(settings.OPT_OUT_CONFIRMATION)
+            message.respond(getattr(settings,'OPT_OUT_CONFIRMATION',''))
             return True
         return False
 

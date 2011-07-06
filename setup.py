@@ -5,20 +5,6 @@ setup(
     version='0.1',
     license="BSD",
 
-    # install_requires = ["rapidsms",
-    #                 'django-eav',
-    #                 'rapidsms-auth',
-    #                 'rapidsms-polls',
-    #                 'simple_locations'
-    #     ],
-    # 
-    #     dependency_links = [
-    #         "http://github.com/mvpdev/django-eav/tarball/master#egg=django-eav",
-    #         "http://github.com/daveycrockett/auth/tarball/master#egg=rapidsms-auth",
-    #         "http://github.com/daveycrockett/rapidsms-polls/tarball/master#egg=rapidsms-polls",
-    #         "http://github.com/mossplix/simple_location/tarball/master#egg=simple_locations",
-    #     ],
-
     install_requires = [
         "rapidsms",
     ],
