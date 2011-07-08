@@ -15,7 +15,7 @@ from rapidsms.messages.outgoing import OutgoingMessage
 from django.contrib.auth.models import Group
 from .models import Poll, Category, Rule, Response, ResponseCategory, STARTSWITH_PATTERN_TEMPLATE, CONTAINS_PATTERN_TEMPLATE
 from rapidsms.models import Contact
-from simple_locations.models import Area
+from rapidsms.contrib.locations.models import Location
 from rapidsms.models import Connection, Backend
 from eav.models import Attribute
 from django.core.urlresolvers import reverse
@@ -139,10 +139,10 @@ def view_report(req, poll_id, location_id=None, as_module=False):
         is_text_poll = False
 
     if location_id:
-        locations = get_object_or_404(Area, pk=location_id)
+        locations = get_object_or_404(Location, pk=location_id)
         locations = [locations,]
     else:
-        locations = Area.tree.root_nodes().order_by('name')
+        locations = Location.tree.root_nodes().order_by('name')
 
     results = []
     for location in locations:
@@ -249,7 +249,7 @@ def stats(req, poll_id, location_id=None):
     poll = get_object_or_404(Poll,pk=poll_id)
     location = None
     if location_id:
-        location = get_object_or_404(Area,pk=location_id)
+        location = get_object_or_404(Location,pk=location_id)
     return HttpResponse(mark_safe(simplejson.dumps(list(poll.responses_by_category(location)))))
 
 def number_details(req, poll_id):
