@@ -2,8 +2,6 @@ import datetime
 import difflib
 import time
 
-from code_generator.code_generator import generate_tracking_tag
-
 from django.db import models, transaction
 from django.db.models import Sum, Avg, Count, Max, Min, StdDev
 from django.contrib.sites.models import Site
