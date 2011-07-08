@@ -15,7 +15,7 @@ from rapidsms.messages.outgoing import OutgoingMessage
 from generic.forms import ActionForm, FilterForm
 from ureport.models import MassText
 from django.contrib.sites.models import Site
-from simple_locations.models import Area
+from rapidsms.contrib.locations.models import Location
 import time
 from django.conf import settings
 import datetime
@@ -108,7 +108,7 @@ class DistictFilterForm(FilterForm):
     district = forms.ChoiceField(choices=(('', '-----'), (-1,
                                  'No District')) + tuple([(int(d.pk),
                                  d.name) for d in
-                                 Area.objects.filter(kind__slug='district'
+                                 Location.objects.filter(type__slug='district'
                                  ).order_by('name')]))
 
     def filter(self, request, queryset):
@@ -120,8 +120,8 @@ class DistictFilterForm(FilterForm):
         else:
 
             try:
-                district = Area.objects.get(pk=district_pk)
-            except Area.DoesNotExist:
+                district = Location.objects.get(pk=district_pk)
+            except Location.DoesNotExist:
                 district = None
             if district:
                 return queryset.filter(reporting_location__in=district.get_descendants(include_self=True))
@@ -135,7 +135,7 @@ class DistictFilterMessageForm(FilterForm):
     district = forms.ChoiceField(choices=(('', '-----'), (-1,
                                  'No District')) + tuple([(int(d.pk),
                                  d.name) for d in
-                                 Area.objects.filter(kind__slug='district'
+                                 Location.objects.filter(type__slug='district'
                                  ).order_by('name')]))
 
     def filter(self, request, queryset):
@@ -146,8 +146,8 @@ class DistictFilterMessageForm(FilterForm):
             return queryset.filter(Q(connection__contact=None) | Q(connection__contact__reporting_location=None))
         else:
             try:
-                district = Area.objects.get(pk=district_pk)
-            except Area.DoesNotExist:
+                district = Location.objects.get(pk=district_pk)
+            except Location.DoesNotExist:
                 district = None
             if district:
                 return queryset.filter(connection__contact__reporting_location__in=district.get_descendants(include_self=True))
@@ -158,6 +158,26 @@ class MassTextForm(ActionForm):
 
     text = forms.CharField(max_length=160, required=True)
     action_label = 'Send Message'
+
+    def clean_text(self):
+        text = self.cleaned_data['text']
+        
+        #replace common MS-word characters with SMS-friendly characters
+        for find, replace in [(u'\u201c', '"'),
+                              (u'\u201d', '"'),
+                              (u'\u201f', '"'),
+                              (u'\u2018', "'"),
+                              (u'\u2019', "'"),
+                              (u'\u201B', "'"),
+                              (u'\u2013', "-"),
+                              (u'\u2014', "-"),
+                              (u'\u2015', "-"),
+                              (u'\xa7', "$"),
+                              (u'\xa1', "i"),
+                              (u'\xa4',''),
+                              (u'\xc4','A')]:
+            text = text.replace(find, replace)
+        return text
 
     def perform(self, request, results):
         if results is None or len(results) == 0:
