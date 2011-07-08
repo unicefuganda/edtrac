@@ -20,8 +20,8 @@ from eav.models import Value, Attribute
 
 from .utils import init_attributes
 
-from simple_locations.models import Area
-
+from rapidsms.contrib.locations.models import Location
+from rapidsms.contrib.locations.nested import models as nested_models
 from rapidsms_httprouter.models import Message
 from rapidsms_httprouter.managers import BulkInsertManager
 
@@ -58,7 +58,7 @@ class NumericResponseForm(ResponseForm):
     value = forms.FloatField()
 
 class LocationResponseForm(ResponseForm):
-    value = TreeNodeChoiceField(queryset=Area.tree.all(),
+    value = TreeNodeChoiceField(queryset=Location.tree.all(),
                  level_indicator=u'.', required=True)
 
 class NameResponseForm(ResponseForm):
@@ -280,11 +280,11 @@ class Poll(models.Model):
                 spn = regex.search(message.text).span()
                 location_str = message.text[spn[0]:spn[1]]
                 area = None
-                area_names = Area.objects.all().values_list('name', flat=True)
+                area_names = Location.objects.all().values_list('name', flat=True)
                 area_names_lower = [ai.lower() for ai in area_names]
                 area_names_matches = difflib.get_close_matches(location_str.lower(), area_names_lower)
                 if area_names_matches:
-                    area = Area.objects.filter(name__iexact=area_names_matches[0])[0]
+                    area = Location.objects.filter(name__iexact=area_names_matches[0])[0]
                     resp.eav.poll_location_value = area
                     resp.save()
                 else:
@@ -353,13 +353,13 @@ class Poll(models.Model):
     def get_numeric_report_data(self, location=None, for_map=None):
         if location:
             q = Value.objects.filter(attribute__slug='poll_number_value',entity_ct=ContentType.objects.get_for_model(Response), entity_id__in=self.responses.all())
-            q = q.extra(tables=['poll_response','rapidsms_contact','simple_locations_area','simple_locations_area'],
+            q = q.extra(tables=['poll_response','rapidsms_contact','locations_location','locations_location'],
                     where=['poll_response.id = eav_value.entity_id',
                            'rapidsms_contact.id = poll_response.contact_id',
-                           'simple_locations_area.id = rapidsms_contact.reporting_location_id',
+                           'locations_location.id = rapidsms_contact.reporting_location_id',
                            'T7.id in %s' % (str(tuple(location.get_children().values_list('pk', flat=True)))),
-                           'T7.lft <= simple_locations_area.lft',\
-                           'T7.rght >= simple_locations_area.rght',\
+                           'T7.lft <= locations_location.lft',\
+                           'T7.rght >= locations_location.rght',\
                            ],
                     select={
                         'location_name':'T7.name',
@@ -385,19 +385,19 @@ class Poll(models.Model):
                 ulocation_where = 'T7.id in %s' % (str(tuple(location.get_children().values_list('pk', flat=True))))
 
             where_list = [\
-                          'T9.lft <= simple_locations_area.lft',\
-                          'T9.rght >= simple_locations_area.rght',\
+                          'T9.lft <= locations_location.lft',\
+                          'T9.rght >= locations_location.rght',\
                           location_where,\
-                          'T9.location_id = simple_locations_point.id',] 
+                          'T9.point_id = locations_point.id',] 
             select = {
                         'location_name':'T9.name',
                         'location_id':'T9.id',
-                        'lat':'simple_locations_point.latitude',
-                        'lon':'simple_locations_point.longitude',
+                        'lat':'locations_point.latitude',
+                        'lon':'locations_point.longitude',
                         'rght':'T9.rght',
                         'lft':'T9.lft',
                     } 
-            tables = ['simple_locations_area','simple_locations_point']
+            tables = ['locations_location','locations_point']
             if not for_map:
                 where_list = where_list[:3]
                 select.pop('lat')
@@ -410,20 +410,20 @@ class Poll(models.Model):
                     .extra(select = select)
 
             uwhere_list = [\
-                          'T7.lft <= simple_locations_area.lft',\
-                          'T7.rght >= simple_locations_area.rght',\
+                          'T7.lft <= locations_location.lft',\
+                          'T7.rght >= locations_location.rght',\
                           ulocation_where,\
-                          'T7.location_id = simple_locations_point.id',]
+                          'T7.point_id = locations_point.id',]
             uselect = {
                         'location_name':'T7.name',
                         'location_id':'T7.id',
-                        'lat':'simple_locations_point.latitude',
-                        'lon':'simple_locations_point.longitude',
+                        'lat':'locations_point.latitude',
+                        'lon':'locations_point.longitude',
                         'rght':'T7.rght',
                         'lft':'T7.lft',
                     }
             uvalues = ['location_name','location_id','lat','lon']
-            utables = ['simple_locations_area','simple_locations_point']
+            utables = ['locations_location','locations_point']
             if not for_map:
                 uwhere_list = uwhere_list[:3]
                 uselect.pop('lat')

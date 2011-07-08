@@ -1,8 +1,6 @@
 from django.db import models
 
-from rapidsms.models import ContactBase
-
-from simple_locations.models import Area
+from rapidsms.contrib.locations.models import Location
 
 class LocatedContact(models.Model):
     """
@@ -10,7 +8,7 @@ class LocatedContact(models.Model):
     the Area object they're reporting from.  This extension
     depends on the simple_locations app.
     """
-    reporting_location = models.ForeignKey(Area, blank=True, null=True)
+    reporting_location = models.ForeignKey(Location, blank=True, null=True)
 
     class Meta:
         abstract = True
