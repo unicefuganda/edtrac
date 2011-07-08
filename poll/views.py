@@ -261,6 +261,11 @@ def _get_response_edit_form(response, data=None):
     form = None
     if typedef['edit_form']:
         form = typedef['edit_form']
+        if type(form) == str:
+            m = '.'.join(form.split('.')[:-1])
+            klass = form.split('.')[-1]
+            module = __import__(module, globals(), locals(), [klass])
+            form = getattr(module, klass)
     else:
         parser = typedef['parser']
         class CustomForm(forms.Form):
