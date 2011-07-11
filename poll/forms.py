@@ -5,7 +5,6 @@ from django.conf import settings
 from django.contrib.auth.models import Group
 from .models import Poll, Category, Rule
 from rapidsms.models import Contact
-from simple_locations.models import Area
 from mptt.forms import TreeNodeChoiceField
 
 import re

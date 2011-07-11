@@ -5,11 +5,10 @@ setup(
     version='0.1',
     license="BSD",
 
-    install_requires = ["rapidsms", 'django-uni-form', 'django-eav', 'simple_locations'],
+    install_requires = ["rapidsms", 'django-uni-form', 'django-eav'],
 
     dependency_links = [
         "http://github.com/mvpdev/django-eav/tarball/master#egg=django-eav",
-        "http://github.com/mossplix/simple_locations/tarball/master#egg=simple_locations",
     ],
 
     description='An application for a simple communication modality with SMS users: prompted questions, simple, training-less answers.',
