@@ -8,12 +8,11 @@ from .utils.modules import try_import, get_classes
 from .errors import NoConnectionError, MessageSendingError
 from .conf import settings
 
-
 class ExtensibleModelBase(models.base.ModelBase):
     def __new__(cls, name, bases, attrs):
         try:
             app_label = attrs['Meta'].app_label
-        except KeyError:
+        except (KeyError, AttributeError):
             module_name = attrs["__module__"]
             app_label = module_name.split('.')[-2]
         extensions = _find_extensions(app_label, name)
