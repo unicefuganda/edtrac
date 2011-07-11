@@ -49,6 +49,7 @@ class Location(models.Model):
 
     __metaclass__ = ExtensibleModelBase
 
+    name = models.CharField(max_length=100)
     point = models.ForeignKey(Point, null=True, blank=True)
 
     type = models.ForeignKey(LocationType, related_name="locations", blank=True, null=True)

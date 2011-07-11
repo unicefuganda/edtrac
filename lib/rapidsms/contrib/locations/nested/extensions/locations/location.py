@@ -21,7 +21,6 @@ class NestedLocation(models.Model):
            a non-generic relation to their parents.
     """
     tree_parent = models.ForeignKey('self', blank=True, null=True, related_name='children')
-    name = models.CharField(max_length=100)
 
     class Meta:
         abstract = True
