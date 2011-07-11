@@ -14,7 +14,7 @@ from django.db import transaction
 from rapidsms.messages.outgoing import OutgoingMessage
 
 from script.utils.outgoing import check_progress
-from script.models import ScriptProgress, Email
+from script.models import ScriptProgress, Email, Script
 from optparse import OptionParser, make_option
 import datetime
 from django.core.mail import send_mail
