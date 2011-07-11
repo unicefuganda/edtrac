@@ -51,8 +51,8 @@ class Command(BaseCommand):
             recipients = [email for name,email in recipients]
         if current.hour in range(int(options['e']),int(options['l'])):
             router = HttpRouter()
-            unstarted = ScriptProgress.objects.filter(step=None, script__enabled=True).values_list('connection', flat=True).distinct()
-            started = ScriptProgress.objects.filter(script__enabled=True).order_by('step').values_list('connection', flat=True).distinct()
+            unstarted = ScriptProgress.objects.filter(step=None, script__in=Script.objects.all(), script__enabled=True).values_list('connection', flat=True).distinct()
+            started = ScriptProgress.objects.filter(script__enabled=True, script__in=Script.objects.all()).order_by('step').values_list('connection', flat=True).distinct()
             for connection in itertools.chain(unstarted, started):
                 try:
                     log_str=" PK:"+str(connection)
