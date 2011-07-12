@@ -13,9 +13,6 @@ class NestedLocation(models.Model):
         * They must be used for aggregation, and querying a subtree must be fast.
     This abstract class allows the default Location class in
     rapidsms.contrib.locations to inherit two additional fields:
-     * name :
-           As NestedLocations are concrete, they will have instances that
-           need to be named.
      * tree_parent :
            As NestedLocations are uniformely typed, the need to have
            a non-generic relation to their parents.
