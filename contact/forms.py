@@ -112,7 +112,6 @@ class DistictFilterForm(FilterForm):
                                  ).order_by('name')]))
 
     def filter(self, request, queryset):
-        import pdb;pdb.set_trace()
         district_pk = self.cleaned_data['district']
         if district_pk == '':
             return queryset
