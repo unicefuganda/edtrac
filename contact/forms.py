@@ -41,7 +41,7 @@ class FilterGroupsForm(FilterForm):
                     choices = ((-1,'No Group'),) + tuple([(int(g.pk), g.name) for g in Group.objects.all().order_by('name')])
                     self.fields['groups'] = forms.MultipleChoiceField(choices=choices, required=True)
                 else:
-                    self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.filter(pk__in=self.request.user.groups.values_list('pk',flat=True)), required=False)
+                    self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.filter(pk__in=self.request.user.groups.values_list('pk',flat=True)), required=True)
             else:
                 choices = ((-1,'No Group'),) + tuple([(int(g.pk), g.name) for g in Group.objects.all().order_by('name')])
                 self.fields['groups'] = forms.MultipleChoiceField(choices=choices, required=True)
@@ -112,6 +112,7 @@ class DistictFilterForm(FilterForm):
                                  ).order_by('name')]))
 
     def filter(self, request, queryset):
+        import pdb;pdb.set_trace()
         district_pk = self.cleaned_data['district']
         if district_pk == '':
             return queryset
