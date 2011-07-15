@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # vim: ai ts=4 sts=4 et sw=4 encoding=utf-8
 
+
 from django.db import models
+from rapidsms.contrib.locations.models import LocationType
+
 
 class NestedLocation(models.Model):
     """
@@ -13,14 +16,17 @@ class NestedLocation(models.Model):
         * They must be used for aggregation, and querying a subtree must be fast.
     This abstract class allows the default Location class in
     rapidsms.contrib.locations to inherit two additional fields:
-     * name :
+     * type :
            As NestedLocations are concrete, they will have instances that
-           need to be named.
+           may need to be differentiated by type.
      * tree_parent :
            As NestedLocations are uniformely typed, the need to have
            a non-generic relation to their parents.
+    The MetaOverride attribute makes the base Location model concrete.
     """
     tree_parent = models.ForeignKey('self', blank=True, null=True, related_name='children')
+    type = models.ForeignKey(LocationType, related_name="locations", blank=True, null=True)
 
     class Meta:
         abstract = True
+

@@ -8,6 +8,7 @@ from .utils.modules import try_import, get_classes
 from .errors import NoConnectionError, MessageSendingError
 from .conf import settings
 
+
 class ExtensibleModelBase(models.base.ModelBase):
     def __new__(cls, name, bases, attrs):
         try:

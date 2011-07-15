@@ -2,7 +2,6 @@
 # vim: ai ts=4 sts=4 et sw=4 encoding=utf-8
 
 import mptt
-
 from rapidsms.contrib.locations.models import Location
 
 # This registers the Location model with the mptt library

@@ -6,8 +6,14 @@ from .models import Location, LocationType
 
 class LocationAdmin(admin.ModelAdmin):
     model = Location
+
+
 class LocationTypeAdmin(admin.ModelAdmin):
     model = LocationType
 
+
 admin.site.register(Location, LocationAdmin)
 admin.site.register(LocationType, LocationTypeAdmin)
+
+
+

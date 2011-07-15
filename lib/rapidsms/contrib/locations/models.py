@@ -27,6 +27,7 @@ class Point(models.Model):
         return '<%s: %s>' %\
             (type(self).__name__, self)
 
+
 class LocationType(models.Model):
     """
     This model represents the 'type' of Location, as an option for a
@@ -40,6 +41,7 @@ class LocationType(models.Model):
     def __unicode__(self):
         return self.name
 
+
 class Location(models.Model):
     """
     This model represents a named point on the globe. It is deliberately
@@ -52,11 +54,9 @@ class Location(models.Model):
     name = models.CharField(max_length=100)
     point = models.ForeignKey(Point, null=True, blank=True)
 
-    type = models.ForeignKey(LocationType, related_name="locations", blank=True, null=True)
     parent_type = models.ForeignKey(ContentType, null=True, blank=True)
     parent_id   = models.PositiveIntegerField(null=True, blank=True)
     parent      = generic.GenericForeignKey("parent_type", "parent_id")
-
 
     # choices for the Location.direction method.
     # (values stolen from label-overlay.js)
@@ -172,7 +172,6 @@ class Location(models.Model):
 
 
 #class Country(Location):
-#    name = models.CharField(max_length=100)
 #    iso_code = models.CharField("ISO Code", max_length=2)
 
 #    class Meta:
@@ -184,7 +183,6 @@ class Location(models.Model):
 
 
 #class State(Location):
-#    name = models.CharField(max_length=100)
 #    usps_code = models.CharField("USPS Code", max_length=2,
 #        help_text="The two-letter state abbreviation")
 
@@ -194,7 +192,6 @@ class Location(models.Model):
 
 
 #class City(Location):
-#    name = models.CharField(max_length=100)
 
 #    class Meta:
 #        verbose_name_plural = "cities"
