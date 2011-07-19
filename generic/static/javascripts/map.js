@@ -191,44 +191,46 @@ function get_description_popup(point, map) {
 }
 
 
-//function to create label
-function Label(point, html, classname, pixelOffset) {
-    // Mandatory parameters
+/**
+ * Labels are basic custom Overlays to display some text on the map
+ * (yes, I'm also surprised this isn't built-in to the Google Maps API).
+ * @param point The center point (LatLng) that the label should be displayed at.
+ *              The label will dynamically position itself to be centered around this
+ *              based on text width and height.
+ * @param text The text of the label (any HTML is valid here).
+ * @param map The map to play the overlay on
+ */
+function Label(point, text, map) {
     this.point = point;
-    this.html = html;
+    this.text = text;
+    this.div = null;
+    this.setMap(map);
+}
+Label.prototype = new google.maps.OverlayView();
+Label.prototype.onAdd = function() {
+    div = document.createElement("div");
+    div.style.position = "absolute";
+    div.innerHTML = '<div><b>' + this.text + '<b/></div>';
+    div.style.cursor = 'pointer';
+    div.style.position = "absolute";
+    this.div = div;
+    var panes = this.getPanes();
+    panes.overlayLayer.appendChild(div);
+}
+Label.prototype.draw = function() {
+    var overlayProjection = this.getProjection();
+    var center = overlayProjection.fromLatLngToDivPixel(this.point);
 
-    // Optional parameters
-    this.classname = classname || "";
-    this.pixelOffset = pixelOffset || new GSize(0, 0);
-    this.prototype = new GOverlay();
-
-    this.initialize = function(map) {
-        // Creates the DIV representing the label
-        var div = document.createElement("div");
-        div.style.position = "absolute";
-        div.innerHTML = '<div class="' + this.classname + '">' + this.html + '</div>';
-        div.style.cursor = 'pointer';
-        div.style.zindex = 12345;
-        map.getPane(G_MAP_MAP_PANE).parentNode.appendChild(div);
-        this.map_ = map;
-        this.div_ = div;
-    }
-    // Remove the label DIV from the map pane
-    this.remove = function() {
-        this.div_.parentNode.removeChild(this.div_);
-    }
-    // Copy the label data to a new instance
-    this.copy = function() {
-        return new Label(this.point, this.html, this.classname, this.pixelOffset);
-    }
-    // Redraw based on the current projection and zoom level
-    this.redraw = function(force) {
-        if (!force) return;
-        var p = this.map_.fromLatLngToDivPixel(this.point);
-        var h = parseInt(this.div_.clientHeight);
-        this.div_.style.left = (p.x + this.pixelOffset.width) + "px";
-        this.div_.style.top = (p.y + this.pixelOffset.height - h) + "px";
-    }
+    var div = this.div;
+    // Offset width isn't perfect, but serves a good enough purpose
+    // for getting the label div *almost* centered at Lat,Lng
+    div.style.left = (center.x - (div.offsetWidth / 2)) + 'px';
+    div.style.top = (center.y - (div.offsetHeight / 2)) + 'px';
+}
+Label.prototype.onRemove = function() {
+	// Garbage collect!
+    this.div.parentNode.removeChild(this.div);
+    this.div = null;
 }
 
 
@@ -293,8 +295,8 @@ function plot_categorized_data(map, response, layer_url, layer_name) {
             google.maps.event.addListener(circle, 'click', get_description_popup(point, map));
 
             // FIXME figure out how to do this
-            // var label = new Label(point, parseInt(data * 100) + "%", "f", new GSize(-15, 0));
-            // map.addOverlay(label);
+            label = new Label(point, parseInt(d * 100) + "%", map);
+            current_layer['overlays'].push(label)
 
             point = new google.maps.LatLng(parseFloat(data[i].lat), parseFloat(data[i].lon));
             location_id = data[i].location_id;

@@ -14,14 +14,14 @@
             }
         });
     }
-    
-    
+
+
     function previous_date_range(timespan) {
         d = new Date();
         last_date = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0)
         last_timestamp = parseInt(last_date.getTime());
         last_date_index = $('select#end option').index($('select#end option[value='+last_timestamp+']'));
-    
+
         if(timespan == 'w') {
             offset = last_date.getDay();
             end_date = parseInt($('select#end option')[last_date_index-(1+offset)].value);
@@ -34,16 +34,16 @@
             end_date = parseInt($('select#end option')[$('select#end option').length-(1+current_month_date)].value);
             start_date = parseInt($('select#end option')[$('select#end option').length-(current_month_date+last_month_last_day)].value);
         }
-        
+
         // update the hidden fields
         $('#id_start_ts').val(start_date);
         $('#id_end_ts').val(end_date);
-        
+
         // move slider
         move_slider(start_date, end_date);
     }
-    
-    
+
+
     function move_slider(start, end) {
         $('select#start option[value='+start+']').attr('selected','selected');
         $('select#end option[value='+end+']').attr('selected','selected');
@@ -51,8 +51,8 @@
         $('select#end option').change();
         $('form#date_range_form').submit();
     }
-    
-    
+
+
     $(function(){
         //initialise ui slider
     	$('select#start, select#end').selectToUISlider({
@@ -77,7 +77,7 @@
     		offset = 0;
     	}
         tickEvery(7, offset);
-    
+
         start_date = new Date({{ start_ts }});
         start_str = start_date.getDate() + "-" + (start_date.getMonth() + 1) + "-" + start_date.getFullYear();
         end_date = new Date({{ end_ts }});
