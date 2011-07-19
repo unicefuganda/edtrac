@@ -36,7 +36,6 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
 
-
 class EavSlugField(models.SlugField):
     '''
     The slug field used by :class:`~eav.models.Attribute`
@@ -69,7 +68,6 @@ class EavSlugField(models.SlugField):
         # Remove non alphanumeric characters
         return re.sub('[^\w]', '', name)
 
-
 class EavDatatypeField(models.CharField):
     '''
     The datatype field used by :class:`~eav.models.Attribute`
@@ -88,3 +86,11 @@ class EavDatatypeField(models.CharField):
         if instance.value_set.count():
             raise ValidationError(_(u"You cannot change the datatype of an "
                                     u"attribute that is already in use."))
+
+try:
+    from south.modelsinspector import add_introspection_rules
+except ImportError:
+    pass
+else:
+    add_introspection_rules([], ["^eav\.fields\.EavSlugField"])
+    add_introspection_rules([], ["^eav\.fields\.EavDatatypeField"])
