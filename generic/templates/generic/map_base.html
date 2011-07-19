@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+{% block javascripts %}
+{{ block.super }}
+<script type="text/javascript" src="{{ MEDIA_URL }}generic/javascripts/map.js"></script>
+{% if needs_date %}
+    <script type="text/javascript" src="{{ MEDIA_URL }}cvs/javascripts/selectToUiSlider.jquery.js"></script>
+{% endif %}
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+{% endblock %}
+{% block content %}
+    <div id="map" class="init" style="width:600px;height:600px">
+    </div>
+    {% if needs_date %}
+        {% include "generic/partials/time_slider.html" %}
+    {% endif %}
+    <ul>
+        {% for layer in map_layers %}
+            <li>
+                <a href="javascript:void(0)" onclick="plot_layer('map', '{{ layer.name }}', '{{ layer.url }}')">{{ layer.name }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            init_map('map', {{ min_lat }}, {{ max_lat }}, {{ min_lon }}, {{ max_lon }});
+            {% for layer in map_layers %}
+                {% if layer.color %}
+                    set_color('{{ layer.name }}', '{{ layer.color }}');
+                {% endif %}
+                {% if layer.autoload %}
+                    plot_layer('map', '{{ layer.name }}', '{{ layer.url }}');
+                {% endif %}
+            {% endfor %}
+        });
+    </script>
+{% endblock %}

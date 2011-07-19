@@ -1,3 +1,6 @@
+import datetime
+import time
+
 from django.db.models.query import RawQuerySet, RawQuerySet
 from django.template import RequestContext
 from django.shortcuts import redirect, get_object_or_404, render_to_response
@@ -113,7 +116,7 @@ def generic(request,
                 status_message, status_message_type = action_instance.perform(request, results)
         else:
             for form_class in filter_forms:
-                form_instance = form_class(request.POST, request=request)
+                form_instance = form_class(request.POST,request=request)
                 if form_instance.is_valid():
                     object_list = form_instance.filter(request, object_list)
             selected = True
@@ -296,6 +299,34 @@ def generic_dashboard(request,
                                'module_partial_template':module_partial_template,
                                'user_list':user_list,
                               },context_instance=RequestContext(request))
+
+
+def generic_map(request,
+                base_template='generic/map_base.html',
+                map_layers=[],
+                dates={}):
+    needs_date = False
+    for layer in map_layers:
+        if 'needs_date' in layer and layer['needs_date']:
+            needs_date = True
+            break
+    if callable(dates):
+        dates = dates(request=request)
+    max_date = dates.setdefault('max',datetime.datetime.now())
+    min_date = dates.setdefault('min', max_date - datetime.timedelta(days=365))
+    start_date = dates.setdefault('start', min_date)
+    end_date = dates.setdefault('end', min_date)
+
+    return render_to_response(\
+        base_template, {\
+            'map_layers':map_layers,
+            'needs_date':needs_date,
+            'max_ts':time.mktime(max_date.timetuple()) * 1000,
+            'min_ts':time.mktime(min_date.timetuple()) * 1000,
+            'start_ts':time.mktime(start_date.timetuple()) * 1000,
+            'end_ts':time.mktime(end_date.timetuple()) * 1000,
+        },context_instance=RequestContext(request))
+
 
 def static_module(request, content_id):
     content = get_object_or_404(StaticModuleContent, pk=content_id)
