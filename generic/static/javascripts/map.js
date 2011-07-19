@@ -74,7 +74,9 @@ function init_map(map_id, minLat, maxLat, minLon, maxLon) {
     }
 }
 
-
+/* A lookup mapping zoom levels on a map to maximum radii (in meters) that will display "well"
+   at that zoom level */
+var radius_lookup = {}
 /**
  * Gets the appropriate radius to display a particular (normalized, [0-1]) value,
  * based on the current zoom level of the map and MAX_RADIUS.
@@ -84,29 +86,11 @@ function init_map(map_id, minLat, maxLat, minLon, maxLon) {
  * @return the radius to display the circle, in meters.
  */
 function get_radius(map, value) {
-    radius_lookup = {
-        1: 200000,
-        2: 200000,
-        3: 200000,
-        4: 200000,
-        5: 150000,
-        6: 150000,
-        7: 40000,
-        8: 25000,
-        9: 20000,
-        10: 10000,
-        11: 5000,
-        12: 4000,
-        13: 2500,
-        14: 1000,
-        15: 500,
-        16: 250,
-        17: 0,
-        18: 0,
-        19: 0,
-        20: 0,
-        21: 0
-    };
+    if (!(map.getZoom() in radius_lookup)) {
+        // This function was heuristically determined to fit well at usable zoom
+        // levels (typically the [6,12] range)
+        radius_lookup[map.getZoom()] = Math.pow(1.88, 12-map.getZoom()) * 2830;
+    }
     return (radius_lookup[map.getZoom()] * value);
 }
 
