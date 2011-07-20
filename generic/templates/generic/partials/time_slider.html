@@ -7,38 +7,84 @@
     {% date_range min_ts max_ts start_ts end_ts%}
 </div>
 <script language="javascript">
-$(function(){
-    //initialise ui slider
-	$('select#start, select#end').selectToUISlider({
-        labels: 0,
-		sliderOptions: {
-		    change:function(e, ui) {
-    		    start_date=new Date(parseInt($('select#start option').eq(ui.values[0])[0].value));
-                start_str = start_date.getDate() + "-" + (start_date.getMonth() + 1) + "-" + start_date.getFullYear();
-    		    end_date=new Date(parseInt($('select#end option').eq(ui.values[1])[0].value));
-                end_str = end_date.getDate() + "-" + (end_date.getMonth() + 1) + "-" + end_date.getFullYear();
-                $('#id_start_ts').val(parseInt($('select#start option').eq(ui.values[0])[0].value));
-                $('#id_end_ts').val(parseInt($('select#end option').eq(ui.values[1])[0].value));
-                $( "#date_slider_value" ).text( "From " + start_str + " to " + end_str );
-	        }
-        }
-	});
-	var min_timestamp = {{ min_ts }};
-	var min_sdt = new Date(min_timestamp);
-	if(min_sdt.getDay() !== 1){
-		offset = 7 - min_sdt.getDay();
-	}else{
-		offset = 0;
-	}
-    tickEvery(7, offset);
+    function tickEvery(num, offset) {
+        $('.ui-slider span.ui-slider-tic').each(function(index,elem) {
+            if((index + 1) % (num + offset) == 0) {
+                $(elem).css('display','block');
+            }
+        });
+    }
 
-    start_date = new Date({{ start_ts }});
-    start_str = start_date.getDate() + "-" + (start_date.getMonth() + 1) + "-" + start_date.getFullYear();
-    end_date = new Date({{ end_ts }});
-    end_str = end_date.getDate() + "-" + (end_date.getMonth() + 1) + "-" + end_date.getFullYear();
-    $('#id_start_ts').val('' + {{ start_ts }});
-    $('#id_end_ts').val('' + {{ end_ts }});
-    $( "#date_slider_value" ).text( "From " + start_str +
-        " to " + end_str );
-});
+
+    function previous_date_range(timespan) {
+        d = new Date();
+        last_date = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0)
+        last_timestamp = parseInt(last_date.getTime());
+        last_date_index = $('select#end option').index($('select#end option[value='+last_timestamp+']'));
+
+        if(timespan == 'w') {
+            offset = last_date.getDay();
+            end_date = parseInt($('select#end option')[last_date_index-(1+offset)].value);
+            start_date = parseInt($('select#end option')[last_date_index-(7+offset)].value);
+        }else {
+            month = last_date.getMonth();
+            year = last_date.getYear();
+            current_month_date = 32 - new Date(year, month, 32).getDate();
+            last_month_last_day = new Date((new Date(year, month,1))-1).getDate();
+            end_date = parseInt($('select#end option')[$('select#end option').length-(1+current_month_date)].value);
+            start_date = parseInt($('select#end option')[$('select#end option').length-(current_month_date+last_month_last_day)].value);
+        }
+
+        // update the hidden fields
+        $('#id_start_ts').val(start_date);
+        $('#id_end_ts').val(end_date);
+
+        // move slider
+        move_slider(start_date, end_date);
+    }
+
+
+    function move_slider(start, end) {
+        $('select#start option[value='+start+']').attr('selected','selected');
+        $('select#end option[value='+end+']').attr('selected','selected');
+        $('select#start option').change();
+        $('select#end option').change();
+        $('form#date_range_form').submit();
+    }
+
+
+    $(function(){
+        //initialise ui slider
+    	$('select#start, select#end').selectToUISlider({
+            labels: 0,
+    		sliderOptions: {
+    		    change:function(e, ui) {
+        		    start_date=new Date(parseInt($('select#start option').eq(ui.values[0])[0].value));
+                    start_str = start_date.getDate() + "-" + (start_date.getMonth() + 1) + "-" + start_date.getFullYear();
+        		    end_date=new Date(parseInt($('select#end option').eq(ui.values[1])[0].value));
+                    end_str = end_date.getDate() + "-" + (end_date.getMonth() + 1) + "-" + end_date.getFullYear();
+                    $('#id_start_ts').val(parseInt($('select#start option').eq(ui.values[0])[0].value));
+                    $('#id_end_ts').val(parseInt($('select#end option').eq(ui.values[1])[0].value));
+                    $( "#date_slider_value" ).text( "From " + start_str + " to " + end_str );
+    	        }
+            }
+    	});
+    	var min_timestamp = {{ min_ts }};
+    	var min_sdt = new Date(min_timestamp);
+    	if(min_sdt.getDay() !== 1){
+    		offset = 7 - min_sdt.getDay();
+    	}else{
+    		offset = 0;
+    	}
+        tickEvery(7, offset);
+
+        start_date = new Date({{ start_ts }});
+        start_str = start_date.getDate() + "-" + (start_date.getMonth() + 1) + "-" + start_date.getFullYear();
+        end_date = new Date({{ end_ts }});
+        end_str = end_date.getDate() + "-" + (end_date.getMonth() + 1) + "-" + end_date.getFullYear();
+        $('#id_start_ts').val('' + {{ start_ts }});
+        $('#id_end_ts').val('' + {{ end_ts }});
+        $( "#date_slider_value" ).text( "From " + start_str +
+            " to " + end_str );
+    });
 </script>
