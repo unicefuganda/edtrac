@@ -316,16 +316,26 @@ def generic_map(request,
     min_date = dates.setdefault('min', max_date - datetime.timedelta(days=365))
     start_date = dates.setdefault('start', min_date)
     end_date = dates.setdefault('end', min_date)
+    
+    context = {'map_layers':map_layers, 'needs_date':needs_date}
+    if needs_date == True:
+        context.update({'max_ts':time.mktime(max_date.timetuple()) * 1000,\
+                       'min_ts':time.mktime(min_date.timetuple()) * 1000,\
+                       'start_ts':time.mktime(start_date.timetuple()) * 1000,\
+                       'end_ts':time.mktime(end_date.timetuple()) * 1000,\
+                       })
+        
+    return render_to_response(base_template, context, context_instance=RequestContext(request))
 
-    return render_to_response(\
-        base_template, {\
-            'map_layers':map_layers,
-            'needs_date':needs_date,
-            'max_ts':time.mktime(max_date.timetuple()) * 1000,
-            'min_ts':time.mktime(min_date.timetuple()) * 1000,
-            'start_ts':time.mktime(start_date.timetuple()) * 1000,
-            'end_ts':time.mktime(end_date.timetuple()) * 1000,
-        },context_instance=RequestContext(request))
+#    return render_to_response(\
+#        base_template, {\
+#            'map_layers':map_layers,
+#            'needs_date':needs_date,
+#            'max_ts':time.mktime(max_date.timetuple()) * 1000,
+#            'min_ts':time.mktime(min_date.timetuple()) * 1000,
+#            'start_ts':time.mktime(start_date.timetuple()) * 1000,
+#            'end_ts':time.mktime(end_date.timetuple()) * 1000,
+#        },context_instance=RequestContext(request))
 
 
 def static_module(request, content_id):
