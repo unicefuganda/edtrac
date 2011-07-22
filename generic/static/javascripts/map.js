@@ -32,7 +32,7 @@ var MAX_RADIUS = 0.1;
  *                 description:'',
  *                 overlays:[Icon, Marker, Circle, etc...],
  *             },
- *             '/cvs/stats/1278450000/1310504400/muac/':{
+ *             '/cvs/stats/<start_ts>/<end_ts>/muac/':{
  *                 description:'Malnutrition: 2 cases',
  *                 overlays:[]
  *             },
@@ -498,4 +498,28 @@ function plot_layer(map_id, layer_name, layer_url) {
             }
         }
     });
+}
+
+function plot_layer_with_date(map_id, layer_name, layer_url_template, start_date, end_date) {  
+	start_regx = /<start_ts>/i;
+	end_regx = /<end_ts>/i;
+	layer_url = layer_url_template.replace(start_regx, start_date);
+	layer_url = layer_url.replace(end_regx, end_date);
+	return plot_layer(map_id, layer_name, layer_url);
+}
+
+function toggle_layer(map_id, layer_name, layer_url_template, needs_date, obj){
+	var start_date = $("select#start option:selected").val();
+	var end_date = $("select#end option:selected").val();
+	if(obj.checked){
+		if(needs_date){
+			plot_layer_with_date(map_id, layer_name, layer_url_template, start_date, end_date);
+		}else{
+			plot_layer(map_id, layer_name, layer_url_template);
+		}
+	}else{
+		for(latlng in layer_overlays){
+			alert(latlng.location_name);
+		}
+	}
 }

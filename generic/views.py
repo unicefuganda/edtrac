@@ -300,7 +300,7 @@ def generic_dashboard(request,
                                'user_list':user_list,
                               },context_instance=RequestContext(request))
 
-
+@cache_control(no_cache=True, max_age=0)
 def generic_map(request,
                 base_template='generic/map_base.html',
                 map_layers=[],
@@ -320,23 +320,12 @@ def generic_map(request,
     context = {'map_layers':map_layers, 'needs_date':needs_date}
     if needs_date == True:
         context.update({'max_ts':time.mktime(max_date.timetuple()) * 1000,\
-                       'min_ts':time.mktime(min_date.timetuple()) * 1000,\
-                       'start_ts':time.mktime(start_date.timetuple()) * 1000,\
-                       'end_ts':time.mktime(end_date.timetuple()) * 1000,\
-                       })
+                   'min_ts':time.mktime(min_date.timetuple()) * 1000,\
+                   'start_ts':time.mktime(start_date.timetuple()) * 1000,\
+                   'end_ts':time.mktime(end_date.timetuple()) * 1000,\
+                   })
         
     return render_to_response(base_template, context, context_instance=RequestContext(request))
-
-#    return render_to_response(\
-#        base_template, {\
-#            'map_layers':map_layers,
-#            'needs_date':needs_date,
-#            'max_ts':time.mktime(max_date.timetuple()) * 1000,
-#            'min_ts':time.mktime(min_date.timetuple()) * 1000,
-#            'start_ts':time.mktime(start_date.timetuple()) * 1000,
-#            'end_ts':time.mktime(end_date.timetuple()) * 1000,
-#        },context_instance=RequestContext(request))
-
 
 def static_module(request, content_id):
     content = get_object_or_404(StaticModuleContent, pk=content_id)
