@@ -24,7 +24,7 @@ class NewPollForm(forms.Form): # pragma: no cover
 
     name = forms.CharField(max_length=32, required=True)
     question = forms.CharField(max_length=160, required=True)
-    default_response = forms.CharField(max_length=160, required=True)
+    default_response = forms.CharField(max_length=160, required=False)
     start_immediately = forms.BooleanField(required=False)
 
     # This may seem like a hack, but this allows time for the Contact model's
@@ -46,9 +46,8 @@ class NewPollForm(forms.Form): # pragma: no cover
         contacts = cleaned_data.get('contacts')
         groups = cleaned_data.get('groups')
         cleaned_data['question'] = cleaned_data.get('question').replace('%', '%%')
-        d = cleaned_data['default_response']
-        if d:
-            cleaned_data['default_response'] = d.replace('%', '%%')
+        if 'default_response' in cleaned_data:
+            cleaned_data['default_response'] = cleaned_data['default_response'].replace('%', '%%')
 
         if not contacts and not groups:
             raise forms.ValidationError("You must provide a set of recipients (either a group or a contact)")
