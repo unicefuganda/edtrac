@@ -13,14 +13,13 @@
 {% block content %}
     <div id="map" class="init" style="width:600px;height:600px">
     </div>
-    <div id="layers" name="layers">
+    <div id="map_layers" name="layers">
         <ul style="list-style-type:none">
         {% for layer in map_layers %}
             <li>
                 <input type="checkbox" 
                     {% if layer.autoload %}checked="true"{% endif %}
-                    name="{{ layer.data }}"
-                    id="{{ layer.data }}"
+                    name="layer{{ forloop.counter0 }}"
                     onclick="toggle_layer('map', '{{ layer.name }}', '{{ layer.url }}', '{{ layer.needs_date }}', this);"/>{{ layer.name }}
             </li>
         {% endfor %}

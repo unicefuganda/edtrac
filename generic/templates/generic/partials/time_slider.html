@@ -1,8 +1,22 @@
-{% load stats_extras %}
 <p>Date Range:<span id="date_slider_value" class="daterange">From {{ start_date|date:"Y-m-d" }} to {{ end_date|date:"Y-m-d" }}</span>
 <a href="javascript:void(0)" onclick="previous_date_range('w');"> &laquo; previous week</a> |
 <a href="javascript:void(0)" onclick="previous_date_range('m');"> &laquo; previous month</a>
-<a href="javascript:void(0)" onclick="submit_date_range();" style="float:right">update</a>
+<script language="javascript">
+function update_date_layers() {
+    selected_start_date = $("select#start option:selected").val() / 1000;
+    selected_end_date = $("select#end option:selected").val() / 1000;
+    {% for layer in map_layers %}
+        {% if layer.needs_date %}
+            if ($('#map_layers input[name="layer{{ forloop.counter0 }}"]:checked').length) {
+                {% autoescape off %}
+                    plot_layer_with_date('map', '{{ layer.name }}', '{{ layer.url }}', selected_start_date, selected_end_date);
+                {% endautoescape %}
+            }
+        {% endif %}
+   {% endfor %}
+}
+</script>
+<a href="javascript:void(0)" onclick="update_date_layers();" style="float:right">update</a>
 <div id="date_slider" style="margin: 5px 5px 80px 5px">
     {% comment %}{% date_range min_ts max_ts start_ts end_ts%}{% endcomment %}
 </div>

@@ -51,14 +51,6 @@ function selected_layer(data){
 	$('#date_slider').append('<input type="hidden" class="layer_data" name="layer_data" value="'+data+'" />');
 }
 
-function submit_date_range(){
-	var selected_start_date = $("select#start option:selected").val();
-	var selected_end_date = $("select#end option:selected").val();
-	var map_id = 'map';
-	var layer_name = 'muac';
-	var layer_url = '/cvs/stats/'+selected_start_date+'/'+selected_end_date+'/'+layer_name+'/';
-	plot_layer(map_id, layer_name, layer_url);
-}
 
 function tickEvery(num, offset){
 
