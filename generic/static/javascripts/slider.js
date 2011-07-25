@@ -1,7 +1,7 @@
 function slider_select_box(box_name, min_ts, max_ts, selected){
 
 	//	Hidden Time Slider timestamp selection boxes
-	
+
 	html = '<label for='+box_name+'></label><select name='+box_name+' id='+box_name+' style="display:none;">';
 	var min_date = new Date(min_ts);
 	var max_date = new Date(max_ts);

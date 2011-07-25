@@ -11,16 +11,24 @@
 {% endif %}
 {% endblock %}
 {% block content %}
-	{% if needs_date %}
-        {% include "generic/partials/time_slider.html" %}
-    {% endif %}
     <div id="map" class="init" style="width:600px;height:600px">
     </div>
     <div id="layers" name="layers">
+        <ul style="list-style-type:none">
         {% for layer in map_layers %}
-            <input type="checkbox" name="{{ layer.data }}" id="{{ layer.data }}" onclick="toggle_layer('map', '{{ layer.name }}', '{{ layer.url }}', '{{ layer.needs_date }}', this);">{{ layer.name }}<br />
+            <li>
+                <input type="checkbox" 
+                    {% if layer.autoload %}checked="true"{% endif %}
+                    name="{{ layer.data }}"
+                    id="{{ layer.data }}"
+                    onclick="toggle_layer('map', '{{ layer.name }}', '{{ layer.url }}', '{{ layer.needs_date }}', this);"/>{{ layer.name }}
+            </li>
         {% endfor %}
+        </ul>
     </div>
+    {% if needs_date %}
+        {% include "generic/partials/time_slider.html" %}
+    {% endif %}
     <script type="text/javascript">
         $(document).ready(function() {
             init_map('map', {{ min_lat }}, {{ max_lat }}, {{ min_lon }}, {{ max_lon }});
@@ -31,9 +39,8 @@
                 {% if layer.autoload %}
                 	{% if layer.needs_date %}
                 		plot_layer_with_date('map', '{{ layer.name }}', '{{ layer.url }}', '{{ start_ts}}', '{{ end_ts }}');
-                	{% endif %}
-                	{% if not layer.needs_date %}
-                    	plot_layer('map', '{{ layer.name }}', '{{ layer.url }}');
+                	{% else %}
+                    	plot_layer('map', '{{ layer.name }}', '{{ layer.url }}', '{{ layer.url }}');
                     {% endif %}
                 {% endif %}
             {% endfor %}

@@ -1,13 +1,14 @@
-/* The GMap2 object dictionary, element IDs to dictionaries */
-var maps = {};
+/** The GMap2 object dictionary, element IDs to dictionaries */
+var MAPS = {};
 
-/* The maximum diameter of an overlay, as a percentage of the
- * map's width. The absolute diameter will changed based on 
- * zoom level.
+/** These placeholders are in URL templates, to be substituted with actual time
+ *  ranges passed to the associated API call.
  */
-var MAX_RADIUS = 0.1;
+var START_TEMPLATE = "<start_ts>";
+var END_TEMPLATE = "<end_ts>";
 
-/* A dictionary of objects.
+/**
+ * A dictionary of objects.
  * The keys are google.maps.LatLng objects, storing what
  * should be displayed at a particular map point (Overlays, Popup descriptions
  * and Icon Markers.
@@ -23,7 +24,7 @@ var MAX_RADIUS = 0.1;
  * 
  * This dictionary is build over time as new layers are loaded in, but
  * here is an example of the potential structure after two overlays are loaded: 
- * layer_overlays = {
+ * LAYER_OVERLAYS = {
  *     LatLng(1,1): {
  *         'location_id': 1,
  *         'location_name': 'Patongo',
@@ -40,7 +41,7 @@ var MAX_RADIUS = 0.1;
  *     LatLng(2,2): {...},
  * };
  */
-var layer_overlays = {};
+var LAYER_OVERLAYS = {};
 
 
 /*
@@ -69,29 +70,31 @@ function init_map(map_id, minLat, maxLat, minLon, maxLon) {
         map.fitBounds(bounds);
         $('#' + map_id).removeClass('init');
         
-        maps[map_id] = map;
+        MAPS[map_id] = map;
         google.maps.event.addListener(map, 'zoom_changed', update_circle_overlays(map));
     }
 }
 
-/* A lookup mapping zoom levels on a map to maximum radii (in meters) that will display "well"
-   at that zoom level */
-var radius_lookup = {}
+/* A lookup mapping zoom levels on a map to maximum radii (in meters) that will 
+ * display "well" at that zoom level */
+var RADIUS_LOOKUP = {}
+
+
 /**
  * Gets the appropriate radius to display a particular (normalized, [0-1]) value,
- * based on the current zoom level of the map and MAX_RADIUS.
+ * based on the current zoom level of the map.
  * 
  * @param map_id the ID of the map div, to be passed to the maps global.
  * @param value a normalized [0,1] value, to be changed into a circle radius.
  * @return the radius to display the circle, in meters.
  */
 function get_radius(map, value) {
-    if (!(map.getZoom() in radius_lookup)) {
+    if (!(map.getZoom() in RADIUS_LOOKUP)) {
         // This function was heuristically determined to fit well at usable zoom
         // levels (typically the [6,12] range)
-        radius_lookup[map.getZoom()] = Math.pow(1.88, 12-map.getZoom()) * 2830;
+        RADIUS_LOOKUP[map.getZoom()] = Math.pow(1.88, 12-map.getZoom()) * 2830;
     }
-    return (radius_lookup[map.getZoom()] * value);
+    return (RADIUS_LOOKUP[map.getZoom()] * value);
 }
 
 
@@ -105,7 +108,7 @@ function get_radius(map, value) {
  */
 function update_circle_overlays(map) {
     return function () {
-        $.each(layer_overlays, function(point,pointobj) {
+        $.each(LAYER_OVERLAYS, function(point,pointobj) {
            $.each(pointobj['layers'], function(layer,value) {
                 for (i = 0; i < value['overlays'].length; i++) {
                     overlay = value['overlays'][i];
@@ -119,9 +122,9 @@ function update_circle_overlays(map) {
 }
 
 
-var category_colors = [];
-var category_color_lookup = {};
-var category_offset = 0;
+var CATEGORY_COLORS = [];
+var CATEGORY_COLOR_LOOKUP = {};
+var CATEGORY_OFFSET = 0;
 
 /**
  * Registers a category name with a particular color,
@@ -130,21 +133,21 @@ var category_offset = 0;
  * will be added to category_color_lookup (as a key), and
  * the next available color from the color list will be
  * the value.  See ureport/templates/layout.html for the
- * loading of the colors into the category_colors based on
+ * loading of the colors into the CATEGORY_COLORS based on
  * the values in ureport/settings.py
  * @param category the category name, e.g. 'yes','no',etc
  * @return the color value in css form e.g., '#ABff07'
  */
 function get_color(category) {
-    if (!category_color_lookup[category]) {
-        if (category_colors.length <= category_offset) {
-            category_color_lookup[category] = '#000000';
+    if (!CATEGORY_COLOR_LOOKUP[category]) {
+        if (CATEGORY_COLORS.length <= CATEGORY_OFFSET) {
+        	CATEGORY_COLOR_LOOKUP[category] = '#000000';
         } else {
-            category_color_lookup[category] = category_colors[category_offset];
-            category_offset += 1;
+        	CATEGORY_COLOR_LOOKUP[category] = CATEGORY_COLORS[CATEGORY_OFFSET];
+        	CATEGORY_OFFSET += 1;
         }
     }
-    return category_color_lookup[category];
+    return CATEGORY_COLOR_LOOKUP[category];
 }
 
 
@@ -155,23 +158,23 @@ function get_color(category) {
  * @param color the color value in css form e.g., '#ABff07'
  */
 function set_color(layer, color) {
-    category_color_lookup[layer] = color;
+	CATEGORY_COLOR_LOOKUP[layer] = color;
 }
 
 
 /**
  * Returns a click listener function (no parameters)
  * that dynamically creates a popup, based on the description markup
- * in layer_overlays.
+ * in LAYER_OVERLAYS.
  * 
- * @param point the LatLng object that contains descriptions in layer_overlays
+ * @param point the LatLng object that contains descriptions in LAYER_OVERLAYS
  * @param overlay the overlay object being clicked (over which to display the popup)
  * @param map the map to open the popup on
  */
 function get_description_popup(point, map) {
     return function() {
-        info="<h4>" + layer_overlays[point].location_name + "</h4>";
-        $.each(layer_overlays[point]['layers'], function(key,value) {
+        info="<h4>" + LAYER_OVERLAYS[point].location_name + "</h4>";
+        $.each(LAYER_OVERLAYS[point]['layers'], function(key,value) {
             info += value.description;
         });
         new google.maps.InfoWindow({content:info}).open(map,
@@ -251,10 +254,13 @@ Label.prototype.onRemove = function() {
  *
  * @param map the Google Maps object to plot overlays to
  * @param response the JSON response data
- * @param layer_url the URL that was fetched to retrieve the response data
  * @param layer_name The user-friendly name of this layer
+ * @param layer_key The key to store this layer under within `LAYER_OVERLAYS`.
+ *                  For dateless layers, this will be the same as the layer's URL.  For
+ *                  layers that need a date, this will be the layer template (with
+ *                  <start_ts> and <end_ts> placeholders.
  */
-function plot_categorized_data(map, response, layer_url, layer_name) {
+function plot_categorized_data(map, response, layer_name, layer_key) {
     data = response['data'];
 
     circle_options_prototype = {
@@ -266,15 +272,15 @@ function plot_categorized_data(map, response, layer_url, layer_name) {
 
     point = new google.maps.LatLng(parseFloat(data[0].lat), parseFloat(data[0].lon));
     location_id = data[0].location_id;
-    if (!(point in layer_overlays)) {
-        layer_overlays[point] = {
+    if (!(point in LAYER_OVERLAYS)) {
+        LAYER_OVERLAYS[point] = {
             'location_id':data[0].location_id,
             'location_name':data[0].location_name,
             'layers':{},
         }
     }
     current_layer = {'description':'<ul>'}
-    layer_overlays[point].layers[layer_url] = current_layer;
+    LAYER_OVERLAYS[point].layers[layer_key] = current_layer;
 
     max = 0;
     category = data[0].category__name;
@@ -300,15 +306,15 @@ function plot_categorized_data(map, response, layer_url, layer_name) {
 
             point = new google.maps.LatLng(parseFloat(data[i].lat), parseFloat(data[i].lon));
             location_id = data[i].location_id;
-            if (!(point in layer_overlays)) {
-                layer_overlays[point] = {
+            if (!(point in LAYER_OVERLAYS)) {
+                LAYER_OVERLAYS[point] = {
                     'location_id':data[i].location_id,
                     'location_name':data[i].location_name,
                     'layers':{},
                 }
             }
             current_layer = {'description':'<ul>'}
-            layer_overlays[point].layers[layer_url] = current_layer;
+            LAYER_OVERLAYS[point].layers[layer_key] = current_layer;
             max = 0;
             total = 0;
             category = data[i].category__name;
@@ -360,25 +366,28 @@ function plot_categorized_data(map, response, layer_url, layer_name) {
  *           "2": "/static/cvs/icons/HCII.png",... 
  * @param map the Google Maps object to plot overlays to
  * @param response the JSON response data
- * @param layer_url the URL that was fetched to retrieve the response data
  * @param layer_name The user-friendly name of this layer
+ * @param layer_key The key to store this layer under within `LAYER_OVERLAYS`.
+ *                  For dateless layers, this will be the same as ths layer's URL.  For
+ *                  layers that need a date, this will be the layer template (with
+ *                  <start_ts> and <end_ts> placeholders.
  */
-function plot_marker_data(map, response, layer_url, layer_name) {
+function plot_marker_data(map, response, layer_name, layer_key) {
     // FIXME figure out how to make these always on top (check bindTo)
     icons = response['icons'];
     data = response['data'];
     for (i = 0; i < data.length; i++) {
         point = new google.maps.LatLng(parseFloat(data[i].lat),parseFloat(data[i].lon));
 
-        if (!(point in layer_overlays)) {
-            layer_overlays[point] = {
+        if (!(point in LAYER_OVERLAYS)) {
+            LAYER_OVERLAYS[point] = {
                 'location_id':data[i].location_id,
                 'location_name':data[i].location_name,
                 'layers':{},
             }
         }
         current_layer = {'description':''}
-        layer_overlays[point].layers[layer_url] = current_layer;
+        LAYER_OVERLAYS[point].layers[layer_key] = current_layer;
         mIcon  = new google.maps.MarkerImage(icons[data[i].icon],new google.maps.Size(20, 20));
         var marker = new google.maps.Marker({
             position: point,
@@ -404,10 +413,13 @@ function plot_marker_data(map, response, layer_url, layer_name) {
  *
  * @param map the Google Maps object to plot overlays to
  * @param response the JSON response data
- * @param layer_url the URL that was fetched to retrieve the response data
  * @param layer_name The user-friendly name of this layer
+ * @param layer_key The key to store this layer under within `LAYER_OVERLAYS`.
+ *                  For dateless layers, this will be the same as layer's URL.  For
+ *                  layers that need a date, this will be the layer template (with
+ *                  <start_ts> and <end_ts> placeholders.
  */
-function plot_flat_data(map, response, layer_url, layer_name) {
+function plot_flat_data(map, response, layer_name, layer_key) {
     data = response['data'];
     layer_title = response['layer_title'];
     circle_options_prototype = {
@@ -430,15 +442,15 @@ function plot_flat_data(map, response, layer_url, layer_name) {
 
     for (i = 0; i < data.length; i++) {
         point = new google.maps.LatLng(parseFloat(data[i].lat), parseFloat(data[i].lon));
-        if (!(point in layer_overlays)) {
-            layer_overlays[point] = {
+        if (!(point in LAYER_OVERLAYS)) {
+            LAYER_OVERLAYS[point] = {
                 'location_id':data[i].location_id,
                 'location_name':data[i].location_name,
                 'layers':{},
             }
         }
         current_layer = {'description':layer_title + ' : ' + data[i].value}
-        layer_overlays[point].layers[layer_url] = current_layer;
+        LAYER_OVERLAYS[point].layers[layer_key] = current_layer;
         var circle = new google.maps.Circle($.extend({
             center:point,
             radius:get_radius(map, (data[i].value / max)),
@@ -447,6 +459,29 @@ function plot_flat_data(map, response, layer_url, layer_name) {
         current_layer['overlays'] = [circle];
         google.maps.event.addListener(circle, 'click', get_description_popup(point, map));
     }
+}
+
+
+/**
+ * Removes the overlays associated with a particular layer key.  This walks through
+ * the LAYER_OVERLAYS data structure, calling `setMap(null)` on any associated
+ * overlays, and then deleting the entire layer structure from each point in the
+ * LAYER_OVERLAYS array.
+ * @param layer_key The layer to remove, either a URL or URL template (in the case
+ *                  of a date-based layer)
+ */
+function remove_layer(layer_key) {
+    $.each(LAYER_OVERLAYS, function(point,pointobj) {
+    	for (layer in pointobj['layers']) {
+    		if (layer == layer_key) {
+    			overlays = pointobj['layers'][layer]['overlays'];
+    			for (i = 0; i < overlays.length; i++) {
+    				overlays[i].setMap(null);
+    			}
+    			delete pointobj['layers'][layer];
+    		}
+    	}
+     });
 }
 
 
@@ -466,19 +501,26 @@ function plot_flat_data(map, response, layer_url, layer_name) {
  * }
  * 
  * Where `optional_parameters` will vary based on `layer_type` (see additional documentation
- * in plot_categorized_data, plot_flat_data, plot_marker_data), and also for the layer_overlays
+ * in plot_categorized_data, plot_flat_data, plot_marker_data), and also for the LAYER_OVERLAYS
  * global.
  *
  * @param map_id The element id containing a google map (potentially uninitialized).
  * @param layer_url The URL from which to fetch JSON map content.
  * @param layer_name The user-friendly name of this layer
+ * @param layer_key The key to store this layer under within `LAYER_OVERLAYS`.
+ *                  For dateless layers, this will be the same as layer_url.  For
+ *                  layers that need a date, this will be the layer template (with
+ *                  <start_ts> and <end_ts> placeholders.
  */
-function plot_layer(map_id, layer_name, layer_url) {
-    if (!(map_id in maps)) {
+function plot_layer(map_id, layer_name, layer_url, layer_key) {
+    if (!(map_id in MAPS)) {
         console.error('map ID ' + map_id + ' not found!');                 
         return;
     }
-    map = maps[map_id];
+    map = MAPS[map_id];
+    
+    // Remove any previously plotted data for this layer
+    remove_layer(layer_key);
 
     $.ajax({
         type: "GET",
@@ -487,13 +529,13 @@ function plot_layer(map_id, layer_name, layer_url) {
         success: function(response) {
             switch(response['layer_type']) {
                 case 'categorized':
-                    plot_categorized_data(map, response, layer_url, layer_name);
+                    plot_categorized_data(map, response, layer_name, layer_key);
                     break;
                 case 'flat':
-                    plot_flat_data(map, response, layer_url, layer_name);
+                    plot_flat_data(map, response, layer_name, layer_key);
                     break;
                 case 'marker':
-                    plot_marker_data(map, response, layer_url, layer_name);
+                    plot_marker_data(map, response, layer_name, layer_key);
                     break;
             }
         }
@@ -501,27 +543,21 @@ function plot_layer(map_id, layer_name, layer_url) {
 }
 
 function plot_layer_with_date(map_id, layer_name, layer_url_template, start_date, end_date) {  
-	start_regx = /<start_ts>/i;
-	end_regx = /<end_ts>/i;
-	layer_url = layer_url_template.replace(start_regx, start_date);
-	layer_url = layer_url.replace(end_regx, end_date);
-	return plot_layer(map_id, layer_name, layer_url);
+	layer_url = layer_url_template.replace(START_TEMPLATE, start_date);
+	layer_url = layer_url.replace(END_TEMPLATE, end_date);
+	plot_layer(map_id, layer_name, layer_url, layer_url_template);
 }
 
-function toggle_layer(map_id, layer_name, layer_url_template, needs_date, obj){
-	var start_date = $("select#start option:selected").val();
-	var end_date = $("select#end option:selected").val();
-	if(obj.checked){
-		if(needs_date){
+function toggle_layer(map_id, layer_name, layer_url_template, needs_date, obj) {
+	remove_layer(layer_url_template);
+	// Divide by 1000 because python timestamps are milliseconds, not microseconds
+	if (obj.checked) {
+		if(needs_date) {
+			var start_date = $("select#start option:selected").val() / 1000;
+			var end_date = $("select#end option:selected").val() / 1000;
 			plot_layer_with_date(map_id, layer_name, layer_url_template, start_date, end_date);
-		}else{
-			plot_layer(map_id, layer_name, layer_url_template);
-		}
-	}else{
-		$.each(layer_overlays, function(point,pointobj) {
-			$.each(pointobj['layers'], function(layer,value) {
-				alert(layer);
-			}
+		} else {
+			plot_layer(map_id, layer_name, layer_url_template, layer_url_template);
 		}
 	}
 }
