@@ -46,7 +46,9 @@ class NewPollForm(forms.Form): # pragma: no cover
         contacts = cleaned_data.get('contacts')
         groups = cleaned_data.get('groups')
         cleaned_data['question'] = cleaned_data.get('question').replace('%', '%%')
-        cleaned_data['default_response'] = cleaned_data.get('default_response').replace('%', '%%')
+        d = cleaned_data['default_response']
+        if d:
+            cleaned_data['default_response'] = d.replace('%', '%%')
 
         if not contacts and not groups:
             raise forms.ValidationError("You must provide a set of recipients (either a group or a contact)")
