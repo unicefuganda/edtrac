@@ -518,8 +518,10 @@ function toggle_layer(map_id, layer_name, layer_url_template, needs_date, obj){
 			plot_layer(map_id, layer_name, layer_url_template);
 		}
 	}else{
-		for(latlng in layer_overlays){
-			alert(latlng.location_name);
+		$.each(layer_overlays, function(point,pointobj) {
+			$.each(pointobj['layers'], function(layer,value) {
+				alert(layer);
+			}
 		}
 	}
 }
