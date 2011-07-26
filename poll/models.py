@@ -452,11 +452,11 @@ class Poll(models.Model):
             uncategorized = uncategorized.extra(order_by=['location_name'])
             if for_map:
                 for d in uncategorized:
-                    d['lat'] = float(d['lat'])
-                    d['lon'] = float(d['lon'])
+                    d['lat'] = '%.5f' % float(d['lat'])
+                    d['lon'] = '%.5f' % float(d['lon'])
                 for d in categorized:
-                    d['lat'] = float(d['lat'])
-                    d['lon'] = float(d['lon'])
+                    d['lat'] = '%.5f' % float(d['lat'])
+                    d['lon'] = '%.5f' % float(d['lon'])
 
         if len(uncategorized):
             uncategorized = list(uncategorized)
@@ -493,8 +493,8 @@ class Category(models.Model):
             c.save()
     
     def __unicode__(self):
-        return u'%s' % self.name  
-    
+        return u'%s' % self.name
+
 class Response(models.Model):
     """
     Responses tie incoming messages from poll participants to a particular
