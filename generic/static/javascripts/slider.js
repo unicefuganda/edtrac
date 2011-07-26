@@ -1,4 +1,4 @@
-/** 
+/**
  * This is a function reference, dynamically created on rendering
  * The container template for the time slider, based on the layers
  * that will require a reload upon clicking "update" or any of the
@@ -10,7 +10,7 @@ var update_date_layers = function() { };
 
 /**
  * Initializes the selectToUISlider UI component
- * (http://www.jquerylabs.com/selecttouislider-plugin.html) 
+ * (http://www.jquerylabs.com/selecttouislider-plugin.html)
  * from its html select elements.
  * @param min_ts This is the minimum javascript timestamp (milliseconds
  *               since 1970) that the UI slider displays.  Needed to make
