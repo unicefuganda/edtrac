@@ -308,14 +308,17 @@ def generic_dashboard(request,
 def generic_map(request,
                 base_template='generic/map_base.html',
                 map_layers=[],
-                dates={}):
+                dates={},
+                display_autoload=True):
     needs_date = False
     for layer in map_layers:
         if 'needs_date' in layer and layer['needs_date']:
             needs_date = True
             break
 
-    context = {'map_layers':map_layers, 'needs_date':needs_date}
+    context = {'map_layers':map_layers,\
+               'needs_date':needs_date,\
+               'display_autoload':display_autoload}
 
     if needs_date:
         if callable(dates):

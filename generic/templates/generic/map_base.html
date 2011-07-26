@@ -1,31 +1,41 @@
 {% extends "layout.html" %}
+{% block stylesheets %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}generic/stylesheets/map.css"/>
+{% endblock %}
 {% block javascripts %}
-{{ block.super }}
-<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
-<script type="text/javascript" src="{{ MEDIA_URL }}generic/javascripts/map.js"></script>
-{% if needs_date %}
-	<script type="text/javascript" src="{{ MEDIA_URL }}generic/javascripts/slider.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}generic/javascripts/selectToUiSlider.jquery.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}generic/javascripts/jquery-ui-1.7.3.custom.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}generic/stylesheets/jquery-ui-1.7.3.custom.css"/>
-{% endif %}
+    {{ block.super }}
+    <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}generic/javascripts/map.js"></script>
+    {% if needs_date %}
+    	<script type="text/javascript" src="{{ MEDIA_URL }}generic/javascripts/slider.js"></script>
+        <script type="text/javascript" src="{{ MEDIA_URL }}generic/javascripts/selectToUiSlider.jquery.js"></script>
+        <script type="text/javascript" src="{{ MEDIA_URL }}generic/javascripts/jquery-ui-1.7.3.custom.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}generic/stylesheets/jquery-ui-1.7.3.custom.css"/>
+    {% endif %}
 {% endblock %}
 {% block content %}
-    <div id="map" class="init" style="width:600px;height:600px">
+    <div id="map" class="init map" style="width:600px;height:600px">
     </div>
-    <div id="map_layers" name="layers">
+    <div id="map_layers" name="layers" class="legend">
         <ul style="list-style-type:none">
         {% for layer in map_layers %}
+            {% if display_autoload or not layer.autoload %}
             <li>
                 <input type="checkbox" 
                     {% if layer.autoload %}checked="true"{% endif %}
                     name="layer{{ forloop.counter0 }}"
                     onclick="toggle_layer('map', '{{ layer.name }}', '{{ layer.url }}', '{{ layer.needs_date }}', this);"/>{{ layer.name }}
+                {% if layer.color %}
+                    <span style="width: 15px; height: 15px; background-color: {{ layer.color }}; float: right; margin-top: 3px; margin-right: 6px;"></span>
+                {% endif %}
             </li>
+            {% endif %}
         {% endfor %}
         </ul>
     </div>
     {% if needs_date %}
+        <br clear="both"/>
         {% include "generic/partials/time_slider.html" %}
     {% endif %}
     <script type="text/javascript">

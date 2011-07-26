@@ -175,7 +175,7 @@ function get_description_popup(point, map) {
     return function() {
         info="<h4>" + LAYER_OVERLAYS[point].location_name + "</h4>";
         $.each(LAYER_OVERLAYS[point]['layers'], function(key,value) {
-            info += value.description;
+            info += value.description + '<br/>';
         });
         new google.maps.InfoWindow({content:info}).open(map,
             /* This is a hack.  We don't actually pop an info 
@@ -449,7 +449,11 @@ function plot_flat_data(map, response, layer_name, layer_key) {
                 'layers':{},
             }
         }
-        current_layer = {'description':layer_title + ' : ' + data[i].value}
+        if (!('description' in data[i])) {
+        	current_layer = {'description':layer_title + ' : ' + data[i].value}
+        } else {
+        	current_layer = {'description':data[i].description}
+        }
         LAYER_OVERLAYS[point].layers[layer_key] = current_layer;
         var circle = new google.maps.Circle($.extend({
             center:point,
