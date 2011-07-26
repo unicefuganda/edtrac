@@ -542,22 +542,47 @@ function plot_layer(map_id, layer_name, layer_url, layer_key) {
     });
 }
 
+
+/**
+ * Plot a layer that has `needs_date` set to true.  This requires updating the
+ * layer's URL template to be something that has start and end timestamps
+ * (rather than placeholders for these values).  Passes the updated url to
+ * `plot_layer`.
+ * @param map_id The id of the map on which to plot this layer
+ * @param layer_name The name of the layer, used for display purposes
+ * @param layer_url_template The url template (containing START_TEMPLATE and
+ *                           END_TEMPLATE placeholders)
+ * @param start_date The start timestamp (integer milliseconds since 1-1-1970)
+ *                   of the date range
+ * @param end_date The end timestamp (integer milliseconds since 1-1-1970) of
+ *                 the date range
+ */
 function plot_layer_with_date(map_id, layer_name, layer_url_template, start_date, end_date) {  
 	layer_url = layer_url_template.replace(START_TEMPLATE, start_date);
 	layer_url = layer_url.replace(END_TEMPLATE, end_date);
 	plot_layer(map_id, layer_name, layer_url, layer_url_template);
 }
 
-function toggle_layer(map_id, layer_name, layer_url_template, needs_date, obj) {
-	remove_layer(layer_url_template);
-	// Divide by 1000 because python timestamps are milliseconds, not microseconds
-	if (obj.checked) {
+
+/**
+ * Remove or plot a layer, as necessary, determined by the state of a checkbox.
+ * @param map_id The id (string) of the map this layer is associated with.
+ * @param layer_name The name of the layer, for display purposes
+ * @param layer_url_template The URL or URL template of this layer
+ * @param needs_date True of the layer has a URL template requiring dates
+ * @param checkbox The checkbox whose state has changed
+ */
+function toggle_layer(map_id, layer_name, layer_url_template, needs_date, checkbox) {
+	if (checkbox.checked) {
 		if(needs_date) {
+			// Divide by 1000 because python timestamps are milliseconds, not microseconds
 			var start_date = $("select#start option:selected").val() / 1000;
 			var end_date = $("select#end option:selected").val() / 1000;
 			plot_layer_with_date(map_id, layer_name, layer_url_template, start_date, end_date);
 		} else {
 			plot_layer(map_id, layer_name, layer_url_template, layer_url_template);
 		}
+	} else {
+		remove_layer(layer_url_template);
 	}
 }
