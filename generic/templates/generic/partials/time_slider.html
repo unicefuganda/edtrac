@@ -1,27 +1,27 @@
 {% load timeslider_tags %}
 <p>
-    Date Range:<span id="date_slider_value" class="daterange">From {{ start_date|date:"Y-m-d" }} to {{ end_date|date:"Y-m-d" }}</span>
+    Date Range:<span id="date_slider_value" class="daterange"></span>
     <a href="javascript:void(0)" onclick="previous_date_range('w');"> &laquo; previous week</a> |
     <a href="javascript:void(0)" onclick="previous_date_range('m');"> &laquo; previous month</a>
     <script language="javascript">
-    function update_date_layers() {
-        selected_start_date = $("select#start option:selected").val() / 1000;
-        selected_end_date = $("select#end option:selected").val() / 1000;
-        {% for layer in map_layers %}
-            {% if layer.needs_date %}
-                if ($('#map_layers input[name="layer{{ forloop.counter0 }}"]:checked').length) {
-                    {% autoescape off %}
-                        plot_layer_with_date(
-                            'map',
-                            '{{ layer.name }}',
-                            '{{ layer.url }}',
-                            selected_start_date,
-                            selected_end_date);
-                    {% endautoescape %}
-                }
-            {% endif %}
-       {% endfor %}
-    }
+        update_date_layers = function() {
+            selected_start_date = $("select#start option:selected").val() / 1000;
+            selected_end_date = $("select#end option:selected").val() / 1000;
+            {% for layer in map_layers %}
+                {% if layer.needs_date %}
+                    if ($('#map_layers input[name="layer{{ forloop.counter0 }}"]:checked').length) {
+                        {% autoescape off %}
+                            plot_layer_with_date(
+                                'map',
+                                '{{ layer.name }}',
+                                '{{ layer.url }}',
+                                selected_start_date,
+                                selected_end_date);
+                        {% endautoescape %}
+                    }
+                {% endif %}
+           {% endfor %}
+        }
     </script>
     <a href="javascript:void(0)" onclick="update_date_layers();" style="float:right">update</a>
 </p>
@@ -56,40 +56,7 @@
 {% endfor %}
 </div>
 <script language="javascript">
-    //$('#date_slider').append(slider_select_box('start', {{ min_ts }}, {{ max_ts }}, {{ start_ts }}));
-    //$('#date_slider').append(slider_select_box('end', {{ min_ts }}, {{ max_ts }}, {{ end_ts }}));    
-    $(function() {
-        //initialise ui slider
-    	$('select#start, select#end').selectToUISlider({
-            labels: 0,
-    		sliderOptions: {
-    		    change:function(e, ui) {
-        		    start_date=new Date(parseInt($('select#start option').eq(ui.values[0])[0].value));
-                    start_str = start_date.getDate() + "-" + (start_date.getMonth() + 1) + "-" + start_date.getFullYear();
-        		    end_date=new Date(parseInt($('select#end option').eq(ui.values[1])[0].value));
-                    end_str = end_date.getDate() + "-" + (end_date.getMonth() + 1) + "-" + end_date.getFullYear();
-                    $('#id_start_ts').val(parseInt($('select#start option').eq(ui.values[0])[0].value));
-                    $('#id_end_ts').val(parseInt($('select#end option').eq(ui.values[1])[0].value));
-                    $( "#date_slider_value" ).text( "From " + start_str + " to " + end_str );
-    	        }
-            }
-    	});
-    	var min_timestamp = {{ min_ts }};
-    	var min_sdt = new Date(min_timestamp);
-    	if(min_sdt.getDay() !== 1){
-    		offset = 7 - min_sdt.getDay();
-    	}else{
-    		offset = 0;
-    	}
-        tickEvery(7, offset);
-
-        start_date = new Date({{ start_ts }});
-        start_str = start_date.getDate() + "-" + (start_date.getMonth() + 1) + "-" + start_date.getFullYear();
-        end_date = new Date({{ end_ts }});
-        end_str = end_date.getDate() + "-" + (end_date.getMonth() + 1) + "-" + end_date.getFullYear();
-        $('#id_start_ts').val('' + {{ start_ts }});
-        $('#id_end_ts').val('' + {{ end_ts }});
-        $( "#date_slider_value" ).text( "From " + start_str +
-            " to " + end_str );
+    $(document).ready(function() {
+        init_timeslider({{ min_ts }});
     });
 </script>
