@@ -40,7 +40,7 @@
     {% endif %}
     <script type="text/javascript">
         $(document).ready(function() {
-            init_map('map', {{ min_lat }}, {{ max_lat }}, {{ min_lon }}, {{ max_lon }});
+            init_map('map', {{ min_lat }}, {{ max_lat }}, {{ min_lon }}, {{ max_lon }}, {% autoescape off %}{{ colors }}{% endautoescape %});
             {% for layer in map_layers %}
                 {% if layer.color %}
                     set_color('{{ layer.name }}', '{{ layer.color }}');

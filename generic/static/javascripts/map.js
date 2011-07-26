@@ -7,6 +7,10 @@ var MAPS = {};
 var START_TEMPLATE = "<start_ts>";
 var END_TEMPLATE = "<end_ts>";
 
+var CATEGORY_COLORS = [];
+var CATEGORY_COLOR_LOOKUP = {};
+var CATEGORY_OFFSET = 0;
+
 /**
  * A dictionary of objects.
  * The keys are google.maps.LatLng objects, storing what
@@ -51,7 +55,8 @@ var LAYER_OVERLAYS = {};
  *
  * @param map_id The id of the Div to create a map inside of
  */
-function init_map(map_id, minLat, maxLat, minLon, maxLon) {                           
+function init_map(map_id, minLat, maxLat, minLon, maxLon, colors) {
+	CATEGORY_COLORS = colors;
     if ($('#' + map_id).hasClass('init')) {
         clat = (parseFloat(minLat) + parseFloat(maxLat)) / 2.0;
         clon = (parseFloat(minLon) + parseFloat(maxLon)) / 2.0;
@@ -121,10 +126,6 @@ function update_circle_overlays(map) {
     }
 }
 
-
-var CATEGORY_COLORS = [];
-var CATEGORY_COLOR_LOOKUP = {};
-var CATEGORY_OFFSET = 0;
 
 /**
  * Registers a category name with a particular color,
@@ -263,6 +264,10 @@ Label.prototype.onRemove = function() {
 function plot_categorized_data(map, response, layer_name, layer_key) {
     data = response['data'];
 
+    if (data.length < 1) {
+    	return;
+    }
+
     circle_options_prototype = {
         strokeOpacity: 0.8,
         strokeWeight: 1,
@@ -300,7 +305,6 @@ function plot_categorized_data(map, response, layer_name, layer_key) {
             current_layer['overlays'] = [circle]
             google.maps.event.addListener(circle, 'click', get_description_popup(point, map));
 
-            // FIXME figure out how to do this
             label = new Label(point, parseInt(d * 100) + "%", map);
             current_layer['overlays'].push(label)
 
@@ -338,13 +342,11 @@ function plot_categorized_data(map, response, layer_name, layer_key) {
     current_layer['overlays'] = [circle]
     google.maps.event.addListener(circle, 'click', get_description_popup(point, map));
 
-    // FIXME add legend
-    // $('#' + map_id + "_legend").show();
-    // $('#' + map_id + '_legend table').html(' ');
-    // for (category in category_color_lookup) {
-    //    category_span = '<span style="width:15px;height:15px;background-color:' + category_color_lookup[category] + ';float:left;display:block;margin-top:10px;"></span>'
-    //    $('#' + map_id + '_legend table').append('<tr><td>' + category + '</td><td>' + category_span + '</td></tr>')
-    // }
+    $('#map_layers li.category').remove();
+     for (category in CATEGORY_COLOR_LOOKUP) {
+        category_span = '<span class="category" style="width:15px;height:15px;background-color:' + CATEGORY_COLOR_LOOKUP[category] + ';float:right;display:block;"></span>'
+        $('#map_layers ul').append('<li>' + category + category_span + '</li>')
+     }
 }
 
 
