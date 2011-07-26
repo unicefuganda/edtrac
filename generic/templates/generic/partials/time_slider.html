@@ -5,8 +5,8 @@
     <a href="javascript:void(0)" onclick="previous_date_range('m');"> &laquo; previous month</a>
     <script language="javascript">
         update_date_layers = function() {
-            selected_start_date = $("select#start option:selected").val() / 1000;
-            selected_end_date = $("select#end option:selected").val() / 1000;
+            selected_start_date = $("select#start").val();
+            selected_end_date = $("select#end").val();
             {% for layer in map_layers %}
                 {% if layer.needs_date %}
                     if ($('#map_layers input[name="layer{{ forloop.counter0 }}"]:checked').length) {

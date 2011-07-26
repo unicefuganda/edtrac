@@ -328,17 +328,17 @@ def generic_map(request,
         start_date = datetime.datetime(start_date.year, start_date.month, start_date.day)
         end_date = dates.setdefault('end', min_date)
         end_date = datetime.datetime(end_date.year, end_date.month, end_date.day)
-        max_ts = time.mktime(max_date.timetuple()) * 1000
-        min_ts = time.mktime(min_date.timetuple()) * 1000
-        start_ts=time.mktime(start_date.timetuple()) * 1000
-        end_ts=time.mktime(end_date.timetuple()) * 1000
+        max_ts = time.mktime(max_date.timetuple())
+        min_ts = time.mktime(min_date.timetuple())
+        start_ts=time.mktime(start_date.timetuple())
+        end_ts=time.mktime(end_date.timetuple())
         context.update({
             'max_ts':max_ts,\
             'min_ts':min_ts,\
             'selected_ts':[(start_ts,'start',),(end_ts,'end',)],
             'start_ts':start_ts,
             'end_ts':end_ts,
-            'ts_range':range(long(min_ts), long(max_ts) + 1, 86400000),\
+            'ts_range':range(long(min_ts), long(max_ts) + 1, 86400),\
         })
         
     return render_to_response(base_template, context, context_instance=RequestContext(request))

@@ -575,9 +575,8 @@ function plot_layer_with_date(map_id, layer_name, layer_url_template, start_date
 function toggle_layer(map_id, layer_name, layer_url_template, needs_date, checkbox) {
 	if (checkbox.checked) {
 		if(needs_date) {
-			// Divide by 1000 because python timestamps are milliseconds, not microseconds
-			var start_date = $("select#start option:selected").val() / 1000;
-			var end_date = $("select#end option:selected").val() / 1000;
+			var start_date = $("select#start").val();
+			var end_date = $("select#end").val();
 			plot_layer_with_date(map_id, layer_name, layer_url_template, start_date, end_date);
 		} else {
 			plot_layer(map_id, layer_name, layer_url_template, layer_url_template);
