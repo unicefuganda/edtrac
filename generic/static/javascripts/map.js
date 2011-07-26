@@ -492,6 +492,22 @@ function remove_layer(layer_key) {
 
 
 /**
+ * Unconditionally remove all layers from all maps.
+ */
+function clear_layers() {
+    $.each(LAYER_OVERLAYS, function(point,pointobj) {
+    	for (layer in pointobj['layers']) {
+			overlays = pointobj['layers'][layer]['overlays'];
+			for (i = 0; i < overlays.length; i++) {
+				overlays[i].setMap(null);
+			}
+    	}
+    });
+    LAYER_OVERLAYS = {};
+}
+
+
+/**
  * This is the generic function for plotting JSON-driven map layers. It expects
  * responses loaded (via AJAX) to be of the following format:
  * { 
