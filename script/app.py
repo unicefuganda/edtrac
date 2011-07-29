@@ -9,7 +9,9 @@ class App (AppBase):
 
     def handle (self, message):
         try:
-            progress = ScriptProgress.objects.get(connection=message.connection)
+            progress = ScriptProgress.objects.filter(connection=message.connection).order_by('-time')
+            if progress.count():
+                progress = progress[0]
             script_last_step = ScriptStep.objects.filter(script=progress.script).order_by('-order')[0]
             if progress.step and progress.step.order == script_last_step.order and progress.status == 'C':
                 return False

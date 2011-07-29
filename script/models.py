@@ -1,10 +1,11 @@
 import datetime
 from django.db import models
-from poll.models import Poll,Response
+from poll.models import Poll, Response
 from rapidsms.models import Connection
 from django.contrib.sites.models import Site
 from django.contrib.sites.managers import CurrentSiteManager
 from django.conf import settings
+from django.db import connection
 from script.signals import *
 from rapidsms.messages.incoming import IncomingMessage
 import difflib
@@ -18,9 +19,10 @@ class Script(models.Model):
                             help_text="Human readable name.")
     sites = models.ManyToManyField(Site)
     objects = (CurrentSiteManager('sites') if settings.SITE_ID else models.Manager())
-    enabled = models.BooleanField(default=True)    
+    enabled = models.BooleanField(default=True)
     def __unicode__(self):
-        return "%s"%self.name
+        return "%s" % self.name
+
 
 class ScriptStep(models.Model):
     """
@@ -32,7 +34,7 @@ class ScriptStep(models.Model):
     """
     script = models.ForeignKey(Script, related_name='steps')
     poll = models.ForeignKey(Poll, null=True, blank=True)
-    message = models.CharField(max_length=160,blank=True)
+    message = models.CharField(max_length=160, blank=True)
     email = models.ForeignKey('Email', null=True, blank=True)
     order = models.IntegerField()
     LENIENT = 'l'
@@ -56,23 +58,24 @@ class ScriptStep(models.Model):
                          (RESEND_GIVEUP, 'Resend message/question <num_tries> times, then stop the script for this user entirely'),))
     # the number of seconds after completion of the previous step that this rule should
     # begin to take effect (i.e., a message gets sent out)
-    start_offset = models.IntegerField(blank=True,null=True)
+    start_offset = models.IntegerField(blank=True, null=True)
 
     # The time (in seconds) to wait before retrying a message
     # (in the case of RESEND_MOVEON and RESEND_GIVEUP
     # steps
-    retry_offset = models.IntegerField(blank=True,null=True)
+    retry_offset = models.IntegerField(blank=True, null=True)
 
     # The time (in seconds) to wait before moving on to the
     # next step, or giving up entirely (for WAIT_MOVEON and WAIT_GIVEUP)
-    giveup_offset = models.IntegerField(blank=True,null=True)
+    giveup_offset = models.IntegerField(blank=True, null=True)
 
     # The number of times to retry sending a question
     # for RESEND_MOVEON and RESEND_GIVEUP
-    num_tries = models.IntegerField(blank=True,null=True)
+    num_tries = models.IntegerField(blank=True, null=True)
 
     def __unicode__(self):
-        return "%d"%self.order
+        return "%d" % self.order
+
 
 class ScriptProgress(models.Model):
     """
@@ -85,8 +88,10 @@ class ScriptProgress(models.Model):
     and upon script completion the Connection is deleted from this table.
     """
     # each connection should belong to only ONE script at a time,
-    # and only be at ONE point in the script
-    connection = models.ForeignKey(Connection, unique=True)
+    # and only be at ONE point in the script.  However, due to 
+    # the convenience of queueing up several scripts known not
+    # to clash, you can add as many as you want
+    connection = models.ForeignKey(Connection)
 
     script = models.ForeignKey(Script)
 
@@ -100,11 +105,11 @@ class ScriptProgress(models.Model):
                 choices=((COMPLETE, 'Complete'),
                          (PENDING, 'In Progress'),))
     time = models.DateTimeField(auto_now=True)
-    num_tries = models.IntegerField(blank=True,null=True)
+    num_tries = models.IntegerField(blank=True, null=True)
 
     def __unicode__(self):
         if self.step:
-            return "%d"%self.step.order
+            return "%d" % self.step.order
         else:
             return "Not Started"
 
@@ -120,10 +125,10 @@ class ScriptProgress(models.Model):
         """
         if  self.step and self.status == ScriptProgress.PENDING and \
             (self.step.rule in [ScriptStep.WAIT_MOVEON, ScriptStep.WAIT_GIVEUP] or \
-            ( \
-                (self.step.rule in [ScriptStep.RESEND_MOVEON,\
-                                    ScriptStep.RESEND_GIVEUP,\
-                                    ScriptStep.STRICT_GIVEUP,\
+            (\
+                (self.step.rule in [ScriptStep.RESEND_MOVEON, \
+                                    ScriptStep.RESEND_GIVEUP, \
+                                    ScriptStep.STRICT_GIVEUP, \
                                     ScriptStep.STRICT_MOVEON]) and \
                 (self.num_tries >= self.step.num_tries) \
             )):
@@ -192,11 +197,11 @@ class ScriptProgress(models.Model):
             step_num = self.step.order + 1
         try:
             step = self.script.steps.get(order=step_num)
-            script_progress_pre_change.send(sender=self, connection=self.connection,step=self.step)
-            self.step=step
-            self.status='P'
+            script_progress_pre_change.send(sender=self, connection=self.connection, step=self.step)
+            self.step = step
+            self.status = 'P'
             self.save()
-            script_progress.send(sender=self, connection=self.connection,step=self.step)
+            script_progress.send(sender=self, connection=self.connection, step=self.step)
             return True
         except ScriptStep.DoesNotExist:
             self.giveup()
@@ -228,7 +233,7 @@ class ScriptProgress(models.Model):
         should have a poll, the status should be pending and the step should not
         be past its expiry time.  Returns True if this is the case, False otherwise.
         """
-        return (self.step and self.step.poll and self.status == ScriptProgress.PENDING and not self.expired(curtime)) 
+        return (self.step and self.step.poll and self.status == ScriptProgress.PENDING and not self.expired(curtime))
 
     def log(self, response):
         """
@@ -237,28 +242,41 @@ class ScriptProgress(models.Model):
         session = ScriptSession.objects.get(connection=self.connection, script=self.script)
         session.responses.create(response=response)
 
+    def set_time(self, newtime):
+        """
+        The time attribute is normally auto_now, for convenience (it's supposed to store
+        the last time that something happened in the script).  However, for scheduling
+        purposes, it's sometimes convenient to change it to something else manually. 
+        """
+        cursor = connection.cursor()
+        cursor.execute("update script_scriptprogress set time = '%s' where id = %d" %
+                       (newtime.strftime('%Y-%m-%d %H:%M:%S.%f'), self.pk))
+
+
 class ScriptSession(models.Model):
     """
     This model provides a full audit trail of all the responses during a particular
     progression through a script.
     """
-    connection=models.ForeignKey(Connection)
-    script=models.ForeignKey(Script)
-    start_time=models.DateTimeField(auto_now_add=True)
-    end_time=models.DateTimeField(null=True)
+    connection = models.ForeignKey(Connection)
+    script = models.ForeignKey(Script)
+    start_time = models.DateTimeField(auto_now_add=True)
+    end_time = models.DateTimeField(null=True)
+
 
 class ScriptResponse(models.Model):
-    session=models.ForeignKey(ScriptSession,related_name='responses')
-    response=models.ForeignKey(Response)
+    session = models.ForeignKey(ScriptSession, related_name='responses')
+    response = models.ForeignKey(Response)
+
 
 class Email(models.Model):
-    subject=models.TextField()
-    sender=models.EmailField(default='no-reply@uganda.rapidsms.org')
-    message=models.TextField()
-    recipients=models.ManyToManyField(User, related_name='emails', null=True)
+    subject = models.TextField()
+    sender = models.EmailField(default='no-reply@uganda.rapidsms.org')
+    message = models.TextField()
+    recipients = models.ManyToManyField(User, related_name='emails', null=True)
 
     def send(self, context={}):
-        recipients = list(self.recipients.values_list('email',flat=True).distinct())
+        recipients = list(self.recipients.values_list('email', flat=True).distinct())
         subject_template = Template(self.subject)
         message_template = Template(self.message)
         ctxt = Context(context)
@@ -267,4 +285,3 @@ class Email(models.Model):
         if message.strip():
             send_mail(subject, message, self.sender, recipients, fail_silently=False)
 
-        
