@@ -81,10 +81,7 @@ class ModelTest(TestCase): #pragma: no cover
         This hack mimics the progression of time, from the perspective of a linear test case,
         by actually *subtracting* from the value that's currently stored (usually datetime.datetime.now())
         """
-        cursor = connection.cursor()
-        newtime = progress.time - datetime.timedelta(seconds=seconds)
-        cursor.execute("update script_scriptprogress set time = '%s' where id = %d" %
-                       (newtime.strftime('%Y-%m-%d %H:%M:%S.%f'), progress.pk))
+        progress.set_time(progress.time - datetime.timedelta(seconds=seconds))
         try:
             session = ScriptSession.objects.get(connection=progress.connection, end_time=None)
             session.start_time = session.start_time - datetime.timedelta(seconds=seconds)
@@ -142,7 +139,7 @@ class ModelTest(TestCase): #pragma: no cover
         # and delete from ScriptProgress
         self.assertEquals(response, None)
         self.assertEquals(ScriptProgress.objects.count(), 0)
-        
+
         # make sure the ScriptSession table is still correct
         self.assertEquals(ScriptSession.objects.count(), 1)
         self.assertEquals(ScriptSession.objects.all()[0].responses.count(), 0)
@@ -278,7 +275,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(prog.step.order, 2)
         self.assertEquals(prog.status, 'C')
 
-    def waitFlow(self, giveup = False):
+    def waitFlow(self, giveup=False):
         step = ScriptStep.objects.get(order=2)
         if giveup:
             step.rule = ScriptStep.WAIT_GIVEUP
@@ -313,7 +310,7 @@ class ModelTest(TestCase): #pragma: no cover
             self.assertEquals(prog.step.order, 3)
             self.assertEquals(prog.status, 'P')
 
-    def resendFlow(self, giveup = False):
+    def resendFlow(self, giveup=False):
         script = Script.objects.all()[0]
         connection = Connection.objects.all()[0]
         step = ScriptStep.objects.get(order=2)
@@ -392,9 +389,9 @@ class ModelTest(TestCase): #pragma: no cover
         connection = Connection.objects.all()[0]
         script = Script.objects.all()[0]
         prog = ScriptProgress.objects.create(connection=connection, script=script)
-        prog.step= ScriptStep.objects.get(order=2)
+        prog.step = ScriptStep.objects.get(order=2)
         prog.save()
-        n_step=ScriptStep.objects.get(order=3)
+        n_step = ScriptStep.objects.get(order=3)
         #call back
         def receive(sender, **kwargs):
             self.assertEqual(kwargs['connection'].pk, connection.pk)
@@ -402,9 +399,9 @@ class ModelTest(TestCase): #pragma: no cover
             received_signals.append(kwargs.get('signal'))
         # Connect signals and keep track of handled ones
         received_signals = []
-        expected_signals=[script_progress_pre_change,script_progress]
+        expected_signals = [script_progress_pre_change, script_progress]
         for signal in expected_signals:
-            signal.connect(receive,weak=False)
+            signal.connect(receive, weak=False)
         prog.moveon()
         self.assertEqual(received_signals, expected_signals)
 
