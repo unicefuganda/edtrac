@@ -7,26 +7,28 @@ from rapidsms.models import  Backend
 from django.conf import settings
 from poll.models import Poll, LocationResponseForm, STARTSWITH_PATTERN_TEMPLATE
 import re
+import traceback
 from rapidsms.contrib.locations.models import Location
 from eav.models import Attribute
 from django.core.exceptions import ValidationError
+import difflib
 
 def previous_calendar_week():
     end_date = datetime.datetime.now()
     start_date = end_date - datetime.timedelta(days=7)
-    return (start_date,end_date)
+    return (start_date, end_date)
 
 
 def previous_calendar_month():
     end_date = datetime.datetime.now()
     start_date = end_date - datetime.timedelta(days=30)
-    return (start_date,end_date)
+    return (start_date, end_date)
 
 
 def previous_calendar_quarter():
     end_date = datetime.datetime.now()
     start_date = end_date - datetime.timedelta(days=90)
-    return (start_date,end_date)
+    return (start_date, end_date)
 
 TIME_RANGES = {
     'w': previous_calendar_week,
@@ -34,16 +36,16 @@ TIME_RANGES = {
     'q': previous_calendar_quarter
 
 }
-    
+
 def assign_backend(number):
     """assign a backend to a given number"""
     country_code = getattr(settings, 'COUNTRY_CALLING_CODE', '256')
     backends = getattr(settings, 'BACKEND_PREFIXES', [('70', 'warid'), ('75', 'zain'), ('71', 'utl'), ('', 'dmark')])
-    
+
     if number.startswith('0'):
-        number = '%s%s'%(country_code, number[1:])
+        number = '%s%s' % (country_code, number[1:])
     elif number[:len(country_code)] != country_code:
-        number = '%s%s'%(country_code, number)
+        number = '%s%s' % (country_code, number)
     backendobj = None
     for prefix, backend in backends:
         if number[len(country_code):].startswith(prefix):
@@ -52,7 +54,7 @@ def assign_backend(number):
     return (number, backendobj)
 
 class ExcelResponse(HttpResponse):
-    def __init__(self,data, output_name='excel_report',headers=None,force_csv=False, encoding='utf8'):
+    def __init__(self, data, output_name='excel_report', headers=None, force_csv=False, encoding='utf8'):
         # Make sure we've got the right type of data to work with
         valid_data = False
         if hasattr(data, '__getitem__'):
@@ -115,7 +117,7 @@ class ExcelResponse(HttpResponse):
                         cell_style = styles['date']
                     elif isinstance(value, datetime.time):
                         cell_style = styles['time']
-                    elif rowx==0:
+                    elif rowx == 0:
                         cell_style = styles['header']
                     else:
                         cell_style = styles['default']
@@ -142,7 +144,7 @@ class ExcelResponse(HttpResponse):
 
         self['Content-Disposition'] = 'attachment;filename="%s.%s"' % \
             (output_name.replace('"', '\"'), file_ext)
-            
+
 def parse_district_value(value):
     location_template = STARTSWITH_PATTERN_TEMPLATE % '[a-zA-Z]*'
     regex = re.compile(location_template)
@@ -152,10 +154,10 @@ def parse_district_value(value):
     else:
         return toret
 
-Poll.register_poll_type('district', 'District Response', parse_district_value, db_type=Attribute.TYPE_OBJECT,\
+Poll.register_poll_type('district', 'District Response', parse_district_value, db_type=Attribute.TYPE_OBJECT, \
                         view_template='polls/response_location_view.html',
                         edit_template='polls/response_location_edit.html',
-                        report_columns=(('Text','text'),('Location','location'),('Categories','categories')),
+                        report_columns=(('Text', 'text'), ('Location', 'location'), ('Categories', 'categories')),
                         edit_form=LocationResponseForm)
 
 def find_best_response(session, poll):
@@ -182,8 +184,10 @@ def find_closest_match(value, model):
             model_names = model.values_list('name', flat=True)
             model_names_lower = [ai.lower() for ai in model_names]
             model_names_matches = difflib.get_close_matches(name_str.lower(), model_names_lower)
+            print "model names lower = %s" % model_names_lower
             if model_names_matches:
                 toret = model.get(name__iexact=model_names_matches[0])
                 return toret
-    except:
-        return None
+    except Exception, exc:
+#            print traceback.format_exc(exc)
+            return None
