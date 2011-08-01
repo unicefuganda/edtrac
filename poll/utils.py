@@ -2,15 +2,9 @@ from eav.models import Attribute
 from django.contrib.sites.models import Site
 from django.conf import settings
 
-site_table_created=False
+site_table_created = False
 
-def init_attributes(sender, **kwargs):
-    global site_table_created
-    if sender.__name__ == 'django.contrib.sites.models':
-        site_table_created = True
-
-    if site_table_created:
-        if settings.SITE_ID and Site.objects.filter(pk=settings.SITE_ID).count():
+def create_attributes():
             Attribute.on_site.get_or_create(slug="poll_number_value",
                 defaults={
                     "slug": "poll_number_value",
@@ -23,7 +17,7 @@ def init_attributes(sender, **kwargs):
                 defaults={
                     "name": "Text",
                     "description": "A response value for a Poll with expected text responses",
-                    "datatype": "text",              
+                    "datatype": "text",
                 }
             )
             Attribute.on_site.get_or_create(slug='poll_location_value',
@@ -40,3 +34,15 @@ def init_attributes(sender, **kwargs):
                     "datatype": "object",
                 }
             )
+
+
+def init_attributes(sender, **kwargs):
+    global site_table_created
+    if sender.__name__ == 'django.contrib.sites.models':
+        site_table_created = True
+    elif 'django.contrib.sites' not in settings.INSTALLED_APPS:
+        site_table_created = True
+
+    if site_table_created:
+        if getattr(settings, 'SITE_ID', False) and Site.objects.filter(pk=settings.SITE_ID).count():
+            create_attributes()
