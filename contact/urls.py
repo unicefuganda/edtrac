@@ -1,5 +1,5 @@
 from django.conf.urls.defaults import *
-from .views import add_contact, new_contact
+from .views import add_contact, new_contact, view_message_history
 from .forms import FreeSearchForm, FilterGroupsForm, MassTextForm
 from rapidsms.models import Contact
 from generic.views import generic
@@ -11,7 +11,7 @@ from .forms import FreeSearchTextForm, DistictFilterMessageForm, HandledByForm, 
 from ureport.models import MassText
 
 urlpatterns = patterns('',
-   url(r'^contact/index/$', generic, {'model':Contact, 'filter_forms':[FreeSearchForm, FilterGroupsForm], 'action_forms':[MassTextForm],'objects_per_page':25}),
+   url(r'^contact/index/$', generic, {'model':Contact, 'filter_forms':[FreeSearchForm, FilterGroupsForm], 'action_forms':[MassTextForm], 'objects_per_page':25}),
    url(r'^contact/add', add_contact),
    url(r'^contact/new', new_contact),
    url(r'^contact/messagelog/$', login_required(generic), {
@@ -47,4 +47,5 @@ urlpatterns = patterns('',
       'sort_ascending':False,
       'selectable':False,
     }),
+    url(r"^contact/(\d+)/message_history/$", view_message_history, name="message_history"),
 )

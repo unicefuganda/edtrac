@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from django import forms
-from rapidsms.models import Contact,Connection
+from rapidsms.models import Contact, Connection
 from django.forms.widgets import Widget
 from django.template.loader import get_template
 from django.template.context import Context
@@ -21,6 +21,13 @@ from django.conf import settings
 import datetime
 from rapidsms_httprouter.models import Message
 
+
+class ReplyForm(forms.Form):
+    recipient = forms.CharField(max_length=20)
+    message = forms.CharField(max_length=160, widget=forms.TextInput(attrs={'size':'60'}))
+    in_response_to = forms.ModelChoiceField(queryset=Message.objects.filter(direction='I'), widget=forms.HiddenInput())
+
+
 class FilterGroupsForm(FilterForm):
 
     """ concrete implementation of filter form """
@@ -30,7 +37,7 @@ class FilterGroupsForm(FilterForm):
     # authsites app, see github.com/daveycrockett/authsites).
     # This does, however, also make the polling app independent of authsites.
     def __init__(self, data=None, **kwargs):
-        self.request=kwargs.pop('request')
+        self.request = kwargs.pop('request')
         if data:
             forms.Form.__init__(self, data, **kwargs)
         else:
@@ -38,12 +45,12 @@ class FilterGroupsForm(FilterForm):
         if hasattr(Contact, 'groups'):
             if self.request.user.is_authenticated():
                 if self.request.user.groups.order_by('-pk') == Group.objects.order_by('-pk'):
-                    choices = ((-1,'No Group'),) + tuple([(int(g.pk), g.name) for g in Group.objects.all().order_by('name')])
+                    choices = ((-1, 'No Group'),) + tuple([(int(g.pk), g.name) for g in Group.objects.all().order_by('name')])
                     self.fields['groups'] = forms.MultipleChoiceField(choices=choices, required=True)
                 else:
-                    self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.filter(pk__in=self.request.user.groups.values_list('pk',flat=True)), required=True)
+                    self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.filter(pk__in=self.request.user.groups.values_list('pk', flat=True)), required=True)
             else:
-                choices = ((-1,'No Group'),) + tuple([(int(g.pk), g.name) for g in Group.objects.all().order_by('name')])
+                choices = ((-1, 'No Group'),) + tuple([(int(g.pk), g.name) for g in Group.objects.all().order_by('name')])
                 self.fields['groups'] = forms.MultipleChoiceField(choices=choices, required=True)
 
 
@@ -89,7 +96,7 @@ class FreeSearchTextForm(FilterForm):
         return queryset.filter(text__icontains=search)
 
 class HandledByForm(FilterForm):
-    type = forms.ChoiceField(choices=(('','-----'), ('poll', 'Poll Response'), ('rapidsms_xforms', 'Report'), ('*', 'Other'),))
+    type = forms.ChoiceField(choices=(('', '-----'), ('poll', 'Poll Response'), ('rapidsms_xforms', 'Report'), ('*', 'Other'),))
 
     def filter(self, request, queryset):
         handled_by = self.cleaned_data['type']
@@ -161,7 +168,7 @@ class MassTextForm(ActionForm):
 
     def clean_text(self):
         text = self.cleaned_data['text']
-        
+
         #replace common MS-word characters with SMS-friendly characters
         for find, replace in [(u'\u201c', '"'),
                               (u'\u201d', '"'),
@@ -174,8 +181,8 @@ class MassTextForm(ActionForm):
                               (u'\u2015', "-"),
                               (u'\xa7', "$"),
                               (u'\xa1', "i"),
-                              (u'\xa4',''),
-                              (u'\xc4','A')]:
+                              (u'\xa4', ''),
+                              (u'\xc4', 'A')]:
             text = text.replace(find, replace)
         return text
 
@@ -190,7 +197,7 @@ class MassTextForm(ActionForm):
             text = self.cleaned_data['text']
             text = text.replace('%', '%%')
 
-            messages = Message.mass_text(text,connections)
+            messages = Message.mass_text(text, connections)
 
             if "authsites" in settings.INSTALLED_APPS:
                 from authsites.models import MessageSite
@@ -240,14 +247,14 @@ class AssignGroupForm(ActionForm):
     # authsites app, see github.com/daveycrockett/authsites).
     # This does, however, also make the polling app independent of authsites.
     def __init__(self, data=None, **kwargs):
-        self.request=kwargs.pop('request')
+        self.request = kwargs.pop('request')
         if data:
             forms.Form.__init__(self, data, **kwargs)
         else:
             forms.Form.__init__(self, **kwargs)
         if hasattr(Contact, 'groups'):
             if self.request.user.is_authenticated():
-                self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.filter(pk__in=self.request.user.groups.values_list('pk',flat=True)), required=False)
+                self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.filter(pk__in=self.request.user.groups.values_list('pk', flat=True)), required=False)
             else:
                 self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.all(), required=False)
 
@@ -257,13 +264,13 @@ class AssignGroupForm(ActionForm):
             for g in groups:
                 c.groups.add(g)
         return ('%d Contacts assigned to %d groups.' % (len(results), len(groups)), 'success',)
-    
+
 class FlaggedForm(FilterForm):
 
     """ filter flagged/unflagged messages form """
 
-    flagged = forms.ChoiceField(choices=(('','-----'), (1, 'Flagged'), (0, 'Not flagged'),))
-    
+    flagged = forms.ChoiceField(choices=(('', '-----'), (1, 'Flagged'), (0, 'Not flagged'),))
+
     def filter(self, request, queryset):
         flagged = self.cleaned_data['flagged']
         if flagged == '':
@@ -274,12 +281,12 @@ class FlaggedForm(FilterForm):
             return queryset.filter(flags=None)
 
 class FlagMessageForm(ActionForm):
-    
+
     """ flag/unflag messages action form """
-    
-    flag = forms.ChoiceField(choices=(('','-----'), ('flag', 'Flag'), ('unflag', 'Unflag'),))
+
+    flag = forms.ChoiceField(choices=(('', '-----'), ('flag', 'Flag'), ('unflag', 'Unflag'),))
     action_label = 'Flag/Unflag selected'
-    
+
     def perform(self, request, results):
         if results is None or len(results) == 0:
             return ('You must select one or more messages to Flag or Unflag them!', 'error')
