@@ -1,0 +1,17 @@
+{% extends "generic/base.html" %}
+{% block stylesheets %}
+    {{ block.super }}
+        <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}generic/stylesheets/jquery-ui-1.7.3.custom.css"/>
+{% endblock %}
+
+{% block javascripts %}
+    {{ block.super }}
+        <script type="text/javascript" src="{{ MEDIA_URL }}generic/javascripts/slider.js"></script>
+        <script type="text/javascript" src="{{ MEDIA_URL }}generic/javascripts/selectToUiSlider.jquery.js"></script>
+        <script type="text/javascript" src="{{ MEDIA_URL }}generic/javascripts/jquery-ui-1.7.3.custom.min.js"></script>
+{% endblock %}
+
+{% block filters %}
+    {{ block.super }}
+    {% include "generic/partials/time_slider.html" %}
+{% endblock %}
