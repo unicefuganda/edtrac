@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import datetime
-from script.models import ScriptStep, ScriptProgress, Script,ScriptSession
+from script.models import ScriptStep, ScriptProgress, Script, ScriptSession
 from rapidsms.models import Connection
 
 def check_progress(connection):
@@ -47,7 +47,7 @@ def check_progress(connection):
     # can immidately transition to the next step
     d_now = datetime.datetime.now()
     if progress.time_to_transition(d_now) and progress.moveon():
-            return progress.outgoing_message()
+        return progress.outgoing_message()
 
     return None
 
