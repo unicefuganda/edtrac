@@ -9,13 +9,13 @@ from django.db.models.query import RawQuerySet, RawQuerySet
 from django.template import RequestContext
 from django.shortcuts import redirect, get_object_or_404, render_to_response
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
-from django.http import Http404,HttpResponseServerError,HttpResponseRedirect, HttpResponse
+from django.http import Http404, HttpResponseServerError, HttpResponseRedirect, HttpResponse
 from django import forms
 from django.contrib.auth.models import User
 from generic.models import Dashboard, Module, ModuleParams, StaticModuleContent
 from django.db.models import Count
 from django.views.decorators.cache import cache_control
-from .utils import copy_dashboard
+from .utils import copy_dashboard, get_dates
 
 def generic_row(request, model=None, pk=None, partial_row='generic/partials/partial_row.html', selectable=True):
     if not (model and pk):
@@ -42,6 +42,8 @@ def generic(request,
             sort_ascending=True,
             filter_forms=[],
             action_forms=[],
+            needs_date=False,
+            dates={},
             **kwargs):
     # model parameter is required
     if not model:
@@ -68,7 +70,7 @@ def generic(request,
         # we need both a dictionary of action forms (for looking up actions performed)
         # and a list of tuple for rendering within the template in a particular order
         class_dict[fully_qualified_class_name] = action_class
-        action_form_instances.append((fully_qualified_class_name,form_instance,))
+        action_form_instances.append((fully_qualified_class_name, form_instance,))
 
     filter_form_instances = []
     for filter_class in filter_forms:
@@ -78,9 +80,9 @@ def generic(request,
     # define some defaults
     response_template = base_template
     page = 1
-    selected=False
-    status_message=''
-    status_message_type=''
+    selected = False
+    status_message = ''
+    status_message_type = ''
 
     OBJECT_LIST_KEY = "%s_object_list" % request.path
     FILTERED_LIST_KEY = "%s_filtered_list" % request.path
@@ -120,7 +122,7 @@ def generic(request,
                 status_message, status_message_type = action_instance.perform(request, results)
         else:
             for form_class in filter_forms:
-                form_instance = form_class(request.POST,request=request)
+                form_instance = form_class(request.POST, request=request)
                 if form_instance.is_valid():
                     object_list = form_instance.filter(request, object_list)
             selected = True
@@ -159,7 +161,7 @@ def generic(request,
             low_range = range(1, 6)
             high_range = range(paginator.num_pages - 4, paginator.num_pages + 1)
             if page < 10:
-                low_range += range(6, min(paginator.num_pages,page + 5))
+                low_range += range(6, min(paginator.num_pages, page + 5))
                 mid_range = range(10, paginator.num_pages - 10, 10)
                 ranges.append(low_range)
                 ranges.append(mid_range)
@@ -174,7 +176,7 @@ def generic(request,
                 ranges.append(low_range)
                 ranges.append(range(10, max(0, page - 2), 10))
                 ranges.append(range(max(0, page - 2), min(paginator.num_pages, page + 3)))
-                ranges.append(range((round(min(paginator.num_pages, page+3)/10) + 1)*10, paginator.num_pages - 10, 10))
+                ranges.append(range((round(min(paginator.num_pages, page + 3) / 10) + 1) * 10, paginator.num_pages - 10, 10))
                 ranges.append(high_range)
 
         else:
@@ -205,8 +207,14 @@ def generic(request,
         'status_message_type':status_message_type,
         'base_template':'layout.html',
     }
+
+    # For pages that not only have tables, but also need a time range slider
+    if needs_date:
+        get_dates(dates, request, context_vars)
+        context_vars['timeslider_update'] = 'filter(this)'
+
     context_vars.update(kwargs)
-    return render_to_response(response_template,context_vars,context_instance=RequestContext(request))
+    return render_to_response(response_template, context_vars, context_instance=RequestContext(request))
 
 @cache_control(no_cache=True, max_age=0)
 def generic_dashboard(request,
@@ -228,8 +236,8 @@ def generic_dashboard(request,
         module_title_dict[view_name] = module_title
 
     module_instances = [(view_name, module_form(), module_title) for view_name, module_form, module_title in module_types]
-    if request.method=='POST':
-        page_action = request.POST.get('action',None)
+    if request.method == 'POST':
+        page_action = request.POST.get('action', None)
         module_title_dict[view_name] = request.POST.get('title', module_title)
         if page_action == 'createmodule':
             form_type = request.POST.get('module_type', None)
@@ -239,7 +247,7 @@ def generic_dashboard(request,
                 return render_to_response(module_partial_template,
                                           {'mod': module,
                                            'module_header_partial_template': module_header_partial_template},
-                context_instance = RequestContext(request))
+                context_instance=RequestContext(request))
         elif page_action == 'publish':
             user_pk = int(request.POST.get('user', -1))
             if user_pk == -2 or user_pk == -3: # anonymous user
@@ -257,9 +265,9 @@ def generic_dashboard(request,
                 except:
                     pass
         else:
-            data=request.POST.lists()
-            old_user_modules=dashboard.modules.values_list('pk', flat=True).distinct()
-            new_user_modules=[]
+            data = request.POST.lists()
+            old_user_modules = dashboard.modules.values_list('pk', flat=True).distinct()
+            new_user_modules = []
             for col_val, offset_list in data:
                 offset = 0
                 column = int(col_val)
@@ -280,7 +288,7 @@ def generic_dashboard(request,
     if created:
         default_dash, created = Dashboard.objects.get_or_create(slug=slug, user=None)
         copy_dashboard(default_dash, dashboard)
-        
+
     modules = [{'col':i, 'modules':[]} for i in range(0, num_columns)]
     columns = dashboard.modules.values_list('column', flat=True).distinct()
 
@@ -302,7 +310,7 @@ def generic_dashboard(request,
                                'module_header_partial_template':module_header_partial_template,
                                'module_partial_template':module_partial_template,
                                'user_list':user_list,
-                              },context_instance=RequestContext(request))
+                              }, context_instance=RequestContext(request))
 
 @cache_control(no_cache=True, max_age=0)
 def generic_map(request,
@@ -316,36 +324,16 @@ def generic_map(request,
             needs_date = True
             break
 
-    context = {'map_layers':map_layers,\
-               'needs_date':needs_date,\
-               'display_autoload':display_autoload}
+    context = {'map_layers':map_layers, \
+               'needs_date':needs_date, \
+               'display_autoload':display_autoload, \
+               'timeslider_update':'update_date_layers();'}
 
     if needs_date:
-        if callable(dates):
-            dates = dates(request=request)
-        max_date = dates.setdefault('max',datetime.datetime.now())
-        min_date = dates.setdefault('min', max_date - datetime.timedelta(days=365))
-        min_date = datetime.datetime(min_date.year, min_date.month, 1)
-        max_date = datetime.datetime(max_date.year, max_date.month + 1, 1) - datetime.timedelta(days=1)
-        start_date = dates.setdefault('start', min_date)
-        start_date = datetime.datetime(start_date.year, start_date.month, start_date.day)
-        end_date = dates.setdefault('end', min_date)
-        end_date = datetime.datetime(end_date.year, end_date.month, end_date.day)
-        max_ts = time.mktime(max_date.timetuple())
-        min_ts = time.mktime(min_date.timetuple())
-        start_ts=time.mktime(start_date.timetuple())
-        end_ts=time.mktime(end_date.timetuple())
-        context.update({
-            'max_ts':max_ts,\
-            'min_ts':min_ts,\
-            'selected_ts':[(start_ts,'start',),(end_ts,'end',)],
-            'start_ts':start_ts,
-            'end_ts':end_ts,
-            'ts_range':range(long(min_ts), long(max_ts) + 1, 86400),\
-        })
-        
+        get_dates(dates, request, context)
+
     return render_to_response(base_template, context, context_instance=RequestContext(request))
 
 def static_module(request, content_id):
     content = get_object_or_404(StaticModuleContent, pk=content_id)
-    return render_to_response("generic/partials/static_module.html", {'content':content.content},context_instance=RequestContext(request))
+    return render_to_response("generic/partials/static_module.html", {'content':content.content}, context_instance=RequestContext(request))

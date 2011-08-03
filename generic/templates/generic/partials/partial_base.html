@@ -1,6 +1,8 @@
 <div id="div_results_loading">&nbsp;</div>
 <div id="div_panel_loading">&nbsp;</div>
+{% if results_title %}
 <h2>{{ results_title }}</h2>
+{% endif %}
 {% ifequal object_list|length 0 %}
     No Results match your search.  Refresh to reset.
 {% else %}

@@ -23,7 +23,7 @@
            {% endfor %}
         }
     </script>
-    <a href="javascript:void(0)" onclick="update_date_layers();" style="float:right">update</a>
+    <a href="javascript:void(0)" onclick="{{ timeslider_update }}" style="float:right">update</a>
 </p>
 <div id="date_slider" style="margin: 5px 5px 80px 5px">
 {% for sel_ts, sel_name in selected_ts %}
