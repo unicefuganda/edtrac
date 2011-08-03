@@ -10,13 +10,13 @@ from mptt.forms import TreeNodeChoiceField
 import re
 
 class NewPollForm(forms.Form): # pragma: no cover
-    
+
     TYPE_YES_NO = 'yn'
-    
+
     type = forms.ChoiceField(
                required=True,
                choices=(
-                    (TYPE_YES_NO, 'Yes/No Question'),                    
+                    (TYPE_YES_NO, 'Yes/No Question'),
                 ))
 
     def updateTypes(self):
@@ -84,7 +84,7 @@ class CategoryForm(forms.ModelForm):
     default = forms.BooleanField(required=False)
     response = forms.CharField(max_length=160, required=False)
     priority = forms.IntegerField(required=False, widget=forms.Select(
-            choices=tuple([('', '---')] + [(i,"%d" % i) for i in range(1,11)])))
+            choices=tuple([('', '---')] + [(i, "%d" % i) for i in range(1, 11)])))
     color = forms.CharField(required=False, max_length=6, widget=forms.Select(choices=(
                 (None, '---'),
                 ('ff9977', 'red'),
@@ -112,7 +112,6 @@ class RuleForm(forms.ModelForm):
         cleaned_data = self.cleaned_data
         rule_string = cleaned_data.get('rule_string')
         rule_type = cleaned_data.get('rule_type')
-        print rule_string
         if rule_type == 'r':
             try:
                 re.compile(rule_string)

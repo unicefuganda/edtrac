@@ -32,7 +32,7 @@ def responses_as_csv(req, pk):
     responses = poll.responses.all().order_by('-pk')
 
     resp = render_to_response(
-        "polls/responses.csv", 
+        "polls/responses.csv",
         {'responses': responses},
         mimetype="text/csv",
         context_instance=RequestContext(req))
@@ -41,11 +41,11 @@ def responses_as_csv(req, pk):
 
 @require_GET
 @login_required
-def polls(req): 
+def polls(req):
     polls = Poll.objects.annotate(Count('responses')).order_by('start_date')
     breadcrumbs = (('Polls', ''),)
     return render_to_response(
-        "polls/poll_index.html", 
+        "polls/poll_index.html",
         { 'polls': polls, 'breadcrumbs': breadcrumbs },
         context_instance=RequestContext(req))
 
@@ -60,7 +60,7 @@ def demo(req, poll_id):
     b2, created = Backend.objects.get_or_create(name="utl")
     c2, created = Connection.objects.get_or_create(identity="256717171100", defaults={
         'backend':b2,
-    })    
+    })
     router = get_router()
     outgoing = OutgoingMessage(c1, "dear Bulambuli representative: uReport, Uganda's community-level monitoring system, shows that 75% of young reporters in your district found that their local water point IS NOT functioning.")
     router.handle_outgoing(outgoing)
@@ -114,8 +114,8 @@ def new_poll(req):
 def view_poll(req, poll_id):
     poll = get_object_or_404(Poll, pk=poll_id)
     categories = Category.objects.filter(poll=poll)
-    breadcrumbs = (('Polls', reverse('polls')),('Edit Poll', ''))
-    return render_to_response("polls/poll_view.html", 
+    breadcrumbs = (('Polls', reverse('polls')), ('Edit Poll', ''))
+    return render_to_response("polls/poll_view.html",
         { 'poll': poll, 'categories': categories, 'category_count' : len(categories), 'breadcrumbs' : breadcrumbs },
         context_instance=RequestContext(req))
 
@@ -129,7 +129,7 @@ def view_report(req, poll_id, location_id=None, as_module=False):
             template = "polls/poll_report_text.html"
         elif poll.type == Poll.TYPE_NUMERIC:
             template = "polls/poll_report_numeric.html"
-    
+
     report_function = None
     is_text_poll = True
     if Poll.TYPE_CHOICES[poll.type]['db_type'] == Attribute.TYPE_TEXT:
@@ -140,13 +140,13 @@ def view_report(req, poll_id, location_id=None, as_module=False):
 
     if location_id:
         locations = get_object_or_404(Location, pk=location_id)
-        locations = [locations,]
+        locations = [locations, ]
     else:
         locations = Location.tree.root_nodes().order_by('name')
 
     results = []
     for location in locations:
-        report = report_function(location=location,for_map=False)
+        report = report_function(location=location, for_map=False)
         if len(report):
             if is_text_poll:
                 offset = 0
@@ -177,10 +177,10 @@ def view_report(req, poll_id, location_id=None, as_module=False):
                                          report[offset]['value'],))
                             offset += 1
                     else:
-                        data.append(('uncategorized','',0,))
+                        data.append(('uncategorized', '', 0,))
                     percent_data = []
                     for d in data:
-                        percent_data.append((d + (d[2]*100.0/total,)))
+                        percent_data.append((d + (d[2] * 100.0 / total,)))
                     row['report_data'] = percent_data
                     results.append(row)
             elif Poll.TYPE_CHOICES[poll.type]['db_type'] == Attribute.TYPE_FLOAT:
@@ -208,50 +208,50 @@ def view_poll_details(req, form_id):
 @login_required
 @permission_required('poll.can_edit_poll')
 def edit_poll(req, poll_id):
-    poll = get_object_or_404(Poll,pk=poll_id)
+    poll = get_object_or_404(Poll, pk=poll_id)
     categories = Category.objects.filter(poll=poll)
 
-    breadcrumbs = (('Polls', reverse('polls')),('Edit Poll', ''))
+    breadcrumbs = (('Polls', reverse('polls')), ('Edit Poll', ''))
 
     if req.method == 'POST':
         form = EditPollForm(req.POST, instance=poll)
         if form.is_valid():
             poll = form.save()
             poll.contacts = form.cleaned_data['contacts']
-            return render_to_response("polls/poll_details.html", 
+            return render_to_response("polls/poll_details.html",
                 {"poll" : poll},
                 context_instance=RequestContext(req))
     else:
         form = EditPollForm(instance=poll)
 
-    return render_to_response("polls/poll_edit.html", 
+    return render_to_response("polls/poll_edit.html",
         { 'form': form, 'poll': poll, 'categories': categories, 'category_count' : len(categories), 'breadcrumbs' : breadcrumbs },
         context_instance=RequestContext(req))
 
 @login_required
 def view_responses(req, poll_id, as_module=False):
-    poll = get_object_or_404(Poll,pk=poll_id)
+    poll = get_object_or_404(Poll, pk=poll_id)
 
     responses = poll.responses.all().order_by('-pk')
 
-    breadcrumbs = (('Polls', reverse('polls')),('Responses', ''))
-    
+    breadcrumbs = (('Polls', reverse('polls')), ('Responses', ''))
+
     template = "polls/responses.html"
     if as_module:
         template = "polls/response_table.html"
 
     typedef = Poll.TYPE_CHOICES[poll.type]
     return render_to_response(template,
-        { 'poll': poll, 'responses': responses, 'breadcrumbs': breadcrumbs, 'columns': typedef['report_columns'], 'db_type': typedef['db_type'],'row_template':typedef['view_template']},
+        { 'poll': poll, 'responses': responses, 'breadcrumbs': breadcrumbs, 'columns': typedef['report_columns'], 'db_type': typedef['db_type'], 'row_template':typedef['view_template']},
         context_instance=RequestContext(req))
 
 def stats(req, poll_id, location_id=None):
-    poll = get_object_or_404(Poll,pk=poll_id)
+    poll = get_object_or_404(Poll, pk=poll_id)
     location = None
     if location_id:
-        location = get_object_or_404(Location,pk=location_id)
+        location = get_object_or_404(Location, pk=location_id)
     json_response_data = {}
-    json_response_data = {'layer_title':'Survey:%s' % poll.name,'layer_type':'categorized','data':list(poll.responses_by_category(location))}
+    json_response_data = {'layer_title':'Survey:%s' % poll.name, 'layer_type':'categorized', 'data':list(poll.responses_by_category(location))}
     return HttpResponse(mark_safe(simplejson.dumps(json_response_data)))
 
 def number_details(req, poll_id):
@@ -369,7 +369,7 @@ def edit_response(req, response_id):
                 elif db_type == Attibute.TYPE_TEXT:
                     response.eav.poll_text_value = form.cleaned_data['value']
             response.save()
-            return render_to_response(view_template, 
+            return render_to_response(view_template,
                 { 'response' : response, 'db_type':db_type },
                 context_instance=RequestContext(req))
         else:
@@ -405,7 +405,7 @@ def delete_response (req, response_id):
 def view_category(req, poll_id, category_id):
     poll = get_object_or_404(Poll, pk=poll_id)
     category = get_object_or_404(Category, pk=category_id)
-    return render_to_response("polls/category_view.html", 
+    return render_to_response("polls/category_view.html",
         { 'poll': poll, 'category' : category },
         context_instance=RequestContext(req))
 
@@ -417,24 +417,24 @@ def edit_category (req, poll_id, category_id):
     category = get_object_or_404(Category, pk=category_id)
     if req.method == 'POST':
         form = CategoryForm(req.POST, instance=category)
-        print form.errors
+
         if form.is_valid():
             if form.cleaned_data['default'] == True:
-                Category.clear_defaults(poll)       
+                Category.clear_defaults(poll)
             category = form.save(commit=False)
             category.poll = poll
             category.save()
-            return render_to_response("polls/category_view.html", 
+            return render_to_response("polls/category_view.html",
                 { 'form' : form, 'poll': poll, 'category' : category },
                 context_instance=RequestContext(req))
         else:
-            return render_to_response("polls/category_edit.html", 
+            return render_to_response("polls/category_edit.html",
                             { 'form' : form, 'poll': poll, 'category' : category },
                             context_instance=RequestContext(req))
     else:
         form = CategoryForm(instance=category)
 
-    return render_to_response("polls/category_edit.html", 
+    return render_to_response("polls/category_edit.html",
         { 'form' : form, 'poll': poll, 'category' : category },
         context_instance=RequestContext(req))
 
@@ -449,19 +449,19 @@ def add_category(req, poll_id):
         if form.is_valid():
             if form.cleaned_data['default'] == True:
                 for c in Category.objects.filter(poll=poll, default=True):
-                    c.default=False
+                    c.default = False
                     c.save()
             category = form.save(commit=False)
             category.poll = poll
             category.save()
             poll.categories.add(category)
-            return render_to_response("polls/category_view.html", 
+            return render_to_response("polls/category_view.html",
                 { 'category' : category, 'form' : form, 'poll' : poll },
                 context_instance=RequestContext(req))
     else:
         form = CategoryForm()
 
-    return render_to_response("polls/category_edit.html", 
+    return render_to_response("polls/category_edit.html",
         { 'form' : form, 'poll' : poll },
         context_instance=RequestContext(req))
 
@@ -471,7 +471,7 @@ def delete_poll (req, poll_id):
     poll = get_object_or_404(Poll, pk=poll_id)
     if req.method == 'POST':
         poll.delete()
-    
+
     return HttpResponse(status=200)
 
 @login_required
@@ -480,8 +480,8 @@ def start_poll (req, poll_id):
     poll = Poll.objects.get(pk=poll_id)
     if req.method == 'POST':
         poll.start()
-        
-    return render_to_response("polls/poll_details.html", 
+
+    return render_to_response("polls/poll_details.html",
         {"poll" : poll},
         context_instance=RequestContext(req))
 
@@ -491,8 +491,8 @@ def end_poll (req, poll_id):
     poll = Poll.objects.get(pk=poll_id)
     if req.method == 'POST':
         poll.end()
-        
-    return render_to_response("polls/poll_details.html", 
+
+    return render_to_response("polls/poll_details.html",
         {"poll" : poll},
         context_instance=RequestContext(req))
 
@@ -509,11 +509,11 @@ def delete_category (req, poll_id, category_id):
 @login_required
 @permission_required('poll.can_edit_poll')
 def edit_rule(req, poll_id, category_id, rule_id) :
-    
+
     poll = get_object_or_404(Poll, pk=poll_id)
     category = get_object_or_404(Category, pk=category_id)
     rule = get_object_or_404(Rule, pk=rule_id)
-    
+
     if req.method == 'POST':
         form = RuleForm(req.POST, instance=rule)
         if form.is_valid():
@@ -521,17 +521,17 @@ def edit_rule(req, poll_id, category_id, rule_id) :
             rule.update_regex()
             rule.save()
             poll.reprocess_responses()
-            return render_to_response("polls/rule_view.html", 
+            return render_to_response("polls/rule_view.html",
                 {  'rule' : rule, 'poll' : poll, 'category' : category },
                 context_instance=RequestContext(req))
         else:
-            return render_to_response("polls/rule_edit.html", 
+            return render_to_response("polls/rule_edit.html",
                 { 'rule' : rule, 'form' : form, 'poll' : poll, 'category' : category },
                 context_instance=RequestContext(req))
     else:
         form = RuleForm(instance=rule)
-    
-    return render_to_response("polls/rule_edit.html", 
+
+    return render_to_response("polls/rule_edit.html",
         { 'form' : form, 'poll': poll, 'category' : category, 'rule' : rule },
         context_instance=RequestContext(req))
 
@@ -552,35 +552,35 @@ def add_rule(req, poll_id, category_id):
             rule.update_regex()
             rule.save()
             poll.reprocess_responses()
-            return render_to_response("polls/rule_view.html", 
+            return render_to_response("polls/rule_view.html",
                 {  'rule' : rule, 'form' : form, 'poll' : poll, 'category' : category },
                 context_instance=RequestContext(req))
     else:
         form = RuleForm()
 
-    return render_to_response("polls/rule_edit.html", 
+    return render_to_response("polls/rule_edit.html",
         { 'form' : form, 'poll': poll, 'category' : category },
         context_instance=RequestContext(req))
 
 @login_required
 def view_rule(req, poll_id, category_id, rule_id) :
-    
+
     poll = get_object_or_404(Poll, pk=poll_id)
     category = get_object_or_404(Category, pk=category_id)
     rule = get_object_or_404(Rule, pk=rule_id)
-    return render_to_response("polls/rule_view.html", 
+    return render_to_response("polls/rule_view.html",
         { 'rule' : rule, 'poll' : poll, 'category' : category },
         context_instance=RequestContext(req))
-    
+
 @login_required
 def view_rules(req, poll_id, category_id):
     poll = get_object_or_404(Poll, pk=poll_id)
     category = get_object_or_404(Category, pk=category_id)
     rules = Rule.objects.filter(category=category)
 
-    breadcrumbs = (('Polls', reverse('polls')),(poll.name, reverse("poll.views.view_poll", args=[poll.pk])), ("Categories", ''))
+    breadcrumbs = (('Polls', reverse('polls')), (poll.name, reverse("poll.views.view_poll", args=[poll.pk])), ("Categories", ''))
 
-    return render_to_response("polls/rules.html", 
+    return render_to_response("polls/rules.html",
         {  'poll' : poll, 'category' : category, 'rules' : rules, 'breadcrumbs': breadcrumbs },
         context_instance=RequestContext(req))
 
