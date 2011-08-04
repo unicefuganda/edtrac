@@ -57,6 +57,8 @@ class Command(BaseCommand):
                 try:
                     log_str = " PK:" + str(connection)
                     connection = Connection.objects.get(pk=connection)
+                    if ScriptProgress.objects.filter(connection=connection, time__lte=datetime.datetime.now()).order_by('-time').count() == 0:
+                        continue
                     script_p = ScriptProgress.objects.filter(connection=connection, time__lte=datetime.datetime.now()).order_by('-time')[0]
                     log_str = log_str + " Step Before: " + str(script_p.step)
                     if script_p.step:
