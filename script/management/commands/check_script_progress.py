@@ -30,7 +30,7 @@ except ImportError:
         def emit(self, record):
             pass
 logger = logging.getLogger(__name__)
-logging.basicConfig(filename="script.log",level=logging.DEBUG)
+logging.basicConfig(filename="script.log", level=logging.DEBUG)
 # Add the log message handler to the logger
 handler = logging.handlers.RotatingFileHandler("script.log", maxBytes=5242880, backupCount=5)
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -48,23 +48,23 @@ class Command(BaseCommand):
         current = datetime.datetime.now()
         recipients = getattr(settings, 'ADMINS', None)
         if recipients:
-            recipients = [email for name,email in recipients]
-        if current.hour in range(int(options['e']),int(options['l'])):
+            recipients = [email for name, email in recipients]
+        if current.hour in range(int(options['e']), int(options['l'])):
             router = HttpRouter()
             unstarted = ScriptProgress.objects.filter(step=None, script__in=Script.objects.all(), script__enabled=True).values_list('connection', flat=True).distinct()
             started = ScriptProgress.objects.filter(script__enabled=True, script__in=Script.objects.all()).order_by('step').values_list('connection', flat=True).distinct()
             for connection in itertools.chain(unstarted, started):
                 try:
-                    log_str=" PK:"+str(connection)
-                    connection=Connection.objects.get(pk=connection)
-                    script_p=ScriptProgress.objects.get(connection=connection)
-                    log_str=log_str+" Step Before: "+str(script_p.step)
+                    log_str = " PK:" + str(connection)
+                    connection = Connection.objects.get(pk=connection)
+                    script_p = ScriptProgress.objects.filter(connection=connection, time__lte=datetime.datetime.now()).order_by('-time')[0]
+                    log_str = log_str + " Step Before: " + str(script_p.step)
                     if script_p.step:
-                        log_str=log_str+" start offset: "+str(script_p.step.start_offset)
-                        
+                        log_str = log_str + " start offset: " + str(script_p.step.start_offset)
+
                     response = check_progress(connection)
-                    log_str=log_str+" Step After: "+str(script_p.step)
-                    log_str=log_str+"Response: "+str(response)
+                    log_str = log_str + " Step After: " + str(script_p.step)
+                    log_str = log_str + "Response: " + str(response)
                     logger.info(log_str)
                     if response:
                         if type(response) == Email and connection.contact and connection.contact.user:
