@@ -141,7 +141,7 @@ class Poll(models.Model):
     type = models.SlugField(max_length=8, null=True, blank=True)
     default_response = models.CharField(max_length=160)
     sites = models.ManyToManyField(Site)
-    objects = (CurrentSiteManager('sites') if 'django.contrib.sites' in settings.INSTALLED_APPS else models.Manager())
+    objects = (CurrentSiteManager('sites') if getattr(settings, 'SITE_ID', False) else models.Manager())
     bulk = BulkInsertManager()
 
     class Meta:
