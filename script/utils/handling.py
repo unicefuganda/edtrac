@@ -1,4 +1,7 @@
 import difflib
+import re
+from poll.models import Poll, STARTSWITH_PATTERN_TEMPLATE
+from eav.models import Attribute
 
 def find_best_response(session, poll):
     resps = session.responses.filter(response__poll=poll, response__has_errors=False).order_by('-response__date')
@@ -32,5 +35,5 @@ def find_closest_match(value, model, match_exact=False):
             toret = model.get(name__iexact=model_names_matches[0])
             return toret
     except Exception, exc:
-#            print traceback.format_exc(exc)
+            print traceback.format_exc(exc)
             return None
