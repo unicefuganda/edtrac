@@ -21,7 +21,7 @@
     {% if connection %}
     <div class="message_history"><br />
     <span class="message_history_stats">
-    Latest Message: {{ stats_latest_message.text|truncatewords:15 }} - received on: {{ stats_latest_message.date|date:"D d M Y H:i:s A" }}<br />
+    {% if stats_latest_message %}Latest Message: {{ stats_latest_message.text|truncatewords:15 }} - received on: {{ stats_latest_message.date|date:"D d M Y H:i:s A" }}<br />{% endif %}
     Total Outgoing Messages: {{ stats_total_outgoing }}<br />
     Total Incoming Messages: {{ stats_total_incoming }}</span>
     <p>&nbsp;</p>

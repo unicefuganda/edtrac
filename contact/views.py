@@ -43,15 +43,11 @@ def view_message_history(request, connection_id):
         messages = Message.objects.filter(connection=connection)
     messages = messages.order_by('-date')
 
-    try:
+    total_incoming = messages.filter(direction="I").count()
+    total_outgoing = messages.filter(direction="O").count()
+    latest_message = None
+    if total_incoming:
         latest_message = messages.filter(direction="I").latest('date')
-        total_incoming = messages.filter(direction="I").count()
-        total_outgoing = messages.filter(direction="O").count()
-    except Message.DoesNotExist:
-        messages = []
-        latest_message = []
-        total_incoming = 0
-        total_outgoing = 0
 
     if request.method == 'POST':
         reply_form = ReplyForm(request.POST)
