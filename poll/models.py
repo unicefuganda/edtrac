@@ -317,7 +317,8 @@ class Poll(models.Model):
                 cleaned_value = typedef['parser'](message.text)
                 if typedef['db_type'] == Attribute.TYPE_TEXT:
                     resp.eav.poll_text_value = cleaned_value
-                elif typedef['db_type'] == Attribute.TYPE_FLOAT:
+                elif typedef['db_type'] == Attribute.TYPE_FLOAT or \
+                     typedef['db_type'] == Attribute.TYPE_INT:
                     resp.eav.poll_number_value = cleaned_value
                 elif typedef['db_type'] == Attribute.TYPE_OBJECT:
                     resp.eav.poll_location_value = cleaned_value
