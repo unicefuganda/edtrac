@@ -22,7 +22,7 @@ def check_progress(connection):
     needed.
     """
     try:
-        progress = ScriptProgress.objects.get(connection=connection)
+        progress = ScriptProgress.objects.filter(connection=connection, time__lte=datetime.datetime.now()).latest('time')
     except ScriptProgress.DoesNotExist:
         return None
 
