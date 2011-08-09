@@ -84,34 +84,48 @@ def generic(request,
     status_message = ''
     status_message_type = ''
 
-    OBJECT_LIST_KEY = "%s_object_list" % request.path
-    FILTERED_LIST_KEY = "%s_filtered_list" % request.path
+    FILTER_REQUEST_KEY = "%s_filter_request" % request.path
+
+    filtered_list = object_list
+
     if request.method == 'POST':
+        # check for previous filters in the case of a post,
+        # as other actions will be driven from this
+        # filtered list
+        filter_request_post = request.session.setdefault(FILTER_REQUEST_KEY, None)
+        if filter_request_post:
+            for form_class in filter_forms:
+                form_instance = form_class(filter_request_post, request=request)
+                if form_instance.is_valid():
+                    filtered_list = form_instance.filter(request, filtered_list)
+
         page_action = request.POST.get('page_action', '')
         sort_action = request.POST.get('sort_action', '')
         sort_column = request.POST.get('sort_column', '')
         sort_ascending = request.POST.get('sort_ascending', 'True')
         sort_ascending = (sort_ascending == 'True')
         action_taken = request.POST.get('action', '')
-        if page_action:
-            object_list = request.session[OBJECT_LIST_KEY]
+
+        for column_name, sortable, sort_param, sorter in columns:
+            if sortable and sort_param == sort_column:
+                filtered_list = sorter.sort(sort_column, filtered_list, sort_ascending)
+
+        if sort_action:
+            # we already have to sort regardless, but
+            # if this action was just a sort, we're done 
+            # (and should avoid re-filtering)
+            pass
+
+        elif page_action:
             try:
                 page = int(request.POST.get('page_num', '1'))
             except ValueError:
                 pass
-        elif sort_action:
-            # retrieve the original, unsorted, unpaginated list,
-            # as some sorts will turn the initial queryset into a list
-            object_list = request.session[FILTERED_LIST_KEY]
-            for column_name, sortable, sort_param, sorter in columns:
-                if sortable and sort_param == sort_column:
-                    object_list = sorter.sort(sort_column, object_list, sort_ascending)
         elif action_taken:
-            object_list = request.session[OBJECT_LIST_KEY]
             everything_selected = request.POST.get('select_everything', None)
             results = []
             if everything_selected:
-                results = request.session[OBJECT_LIST_KEY]
+                results = filtered_list
             else:
                 resultsform = ResultsForm(request.POST)
                 if resultsform.is_valid():
@@ -121,38 +135,42 @@ def generic(request,
             if action_instance.is_valid():
                 status_message, status_message_type = action_instance.perform(request, results)
         else:
+            # it's a new filter, re-start from the object list
+            # and filter down on the new set of forms
+            filtered_list = object_list
             for form_class in filter_forms:
                 form_instance = form_class(request.POST, request=request)
                 if form_instance.is_valid():
-                    object_list = form_instance.filter(request, object_list)
+                    filtered_list = form_instance.filter(request, filtered_list)
             selected = True
-            # store the original, unsorted, unpaginated list,
-            # as some sorts will turn the initial queryset into a list
-            request.session[FILTERED_LIST_KEY] = object_list
+            # store the request filters in the session
+            request.session[FILTER_REQUEST_KEY] = request.POST
+
         response_template = partial_base
     else:
-        # store the full set of models, in queryset form, in the
-        # session, for the case of sorting the full list
-        request.session[FILTERED_LIST_KEY] = object_list
-
+        # reset the filter key, if there was a previous one it should be 
+        # cleared out
+        request.session[FILTER_REQUEST_KEY] = None
         # calls to this view can define a default sorting order,
         # if it's an initial GET request we should perform this sort here
         if sort_column:
             for column_name, sortable, sort_param, sorter in columns:
                 if sortable and sort_param == sort_column:
-                    object_list = sorter.sort(sort_column, object_list, sort_ascending)
+                    filtered_list = sorter.sort(sort_column, filtered_list, sort_ascending)
 
-    request.session[OBJECT_LIST_KEY] = object_list
-    total = len(object_list)
+    if hasattr(filtered_list, 'count') and callable(filtered_list.count):
+        total = filtered_list.count()
+    else:
+        total = len(filtered_list)
     paginator = None
     ranges = []
     if paginated:
-        paginator = Paginator(object_list, objects_per_page)
+        paginator = Paginator(filtered_list, objects_per_page)
         # If page request is out of range, deliver last page of results.
         try:
-            object_list = paginator.page(page).object_list
+            filtered_list = paginator.page(page).object_list
         except (EmptyPage, InvalidPage):
-            object_list = paginator.page(paginator.num_pages).object_list
+            filtered_list = paginator.page(paginator.num_pages).object_list
             page = paginator.num_pages
         if paginator.num_pages > 10:
             low_range = []
@@ -188,8 +206,8 @@ def generic(request,
         'partial_row':partial_row,
         'paginator_template':paginator_template,
         'results_title':results_title,
-        template_object_name:object_list, # for custom templates
-        'object_list':object_list, # allow generic templates to still
+        template_object_name:filtered_list, # for custom templates
+        'object_list':filtered_list, # allow generic templates to still
                                           # access the object list in the same way
         'paginator':paginator,
         'filter_forms':filter_form_instances,
