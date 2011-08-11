@@ -298,3 +298,44 @@ class FlagMessageForm(ActionForm):
                 for msg_flag in msg.flags.all():
                     msg_flag.delete()
         return ('%d message(s) have been %sed' % (len(results), flag), 'successfully!',)
+
+class GenderFilterForm(FilterForm):
+    """ filter contacts by their gender"""
+
+    gender = forms.ChoiceField(choices=(('', '-----'),('M', 'Male'),('F','Female'),('None','N/A')))
+
+    def filter(self, request, queryset):
+
+        gender = self.cleaned_data['gender']
+        if gender == '':
+            return queryset
+        elif gender == 'M':
+            return queryset.filter(gender='M')
+        elif gender == 'F':
+            return queryset.filter(gender='F')
+        else:
+            return queryset.filter(gender=None)
+class AgeFilterForm(FilterForm):
+    """ filter contacts by their age """
+    flag=forms.ChoiceField(('', '-----'),('+=', 'Equal to'),('>','Greater than'),('<','Less than'),('None','N/A'))
+    age=forms.TextInput(max_length=50, label="Age Filter")
+    def filter(self, request, queryset):
+
+        flag = self.cleaned_data['flag']
+        age= int(self.cleaned_data['age'])
+        end=datetime.datetime.now()
+        start=end-datetime.timedelta(days=age*365)
+
+        if flag == '':
+            return queryset
+        elif flag == '==':
+            return queryset.filter(birthdate__range=(start,end))
+        elif flag == '>':
+            return queryset.exclude(birthdate=None).filter(start,end)
+        elif flag=="<":
+            return queryset.exclude(birthdate=None).exclude(birthdate__range=(start,end))
+        else:
+            return queryset.filter(birthdate=None)
+
+
+
