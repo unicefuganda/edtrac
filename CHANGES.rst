@@ -4,6 +4,11 @@ Version History
 
 Many thanks to everyone who submits pull requests.  We'll merge in most changes that are unit tested and well thought out.
 
+0.3.4
+-----
+ - nicpottier: nail down version for django-uniform and django
+ - nicpottier: fix bug with new version of django-uniform
+
 0.3.3
 -----
  - daveycrockett: for string fields which are last in an SMS, use all values, not just the first word

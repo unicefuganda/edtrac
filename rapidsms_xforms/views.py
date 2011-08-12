@@ -499,9 +499,9 @@ add_button = ({ "image" : "rapidsms/icons/silk/decline.png", 'click' : 'cancelAd
               { "text" : "Add", "image" : "rapidsms/icons/silk/add.png", 'click' : 'add'},)
 
 save_button = ( { "image" : "rapidsms/icons/silk/decline.png", 'click' : 'cancelSave'},
-                { "text" : "Save", "image" : "xforms/icons/silk/bullet_disk.png", 'click' : 'saveRow'},)
+                { "text" : "Save", "image" : "rapidsms_xforms/icons/silk/bullet_disk.png", 'click' : 'saveRow'},)
 constraint_buttons = ({"image" : "rapidsms/icons/silk/delete.png", 'click' : 'deleteRow'},
-                      { "text" : "Edit", "image" : "xforms/icons/silk/pencil.png", 'click' : 'editRow'},)
+                      { "text" : "Edit", "image" : "rapidsms_xforms/icons/silk/pencil.png", 'click' : 'editRow'},)
 constraint_columns = (('Type', 'type'), ('Test', 'test'), ('Message', 'message'))
 
 

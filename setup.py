@@ -6,9 +6,10 @@ setup(
     license="BSD",
 
     install_requires = [
+        "django>=1.3",
         "rapidsms==0.9.6a",
-        "django-uni-form",
-        "django-eav>=0.9.2"
+        "django-uni-form==0.8.0",
+        "django-eav==0.9.2"
     ],
 
     dependency_links = [
