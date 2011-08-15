@@ -317,8 +317,8 @@ class GenderFilterForm(FilterForm):
             return queryset.filter(gender=None)
 class AgeFilterForm(FilterForm):
     """ filter contacts by their age """
-    flag=forms.ChoiceField(('', '-----'),('+=', 'Equal to'),('>','Greater than'),('<','Less than'),('None','N/A'))
-    age=forms.TextInput(max_length=50, label="Age Filter")
+    flag=forms.ChoiceField(label='' ,choices=(('', '-----'),('+=', 'Equal to'),('>','Greater than'),('<','Less than'),('None','N/A')))
+    age=forms.CharField(max_length=20, label="Age",widget=forms.TextInput(attrs={'size':'20'}))
     def filter(self, request, queryset):
 
         flag = self.cleaned_data['flag']
