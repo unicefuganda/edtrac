@@ -26,13 +26,11 @@ def authtabs(request):
         "tabs":tabs
     }
 
-def layout(request):
-    """
-    a context processor that changes the base css of the layout.html in RapidSMS. This is useful in case you want to
-    have a custom skin for RapidSMS.
-    """
-    css = settings.BASE_CSS if settings.BASE_CSS else "/static/rapidsms/stylesheets/layout.css"
-    return {
-        "BASE_CSS":settings.BASE_CSS
-    }
+
+def module(request):
+    if request.GET and 'as_module' in request.GET:
+        return {
+            "as_module":True
+        }
+    return {}
 

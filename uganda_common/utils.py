@@ -1,17 +1,25 @@
-import datetime
-from django.http import HttpResponse
+from django.conf import settings, settings
+from django.contrib.auth.models import User, Group
+from django.contrib.sites.models import Site
+from django.core.exceptions import ValidationError
+from django.db.models import Count, Sum
+from django.db.models.base import ModelBase
 from django.db.models.query import QuerySet, ValuesQuerySet
+from django.http import HttpResponse
 from django.utils.text import capfirst
-from  django.db.models.base import ModelBase
-from rapidsms.models import  Backend
-from django.conf import settings
-from poll.models import Poll, LocationResponseForm, STARTSWITH_PATTERN_TEMPLATE
+from eav.models import Attribute
+from poll.models import Poll, LocationResponseForm, \
+    STARTSWITH_PATTERN_TEMPLATE
+from rapidsms.contrib.locations.models import Location
+from rapidsms.models import Backend
+from rapidsms_xforms.models import XForm, XFormField, XFormFieldConstraint, \
+    XFormSubmission, XFormSubmissionValue
+from script.models import Script, ScriptStep
+import datetime
+import difflib
 import re
 import traceback
-from rapidsms.contrib.locations.models import Location
-from eav.models import Attribute
-from django.core.exceptions import ValidationError
-import difflib
+
 
 def previous_calendar_week():
     end_date = datetime.datetime.now()
@@ -160,37 +168,156 @@ Poll.register_poll_type('district', 'District Response', parse_district_value, d
                         report_columns=(('Text', 'text'), ('Location', 'location'), ('Categories', 'categories')),
                         edit_form=LocationResponseForm)
 
-def find_best_response(session, poll):
-    resps = session.responses.filter(response__poll=poll, response__has_errors=False).order_by('-response__date')
-    if resps.count():
-        resp = resps[0].response
-        typedef = Poll.TYPE_CHOICES[poll.type]
-        if typedef['db_type'] == Attribute.TYPE_TEXT:
-            return resp.eav.poll_text_value
-        elif typedef['db_type'] == Attribute.TYPE_FLOAT:
-            return resp.eav.poll_number_value
-        elif typedef['db_type'] == Attribute.TYPE_OBJECT:
-            return resp.eav.poll_location_value
-    return None
 
-def find_closest_match(value, model, match_exact=False):
-    string_template = STARTSWITH_PATTERN_TEMPLATE % '[a-zA-Z]*'
-    regex = re.compile(string_template)
-    try:
-        if match_exact:
-            name_str = value
-        else:
-            if regex.search(value):
-                spn = regex.search(value).span()
-                name_str = value[spn[0]:spn[1]]
-        toret = None
-        model_names = model.values_list('name', flat=True)
-        model_names_lower = [ai.lower() for ai in model_names]
-        model_names_matches = difflib.get_close_matches(name_str.lower(), model_names_lower)
-        print "model names lower = %s" % model_names_lower
-        if model_names_matches:
-            toret = model.get(name__iexact=model_names_matches[0])
-            return toret
-    except Exception, exc:
-#            print traceback.format_exc(exc)
-            return None
+
+GROUP_BY_WEEK = 1
+GROUP_BY_MONTH = 2
+GROUP_BY_DAY = 16
+GROUP_BY_QUARTER = 32
+
+months = {
+    1: 'Jan',
+    2: 'Feb',
+    3: 'Mar',
+    4: 'Apr',
+    5: 'May',
+    6: 'Jun',
+    7: 'Jul',
+    8: 'Aug',
+    9: 'Sept',
+    10: 'Oct',
+    11: 'Nov',
+    12: 'Dec'
+}
+
+quarters = {
+    1:'First',
+    2:'Second',
+    3:'Third',
+    4:'Forth'
+}
+
+GROUP_BY_SELECTS = {
+    GROUP_BY_DAY:('day', 'date(rapidsms_xforms_xformsubmission.created)',),
+    GROUP_BY_WEEK:('week', 'extract(week from rapidsms_xforms_xformsubmission.created)',),
+    GROUP_BY_MONTH:('month', 'extract(month from rapidsms_xforms_xformsubmission.created)',),
+    GROUP_BY_QUARTER:('quarter', 'extract(quarter from rapidsms_xforms_xformsubmission.created)',),
+}
+
+
+def total_submissions(keyword, start_date, end_date, location, extra_filters=None, group_by_timespan=None):
+    if extra_filters:
+        extra_filters = dict([(str(k), v) for k, v in extra_filters.items()])
+        q = XFormSubmission.objects.filter(**extra_filters)
+        tnum = 8
+    else:
+        q = XFormSubmission.objects
+        tnum = 6
+    select = {
+        'location_name':'T%d.name' % tnum,
+        'location_id':'T%d.id' % tnum,
+        'rght':'T%d.rght' % tnum,
+        'lft':'T%d.lft' % tnum,
+    }
+
+    values = ['location_name', 'location_id', 'lft', 'rght']
+    if group_by_timespan:
+         select_value = GROUP_BY_SELECTS[group_by_timespan][0]
+         select_clause = GROUP_BY_SELECTS[group_by_timespan][1]
+         select.update({select_value:select_clause,
+                        'year':'extract (year from rapidsms_xforms_xformsubmission.created)', })
+         values.extend([select_value, 'year'])
+    if location.get_children().count() > 1:
+        location_children_where = 'T%d.id in %s' % (tnum, (str(tuple(location.get_children().values_list(\
+                       'pk', flat=True)))))
+    else:
+        location_children_where = 'T%d.id = %d' % (tnum, location.get_children()[0].pk)
+
+    return q.filter(
+               xform__keyword=keyword,
+               has_errors=False,
+               created__lte=end_date,
+               created__gte=start_date).values(
+               'connection__contact__reporting_location__name').extra(
+               tables=['locations_location'],
+               where=[\
+                   'T%d.lft <= locations_location.lft' % tnum, \
+                   'T%d.rght >= locations_location.rght' % tnum, \
+                   location_children_where]).extra(\
+               select=select).values(*values).annotate(value=Count('id')).extra(order_by=['location_name'])
+
+
+def total_attribute_value(attribute_slug, start_date, end_date, location, group_by_timespan=None):
+    select = {
+        'location_name':'T8.name',
+        'location_id':'T8.id',
+        'rght':'T8.rght',
+        'lft':'T8.lft',
+    }
+    values = ['location_name', 'location_id', 'lft', 'rght']
+    if group_by_timespan:
+         select_value = GROUP_BY_SELECTS[group_by_timespan][0]
+         select_clause = GROUP_BY_SELECTS[group_by_timespan][1]
+         select.update({select_value:select_clause,
+                        'year':'extract (year from rapidsms_xforms_xformsubmission.created)', })
+         values.extend([select_value, 'year'])
+    if location.get_children().count() > 1:
+        location_children_where = 'T8.id in %s' % (str(tuple(location.get_children().values_list(\
+                       'pk', flat=True))))
+    else:
+        location_children_where = 'T8.id = %d' % location.get_children()[0].pk
+    return XFormSubmissionValue.objects.filter(
+               submission__has_errors=False,
+               attribute__slug=attribute_slug,
+               submission__created__lte=end_date,
+               submission__created__gte=start_date).values(
+               'submission__connection__contact__reporting_location__name').extra(
+               tables=['locations_location'],
+               where=[\
+                   'T8.lft <= locations_location.lft',
+                   'T8.rght >= locations_location.rght',
+                   location_children_where]).extra(\
+               select=select).values(*values).annotate(value=Sum('value_int')).extra(order_by=['location_name'])
+
+
+def reorganize_location(key, report, report_dict):
+    for dict in report:
+        location = dict['location_id']
+        report_dict.setdefault(location, {'location_name':dict['location_name'], 'diff':(dict['rght'] - dict['lft'])})
+        report_dict[location][key] = dict['value']
+
+
+def reorganize_timespan(timespan, report, report_dict, location_list, request=None):
+    for dict in report:
+        time = dict[timespan]
+        if timespan == 'month':
+            time = datetime.datetime(int(dict['year']), int(time), 1)
+        elif timespan == 'week':
+            time = datetime.datetime(int(dict['year']), 1, 1) + datetime.timedelta(days=(int(time) * 7))
+        elif timespan == 'quarter':
+            time = datetime.datetime(int(dict['year']), int(time) * 3, 1)
+
+        report_dict.setdefault(time, {})
+        location = dict['location_name']
+        report_dict[time][location] = dict['value']
+
+        if not location in location_list:
+            location_list.append(location)
+
+
+def get_group_by(start_date, end_date):
+    interval = end_date - start_date
+    if interval <= datetime.timedelta(days=21):
+        group_by = GROUP_BY_DAY
+        prefix = 'day'
+    elif datetime.timedelta(days=21) <= interval <= datetime.timedelta(days=90):
+        group_by = GROUP_BY_WEEK
+        prefix = 'week'
+    elif datetime.timedelta(days=90) <= interval <= datetime.timedelta(days=270):
+        group_by = GROUP_BY_MONTH
+        prefix = 'month'
+    else:
+        group_by = GROUP_BY_QUARTER
+        prefix = 'quarter'
+    return {'group_by':group_by, 'group_by_name':prefix}
+
