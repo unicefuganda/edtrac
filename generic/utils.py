@@ -1,6 +1,7 @@
 from .models import *
 import datetime, time
 
+
 def copy_dashboard(from_dashboard, to_dashboard):
     for m in to_dashboard.modules.all():
         m.delete()
@@ -15,6 +16,7 @@ def copy_dashboard(from_dashboard, to_dashboard):
                                            param_value=param.param_value,
                                            is_url_param=param.is_url_param)
             mod_params.save()
+
 
 def get_dates(dates, request, context):
     if callable(dates):
@@ -37,5 +39,23 @@ def get_dates(dates, request, context):
         'selected_ts':[(start_ts, 'start',), (end_ts, 'end',)],
         'start_ts':start_ts,
         'end_ts':end_ts,
+        'start_date':start_date,
+        'end_date':end_date,
         'ts_range':range(long(min_ts), long(max_ts) + 1, 86400), \
     })
+
+
+def flatten_list(report_dict):
+    """
+        Rearrange a dictionary of dictionaries:
+            { 'apple':{'a':1,'b':2,'c':3},
+              'orange':{'d':4,'e':5,'f':6} }
+              
+        Into a list of dictionaries:
+           [{'key':'apple','a':1,'b':2,'c':3},{'key':'orange','d':4,'e':5,'f':6}]
+    """
+    toret = []
+    for key, value_dict in report_dict.items():
+        value_dict['key'] = key
+        toret.append(value_dict)
+    return toret

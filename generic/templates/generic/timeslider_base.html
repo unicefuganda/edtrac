@@ -13,5 +13,6 @@
 
 {% block filters %}
     {{ block.super }}
+    <input type="hidden" id="drill_key" name="drill_key"/>
     {% include "generic/partials/time_slider.html" %}
 {% endblock %}

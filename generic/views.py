@@ -51,7 +51,10 @@ def generic(request,
 
     # querysets can be calls to a function for dynamic, run-time retrieval
     if callable(queryset):
-        queryset = queryset(request=request)
+        if needs_date:
+            queryset = queryset(request=request, dates=dates)
+        else:
+            queryset = queryset(request=request)
 
     # the default list is either a queryset parameter, or all
     # objects from the model parameter
