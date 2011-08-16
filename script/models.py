@@ -182,7 +182,7 @@ class ScriptProgress(models.Model):
         Remove this ScriptProgress from the table, update ScriptSession, and
         fire the appropriate signal.
         """
-        session = ScriptSession.objects.get(script=self.script, connection=self.connection, end_time=None)
+        session = ScriptSession.objects.filter(script=self.script, connection=self.connection, end_time=None).latest('start_time')
         session.end_time = datetime.datetime.now()
         session.save()
         script_progress_was_completed.send(sender=self, connection=self.connection)
