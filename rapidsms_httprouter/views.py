@@ -196,7 +196,12 @@ def console(request):
 
 @login_required
 def summary(request):
-    messages = Message.objects.extra(
+    from django.conf import settings
+    if 'authsites' in settings.INSTALLED_APPS:
+        mgr = Message.allsites
+    else:
+        mgr = Message.objects
+    messages = mgr.extra(
                    {'year':'extract(year from date)',
                     'month':'extract (month from date)'})\
                .values('year','month','connection__backend__name','direction')\
