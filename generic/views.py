@@ -162,7 +162,10 @@ def generic(request,
                     filtered_list = sorter.sort(sort_column, filtered_list, sort_ascending)
 
     if hasattr(filtered_list, 'count') and callable(filtered_list.count):
-        total = filtered_list.count()
+        try:
+            total = filtered_list.count()
+        except TypeError:
+            total = len(filtered_list)
     else:
         total = len(filtered_list)
     paginator = None
