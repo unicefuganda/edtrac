@@ -321,3 +321,38 @@ def get_group_by(start_date, end_date):
         prefix = 'quarter'
     return {'group_by':group_by, 'group_by_name':prefix}
 
+def get_dates(request):
+    """
+    Process date variables from POST
+    """
+    if request.POST:
+        form = DateRangeForm(request.POST)
+        if form.is_valid():
+            dts = XFormSubmission.objects.aggregate(Min('created'))
+            min_date = dts['created__min'] or (datetime.datetime.now() - datetime.timedelta(365))
+            start_date = form.cleaned_data['start_ts']
+            end_date = form.cleaned_data['end_ts']
+            request.session['start_date'] = start_date
+            request.session['end_date'] = end_date
+    #for charts, cached start_date and end_date for charts as one drills down
+    elif request.GET.get('start_date', None) and request.GET.get('end_date', None):
+        start_date = datetime.datetime.fromtimestamp(int(request.GET['start_date']))
+        end_date = datetime.datetime.fromtimestamp(int(request.GET['end_date']))
+        request.session['start_date'] = start_date
+        request.session['end_date'] = end_date
+        return {'start':start_date, 'end':end_date}
+    else:
+        form = DateRangeForm()
+        dts = XFormSubmission.objects.aggregate(Max('created'), Min('created'))
+        end_date = dts['created__max'] or datetime.datetime.now()
+        min_date = dts['created__min'] or (datetime.datetime.now() - datetime.timedelta(365))
+        start_date = end_date - datetime.timedelta(days=30)
+        if request.GET.get('date_range', None):
+            start_date, end_date = TIME_RANGES[request.GET.get('date_range')]()
+            request.session['start_date'], request.session['end_date'] = start_date, end_date
+        if request.session.get('start_date', None)  and request.session.get('end_date', None):
+            start_date = request.session['start_date']
+            end_date = request.session['end_date']
+
+    return {'start':start_date, 'end':end_date, 'min':min_date, 'form':form}
+
