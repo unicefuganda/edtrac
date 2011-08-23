@@ -293,8 +293,15 @@ class Poll(models.Model):
 
         elif (self.type == Poll.TYPE_NUMERIC):
             try:
-                resp.eav.poll_number_value = float(message.text)
-            except ValueError:
+                regex=re.compile(r"(\d+)")
+                #split the text on number regex. if the msg is of form
+                #'19'or '19 years' or '19years' or 'age19' it returns a list of length 3
+                msg_parts=regex.split(message.text)
+                if len(msg_parts) ==3 :
+                    resp.eav.poll_number_value = float(msg_parts[1])
+                else:
+                     resp.has_errors = True
+            except IndexError:
                 resp.has_errors = True
 
         elif ((self.type == Poll.TYPE_TEXT) or (self.type == Poll.TYPE_REGISTRATION)):

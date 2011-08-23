@@ -130,6 +130,18 @@ class ProcessingTests(TestScript):
         self.assertInteraction(self.connection2, 'yes', 'glad to know where you are!')
         self.assertEqual(Response.objects.filter(poll=p).count(), 1)
         self.assertEqual(Response.objects.get(poll=p).categories.all()[0].category.name, 'yes')
+        
+    def test_numeric_polls(self):
+        p = Poll.create_with_bulk(
+                'test poll numeric',
+                Poll.TYPE_NUMERIC,
+                'how old are you?',
+                ':) go yo age!',
+                [self.contact1,self.contact2],
+                self.user)
+        p.start()
+        self.assertInteraction(self.connection2, '19years', ':) go yo age!')
+        self.assertEqual(Response.objects.filter(poll=p).count(), 1)
 
     def test_recategorization(self):
         p = Poll.create_with_bulk(
