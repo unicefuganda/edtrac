@@ -293,11 +293,11 @@ class Poll(models.Model):
 
         elif (self.type == Poll.TYPE_NUMERIC):
             try:
-                regex=re.compile(r"(\d+)")
+                regex=re.compile(r"(-?\d+(\.\d+)?)")
                 #split the text on number regex. if the msg is of form
-                #'19'or '19 years' or '19years' or 'age19' it returns a list of length 3
+                #'19'or '19 years' or '19years' or 'age19'or 'ugx34.56shs' it returns a list of length 4
                 msg_parts=regex.split(message.text)
-                if len(msg_parts) ==3 :
+                if len(msg_parts) ==4 :
                     resp.eav.poll_number_value = float(msg_parts[1])
                 else:
                      resp.has_errors = True
