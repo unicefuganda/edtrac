@@ -1,6 +1,5 @@
 import datetime
 import difflib
-import time
 
 from django.db import models, transaction
 from django.db.models import Sum, Avg, Count, Max, Min, StdDev
@@ -16,8 +15,6 @@ from rapidsms.models import Contact, Connection
 from eav import register
 from eav.models import Value, Attribute
 
-from .utils import init_attributes
-
 from rapidsms.contrib.locations.models import Location
 from rapidsms.contrib.locations.nested import models as nested_models
 from rapidsms_httprouter.models import Message
@@ -25,7 +22,6 @@ from rapidsms_httprouter.managers import BulkInsertManager
 
 from rapidsms.messages.outgoing import OutgoingMessage
 from django.conf import settings
-from django.db.models.signals import post_syncdb
 import re
 
 # The standard template allows for any amount of whitespace at the beginning,
@@ -566,4 +562,3 @@ class Rule(models.Model):
         elif self.rule_type == Rule.TYPE_REGEX:
             self.regex = self.rule_string
 
-post_syncdb.connect(init_attributes, weak=True)

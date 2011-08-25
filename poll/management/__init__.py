@@ -1,6 +1,8 @@
-from eav.models import Attribute
+from django.db.models.signals import post_syncdb
 from django.contrib.sites.models import Site
 from django.conf import settings
+
+from eav.models import Attribute
 
 site_table_created = False
 
@@ -34,8 +36,7 @@ def create_attributes():
             "datatype": "object",
         }
     )
-
-
+    
 def init_attributes(sender, **kwargs):
     global site_table_created
     if sender.__name__ == 'django.contrib.sites.models':
@@ -46,3 +47,13 @@ def init_attributes(sender, **kwargs):
     if site_table_created:
         if 'django.contrib.sites' not in settings.INSTALLED_APPS or (getattr(settings, 'SITE_ID', False) and Site.objects.filter(pk=settings.SITE_ID).count()):
             create_attributes()
+
+post_syncdb.connect(init_attributes, weak=True)
+
+
+
+
+
+
+
+
