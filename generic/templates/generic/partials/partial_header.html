@@ -1,3 +1,5 @@
+{% block toprow %}
+{% endblock %}
 <thead>
 {% block tablehead %}
     <tr>
@@ -31,23 +33,25 @@
     </tr>
 {% endblock %}
 </thead>
-{% block firstrow %}
-    <tr>
-        {% if selectable %}
-            {% block select_header %}
-                <td>
-                    <input type="checkbox" id="input_select_all" onclick="select_all()" {% if selected %}checked="true"{% endif %}/>
-                </td>
-                <td {% if columns %}colspan="{{ columns|length }}"{% endif %}>
-                    <span id="span_select_all">Select all</span>
-                    {% if paginated %}
-                        <span id="span_select_everything" {% if not selected %}style="display:none"{% endif %}>You have selected all items on this page.  <a href="javascript:void(0)" onclick="select_everything({{ total }})">Click here</a> to select all {{ total }} items.</span>
-                        <input type="hidden" id="input_select_everything" name="select_everything" value=""/>
-                    {% endif %}
-                </td>
-            {% endblock %}
-        {% endif %}
-    </tr>
-{% endblock firstrow %}
+{% ifnotequal object_list|length 0 %}
+	{% block firstrow %}
+	    <tr>
+	        {% if selectable %}
+	            {% block select_header %}
+	                <td>
+	                    <input type="checkbox" id="input_select_all" onclick="select_all()" {% if selected %}checked="true"{% endif %}/>
+	                </td>
+	                <td {% if columns %}colspan="{{ columns|length }}"{% endif %}>
+	                    <span id="span_select_all">Select all</span>
+	                    {% if paginated %}
+	                        <span id="span_select_everything" {% if not selected %}style="display:none"{% endif %}>You have selected all items on this page.  <a href="javascript:void(0)" onclick="select_everything({{ total }})">Click here</a> to select all {{ total }} items.</span>
+	                        <input type="hidden" id="input_select_everything" name="select_everything" value=""/>
+	                    {% endif %}
+	                </td>
+	            {% endblock %}
+	        {% endif %}
+	    </tr>
+	{% endblock firstrow %}
+{% endifnotequal %}
 {% block secondrow %}
 {% endblock %}
