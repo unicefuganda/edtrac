@@ -15,6 +15,7 @@ from rapidsms.models import Backend
 from rapidsms_xforms.models import XForm, XFormField, XFormFieldConstraint, \
     XFormSubmission, XFormSubmissionValue
 from script.models import Script, ScriptStep
+from script.utils.handling import find_closest_match
 import datetime
 import difflib
 import re
@@ -63,7 +64,7 @@ def assign_backend(number):
     return (number, backendobj)
 
 class ExcelResponse(HttpResponse):
-    def __init__(self, data, output_name='excel_report', headers=None, write_to_file=False,force_csv=False, encoding='utf8'):
+    def __init__(self, data, output_name='excel_report', headers=None, write_to_file=False, force_csv=False, encoding='utf8'):
         # Make sure we've got the right type of data to work with
         valid_data = False
         if hasattr(data, '__getitem__'):
