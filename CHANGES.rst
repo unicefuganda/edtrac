@@ -4,6 +4,10 @@ Version History
 
 Many thanks to everyone who submits pull requests.  We'll merge in most changes that are unit tested and well thought out.
 
+0.3.5
+-----
+ - nicpottier: fix performance issue when listing submissions either via CSV or through web interface (thanks jaredalexander for bug)
+
 0.3.4
 -----
  - nicpottier: nail down version for django-uniform and django
