@@ -47,7 +47,7 @@
     </td>
     {% for field in fields.all %}
     <td>
-      {% for value in submission.values.all %}
+      {% for value in submission.submission_values %}
       {% ifequal field.pk value.attribute.pk %}
       {{ value.value }}
       {% endifequal %}

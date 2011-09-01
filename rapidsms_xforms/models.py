@@ -935,6 +935,12 @@ class XFormSubmission(models.Model):
     # transient, only populated when the submission first comes in
     errors = []
 
+    def submission_values(self):
+        if getattr(self, '_values', None) is None:
+            self._values = self.values.all().select_related(depth=1)
+
+        return self._values
+
     def save(self, force_insert=False, force_update=False, using=None):
         """
         Assigns our confirmation id.  We increment our confirmation id's for each form 
