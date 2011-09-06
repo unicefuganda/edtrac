@@ -34,7 +34,9 @@ def _find_extensions(app_label, model_name):
 
     for module in modules:
         for cls in get_classes(module, models.Model):
-            ext.append(cls)
+            #check for duplicate base classes
+            if cls not in ext:
+                ext.append(cls)
 
     return ext
 
