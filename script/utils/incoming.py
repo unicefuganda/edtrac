@@ -21,7 +21,7 @@ def incoming_progress(message):
     """
     progress = None
     try:
-        progress = ScriptProgress.objects.get(connection=message.connection)
+        progress = ScriptProgress.objects.filter(connection=message.connection, time__lte=datetime.datetime.now()).latest('time')
     except ScriptProgress.DoesNotExist:
         # potential race condition where ScriptProgress is deleted by check_progress
         pass
@@ -30,12 +30,12 @@ def incoming_progress(message):
         response = progress.step.poll.process_response(message)
         progress.log(response[0])
         if not (response[0].has_errors and\
-                progress.step.rule in [ScriptStep.STRICT,\
-                                       ScriptStep.STRICT_MOVEON,\
+                progress.step.rule in [ScriptStep.STRICT, \
+                                       ScriptStep.STRICT_MOVEON, \
                                        ScriptStep.STRICT_GIVEUP]):
             progress.status = ScriptProgress.COMPLETE
             progress.save()
-        elif response[0].has_errors and progress.step.rule in [ScriptStep.STRICT_MOVEON,\
+        elif response[0].has_errors and progress.step.rule in [ScriptStep.STRICT_MOVEON, \
                                                                ScriptStep.STRICT_GIVEUP]:
             progress.num_tries = (progress.num_tries or 0) + 1
             progress.save()

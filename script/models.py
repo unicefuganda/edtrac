@@ -239,7 +239,7 @@ class ScriptProgress(models.Model):
         """
         Log the response in the current ScriptSession for this connection.
         """
-        session = ScriptSession.objects.get(connection=self.connection, script=self.script)
+        session = ScriptSession.objects.filter(connection=self.connection, script=self.script, end_time=None).latest('start_time')
         session.responses.create(response=response)
 
     def set_time(self, newtime):
