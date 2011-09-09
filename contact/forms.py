@@ -199,10 +199,6 @@ class MassTextForm(ActionForm):
 
             messages = Message.mass_text(text, connections)
 
-            if "authsites" in settings.INSTALLED_APPS:
-                from authsites.models import MessageSite
-                MessageSite.add_all(messages)
-
             MassText.bulk.bulk_insert(send_pre_save=False,
                     user=request.user,
                     text=text,
@@ -302,7 +298,7 @@ class FlagMessageForm(ActionForm):
 class GenderFilterForm(FilterForm):
     """ filter contacts by their gender"""
 
-    gender = forms.ChoiceField(choices=(('', '-----'),('M', 'Male'),('F','Female'),('None','N/A')))
+    gender = forms.ChoiceField(choices=(('', '-----'), ('M', 'Male'), ('F', 'Female'), ('None', 'N/A')))
 
     def filter(self, request, queryset):
 
@@ -317,23 +313,23 @@ class GenderFilterForm(FilterForm):
             return queryset.filter(gender=None)
 class AgeFilterForm(FilterForm):
     """ filter contacts by their age """
-    flag=forms.ChoiceField(label='' ,choices=(('', '-----'),('+=', 'Equal to'),('>','Greater than'),('<','Less than'),('None','N/A')))
-    age=forms.CharField(max_length=20, label="Age",widget=forms.TextInput(attrs={'size':'20'}))
+    flag = forms.ChoiceField(label='' , choices=(('', '-----'), ('+=', 'Equal to'), ('>', 'Greater than'), ('<', 'Less than'), ('None', 'N/A')))
+    age = forms.CharField(max_length=20, label="Age", widget=forms.TextInput(attrs={'size':'20'}))
     def filter(self, request, queryset):
 
         flag = self.cleaned_data['flag']
-        age= int(self.cleaned_data['age'])
-        end=datetime.datetime.now()
-        start=end-datetime.timedelta(days=age*365)
+        age = int(self.cleaned_data['age'])
+        end = datetime.datetime.now()
+        start = end - datetime.timedelta(days=age * 365)
 
         if flag == '':
             return queryset
         elif flag == '==':
-            return queryset.filter(birthdate__range=(start,end))
+            return queryset.filter(birthdate__range=(start, end))
         elif flag == '>':
-            return queryset.exclude(birthdate=None).filter(start,end)
-        elif flag=="<":
-            return queryset.exclude(birthdate=None).exclude(birthdate__range=(start,end))
+            return queryset.exclude(birthdate=None).filter(start, end)
+        elif flag == "<":
+            return queryset.exclude(birthdate=None).exclude(birthdate__range=(start, end))
         else:
             return queryset.filter(birthdate=None)
 
