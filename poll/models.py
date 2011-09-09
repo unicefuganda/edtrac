@@ -137,7 +137,8 @@ class Poll(models.Model):
     type = models.SlugField(max_length=8, null=True, blank=True)
     default_response = models.CharField(max_length=160)
     sites = models.ManyToManyField(Site)
-    objects = (CurrentSiteManager('sites') if getattr(settings, 'SITE_ID', False) else models.Manager())
+    objects = models.Manager()
+    on_site = CurrentSiteManager('sites')
     bulk = BulkInsertManager()
 
     class Meta:
@@ -189,10 +190,6 @@ class Poll(models.Model):
     @classmethod
     def create_with_bulk(cls, name, type, question, default_response, contacts, user):
         messages = Message.mass_text(question, Connection.objects.filter(contact__in=list(contacts)).distinct(), status='L')
-
-        if "authsites" in settings.INSTALLED_APPS:
-            from authsites.models import MessageSite
-            MessageSite.add_all(messages)
 
         Poll.bulk.bulk_insert(name=name,
                               type=type,
@@ -289,11 +286,11 @@ class Poll(models.Model):
 
         elif (self.type == Poll.TYPE_NUMERIC):
             try:
-                regex=re.compile(r"(-?\d+(\.\d+)?)")
+                regex = re.compile(r"(-?\d+(\.\d+)?)")
                 #split the text on number regex. if the msg is of form
                 #'19'or '19 years' or '19years' or 'age19'or 'ugx34.56shs' it returns a list of length 4
-                msg_parts=regex.split(message.text)
-                if len(msg_parts) ==4 :
+                msg_parts = regex.split(message.text)
+                if len(msg_parts) == 4 :
                     resp.eav.poll_number_value = float(msg_parts[1])
                 else:
                      resp.has_errors = True

@@ -19,8 +19,8 @@ from django.db.models.signals import post_save
 
 class BasicPatternTemplateTest(TestCase):
     def test_basic_pattern_template(self):
-        testregex = (STARTSWITH_PATTERN_TEMPLATE % '|'.join(['my','three','keywords']))
-        
+        testregex = (STARTSWITH_PATTERN_TEMPLATE % '|'.join(['my', 'three', 'keywords']))
+
         rx = re.compile(testregex)
         self.failIf(not rx.search('my'))
         self.failIf(not rx.search(' my'))
@@ -44,35 +44,10 @@ class ProcessingTests(TestScript):
 
     def tearDown(self):
         settings.ROUTER_URL = self.old_router_url
-        settings.INSTALLED_APPS = self.old_installed_apps
-        if 'authsites' in self.old_installed_apps:
-            from authsites.models import MessageSiteManager, ContactSiteManager, sites_postsave_handler
-            MessageSiteManager().contribute_to_class(Message, 'objects')
-            ContactSiteManager().contribute_to_class(Contact, 'objects')
-            post_save.connect(receiver=sites_postsave_handler, weak=True)
-        if 'django.contrib.sites' in self.old_installed_apps:
-            from django.contrib.sites.managers import CurrentSiteManager
-            CurrentSiteManager('sites').contribute_to_class(Poll, 'objects')
 
     def setUp(self):
         self.old_router_url = settings.ROUTER_URL
         settings.ROUTER_URL = None
-
-        self.old_installed_apps = list(settings.INSTALLED_APPS)
-        installed_apps = list(settings.INSTALLED_APPS)
-        for app in ['django.contrib.sites','authsites']:
-            try:
-                installed_apps.remove(app)
-            except ValueError:
-                continue
-        settings.INSTALLED_APPS=installed_apps
-
-        ForUpdateManager().contribute_to_class(Message, 'objects')
-        Manager().contribute_to_class(Contact, 'objects')
-        Manager().contribute_to_class(Poll, 'objects')
-        if 'authsites' in self.old_installed_apps:
-            from authsites.models import sites_postsave_handler
-            post_save.disconnect(receiver=sites_postsave_handler)
 
         self.user = User.objects.create_user('admin', 'c@c.com', 'admin')
 
@@ -115,7 +90,7 @@ class ProcessingTests(TestScript):
         # There should only be one response for a numeric type poll, 
         # and it should have the value
         # we just sent in
-        self.assertEqual(Response.objects.filter(poll__type=Poll.TYPE_NUMERIC)[0].eav.poll_number_value, 3.1415)        
+        self.assertEqual(Response.objects.filter(poll__type=Poll.TYPE_NUMERIC)[0].eav.poll_number_value, 3.1415)
 
     def test_yes_no_polls(self):
         p = Poll.create_with_bulk(
@@ -123,21 +98,21 @@ class ProcessingTests(TestScript):
                 Poll.TYPE_TEXT,
                 'are you there?',
                 'glad to know where you are!',
-                [self.contact1,self.contact2],
+                [self.contact1, self.contact2],
                 self.user)
         p.add_yesno_categories()
         p.start()
         self.assertInteraction(self.connection2, 'yes', 'glad to know where you are!')
         self.assertEqual(Response.objects.filter(poll=p).count(), 1)
         self.assertEqual(Response.objects.get(poll=p).categories.all()[0].category.name, 'yes')
-        
+
     def test_numeric_polls(self):
         p = Poll.create_with_bulk(
                 'test poll numeric',
                 Poll.TYPE_NUMERIC,
                 'how old are you?',
                 ':) go yo age!',
-                [self.contact1,self.contact2],
+                [self.contact1, self.contact2],
                 self.user)
         p.start()
         self.assertInteraction(self.connection2, '19years', ':) go yo age!')
@@ -149,30 +124,30 @@ class ProcessingTests(TestScript):
                 Poll.TYPE_TEXT,
                 'whats your favorite food?',
                 'thanks!',
-                [self.contact1,self.contact2],
-                self.user)        
+                [self.contact1, self.contact2],
+                self.user)
         p.start()
-        self.assertInteraction(self.connection1, 'apples','thanks!')
+        self.assertInteraction(self.connection1, 'apples', 'thanks!')
         r1 = Response.objects.all()[0]
-        self.assertInteraction(self.connection2, 'oranges','thanks!')
+        self.assertInteraction(self.connection2, 'oranges', 'thanks!')
         r2 = Response.objects.order_by('-pk')[0]
-        self.assertInteraction(self.connection1, 'pizza','thanks!')
+        self.assertInteraction(self.connection1, 'pizza', 'thanks!')
         r3 = Response.objects.order_by('-pk')[0]
-        self.assertInteraction(self.connection2, 'pringles','thanks!')
+        self.assertInteraction(self.connection2, 'pringles', 'thanks!')
         r4 = Response.objects.order_by('-pk')[0]
-        self.assertInteraction(self.connection1, 'steak','thanks!')
+        self.assertInteraction(self.connection1, 'steak', 'thanks!')
         r5 = Response.objects.order_by('-pk')[0]
-        self.assertInteraction(self.connection2, 'pork chop','thanks!')
+        self.assertInteraction(self.connection2, 'pork chop', 'thanks!')
         r6 = Response.objects.order_by('-pk')[0]
-        self.assertInteraction(self.connection2, 'moldy bread','thanks!')
+        self.assertInteraction(self.connection2, 'moldy bread', 'thanks!')
         r7 = Response.objects.order_by('-pk')[0]
 
         for r in Response.objects.all():
             self.assertEqual(r.categories.count(), 0)
 
-        for name, keywords in [('healthy', ['apples','oranges']),
-                                   ('junk', ['pizza','pringles']),
-                                   ('meaty', ['steak','pork'])]:
+        for name, keywords in [('healthy', ['apples', 'oranges']),
+                                   ('junk', ['pizza', 'pringles']),
+                                   ('meaty', ['steak', 'pork'])]:
             category = Category.objects.create(name=name, poll=p)
             for keyword in keywords:
                 r = Rule.objects.create(category=category, rule_type=Rule.TYPE_CONTAINS, rule_string=keyword)
@@ -181,7 +156,7 @@ class ProcessingTests(TestScript):
 
         p.reprocess_responses()
 
-        for r, c in [(r1, 'healthy'),(r2, 'healthy'), (r3, 'junk'), (r4, 'junk'), (r5, 'meaty'), (r6,'meaty')]:
+        for r, c in [(r1, 'healthy'), (r2, 'healthy'), (r3, 'junk'), (r4, 'junk'), (r5, 'meaty'), (r6, 'meaty')]:
             self.assertEqual(r.categories.count(), 1)
             self.assertEqual(r.categories.all()[0].category.name, c)
 

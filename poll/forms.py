@@ -29,8 +29,7 @@ class NewPollForm(forms.Form): # pragma: no cover
 
     # This may seem like a hack, but this allows time for the Contact model's
     # default manage to be replaced at run-time.  There are many applications
-    # for that, such as filtering contacts by site_id (as is done in the
-    # authsites app, see github.com/daveycrockett/authsites).
+    # for that, such as filtering contacts by site_id.
     # This does, however, also make the polling app independent of authsites.  
     def __init__(self, data=None, **kwargs):
         if data:
