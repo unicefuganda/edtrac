@@ -48,7 +48,7 @@ def receive(request):
     all the rapidsms applications for processing.
     """
     form = MessageForm(request.GET)
-    
+
     # missing fields, fail
     if not form.is_valid():
         return HttpResponse(str(form.errors), status=400)
@@ -75,8 +75,8 @@ def outbox(request):
     """
     form = SecureForm(request.GET)
     if not form.is_valid():
-        return HttpResponse(str(form.errors), status=400)        
-    
+        return HttpResponse(str(form.errors), status=400)
+
     response = {}
     messages = []
     for message in Message.objects.filter(status='Q'):
@@ -95,7 +95,7 @@ def delivered(request):
     Called when a message is delivered by our backend.
     """
     form = DeliveredForm(request.GET)
-    
+
     if not form.is_valid():
         return HttpResponse(str(form.errors), status=400)
 
@@ -108,7 +108,7 @@ class MessageTable(Table):
     # this is temporary, until i fix ModelTable!
     text = Column()
     direction = Column()
-    connection = Column(link = lambda cell: "javascript:reply('%s')" % cell.row.connection.identity)
+    connection = Column(link=lambda cell: "javascript:reply('%s')" % cell.row.connection.identity)
     status = Column()
     date = DateColumn(format="m/d/Y H:i:s")
 
@@ -124,7 +124,7 @@ class ReplyForm(forms.Form):
     message = forms.CharField(max_length=160, widget=forms.TextInput(attrs={'size':'60'}))
 
 class SearchForm(forms.Form):
-    search = forms.CharField(label="Keywords", max_length=100, widget=forms.TextInput(attrs={'size':'60'}), required=False)    
+    search = forms.CharField(label="Keywords", max_length=100, widget=forms.TextInput(attrs={'size':'60'}), required=False)
 
 def console(request):
     """
@@ -136,7 +136,7 @@ def console(request):
     search_form = SearchForm()
 
     queryset = Message.objects.all()
-    
+
     if request.method == 'POST' and 'this_is_the_login_form' not in request.POST:
         if request.POST['action'] == 'test':
             form = SendForm(request.POST)
@@ -146,7 +146,7 @@ def console(request):
                                                        form.cleaned_data['sender'],
                                                        form.cleaned_data['text'])
             reply_form = ReplyForm()
-            
+
         elif request.POST['action'] == 'reply':
             reply_form = ReplyForm(request.POST)
             if reply_form.is_valid():
@@ -196,17 +196,12 @@ def console(request):
 
 @login_required
 def summary(request):
-    from django.conf import settings
-    if 'authsites' in settings.INSTALLED_APPS:
-        mgr = Message.allsites
-    else:
-        mgr = Message.objects
-    messages = mgr.extra(
+    messages = Message.objects.extra(
                    {'year':'extract(year from date)',
                     'month':'extract (month from date)'})\
-               .values('year','month','connection__backend__name','direction')\
+               .values('year', 'month', 'connection__backend__name', 'direction')\
                .annotate(total=Count('id'))\
-               .extra(order_by=['year','month','connection__backend__name','direction'])
+               .extra(order_by=['year', 'month', 'connection__backend__name', 'direction'])
     return render_to_response(
         "router/summary.html",
-        { 'messages': messages},context_instance=RequestContext(request))
+        { 'messages': messages}, context_instance=RequestContext(request))
