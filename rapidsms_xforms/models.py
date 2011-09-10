@@ -217,15 +217,13 @@ class XForm(models.Model):
         """
         fields = self.fields.all()
         for field in fields:
-            required=len(field.constraints.all().filter(type='req_val')) > 0
-            if required and (field.command not in values or len(values[field.command]) == 0):
-                raise ValidationError('Required field %s not supplied' % field.command)
-
             # pass it through our cleansing filter which will
             # check for type and any constraint validation
             # this raises ValidationError if it fails
             if field.command in values:
-                field.clean_submission(values[field.command])
+                field.clean_submission(values[field.command], TYPE_IMPORT)
+            else:
+                field.clean_submission(None, TYPE_IMPORT)
 
         # check if the values contain extra fields not in our form
         for command, value in values.items():            
@@ -240,7 +238,7 @@ class XForm(models.Model):
                 values[field.command] = typedef['parser'](field.command, values[field.command])
 
         # create submission and update the values
-        submission = self.submissions.create(type='import', raw=raw, connection=connection)
+        submission = self.submissions.create(type=TYPE_IMPORT, raw=raw, connection=connection)
         self.update_submission_from_dict(submission, values)
         return submission
 
@@ -288,6 +286,8 @@ class XForm(models.Model):
         submission['message'] = message
         submission['has_errors'] = True
         submission['errors'] = errors
+
+        submission_type = TYPE_SMS
 
         # parse out our keyword
         remainder = self.parse_keyword(message)
@@ -374,7 +374,7 @@ class XForm(models.Model):
 
             # ok, this looks like a valid required field value, clean it up
             try:
-                cleaned = field.clean_submission(segment)
+                cleaned = field.clean_submission(segment, submission_type)
                 values.append(dict(name=field.command, value=cleaned))
             except ValidationError as err:
                 errors.append(err)
@@ -432,7 +432,7 @@ class XForm(models.Model):
                     found = True
 
                     try:
-                        cleaned = field.clean_submission(value)
+                        cleaned = field.clean_submission(value, submission_type)
                         values.append(dict(name=field.command, value=cleaned))        
                     except ValidationError as err:
                         errors.append(err)
@@ -447,7 +447,7 @@ class XForm(models.Model):
                     # try to parse it out
                     value = typedef['puller'](field.command, message_obj)
                     if not value is None:
-                        cleaned = field.clean_submission(value)
+                        cleaned = field.clean_submission(value, submission_type)
                         values.append(dict(name=field.command, value=cleaned))
                 except ValidationError as err:
                     errors.append(err)
@@ -476,7 +476,10 @@ class XForm(models.Model):
             # check that all required fields had a value set
             required_const = field.constraints.all().filter(type="req_val")
             if required_const and field.command not in value_count:
-                errors.append(ValidationError(required_const[0].message))
+                try:
+                    required_const.validate(None, field.type, submission_type)
+                except:
+                    errors.append(ValidationError(required_const[0].message))
 
             # check that all fields actually have values
             if field.command in value_dict and value_dict[field.command] is None:
@@ -636,6 +639,7 @@ class XFormField(Attribute):
     TYPE_TEXT = Attribute.TYPE_TEXT
     TYPE_OBJECT = Attribute.TYPE_OBJECT
     TYPE_GEOPOINT = 'geopoint'
+    TYPE_PHOTO = 'photo'
 
     # These are the choices of types available for XFormFields.
     #
@@ -649,9 +653,10 @@ class XFormField(Attribute):
     # hook.
 
     TYPE_CHOICES = {
-        TYPE_INT:   dict( label='Integer', type=TYPE_INT, db_type=TYPE_INT, xforms_type='integer', parser=None, puller=None),
-        TYPE_FLOAT: dict( label='Decimal', type=TYPE_FLOAT, db_type=TYPE_FLOAT, xforms_type='decimal', parser=None, puller=None),
-        TYPE_TEXT:  dict( label='String', type=TYPE_TEXT, db_type=TYPE_TEXT, xforms_type='string', parser=None, puller=None)
+        TYPE_INT:   dict( label='Integer', type=TYPE_INT, db_type=TYPE_INT, xforms_type='integer', parser=None, puller=None, xform_only=False),
+        TYPE_FLOAT: dict( label='Decimal', type=TYPE_FLOAT, db_type=TYPE_FLOAT, xforms_type='decimal', parser=None, puller=None, xform_only=False),
+        TYPE_TEXT:  dict( label='String', type=TYPE_TEXT, db_type=TYPE_TEXT, xforms_type='string', parser=None, puller=None, xform_only=False),
+        TYPE_PHOTO: dict( label="Photo", type=TYPE_PHOTO, db_type=TYPE_OBJECT, xforms_type='photo', parser=None, puller=None, xform_only=True),
     }
 
     xform = models.ForeignKey(XForm, related_name='fields')
@@ -666,7 +671,7 @@ class XFormField(Attribute):
         ordering = ('order', 'id')
 
     @classmethod
-    def register_field_type(cls, field_type, label, parserFunc, db_type=TYPE_TEXT, xforms_type='string', puller=None):
+    def register_field_type(cls, field_type, label, parserFunc, db_type=TYPE_TEXT, xforms_type='string', puller=None, xform_only=False):
         """
         Used to register a new field type for XForms.  You can use this method to build new field types that are
         available when building XForms.  These types may just do custom parsing of the SMS text sent in, then stuff
@@ -687,7 +692,7 @@ class XFormField(Attribute):
         """
         XFormField.TYPE_CHOICES[field_type] = dict(type=field_type, label=label, 
                                                    db_type=db_type, parser=parserFunc,
-                                                   xforms_type=xforms_type, puller=puller)
+                                                   xforms_type=xforms_type, puller=puller, xform_only=xform_only)
 
     @classmethod
     def lookup_type(cls, otype):
@@ -718,7 +723,7 @@ class XFormField(Attribute):
         self.derive_datatype()
         return super(XFormField, self).save(force_insert, force_update, using)
 
-    def clean_submission(self, value):
+    def clean_submission(self, value, submission_type):
         """
         Takes the passed in string value and does two steps:
 
@@ -731,7 +736,6 @@ class XFormField(Attribute):
         If either of these steps fails, a ValidationError is raised.  If both are successful
         then the cleaned, Python typed value is returned.
         """
-
         # this will be our properly Python typed value
         cleaned_value = None
 
@@ -762,7 +766,7 @@ class XFormField(Attribute):
 
         # now check our actual constraints if any
         for constraint in self.constraints.order_by('order'):
-            constraint.validate(value)
+            constraint.validate(value, self.field_type, submission_type)
         
         return cleaned_value
 
@@ -858,14 +862,19 @@ class XFormFieldConstraint(models.Model):
     message = models.CharField(max_length=160)
     order = models.IntegerField(default=1000)
 
-    def validate(self, value):
+    def validate(self, value, field_type, submission_type):
         """
         Follows a similar pattern to Django's Form validation.  Validate takes a value and checks
         it against the constraints passed in.
 
         Throws a ValidationError if it doesn't meet the constraint.
         """
+        print submission_type
 
+        # if this is an xform only field, then ignore constraints unless we are an xform
+        if XFormField.TYPE_CHOICES[field_type]['xform_only'] and submission_type != TYPE_XFORM:
+            return None
+        
         if self.type == 'req_val':
             if value == None or value == '':
                 raise ValidationError(self.message)
@@ -909,11 +918,18 @@ class XFormFieldConstraint(models.Model):
         return "%s (%s)" % (self.type, self.test)
 
 
+TYPE_WWW = 'www'
+TYPE_SMS = 'sms'
+TYPE_ODK_WWW = 'odk-www'
+TYPE_ODK_SMS = 'odk-sms'
+TYPE_IMPORT = 'import'
+
 SUBMISSION_CHOICES = (
-    ('www', 'Web Submission'),
-    ('sms', 'SMS Submission'),
-    ('odk-www', 'ODK Web Submission'),
-    ('odk-sms', 'ODK SMS Submission')
+    (TYPE_WWW, 'Web Submission'),
+    (TYPE_SMS, 'SMS Submission'),
+    (TYPE_ODK_WWW, 'ODK Web Submission'),
+    (TYPE_ODK_SMS, 'ODK SMS Submission'),
+    (TYPE_IMPORT, 'Imported Submission')
 )
 
 class XFormSubmission(models.Model):
@@ -980,7 +996,7 @@ class XFormSubmissionValue(Value):
     submission = models.ForeignKey(XFormSubmission, related_name='values')
 
     def cleaned(self):
-        return self.field.clean_submission(self.value)
+        return self.field.clean_submission(self.value, self.submission.type)
     
     def value_formatted(self):
         """

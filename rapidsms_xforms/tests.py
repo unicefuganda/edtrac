@@ -23,29 +23,29 @@ class ModelTest(TestCase): #pragma: no cover
                                           site=Site.objects.get_current(),
                                           response='thanks')
 
-    def failIfValid(self, constraint, value):
+    def failIfValid(self, constraint, value, type):
         try:
-            constraint.validate(value)
+            constraint.validate(value, type, 'sms')
             self.fail("Should have failed validating: %s" % value)
         except ValidationError:
             pass
 
-    def failUnlessValid(self, constraint, value):
+    def failUnlessValid(self, constraint, value, type):
         try:
-            constraint.validate(value)
+            constraint.validate(value, type, 'sms')
         except ValidationError:
             self.fail("Should have passed validating: %s" % value)
 
-    def failIfClean(self, field, value):
+    def failIfClean(self, field, value, type):
         try:
-            field.clean_submission(value)
+            field.clean_submission(value, 'sms')
             self.fail("Should have failed cleaning: %s" % value)
         except ValidationError:
             pass
 
-    def failUnlessClean(self, field, value):
+    def failUnlessClean(self, field, value, type):
         try:
-            field.clean_submission(value)
+            field.clean_submission(value, 'sms')
         except ValidationError:
             self.fail("Should have passed cleaning: %s" % value)
 
@@ -53,133 +53,133 @@ class ModelTest(TestCase): #pragma: no cover
         msg = 'error message'
         c = XFormFieldConstraint(type='min_val', test='10', message=msg)
 
-        self.failIfValid(c, '1')
-        self.failUnlessValid(c, None)
-        self.failUnlessValid(c, '10')
-        self.failUnlessValid(c, '11')
+        self.failIfValid(c, '1', XFormField.TYPE_INT)
+        self.failUnlessValid(c, None, XFormField.TYPE_INT)
+        self.failUnlessValid(c, '10', XFormField.TYPE_INT)
+        self.failUnlessValid(c, '11', XFormField.TYPE_INT)
 
     def testMaxValConstraint(self):
         msg = 'error message'
         c = XFormFieldConstraint(type='max_val', test='10', message=msg)
 
-        self.failUnlessValid(c, '1')
-        self.failUnlessValid(c, '10')
-        self.failUnlessValid(c, None)
-        self.failIfValid(c, '11')
+        self.failUnlessValid(c, '1', XFormField.TYPE_INT)
+        self.failUnlessValid(c, '10', XFormField.TYPE_INT)
+        self.failUnlessValid(c, None, XFormField.TYPE_INT)
+        self.failIfValid(c, '11', XFormField.TYPE_INT)
 
     def testMinLenConstraint(self):
         msg = 'error message'
         c = XFormFieldConstraint(type='min_len', test='2', message=msg)
 
-        self.failIfValid(c, 'a')
-        self.failIfValid(c, '')
-        self.failUnlessValid(c, None)
-        self.failUnlessValid(c, 'ab')
-        self.failUnlessValid(c, 'abcdef')
+        self.failIfValid(c, 'a', XFormField.TYPE_TEXT)
+        self.failIfValid(c, '', XFormField.TYPE_TEXT)
+        self.failUnlessValid(c, None, XFormField.TYPE_TEXT)
+        self.failUnlessValid(c, 'ab', XFormField.TYPE_TEXT)
+        self.failUnlessValid(c, 'abcdef', XFormField.TYPE_TEXT)
 
     def testMaxLenConstraint(self):
         msg = 'error message'
         c = XFormFieldConstraint(type='max_len', test='3', message=msg)
 
-        self.failUnlessValid(c, 'a')
-        self.failUnlessValid(c, '')
-        self.failUnlessValid(c, None)
-        self.failUnlessValid(c, 'abc')
-        self.failIfValid(c, 'abcdef')
+        self.failUnlessValid(c, 'a', XFormField.TYPE_TEXT)
+        self.failUnlessValid(c, '', XFormField.TYPE_TEXT)
+        self.failUnlessValid(c, None, XFormField.TYPE_TEXT)
+        self.failUnlessValid(c, 'abc', XFormField.TYPE_TEXT)
+        self.failIfValid(c, 'abcdef', XFormField.TYPE_TEXT)
 
     def testReqValConstraint(self):
         msg = 'error message'
         c = XFormFieldConstraint(type='req_val', message=msg)
 
-        self.failUnlessValid(c, 'a')
-        self.failUnlessValid(c, 0)
-        self.failUnlessValid(c, '1.20')
-        self.failIfValid(c, '')
+        self.failUnlessValid(c, 'a', XFormField.TYPE_TEXT)
+        self.failUnlessValid(c, 0, XFormField.TYPE_INT)
+        self.failUnlessValid(c, '1.20', XFormField.TYPE_FLOAT)
+        self.failIfValid(c, '', XFormField.TYPE_TEXT)
         self.failIfValid(c, None)
 
     def testRegexConstraint(self):
         msg = 'error message'
         c = XFormFieldConstraint(type='regex', test='^(mal|fev)$', message=msg)
 
-        self.failIfValid(c, 'a')
-        self.failIfValid(c, '')
-        self.failIfValid(c, 'malo')
-        self.failUnlessValid(c, None)
-        self.failUnlessValid(c, 'MAL')
-        self.failUnlessValid(c, 'FeV')
+        self.failIfValid(c, 'a', XFormField.TYPE_TEXT)
+        self.failIfValid(c, '', XFormField.TYPE_TEXT)
+        self.failIfValid(c, 'malo', XFormField.TYPE_TEXT)
+        self.failUnlessValid(c, None, XFormField.TYPE_TEXT)
+        self.failUnlessValid(c, 'MAL', XFormField.TYPE_TEXT)
+        self.failUnlessValid(c, 'FeV', XFormField.TYPE_TEXT)
 
     def testIntField(self):
         field = self.xform.fields.create(field_type=XFormField.TYPE_INT, name='number', command='number')
 
-        self.failUnlessClean(field, '1 ')
-        self.failUnlessClean(field, None)
-        self.failUnlessClean(field, '')
-        self.failIfClean(field, 'abc')
-        self.failIfClean(field, '1.34')
+        self.failUnlessClean(field, '1 ', XFormField.TYPE_INT)
+        self.failUnlessClean(field, None, XFormField.TYPE_TEXT)
+        self.failUnlessClean(field, '', XFormField.TYPE_TEXT)
+        self.failIfClean(field, 'abc', XFormField.TYPE_TEXT)
+        self.failIfClean(field, '1.34', XFormField.TYPE_FLOAT)
 
     def testDecField(self):
         field = self.xform.fields.create(field_type=XFormField.TYPE_FLOAT, name='number', command='number')
 
-        self.failUnlessClean(field, '1')
-        self.failUnlessClean(field, ' 1.1')
-        self.failUnlessClean(field, None)
-        self.failUnlessClean(field, '')
-        self.failIfClean(field, 'abc')
+        self.failUnlessClean(field, '1', XFormField.TYPE_INT)
+        self.failUnlessClean(field, ' 1.1', XFormField.TYPE_FLOAT)
+        self.failUnlessClean(field, None, XFormField.TYPE_TEXT)
+        self.failUnlessClean(field, '', XFormField.TYPE_TEXT)
+        self.failIfClean(field, 'abc', XFormField.TYPE_TEXT)
 
     def testStrField(self):
         field = self.xform.fields.create(field_type=XFormField.TYPE_TEXT, name='string', command='string')
 
-        self.failUnlessClean(field, '1')
-        self.failUnlessClean(field, '1.1')
-        self.failUnlessClean(field, 'abc')
-        self.failUnlessClean(field, None)
-        self.failUnlessClean(field, '')
+        self.failUnlessClean(field, '1', XFormField.TYPE_INT)
+        self.failUnlessClean(field, '1.1', XFormField.TYPE_FLOAT)
+        self.failUnlessClean(field, 'abc', XFormField.TYPE_TEXT)
+        self.failUnlessClean(field, None, XFormField.TYPE_TEXT)
+        self.failUnlessClean(field, '', XFormField.TYPE_TEXT)
 
     def testGPSField(self):
         field = self.xform.fields.create(field_type=XFormField.TYPE_GEOPOINT, name='location', command='location')
 
-        self.failUnlessClean(field, '1 2')
-        self.failUnlessClean(field, '1.1 1')
-        self.failUnlessClean(field, '-1.1 -1.123')
-        self.failUnlessClean(field, '')
-        self.failUnlessClean(field, None)
+        self.failUnlessClean(field, '1 2', XFormField.TYPE_GEOPOINT)
+        self.failUnlessClean(field, '1.1 1', XFormField.TYPE_GEOPOINT)
+        self.failUnlessClean(field, '-1.1 -1.123', XFormField.TYPE_GEOPOINT)
+        self.failUnlessClean(field, '', XFormField.TYPE_GEOPOINT)
+        self.failUnlessClean(field, None, XFormField.TYPE_GEOPOINT)
 
-        self.failIfClean(field, '1.123')
-        self.failIfClean(field, '1.123 asdf')
-        self.failIfClean(field, 'asdf')
-        self.failIfClean(field, '-91.1 -1.123')
-        self.failIfClean(field, '92.1 -1.123')
-        self.failIfClean(field, '-1.1 -181.123')
-        self.failIfClean(field, '2.1 181.123')
+        self.failIfClean(field, '1.123', XFormField.TYPE_GEOPOINT)
+        self.failIfClean(field, '1.123 asdf', XFormField.TYPE_GEOPOINT)
+        self.failIfClean(field, 'asdf', XFormField.TYPE_GEOPOINT)
+        self.failIfClean(field, '-91.1 -1.123', XFormField.TYPE_GEOPOINT)
+        self.failIfClean(field, '92.1 -1.123', XFormField.TYPE_GEOPOINT)
+        self.failIfClean(field, '-1.1 -181.123', XFormField.TYPE_GEOPOINT)
+        self.failIfClean(field, '2.1 181.123', XFormField.TYPE_GEOPOINT)
 
     def testFieldConstraints(self):
         field = self.xform.fields.create(field_type=XFormField.TYPE_TEXT, name='number', command='number')
 
         # test that with no constraings, all values work
-        self.failUnlessClean(field, '1')
-        self.failUnlessClean(field, None)
-        self.failUnlessClean(field, 'abc')
+        self.failUnlessClean(field, '1', XFormField.TYPE_TEXT)
+        self.failUnlessClean(field, None, XFormField.TYPE_TEXT)
+        self.failUnlessClean(field, 'abc', XFormField.TYPE_TEXT)
 
         # now add some constraints
         msg1 = 'error message'
         field.constraints.create(type='min_val', test='10', message=msg1)
         
-        self.failIfClean(field, '1')
-        self.failIfClean(field, '-1')
-        self.failUnlessClean(field, '10')
+        self.failIfClean(field, '1', XFormField.TYPE_TEXT)
+        self.failIfClean(field, '-1', XFormField.TYPE_TEXT)
+        self.failUnlessClean(field, '10', XFormField.TYPE_TEXT)
 
         # add another constraint
         msg2 = 'error message 2'
         field.constraints.create(type='max_val', test='50', message=msg2)
-        self.failIfClean(field, '1')
-        self.failUnlessClean(field, '10')
-        self.failIfClean(field, '100')
+        self.failIfClean(field, '1', XFormField.TYPE_TEXT)
+        self.failUnlessClean(field, '10', XFormField.TYPE_TEXT)
+        self.failIfClean(field, '100', XFormField.TYPE_TEXT)
 
         # another, but set its order to be first
         msg3 = 'error message 3'
         field.constraints.create(type='min_val', test='5', message=msg3, order=0)
-        self.failIfClean(field, '1')
-        self.failIfClean(field, '6')
+        self.failIfClean(field, '1', XFormField.TYPE_TEXT)
+        self.failIfClean(field, '6', XFormField.TYPE_TEXT)
 
 class SubmissionTest(TestCase): #pragma: no cover
     
@@ -921,3 +921,26 @@ class SubmissionTest(TestCase): #pragma: no cover
         values = { 'gender': 'male', 'age': '99', 'name': 'Eugene'}
         self.xform.process_import_submission("", connection, values)
         self.assertEquals(2, len(self.xform.submissions.all()))
+
+    def testMultimedia(self):
+        xform = XForm.on_site.create(name='photo', keyword='photo', owner=self.user, command_prefix=None, 
+                                     keyword_prefix = '+', separator = ',',
+                                     site=Site.objects.get_current(), response='thanks')
+
+        f1 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='name', command='name', order=0)
+        f2 = xform.fields.create(field_type=XFormField.TYPE_PHOTO, name='photo', command='photo', order=1)
+
+        # make the photo field required, though this will only really kick in during SMS submission
+        f2.constraints.create(type='req_val', test='None', message="You must include a photo")
+
+        submission = xform.process_sms_submission(IncomingMessage(None, "photo +name Michael Jackson"))
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 1)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, "Michael Jackson")
+        
+
+        
+
+        
+
+        
