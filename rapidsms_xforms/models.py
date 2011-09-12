@@ -351,8 +351,6 @@ class XForm(models.Model):
         # we first try to deal with required fields... we skip out of this processing either when
         # we reach a command prefix (+) or we have processed all required fields
         for field in self.fields.all().order_by('order', 'id'):
-            required = field.constraints.all().filter(type="req_val")
-
             # lookup our field type
             field_type = XFormField.lookup_type(field.field_type)
 
@@ -477,9 +475,9 @@ class XForm(models.Model):
             required_const = field.constraints.all().filter(type="req_val")
             if required_const and field.command not in value_count:
                 try:
-                    required_const.validate(None, field.type, submission_type)
-                except:
-                    errors.append(ValidationError(required_const[0].message))
+                    required_const[0].validate(None, field.field_type, submission_type)
+                except ValidationError as e:
+                    errors.append(e)
 
             # check that all fields actually have values
             if field.command in value_dict and value_dict[field.command] is None:
@@ -869,10 +867,9 @@ class XFormFieldConstraint(models.Model):
 
         Throws a ValidationError if it doesn't meet the constraint.
         """
-        print submission_type
 
         # if this is an xform only field, then ignore constraints unless we are an xform
-        if XFormField.TYPE_CHOICES[field_type]['xform_only'] and submission_type != TYPE_XFORM:
+        if XFormField.TYPE_CHOICES[field_type]['xform_only'] and submission_type != TYPE_ODK_WWW:
             return None
         
         if self.type == 'req_val':

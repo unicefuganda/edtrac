@@ -95,7 +95,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.failUnlessValid(c, 0, XFormField.TYPE_INT)
         self.failUnlessValid(c, '1.20', XFormField.TYPE_FLOAT)
         self.failIfValid(c, '', XFormField.TYPE_TEXT)
-        self.failIfValid(c, None)
+        self.failIfValid(c, None, XFormField.TYPE_TEXT)
 
     def testRegexConstraint(self):
         msg = 'error message'
@@ -923,8 +923,7 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.assertEquals(2, len(self.xform.submissions.all()))
 
     def testMultimedia(self):
-        xform = XForm.on_site.create(name='photo', keyword='photo', owner=self.user, command_prefix=None, 
-                                     keyword_prefix = '+', separator = ',',
+        xform = XForm.on_site.create(name='photo', keyword='photo', owner=self.user, command_prefix='+', 
                                      site=Site.objects.get_current(), response='thanks')
 
         f1 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='name', command='name', order=0)
