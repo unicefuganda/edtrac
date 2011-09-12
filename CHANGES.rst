@@ -4,6 +4,10 @@ Version History
 
 Many thanks to everyone who submits pull requests.  We'll merge in most changes that are unit tested and well thought out.
 
+0.3.6
+-----
+ - nicpottier: added ability to submit photos, sounds and videos from ODK clients
+
 0.3.5
 -----
  - nicpottier: fix performance issue when listing submissions either via CSV or through web interface (thanks jaredalexander for bug)
