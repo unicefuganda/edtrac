@@ -922,20 +922,58 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.xform.process_import_submission("", connection, values)
         self.assertEquals(2, len(self.xform.submissions.all()))
 
-    def testMultimedia(self):
-        xform = XForm.on_site.create(name='photo', keyword='photo', owner=self.user, command_prefix='+', 
+    def testMultimediaOptionalOnSMS(self):
+        xform = XForm.on_site.create(name='image', keyword='image', owner=self.user, command_prefix='+', 
                                      site=Site.objects.get_current(), response='thanks')
 
         f1 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='name', command='name', order=0)
-        f2 = xform.fields.create(field_type=XFormField.TYPE_PHOTO, name='photo', command='photo', order=1)
+        f2 = xform.fields.create(field_type=XFormField.TYPE_IMAGE, name='image', command='image', order=1)
+        f3 = xform.fields.create(field_type=XFormField.TYPE_AUDIO, name='audio', command='audio', order=2)
+        f4 = xform.fields.create(field_type=XFormField.TYPE_VIDEO, name='video', command='video', order=3)        
 
         # make the photo field required, though this will only really kick in during SMS submission
         f2.constraints.create(type='req_val', test='None', message="You must include a photo")
 
-        submission = xform.process_sms_submission(IncomingMessage(None, "photo +name Michael Jackson"))
+        submission = xform.process_sms_submission(IncomingMessage(None, "image +name Michael Jackson"))
         self.failUnlessEqual(submission.has_errors, False)
         self.failUnlessEqual(len(submission.values.all()), 1)
         self.failUnlessEqual(submission.values.get(attribute__name='name').value, "Michael Jackson")
+
+
+    def testODKDefinition(self):
+        xform = XForm.on_site.create(name='multimedia', keyword='multimedia', owner=self.user, command_prefix='+', 
+                                     site=Site.objects.get_current(), response='thanks')
+
+        f1 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='name', command='name', order=0)
+        f2 = xform.fields.create(field_type=XFormField.TYPE_IMAGE, name='image', command='image', order=1)
+        f3 = xform.fields.create(field_type=XFormField.TYPE_AUDIO, name='audio', command='audio', order=2)
+        f4 = xform.fields.create(field_type=XFormField.TYPE_VIDEO, name='video', command='video', order=3)
+
+        c = Client()
+        response = c.get("/xforms/odk/get/%d/" % xform.id)
+        self.assertEquals(200, response.status_code)
+
+        from xml.dom.minidom import parseString
+        xml = parseString(response.content)
+
+        body = xml.getElementsByTagName("h:body")[0]
+
+        inputs = body.getElementsByTagName("input")
+        self.assertEquals(1, len(inputs))
+        self.assertEquals("name", inputs[0].getAttribute("ref"))
+
+        uploads = body.getElementsByTagName("upload")
+        self.assertEquals(3, len(uploads))
+        self.assertEquals("image", uploads[0].getAttribute("ref"))
+        self.assertEquals("image/*", uploads[0].getAttribute("mediatype"))
+
+        self.assertEquals("audio", uploads[1].getAttribute("ref"))
+        self.assertEquals("audio/*", uploads[1].getAttribute("mediatype"))
+
+        self.assertEquals("video", uploads[2].getAttribute("ref"))
+        self.assertEquals("video/*", uploads[2].getAttribute("mediatype"))
+        
+        
         
 
         

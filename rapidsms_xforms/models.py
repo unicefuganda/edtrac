@@ -637,7 +637,9 @@ class XFormField(Attribute):
     TYPE_TEXT = Attribute.TYPE_TEXT
     TYPE_OBJECT = Attribute.TYPE_OBJECT
     TYPE_GEOPOINT = 'geopoint'
-    TYPE_PHOTO = 'photo'
+    TYPE_IMAGE = 'image'
+    TYPE_AUDIO = 'audio'
+    TYPE_VIDEO = 'video'    
 
     # These are the choices of types available for XFormFields.
     #
@@ -654,7 +656,6 @@ class XFormField(Attribute):
         TYPE_INT:   dict( label='Integer', type=TYPE_INT, db_type=TYPE_INT, xforms_type='integer', parser=None, puller=None, xform_only=False),
         TYPE_FLOAT: dict( label='Decimal', type=TYPE_FLOAT, db_type=TYPE_FLOAT, xforms_type='decimal', parser=None, puller=None, xform_only=False),
         TYPE_TEXT:  dict( label='String', type=TYPE_TEXT, db_type=TYPE_TEXT, xforms_type='string', parser=None, puller=None, xform_only=False),
-        TYPE_PHOTO: dict( label="Photo", type=TYPE_PHOTO, db_type=TYPE_OBJECT, xforms_type='photo', parser=None, puller=None, xform_only=True),
     }
 
     xform = models.ForeignKey(XForm, related_name='fields')
@@ -1012,6 +1013,33 @@ class XFormSubmissionValue(Value):
 # whether it was successfully parsed or not and do what they like with it.
 
 xform_received = django.dispatch.Signal(providing_args=["xform", "submission"])
+
+def create_image(command, value):
+    """
+    No-op for now
+    """
+    return value
+
+XFormField.register_field_type(XFormField.TYPE_IMAGE, 'Image', create_image,
+                               xforms_type='binary', db_type=XFormField.TYPE_OBJECT, xform_only=True)
+
+def create_audio(command, value):
+    """
+    No-op for now
+    """
+    return value
+
+XFormField.register_field_type(XFormField.TYPE_AUDIO, 'Audio', create_audio,
+                               xforms_type='binary', db_type=XFormField.TYPE_OBJECT, xform_only=True)
+
+def create_video(command, value):
+    """
+    No-op for now
+    """
+    return value
+
+XFormField.register_field_type(XFormField.TYPE_VIDEO, 'Video', create_video,
+                               xforms_type='binary', db_type=XFormField.TYPE_OBJECT, xform_only=True)
 
 def create_geopoint(command, value):
     """
