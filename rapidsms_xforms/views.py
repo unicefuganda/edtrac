@@ -57,7 +57,9 @@ def odk_submission(req):
     xform = None
     raw = ""
 
-    for file in req.FILES.values():
+    # this is the raw data
+    if 'xml_submission_file' in req.FILES:
+        file = req.FILES['xml_submission_file']
         raw = "%s %s" % (raw, file.file.getvalue())
         dom = parseString(file.file.getvalue())
         root = dom.childNodes[0]
@@ -71,8 +73,14 @@ def odk_submission(req):
                 else:
                     values[tag] = body
 
+    # every other file is a binary, save them in our map as well (the keys are the values
+    # in the submission file above)
+    binaries = dict()
+    for key in req.FILES:
+        binaries[key] = req.FILES[key].file.getvalue()
+
     # if we found the xform
-    submission = xform.process_odk_submission(raw, values)
+    submission = xform.process_odk_submission(raw, values, binaries)
 
     resp = render_to_response(
         "xforms/odk_submission.xml", 
