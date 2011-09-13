@@ -49,7 +49,11 @@
     <td>
       {% for value in submission.submission_values %}
       {% ifequal field.pk value.attribute.pk %}
+      {% if field.xform_type == 'binary' %}
+      <a href="{{ value.value.url }}">{{ value.value }}</a>
+      {% else %}
       {{ value.value }}
+      {% endif %}
       {% endifequal %}
       {% endfor %}
     </td>

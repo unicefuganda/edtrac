@@ -135,7 +135,6 @@ LOGIN_URL = "/account/login"
 # but it is needed for static assets to be linkable.
 MEDIA_URL = "/static/"
 
-
 # this is required for the django.contrib.sites tests to run, but also
 # not included in global_settings.py, and is almost always ``1``.
 # see: http://docs.djangoproject.com/en/dev/ref/contrib/sites/

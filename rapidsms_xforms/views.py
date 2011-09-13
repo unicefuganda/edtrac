@@ -60,8 +60,8 @@ def odk_submission(req):
     # this is the raw data
     if 'xml_submission_file' in req.FILES:
         file = req.FILES['xml_submission_file']
-        raw = "%s %s" % (raw, file.file.getvalue())
-        dom = parseString(file.file.getvalue())
+        raw = file.file.read()
+        dom = parseString(raw)
         root = dom.childNodes[0]
         for child in root.childNodes:
             tag = child.tagName
@@ -77,7 +77,8 @@ def odk_submission(req):
     # in the submission file above)
     binaries = dict()
     for key in req.FILES:
-        binaries[key] = req.FILES[key].file.getvalue()
+        if key != 'xml_submission_file':
+            binaries[key] = req.FILES[key].file.read()
 
     # if we found the xform
     submission = xform.process_odk_submission(raw, values, binaries)
@@ -292,9 +293,14 @@ def view_submissions(req, form_id):
 def make_submission_form(xform):
     fields = {}
     for field in xform.fields.all().order_by('order'):
-        fields[field.command] = forms.CharField(required=False,
-                                                help_text=field.description,
-                                                label = field.name)
+        if field.xform_type() == 'binary':
+            fields[field.command] = forms.FileField(required=False,
+                                                    help_text=field.description,
+                                                    label = field.name)
+        else:
+            fields[field.command] = forms.CharField(required=False,
+                                                    help_text=field.description,
+                                                    label = field.name)
 
     # this method overloads Django's form clean() method and makes sure all the fields
     # pass the constraints determined by our XForm.  This guarantees that even the Admin
@@ -305,16 +311,26 @@ def make_submission_form(xform):
         for field in xform.fields.all():
             command = field.command
             if command in cleaned_data:
-                field_val = str(cleaned_data.get(command))
+                field_val = cleaned_data.get(command)
 
-                try:
-                    cleaned_val = field.clean_submission(field_val)
-                    cleaned_data[command] = cleaned_val
-                except ValidationError as err:
-                    # if there is an error, remove it from our cleaned data and 
-                    # add the error to our list of errors for this form
-                    self._errors[field.command] = self.error_class(err.messages)
-                    del cleaned_data[field.command]
+                if field.xform_type() == 'binary':
+                    if field_val is None:
+                        cleaned_data[command] = None
+                    elif field_val == False:
+                        del cleaned_data[field.command]
+                    else:
+                        typedef = XFormField.lookup_type(field.field_type)
+                        cleaned_val = typedef['parser'](field.command, field_val.read(), filename=field_val.name)
+                        cleaned_data[command] = cleaned_val
+                else:
+                    try:
+                        cleaned_val = field.clean_submission(field_val, 'sms')
+                        cleaned_data[command] = cleaned_val
+                    except ValidationError as err:
+                        # if there is an error, remove it from our cleaned data and 
+                        # add the error to our list of errors for this form
+                        self._errors[field.command] = self.error_class(err.messages)
+                        del cleaned_data[field.command]
 
         return cleaned_data
 
@@ -333,7 +349,7 @@ def edit_submission(req, submission_id):
 
     form_class = make_submission_form(xform)
     if req.method == 'POST':
-        form = form_class(req.POST)
+        form = form_class(req.POST, req.FILES)
 
         # no errors?  save and redirect
         if form.is_valid():
@@ -345,11 +361,15 @@ def edit_submission(req, submission_id):
     else:
         # our hash of bound values
         form_vals = {}
+        file_data = {}
         for value in values:
             field = XFormField.objects.get(pk=value.attribute.pk)
-            form_vals[field.command] = value.value
+            if field.xform_type() == 'binary' and value.value:
+                form_vals[field.command] = value.value.binary
+            else:
+                form_vals[field.command] = value.value
 
-        form = form_class(form_vals)
+        form = form_class(initial=form_vals)
 
     breadcrumbs = (('XForms', '/xforms/'),('Submissions', '/xforms/%d/submissions/' % xform.pk), ('Edit Submission', ''))
 

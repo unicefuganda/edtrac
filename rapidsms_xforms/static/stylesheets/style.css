@@ -365,3 +365,6 @@ button.positive, .buttons a.positive{
     color:#fff;
 }
 
+input[type="checkbox"] + label {
+    display: inline;
+}

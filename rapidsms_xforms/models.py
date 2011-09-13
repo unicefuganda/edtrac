@@ -169,8 +169,17 @@ class XForm(models.Model):
             # we have a new value, update it
             field = XFormField.objects.get(pk=value.attribute.pk)
             if field.command in values:
-                value.value = values[field.command]
-                value.save()
+                new_val = values[field.command]
+                
+                # for binary fields, a value of None means leave the current value
+                if field.xform_type() == 'binary' and new_val is None:
+                    # clean up values that have null values
+                    if value.value is None:
+                        value.delete()
+                else:
+                    value.value = new_val
+                    value.save()
+
                 del values[field.command]
 
             # no new value, we need to remove this one
@@ -181,7 +190,9 @@ class XForm(models.Model):
         for key, value in values.items():
             # look up the field by key
             field = XFormField.objects.get(xform=self, command=key)
-            sub_value = submission.values.create(attribute=field, value=value, entity=submission)
+
+            if field.xform_type() != 'binary' or not value is None:
+                sub_value = submission.values.create(attribute=field, value=value, entity=submission)
 
         # clear out our error flag if there were some
         if submission.has_errors:
@@ -1023,6 +1034,15 @@ class BinaryValue(models.Model):
     Simple holder for values that are submitted and which represent binary files.
     """
     binary = models.FileField(upload_to='binary')
+
+    def url(self):
+        return self.binary.url
+
+    def __unicode__(self):
+        name = self.binary.file.name
+        if name.find('/') != -1:
+            name = name[name.rfind("/")+1:]
+        return name
 
 # Signal triggered whenever an xform is received.  The caller can derive from the submission
 # whether it was successfully parsed or not and do what they like with it.
