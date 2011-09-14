@@ -22,6 +22,13 @@ import difflib
 import re
 import traceback
 
+
+def get_location_for_user(user):
+    try:
+        return Location.objects.get(name__icontains=user.username, type__name='district')
+    except:
+        return None
+
 def previous_calendar_week():
     end_date = datetime.datetime.now()
     start_date = end_date - datetime.timedelta(days=7)
