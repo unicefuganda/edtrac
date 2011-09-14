@@ -4,7 +4,7 @@ Basic tests for XForms
 
 import os
 from django.test import TestCase, TransactionTestCase
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.test.client import Client
 from django.core.exceptions import ValidationError
 from .models import XForm, XFormField, XFormFieldConstraint, xform_received
@@ -14,6 +14,7 @@ from .app import App
 from rapidsms.messages.incoming import IncomingMessage
 from rapidsms.models import Connection, Backend
 from django.conf import settings
+from django.core.urlresolvers import reverse
 
 class ModelTest(TestCase): #pragma: no cover
 
@@ -1026,7 +1027,48 @@ class SubmissionTest(TestCase): #pragma: no cover
 
         binary = submission.values.get(attribute__name='video').value.binary
         self.failUnlessEqual("binary/test__video.mp4", binary.name)
-        self.failUnlessEqual("vidfile", binary.read())        
+        self.failUnlessEqual("vidfile", binary.read())
+
+
+    def testRestrictMessage(self):
+        c = Client()
+
+        self.user = User.objects.create_user("frank", "frank@castle.com")
+        self.user.set_password("monster")
+        self.user.save()
+
+        self.group = Group.objects.create(name="Reporters")
+
+        c.login(username="frank", password="monster")
+
+        # try creating a new xform with no restrict_to
+        form_values = dict(name="Perm Form", keyword='perm', description="Permission test form",
+                           response="You were able to submit this you special person")
+        resp = c.post(reverse('xforms_create'), form_values, follow=True)
+
+        self.assertEquals(200, resp.status_code)
+        form = XForm.objects.get(keyword='perm')
+        self.assertTrue(form)
+
+        # reset
+        form.delete()
+
+        # this time we submit with a group to restrict to, but no message
+        form_values['restrict_to'] = self.group.id
+        resp = c.post(reverse('xforms_create'), form_values, follow=True)
+
+        # should fail
+        self.assertEquals(200, resp.status_code)
+        self.assertTrue(resp.context['form'].errors)
+
+        # but if we add in a message
+        form_values['restrict_message'] = "Sorry, you don't have permission to submit this form"
+        resp = c.post(reverse('xforms_create'), form_values, follow=True)
+
+        # should pass
+        self.assertEquals(200, resp.status_code)
+        form = XForm.objects.get(keyword='perm')
+        self.assertTrue(form)
         
 
         

@@ -58,6 +58,8 @@ class XForm(models.Model):
 
     restrict_to = models.ForeignKey(Group, null=True, blank=True,
                                     help_text="Restrict submissions to users of this group (if unset, anybody can submit this form)")
+    restrict_message = models.CharField(max_length=160, null=True, blank=True,
+                                        help_text="The error message that will be returned to users if they do not have the right privileges to submit this form.  Only required if the field is restricted.")
 
     owner = models.ForeignKey(User)
     created = models.DateTimeField(auto_now_add=True)
