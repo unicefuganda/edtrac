@@ -110,23 +110,24 @@ def xforms(req):
 class NewXFormForm(forms.ModelForm): # pragma: no cover
     class Meta:
         model = XForm
-        fields = ('name', 'keyword','keyword_prefix', 'command_prefix', 'separator', 'description', 'response')
+        fields = ('name', 'keyword','keyword_prefix', 'command_prefix', 'separator', 'description', 'response', 'restrict_to')
 
     helper = FormHelper()
         
     layout = Layout(
-        # first fieldset shows the company
+        # required fields
         Fieldset('', 
                  'name',
                  'keyword',
                  'description',
                  'response'),
         
-        # second fieldset shows the contact info
+        # optional attributes
         Fieldset('Advanced Settings',
                  'keyword_prefix',
                  'command_prefix',
-                 'separator'
+                 'separator',
+                 'restrict_to',
                  )
         )
     
@@ -135,13 +136,13 @@ class NewXFormForm(forms.ModelForm): # pragma: no cover
 class EditXFormForm(forms.ModelForm): # pragma: no cover
     class Meta:
         model = XForm
-        fields = ('name', 'keyword','keyword_prefix', 'command_prefix', 'separator', 'description', 'response', 'active')
+        fields = ('name', 'keyword','keyword_prefix', 'command_prefix', 'separator', 'description', 'response', 'active', 'restrict_to')
 
 
     helper = FormHelper()
         
     layout = Layout(
-        # first fieldset shows the company
+        # required fields
         Fieldset('', 
                  'name',
                  'keyword',
@@ -149,11 +150,12 @@ class EditXFormForm(forms.ModelForm): # pragma: no cover
                  'response',
                  'active'),
         
-        # second fieldset shows the contact info
+        # optional attributes
         Fieldset('Advanced Settings',
                  'keyword_prefix',
                  'command_prefix',
-                 'separator'
+                 'separator',
+                 'restrict_to',
                  )
         )
     

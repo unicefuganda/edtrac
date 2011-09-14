@@ -17,6 +17,7 @@ from django.contrib.sites.managers import CurrentSiteManager
 from rapidsms.models import ExtensibleModelBase
 from eav.fields import EavSlugField
 from django.core.files.base import ContentFile
+from django.contrib.auth.models import Group
 
 class XForm(models.Model):
     """
@@ -54,6 +55,9 @@ class XForm(models.Model):
 
     separator = models.CharField(max_length=1, choices=SEPARATOR_CHOICES, null=True, blank=True,
                                  help_text="The separator character for fields, field values will be split on this character.")
+
+    restrict_to = models.ForeignKey(Group, null=True, blank=True,
+                                    help_text="Restrict submissions to users of this group (if unset, anybody can submit this form)")
 
     owner = models.ForeignKey(User)
     created = models.DateTimeField(auto_now_add=True)
