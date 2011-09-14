@@ -1,4 +1,4 @@
-from .utils import flatten_list, get_dates
+from .utils import flatten_list, set_default_dates
 
 
 class Column(object):
@@ -55,7 +55,7 @@ class Report(object):
     """
     def __init__(self, request=None, dates=None):
         datedict = {}
-        get_dates(dates, request, datedict)
+        set_default_dates(dates, request, datedict)
 
         self.drill_key = request.POST['drill_key'] if 'drill_key' in request.POST else None
         self.start_date = datedict['start_date']

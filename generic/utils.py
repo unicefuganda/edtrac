@@ -1,4 +1,5 @@
 from .models import *
+from .forms import DateRangeForm
 import datetime, time
 
 
@@ -18,7 +19,17 @@ def copy_dashboard(from_dashboard, to_dashboard):
             mod_params.save()
 
 
-def get_dates(dates, request, context):
+def get_dates(request):
+    to_ret = {}
+    if request.POST:
+        form = DateRangeForm(request.POST)
+        if form.is_valid():
+            to_ret['start'] = form.cleaned_data['start']
+            to_ret['end'] = form.cleaned_data['end']
+    return to_ret
+
+
+def set_default_dates(dates, request, context):
     if callable(dates):
         dates = dates(request=request)
     max_date = dates.setdefault('max', datetime.datetime.now())
@@ -33,6 +44,7 @@ def get_dates(dates, request, context):
     min_ts = time.mktime(min_date.timetuple())
     start_ts = time.mktime(start_date.timetuple())
     end_ts = time.mktime(end_date.timetuple())
+
     context.update({
         'max_ts':max_ts, \
         'min_ts':min_ts, \
