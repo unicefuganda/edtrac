@@ -1039,7 +1039,7 @@ class BinaryValue(models.Model):
         return self.binary.url
 
     def __unicode__(self):
-        name = self.binary.file.name
+        name = self.binary.name
         if name.find('/') != -1:
             name = name[name.rfind("/")+1:]
         return name

@@ -55,16 +55,12 @@ function deleteForm(form_id, form_name) {
       <img border="0" src="/static/rapidsms/icons/silk/add.png" alt=""/>Add New Form
     </a> 
 </div> 
+<br class="clear"/>
 
 <br/><br/>
-
-</div>
-
 
 <form name="form" method="post" action="/xforms/">
 {% csrf_token %}
 </form>
-
-</div>
 
 {% endblock %}

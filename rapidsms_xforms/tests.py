@@ -934,7 +934,9 @@ class SubmissionTest(TestCase): #pragma: no cover
         f4 = xform.fields.create(field_type=XFormField.TYPE_VIDEO, name='video', command='video', order=3)        
 
         # make the photo field required, though this will only really kick in during SMS submission
-        f2.constraints.create(type='req_val', test='None', message="You must include a photo")
+        f2.constraints.create(type='req_val', test='None', message="You must include an image")
+        f3.constraints.create(type='req_val', test='None', message="You must include audio")
+        f4.constraints.create(type='req_val', test='None', message="You must include a video")        
 
         submission = xform.process_sms_submission(IncomingMessage(None, "image +name Michael Jackson"))
         self.failUnlessEqual(submission.has_errors, False)

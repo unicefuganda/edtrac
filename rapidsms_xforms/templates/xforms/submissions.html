@@ -4,13 +4,13 @@
 {% block content %}
 
 <div class="details">
-<div class="name">{{ xform.name }} Submissions</div>
-<div class="buttons">
-  <a href="/xforms/{{ xform.pk }}/submissions.csv">
-    <img src="{{ MEDIA_URL }}rapidsms_xforms/icons/silk/table_save.png" alt=""/> Export
-  </a>
-  <br/>
-</div>
+  <div class="name">{{ xform.name }} Submissions</div>
+  <div class="buttons">
+    <a href="/xforms/{{ xform.pk }}/submissions.csv">
+      <img src="{{ MEDIA_URL }}rapidsms_xforms/icons/silk/table_save.png" alt=""/> Export
+    </a>
+    <br/>
+  </div>
 </div>
 
 <table width="100%" class="form_table"> 
@@ -76,7 +76,5 @@
   {% endif %}
 </table>
 <br/>
-
-</div>
 
 {% endblock %}
