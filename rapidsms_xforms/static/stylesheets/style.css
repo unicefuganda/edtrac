@@ -368,3 +368,14 @@ button.positive, .buttons a.positive{
 input[type="checkbox"] + label {
     display: inline;
 }
+
+.paginator {
+    margin-top: 5px;
+    margin-left: 2px;
+    margin-right: 2px;
+    color: #aaa;
+}
+
+.paginator_pager {
+    float: right;
+}

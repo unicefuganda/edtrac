@@ -12,7 +12,7 @@ from xml.dom.minidom import parse, parseString
 from eav.fields import EavSlugField
 
 from uni_form.helpers import FormHelper, Layout, Fieldset
-
+from django.core.paginator import Paginator
 
 # CSV Export
 @require_GET
@@ -285,10 +285,18 @@ def view_submissions(req, form_id):
     fields = xform.fields.all().order_by('pk')
 
     breadcrumbs = (('XForms', '/xforms/'),('Submissions', ''))
+
+    current_page = 1
+    if 'page' in req.REQUEST:
+        current_page = int(req.REQUEST['page'])
+
+    paginator = Paginator(submissions, 25)
+    page = paginator.page(current_page)
     
-    return render_to_response("xforms/submissions.html", 
-        { 'xform': xform, 'fields': fields, 'submissions': submissions, 'breadcrumbs': breadcrumbs },
-        context_instance=RequestContext(req))
+    return render_to_response("xforms/submissions.html",
+                              dict(xform=xform, fields=fields, submissions=page, breadcrumbs=breadcrumbs,
+                                   paginator=paginator, page=page),
+                              context_instance=RequestContext(req))
 
 def make_submission_form(xform):
     fields = {}
