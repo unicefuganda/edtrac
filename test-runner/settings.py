@@ -41,6 +41,14 @@ INSTALLED_BACKENDS = {
     }
 }
 
+MIDDLEWARE_CLASSES = (
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.transaction.TransactionMiddleware',
+)
 
 # to help you get started quickly, many django/rapidsms apps are enabled
 # by default. you may wish to remove some and/or add your own.
@@ -63,7 +71,6 @@ INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.sessions",
     "django.contrib.contenttypes",
-    "rapidsms.contrib.djangoadmin",
 
     # the rapidsms contrib apps.
     "rapidsms.contrib.default",
@@ -76,8 +83,8 @@ INSTALLED_APPS = [
     "rapidsms.contrib.scheduler",
     "rapidsms.contrib.echo",
 
+    "eav",
     "uni_form",
-
     "rapidsms_xforms",
 ]
 
@@ -85,12 +92,28 @@ INSTALLED_APPS = [
 # this rapidsms-specific setting defines which views are linked by the
 # tabbed navigation. when adding an app to INSTALLED_APPS, you may wish
 # to add it here, also, to expose it in the rapidsms ui.
-RAPIDSMS_TABS = []
+RAPIDSMS_TABS = [
+    ("rapidsms.contrib.messagelog.views.message_log",       "Message Log"),
+    ("rapidsms.contrib.registration.views.registration",    "Registration"),
+    ("rapidsms.contrib.messaging.views.messaging",          "Messaging"),
+    ("rapidsms.contrib.locations.views.locations",          "Map"),
+    ("rapidsms.contrib.scheduler.views.index",              "Event Scheduler"),
+    ("rapidsms.contrib.httptester.views.generate_identity", "Message Tester"),
 
-#--------------------------------------------------------------------- #
+    ("xforms", "XForms"),
+]
+
+
+# -------------------------------------------------------------------- #
 #                         BORING CONFIGURATION                         #
 # -------------------------------------------------------------------- #
 
+# debug tool bar needs this
+INTERNAL_IPS = ('127.0.0.1',)
+
+DEBUG_TOOLBAR_CONFIG = {
+    'INTERCEPT_REDIRECTS': False,
+}
 
 # debug mode is turned on as default, since rapidsms is under heavy
 # development at the moment, and full stack traces are very useful
@@ -101,18 +124,16 @@ DEBUG = TEMPLATE_DEBUG = True
 # after login (which is handled by django.contrib.auth), redirect to the
 # dashboard rather than 'accounts/profile' (the default).
 LOGIN_REDIRECT_URL = "/"
-
+LOGIN_URL = "/account/login"
 
 # use django-nose to run tests. rapidsms contains lots of packages and
 # modules which django does not find automatically, and importing them
 # all manually is tiresome and error-prone.
-TEST_RUNNER = "django_nose.NoseTestSuiteRunner"
-
+#TEST_RUNNER = "django_nose.NoseTestSuiteRunner"
 
 # for some reason this setting is blank in django's global_settings.py,
 # but it is needed for static assets to be linkable.
 MEDIA_URL = "/static/"
-
 
 # this is required for the django.contrib.sites tests to run, but also
 # not included in global_settings.py, and is almost always ``1``.
@@ -156,11 +177,8 @@ TEST_EXCLUDED_APPS = [
     "rapidsms.contrib.httptester",
 ]
 
-
-# the default ROOT_URLCONF module, bundled with rapidsms, detects and
-# maps the urls.py module of each app into a single project urlconf.
-# this is handy, but too magical for the taste of some. (remove it?)
-ROOT_URLCONF = "rapidsms.djangoproject.urls"
+# the project-level url patterns
+ROOT_URLCONF = "urls"
 
 
 # since we might hit the database from any thread during testing, the
@@ -177,3 +195,5 @@ if 'test' in sys.argv:
         DATABASES[db_name]['TEST_NAME'] = os.path.join(
             tempfile.gettempdir(),
             "%s.rapidsms.test.sqlite3" % db_name)
+
+XFORMS_HOST = "192.168.1.103:8000"

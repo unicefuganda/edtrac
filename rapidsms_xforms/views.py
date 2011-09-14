@@ -12,7 +12,7 @@ from xml.dom.minidom import parse, parseString
 from eav.fields import EavSlugField
 
 from uni_form.helpers import FormHelper, Layout, Fieldset
-
+from django.core.paginator import Paginator
 
 # CSV Export
 @require_GET
@@ -57,9 +57,11 @@ def odk_submission(req):
     xform = None
     raw = ""
 
-    for file in req.FILES.values():
-        raw = "%s %s" % (raw, file.file.getvalue())
-        dom = parseString(file.file.getvalue())
+    # this is the raw data
+    if 'xml_submission_file' in req.FILES:
+        file = req.FILES['xml_submission_file']
+        raw = file.file.read()
+        dom = parseString(raw)
         root = dom.childNodes[0]
         for child in root.childNodes:
             tag = child.tagName
@@ -71,8 +73,15 @@ def odk_submission(req):
                 else:
                     values[tag] = body
 
+    # every other file is a binary, save them in our map as well (the keys are the values
+    # in the submission file above)
+    binaries = dict()
+    for key in req.FILES:
+        if key != 'xml_submission_file':
+            binaries[key] = req.FILES[key].file.read()
+
     # if we found the xform
-    submission = xform.process_odk_submission(raw, values)
+    submission = xform.process_odk_submission(raw, values, binaries)
 
     resp = render_to_response(
         "xforms/odk_submission.xml", 
@@ -276,17 +285,30 @@ def view_submissions(req, form_id):
     fields = xform.fields.all().order_by('pk')
 
     breadcrumbs = (('XForms', '/xforms/'),('Submissions', ''))
+
+    current_page = 1
+    if 'page' in req.REQUEST:
+        current_page = int(req.REQUEST['page'])
+
+    paginator = Paginator(submissions, 25)
+    page = paginator.page(current_page)
     
-    return render_to_response("xforms/submissions.html", 
-        { 'xform': xform, 'fields': fields, 'submissions': submissions, 'breadcrumbs': breadcrumbs },
-        context_instance=RequestContext(req))
+    return render_to_response("xforms/submissions.html",
+                              dict(xform=xform, fields=fields, submissions=page, breadcrumbs=breadcrumbs,
+                                   paginator=paginator, page=page),
+                              context_instance=RequestContext(req))
 
 def make_submission_form(xform):
     fields = {}
     for field in xform.fields.all().order_by('order'):
-        fields[field.command] = forms.CharField(required=False,
-                                                help_text=field.description,
-                                                label = field.name)
+        if field.xform_type() == 'binary':
+            fields[field.command] = forms.FileField(required=False,
+                                                    help_text=field.description,
+                                                    label = field.name)
+        else:
+            fields[field.command] = forms.CharField(required=False,
+                                                    help_text=field.description,
+                                                    label = field.name)
 
     # this method overloads Django's form clean() method and makes sure all the fields
     # pass the constraints determined by our XForm.  This guarantees that even the Admin
@@ -297,16 +319,26 @@ def make_submission_form(xform):
         for field in xform.fields.all():
             command = field.command
             if command in cleaned_data:
-                field_val = str(cleaned_data.get(command))
+                field_val = cleaned_data.get(command)
 
-                try:
-                    cleaned_val = field.clean_submission(field_val)
-                    cleaned_data[command] = cleaned_val
-                except ValidationError as err:
-                    # if there is an error, remove it from our cleaned data and 
-                    # add the error to our list of errors for this form
-                    self._errors[field.command] = self.error_class(err.messages)
-                    del cleaned_data[field.command]
+                if field.xform_type() == 'binary':
+                    if field_val is None:
+                        cleaned_data[command] = None
+                    elif field_val == False:
+                        del cleaned_data[field.command]
+                    else:
+                        typedef = XFormField.lookup_type(field.field_type)
+                        cleaned_val = typedef['parser'](field.command, field_val.read(), filename=field_val.name)
+                        cleaned_data[command] = cleaned_val
+                else:
+                    try:
+                        cleaned_val = field.clean_submission(field_val, 'sms')
+                        cleaned_data[command] = cleaned_val
+                    except ValidationError as err:
+                        # if there is an error, remove it from our cleaned data and 
+                        # add the error to our list of errors for this form
+                        self._errors[field.command] = self.error_class(err.messages)
+                        del cleaned_data[field.command]
 
         return cleaned_data
 
@@ -325,7 +357,7 @@ def edit_submission(req, submission_id):
 
     form_class = make_submission_form(xform)
     if req.method == 'POST':
-        form = form_class(req.POST)
+        form = form_class(req.POST, req.FILES)
 
         # no errors?  save and redirect
         if form.is_valid():
@@ -337,11 +369,15 @@ def edit_submission(req, submission_id):
     else:
         # our hash of bound values
         form_vals = {}
+        file_data = {}
         for value in values:
             field = XFormField.objects.get(pk=value.attribute.pk)
-            form_vals[field.command] = value.value
+            if field.xform_type() == 'binary' and value.value:
+                form_vals[field.command] = value.value.binary
+            else:
+                form_vals[field.command] = value.value
 
-        form = form_class(form_vals)
+        form = form_class(initial=form_vals)
 
     breadcrumbs = (('XForms', '/xforms/'),('Submissions', '/xforms/%d/submissions/' % xform.pk), ('Edit Submission', ''))
 

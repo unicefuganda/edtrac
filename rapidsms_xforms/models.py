@@ -16,6 +16,7 @@ from django.contrib.sites.models import Site
 from django.contrib.sites.managers import CurrentSiteManager
 from rapidsms.models import ExtensibleModelBase
 from eav.fields import EavSlugField
+from django.core.files.base import ContentFile
 
 class XForm(models.Model):
     """
@@ -168,8 +169,17 @@ class XForm(models.Model):
             # we have a new value, update it
             field = XFormField.objects.get(pk=value.attribute.pk)
             if field.command in values:
-                value.value = values[field.command]
-                value.save()
+                new_val = values[field.command]
+                
+                # for binary fields, a value of None means leave the current value
+                if field.xform_type() == 'binary' and new_val is None:
+                    # clean up values that have null values
+                    if value.value is None:
+                        value.delete()
+                else:
+                    value.value = new_val
+                    value.save()
+
                 del values[field.command]
 
             # no new value, we need to remove this one
@@ -180,7 +190,9 @@ class XForm(models.Model):
         for key, value in values.items():
             # look up the field by key
             field = XFormField.objects.get(xform=self, command=key)
-            sub_value = submission.values.create(attribute=field, value=value, entity=submission)
+
+            if field.xform_type() != 'binary' or not value is None:
+                sub_value = submission.values.create(attribute=field, value=value, entity=submission)
 
         # clear out our error flag if there were some
         if submission.has_errors:
@@ -190,7 +202,7 @@ class XForm(models.Model):
         # trigger our signal for anybody interested in form submissions
         xform_received.send(sender=self, xform=self, submission=submission)
 
-    def process_odk_submission(self, xml, values):
+    def process_odk_submission(self, xml, values, binaries):
         """
         Given the raw XML content and a map of values, processes a new ODK submission, returning the newly
         created submission.
@@ -200,7 +212,15 @@ class XForm(models.Model):
         for field in self.fields.filter(datatype=XFormField.TYPE_OBJECT):
             if field.command in values:
                 typedef = XFormField.lookup_type(field.field_type)
-                values[field.command] = typedef['parser'](field.command, values[field.command])
+
+                # binary fields (image, audio, video) will have their value set in the XML to the name
+                # of the key that contains their binary content
+                if typedef['xforms_type'] == 'binary':
+                    binary_key = values[field.command]
+                    values[field.command] = typedef['parser'](field.command, binaries[binary_key], filename=binary_key)
+
+                else:
+                    values[field.command] = typedef['parser'](field.command, values[field.command])
 
         # create our submission now
         submission = self.submissions.create(type='odk-www', raw=xml)
@@ -637,7 +657,9 @@ class XFormField(Attribute):
     TYPE_TEXT = Attribute.TYPE_TEXT
     TYPE_OBJECT = Attribute.TYPE_OBJECT
     TYPE_GEOPOINT = 'geopoint'
-    TYPE_PHOTO = 'photo'
+    TYPE_IMAGE = 'image'
+    TYPE_AUDIO = 'audio'
+    TYPE_VIDEO = 'video'    
 
     # These are the choices of types available for XFormFields.
     #
@@ -654,7 +676,6 @@ class XFormField(Attribute):
         TYPE_INT:   dict( label='Integer', type=TYPE_INT, db_type=TYPE_INT, xforms_type='integer', parser=None, puller=None, xform_only=False),
         TYPE_FLOAT: dict( label='Decimal', type=TYPE_FLOAT, db_type=TYPE_FLOAT, xforms_type='decimal', parser=None, puller=None, xform_only=False),
         TYPE_TEXT:  dict( label='String', type=TYPE_TEXT, db_type=TYPE_TEXT, xforms_type='string', parser=None, puller=None, xform_only=False),
-        TYPE_PHOTO: dict( label="Photo", type=TYPE_PHOTO, db_type=TYPE_OBJECT, xforms_type='photo', parser=None, puller=None, xform_only=True),
     }
 
     xform = models.ForeignKey(XForm, related_name='fields')
@@ -1008,10 +1029,46 @@ class XFormSubmissionValue(Value):
         return "%s=%s" % (self.attribute, self.value)
 
 
+class BinaryValue(models.Model):
+    """
+    Simple holder for values that are submitted and which represent binary files.
+    """
+    binary = models.FileField(upload_to='binary')
+
+    def url(self):
+        return self.binary.url
+
+    def __unicode__(self):
+        name = self.binary.name
+        if name.find('/') != -1:
+            name = name[name.rfind("/")+1:]
+        return name
+
 # Signal triggered whenever an xform is received.  The caller can derive from the submission
 # whether it was successfully parsed or not and do what they like with it.
 
 xform_received = django.dispatch.Signal(providing_args=["xform", "submission"])
+
+def create_binary(command, value, filename="binary"):
+    """
+    Save the image to our filesystem, associating a new object to hold it's contents etc..
+    """
+    binary = BinaryValue.objects.create()
+
+    # TODO: this seems kind of odd, but I can't figure out how Django really wants you to save
+    # these files on the initial create
+    binary.binary.save(filename, ContentFile(value))
+    binary.save()
+    return binary
+
+XFormField.register_field_type(XFormField.TYPE_IMAGE, 'Image', create_binary,
+                               xforms_type='binary', db_type=XFormField.TYPE_OBJECT, xform_only=True)
+
+XFormField.register_field_type(XFormField.TYPE_AUDIO, 'Audio', create_binary,
+                               xforms_type='binary', db_type=XFormField.TYPE_OBJECT, xform_only=True)
+
+XFormField.register_field_type(XFormField.TYPE_VIDEO, 'Video', create_binary,
+                               xforms_type='binary', db_type=XFormField.TYPE_OBJECT, xform_only=True)
 
 def create_geopoint(command, value):
     """
