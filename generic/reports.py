@@ -70,7 +70,6 @@ class Report(object):
                 val.add_to_report(self, attrname, self.report)
 
         self.report = flatten_list(self.report)
-        print self.report
 
     def __iter__(self):
         return self.report.__iter__()
