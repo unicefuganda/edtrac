@@ -1,15 +1,16 @@
+from .forms import DateRangeForm
 from django.conf import settings, settings
 from django.contrib.auth.models import User, Group
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum, Max, Min
 from django.db.models.base import ModelBase
 from django.db.models.query import QuerySet, ValuesQuerySet
 from django.http import HttpResponse
 from django.utils.text import capfirst
 from eav.models import Attribute
-from poll.models import Poll, LocationResponseForm, \
-    STARTSWITH_PATTERN_TEMPLATE
+from generic.utils import get_dates as get_dates_from_post
+from poll.models import Poll, LocationResponseForm, STARTSWITH_PATTERN_TEMPLATE
 from rapidsms.contrib.locations.models import Location
 from rapidsms.models import Backend
 from rapidsms_xforms.models import XForm, XFormField, XFormFieldConstraint, \
@@ -20,8 +21,6 @@ import datetime
 import difflib
 import re
 import traceback
-from .forms import DateRangeForm
-from django.db.models import Max, Min
 
 def previous_calendar_week():
     end_date = datetime.datetime.now()
@@ -252,7 +251,7 @@ def total_submissions(keyword, start_date, end_date, location, extra_filters=Non
 
 
 def total_attribute_value(attribute_slug_list, start_date, end_date, location, group_by_timespan=None):
-    if type(attribute_slug_list != list):
+    if type(attribute_slug_list) != list:
         attribute_slug_list = [attribute_slug_list]
 
     select = {
@@ -263,11 +262,11 @@ def total_attribute_value(attribute_slug_list, start_date, end_date, location, g
     }
     values = ['location_name', 'location_id', 'lft', 'rght']
     if group_by_timespan:
-         select_value = GROUP_BY_SELECTS[group_by_timespan][0]
-         select_clause = GROUP_BY_SELECTS[group_by_timespan][1]
-         select.update({select_value:select_clause,
+        select_value = GROUP_BY_SELECTS[group_by_timespan][0]
+        select_clause = GROUP_BY_SELECTS[group_by_timespan][1]
+        select.update({select_value:select_clause,
                         'year':'extract (year from rapidsms_xforms_xformsubmission.created)', })
-         values.extend([select_value, 'year'])
+        values.extend([select_value, 'year'])
     if location.get_children().count() > 1:
         location_children_where = 'T8.id in %s' % (str(tuple(location.get_children().values_list(\
                        'pk', flat=True))))
@@ -288,25 +287,25 @@ def total_attribute_value(attribute_slug_list, start_date, end_date, location, g
 
 
 def reorganize_location(key, report, report_dict):
-    for dict in report:
-        location = dict['location_id']
-        report_dict.setdefault(location, {'location_name':dict['location_name'], 'diff':(dict['rght'] - dict['lft'])})
-        report_dict[location][key] = dict['value']
+    for rdict in report:
+        location = rdict['location_id']
+        report_dict.setdefault(location, {'location_name':rdict['location_name'], 'diff':(rdict['rght'] - rdict['lft'])})
+        report_dict[location][key] = rdict['value']
 
 
 def reorganize_timespan(timespan, report, report_dict, location_list, request=None):
-    for dict in report:
-        time = dict[timespan]
+    for rdict in report:
+        time = rdict[timespan]
         if timespan == 'month':
-            time = datetime.datetime(int(dict['year']), int(time), 1)
+            time = datetime.datetime(int(rdict['year']), int(time), 1)
         elif timespan == 'week':
-            time = datetime.datetime(int(dict['year']), 1, 1) + datetime.timedelta(days=(int(time) * 7))
+            time = datetime.datetime(int(rdict['year']), 1, 1) + datetime.timedelta(days=(int(time) * 7))
         elif timespan == 'quarter':
-            time = datetime.datetime(int(dict['year']), int(time) * 3, 1)
+            time = datetime.datetime(int(rdict['year']), int(time) * 3, 1)
 
         report_dict.setdefault(time, {})
-        location = dict['location_name']
-        report_dict[time][location] = dict['value']
+        location = rdict['location_name']
+        report_dict[time][location] = rdict['value']
 
         if not location in location_list:
             location_list.append(location)
@@ -328,38 +327,23 @@ def get_group_by(start_date, end_date):
         prefix = 'quarter'
     return {'group_by':group_by, 'group_by_name':prefix}
 
-def get_dates(request):
+def get_xform_dates(request):
     """
     Process date variables from POST
     """
-    if request.POST:
-        form = DateRangeForm(request.POST)
-        if form.is_valid():
-            dts = XFormSubmission.objects.aggregate(Min('created'))
-            min_date = dts['created__min'] or (datetime.datetime.now() - datetime.timedelta(365))
-            start_date = form.cleaned_data['start_ts']
-            end_date = form.cleaned_data['end_ts']
-            request.session['start_date'] = start_date
-            request.session['end_date'] = end_date
-    #for charts, cached start_date and end_date for charts as one drills down
+    dates = get_dates_from_post(request)
+    if 'start' in dates and 'end' in dates:
+        request.session['start_date'] = dates['start']
+        request.session['end_date'] = dates['end']
     elif request.GET.get('start_date', None) and request.GET.get('end_date', None):
-        start_date = datetime.datetime.fromtimestamp(int(request.GET['start_date']))
-        end_date = datetime.datetime.fromtimestamp(int(request.GET['end_date']))
-        request.session['start_date'] = start_date
-        request.session['end_date'] = end_date
-        return {'start':start_date, 'end':end_date}
-    else:
-        form = DateRangeForm()
-        dts = XFormSubmission.objects.aggregate(Max('created'), Min('created'))
-        end_date = dts['created__max'] or datetime.datetime.now()
-        min_date = dts['created__min'] or (datetime.datetime.now() - datetime.timedelta(365))
-        start_date = end_date - datetime.timedelta(days=30)
-        if request.GET.get('date_range', None):
-            start_date, end_date = TIME_RANGES[request.GET.get('date_range')]()
-            request.session['start_date'], request.session['end_date'] = start_date, end_date
-        if request.session.get('start_date', None)  and request.session.get('end_date', None):
-            start_date = request.session['start_date']
-            end_date = request.session['end_date']
-
-    return {'start':start_date, 'end':end_date, 'min':min_date, 'form':form}
-
+        request.session['start_date'] = dates['start'] = \
+            datetime.datetime.fromtimestamp(int(request.GET['start_date']))
+        request.session['end_date'] = dates['end'] = end_date = \
+            datetime.datetime.fromtimestamp(int(request.GET['end_date']))
+    elif request.session.get('start_date', None) and request.session.get('end_date', None):
+        dates['start'] = request.session['start_date']
+        dates['end'] = request.session['end_date']
+    dts = XFormSubmission.objects.aggregate(Max('created'), Min('created'))
+    dates['max'] = dts.get('created__max', None)
+    dates['min'] = dts.get('created__min', None)
+    return dates
