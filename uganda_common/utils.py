@@ -251,7 +251,10 @@ def total_submissions(keyword, start_date, end_date, location, extra_filters=Non
                select=select).values(*values).annotate(value=Count('id')).extra(order_by=['location_name'])
 
 
-def total_attribute_value(attribute_slug, start_date, end_date, location, group_by_timespan=None):
+def total_attribute_value(attribute_slug_list, start_date, end_date, location, group_by_timespan=None):
+    if type(attribute_slug_list != list):
+        attribute_slug_list = [attribute_slug_list]
+
     select = {
         'location_name':'T8.name',
         'location_id':'T8.id',
@@ -272,7 +275,7 @@ def total_attribute_value(attribute_slug, start_date, end_date, location, group_
         location_children_where = 'T8.id = %d' % location.get_children()[0].pk
     return XFormSubmissionValue.objects.filter(
                submission__has_errors=False,
-               attribute__slug=attribute_slug,
+               attribute__slug__in=attribute_slug_list,
                submission__created__lte=end_date,
                submission__created__gte=start_date).values(
                'submission__connection__contact__reporting_location__name').extra(
