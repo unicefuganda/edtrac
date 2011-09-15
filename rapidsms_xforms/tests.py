@@ -1033,13 +1033,9 @@ class SubmissionTest(TestCase): #pragma: no cover
     def testRestrictMessage(self):
         c = Client()
 
-        self.user = User.objects.create_user("frank", "frank@castle.com")
-        self.user.set_password("monster")
-        self.user.save()
-
         self.group = Group.objects.create(name="Reporters")
 
-        c.login(username="frank", password="monster")
+        c.login(username="fred", password="secret")
 
         # try creating a new xform with no restrict_to
         form_values = dict(name="Perm Form", keyword='perm', description="Permission test form",
@@ -1069,7 +1065,75 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.assertEquals(200, resp.status_code)
         form = XForm.objects.get(keyword='perm')
         self.assertTrue(form)
-        
 
+
+    def testODKAuth(self):
+        c = Client()
+        response = c.get(reverse('odk_list'))
+
+        # we should get a 200 back, there are no restrictions on viewing forms
+        self.assertEquals(200, response.status_code)
         
-          
+        from xml.dom.minidom import parseString
+        xml = parseString(response.content)
+
+        forms = xml.getElementsByTagName("forms")[0].getElementsByTagName("form")
+
+        self.assertEquals(1, len(forms))
+        self.assertEquals('test', forms[0].firstChild.wholeText)
+
+        settings.AUTHENTICATE_XFORMS = True
+
+        # try again now
+        response = c.get(reverse('odk_list'))        
+
+        # we should be asked to authenticate
+        self.assertEquals(401, response.status_code)
+
+    def testODKFiltering(self):
+        # tests that we only show those forms that we are allowed to view
+        c = Client()
+        c.login(username="fred", password="secret")
+
+        # we are aren't going to force authentication using DIGEST but instead
+        # use the session authentication used in Django for these tests
+        settings.AUTHENTICATE_XFORMS = False
+        
+        response = c.get(reverse('odk_list'))
+
+        from xml.dom.minidom import parseString
+        xml = parseString(response.content)
+
+        # no restrictions on this form, so should see just one form
+        forms = xml.getElementsByTagName("forms")[0].getElementsByTagName("form")
+        self.assertEquals(1, len(forms))
+        self.assertEquals('test', forms[0].firstChild.wholeText)
+
+        # create a group for reporters (fred not part of it)
+        self.group = Group.objects.create(name="Reporters")
+
+        restricted_form = XForm.on_site.create(name='restricted', keyword='restricted', owner=self.user, command_prefix='+', 
+                                               site=Site.objects.get_current(), response='thanks',
+                                               restrict_message="Sorry, you can't access this form")
+        restricted_form.restrict_to.add(self.group)
+
+        # get the list again, should not include this form
+        response = c.get(reverse('odk_list'))
+        xml = parseString(response.content)
+        
+        forms = xml.getElementsByTagName("forms")[0].getElementsByTagName("form")
+        self.assertEquals(1, len(forms))
+        self.assertEquals('test', forms[0].firstChild.wholeText)
+
+        # have fred join the reporters group
+        self.user.groups.add(self.group)
+
+        # now he should get all the forms
+        response = c.get(reverse('odk_list'))
+        xml = parseString(response.content)
+        
+        forms = xml.getElementsByTagName("forms")[0].getElementsByTagName("form")
+        self.assertEquals(2, len(forms))
+        self.assertEquals('test', forms[0].firstChild.wholeText)
+        self.assertEquals('restricted', forms[1].firstChild.wholeText)        
+

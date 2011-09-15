@@ -33,19 +33,43 @@ def submissions_as_csv(req, pk):
 # ODK Endpoints
 @require_GET
 def odk_list_forms(req):
-    xforms = XForm.on_site.all().filter(active=True)
+    # if forms are restricted, force digest authentication
+    if getattr(settings, 'AUTHENTICATE_XFORMS', False):
+        from django_digest import HttpDigestAuthenticator
+        authenticator = HttpDigestAuthenticator()
+        if not authenticator.authenticate(req):
+            return authenticator.build_challenge_response()
+
+    if req.user:
+        # first those forms that have no restrictions
+        xforms = set(XForm.on_site.filter(active=True, restrict_to=None))
+
+        # then add in all forms for each group the user is part of
+        for group in req.user.groups.all():
+            group_forms = set(XForm.on_site.filter(active=True, restrict_to=group))
+            xforms |= group_forms
+    else:
+        xforms = XForm.on_site.all().filter(active=True, restrict_to=None)
+        
     return render_to_response(
         "xforms/odk_list_forms.xml", 
         { 'xforms': xforms, 'host':  settings.XFORMS_HOST }, 
-        mimetype="application/xml",
+        mimetype="text/xml",
         context_instance=RequestContext(req))
 
 @require_GET
 def odk_get_form(req, pk):
+    # if forms are restricted, force digest authentication
+    if getattr(settings, 'AUTHENTICATE_XFORMS', False):
+        from django_digest import HttpDigestAuthenticator
+        authenticator = HttpDigestAuthenticator()
+        if not authenticator.authenticate(req):
+            return authenticator.build_challenge_response()
+    
     xform = get_object_or_404(XForm, pk=pk)
     resp = render_to_response(
         "xforms/odk_get_form.xml", { 'xform': xform }, 
-        mimetype="application/xml",
+        mimetype="text/xml",
         context_instance=RequestContext(req))
     resp['Content-Disposition'] = 'attachment;filename="%s.xml"' % xform.keyword
     return resp

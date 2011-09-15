@@ -25,9 +25,9 @@ urlpatterns = patterns('',
     url(r"^xforms/(\d+)/delete_field/(\d+)/$", login_required(views.delete_field)),
      
     # these are ODK URLs to be used by ODK Collect
-    url(r"^formList$", views.odk_list_forms),
-    url(r"^xforms/odk/get/(\d+)/$", views.odk_get_form),
-    url(r"^submission", views.odk_submission),
+    url(r"^formList$", views.odk_list_forms, name='odk_list'),
+    url(r"^xforms/odk/get/(\d+)/$", views.odk_get_form, name='odk_form'),
+    url(r"^submission", views.odk_submission, name='odk_submit'),
 
     # CSV Export
     url(r"^xforms/(\d+)/submissions.csv$", views.submissions_as_csv)
