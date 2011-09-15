@@ -16,7 +16,7 @@ from generic.forms import ActionForm, FilterForm
 from ureport.models import MassText
 from django.contrib.sites.models import Site
 from rapidsms.contrib.locations.models import Location
-import time
+from uganda_common.forms import SMSInput
 from django.conf import settings
 import datetime
 from rapidsms_httprouter.models import Message
@@ -163,7 +163,7 @@ class DistictFilterMessageForm(FilterForm):
 
 class MassTextForm(ActionForm):
 
-    text = forms.CharField(max_length=160, required=True)
+    text = forms.CharField(max_length=160, required=True,widget=SMSInput())
     action_label = 'Send Message'
 
     def clean_text(self):
