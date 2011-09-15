@@ -29,7 +29,7 @@ class ModelTest(TestCase): #pragma: no cover
         site = Site.objects.get_or_create(pk=settings.SITE_ID, defaults={
             'domain':'example.com',
         })
-        user = User.objects.create_user('admin', 'test@test.com', 'p4ssw0rd')
+        user, created = User.objects.get_or_create(username='admin')
         connection = Connection.objects.create(identity='8675309', backend=Backend.objects.create(name='TEST'))
         script = Script.objects.create(
                 slug="test_autoreg",
@@ -44,7 +44,11 @@ class ModelTest(TestCase): #pragma: no cover
             start_offset=0, # start one second after the user joins the script
             giveup_offset=3600, # wait one hour to spam them again
         ))
-        poll = Poll.create_freeform('question1', 'First question: what is your favorite way to be spammed?  Be DESCRIPTIVE', '', [], user)
+        poll = Poll.objects.create(name='question1', \
+                                   type=Poll.TYPE_TEXT, \
+                                   question='First question: what is your favorite way to be spammed?  Be DESCRIPTIVE', \
+                                   default_response='', \
+                                   user=user)
         script.steps.add(ScriptStep.objects.create(
             script=script,
             poll=poll,
@@ -53,7 +57,12 @@ class ModelTest(TestCase): #pragma: no cover
             start_offset=0, #start immediately after the giveup time has elapsed from the previous step
             giveup_offset=86400, # we'll give them a full day to respond
         ))
-        poll2 = Poll.create_yesno('question2', 'Second question: Do you like CHEESE?', 'Thanks for your cheesy response!', [], user)
+        poll2 = Poll.objects.create(name='question2', \
+                                    type=Poll.TYPE_TEXT, \
+                                    question='Second question: Do you like CHEESE?', \
+                                    default_response='Thanks for your cheesy response!', \
+                                    user=user)
+        poll2.add_yesno_categories()
         poll2yes = poll2.categories.get(name='yes')
         poll2yes.response = "It's very good to know that you like cheese!"
         poll2yes.save()
@@ -99,7 +108,7 @@ class ModelTest(TestCase): #pragma: no cover
 
     def testCheckProgress(self):
         connection = Connection.objects.all()[0]
-        script = Script.objects.all()[0]
+        script = Script.objects.get(slug="test_autoreg")
         prog = ScriptProgress.objects.create(connection=connection, script=script)
         response = check_progress(connection)
 
@@ -130,7 +139,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(prog.status, 'P')
 
         # manually move to the next step
-        prog.step = ScriptStep.objects.get(order=3)
+        prog.step = ScriptStep.objects.get(script__slug='test_autoreg', order=3)
         prog.status = 'P'
         prog.save()
         self.elapseTime(prog, 2)
@@ -146,8 +155,8 @@ class ModelTest(TestCase): #pragma: no cover
 
     def testIncomingProgress(self):
         connection = Connection.objects.all()[0]
-        script = Script.objects.all()[0]
-        step = ScriptStep.objects.get(order=1)
+        script = Script.objects.get(slug="test_autoreg")
+        step = ScriptStep.objects.get(script__slug='test_autoreg', order=1)
         prog = ScriptProgress.objects.create(connection=connection, script=script, step=step, status='P')
 
         # create a dummy session
@@ -164,7 +173,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(prog.status, 'C')
 
         # manually move to next step, check_progress would do this
-        prog.step = ScriptStep.objects.get(order=2)
+        prog.step = ScriptStep.objects.get(script__slug='test_autoreg', order=2)
         prog.status = 'P'
         prog.save()
 
@@ -195,7 +204,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(prog.status, 'C')
 
     def testLenient(self):
-        step = ScriptStep.objects.get(order=2)
+        step = ScriptStep.objects.get(script__slug='test_autoreg', order=2)
         # modify setUp() ScriptStep 2 to be LENIENT
         step.rule = ScriptStep.LENIENT
         step.save()
@@ -203,8 +212,8 @@ class ModelTest(TestCase): #pragma: no cover
         # dummy progress, the question for step two has been sent out, now we check
         # that any response (even erroneous) advances progress
         connection = Connection.objects.all()[0]
-        script = Script.objects.all()[0]
-        step = ScriptStep.objects.get(order=2)
+        script = Script.objects.get(slug="test_autoreg")
+        step = ScriptStep.objects.get(script__slug='test_autoreg', order=2)
         prog = ScriptProgress.objects.create(connection=connection, script=script, step=step, status='P')
         # create a dummy session
         session = ScriptSession.objects.create(connection=connection, script=script)
@@ -223,7 +232,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(prog.status, 'C')
 
     def testStrictRules(self):
-        step = ScriptStep.objects.get(order=2)
+        step = ScriptStep.objects.get(script__slug='test_autoreg', order=2)
         # modify setUp() ScriptStep 2 to be LENIENT
         step.rule = ScriptStep.STRICT_MOVEON
         step.num_tries = 2
@@ -234,8 +243,8 @@ class ModelTest(TestCase): #pragma: no cover
         # dummy progress, the question for step two has been sent out, now we check
         # that any response (even erroneous) advances progress
         connection = Connection.objects.all()[0]
-        script = Script.objects.all()[0]
-        step = ScriptStep.objects.get(order=2)
+        script = Script.objects.get(slug="test_autoreg")
+        step = ScriptStep.objects.get(script__slug='test_autoreg', order=2)
         prog = ScriptProgress.objects.create(connection=connection, script=script, step=step, status='P')
         # create a dummy session
         session = ScriptSession.objects.create(connection=connection, script=script)
@@ -276,7 +285,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(prog.status, 'C')
 
     def waitFlow(self, giveup=False):
-        step = ScriptStep.objects.get(order=2)
+        step = ScriptStep.objects.get(script__slug='test_autoreg', order=2)
         if giveup:
             step.rule = ScriptStep.WAIT_GIVEUP
         else:
@@ -287,7 +296,7 @@ class ModelTest(TestCase): #pragma: no cover
         # dummy progress, the question for step two has been sent out, now we check
         # that any response (even erroneous) advances progress
         connection = Connection.objects.all()[0]
-        script = Script.objects.all()[0]
+        script = Script.objects.get(slug="test_autoreg")
         prog = ScriptProgress.objects.create(connection=connection, script=script, step=step, status='P')
         session = ScriptSession.objects.create(connection=connection, script=script)
         # elapse past the moveon time
@@ -311,9 +320,9 @@ class ModelTest(TestCase): #pragma: no cover
             self.assertEquals(prog.status, 'P')
 
     def resendFlow(self, giveup=False):
-        script = Script.objects.all()[0]
+        script = Script.objects.get(slug="test_autoreg")
         connection = Connection.objects.all()[0]
-        step = ScriptStep.objects.get(order=2)
+        step = ScriptStep.objects.get(script__slug='test_autoreg', order=2)
         if giveup:
             step.rule = ScriptStep.RESEND_GIVEUP
         else:
@@ -387,11 +396,11 @@ class ModelTest(TestCase): #pragma: no cover
     #test signals
     def testScriptSignals(self):
         connection = Connection.objects.all()[0]
-        script = Script.objects.all()[0]
+        script = Script.objects.get(slug="test_autoreg")
         prog = ScriptProgress.objects.create(connection=connection, script=script)
-        prog.step = ScriptStep.objects.get(order=2)
+        prog.step = ScriptStep.objects.get(script__slug='test_autoreg', order=2)
         prog.save()
-        n_step = ScriptStep.objects.get(order=3)
+        n_step = ScriptStep.objects.get(script__slug='test_autoreg', order=3)
         #call back
         def receive(sender, **kwargs):
             self.assertEqual(kwargs['connection'].pk, connection.pk)
@@ -407,7 +416,7 @@ class ModelTest(TestCase): #pragma: no cover
 
     def assertProgress(self, connection, step_num, step_status, session_count, response_count):
         progress = ScriptProgress.objects.get(connection=connection)
-        script = Script.objects.all()[0]
+        script = Script.objects.get(slug="test_autoreg")
         if step_num is not None:
             step = script.steps.get(order=step_num)
             self.assertEquals(progress.step, step)
@@ -421,7 +430,7 @@ class ModelTest(TestCase): #pragma: no cover
         return progress
 
     def testFullScriptFlow(self):
-        script = Script.objects.all()[0]
+        script = Script.objects.get(slug="test_autoreg")
         connection = Connection.objects.all()[0]
         progress = ScriptProgress.objects.create(connection=connection, script=script)
 
