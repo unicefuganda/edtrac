@@ -4,14 +4,11 @@
 <h2>{{ results_title }}</h2>
 {% endif %}
 {% if status_message %}
-    <span id="span_status_message" class="status_{{ status_message_type }}">
+    <div id="span_status_message" class="status_{{ status_message_type }}">
         {{ status_message }}
-    </span>
-    <script language="javascript">
-        setTimeout(function() {
-            $("#span_status_message").hide(500, 'swing')
-        }, 5000);
-    </script>
+    <a href="javascript:void(0)" onclick="$('#span_status_message').hide();">Dismiss</a>
+    </div>
+
 {% endif %}
 {% block sort_fields %}
     <input type="hidden" id="input_sort_column" name="sort_column" value="{{ sort_column }}"/>
@@ -28,7 +25,7 @@
 	<tr>
 		<td></td>
 		<td colspan="{{ columns|length }}"><p>No Results match your search.  Refresh to reset.</p></td>
-	</tr>	
+	</tr>
 {% else %}
     {% block partial_base_content %}
         {% for object in object_list %}
