@@ -56,8 +56,8 @@ class XForm(models.Model):
     separator = models.CharField(max_length=1, choices=SEPARATOR_CHOICES, null=True, blank=True,
                                  help_text="The separator character for fields, field values will be split on this character.")
 
-    restrict_to = models.ForeignKey(Group, null=True, blank=True,
-                                    help_text="Restrict submissions to users of this group (if unset, anybody can submit this form)")
+    restrict_to = models.ManyToManyField(Group, null=True, blank=True,
+                                         help_text="Restrict submissions to users of this group (if unset, anybody can submit this form)")
     restrict_message = models.CharField(max_length=160, null=True, blank=True,
                                         help_text="The error message that will be returned to users if they do not have the right privileges to submit this form.  Only required if the field is restricted.")
 
