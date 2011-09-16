@@ -45,6 +45,21 @@ Examples::
 	survey +loc 1.4564 1.5435
 	survey +track 1.5456 1.2355
 
+Image Field
+------------
+
+An image, supported by ODK Collect submissions only.  Note that you can still force this field to be required and it will just be ignored for SMS submissions.
+
+Audio Field
+------------
+
+An audio clip, supported by ODK Collect submissions only.  Note that you can still force this field to be required and it will just be ignored for SMS submissions.
+
+Video Field
+------------
+
+A video clip, supported by ODK Collect submissions only.  Note that you can still force this field to be required and it will just be ignored for SMS submissions.
+
 Custom Field Types
 ------------------
 
