@@ -13,6 +13,8 @@ from eav.fields import EavSlugField
 
 from uni_form.helpers import FormHelper, Layout, Fieldset
 from django.core.paginator import Paginator
+from django_digest import HttpDigestAuthenticator
+from django.http import HttpResponse
 
 # CSV Export
 @require_GET
@@ -35,7 +37,6 @@ def submissions_as_csv(req, pk):
 def odk_list_forms(req):
     # if forms are restricted, force digest authentication
     if getattr(settings, 'AUTHENTICATE_XFORMS', False):
-        from django_digest import HttpDigestAuthenticator
         authenticator = HttpDigestAuthenticator()
         if not authenticator.authenticate(req):
             return authenticator.build_challenge_response()
@@ -57,16 +58,29 @@ def odk_list_forms(req):
         mimetype="text/xml",
         context_instance=RequestContext(req))
 
+def user_has_permission(user, xform):
+    if xform.restrict_to.all():
+        if user:
+            matches = set(user.groups.all()) & set(xform.restrict_to.all())
+
+            # user must be part of at least one of the form's restricted groups
+            return len(matches) > 0
+
+    # no restrictions means the user has permission no matter what
+    return True
+
 @require_GET
 def odk_get_form(req, pk):
     # if forms are restricted, force digest authentication
     if getattr(settings, 'AUTHENTICATE_XFORMS', False):
-        from django_digest import HttpDigestAuthenticator
         authenticator = HttpDigestAuthenticator()
         if not authenticator.authenticate(req):
             return authenticator.build_challenge_response()
     
     xform = get_object_or_404(XForm, pk=pk)
+    if not user_has_permission(req.user, xform):
+        return HttpResponse("You do not have permission to view this form", status=403)
+    
     resp = render_to_response(
         "xforms/odk_get_form.xml", { 'xform': xform }, 
         mimetype="text/xml",
@@ -74,9 +88,22 @@ def odk_get_form(req, pk):
     resp['Content-Disposition'] = 'attachment;filename="%s.xml"' % xform.keyword
     return resp
 
-@require_POST
 @csrf_exempt
 def odk_submission(req):
+    # if forms are restricted, force digest authentication
+    if getattr(settings, 'AUTHENTICATE_XFORMS', False):
+        authenticator = HttpDigestAuthenticator()
+        if not authenticator.authenticate(req):
+            return authenticator.build_challenge_response()
+
+    if req.method == 'HEAD':
+        # technically this should be a 201 according to the HTTP spec, but
+        # ODK collect requires 204 to move forward
+        return HttpResponse("OK", status=204)
+    elif req.method != 'POST':
+        # only POST and HEAD are supported
+        return HttpResponse("Invalid method", status=405)
+    
     values = {}
     xform = None
     raw = ""
@@ -103,6 +130,10 @@ def odk_submission(req):
     for key in req.FILES:
         if key != 'xml_submission_file':
             binaries[key] = req.FILES[key].file.read()
+
+    # check that they have the correct permissions
+    if not user_has_permission(req.user, xform):
+        return HttpResponse("You do not have permission to view this form", status=403)
 
     # if we found the xform
     submission = xform.process_odk_submission(raw, values, binaries)

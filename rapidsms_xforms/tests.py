@@ -19,6 +19,8 @@ from django.core.urlresolvers import reverse
 class ModelTest(TestCase): #pragma: no cover
 
     def setUp(self):
+        settings.AUTHENTICATE_XFORMS = False
+
         self.user = User.objects.create_user('fred', 'fred@wilma.com', 'secret')
         self.user.save()
 
@@ -187,6 +189,8 @@ class ModelTest(TestCase): #pragma: no cover
 class SubmissionTest(TestCase): #pragma: no cover
     
     def setUp(self):
+        settings.AUTHENTICATE_XFORMS = False
+        
         # bootstrap a form
         self.user = User.objects.create_user('fred', 'fred@wilma.com', 'secret')
         self.user.save()
@@ -955,6 +959,7 @@ class SubmissionTest(TestCase): #pragma: no cover
         f4 = xform.fields.create(field_type=XFormField.TYPE_VIDEO, name='video', command='video', order=3)
 
         c = Client()
+
         response = c.get("/xforms/odk/get/%d/" % xform.id)
         self.assertEquals(200, response.status_code)
 
@@ -1135,5 +1140,33 @@ class SubmissionTest(TestCase): #pragma: no cover
         forms = xml.getElementsByTagName("forms")[0].getElementsByTagName("form")
         self.assertEquals(2, len(forms))
         self.assertEquals('test', forms[0].firstChild.wholeText)
-        self.assertEquals('restricted', forms[1].firstChild.wholeText)        
+        self.assertEquals('restricted', forms[1].firstChild.wholeText)
 
+    def testODKGetSecurity(self):
+        c = Client()
+        form_url = reverse('odk_form', args=[self.xform.id])
+
+        # fetching it normally, no problem
+        response = c.get(form_url)
+        self.assertEquals(200, response.status_code)
+
+        # fetching it when restricted, 401
+        self.group = Group.objects.create(name="Reporters")
+        self.user.groups.add(self.group)
+        self.xform.restrict_to.add(self.group)        
+
+        response = c.get(form_url)
+        self.assertEquals(403, response.status_code)
+
+        # logged in then ok
+        c.login(username="fred", password="secret")        
+
+        response = c.get(form_url)
+        self.assertEquals(200, response.status_code)
+
+        # remove restriction, still ok
+        self.xform.restrict_to.remove(self.group)
+
+        response = c.get(form_url)
+        self.assertEquals(200, response.status_code)        
+        
