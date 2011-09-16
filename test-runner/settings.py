@@ -202,4 +202,4 @@ if 'test' in sys.argv:
         
 
 XFORMS_HOST = "192.168.1.106:8000"
-AUTHENTICATE_XFORMS = True
+AUTHENTICATE_XFORMS = False

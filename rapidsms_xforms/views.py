@@ -41,33 +41,16 @@ def odk_list_forms(req):
         if not authenticator.authenticate(req):
             return authenticator.build_challenge_response()
 
-    if req.user:
-        # first those forms that have no restrictions
-        xforms = set(XForm.on_site.filter(active=True, restrict_to=None))
-
-        # then add in all forms for each group the user is part of
-        for group in req.user.groups.all():
-            group_forms = set(XForm.on_site.filter(active=True, restrict_to=group))
-            xforms |= group_forms
-    else:
-        xforms = XForm.on_site.all().filter(active=True, restrict_to=None)
+    xforms = []
+    for form in XForm.on_site.filter(active=True):
+        if form.does_user_have_permission(req.user):
+            xforms.append(form)
         
     return render_to_response(
         "xforms/odk_list_forms.xml", 
         { 'xforms': xforms, 'host':  settings.XFORMS_HOST }, 
         mimetype="text/xml",
         context_instance=RequestContext(req))
-
-def user_has_permission(user, xform):
-    if xform.restrict_to.all():
-        if user:
-            matches = set(user.groups.all()) & set(xform.restrict_to.all())
-
-            # user must be part of at least one of the form's restricted groups
-            return len(matches) > 0
-
-    # no restrictions means the user has permission no matter what
-    return True
 
 @require_GET
 def odk_get_form(req, pk):
@@ -78,7 +61,7 @@ def odk_get_form(req, pk):
             return authenticator.build_challenge_response()
     
     xform = get_object_or_404(XForm, pk=pk)
-    if not user_has_permission(req.user, xform):
+    if not xform.does_user_have_permission(req.user):
         return HttpResponse("You do not have permission to view this form", status=403)
     
     resp = render_to_response(
@@ -132,7 +115,7 @@ def odk_submission(req):
             binaries[key] = req.FILES[key].file.read()
 
     # check that they have the correct permissions
-    if not user_has_permission(req.user, xform):
+    if not xform.does_user_have_permission(req.user):
         return HttpResponse("You do not have permission to view this form", status=403)
 
     # if we found the xform

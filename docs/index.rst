@@ -155,6 +155,7 @@ Contents:
    fields
    signals
    submissions
+   security
 
 Indices and tables
 ==================

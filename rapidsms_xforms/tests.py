@@ -7,7 +7,7 @@ from django.test import TestCase, TransactionTestCase
 from django.contrib.auth.models import User, Group
 from django.test.client import Client
 from django.core.exceptions import ValidationError
-from .models import XForm, XFormField, XFormFieldConstraint, xform_received
+from .models import XForm, XFormField, XFormFieldConstraint, xform_received, lookup_user_by_connection
 from eav.models import Attribute
 from django.contrib.sites.models import Site
 from .app import App
@@ -15,11 +15,13 @@ from rapidsms.messages.incoming import IncomingMessage
 from rapidsms.models import Connection, Backend
 from django.conf import settings
 from django.core.urlresolvers import reverse
+from django.db import models
 
 class ModelTest(TestCase): #pragma: no cover
 
     def setUp(self):
         settings.AUTHENTICATE_XFORMS = False
+        settings.AUTH_PROFILE_MODEL = None
 
         self.user = User.objects.create_user('fred', 'fred@wilma.com', 'secret')
         self.user.save()
@@ -186,10 +188,24 @@ class ModelTest(TestCase): #pragma: no cover
         self.failIfClean(field, '1', XFormField.TYPE_TEXT)
         self.failIfClean(field, '6', XFormField.TYPE_TEXT)
 
+class TestProfile(models.Model):
+
+    user = models.OneToOneField(User)
+    connection = models.ForeignKey(Connection)
+
+    @classmethod
+    def lookup_by_connection(cls, connection):
+        matches = TestProfile.objects.filter(connection=connection)
+        if matches:
+            return matches[0]
+        else:
+            return None
+
 class SubmissionTest(TestCase): #pragma: no cover
     
     def setUp(self):
         settings.AUTHENTICATE_XFORMS = False
+        settings.AUTH_PROFILE_MODEL = None
         
         # bootstrap a form
         self.user = User.objects.create_user('fred', 'fred@wilma.com', 'secret')
@@ -1168,5 +1184,68 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.xform.restrict_to.remove(self.group)
 
         response = c.get(form_url)
-        self.assertEquals(200, response.status_code)        
+        self.assertEquals(200, response.status_code)
+
+    def testUserLookup(self):
+        """
+        Tests that we can look up a user by a connection if a model with a
+        connection_set is used as the Django Profile object
+        """
+        butt = Backend.objects.create(name='fanny')
+        conn1 = Connection.objects.create(identity='0721234567', backend=butt)
+        conn2 = Connection.objects.create(identity='0781234567', backend=butt)
+
+        # first try with no profile set
+        self.assertEquals(None, lookup_user_by_connection(conn1))
+
+        # create a profile class
+        settings.AUTH_PROFILE_MODEL = 'rapidsms_xforms.tests.TestProfile'
+
+        # profile set but no profile objects mapped should still be no connection
+        self.assertEquals(None, lookup_user_by_connection(conn1))
+
+        # but now let's associate our user with our connection
+        TestProfile.objects.create(user=self.user, connection=conn1)
+
+        # now we should get the user for this connection
+        self.assertEquals(self.user, lookup_user_by_connection(conn1))
+
+        # but nothing for our other connection
+        self.assertEquals(None, lookup_user_by_connection(conn2))   
+
+    def testSMSSecurity(self):
+        """
+        Tests that forms with restrict_to set will only accept submissions that are valid.
+        """
+        # add restrict to and restict_message to our xform
+        self.group = Group.objects.create(name="Reporters")
+
+        self.xform.restrict_to.add(self.group)
+        self.xform.restrict_message = "You don't have permission to submit this form"
+        self.xform.save()
         
+        butt = Backend.objects.create(name='fanny')
+        conn1 = Connection.objects.create(identity='0721234567', backend=butt)
+        conn2 = Connection.objects.create(identity='0781234567', backend=butt)
+
+        submission = self.xform.process_sms_submission(IncomingMessage(conn1, "survey +age 10 +name matt berg +gender male"))
+
+        # should have an error
+        self.assertEquals(True, submission.has_errors)
+        self.assertEquals(self.xform.restrict_message, submission.response)
+
+        # now add the profile model
+        settings.AUTH_PROFILE_MODEL = 'rapidsms_xforms.tests.TestProfile'
+
+        # add our user to the group
+        self.user.groups.add(self.group)
+        TestProfile.objects.create(connection=conn1, user=self.user)
+
+        # now we should be able to submit
+        submission = self.xform.process_sms_submission(IncomingMessage(conn1, "survey +age 10 +name matt berg +gender male"))
+        self.assertEquals(False, submission.has_errors)
+
+        # but conn2 cannot
+        submission = self.xform.process_sms_submission(IncomingMessage(conn2, "survey +age 10 +name matt berg +gender male"))
+        self.assertEquals(True, submission.has_errors)
+        self.assertEquals(self.xform.restrict_message, submission.response)
