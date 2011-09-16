@@ -300,6 +300,13 @@ def reorganize_location(key, report, report_dict):
         report_dict[location][key] = rdict['value']
 
 
+def reorganize_dictionary(key, report, report_dict, unique_key, default_values, value_key):
+    for rdict in report:
+        id = rdict[unique_key]
+        report_dict.setdefault(id, {default_values:rdict[default_values]})
+        report_dict[id][key] = rdict[value_key]
+
+
 def reorganize_timespan(timespan, report, report_dict, location_list, request=None):
     for rdict in report:
         time = rdict[timespan]
