@@ -13,6 +13,8 @@ from eav.fields import EavSlugField
 
 from uni_form.helpers import FormHelper, Layout, Fieldset
 from django.core.paginator import Paginator
+from django_digest import HttpDigestAuthenticator
+from django.http import HttpResponse
 
 # CSV Export
 @require_GET
@@ -33,26 +35,58 @@ def submissions_as_csv(req, pk):
 # ODK Endpoints
 @require_GET
 def odk_list_forms(req):
-    xforms = XForm.on_site.all().filter(active=True)
+    # if forms are restricted, force digest authentication
+    if getattr(settings, 'AUTHENTICATE_XFORMS', False):
+        authenticator = HttpDigestAuthenticator()
+        if not authenticator.authenticate(req):
+            return authenticator.build_challenge_response()
+
+    xforms = []
+    for form in XForm.on_site.filter(active=True):
+        if form.does_user_have_permission(req.user):
+            xforms.append(form)
+        
     return render_to_response(
         "xforms/odk_list_forms.xml", 
         { 'xforms': xforms, 'host':  settings.XFORMS_HOST }, 
-        mimetype="application/xml",
+        mimetype="text/xml",
         context_instance=RequestContext(req))
 
 @require_GET
 def odk_get_form(req, pk):
+    # if forms are restricted, force digest authentication
+    if getattr(settings, 'AUTHENTICATE_XFORMS', False):
+        authenticator = HttpDigestAuthenticator()
+        if not authenticator.authenticate(req):
+            return authenticator.build_challenge_response()
+    
     xform = get_object_or_404(XForm, pk=pk)
+    if not xform.does_user_have_permission(req.user):
+        return HttpResponse("You do not have permission to view this form", status=403)
+    
     resp = render_to_response(
         "xforms/odk_get_form.xml", { 'xform': xform }, 
-        mimetype="application/xml",
+        mimetype="text/xml",
         context_instance=RequestContext(req))
     resp['Content-Disposition'] = 'attachment;filename="%s.xml"' % xform.keyword
     return resp
 
-@require_POST
 @csrf_exempt
 def odk_submission(req):
+    # if forms are restricted, force digest authentication
+    if getattr(settings, 'AUTHENTICATE_XFORMS', False):
+        authenticator = HttpDigestAuthenticator()
+        if not authenticator.authenticate(req):
+            return authenticator.build_challenge_response()
+
+    if req.method == 'HEAD':
+        # technically this should be a 201 according to the HTTP spec, but
+        # ODK collect requires 204 to move forward
+        return HttpResponse("OK", status=204)
+    elif req.method != 'POST':
+        # only POST and HEAD are supported
+        return HttpResponse("Invalid method", status=405)
+    
     values = {}
     xform = None
     raw = ""
@@ -80,6 +114,10 @@ def odk_submission(req):
         if key != 'xml_submission_file':
             binaries[key] = req.FILES[key].file.read()
 
+    # check that they have the correct permissions
+    if not xform.does_user_have_permission(req.user):
+        return HttpResponse("You do not have permission to view this form", status=403)
+
     # if we found the xform
     submission = xform.process_odk_submission(raw, values, binaries)
 
@@ -106,62 +144,57 @@ def xforms(req):
         { 'xforms': xforms, 'breadcrumbs': breadcrumbs },
         context_instance=RequestContext(req))
 
+def XFormForm(*args, **kwargs):
+    required_fields = ['Form Settings', 'name', 'keyword', 'description', 'response', 'active']
+    form_fields = ['name', 'keyword','keyword_prefix', 'command_prefix', 'separator', 'description', 'response', 'active', 'restrict_to', 'restrict_message']
 
-class NewXFormForm(forms.ModelForm): # pragma: no cover
-    class Meta:
-        model = XForm
-        fields = ('name', 'keyword','keyword_prefix', 'command_prefix', 'separator', 'description', 'response')
+    if 'excludes' in kwargs:
+        excludes = kwargs.pop('excludes')
+        for exclude in excludes:
+            required_fields.remove(exclude)
+            form_fields.remove(exclude)
 
-    helper = FormHelper()
+    class CustomXFormForm(forms.ModelForm):
+
+        def clean(self):
+            cleaned = super(CustomXFormForm, self).clean()
+
+            # if they are restricting to a group
+            if cleaned['restrict_to'] and not cleaned['restrict_message']:
+                raise forms.ValidationError("You must enter a message to display if you are restricting the form.")
+
+            return cleaned
         
-    layout = Layout(
-        # first fieldset shows the company
-        Fieldset('', 
-                 'name',
-                 'keyword',
-                 'description',
-                 'response'),
-        
-        # second fieldset shows the contact info
-        Fieldset('Advanced Settings',
-                 'keyword_prefix',
-                 'command_prefix',
-                 'separator'
-                 )
-        )
+        class Meta:
+            model = XForm
+            fields = form_fields
+
+        helper = FormHelper()
+        layout = Layout(
+            # required fields
+            Fieldset(*required_fields),
+            
+            # optional attributes
+            Fieldset('Advanced Settings',
+                     'keyword_prefix',
+                     'command_prefix',
+                     'separator',
+                     ),
+            
+            # security
+            Fieldset('Security',
+                     'restrict_to',
+                     'restrict_message',
+                     )        
+            )
     
-    helper.add_layout(layout)
+        helper.add_layout(layout)
 
-class EditXFormForm(forms.ModelForm): # pragma: no cover
-    class Meta:
-        model = XForm
-        fields = ('name', 'keyword','keyword_prefix', 'command_prefix', 'separator', 'description', 'response', 'active')
-
-
-    helper = FormHelper()
-        
-    layout = Layout(
-        # first fieldset shows the company
-        Fieldset('', 
-                 'name',
-                 'keyword',
-                 'description',
-                 'response',
-                 'active'),
-        
-        # second fieldset shows the contact info
-        Fieldset('Advanced Settings',
-                 'keyword_prefix',
-                 'command_prefix',
-                 'separator'
-                 )
-        )
-    
-    helper.add_layout(layout)
+    return CustomXFormForm(*args, **kwargs)
 
 def new_xform(req):
     if req.method == 'POST':
-        form = NewXFormForm(req.POST)
+        form = XFormForm(req.POST, excludes=('active',))
         if form.is_valid():
             # create our XForm
             xform = form.save(commit=False)
@@ -177,7 +210,7 @@ def new_xform(req):
 
             return redirect("/xforms/%d/view/" % xform.pk)
     else:
-        form = NewXFormForm()
+        form = XFormForm(excludes=('active',))
 
     breadcrumbs = (('XForms', '/xforms/'),('New XForm', ''))
 
@@ -208,14 +241,14 @@ def edit_form(req, form_id):
     breadcrumbs = (('XForms', '/xforms/'),('Edit Form', ''))
 
     if req.method == 'POST':
-        form = EditXFormForm(req.POST, instance=xform)
+        form = XFormForm(req.POST, instance=xform)
         if form.is_valid():
             xform = form.save()
             return render_to_response("xforms/form_details.html", 
                 {"xform" : xform},
                 context_instance=RequestContext(req))
     else:
-        form = EditXFormForm(instance=xform)
+        form = XFormForm(instance=xform)
 
     return render_to_response("xforms/form_edit.html", 
         { 'form': form, 'xform': xform, 'fields': fields, 'field_count' : len(fields), 'breadcrumbs' : breadcrumbs },

@@ -9,7 +9,9 @@ setup(
         "django>=1.3",
         "rapidsms==0.9.6a",
         "django-uni-form==0.8.0",
-        "django-eav==0.9.2"
+        "django-eav==0.9.2",
+        "python-digest==1.7",
+        "django-digest==1.13"
     ],
 
     dependency_links = [

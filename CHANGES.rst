@@ -4,6 +4,11 @@ Version History
 
 Many thanks to everyone who submits pull requests.  We'll merge in most changes that are unit tested and well thought out.
 
+0.4.0
+-----
+ - nicpottier: paginate submissions, about time
+ - nicpottier: add security framework for authentication either SMS or XForms submissions, see docs (added django_digest dependency)
+
 0.3.6
 -----
  - nicpottier: added ability to submit photos, sounds and videos from ODK clients

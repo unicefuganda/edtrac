@@ -17,6 +17,8 @@ from django.contrib.sites.managers import CurrentSiteManager
 from rapidsms.models import ExtensibleModelBase
 from eav.fields import EavSlugField
 from django.core.files.base import ContentFile
+from django.contrib.auth.models import Group
+from django.conf import settings
 
 class XForm(models.Model):
     """
@@ -54,6 +56,11 @@ class XForm(models.Model):
 
     separator = models.CharField(max_length=1, choices=SEPARATOR_CHOICES, null=True, blank=True,
                                  help_text="The separator character for fields, field values will be split on this character.")
+
+    restrict_to = models.ManyToManyField(Group, null=True, blank=True,
+                                         help_text="Restrict submissions to users of this group (if unset, anybody can submit this form)")
+    restrict_message = models.CharField(max_length=160, null=True, blank=True,
+                                        help_text="The error message that will be returned to users if they do not have the right privileges to submit this form.  Only required if the field is restricted.")
 
     owner = models.ForeignKey(User)
     created = models.DateTimeField(auto_now_add=True)
@@ -585,10 +592,30 @@ class XForm(models.Model):
         # set our transient response
         submission.response = sub_dict['response']
 
+        # do they have the right permissions?
+        user = lookup_user_by_connection(connection)
+        if not self.does_user_have_permission(user):
+            submission.has_errors = True
+            submission.save()
+
+            submission.response = self.restrict_message
+
         # trigger our signal
         xform_received.send(sender=self, xform=self, submission=submission, message=message_obj)
 
         return submission
+
+    def does_user_have_permission(self, user):
+        """
+        Does the passed in user have permission to submit / view this form?
+        """
+        # is there a custom permission checker?
+        custom_checker = getattr(settings, 'XFORMS_AUTHENTICATION_CHECKER', 'rapidsms_xforms.models.can_user_use_form')
+        if custom_checker:
+            checker_func = import_from_string(custom_checker)
+            return checker_func(user, self)
+
+        return True
 
     def check_template(self, template):
         """
@@ -1137,6 +1164,80 @@ def dl_distance(s1, s2):
  
     return d[lenstr1-1,lenstr2-1]
 
+def import_from_string(kls):
+    """
+    Used below to load the class object dynamically by name
+    """
+    parts = kls.split('.')
+    module = ".".join(parts[:-1])
+    m = __import__( module )
+    for comp in parts[1:]:
+        m = getattr(m, comp)            
+    return m
 
+def can_user_use_form(user, xform):
+    """
+    Default permission picker for forms.  Logic is this:
+       1) if the form is not restricted, return True
+       2) if the form is restricted and there is no user, return False
+       3) otherwise return if the user is part of the any of the groups the form is restricted to
+    """
+    # if this form has restrictions
+    if xform.restrict_to.all():
+        # and they are logged in
+        if user:
+            matches = set(user.groups.all()) & set(xform.restrict_to.all())
+            
+            # then the user must be part of at least one of the form's restricted groups
+            return len(matches) > 0
+        else:
+            # otherwise, they don't have permission
+            return False
 
+    # no restrictions means the user has permission no matter what
+    return True
 
+def lookup_user_by_connection(connection):
+    """
+    Tries to look up a Django user by looking for a matching Connection object in
+    the Django Profile object set in settings.py.
+
+    The recommended method of doing that is using the rapidsms-auth library:
+        https://github.com/unicefuganda/rapidsms-auth
+
+    Though any Profile object which is a foreign key to Connection will work.
+       (ie has a connection_set queryable field)
+    """
+    # is there a custom user lookup function
+    custom_lookup = getattr(settings, 'XFORMS_USER_LOOKUP', 'rapidsms_xforms.models.profile_connection_lookup')
+    if custom_lookup:
+        lookup_func = import_from_string(custom_lookup)
+        return lookup_func(connection)
+
+    return None
+
+def profile_connection_lookup(connection):
+    """
+    Default implementation for the XFORMS_USER_LOOKUP hook.  This looks for a Profile
+    model that has a 'lookup_by_connection' method to do the lookups.
+    """
+    profile_model = getattr(settings, 'AUTH_PROFILE_MODEL', None)
+
+    # no auth profile set, then no way for us to tie them together, bail
+    if not profile_model:
+        return None
+
+    # otherwise, use the model to look up the object
+    clazz = import_from_string(profile_model)
+
+    # does it have a way of looking up a user?
+    lookup_method = getattr(clazz, 'lookup_by_connection', None)
+
+    profile = None
+    if lookup_method:
+        profile = lookup_method(connection)
+
+    if profile:
+        return profile.user
+    else:
+        return None

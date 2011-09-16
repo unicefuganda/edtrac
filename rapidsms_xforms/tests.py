@@ -4,20 +4,25 @@ Basic tests for XForms
 
 import os
 from django.test import TestCase, TransactionTestCase
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.test.client import Client
 from django.core.exceptions import ValidationError
-from .models import XForm, XFormField, XFormFieldConstraint, xform_received
+from .models import XForm, XFormField, XFormFieldConstraint, xform_received, lookup_user_by_connection
 from eav.models import Attribute
 from django.contrib.sites.models import Site
 from .app import App
 from rapidsms.messages.incoming import IncomingMessage
 from rapidsms.models import Connection, Backend
 from django.conf import settings
+from django.core.urlresolvers import reverse
+from django.db import models
 
 class ModelTest(TestCase): #pragma: no cover
 
     def setUp(self):
+        settings.AUTHENTICATE_XFORMS = False
+        settings.AUTH_PROFILE_MODEL = None
+
         self.user = User.objects.create_user('fred', 'fred@wilma.com', 'secret')
         self.user.save()
 
@@ -183,9 +188,25 @@ class ModelTest(TestCase): #pragma: no cover
         self.failIfClean(field, '1', XFormField.TYPE_TEXT)
         self.failIfClean(field, '6', XFormField.TYPE_TEXT)
 
+class TestProfile(models.Model):
+
+    user = models.OneToOneField(User)
+    connection = models.ForeignKey(Connection)
+
+    @classmethod
+    def lookup_by_connection(cls, connection):
+        matches = TestProfile.objects.filter(connection=connection)
+        if matches:
+            return matches[0]
+        else:
+            return None
+
 class SubmissionTest(TestCase): #pragma: no cover
     
     def setUp(self):
+        settings.AUTHENTICATE_XFORMS = False
+        settings.AUTH_PROFILE_MODEL = None
+        
         # bootstrap a form
         self.user = User.objects.create_user('fred', 'fred@wilma.com', 'secret')
         self.user.save()
@@ -954,6 +975,7 @@ class SubmissionTest(TestCase): #pragma: no cover
         f4 = xform.fields.create(field_type=XFormField.TYPE_VIDEO, name='video', command='video', order=3)
 
         c = Client()
+
         response = c.get("/xforms/odk/get/%d/" % xform.id)
         self.assertEquals(200, response.status_code)
 
@@ -1026,8 +1048,204 @@ class SubmissionTest(TestCase): #pragma: no cover
 
         binary = submission.values.get(attribute__name='video').value.binary
         self.failUnlessEqual("binary/test__video.mp4", binary.name)
-        self.failUnlessEqual("vidfile", binary.read())        
-        
+        self.failUnlessEqual("vidfile", binary.read())
 
+
+    def testRestrictMessage(self):
+        c = Client()
+
+        self.group = Group.objects.create(name="Reporters")
+
+        c.login(username="fred", password="secret")
+
+        # try creating a new xform with no restrict_to
+        form_values = dict(name="Perm Form", keyword='perm', description="Permission test form",
+                           response="You were able to submit this you special person")
+        resp = c.post(reverse('xforms_create'), form_values, follow=True)
+
+        self.assertEquals(200, resp.status_code)
+        form = XForm.objects.get(keyword='perm')
+        self.assertTrue(form)
+
+        # reset
+        form.delete()
+
+        # this time we submit with a group to restrict to, but no message
+        form_values['restrict_to'] = self.group.id
+        resp = c.post(reverse('xforms_create'), form_values, follow=True)
+
+        # should fail
+        self.assertEquals(200, resp.status_code)
+        self.assertTrue(resp.context['form'].errors)
+
+        # but if we add in a message
+        form_values['restrict_message'] = "Sorry, you don't have permission to submit this form"
+        resp = c.post(reverse('xforms_create'), form_values, follow=True)
+
+        # should pass
+        self.assertEquals(200, resp.status_code)
+        form = XForm.objects.get(keyword='perm')
+        self.assertTrue(form)
+
+
+    def testODKAuth(self):
+        c = Client()
+        response = c.get(reverse('odk_list'))
+
+        # we should get a 200 back, there are no restrictions on viewing forms
+        self.assertEquals(200, response.status_code)
         
-          
+        from xml.dom.minidom import parseString
+        xml = parseString(response.content)
+
+        forms = xml.getElementsByTagName("forms")[0].getElementsByTagName("form")
+
+        self.assertEquals(1, len(forms))
+        self.assertEquals('test', forms[0].firstChild.wholeText)
+
+        settings.AUTHENTICATE_XFORMS = True
+
+        # try again now
+        response = c.get(reverse('odk_list'))        
+
+        # we should be asked to authenticate
+        self.assertEquals(401, response.status_code)
+
+    def testODKFiltering(self):
+        # tests that we only show those forms that we are allowed to view
+        c = Client()
+        c.login(username="fred", password="secret")
+
+        # we are aren't going to force authentication using DIGEST but instead
+        # use the session authentication used in Django for these tests
+        settings.AUTHENTICATE_XFORMS = False
+        
+        response = c.get(reverse('odk_list'))
+
+        from xml.dom.minidom import parseString
+        xml = parseString(response.content)
+
+        # no restrictions on this form, so should see just one form
+        forms = xml.getElementsByTagName("forms")[0].getElementsByTagName("form")
+        self.assertEquals(1, len(forms))
+        self.assertEquals('test', forms[0].firstChild.wholeText)
+
+        # create a group for reporters (fred not part of it)
+        self.group = Group.objects.create(name="Reporters")
+
+        restricted_form = XForm.on_site.create(name='restricted', keyword='restricted', owner=self.user, command_prefix='+', 
+                                               site=Site.objects.get_current(), response='thanks',
+                                               restrict_message="Sorry, you can't access this form")
+        restricted_form.restrict_to.add(self.group)
+
+        # get the list again, should not include this form
+        response = c.get(reverse('odk_list'))
+        xml = parseString(response.content)
+        
+        forms = xml.getElementsByTagName("forms")[0].getElementsByTagName("form")
+        self.assertEquals(1, len(forms))
+        self.assertEquals('test', forms[0].firstChild.wholeText)
+
+        # have fred join the reporters group
+        self.user.groups.add(self.group)
+
+        # now he should get all the forms
+        response = c.get(reverse('odk_list'))
+        xml = parseString(response.content)
+        
+        forms = xml.getElementsByTagName("forms")[0].getElementsByTagName("form")
+        self.assertEquals(2, len(forms))
+        self.assertEquals('test', forms[0].firstChild.wholeText)
+        self.assertEquals('restricted', forms[1].firstChild.wholeText)
+
+    def testODKGetSecurity(self):
+        c = Client()
+        form_url = reverse('odk_form', args=[self.xform.id])
+
+        # fetching it normally, no problem
+        response = c.get(form_url)
+        self.assertEquals(200, response.status_code)
+
+        # fetching it when restricted, 401
+        self.group = Group.objects.create(name="Reporters")
+        self.user.groups.add(self.group)
+        self.xform.restrict_to.add(self.group)        
+
+        response = c.get(form_url)
+        self.assertEquals(403, response.status_code)
+
+        # logged in then ok
+        c.login(username="fred", password="secret")        
+
+        response = c.get(form_url)
+        self.assertEquals(200, response.status_code)
+
+        # remove restriction, still ok
+        self.xform.restrict_to.remove(self.group)
+
+        response = c.get(form_url)
+        self.assertEquals(200, response.status_code)
+
+    def testUserLookup(self):
+        """
+        Tests that we can look up a user by a connection if a model with a
+        connection_set is used as the Django Profile object
+        """
+        butt = Backend.objects.create(name='fanny')
+        conn1 = Connection.objects.create(identity='0721234567', backend=butt)
+        conn2 = Connection.objects.create(identity='0781234567', backend=butt)
+
+        # first try with no profile set
+        self.assertEquals(None, lookup_user_by_connection(conn1))
+
+        # create a profile class
+        settings.AUTH_PROFILE_MODEL = 'rapidsms_xforms.tests.TestProfile'
+
+        # profile set but no profile objects mapped should still be no connection
+        self.assertEquals(None, lookup_user_by_connection(conn1))
+
+        # but now let's associate our user with our connection
+        TestProfile.objects.create(user=self.user, connection=conn1)
+
+        # now we should get the user for this connection
+        self.assertEquals(self.user, lookup_user_by_connection(conn1))
+
+        # but nothing for our other connection
+        self.assertEquals(None, lookup_user_by_connection(conn2))   
+
+    def testSMSSecurity(self):
+        """
+        Tests that forms with restrict_to set will only accept submissions that are valid.
+        """
+        # add restrict to and restict_message to our xform
+        self.group = Group.objects.create(name="Reporters")
+
+        self.xform.restrict_to.add(self.group)
+        self.xform.restrict_message = "You don't have permission to submit this form"
+        self.xform.save()
+        
+        butt = Backend.objects.create(name='fanny')
+        conn1 = Connection.objects.create(identity='0721234567', backend=butt)
+        conn2 = Connection.objects.create(identity='0781234567', backend=butt)
+
+        submission = self.xform.process_sms_submission(IncomingMessage(conn1, "survey +age 10 +name matt berg +gender male"))
+
+        # should have an error
+        self.assertEquals(True, submission.has_errors)
+        self.assertEquals(self.xform.restrict_message, submission.response)
+
+        # now add the profile model
+        settings.AUTH_PROFILE_MODEL = 'rapidsms_xforms.tests.TestProfile'
+
+        # add our user to the group
+        self.user.groups.add(self.group)
+        TestProfile.objects.create(connection=conn1, user=self.user)
+
+        # now we should be able to submit
+        submission = self.xform.process_sms_submission(IncomingMessage(conn1, "survey +age 10 +name matt berg +gender male"))
+        self.assertEquals(False, submission.has_errors)
+
+        # but conn2 cannot
+        submission = self.xform.process_sms_submission(IncomingMessage(conn2, "survey +age 10 +name matt berg +gender male"))
+        self.assertEquals(True, submission.has_errors)
+        self.assertEquals(self.xform.restrict_message, submission.response)

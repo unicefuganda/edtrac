@@ -11,8 +11,10 @@
 # see: http://docs.djangoproject.com/en/dev/ref/settings/#databases
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": "rapidsms.sqlite3",
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "xforms",
+        "USER": "xforms",
+        "PASSWORD": "xforms"
     }
 }
 
@@ -82,6 +84,8 @@ INSTALLED_APPS = [
     "rapidsms.contrib.registration",
     "rapidsms.contrib.scheduler",
     "rapidsms.contrib.echo",
+
+    "django_digest",
 
     "eav",
     "uni_form",
@@ -180,7 +184,6 @@ TEST_EXCLUDED_APPS = [
 # the project-level url patterns
 ROOT_URLCONF = "urls"
 
-
 # since we might hit the database from any thread during testing, the
 # in-memory sqlite database isn't sufficient. it spawns a separate
 # virtual database for each thread, and syncdb is only called for the
@@ -195,5 +198,8 @@ if 'test' in sys.argv:
         DATABASES[db_name]['TEST_NAME'] = os.path.join(
             tempfile.gettempdir(),
             "%s.rapidsms.test.sqlite3" % db_name)
+        DATABASES[db_name]['ENGINE'] = "django.db.backends.sqlite3"
+        
 
-XFORMS_HOST = "192.168.1.103:8000"
+XFORMS_HOST = "192.168.1.106:8000"
+AUTHENTICATE_XFORMS = False
