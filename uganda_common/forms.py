@@ -65,6 +65,7 @@ class SMSInput(forms.Textarea):
         $(submit_btn).disabled = !ok;
         $(counter_container).html(str);
         }
+        $('.smsinput').change(setInterval(function() {count_characters('.smsinput','.counter','foo');},500));
              //]]>
         </script>
 
@@ -85,6 +86,5 @@ class SMSInput(forms.Textarea):
         """
         attrs = {'style':style}
         attrs['class'] = "smsinput"
-        attrs['Onchange'] = "setInterval(function() {count_characters('.smsinput','.counter','foo');}, 500);"
         return mark_safe(
                 "%s<div class='counter'></div>" % super(SMSInput, self).render(name, value, attrs) + javascript)
