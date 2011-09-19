@@ -77,13 +77,17 @@ class FreeSearchForm(FilterForm):
         TO DO: add ability to search for multiple search terms separated by 'or'
     """
 
-    search = forms.CharField(max_length=100, required=True, label="Free-form search", help_text="Use 'or' to search for multiple names")
+    search = forms.CharField(max_length=100, required=False, label="Free-form search", 
+                             help_text="Use 'or' to search for multiple names")
 
     def filter(self, request, queryset):
         search = self.cleaned_data['search']
-        return queryset.filter(Q(name__icontains=search)
-                               | Q(reporting_location__name__icontains=search)
-                               | Q(connection__identity__icontains=search))
+        if search == "":
+            return queryset
+        else:
+            return queryset.filter(Q(name__icontains=search)
+                                   | Q(reporting_location__name__icontains=search)
+                                   | Q(connection__identity__icontains=search))
 
 class FreeSearchTextForm(FilterForm):
 
@@ -96,7 +100,9 @@ class FreeSearchTextForm(FilterForm):
         return queryset.filter(text__icontains=search)
 
 class HandledByForm(FilterForm):
-    type = forms.ChoiceField(choices=(('', '-----'), ('poll', 'Poll Response'), ('rapidsms_xforms', 'Report'), ('*', 'Other'),))
+    type = forms.ChoiceField(
+            choices=(('', '-----'), ('poll', 'Poll Response'), ('rapidsms_xforms', 'Report'), ('*', 'Other'),),\
+            required=False)
 
     def filter(self, request, queryset):
         handled_by = self.cleaned_data['type']
@@ -116,7 +122,7 @@ class DistictFilterForm(FilterForm):
                                  'No District')) + tuple([(int(d.pk),
                                  d.name) for d in
                                  Location.objects.filter(type__slug='district'
-                                 ).order_by('name')]))
+                                 ).order_by('name')]),required=False)
 
     def filter(self, request, queryset):
         district_pk = self.cleaned_data['district']
@@ -143,7 +149,7 @@ class DistictFilterMessageForm(FilterForm):
                                  'No District')) + tuple([(int(d.pk),
                                  d.name) for d in
                                  Location.objects.filter(type__slug='district'
-                                 ).order_by('name')]))
+                                 ).order_by('name')]),required=False)
 
     def filter(self, request, queryset):
         district_pk = self.cleaned_data['district']
@@ -298,7 +304,8 @@ class FlagMessageForm(ActionForm):
 class GenderFilterForm(FilterForm):
     """ filter contacts by their gender"""
 
-    gender = forms.ChoiceField(choices=(('', '-----'), ('M', 'Male'), ('F', 'Female'), ('None', 'N/A')))
+    gender = forms.ChoiceField(choices=(('', '-----'), ('M', 'Male'), ('F', 'Female'), ('None', 'N/A')),\
+                               required=False)
 
     def filter(self, request, queryset):
 
@@ -313,14 +320,16 @@ class GenderFilterForm(FilterForm):
             return queryset.filter(gender=None)
 class AgeFilterForm(FilterForm):
     """ filter contacts by their age """
-    flag = forms.ChoiceField(label='' , choices=(('', '-----'), ('+=', 'Equal to'), ('>', 'Greater than'), ('<', 'Less than'), ('None', 'N/A')))
-    age = forms.CharField(max_length=20, label="Age", widget=forms.TextInput(attrs={'size':'20'}))
+    flag = forms.ChoiceField(label='' , choices=(('', '-----'), ('+=', 'Equal to'), ('>', 'Greater than'), ('<',\
+                                        'Less than'), ('None', 'N/A')),required=False)
+    age = forms.CharField(max_length=20, label="Age", widget=forms.TextInput(attrs={'size':'20'}),required=False)
     def filter(self, request, queryset):
 
         flag = self.cleaned_data['flag']
-        age = int(self.cleaned_data['age'])
-        end = datetime.datetime.now()
-        start = end - datetime.timedelta(days=age * 365)
+        if not  self.cleaned_data['age'] =='':
+            age = int(self.cleaned_data['age'])
+            end = datetime.datetime.now()
+            start = end - datetime.timedelta(days=age * 365)
 
         if flag == '':
             return queryset
