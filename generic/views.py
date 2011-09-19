@@ -137,6 +137,8 @@ def generic(request,
             action_instance = action_class(request.POST, request=request)
             if action_instance.is_valid():
                 status_message, status_message_type = action_instance.perform(request, results)
+            else:
+                status_message,status_message_type=action_instance.errors,'error'
         else:
             # it's a new filter, re-start from the object list
             # and filter down on the new set of forms
