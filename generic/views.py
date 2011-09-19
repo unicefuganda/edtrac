@@ -146,7 +146,7 @@ def generic(request,
                 if form_instance.is_valid():
                     filtered_list = form_instance.filter(request, filtered_list)
                 else:
-                    status_message,status_message_type=action_instance.errors,'error'
+                    status_message,status_message_type=form_instance.errors,'error'
             selected = True
             # store the request filters in the session
             request.session[FILTER_REQUEST_KEY] = request.POST
