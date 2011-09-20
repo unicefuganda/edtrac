@@ -25,16 +25,16 @@ class XForm(models.Model):
     XForms also define their keyword which will be used when submitting via SMS.
     """
     PREFIX_CHOICES = (
-        ('+','Plus (+)'),
-        ('-','Dash (-)'),
+        ('+', 'Plus (+)'),
+        ('-', 'Dash (-)'),
     )
     SEPARATOR_CHOICES = (
-        (',','Comma (,)'),
-        (';','Semicolon (;)'),
-        (':','Colon (:)'),
-        ('*','Asterisk (*)'),
-        ('.','Period (.)'),
-        ('\\s','Whitespace'),
+        (',', 'Comma (,)'),
+        (';', 'Semicolon (;)'),
+        (':', 'Colon (:)'),
+        ('*', 'Asterisk (*)'),
+        ('.', 'Period (.)'),
+        ('\\s', 'Whitespace'),
         ('"', 'Quotation Mark'),
     )
 
@@ -49,7 +49,7 @@ class XForm(models.Model):
     active = models.BooleanField(default=True,
                                  help_text="Inactive forms will not accept new submissions.")
 
-    command_prefix = models.CharField(max_length=1, choices=PREFIX_CHOICES, null=True, blank=True,default='+',
+    command_prefix = models.CharField(max_length=1, choices=PREFIX_CHOICES, null=True, blank=True, default='+',
                                       help_text="The prefix required for optional field commands, defaults to '+'")
 
     keyword_prefix = models.CharField(max_length=1, choices=PREFIX_CHOICES, null=True, blank=True,
@@ -179,7 +179,7 @@ class XForm(models.Model):
             # no new value, we need to remove this one
             else:
                 value.delete()
-                
+
         # now add any remaining values in our dict
         for key, value in values.items():
             # look up the field by key
@@ -221,7 +221,7 @@ class XForm(models.Model):
         """
         fields = self.fields.all()
         for field in fields:
-            required=len(field.constraints.all().filter(type='req_val')) > 0
+            required = len(field.constraints.all().filter(type='req_val')) > 0
             if required and (field.command not in values or len(values[field.command]) == 0):
                 raise ValidationError('Required field %s not supplied' % field.command)
 
@@ -232,7 +232,7 @@ class XForm(models.Model):
                 field.clean_submission(values[field.command])
 
         # check if the values contain extra fields not in our form
-        for command, value in values.items():            
+        for command, value in values.items():
             fields = self.fields.filter(command=command)
             if len(fields) != 1 and command != "connection":
                 raise ValidationError("Could not resolve field for %s" % command)
@@ -256,11 +256,11 @@ class XForm(models.Model):
         # no comamnd prefix, check whether this is a command word
         if not self.command_prefix:
             segment_word = segment
-      
+
             if segment.find(' ') >= 0:
                 # split the segment on spaces
                 (segment_word, rest) = segment.split(' ', 1)
-            
+
             if segment_word.lower() in commands:
                 return segment_word
 
@@ -303,7 +303,7 @@ class XForm(models.Model):
         # if the separator is some non-whitespace character, and this form has only
         # one text-type field, the entire remainder can be considered its [command]-value pair
         if self.separator and self.separator != '\\s' and self.fields.count() == 1 and self.fields.all()[0].field_type == XFormField.TYPE_TEXT:
-            segments = [remainder,]
+            segments = [remainder, ]
         else:
             # split up the segments based on the separators
             segments = []
@@ -337,13 +337,13 @@ class XForm(models.Model):
                         # take the left and right sides of the prefix
                         left = segment[0:prefix_index]
                         right = segment[prefix_index:]
-                    
+
                         # append our left side to our list of stripped segments
                         stripped_segments.append(left.strip())
-                    
+
                         # make the right side our new segment
                         segment = right.strip()
-                    
+
                         # and see if it is worthy of stripping
                         prefix_index = segment.find(self.command_prefix)
 
@@ -351,7 +351,7 @@ class XForm(models.Model):
                     stripped_segments.append(segment)
 
         segments = stripped_segments
-        
+
         # build a dict of all our commands
         commands = dict()
         for field in self.fields.all():
@@ -380,7 +380,7 @@ class XForm(models.Model):
                 # pop it back on and break
                 segments.insert(0, segment)
                 break
- 
+
             # check for cases where a fully-alpha command and an integer value
             # are together with no separator (a common and unambiguous typeo),
             # e.g. 'age27'
@@ -401,7 +401,7 @@ class XForm(models.Model):
             except ValidationError as err:
                 errors.append(err)
                 break
-          
+
         # for any remaining segments, deal with them as command / value pairings
         while segments:
             # search for our command
@@ -421,11 +421,11 @@ class XForm(models.Model):
                 if match_num:
                     command_segment = segment[0:match_num.start()]
                     num_segment = segment[match_num.start():]
-                    possible_command = self.is_command(command_segment, commands)                    
+                    possible_command = self.is_command(command_segment, commands)
                     if possible_command and commands[possible_command.lower()].field_type == XFormField.TYPE_INT and num_segment.isdigit():
                         segments.insert(0, num_segment)
                         command = command_segment
-                
+
                 if command:
                     break
 
@@ -463,7 +463,7 @@ class XForm(models.Model):
                 if match_num:
                     command_segment = segment[0:match_num.start()]
                     num_segment = segment[match_num.start():]
-                    possible_command = self.is_command(command_segment, commands)                    
+                    possible_command = self.is_command(command_segment, commands)
                     if possible_command and commands[possible_command.lower()].field_type == XFormField.TYPE_INT and num_segment.isdigit():
                         segments.insert(0, num_segment)
                         segments.insert(0, command_segment)
@@ -482,7 +482,7 @@ class XForm(models.Model):
 
                     try:
                         cleaned = field.clean_submission(value)
-                        values.append(dict(name=field.command, value=cleaned))        
+                        values.append(dict(name=field.command, value=cleaned))
                     except ValidationError as err:
                         errors.append(err)
 
@@ -515,7 +515,7 @@ class XForm(models.Model):
             if name in value_count:
                 # add an error and remove the duplicate
                 errors.append(ValidationError("Expected one value for %s, more than one was given." % name))
-                values.remove(value_pair)                
+                values.remove(value_pair)
             else:
                 value_count[name] = 1
                 value_dict[name] = value_pair['value']
@@ -607,7 +607,7 @@ class XForm(models.Model):
         if sub_dict['has_errors']:
             # stuff them as a transient variable in our submission, our caller may message back
             submission.errors = sub_dict['errors']
-            
+
             # and set our db state as well
             submission.has_errors = True
             submission.save()
@@ -665,7 +665,7 @@ class XForm(models.Model):
         if self.keyword != self.__original_keyword:
             for field in self.fields.all():
                 field.save(force_update=True, using=using)
-                        
+
     def __unicode__(self): # pragma: no cover
         return self.name
 
@@ -680,7 +680,7 @@ class XFormField(Attribute):
     Note that when defining a field you must also define it's ``command`` which will
     be used to 'tag' the field in an SMS message.  ie: ``+age 10``
 
-    """ 
+    """
 
     TYPE_INT = Attribute.TYPE_INT
     TYPE_FLOAT = Attribute.TYPE_FLOAT
@@ -700,18 +700,19 @@ class XFormField(Attribute):
     # hook.
 
     TYPE_CHOICES = {
-        TYPE_INT:   dict( label='Integer', type=TYPE_INT, db_type=TYPE_INT, xforms_type='integer', parser=None, puller=None),
-        TYPE_FLOAT: dict( label='Decimal', type=TYPE_FLOAT, db_type=TYPE_FLOAT, xforms_type='decimal', parser=None, puller=None),
-        TYPE_TEXT:  dict( label='String', type=TYPE_TEXT, db_type=TYPE_TEXT, xforms_type='string', parser=None, puller=None)
+        TYPE_INT:   dict(label='Integer', type=TYPE_INT, db_type=TYPE_INT, xforms_type='integer', parser=None, puller=None),
+        TYPE_FLOAT: dict(label='Decimal', type=TYPE_FLOAT, db_type=TYPE_FLOAT, xforms_type='decimal', parser=None, puller=None),
+        TYPE_TEXT:  dict(label='String', type=TYPE_TEXT, db_type=TYPE_TEXT, xforms_type='string', parser=None, puller=None)
     }
 
     xform = models.ForeignKey(XForm, related_name='fields')
     field_type = models.SlugField(max_length=8, null=True, blank=True)
     command = EavSlugField(max_length=32)
     order = models.IntegerField(default=0)
+    question = models.TextField()
 
     objects = models.Manager()
-    on_site = CurrentSiteManager()    
+    on_site = CurrentSiteManager()
 
     class Meta:
         ordering = ('order', 'id')
@@ -736,7 +737,7 @@ class XFormField(Attribute):
                         the field is actually derived from attributes in the message itself.  Note that the string value returned will
                         then be passed off to the parser.
         """
-        XFormField.TYPE_CHOICES[field_type] = dict(type=field_type, label=label, 
+        XFormField.TYPE_CHOICES[field_type] = dict(type=field_type, label=label,
                                                    db_type=db_type, parser=parserFunc,
                                                    xforms_type=xforms_type, puller=puller)
 
@@ -814,7 +815,7 @@ class XFormField(Attribute):
         # now check our actual constraints if any
         for constraint in self.constraints.order_by('order'):
             constraint.validate(value)
-        
+
         return cleaned_value
 
     def xform_type(self):
@@ -863,7 +864,7 @@ class XFormField(Attribute):
             elif constraint.type == 'max_len':
                 constraints += delim + "regex(., '^.{0,%s}$')" % constraint.test
                 delim = " and "
-            
+
             elif constraint.type == 'regex':
                 constraints += delim + "regex(., '%s')" % constraint.test
                 delim = " and "
@@ -903,7 +904,7 @@ class XFormFieldConstraint(models.Model):
     constraints.
     """
     field = models.ForeignKey(XFormField, related_name='constraints')
-    
+
     type = models.CharField(max_length=10, choices=CONSTRAINT_CHOICES)
     test = models.CharField(max_length=255, null=True)
     message = models.CharField(max_length=100)
@@ -1027,7 +1028,7 @@ class XFormSubmissionValue(Value):
 
     def cleaned(self):
         return self.field.clean_submission(self.value)
-    
+
     def value_formatted(self):
         """
         Returns a nicer version of our value, mostly just shortening decimals to be more sane.
@@ -1060,11 +1061,11 @@ def create_geopoint(command, value):
             test = float(coord)
         except ValueError:
             raise ValidationError("+%s parameter must be GPS coordinates the format 'lat long'" % command)
-        
+
     # lat needs to be between -90 and 90
     if float(coords[0]) < -90 or float(coords[0]) > 90:
         raise ValidationError("+%s parameter has invalid latitude, must be between -90 and 90" % command)
-        
+
     # lng needs to be between -180 and 180
     if float(coords[1]) < -180 or float(coords[1]) > 180:
         raise ValidationError("+%s parameter has invalid longitude, must be between -180 and 180" % command)
@@ -1092,26 +1093,26 @@ def dl_distance(s1, s2):
     d = {}
     lenstr1 = len(s1)
     lenstr2 = len(s2)
-    for i in xrange(-1,lenstr1+1):
-        d[(i,-1)] = i+1
-    for j in xrange(-1,lenstr2+1):
-        d[(-1,j)] = j+1
- 
-    for i in xrange(0,lenstr1):
-        for j in xrange(0,lenstr2):
+    for i in xrange(-1, lenstr1 + 1):
+        d[(i, -1)] = i + 1
+    for j in xrange(-1, lenstr2 + 1):
+        d[(-1, j)] = j + 1
+
+    for i in xrange(0, lenstr1):
+        for j in xrange(0, lenstr2):
             if s1[i] == s2[j]:
                 cost = 0
             else:
                 cost = 1
-            d[(i,j)] = min(
-                           d[(i-1,j)] + 1, # deletion
-                           d[(i,j-1)] + 1, # insertion
-                           d[(i-1,j-1)] + cost, # substitution
+            d[(i, j)] = min(
+                           d[(i - 1, j)] + 1, # deletion
+                           d[(i, j - 1)] + 1, # insertion
+                           d[(i - 1, j - 1)] + cost, # substitution
                           )
-            if i>1 and j>1 and s1[i]==s2[j-1] and s1[i-1] == s2[j]:
-                d[(i,j)] = min (d[(i,j)], d[i-2,j-2] + cost) # transposition
- 
-    return d[lenstr1-1,lenstr2-1]
+            if i > 1 and j > 1 and s1[i] == s2[j - 1] and s1[i - 1] == s2[j]:
+                d[(i, j)] = min (d[(i, j)], d[i - 2, j - 2] + cost) # transposition
+
+    return d[lenstr1 - 1, lenstr2 - 1]
 
 
 
