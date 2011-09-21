@@ -20,6 +20,7 @@ from uganda_common.forms import SMSInput
 from django.conf import settings
 import datetime
 from rapidsms_httprouter.models import Message
+from django.forms.util import ErrorList
 
 
 class ReplyForm(forms.Form):
@@ -73,11 +74,11 @@ class NewContactForm(forms.ModelForm):
 
 class FreeSearchForm(FilterForm):
 
-    """ concrete implementation of filter form 
+    """ concrete implementation of filter form
         TO DO: add ability to search for multiple search terms separated by 'or'
     """
 
-    search = forms.CharField(max_length=100, required=False, label="Free-form search", 
+    search = forms.CharField(max_length=100, required=False, label="Free-form search",
                              help_text="Use 'or' to search for multiple names")
 
     def filter(self, request, queryset):
@@ -173,7 +174,8 @@ class MassTextForm(ActionForm):
     action_label = 'Send Message'
 
     def clean_text(self):
-        text = self.cleaned_data['text']
+        cleaned_data=self.cleaned_data
+        text = cleaned_data['text']
 
         #replace common MS-word characters with SMS-friendly characters
         for find, replace in [(u'\u201c', '"'),
@@ -190,7 +192,8 @@ class MassTextForm(ActionForm):
                               (u'\xa4', ''),
                               (u'\xc4', 'A')]:
             text = text.replace(find, replace)
-        return text
+        cleaned_data['text']=text
+        return cleaned_data
 
     def perform(self, request, results):
         if results is None or len(results) == 0:
