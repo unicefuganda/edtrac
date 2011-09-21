@@ -44,9 +44,9 @@ class NewPollForm(forms.Form): # pragma: no cover
         cleaned_data = self.cleaned_data
         contacts = cleaned_data.get('contacts')
         groups = cleaned_data.get('groups')
-        cleaned_data['question'] = cleaned_data.get('question').replace('%', '%%')
+        cleaned_data['question'] = cleaned_data.get('question').replace('%', u'\u0025')
         if 'default_response' in cleaned_data:
-            cleaned_data['default_response'] = cleaned_data['default_response'].replace('%', '%%')
+            cleaned_data['default_response'] = cleaned_data['default_response'].replace('%', u'\u0025')
 
         if not contacts and not groups:
             raise forms.ValidationError("You must provide a set of recipients (either a group or a contact)")
@@ -60,7 +60,7 @@ class EditPollForm(forms.ModelForm): # pragma: no cover
 
     def clean(self):
         cleaned_data = self.cleaned_data
-        cleaned_data['default_response'] = cleaned_data.get('default_response').replace('%', '%%')
+        cleaned_data['default_response'] = cleaned_data.get('default_response').replace('%', u'\u0025')
         return cleaned_data
 
     # This may seem like a hack, but this allows time for the Contact model's
@@ -93,7 +93,7 @@ class CategoryForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = self.cleaned_data
-        cleaned_data['response'] = cleaned_data.get('response').replace('%', '%%')
+        cleaned_data['response'] = cleaned_data.get('response').replace('%', u'\u0025')
         return cleaned_data
 
     class Meta:
