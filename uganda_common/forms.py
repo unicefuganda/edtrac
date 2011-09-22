@@ -3,8 +3,14 @@ from django import forms
 from django.utils.safestring import mark_safe
 
 class DateRangeForm(forms.Form): # pragma: no cover
+
     start = forms.IntegerField(required=True, widget=forms.HiddenInput())
     end = forms.IntegerField(required=True, widget=forms.HiddenInput())
+    """
+    This quick helper is used to create and sanitize the date range form (a widget).
+    """
+    start_ts = forms.IntegerField(required=True, widget=forms.HiddenInput())
+    end_ts = forms.IntegerField(required=True, widget=forms.HiddenInput())
 
     def clean(self):
         cleaned_data = self.cleaned_data
