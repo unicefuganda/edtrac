@@ -12,13 +12,12 @@ Uganda Common reuses code that can be found in. Include the following on your py
 Code Structure
 ==============
 
-uganda_common
-+-templates
-- cache_manager.py
-- context_processors.py
-- forms.py
-- reports.py
-- utils.py
+* templates (a directory)
+* cache_manager.py
+* context_processors.py
+* forms.py
+* reports.py
+* utils.py
 
 
 Features
@@ -34,9 +33,10 @@ The *forms.py* module currently has a class that creates a DateRange form.
 The *reports.py* module has utilities that  
 
 The *utils.py* python module has the following awesomeness:
--> basic datetime computation with functions that will allow you to calendar related output from
+
+* basic datetime computation with functions that will allow you to calendar related output from
 python objects (such as model instances), they include:
-- previous carlendar week
-- previous carlendar month
-- and a number of others (please use the help() function to learn more about the modules, some inline documentation has
+* previous carlendar week
+* previous carlendar month
+* and a number of others (please use the help() function to learn more about the modules, some inline documentation has
 been added)
