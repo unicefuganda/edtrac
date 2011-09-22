@@ -16,7 +16,9 @@ from django.contrib.sites.models import Site
 from django.contrib.sites.managers import CurrentSiteManager
 from rapidsms.models import ExtensibleModelBase
 from eav.fields import EavSlugField
-from rapidsms_httprouter.models import Message
+from django.core.files.base import ContentFile
+from django.contrib.auth.models import Group
+from django.conf import settings
 
 class XForm(models.Model):
     """
@@ -57,6 +59,11 @@ class XForm(models.Model):
 
     separator = models.CharField(max_length=8, null=True, blank=True,
                                  help_text="The separator character(s) for fields, field values will be split on these characters.")
+
+    restrict_to = models.ManyToManyField(Group, null=True, blank=True,
+                                         help_text="Restrict submissions to users of this group (if unset, anybody can submit this form)")
+    restrict_message = models.CharField(max_length=160, null=True, blank=True,
+                                        help_text="The error message that will be returned to users if they do not have the right privileges to submit this form.  Only required if the field is restricted.")
 
     owner = models.ForeignKey(User)
     created = models.DateTimeField(auto_now_add=True)
@@ -172,8 +179,17 @@ class XForm(models.Model):
             # we have a new value, update it
             field = XFormField.objects.get(pk=value.attribute.pk)
             if field.command in values:
-                value.value = values[field.command]
-                value.save()
+                new_val = values[field.command]
+
+                # for binary fields, a value of None means leave the current value
+                if field.xform_type() == 'binary' and new_val is None:
+                    # clean up values that have null values
+                    if value.value is None:
+                        value.delete()
+                else:
+                    value.value = new_val
+                    value.save()
+
                 del values[field.command]
 
             # no new value, we need to remove this one
@@ -184,7 +200,9 @@ class XForm(models.Model):
         for key, value in values.items():
             # look up the field by key
             field = XFormField.objects.get(xform=self, command=key)
-            sub_value = submission.values.create(attribute=field, value=value, entity=submission)
+
+            if field.xform_type() != 'binary' or not value is None:
+                sub_value = submission.values.create(attribute=field, value=value, entity=submission)
 
         # clear out our error flag if there were some
         if submission.has_errors:
@@ -194,7 +212,7 @@ class XForm(models.Model):
         # trigger our signal for anybody interested in form submissions
         xform_received.send(sender=self, xform=self, submission=submission)
 
-    def process_odk_submission(self, xml, values):
+    def process_odk_submission(self, xml, values, binaries):
         """
         Given the raw XML content and a map of values, processes a new ODK submission, returning the newly
         created submission.
@@ -204,7 +222,15 @@ class XForm(models.Model):
         for field in self.fields.filter(datatype=XFormField.TYPE_OBJECT):
             if field.command in values:
                 typedef = XFormField.lookup_type(field.field_type)
-                values[field.command] = typedef['parser'](field.command, values[field.command])
+
+                # binary fields (image, audio, video) will have their value set in the XML to the name
+                # of the key that contains their binary content
+                if typedef['xforms_type'] == 'binary':
+                    binary_key = values[field.command]
+                    values[field.command] = typedef['parser'](field.command, binaries[binary_key], filename=binary_key)
+
+                else:
+                    values[field.command] = typedef['parser'](field.command, values[field.command])
 
         # create our submission now
         submission = self.submissions.create(type='odk-www', raw=xml)
@@ -221,15 +247,14 @@ class XForm(models.Model):
         """
         fields = self.fields.all()
         for field in fields:
-            required = len(field.constraints.all().filter(type='req_val')) > 0
-            if required and (field.command not in values or len(values[field.command]) == 0):
-                raise ValidationError('Required field %s not supplied' % field.command)
 
             # pass it through our cleansing filter which will
             # check for type and any constraint validation
             # this raises ValidationError if it fails
             if field.command in values:
-                field.clean_submission(values[field.command])
+                field.clean_submission(values[field.command], TYPE_IMPORT)
+            else:
+                field.clean_submission(None, TYPE_IMPORT)
 
         # check if the values contain extra fields not in our form
         for command, value in values.items():
@@ -244,7 +269,7 @@ class XForm(models.Model):
                 values[field.command] = typedef['parser'](field.command, values[field.command])
 
         # create submission and update the values
-        submission = self.submissions.create(type='import', raw=raw, connection=connection)
+        submission = self.submissions.create(type=TYPE_IMPORT, raw=raw, connection=connection)
         self.update_submission_from_dict(submission, values)
         return submission
 
@@ -292,6 +317,8 @@ class XForm(models.Model):
         submission['message'] = message
         submission['has_errors'] = True
         submission['errors'] = errors
+
+        submission_type = TYPE_SMS
 
         # parse out our keyword
         remainder = self.parse_keyword(message)
@@ -360,8 +387,6 @@ class XForm(models.Model):
         # we first try to deal with required fields... we skip out of this processing either when
         # we reach a command prefix (+) or we have processed all required fields
         for field in self.fields.all().order_by('order', 'id'):
-            required = field.constraints.all().filter(type="req_val")
-
             # lookup our field type
             field_type = XFormField.lookup_type(field.field_type)
 
@@ -396,7 +421,7 @@ class XForm(models.Model):
 
             # ok, this looks like a valid required field value, clean it up
             try:
-                cleaned = field.clean_submission(segment)
+                cleaned = field.clean_submission(segment, submission_type)
                 values.append(dict(name=field.command, value=cleaned))
             except ValidationError as err:
                 errors.append(err)
@@ -481,7 +506,7 @@ class XForm(models.Model):
                     found = True
 
                     try:
-                        cleaned = field.clean_submission(value)
+                        cleaned = field.clean_submission(value, submission_type)
                         values.append(dict(name=field.command, value=cleaned))
                     except ValidationError as err:
                         errors.append(err)
@@ -496,7 +521,7 @@ class XForm(models.Model):
                     # try to parse it out
                     value = typedef['puller'](field.command, message_obj)
                     if not value is None:
-                        cleaned = field.clean_submission(value)
+                        cleaned = field.clean_submission(value, submission_type)
                         values.append(dict(name=field.command, value=cleaned))
                 except ValidationError as err:
                     errors.append(err)
@@ -525,7 +550,10 @@ class XForm(models.Model):
             # check that all required fields had a value set
             required_const = field.constraints.all().filter(type="req_val")
             if required_const and field.command not in value_count:
-                errors.append(ValidationError(required_const[0].message))
+                try:
+                    required_const[0].validate(None, field.field_type, submission_type)
+                except ValidationError as e:
+                    errors.append(e)
 
             # check that all fields actually have values
             if field.command in value_dict and value_dict[field.command] is None:
@@ -615,10 +643,30 @@ class XForm(models.Model):
         # set our transient response
         submission.response = sub_dict['response']
 
+        # do they have the right permissions?
+        user = lookup_user_by_connection(connection)
+        if not self.does_user_have_permission(user):
+            submission.has_errors = True
+            submission.save()
+
+            submission.response = self.restrict_message
+
         # trigger our signal
         xform_received.send(sender=self, xform=self, submission=submission, message=message_obj)
 
         return submission
+
+    def does_user_have_permission(self, user):
+        """
+        Does the passed in user have permission to submit / view this form?
+        """
+        # is there a custom permission checker?
+        custom_checker = getattr(settings, 'XFORMS_AUTHENTICATION_CHECKER', 'rapidsms_xforms.models.can_user_use_form')
+        if custom_checker:
+            checker_func = import_from_string(custom_checker)
+            return checker_func(user, self)
+
+        return True
 
     def check_template(self, template):
         """
@@ -687,6 +735,9 @@ class XFormField(Attribute):
     TYPE_TEXT = Attribute.TYPE_TEXT
     TYPE_OBJECT = Attribute.TYPE_OBJECT
     TYPE_GEOPOINT = 'geopoint'
+    TYPE_IMAGE = 'image'
+    TYPE_AUDIO = 'audio'
+    TYPE_VIDEO = 'video'
 
     # These are the choices of types available for XFormFields.
     #
@@ -700,9 +751,9 @@ class XFormField(Attribute):
     # hook.
 
     TYPE_CHOICES = {
-        TYPE_INT:   dict(label='Integer', type=TYPE_INT, db_type=TYPE_INT, xforms_type='integer', parser=None, puller=None),
-        TYPE_FLOAT: dict(label='Decimal', type=TYPE_FLOAT, db_type=TYPE_FLOAT, xforms_type='decimal', parser=None, puller=None),
-        TYPE_TEXT:  dict(label='String', type=TYPE_TEXT, db_type=TYPE_TEXT, xforms_type='string', parser=None, puller=None)
+        TYPE_INT:   dict(label='Integer', type=TYPE_INT, db_type=TYPE_INT, xforms_type='integer', parser=None, puller=None, xform_only=False),
+        TYPE_FLOAT: dict(label='Decimal', type=TYPE_FLOAT, db_type=TYPE_FLOAT, xforms_type='decimal', parser=None, puller=None, xform_only=False),
+        TYPE_TEXT:  dict(label='String', type=TYPE_TEXT, db_type=TYPE_TEXT, xforms_type='string', parser=None, puller=None, xform_only=False),
     }
 
     xform = models.ForeignKey(XForm, related_name='fields')
@@ -718,7 +769,7 @@ class XFormField(Attribute):
         ordering = ('order', 'id')
 
     @classmethod
-    def register_field_type(cls, field_type, label, parserFunc, db_type=TYPE_TEXT, xforms_type='string', puller=None):
+    def register_field_type(cls, field_type, label, parserFunc, db_type=TYPE_TEXT, xforms_type='string', puller=None, xform_only=False):
         """
         Used to register a new field type for XForms.  You can use this method to build new field types that are
         available when building XForms.  These types may just do custom parsing of the SMS text sent in, then stuff
@@ -739,7 +790,7 @@ class XFormField(Attribute):
         """
         XFormField.TYPE_CHOICES[field_type] = dict(type=field_type, label=label,
                                                    db_type=db_type, parser=parserFunc,
-                                                   xforms_type=xforms_type, puller=puller)
+                                                   xforms_type=xforms_type, puller=puller, xform_only=xform_only)
 
     @classmethod
     def lookup_type(cls, otype):
@@ -770,7 +821,7 @@ class XFormField(Attribute):
         self.derive_datatype()
         return super(XFormField, self).save(force_insert, force_update, using)
 
-    def clean_submission(self, value):
+    def clean_submission(self, value, submission_type):
         """
         Takes the passed in string value and does two steps:
 
@@ -783,7 +834,6 @@ class XFormField(Attribute):
         If either of these steps fails, a ValidationError is raised.  If both are successful
         then the cleaned, Python typed value is returned.
         """
-
         # this will be our properly Python typed value
         cleaned_value = None
 
@@ -814,7 +864,7 @@ class XFormField(Attribute):
 
         # now check our actual constraints if any
         for constraint in self.constraints.order_by('order'):
-            constraint.validate(value)
+            constraint.validate(value, self.field_type, submission_type)
 
         return cleaned_value
 
@@ -907,16 +957,20 @@ class XFormFieldConstraint(models.Model):
 
     type = models.CharField(max_length=10, choices=CONSTRAINT_CHOICES)
     test = models.CharField(max_length=255, null=True)
-    message = models.CharField(max_length=100)
+    message = models.CharField(max_length=160)
     order = models.IntegerField(default=1000)
 
-    def validate(self, value):
+    def validate(self, value, field_type, submission_type):
         """
         Follows a similar pattern to Django's Form validation.  Validate takes a value and checks
         it against the constraints passed in.
 
         Throws a ValidationError if it doesn't meet the constraint.
         """
+
+        # if this is an xform only field, then ignore constraints unless we are an xform
+        if XFormField.TYPE_CHOICES[field_type]['xform_only'] and submission_type != TYPE_ODK_WWW:
+            return None
 
         if self.type == 'req_val':
             if value == None or value == '':
@@ -961,11 +1015,18 @@ class XFormFieldConstraint(models.Model):
         return "%s (%s)" % (self.type, self.test)
 
 
+TYPE_WWW = 'www'
+TYPE_SMS = 'sms'
+TYPE_ODK_WWW = 'odk-www'
+TYPE_ODK_SMS = 'odk-sms'
+TYPE_IMPORT = 'import'
+
 SUBMISSION_CHOICES = (
-    ('www', 'Web Submission'),
-    ('sms', 'SMS Submission'),
-    ('odk-www', 'ODK Web Submission'),
-    ('odk-sms', 'ODK SMS Submission')
+    (TYPE_WWW, 'Web Submission'),
+    (TYPE_SMS, 'SMS Submission'),
+    (TYPE_ODK_WWW, 'ODK Web Submission'),
+    (TYPE_ODK_SMS, 'ODK SMS Submission'),
+    (TYPE_IMPORT, 'Imported Submission')
 )
 
 class XFormSubmission(models.Model):
@@ -987,6 +1048,12 @@ class XFormSubmission(models.Model):
 
     # transient, only populated when the submission first comes in
     errors = []
+
+    def submission_values(self):
+        if getattr(self, '_values', None) is None:
+            self._values = self.values.all().select_related(depth=1)
+
+        return self._values
 
     def save(self, force_insert=False, force_update=False, using=None):
         """
@@ -1027,7 +1094,7 @@ class XFormSubmissionValue(Value):
     submission = models.ForeignKey(XFormSubmission, related_name='values')
 
     def cleaned(self):
-        return self.field.clean_submission(self.value)
+        return self.field.clean_submission(self.value, self.submission.type)
 
     def value_formatted(self):
         """
@@ -1042,10 +1109,46 @@ class XFormSubmissionValue(Value):
         return "%s=%s" % (self.attribute, self.value)
 
 
+class BinaryValue(models.Model):
+    """
+    Simple holder for values that are submitted and which represent binary files.
+    """
+    binary = models.FileField(upload_to='binary')
+
+    def url(self):
+        return self.binary.url
+
+    def __unicode__(self):
+        name = self.binary.name
+        if name.find('/') != -1:
+            name = name[name.rfind("/") + 1:]
+        return name
+
 # Signal triggered whenever an xform is received.  The caller can derive from the submission
 # whether it was successfully parsed or not and do what they like with it.
 
 xform_received = django.dispatch.Signal(providing_args=["xform", "submission"])
+
+def create_binary(command, value, filename="binary"):
+    """
+    Save the image to our filesystem, associating a new object to hold it's contents etc..
+    """
+    binary = BinaryValue.objects.create()
+
+    # TODO: this seems kind of odd, but I can't figure out how Django really wants you to save
+    # these files on the initial create
+    binary.binary.save(filename, ContentFile(value))
+    binary.save()
+    return binary
+
+XFormField.register_field_type(XFormField.TYPE_IMAGE, 'Image', create_binary,
+                               xforms_type='binary', db_type=XFormField.TYPE_OBJECT, xform_only=True)
+
+XFormField.register_field_type(XFormField.TYPE_AUDIO, 'Audio', create_binary,
+                               xforms_type='binary', db_type=XFormField.TYPE_OBJECT, xform_only=True)
+
+XFormField.register_field_type(XFormField.TYPE_VIDEO, 'Video', create_binary,
+                               xforms_type='binary', db_type=XFormField.TYPE_OBJECT, xform_only=True)
 
 def create_geopoint(command, value):
     """
@@ -1114,6 +1217,80 @@ def dl_distance(s1, s2):
 
     return d[lenstr1 - 1, lenstr2 - 1]
 
+def import_from_string(kls):
+    """
+    Used below to load the class object dynamically by name
+    """
+    parts = kls.split('.')
+    module = ".".join(parts[:-1])
+    m = __import__(module)
+    for comp in parts[1:]:
+        m = getattr(m, comp)
+    return m
 
+def can_user_use_form(user, xform):
+    """
+    Default permission picker for forms.  Logic is this:
+       1) if the form is not restricted, return True
+       2) if the form is restricted and there is no user, return False
+       3) otherwise return if the user is part of the any of the groups the form is restricted to
+    """
+    # if this form has restrictions
+    if xform.restrict_to.all():
+        # and they are logged in
+        if user:
+            matches = set(user.groups.all()) & set(xform.restrict_to.all())
 
+            # then the user must be part of at least one of the form's restricted groups
+            return len(matches) > 0
+        else:
+            # otherwise, they don't have permission
+            return False
 
+    # no restrictions means the user has permission no matter what
+    return True
+
+def lookup_user_by_connection(connection):
+    """
+    Tries to look up a Django user by looking for a matching Connection object in
+    the Django Profile object set in settings.py.
+
+    The recommended method of doing that is using the rapidsms-auth library:
+        https://github.com/unicefuganda/rapidsms-auth
+
+    Though any Profile object which is a foreign key to Connection will work.
+       (ie has a connection_set queryable field)
+    """
+    # is there a custom user lookup function
+    custom_lookup = getattr(settings, 'XFORMS_USER_LOOKUP', 'rapidsms_xforms.models.profile_connection_lookup')
+    if custom_lookup:
+        lookup_func = import_from_string(custom_lookup)
+        return lookup_func(connection)
+
+    return None
+
+def profile_connection_lookup(connection):
+    """
+    Default implementation for the XFORMS_USER_LOOKUP hook.  This looks for a Profile
+    model that has a 'lookup_by_connection' method to do the lookups.
+    """
+    profile_model = getattr(settings, 'AUTH_PROFILE_MODEL', None)
+
+    # no auth profile set, then no way for us to tie them together, bail
+    if not profile_model:
+        return None
+
+    # otherwise, use the model to look up the object
+    clazz = import_from_string(profile_model)
+
+    # does it have a way of looking up a user?
+    lookup_method = getattr(clazz, 'lookup_by_connection', None)
+
+    profile = None
+    if lookup_method:
+        profile = lookup_method(connection)
+
+    if profile:
+        return profile.user
+    else:
+        return None

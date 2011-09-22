@@ -4,13 +4,13 @@
 {% block content %}
 
 <div class="details">
-<div class="name">{{ xform.name }} Submissions</div>
-<div class="buttons">
-  <a href="/xforms/{{ xform.pk }}/submissions.csv">
-    <img src="{{ MEDIA_URL }}rapidsms_xforms/icons/silk/table_save.png" alt=""/> Export
-  </a>
-  <br/>
-</div>
+  <div class="name">{{ xform.name }} Submissions</div>
+  <div class="buttons">
+    <a href="/xforms/{{ xform.pk }}/submissions.csv">
+      <img src="{{ MEDIA_URL }}rapidsms_xforms/icons/silk/table_save.png" alt=""/> Export
+    </a>
+    <br/>
+  </div>
 </div>
 
 <table width="100%" class="form_table"> 
@@ -25,8 +25,8 @@
     </tr>
   </thead>
 
-  {% if submissions %}
-  {% for submission in submissions %}
+  {% if submissions.object_list %}
+  {% for submission in submissions.object_list %}
   <tr class="form_table_row">
     <td class="center">
       {% ifequal submission.type "odk-www" %}
@@ -47,9 +47,13 @@
     </td>
     {% for field in fields.all %}
     <td>
-      {% for value in submission.values.all %}
+      {% for value in submission.submission_values %}
       {% ifequal field.pk value.attribute.pk %}
+      {% if field.xform_type == 'binary' %}
+      <a href="{{ value.value.url }}">{{ value.value }}</a>
+      {% else %}
       {{ value.value }}
+      {% endif %}
       {% endifequal %}
       {% endfor %}
     </td>
@@ -71,8 +75,31 @@
   </tr>
   {% endif %}
 </table>
-<br/>
 
+<div class="paginator">
+  <div class="paginator_pager">
+    <span class="paginator_prev">
+      {% if submissions.has_previous %}
+      <a href="?page={{ submissions.previous_page_number }}">&laquo; prev</a>
+      {% endif %}
+    </span>
+
+    <span class="paginator_curr">
+    Page {{ submissions.number }} of {{ submissions.paginator.num_pages }}
+    </span>
+
+    <span class="paginator_next">
+      {% if submissions.has_next %}
+      <a href="?page={{ submissions.next_page_number }}">next &raquo;</a>
+      {% endif %}
+    </span>
+  </div>
+
+  <div class="paginator_blurb">
+    Submissions {{ submissions.start_index }}-{{ submissions.end_index }} of {{ submissions.paginator.count }}
+  </div>
 </div>
+
+<br/>
 
 {% endblock %}

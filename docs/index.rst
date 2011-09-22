@@ -16,7 +16,7 @@ The RapidSMS xforms application provides an interactive web based form builder. 
 - Integration with ODK Collect, an Android XForms client
 
 The full documentation can be found at:
-  http://nyaruka.github.com/rapidsms-xforms
+  http://readthedocs.org/docs/rapidsms-xforms/en/latest/
 
 The official source code repository is:
   http://www.github.com/nyaruka/rapidsms-xforms
@@ -50,12 +50,13 @@ You can install the requirements using the ``pip-requires.txt`` file::
 Configuration
 ==============
 
-To enable XForms for your project, edit your ``settings.py`` to add ``rapidsms_xforms``, ``eav`` and ``uni_form``::
+To enable XForms for your project, edit your ``settings.py`` to add ``rapidsms_xforms``, ``eav``, ``django_digest`` and ``uni_form``::
 
   INSTALLED_APPS = ( "rapidsms",
    		       .. other apps ..
                      "eav",
   		     "uni_form",
+		     "django_digest",
   		     "rapidsms_xforms" )
 
 You will probably also want to add XForms as one of the main RapidSMS tabs::
@@ -155,6 +156,7 @@ Contents:
    fields
    signals
    submissions
+   security
 
 Indices and tables
 ==================

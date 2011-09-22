@@ -15,6 +15,6 @@ def render_layout(form):
     template = get_template('uni_form/errors.html')
     c = Context({'form':form})
     errors = template.render(c)
-    form_html = form.helper.render_layout(form)
+    form_html = form.helper.render_layout(form, c)
     return errors + form_html
 

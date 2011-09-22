@@ -2,20 +2,27 @@
 Basic tests for XForms
 """
 
+import os
 from django.test import TestCase, TransactionTestCase
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.test.client import Client
 from django.core.exceptions import ValidationError
-from .models import XForm, XFormField, XFormFieldConstraint, xform_received
+from .models import XForm, XFormField, XFormFieldConstraint, xform_received, lookup_user_by_connection
 from eav.models import Attribute
 from django.contrib.sites.models import Site
 from .app import App
 from rapidsms.messages.incoming import IncomingMessage
 from rapidsms.models import Connection, Backend
+from django.conf import settings
+from django.core.urlresolvers import reverse
+from django.db import models
 
 class ModelTest(TestCase): #pragma: no cover
 
     def setUp(self):
+        settings.AUTHENTICATE_XFORMS = False
+        settings.AUTH_PROFILE_MODEL = None
+
         self.user = User.objects.create_user('fred', 'fred@wilma.com', 'secret')
         self.user.save()
 
@@ -23,29 +30,29 @@ class ModelTest(TestCase): #pragma: no cover
                                           site=Site.objects.get_current(),
                                           response='thanks')
 
-    def failIfValid(self, constraint, value):
+    def failIfValid(self, constraint, value, type):
         try:
-            constraint.validate(value)
+            constraint.validate(value, type, 'sms')
             self.fail("Should have failed validating: %s" % value)
         except ValidationError:
             pass
 
-    def failUnlessValid(self, constraint, value):
+    def failUnlessValid(self, constraint, value, type):
         try:
-            constraint.validate(value)
+            constraint.validate(value, type, 'sms')
         except ValidationError:
             self.fail("Should have passed validating: %s" % value)
 
-    def failIfClean(self, field, value):
+    def failIfClean(self, field, value, type):
         try:
-            field.clean_submission(value)
+            field.clean_submission(value, 'sms')
             self.fail("Should have failed cleaning: %s" % value)
         except ValidationError:
             pass
 
-    def failUnlessClean(self, field, value):
+    def failUnlessClean(self, field, value, type):
         try:
-            field.clean_submission(value)
+            field.clean_submission(value, 'sms')
         except ValidationError:
             self.fail("Should have passed cleaning: %s" % value)
 
@@ -53,137 +60,153 @@ class ModelTest(TestCase): #pragma: no cover
         msg = 'error message'
         c = XFormFieldConstraint(type='min_val', test='10', message=msg)
 
-        self.failIfValid(c, '1')
-        self.failUnlessValid(c, None)
-        self.failUnlessValid(c, '10')
-        self.failUnlessValid(c, '11')
+        self.failIfValid(c, '1', XFormField.TYPE_INT)
+        self.failUnlessValid(c, None, XFormField.TYPE_INT)
+        self.failUnlessValid(c, '10', XFormField.TYPE_INT)
+        self.failUnlessValid(c, '11', XFormField.TYPE_INT)
 
     def testMaxValConstraint(self):
         msg = 'error message'
         c = XFormFieldConstraint(type='max_val', test='10', message=msg)
 
-        self.failUnlessValid(c, '1')
-        self.failUnlessValid(c, '10')
-        self.failUnlessValid(c, None)
-        self.failIfValid(c, '11')
+        self.failUnlessValid(c, '1', XFormField.TYPE_INT)
+        self.failUnlessValid(c, '10', XFormField.TYPE_INT)
+        self.failUnlessValid(c, None, XFormField.TYPE_INT)
+        self.failIfValid(c, '11', XFormField.TYPE_INT)
 
     def testMinLenConstraint(self):
         msg = 'error message'
         c = XFormFieldConstraint(type='min_len', test='2', message=msg)
 
-        self.failIfValid(c, 'a')
-        self.failIfValid(c, '')
-        self.failUnlessValid(c, None)
-        self.failUnlessValid(c, 'ab')
-        self.failUnlessValid(c, 'abcdef')
+        self.failIfValid(c, 'a', XFormField.TYPE_TEXT)
+        self.failIfValid(c, '', XFormField.TYPE_TEXT)
+        self.failUnlessValid(c, None, XFormField.TYPE_TEXT)
+        self.failUnlessValid(c, 'ab', XFormField.TYPE_TEXT)
+        self.failUnlessValid(c, 'abcdef', XFormField.TYPE_TEXT)
 
     def testMaxLenConstraint(self):
         msg = 'error message'
         c = XFormFieldConstraint(type='max_len', test='3', message=msg)
 
-        self.failUnlessValid(c, 'a')
-        self.failUnlessValid(c, '')
-        self.failUnlessValid(c, None)
-        self.failUnlessValid(c, 'abc')
-        self.failIfValid(c, 'abcdef')
+        self.failUnlessValid(c, 'a', XFormField.TYPE_TEXT)
+        self.failUnlessValid(c, '', XFormField.TYPE_TEXT)
+        self.failUnlessValid(c, None, XFormField.TYPE_TEXT)
+        self.failUnlessValid(c, 'abc', XFormField.TYPE_TEXT)
+        self.failIfValid(c, 'abcdef', XFormField.TYPE_TEXT)
 
     def testReqValConstraint(self):
         msg = 'error message'
         c = XFormFieldConstraint(type='req_val', message=msg)
 
-        self.failUnlessValid(c, 'a')
-        self.failUnlessValid(c, 0)
-        self.failUnlessValid(c, '1.20')
-        self.failIfValid(c, '')
-        self.failIfValid(c, None)
+        self.failUnlessValid(c, 'a', XFormField.TYPE_TEXT)
+        self.failUnlessValid(c, 0, XFormField.TYPE_INT)
+        self.failUnlessValid(c, '1.20', XFormField.TYPE_FLOAT)
+        self.failIfValid(c, '', XFormField.TYPE_TEXT)
+        self.failIfValid(c, None, XFormField.TYPE_TEXT)
 
     def testRegexConstraint(self):
         msg = 'error message'
         c = XFormFieldConstraint(type='regex', test='^(mal|fev)$', message=msg)
 
-        self.failIfValid(c, 'a')
-        self.failIfValid(c, '')
-        self.failIfValid(c, 'malo')
-        self.failUnlessValid(c, None)
-        self.failUnlessValid(c, 'MAL')
-        self.failUnlessValid(c, 'FeV')
+        self.failIfValid(c, 'a', XFormField.TYPE_TEXT)
+        self.failIfValid(c, '', XFormField.TYPE_TEXT)
+        self.failIfValid(c, 'malo', XFormField.TYPE_TEXT)
+        self.failUnlessValid(c, None, XFormField.TYPE_TEXT)
+        self.failUnlessValid(c, 'MAL', XFormField.TYPE_TEXT)
+        self.failUnlessValid(c, 'FeV', XFormField.TYPE_TEXT)
 
     def testIntField(self):
         field = self.xform.fields.create(field_type=XFormField.TYPE_INT, name='number', command='number')
 
-        self.failUnlessClean(field, '1 ')
-        self.failUnlessClean(field, None)
-        self.failUnlessClean(field, '')
-        self.failIfClean(field, 'abc')
-        self.failIfClean(field, '1.34')
+        self.failUnlessClean(field, '1 ', XFormField.TYPE_INT)
+        self.failUnlessClean(field, None, XFormField.TYPE_TEXT)
+        self.failUnlessClean(field, '', XFormField.TYPE_TEXT)
+        self.failIfClean(field, 'abc', XFormField.TYPE_TEXT)
+        self.failIfClean(field, '1.34', XFormField.TYPE_FLOAT)
 
     def testDecField(self):
         field = self.xform.fields.create(field_type=XFormField.TYPE_FLOAT, name='number', command='number')
 
-        self.failUnlessClean(field, '1')
-        self.failUnlessClean(field, ' 1.1')
-        self.failUnlessClean(field, None)
-        self.failUnlessClean(field, '')
-        self.failIfClean(field, 'abc')
+        self.failUnlessClean(field, '1', XFormField.TYPE_INT)
+        self.failUnlessClean(field, ' 1.1', XFormField.TYPE_FLOAT)
+        self.failUnlessClean(field, None, XFormField.TYPE_TEXT)
+        self.failUnlessClean(field, '', XFormField.TYPE_TEXT)
+        self.failIfClean(field, 'abc', XFormField.TYPE_TEXT)
 
     def testStrField(self):
         field = self.xform.fields.create(field_type=XFormField.TYPE_TEXT, name='string', command='string')
 
-        self.failUnlessClean(field, '1')
-        self.failUnlessClean(field, '1.1')
-        self.failUnlessClean(field, 'abc')
-        self.failUnlessClean(field, None)
-        self.failUnlessClean(field, '')
+        self.failUnlessClean(field, '1', XFormField.TYPE_INT)
+        self.failUnlessClean(field, '1.1', XFormField.TYPE_FLOAT)
+        self.failUnlessClean(field, 'abc', XFormField.TYPE_TEXT)
+        self.failUnlessClean(field, None, XFormField.TYPE_TEXT)
+        self.failUnlessClean(field, '', XFormField.TYPE_TEXT)
 
     def testGPSField(self):
         field = self.xform.fields.create(field_type=XFormField.TYPE_GEOPOINT, name='location', command='location')
 
-        self.failUnlessClean(field, '1 2')
-        self.failUnlessClean(field, '1.1 1')
-        self.failUnlessClean(field, '-1.1 -1.123')
-        self.failUnlessClean(field, '')
-        self.failUnlessClean(field, None)
+        self.failUnlessClean(field, '1 2', XFormField.TYPE_GEOPOINT)
+        self.failUnlessClean(field, '1.1 1', XFormField.TYPE_GEOPOINT)
+        self.failUnlessClean(field, '-1.1 -1.123', XFormField.TYPE_GEOPOINT)
+        self.failUnlessClean(field, '', XFormField.TYPE_GEOPOINT)
+        self.failUnlessClean(field, None, XFormField.TYPE_GEOPOINT)
 
-        self.failIfClean(field, '1.123')
-        self.failIfClean(field, '1.123 asdf')
-        self.failIfClean(field, 'asdf')
-        self.failIfClean(field, '-91.1 -1.123')
-        self.failIfClean(field, '92.1 -1.123')
-        self.failIfClean(field, '-1.1 -181.123')
-        self.failIfClean(field, '2.1 181.123')
+        self.failIfClean(field, '1.123', XFormField.TYPE_GEOPOINT)
+        self.failIfClean(field, '1.123 asdf', XFormField.TYPE_GEOPOINT)
+        self.failIfClean(field, 'asdf', XFormField.TYPE_GEOPOINT)
+        self.failIfClean(field, '-91.1 -1.123', XFormField.TYPE_GEOPOINT)
+        self.failIfClean(field, '92.1 -1.123', XFormField.TYPE_GEOPOINT)
+        self.failIfClean(field, '-1.1 -181.123', XFormField.TYPE_GEOPOINT)
+        self.failIfClean(field, '2.1 181.123', XFormField.TYPE_GEOPOINT)
 
     def testFieldConstraints(self):
         field = self.xform.fields.create(field_type=XFormField.TYPE_TEXT, name='number', command='number')
 
         # test that with no constraings, all values work
-        self.failUnlessClean(field, '1')
-        self.failUnlessClean(field, None)
-        self.failUnlessClean(field, 'abc')
+        self.failUnlessClean(field, '1', XFormField.TYPE_TEXT)
+        self.failUnlessClean(field, None, XFormField.TYPE_TEXT)
+        self.failUnlessClean(field, 'abc', XFormField.TYPE_TEXT)
 
         # now add some constraints
         msg1 = 'error message'
         field.constraints.create(type='min_val', test='10', message=msg1)
         
-        self.failIfClean(field, '1')
-        self.failIfClean(field, '-1')
-        self.failUnlessClean(field, '10')
+        self.failIfClean(field, '1', XFormField.TYPE_TEXT)
+        self.failIfClean(field, '-1', XFormField.TYPE_TEXT)
+        self.failUnlessClean(field, '10', XFormField.TYPE_TEXT)
 
         # add another constraint
         msg2 = 'error message 2'
         field.constraints.create(type='max_val', test='50', message=msg2)
-        self.failIfClean(field, '1')
-        self.failUnlessClean(field, '10')
-        self.failIfClean(field, '100')
+        self.failIfClean(field, '1', XFormField.TYPE_TEXT)
+        self.failUnlessClean(field, '10', XFormField.TYPE_TEXT)
+        self.failIfClean(field, '100', XFormField.TYPE_TEXT)
 
         # another, but set its order to be first
         msg3 = 'error message 3'
         field.constraints.create(type='min_val', test='5', message=msg3, order=0)
-        self.failIfClean(field, '1')
-        self.failIfClean(field, '6')
+        self.failIfClean(field, '1', XFormField.TYPE_TEXT)
+        self.failIfClean(field, '6', XFormField.TYPE_TEXT)
+
+class TestProfile(models.Model):
+
+    user = models.OneToOneField(User)
+    connection = models.ForeignKey(Connection)
+
+    @classmethod
+    def lookup_by_connection(cls, connection):
+        matches = TestProfile.objects.filter(connection=connection)
+        if matches:
+            return matches[0]
+        else:
+            return None
 
 class SubmissionTest(TestCase): #pragma: no cover
     
     def setUp(self):
+        settings.AUTHENTICATE_XFORMS = False
+        settings.AUTH_PROFILE_MODEL = None
+        
         # bootstrap a form
         self.user = User.objects.create_user('fred', 'fred@wilma.com', 'secret')
         self.user.save()
@@ -391,7 +414,25 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.assertEquals(5, submission6.confirmation_id)
 
     def testTemplateResponse(self):
-        # first test no template
+        # codify the confirmation id
+        self.xform.response = 'Your confirmation id is: {{ confirmation_id|codify:"SA" }}'
+        self.xform.save()
+
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 10"))
+
+        # should be safe to use a static value since we are the first test
+        self.failUnlessEqual(submission.response, "Your confirmation id is: SA0001")
+
+        # no prefix
+        self.xform.response = 'Your confirmation id is: {{ confirmation_id|codify }}'
+        self.xform.save()
+
+        submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 10"))
+
+        # should be safe to use a static value since we are the first test
+        self.failUnlessEqual(submission.response, "Your confirmation id is: 0002")
+
+        # now test no template
         self.xform.response = "Thanks for sending your message"
         self.xform.save()
 
@@ -404,7 +445,7 @@ class SubmissionTest(TestCase): #pragma: no cover
         self.xform.save()
 
         submission = self.xform.process_sms_submission(IncomingMessage(None, "survey male 10"))
-        self.failUnlessEqual(submission.response, "You recorded an age of 10 and a gender of male.  Your confirmation id is 2.")
+        self.failUnlessEqual(submission.response, "You recorded an age of 10 and a gender of male.  Your confirmation id is 4.")
 
         # if they insert a command that isn't there, it should just be empty
         self.xform.response = "You recorded an age of {{ age }} and a gender of {{ gender }}.  {{ not_there }} Thanks."
@@ -912,3 +953,308 @@ class SubmissionTest(TestCase): #pragma: no cover
         values = { 'gender': 'male', 'age': '99', 'name': 'Eugene'}
         self.xform.process_import_submission("", connection, values)
         self.assertEquals(2, len(self.xform.submissions.all()))
+
+    def testMultimediaOptionalOnSMS(self):
+        xform = XForm.on_site.create(name='image', keyword='image', owner=self.user, command_prefix='+', 
+                                     site=Site.objects.get_current(), response='thanks')
+
+        f1 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='name', command='name', order=0)
+        f2 = xform.fields.create(field_type=XFormField.TYPE_IMAGE, name='image', command='image', order=1)
+        f3 = xform.fields.create(field_type=XFormField.TYPE_AUDIO, name='audio', command='audio', order=2)
+        f4 = xform.fields.create(field_type=XFormField.TYPE_VIDEO, name='video', command='video', order=3)        
+
+        # make the photo field required, though this will only really kick in during SMS submission
+        f2.constraints.create(type='req_val', test='None', message="You must include an image")
+        f3.constraints.create(type='req_val', test='None', message="You must include audio")
+        f4.constraints.create(type='req_val', test='None', message="You must include a video")        
+
+        submission = xform.process_sms_submission(IncomingMessage(None, "image +name Michael Jackson"))
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 1)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, "Michael Jackson")
+
+
+    def testODKDefinition(self):
+        xform = XForm.on_site.create(name='multimedia', keyword='multimedia', owner=self.user, command_prefix='+', 
+                                     site=Site.objects.get_current(), response='thanks')
+
+        f1 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='name', command='name', order=0)
+        f2 = xform.fields.create(field_type=XFormField.TYPE_IMAGE, name='image', command='image', order=1)
+        f3 = xform.fields.create(field_type=XFormField.TYPE_AUDIO, name='audio', command='audio', order=2)
+        f4 = xform.fields.create(field_type=XFormField.TYPE_VIDEO, name='video', command='video', order=3)
+
+        c = Client()
+
+        response = c.get("/xforms/odk/get/%d/" % xform.id)
+        self.assertEquals(200, response.status_code)
+
+        from xml.dom.minidom import parseString
+        xml = parseString(response.content)
+
+        body = xml.getElementsByTagName("h:body")[0]
+
+        inputs = body.getElementsByTagName("input")
+        self.assertEquals(1, len(inputs))
+        self.assertEquals("name", inputs[0].getAttribute("ref"))
+
+        uploads = body.getElementsByTagName("upload")
+        self.assertEquals(3, len(uploads))
+        self.assertEquals("image", uploads[0].getAttribute("ref"))
+        self.assertEquals("image/*", uploads[0].getAttribute("mediatype"))
+
+        self.assertEquals("audio", uploads[1].getAttribute("ref"))
+        self.assertEquals("audio/*", uploads[1].getAttribute("mediatype"))
+
+        self.assertEquals("video", uploads[2].getAttribute("ref"))
+        self.assertEquals("video/*", uploads[2].getAttribute("mediatype"))
+
+    def testODKSubmission(self):
+        xform = XForm.on_site.create(name='multimedia', keyword='multimedia', owner=self.user, command_prefix='+', 
+                                     site=Site.objects.get_current(), response='thanks')
+
+        f1 = xform.fields.create(field_type=XFormField.TYPE_TEXT, name='name', command='name', order=0)
+        f2 = xform.fields.create(field_type=XFormField.TYPE_IMAGE, name='image', command='image', order=1)
+        f3 = xform.fields.create(field_type=XFormField.TYPE_AUDIO, name='audio', command='audio', order=2)
+        f4 = xform.fields.create(field_type=XFormField.TYPE_VIDEO, name='video', command='video', order=3)        
+
+        xml = "<?xml version='1.0' ?><data><image>test__image.jpg</image>"
+        "<audio>test__audio.jpg</audio><video>test__video.jpg</video><name>Michael Jackson</name></data>"
+
+        # build up our dict of xml values and binaries
+        binaries = dict()
+        values = dict()
+
+        values['name'] = "Michael Jackson"
+        values['image'] = "test__image.jpg"
+        values['audio'] = "test__audio.mp3"
+        values['video'] = "test__video.mp4"        
+        
+        binaries['test__image.jpg'] = "jpgimage"
+        binaries['test__audio.mp3'] = "mp3file"
+        binaries['test__video.mp4'] = "vidfile"
+
+        # remove those files if they exist
+        directory = os.path.join(settings.MEDIA_ROOT, 'binary')
+        for name in ['test__image.jpg', 'test__audio.mp3', 'test__video.mp4']:
+            try:
+                os.remove(os.path.join(directory, name))
+            except:
+                pass
+
+        submission = xform.process_odk_submission(xml, values, binaries)
+
+        self.failUnlessEqual(submission.has_errors, False)
+        self.failUnlessEqual(len(submission.values.all()), 4)
+        self.failUnlessEqual(submission.values.get(attribute__name='name').value, "Michael Jackson")
+
+        binary = submission.values.get(attribute__name='image').value.binary
+        self.failUnlessEqual("binary/test__image.jpg", binary.name)
+        self.failUnlessEqual("jpgimage", binary.read())
+
+        binary = submission.values.get(attribute__name='audio').value.binary
+        self.failUnlessEqual("binary/test__audio.mp3", binary.name)        
+        self.failUnlessEqual("mp3file", binary.read())
+
+        binary = submission.values.get(attribute__name='video').value.binary
+        self.failUnlessEqual("binary/test__video.mp4", binary.name)
+        self.failUnlessEqual("vidfile", binary.read())
+
+
+    def testRestrictMessage(self):
+        c = Client()
+
+        self.group = Group.objects.create(name="Reporters")
+
+        c.login(username="fred", password="secret")
+
+        # try creating a new xform with no restrict_to
+        form_values = dict(name="Perm Form", keyword='perm', description="Permission test form",
+                           response="You were able to submit this you special person")
+        resp = c.post(reverse('xforms_create'), form_values, follow=True)
+
+        self.assertEquals(200, resp.status_code)
+        form = XForm.objects.get(keyword='perm')
+        self.assertTrue(form)
+
+        # reset
+        form.delete()
+
+        # this time we submit with a group to restrict to, but no message
+        form_values['restrict_to'] = self.group.id
+        resp = c.post(reverse('xforms_create'), form_values, follow=True)
+
+        # should fail
+        self.assertEquals(200, resp.status_code)
+        self.assertTrue(resp.context['form'].errors)
+
+        # but if we add in a message
+        form_values['restrict_message'] = "Sorry, you don't have permission to submit this form"
+        resp = c.post(reverse('xforms_create'), form_values, follow=True)
+
+        # should pass
+        self.assertEquals(200, resp.status_code)
+        form = XForm.objects.get(keyword='perm')
+        self.assertTrue(form)
+
+
+    def testODKAuth(self):
+        c = Client()
+        response = c.get(reverse('odk_list'))
+
+        # we should get a 200 back, there are no restrictions on viewing forms
+        self.assertEquals(200, response.status_code)
+        
+        from xml.dom.minidom import parseString
+        xml = parseString(response.content)
+
+        forms = xml.getElementsByTagName("forms")[0].getElementsByTagName("form")
+
+        self.assertEquals(1, len(forms))
+        self.assertEquals('test', forms[0].firstChild.wholeText)
+
+        settings.AUTHENTICATE_XFORMS = True
+
+        # try again now
+        response = c.get(reverse('odk_list'))        
+
+        # we should be asked to authenticate
+        self.assertEquals(401, response.status_code)
+
+    def testODKFiltering(self):
+        # tests that we only show those forms that we are allowed to view
+        c = Client()
+        c.login(username="fred", password="secret")
+
+        # we are aren't going to force authentication using DIGEST but instead
+        # use the session authentication used in Django for these tests
+        settings.AUTHENTICATE_XFORMS = False
+        
+        response = c.get(reverse('odk_list'))
+
+        from xml.dom.minidom import parseString
+        xml = parseString(response.content)
+
+        # no restrictions on this form, so should see just one form
+        forms = xml.getElementsByTagName("forms")[0].getElementsByTagName("form")
+        self.assertEquals(1, len(forms))
+        self.assertEquals('test', forms[0].firstChild.wholeText)
+
+        # create a group for reporters (fred not part of it)
+        self.group = Group.objects.create(name="Reporters")
+
+        restricted_form = XForm.on_site.create(name='restricted', keyword='restricted', owner=self.user, command_prefix='+', 
+                                               site=Site.objects.get_current(), response='thanks',
+                                               restrict_message="Sorry, you can't access this form")
+        restricted_form.restrict_to.add(self.group)
+
+        # get the list again, should not include this form
+        response = c.get(reverse('odk_list'))
+        xml = parseString(response.content)
+        
+        forms = xml.getElementsByTagName("forms")[0].getElementsByTagName("form")
+        self.assertEquals(1, len(forms))
+        self.assertEquals('test', forms[0].firstChild.wholeText)
+
+        # have fred join the reporters group
+        self.user.groups.add(self.group)
+
+        # now he should get all the forms
+        response = c.get(reverse('odk_list'))
+        xml = parseString(response.content)
+        
+        forms = xml.getElementsByTagName("forms")[0].getElementsByTagName("form")
+        self.assertEquals(2, len(forms))
+        self.assertEquals('test', forms[0].firstChild.wholeText)
+        self.assertEquals('restricted', forms[1].firstChild.wholeText)
+
+    def testODKGetSecurity(self):
+        c = Client()
+        form_url = reverse('odk_form', args=[self.xform.id])
+
+        # fetching it normally, no problem
+        response = c.get(form_url)
+        self.assertEquals(200, response.status_code)
+
+        # fetching it when restricted, 401
+        self.group = Group.objects.create(name="Reporters")
+        self.user.groups.add(self.group)
+        self.xform.restrict_to.add(self.group)        
+
+        response = c.get(form_url)
+        self.assertEquals(403, response.status_code)
+
+        # logged in then ok
+        c.login(username="fred", password="secret")        
+
+        response = c.get(form_url)
+        self.assertEquals(200, response.status_code)
+
+        # remove restriction, still ok
+        self.xform.restrict_to.remove(self.group)
+
+        response = c.get(form_url)
+        self.assertEquals(200, response.status_code)
+
+    def testUserLookup(self):
+        """
+        Tests that we can look up a user by a connection if a model with a
+        connection_set is used as the Django Profile object
+        """
+        butt = Backend.objects.create(name='fanny')
+        conn1 = Connection.objects.create(identity='0721234567', backend=butt)
+        conn2 = Connection.objects.create(identity='0781234567', backend=butt)
+
+        # first try with no profile set
+        self.assertEquals(None, lookup_user_by_connection(conn1))
+
+        # create a profile class
+        settings.AUTH_PROFILE_MODEL = 'rapidsms_xforms.tests.TestProfile'
+
+        # profile set but no profile objects mapped should still be no connection
+        self.assertEquals(None, lookup_user_by_connection(conn1))
+
+        # but now let's associate our user with our connection
+        TestProfile.objects.create(user=self.user, connection=conn1)
+
+        # now we should get the user for this connection
+        self.assertEquals(self.user, lookup_user_by_connection(conn1))
+
+        # but nothing for our other connection
+        self.assertEquals(None, lookup_user_by_connection(conn2))   
+
+    def testSMSSecurity(self):
+        """
+        Tests that forms with restrict_to set will only accept submissions that are valid.
+        """
+        # add restrict to and restict_message to our xform
+        self.group = Group.objects.create(name="Reporters")
+
+        self.xform.restrict_to.add(self.group)
+        self.xform.restrict_message = "You don't have permission to submit this form"
+        self.xform.save()
+        
+        butt = Backend.objects.create(name='fanny')
+        conn1 = Connection.objects.create(identity='0721234567', backend=butt)
+        conn2 = Connection.objects.create(identity='0781234567', backend=butt)
+
+        submission = self.xform.process_sms_submission(IncomingMessage(conn1, "survey +age 10 +name matt berg +gender male"))
+
+        # should have an error
+        self.assertEquals(True, submission.has_errors)
+        self.assertEquals(self.xform.restrict_message, submission.response)
+
+        # now add the profile model
+        settings.AUTH_PROFILE_MODEL = 'rapidsms_xforms.tests.TestProfile'
+
+        # add our user to the group
+        self.user.groups.add(self.group)
+        TestProfile.objects.create(connection=conn1, user=self.user)
+
+        # now we should be able to submit
+        submission = self.xform.process_sms_submission(IncomingMessage(conn1, "survey +age 10 +name matt berg +gender male"))
+        self.assertEquals(False, submission.has_errors)
+
+        # but conn2 cannot
+        submission = self.xform.process_sms_submission(IncomingMessage(conn2, "survey +age 10 +name matt berg +gender male"))
+        self.assertEquals(True, submission.has_errors)
+        self.assertEquals(self.xform.restrict_message, submission.response)
