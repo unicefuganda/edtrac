@@ -336,7 +336,6 @@ class AgeFilterForm(FilterForm):
         if flag == '':
             return queryset
         elif flag == '==':
-            #import pdb;pdb.set_trace()
             return queryset.exclude(birthdate=None).filter(birthdate__year=start.year)
         elif flag == '>':
             return queryset.exclude(birthdate=None).exclude(birthdate__range=(start,end))
