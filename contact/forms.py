@@ -329,21 +329,21 @@ class AgeFilterForm(FilterForm):
     def filter(self, request, queryset):
 
         flag = self.cleaned_data['flag']
-        if not  self.cleaned_data['age'] =='':
-            age = int(self.cleaned_data['age'])
-            end = datetime.datetime.now()
-            start = end - datetime.timedelta(days=age * 365)
+        age= int(self.cleaned_data['age'])
+        end=datetime.datetime.now()
+        start=end-datetime.timedelta(days=age*365)
 
         if flag == '':
             return queryset
         elif flag == '==':
-            return queryset.filter(birthdate__range=(start, end))
+            return queryset.filter(birthdate__year=start.year)
         elif flag == '>':
-            return queryset.exclude(birthdate=None).filter(start, end)
-        elif flag == "<":
-            return queryset.exclude(birthdate=None).exclude(birthdate__range=(start, end))
+            return queryset.exclude(birthdate=None).exclude(birthdate__range=(start,end))
+        elif flag=="<":
+            return queryset.exclude(birthdate=None).filter(birthdate__range=(start,end))
         else:
             return queryset.filter(birthdate=None)
+
 
 
 
