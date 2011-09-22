@@ -323,7 +323,7 @@ class GenderFilterForm(FilterForm):
             return queryset.filter(gender=None)
 class AgeFilterForm(FilterForm):
     """ filter contacts by their age """
-    flag = forms.ChoiceField(label='' , choices=(('', '-----'), ('+=', 'Equal to'), ('>', 'Greater than'), ('<',\
+    flag = forms.ChoiceField(label='' , choices=(('', '-----'), ('==', 'Equal to'), ('>', 'Greater than'), ('<',\
                                         'Less than'), ('None', 'N/A')),required=False)
     age = forms.CharField(max_length=20, label="Age", widget=forms.TextInput(attrs={'size':'20'}),required=False)
     def filter(self, request, queryset):
@@ -336,7 +336,8 @@ class AgeFilterForm(FilterForm):
         if flag == '':
             return queryset
         elif flag == '==':
-            return queryset.filter(birthdate__year=start.year)
+            #import pdb;pdb.set_trace()
+            return queryset.exclude(birthdate=None).filter(birthdate__year=start.year)
         elif flag == '>':
             return queryset.exclude(birthdate=None).exclude(birthdate__range=(start,end))
         elif flag=="<":
