@@ -204,7 +204,7 @@ class MassTextForm(ActionForm):
                 list(Connection.objects.filter(contact__in=results).distinct())
 
             text = self.cleaned_data['text']
-            text = text.replace('%', '%%')
+            text = text.replace('%', u'\u0025')
 
             messages = Message.mass_text(text, connections)
 
