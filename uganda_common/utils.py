@@ -87,13 +87,10 @@ def assign_backend(number):
     return (number, backendobj)
 
 class ExcelResponse(HttpResponse):
-<<<<<<< Updated upstream
-=======
     """
     This class contains utilities that are used to produce Excel reports from datasets stored in a database or scraped
     from a form.
     """
->>>>>>> Stashed changes
     def __init__(self, data, output_name='excel_report', headers=None, write_to_file=False, force_csv=False, encoding='utf8'):
         # Make sure we've got the right type of data to work with
         valid_data = False
