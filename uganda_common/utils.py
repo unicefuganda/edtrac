@@ -24,24 +24,36 @@ import traceback
 
 
 def get_location_for_user(user):
+    """
+    if called with an argument, *user*, the location of a user returned (by district)
+    """
     try:
         return Location.objects.get(name__icontains=user.username, type__name='district')
     except:
         return None
 
 def previous_calendar_week():
+    """
+    returns a datetime tuple with 2 dates: current datetime and a datetime from 7days before.
+    """
     end_date = datetime.datetime.now()
     start_date = end_date - datetime.timedelta(days=7)
     return (start_date, end_date)
 
 
 def previous_calendar_month():
+    """
+    returns a datetime tuple with 2 dates: current datetime and a datetime from 30 days before.
+    """
     end_date = datetime.datetime.now()
     start_date = end_date - datetime.timedelta(days=30)
     return (start_date, end_date)
 
 
 def previous_calendar_quarter():
+    """
+    returns a datetime tuple with 2 dates: current datetime and a datetime from 90 days before
+    """
     end_date = datetime.datetime.now()
     start_date = end_date - datetime.timedelta(days=90)
     return (start_date, end_date)
@@ -54,7 +66,9 @@ TIME_RANGES = {
 }
 
 def assign_backend(number):
-    """assign a backend to a given number"""
+    """
+    assign a backend to a given number
+    """
     country_code = getattr(settings, 'COUNTRY_CALLING_CODE', '256')
     backends = getattr(settings, 'BACKEND_PREFIXES', [('70', 'warid'), ('75', 'zain'), ('71', 'utl'), ('', 'dmark')])
 
@@ -70,6 +84,13 @@ def assign_backend(number):
     return (number, backendobj)
 
 class ExcelResponse(HttpResponse):
+<<<<<<< Updated upstream
+=======
+    """
+    This class contains utilities that are used to produce Excel reports from datasets stored in a database or scraped
+    from a form.
+    """
+>>>>>>> Stashed changes
     def __init__(self, data, output_name='excel_report', headers=None, write_to_file=False, force_csv=False, encoding='utf8'):
         # Make sure we've got the right type of data to work with
         valid_data = False
@@ -164,6 +185,9 @@ class ExcelResponse(HttpResponse):
             (output_name.replace('"', '\"'), file_ext)
 
 def parse_district_value(value):
+    """
+    This function confirms whether your district does exist in a predefined list of districts.
+    """
     location_template = STARTSWITH_PATTERN_TEMPLATE % '[a-zA-Z]*'
     regex = re.compile(location_template)
     toret = find_closest_match(value, Location.objects.filter(type__name='district'))
@@ -216,6 +240,10 @@ GROUP_BY_SELECTS = {
 
 
 def total_submissions(keyword, start_date, end_date, location, extra_filters=None, group_by_timespan=None):
+    """
+    returns *total submission of values* from an xform; this is used to get certain values from and xform
+    submitted database table.
+    """
     if extra_filters:
         extra_filters = dict([(str(k), v) for k, v in extra_filters.items()])
         q = XFormSubmission.objects.filter(**extra_filters)
@@ -326,6 +354,10 @@ def reorganize_timespan(timespan, report, report_dict, location_list, request=No
 
 
 def get_group_by(start_date, end_date):
+    """
+    a function to add a group_by filter. In this case the filtering happens
+    by a start_date and end_date
+    """
     interval = end_date - start_date
     if interval <= datetime.timedelta(days=21):
         group_by = GROUP_BY_DAY
