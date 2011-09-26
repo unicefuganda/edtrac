@@ -223,7 +223,7 @@ class MassTextForm(ActionForm):
 
 class ReplyTextForm(ActionForm):
 
-    text = forms.CharField(max_length=160, required=True)
+    text = forms.CharField(required=True,widget=SMSInput())
     action_label = 'Reply to selected'
 
     def perform(self, request, results):
@@ -329,9 +329,14 @@ class AgeFilterForm(FilterForm):
     def filter(self, request, queryset):
 
         flag = self.cleaned_data['flag']
-        age= int(self.cleaned_data['age'])
-        end=datetime.datetime.now()
-        start=end-datetime.timedelta(days=age*365)
+        try:
+            age= int(self.cleaned_data['age'])
+            end=datetime.datetime.now()
+            start=end-datetime.timedelta(days=age*365)
+        except ValueError:
+            age=None
+            start=None
+            end=None
 
         if flag == '':
             return queryset
