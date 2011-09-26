@@ -46,9 +46,11 @@
                     <a href="{% url rapidsms-login %}">{% trans "Log in" %}</a>{% endif %}
                 </div>
                 {% endblock %}
-
+                {% comment %}
+                This will override AUTHENTICATED_TABS if loaded...no one seems to be using this
+                template, so I'm commenting it out to use authenticated tabs.
                 {% get_tabs as tabs %}
-
+                {% endcomment %}
                 <ul id="tabs">{% for tab in tabs %}
                     <li class="app-{{ tab.name }}{% if tab.is_active %} active{% endif %}">
                         <a href="{{ tab.url }}"><span>{{ tab.caption }}</span></a>
