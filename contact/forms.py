@@ -174,8 +174,7 @@ class MassTextForm(ActionForm):
     action_label = 'Send Message'
 
     def clean_text(self):
-        cleaned_data=self.cleaned_data
-        text = cleaned_data['text']
+        text = self.cleaned_data['text']
 
         #replace common MS-word characters with SMS-friendly characters
         for find, replace in [(u'\u201c', '"'),
@@ -192,8 +191,8 @@ class MassTextForm(ActionForm):
                               (u'\xa4', ''),
                               (u'\xc4', 'A')]:
             text = text.replace(find, replace)
-        cleaned_data['text']=text
-        return cleaned_data
+            
+        return text
 
     def perform(self, request, results):
         if results is None or len(results) == 0:
@@ -203,7 +202,7 @@ class MassTextForm(ActionForm):
             connections = \
                 list(Connection.objects.filter(contact__in=results).distinct())
 
-            text = self.cleaned_data['text']
+            text = self.cleaned_data.get('text',"")
             text = text.replace('%', u'\u0025')
 
             messages = Message.mass_text(text, connections)
