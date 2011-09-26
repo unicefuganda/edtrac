@@ -19,6 +19,7 @@ from eav.fields import EavSlugField
 from django.core.files.base import ContentFile
 from django.contrib.auth.models import Group
 from django.conf import settings
+from rapidsms_httprouter.models import Message
 
 class XForm(models.Model):
     """
@@ -760,7 +761,7 @@ class XFormField(Attribute):
     field_type = models.SlugField(max_length=8, null=True, blank=True)
     command = EavSlugField(max_length=32)
     order = models.IntegerField(default=0)
-    question = models.TextField()
+    question = models.TextField(null=True, blank=True)
 
     objects = models.Manager()
     on_site = CurrentSiteManager()
