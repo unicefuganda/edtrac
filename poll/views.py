@@ -400,7 +400,7 @@ def delete_response (req, response_id):
     response = get_object_or_404(Response, pk=response_id)
     poll = response.poll
     if req.method == 'POST':
-        response_message=Message.objects.get(pk=response.message.pk)
+        response_message=response.message
         response_message.application=None
         response_message.save()
         response.delete()
