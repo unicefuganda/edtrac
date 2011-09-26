@@ -25,6 +25,8 @@ from .forms import *
 from .models import ResponseForm, NameResponseForm, NumericResponseForm, LocationResponseForm
 
 # CSV Export
+from rapidsms_httprouter.models import Message
+
 @require_GET
 def responses_as_csv(req, pk):
     poll = get_object_or_404(Poll, pk=pk)
@@ -398,7 +400,11 @@ def delete_response (req, response_id):
     response = get_object_or_404(Response, pk=response_id)
     poll = response.poll
     if req.method == 'POST':
+        response_message=Message.objects.get(pk=response.message.pk)
+        response_message.application=None
+        response_message.save()
         response.delete()
+
     return HttpResponse(status=200)
 
 @login_required
