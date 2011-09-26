@@ -88,5 +88,4 @@ class LocationReport(Report):
             self.location = Location.objects.get(pk=int(request.POST['drill_key']))
         except:
             self.location = Location.tree.root_nodes()[0]
-        print "LOCATION IS %s" % self.location
         Report.__init__(self, request, dates)
