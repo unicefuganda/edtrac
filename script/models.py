@@ -173,10 +173,11 @@ class ScriptProgress(models.Model):
         If the start_offset of the next step has elapsed, returns
         True, False otherwise.
         """
+        next_step = self.get_next_step()
         return (self.step and \
                 self.status == 'C' and \
                 (self.last_step() or \
-                self.time + datetime.timedelta(seconds=self.script.steps.get(order=(self.step.order + 1)).start_offset) <= curtime))
+                self.time + datetime.timedelta(seconds=next_step.start_offset) <= curtime))
 
     def giveup(self):
         """
@@ -189,22 +190,29 @@ class ScriptProgress(models.Model):
         script_progress_was_completed.send(sender=self, connection=self.connection)
         self.delete()
 
-    def moveon(self, step_num=None):
+
+    def get_next_step(self):
+        steps = self.script.steps.filter(order__gt=self.step.order) if self.step else self.script.steps.all()
+        if steps.count():
+            return steps.order_by('order')[0]
+        else:
+            return None
+
+
+    def moveon(self):
         """
         Move the step to the next in order (if one exists, otherwise end the script),
         sending the appropriate signals.
         """
-        if step_num is None:
-            step_num = self.step.order + 1
-        try:
-            step = self.script.steps.get(order=step_num)
+        next_step = self.get_next_step()
+        if next_step:
             script_progress_pre_change.send(sender=self, connection=self.connection, step=self.step)
-            self.step = step
+            self.step = next_step
             self.status = 'P'
             self.save()
             script_progress.send(sender=self, connection=self.connection, step=self.step)
             return True
-        except ScriptStep.DoesNotExist:
+        else:
             self.giveup()
             return False
 
@@ -213,7 +221,7 @@ class ScriptProgress(models.Model):
         start the ScriptProgress, by advancing to the zeroeth step.
         """
         ScriptSession.objects.create(script=self.script, connection=self.connection)
-        self.moveon(step_num=0)
+        self.moveon()
 
     def outgoing_message(self):
         """
