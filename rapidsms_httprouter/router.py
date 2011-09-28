@@ -57,7 +57,7 @@ class HttpRouterThread(Thread, LoggerMixin):
 
                     # this gets any outgoing messages which are either pending or queued
                     to_process = list(Message.objects.filter(direction='O',
-                                                             status__in=['P','Q']).order_by('status').for_single_update())
+                                                             status__in=['P','Q']).order_by('priority', 'status').for_single_update())
 
                     if len(to_process):
                         self._isbusy = True

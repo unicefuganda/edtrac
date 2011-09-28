@@ -37,6 +37,7 @@ class Message(models.Model):
     direction  = models.CharField(max_length=1, choices=DIRECTION_CHOICES)
     status     = models.CharField(max_length=1, choices=STATUS_CHOICES)
     date       = models.DateTimeField(auto_now_add=True)
+    priority   = models.IntegerField(default=10)
 
     in_response_to = models.ForeignKey('self', related_name='responses', null=True)
     application = models.CharField(max_length=100, null=True)
