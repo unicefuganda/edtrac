@@ -79,7 +79,8 @@ class Command(BaseCommand):
                             Message.objects.create(connection=connection,
                                          text=template.render(context),
                                          direction='O',
-                                         status='Q')
+                                         status='Q',
+                                         priority=1)
                     transaction.commit()
                     if datetime.datetime.now() - current > datetime.timedelta(seconds=95):
                         return
