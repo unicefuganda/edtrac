@@ -7,7 +7,7 @@ dropdb geoserver
 createdb geoserver -T template_postgis
 
 #create a table to contain district name, slug,and poll info (yes,or no)
-psql -d geoserver -c "create table population (id char(5), district varchar(100), poll_id integer ,poll_result varchar(3));"
+psql -d geoserver -c "create table population (id char(5), district varchar(100), slug varchar(100),iso_code varchar(5), poll_id integer ,poll_result varchar(3));"
 
 # load the shapefile
 #
