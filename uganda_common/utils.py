@@ -404,10 +404,10 @@ def get_messages(request):
     messages = messages.filter(Q(application=None) | Q(application__in=['rapidsms_xforms', 'poll']))
 
     #Exclude XForm submissions
-    messages = messages.exclude(pk__in=XFormSubmission.objects.filter(has_errors=False).values_list('message__pk', flat=True))
+    messages = messages.exclude(pk__in=XFormSubmission.objects.exclude(message=None).filter(has_errors=False).values_list('message__pk', flat=True))
 
     # Exclude Poll responses
-    messages = messages.exclude(pk__in=Response.objects.filter(has_errors=False).values_list('message__pk', flat=True))
+    messages = messages.exclude(pk__in=Response.objects.exclude(message=None).filter(has_errors=False).values_list('message__pk', flat=True))
 
     # Exclude opt in and opt out messages
 #    opt_in_out_words = [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', ['join'])]\
