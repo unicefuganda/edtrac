@@ -409,20 +409,6 @@ def get_messages(request):
     # Exclude Poll responses
     messages = messages.exclude(pk__in=Response.objects.exclude(message=None).filter(has_errors=False).values_list('message__pk', flat=True))
 
-    # Exclude opt in and opt out messages
-#    opt_in_out_words = [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', ['join'])]\
-#     + [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', ['quit'])]
-#
-#    q = Q(text__istartswith=opt_in_out_words[0])
-#    for w in opt_in_out_words[1:]:
-#        q = q | Q(text__istartswith=w)
-
-#    messages = messages.exclude(q)
-
-    # Eliminate script responses
-#    responses = ScriptResponse.objects.all().values_list('response__message__text', flat=True)
-#    messages = messages.exclude(text__in=responses)
-
     return messages
 
 
