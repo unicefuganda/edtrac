@@ -377,8 +377,8 @@ def get_xform_dates(request):
     """
     Process date variables from POST
     """
-    dates = {}
-    get_dates_from_post({}, request, dates)
+#    dates = {}
+    dates = get_dates_from_post(request)
     if ('start' in dates) and ('end' in dates):
         request.session['start_date'] = dates['start']
         request.session['end_date'] = dates['end']
