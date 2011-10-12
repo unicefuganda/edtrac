@@ -10,9 +10,9 @@ class DemographicContact(models.Model):
     birthdate = models.DateTimeField(null=True)
     gender = models.CharField(
             max_length=1,
-            choices=(('M', 'Male'),('F', 'Female')), null=True)
+            choices=(('M', 'Male'), ('F', 'Female')), null=True)
     village = models.ForeignKey('locations.Location', blank=True, null=True, related_name='villagers')
-    
+    village_name = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
         abstract = True
