@@ -1,5 +1,5 @@
 import datetime
-from django.db import models
+from django.db import models, transaction
 
 from rapidsms.models import Contact, Connection
 
@@ -61,6 +61,7 @@ class Message(models.Model):
                     date=self.date.isoformat())
 
     @classmethod
+    @transaction.commit_on_success
     def mass_text(cls, text, connections, status='P'):
         for connection in connections:
             Message.bulk.bulk_insert(
