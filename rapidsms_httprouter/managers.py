@@ -434,9 +434,9 @@ class BulkInsertManager(models.Manager):
             watch[f.name] = val
             if isinstance(f, AutoField):
                 if f.name in kwargs.keys():
-                    kwargs[f.name] = f.get_db_prep_save(raw and val or f.pre_save(self.tempModel, True))
+                    kwargs[f.name] = f.get_db_prep_save(raw and val or f.pre_save(self.tempModel, True),connection=connection.connection)
             elif f.name in kwargs.keys():
-                kwargs[f.name] = f.get_db_prep_save(raw and val or f.pre_save(self.tempModel, True))
+                kwargs[f.name] = f.get_db_prep_save(raw and val or f.pre_save(self.tempModel, True),connection=connection.connection)
             else:
                 kwargs[f.name] = self.defaults[f.name]
                 
@@ -447,7 +447,7 @@ class BulkInsertManager(models.Manager):
         #Check for changes from pre_save
         for f in [field for field in self.tempModel._meta.fields if field.name in kwargs]:
             if watch[f.name] != getattr(self.tempModel, f.attname):
-                kwargs[f.name] = f.get_db_prep_save(raw and val or f.pre_save(self.tempModel, True))
+                kwargs[f.name] = f.get_db_prep_save(raw and val or f.pre_save(self.tempModel, True),connection=connection.connection)
 
         #hash to identify this arg:value set
         key = hash_dict(kwargs)
@@ -666,7 +666,7 @@ class BulkInsertManager(models.Manager):
                         self.defaults[f.name] = self.now.strftime('%H:%M:%S')
                     continue
             if not isinstance(f, AutoField):
-                self.defaults[f.name] = scrapModel._meta.get_field(f.name).get_db_prep_save(f.pre_save(scrapModel, True))
+                self.defaults[f.name] = scrapModel._meta.get_field(f.name).get_db_prep_save(f.pre_save(scrapModel, True),connection=connection.connection)
                 
     def _check_fields(self, no_related=False, kwargs={}):
         """
@@ -877,7 +877,7 @@ class BulkInsertManager(models.Manager):
         for f in obj._meta.fields:
             if isinstance(f, AutoField):
                 continue
-            args[f.name] = f.get_db_prep_save(f.pre_save(obj, True))
+            args[f.name] = f.get_db_prep_save(f.pre_save(obj, True),connection=connection.connection)
         return args
         
     def _m2m_enqueue(self, name, value, key):
