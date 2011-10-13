@@ -125,7 +125,10 @@ def view_poll(req, poll_id):
 def view_report(req, poll_id, location_id=None, as_module=False):
     template = "polls/poll_report.html"
     poll = get_object_or_404(Poll, pk=poll_id)
-    response_rate =  poll.responses.distinct().count()* 100.0 / poll.contacts.all().distinct().count()
+    try:
+        response_rate =  poll.responses.distinct().count()* 100.0 / poll.contacts.distinct().count()
+    except ZeroDivisionError:
+        response_rate="N/A"
     if as_module:
         if poll.type == Poll.TYPE_TEXT:
             template = "polls/poll_report_text.html"
