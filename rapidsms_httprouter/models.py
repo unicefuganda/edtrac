@@ -66,7 +66,7 @@ class Message(models.Model):
     @classmethod
     @transaction.commit_on_success
     def mass_text(cls, text, connections, status='P'):
-        batch = MessageBatch.objects.create(status='P')
+        batch = MessageBatch.objects.create(status='Q')
         for connection in connections:
             Message.bulk.bulk_insert(
                 send_pre_save=False,
