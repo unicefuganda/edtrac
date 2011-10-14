@@ -7,7 +7,6 @@ import traceback
 from rapidsms.models import Contact, Connection, Backend
 
 from rapidsms_httprouter.models import Message
-from rapidsms_httprouter.router import HttpRouter
 
 from django.db import transaction
 
@@ -50,7 +49,6 @@ class Command(BaseCommand):
         if recipients:
             recipients = [email for name, email in recipients]
         if current.hour in range(int(options['e']), int(options['l'])):
-            router = HttpRouter()
             unstarted = ScriptProgress.objects.filter(step=None, script__in=Script.objects.all(), script__enabled=True).values_list('connection', flat=True).distinct()
             started = ScriptProgress.objects.filter(script__enabled=True, script__in=Script.objects.all()).order_by('step').values_list('connection', flat=True).distinct()
             for connection in itertools.chain(unstarted, started):
@@ -79,7 +77,8 @@ class Command(BaseCommand):
                             Message.objects.create(connection=connection,
                                          text=template.render(context),
                                          direction='O',
-                                         status='Q',
+                                         status='P',
+                                         application='script',
                                          priority=1)
                     transaction.commit()
                     if datetime.datetime.now() - current > datetime.timedelta(seconds=95):
