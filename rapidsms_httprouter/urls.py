@@ -9,7 +9,7 @@ urlpatterns = patterns("",
    ("^router/receive", receive),
    ("^router/outbox", outbox),
    ("^router/delivered", delivered),
-   ("^router/can_send/(?P<message_id>\d+)/", can_send)
+   ("^router/can_send/(?P<message_id>\d+)/", can_send),
    ("^router/console", staff_member_required(console), {}, 'httprouter-console'),
    ("^router/summary", summary),
 )
