@@ -3,7 +3,7 @@ import json
 from django import forms
 from django.http import HttpResponse
 from django.template import RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.conf import settings;
 from django.db.models import Count
@@ -103,6 +103,16 @@ def delivered(request):
 
     return HttpResponse(json.dumps(dict(status="Message marked as sent.")))
 
+
+def can_send(request, message_id):
+    message = get_object_or_404(Message, pk=message_id)
+    send_msg = get_router().process_outgoing_phases(message)
+
+    # if it wasn't cancelled, send it off
+    if send_msg:
+        return HttpResponse(status=200)
+    else:
+        return HttpResponse(status=403)
 
 class MessageTable(Table):
     # this is temporary, until i fix ModelTable!
