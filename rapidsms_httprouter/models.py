@@ -30,18 +30,21 @@ STATUS_CHOICES = (
 #
 # See: https://coderanger.net/2011/01/select-for-update/
 #
+class MessageBatch(models.Model):
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES)
 
 class Message(models.Model):
     connection = models.ForeignKey(Connection, related_name='messages')
-    text       = models.TextField()
-    direction  = models.CharField(max_length=1, choices=DIRECTION_CHOICES)
-    status     = models.CharField(max_length=1, choices=STATUS_CHOICES)
-    date       = models.DateTimeField(auto_now_add=True)
-    priority   = models.IntegerField(default=10)
+    text = models.TextField()
+    direction = models.CharField(max_length=1, choices=DIRECTION_CHOICES)
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES)
+    date = models.DateTimeField(auto_now_add=True)
+    priority = models.IntegerField(default=10)
 
     in_response_to = models.ForeignKey('self', related_name='responses', null=True)
     application = models.CharField(max_length=100, null=True)
 
+    batch = models.ForeignKey(MessageBatch, related_name='messages', null=True)
     # set our manager to our update manager
     objects = ForUpdateManager()
     bulk = BulkInsertManager()
@@ -62,11 +65,14 @@ class Message(models.Model):
 
     @classmethod
     def mass_text(cls, text, connections, status='P'):
+        batch = MessageBatch.objects.create(status='P')
         for connection in connections:
             Message.bulk.bulk_insert(
                 send_pre_save=False,
                 text=text,
                 direction='O',
                 status=status,
+                batch=batch,
                 connection=connection)
         return Message.bulk.bulk_insert_commit(send_post_save=False, autoclobber=True)
+
