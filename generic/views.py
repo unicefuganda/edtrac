@@ -15,7 +15,7 @@ from django.contrib.auth.models import User
 from generic.models import Dashboard, Module, ModuleParams, StaticModuleContent
 from django.db.models import Count
 from django.views.decorators.cache import cache_control
-from .utils import copy_dashboard, get_dates
+from .utils import copy_dashboard, get_dates, set_default_dates
 
 def generic_row(request, model=None, pk=None, partial_row='generic/partials/partial_row.html', selectable=True):
     if not (model and pk):
@@ -43,7 +43,7 @@ def generic(request,
             filter_forms=[],
             action_forms=[],
             needs_date=False,
-            dates={},
+            dates=get_dates,
             **kwargs):
     # model parameter is required
     if not model:
@@ -137,6 +137,8 @@ def generic(request,
             action_instance = action_class(request.POST, request=request)
             if action_instance.is_valid():
                 status_message, status_message_type = action_instance.perform(request, results)
+            else:
+                status_message,status_message_type=action_instance.errors,'error'
         else:
             # it's a new filter, re-start from the object list
             # and filter down on the new set of forms
@@ -145,6 +147,7 @@ def generic(request,
                 form_instance = form_class(request.POST, request=request)
                 if form_instance.is_valid():
                     filtered_list = form_instance.filter(request, filtered_list)
+               
             selected = True
             # store the request filters in the session
             request.session[FILTER_REQUEST_KEY] = request.POST
@@ -234,7 +237,7 @@ def generic(request,
 
     # For pages that not only have tables, but also need a time range slider
     if needs_date:
-        get_dates(dates, request, context_vars)
+        set_default_dates(dates, request, context_vars)
         context_vars['timeslider_update'] = 'filter(this)'
 
     context_vars.update(kwargs)
@@ -340,7 +343,7 @@ def generic_dashboard(request,
 def generic_map(request,
                 base_template='generic/map_base.html',
                 map_layers=[],
-                dates={},
+                dates=get_dates,
                 display_autoload=True):
     needs_date = False
     for layer in map_layers:
@@ -354,7 +357,7 @@ def generic_map(request,
                'timeslider_update':'update_date_layers();'}
 
     if needs_date:
-        get_dates(dates, request, context)
+        set_default_dates(dates, request, context)
 
     return render_to_response(base_template, context, context_instance=RequestContext(request))
 
