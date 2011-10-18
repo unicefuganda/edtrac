@@ -109,7 +109,7 @@ class Command(BaseCommand, LoggerMixin):
     def handle(self, **options):
         DBS = settings.DATABASES.keys()
         DBS.remove('default') # skip the dummy
-        CHUNK_SIZE = getattr(settings, 'MESSAGE_CHUNK_SIZE', '400')
+        CHUNK_SIZE = getattr(settings, 'MESSAGE_CHUNK_SIZE', 400)
         while (True):
             for db in DBS:
                 router_url = settings.DATABASES[db]['ROUTER_URL']
