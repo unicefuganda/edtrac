@@ -21,7 +21,7 @@ class Command(BaseCommand, LoggerMixin):
         return response.getcode()
 
 
-    def build_send_url(self, backend, recipients, text, **kwargs):
+    def build_send_url(self, router_url, backend, recipients, text, **kwargs):
         """
         Constructs an appropriate send url for the given message.
         """
@@ -39,9 +39,6 @@ class Command(BaseCommand, LoggerMixin):
                 params[k] = quote_plus(str(v))
             except UnicodeEncodeError:
                 params[k] = quote_plus(str(v.encode('UTF-8')))
-
-        # get our router URL
-        router_url = settings.ROUTER_URL
 
         # is this actually a dict?  if so, we want to look up the appropriate backend
         if type(router_url) is dict:
@@ -67,10 +64,10 @@ class Command(BaseCommand, LoggerMixin):
         return full_url
 
 
-    def send_backend_chunk(self, pks, backend_name):
+    def send_backend_chunk(self, router_url, pks, backend_name):
         msgs = Message.objects.using(self.db).filter(pk__in=pks)
         try:
-            url = self.build_send_url(backend_name, ' '.join(msgs.values_list('connection__identity', flat=True)), msgs[0].text)
+            url = self.build_send_url(router_url, backend_name, ' '.join(msgs.values_list('connection__identity', flat=True)), msgs[0].text)
             status_code = self.fetch_url(url)
 
             # kannel likes to send 202 responses, really any
@@ -87,26 +84,26 @@ class Command(BaseCommand, LoggerMixin):
             msgs.update(status='Q')
 
 
-    def send_all(self, to_send):
+    def send_all(self, router_url, to_send):
         pks = []
         if len(to_send):
             backend_name = to_send[0].connection.backend.name
             for msg in to_send:
                 if backend_name != msg.connection.backend.name:
                     # send all of the same backend
-                    self.send_backend_chunk(pks, backend_name)
+                    self.send_backend_chunk(router_url, pks, backend_name)
                     # reset the loop status variables to build the next chunk of messages with the same backend
                     backend_name = msg.connection.backend.name
                     pks = [msg.pk]
                 else:
                     pks.append(msg.pk)
-            self.send_backend_chunk(pks, backend_name)
+            self.send_backend_chunk(router_url, pks, backend_name)
 
-    def send_individual(self):
+    def send_individual(self, router_url):
         to_process = Message.objects.using(self.db).filter(direction='O',
                           status__in=['Q']).order_by('priority', 'status', 'connection__backend__name')
         if len(to_process):
-            self.send_all([to_process[0]])
+            self.send_all(router_url, [to_process[0]])
 
 
     def handle(self, **options):
@@ -115,6 +112,7 @@ class Command(BaseCommand, LoggerMixin):
         CHUNK_SIZE = getattr(settings, 'MESSAGE_CHUNK_SIZE', '400')
         while (True):
             for db in DBS:
+                router_url = settings.DATABASES[db]['ROUTER_URL']
                 transaction.enter_transaction_management(using=db)
                 self.db = db
                 to_process = MessageBatch.objects.using(db).filter(status='Q')
@@ -123,13 +121,13 @@ class Command(BaseCommand, LoggerMixin):
                     to_process = batch.messages.using(db).filter(direction='O',
                                   status__in=['Q']).order_by('priority', 'status', 'connection__backend__name')[:CHUNK_SIZE]
                     if to_process.count():
-                        self.send_all(to_process)
+                        self.send_all(router_url, to_process)
                     elif batch.messages.using(db).filter(status__in=['Q', 'P']).count() == 0:
                         batch.status = 'S'
                         batch.save()
                     else:
-                        self.send_individual()
+                        self.send_individual(router_url)
                 else:
-                    self.send_individual()
+                    self.send_individual(router_url)
 
                 transaction.commit(using=db)
