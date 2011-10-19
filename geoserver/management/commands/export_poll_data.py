@@ -12,17 +12,11 @@ class Command(BaseCommand):
 
     help = """loads yes no polls into the poll data for geoserver"""
 
-    def is_yesno_poll(self, poll):
-        return poll.categories.count() == 3 and \
-            poll.categories.filter(name='yes').count() and \
-            poll.categories.filter(name='no').count() and \
-            poll.categories.filter(name='unknown').count()
-
     def handle(self, **options):
         root = Location.tree.root_nodes()[0]
         yesno_category_name = ['yes', 'no', 'unknown', 'uncategorized']
         for p in Poll.objects.exclude(categories=None):
-            if self.is_yesno_poll(p):
+            if p.is_yesno_poll():
                 data = p.responses_by_category(location=root)
                 insert_data = {}
                 for d in data:
