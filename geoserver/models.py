@@ -8,7 +8,7 @@ class PollData(models.Model):
     uncategorized = models.FloatField(blank=True, null=True, default=0)
     unknown = models.FloatField(max_length=5, blank=True, null=True, default=0)
     poll_id = models.IntegerField()
-    deployement_id = models.IntegerField(max_length=3)
+    deployment_id = models.IntegerField(max_length=3)
 
     class Meta:
         unique_together = (('deployment_id', 'poll_id', 'district'),)
