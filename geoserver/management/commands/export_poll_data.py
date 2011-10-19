@@ -7,29 +7,6 @@ from geoserver.models import PollData
 from poll.models import Poll
 from rapidsms.contrib.locations.models import Location
 
-def add_poll_info(data_dict, poll):
-    data = data_dict.get("data")
-    for item in data:
-
-        pd, created = PollData.objects.get_or_create(district=item["location_name"].upper(), poll=poll)
-        print item.get("category__name")
-        if item.get("category__name").strip() == "yes":
-            pd.yes = item["value"]
-        if item.get("category__name").strip() == "no":
-            pd.no = item["value"]
-        if item.get("category__name").strip() == "unknown":
-            pd.unknown = item["value"]
-        if item.get("category__name").strip() == "uncategorized":
-            pd.uncategorized = item["value"]
-        pd.poll = poll
-
-        if pd.yes > pd.no:
-            pd.dominant_category = "yes"
-        else:
-            pd.dominant_category = "no"
-        pd.save()
-
-
 
 class Command(BaseCommand):
 
@@ -63,7 +40,7 @@ class Command(BaseCommand):
                         values[cat_name] = float(values[cat_name]) / total
                     p.save(using='geoserver')
                     pd = PollData.objects.using('geoserver').get_or_create(\
-                            district=l.code, \
+                            district=district_code, \
                             poll=p, \
                             # FIXME add deployment_id
                             )
