@@ -8,4 +8,5 @@ class PollData(models.Model):
     uncategorized = models.FloatField(blank=True, null=True, default=0)
     unknown = models.FloatField(max_length=5, blank=True, null=True, default=0)
     poll = models.ForeignKey(Poll, null=True)
+    deployement_id=models.IntegerField(max_length=3)
 
