@@ -6,7 +6,7 @@ import urllib2
 from geoserver.models import PollData
 from poll.models import Poll
 from rapidsms.contrib.locations.models import Location
-
+from django.conf import settings
 
 class Command(BaseCommand):
 
@@ -41,8 +41,8 @@ class Command(BaseCommand):
                     p.save(using='geoserver')
                     pd = PollData.objects.using('geoserver').get_or_create(\
                             district=district_code, \
-                            poll=p, \
-                            # FIXME add deployment_id
+                            poll_id=p.pk, \
+                            deployment_id=getattr(settings, 'DEPLOYMENT_ID', 1)
                             )
                     for c in yesno_category_name:
                         setattr(pd, c, values[c])
