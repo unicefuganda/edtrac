@@ -25,6 +25,8 @@ from .forms import *
 from .models import ResponseForm, NameResponseForm, NumericResponseForm, LocationResponseForm
 
 # CSV Export
+from rapidsms_httprouter.models import Message
+
 @require_GET
 def responses_as_csv(req, pk):
     poll = get_object_or_404(Poll, pk=pk)
@@ -123,7 +125,10 @@ def view_poll(req, poll_id):
 def view_report(req, poll_id, location_id=None, as_module=False):
     template = "polls/poll_report.html"
     poll = get_object_or_404(Poll, pk=poll_id)
-    response_rate =  poll.responses.distinct().count()* 100.0 / poll.contacts.all().distinct().count()
+    try:
+        response_rate =  poll.responses.distinct().count()* 100.0 / poll.contacts.distinct().count()
+    except ZeroDivisionError:
+        response_rate="N/A"
     if as_module:
         if poll.type == Poll.TYPE_TEXT:
             template = "polls/poll_report_text.html"
@@ -398,7 +403,11 @@ def delete_response (req, response_id):
     response = get_object_or_404(Response, pk=response_id)
     poll = response.poll
     if req.method == 'POST':
+        response_message=response.message
+        response_message.application=None
+        response_message.save()
         response.delete()
+
     return HttpResponse(status=200)
 
 @login_required
