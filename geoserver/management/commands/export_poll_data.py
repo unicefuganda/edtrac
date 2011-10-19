@@ -38,7 +38,7 @@ class Command(BaseCommand):
                         total += val
                     for cat_name in values.keys():
                         values[cat_name] = float(values[cat_name]) / total
-                    pd = PollData.objects.using('geoserver').get_or_create(\
+                    pd, _ = PollData.objects.using('geoserver').get_or_create(\
                             district=district_code, \
                             poll_id=p.pk, \
                             deployment_id=getattr(settings, 'DEPLOYMENT_ID', 1)
