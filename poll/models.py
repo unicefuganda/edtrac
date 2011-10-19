@@ -221,6 +221,12 @@ class Poll(models.Model):
             rule_string=(STARTSWITH_PATTERN_TEMPLATE % '|'.join(NO_WORDS)))
         self.categories.create(name='unknown', default=True, error_category=True)
 
+    def is_yesno_poll(self):
+        return self.categories.count() == 3 and \
+            self.categories.filter(name='yes').count() and \
+            self.categories.filter(name='no').count() and \
+            self.categories.filter(name='unknown').count()
+
     def start(self):
         """
         This starts the poll: outgoing messages are sent to all the contacts
