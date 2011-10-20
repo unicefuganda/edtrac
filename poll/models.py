@@ -1,7 +1,7 @@
 import datetime
 import difflib
 
-from django.db import models, transaction
+from django.db import models, transaction, connection
 from django.db.models import Sum, Avg, Count, Max, Min, StdDev
 from django.contrib.sites.models import Site
 from django.contrib.sites.managers import CurrentSiteManager
@@ -188,19 +188,22 @@ class Poll(models.Model):
             edit_form=edit_form)
 
     @classmethod
+    @transaction.commit_on_success
     def create_with_bulk(cls, name, type, question, default_response, contacts, user):
         messages = Message.mass_text(question, Connection.objects.filter(contact__in=list(contacts)).distinct(), status='L')
+        poll = Poll.objects.create(name=name, type=type, question=question, default_response=default_response, user=user)
 
-        Poll.bulk.bulk_insert(name=name,
-                              type=type,
-                              question=question,
-                              default_response=default_response,
-                              user=user,
-                              contacts=list(contacts),
-                              messages=list(messages),
-                              send_pre_save=False)
-        polls = Poll.bulk.bulk_insert_commit(send_post_save=False, autoclobber=True)
-        poll = polls[0]
+        # This is the fastest (pretty much only) was to get contacts and messages M2M into the
+        # DB fast enough at scale
+        cursor = connection.cursor()
+        raw_sql = "insert into poll_poll_contacts (poll_id, contact_id) values %s" % ','.join(\
+            ["(%d, %d)" % (poll.pk, c.pk) for c in contacts])
+        cursor.execute(raw_sql)
+
+        raw_sql = "insert into poll_poll_messages (poll_id, message_id) values %s" % ','.join(\
+            ["(%d, %d)" % (poll.pk, m.pk) for m in messages])
+        cursor.execute(raw_sql)
+
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
             poll.sites.add(Site.objects.get_current())
         return poll
@@ -227,6 +230,7 @@ class Poll(models.Model):
             self.categories.filter(name='no').count() and \
             self.categories.filter(name='unknown').count()
 
+    @transaction.commit_on_success
     def start(self):
         """
         This starts the poll: outgoing messages are sent to all the contacts
@@ -234,9 +238,9 @@ class Poll(models.Model):
         All incoming messages from these users will be considered as
         potentially a response to this poll.
         """
+        self.messages.update(status='P')
         self.start_date = datetime.datetime.now()
         self.save()
-        self.messages.update(status='P')
 
 
     def end(self):

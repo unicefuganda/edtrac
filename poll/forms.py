@@ -23,20 +23,19 @@ class NewPollForm(forms.Form): # pragma: no cover
         self.fields['type'].widget.choices += [(choice['type'], choice['label']) for choice in Poll.TYPE_CHOICES.values()]
 
     name = forms.CharField(max_length=32, required=True)
-    question = forms.CharField(max_length=160, required=True)
-    default_response = forms.CharField(max_length=160, required=False)
+    question = forms.CharField(max_length=160, required=True, widget=forms.Textarea())
+    default_response = forms.CharField(max_length=160, required=False, widget=forms.Textarea())
     start_immediately = forms.BooleanField(required=False)
+    contacts = forms.ModelMultipleChoiceField(queryset=Contact.objects.all(), required=False)
 
-    # This may seem like a hack, but this allows time for the Contact model's
-    # default manage to be replaced at run-time.  There are many applications
-    # for that, such as filtering contacts by site_id.
-    # This does, however, also make the polling app independent of authsites.  
+    # This may seem like a hack, but this allows time for the Contact model
+    # to optionally have groups (i.e., poll doesn't explicitly depend on the rapidsms-auth
+    # app.
     def __init__(self, data=None, **kwargs):
         if data:
             forms.Form.__init__(self, data, **kwargs)
         else:
             forms.Form.__init__(self, **kwargs)
-        self.fields['contacts'] = forms.ModelMultipleChoiceField(queryset=Contact.objects.all(), required=False)
         if hasattr(Contact, 'groups'):
             self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.all(), required=False)
 
