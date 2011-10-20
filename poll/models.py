@@ -499,6 +499,9 @@ class Category(models.Model):
     response = models.CharField(max_length=160, null=True)
     error_category = models.BooleanField(default=False)
 
+    class Meta:
+        ordering = ['name']
+
     @classmethod
     def clear_defaults(cls, poll):
         for c in Category.objects.filter(poll=poll, default=True):
