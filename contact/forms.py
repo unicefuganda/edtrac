@@ -313,7 +313,7 @@ class FlagMessageForm(ActionForm):
 class GenderFilterForm(FilterForm):
     """ filter contacts by their gender"""
 
-    gender = forms.ChoiceField(choices=(('', '-----'), ('M', 'Male'), ('F', 'Female'), ('None', 'N/A')), \)
+    gender = forms.ChoiceField(choices=(('', '-----'), ('M', 'Male'), ('F', 'Female'), ('None', 'N/A')))
 
     def filter(self, request, queryset):
 
@@ -326,6 +326,8 @@ class GenderFilterForm(FilterForm):
             return queryset.filter(gender='F')
         else:
             return queryset.filter(gender=None)
+
+
 class AgeFilterForm(FilterForm):
     """ filter contacts by their age """
     flag = forms.ChoiceField(label='' , choices=(('', '-----'), ('==', 'Equal to'), ('>', 'Greater than'), ('<', \
