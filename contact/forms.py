@@ -13,13 +13,18 @@ from rapidsms_httprouter.router import get_router, \
 from rapidsms_httprouter.models import Message
 from rapidsms.messages.outgoing import OutgoingMessage
 from generic.forms import ActionForm, FilterForm
-from ureport.models import MassText
+from contact.models import MassText, Flag
 from django.contrib.sites.models import Site
 from rapidsms.contrib.locations.models import Location
 import time
 from django.conf import settings
 import datetime
 from rapidsms_httprouter.models import Message
+
+
+class FlaggedMessageForm(forms.ModelForm):
+    class Meta:
+        model = Flag
 
 
 class ReplyForm(forms.Form):
@@ -98,6 +103,7 @@ class FreeSearchTextForm(FilterForm):
 class HandledByForm(FilterForm):
     type = forms.ChoiceField(choices=(('', '-----'), ('poll', 'Poll Response'), ('rapidsms_xforms', 'Report'), ('*', 'Other'),))
 
+
     def filter(self, request, queryset):
         handled_by = self.cleaned_data['type']
         if handled_by == '':
@@ -117,6 +123,7 @@ class DistictFilterForm(FilterForm):
                                  d.name) for d in
                                  Location.objects.filter(type__slug='district'
                                  ).order_by('name')]))
+
 
     def filter(self, request, queryset):
         district_pk = self.cleaned_data['district']
@@ -145,6 +152,7 @@ class DistictFilterMessageForm(FilterForm):
                                  Location.objects.filter(type__slug='district'
                                  ).order_by('name')]))
 
+
     def filter(self, request, queryset):
         district_pk = self.cleaned_data['district']
         if district_pk == '':
@@ -163,7 +171,7 @@ class DistictFilterMessageForm(FilterForm):
 
 class MassTextForm(ActionForm):
 
-    text = forms.CharField(max_length=160, required=True)
+    text = forms.CharField(max_length=160, required=True, widget=SMSInput())
     action_label = 'Send Message'
 
     def clean_text(self):
@@ -184,13 +192,14 @@ class MassTextForm(ActionForm):
                               (u'\xa4', ''),
                               (u'\xc4', 'A')]:
             text = text.replace(find, replace)
+
         return text
 
     def perform(self, request, results):
         if results is None or len(results) == 0:
             return ('A message must have one or more recipients!', 'error')
 
-        if request.user and request.user.has_perm('ureport.can_message'):
+        if request.user and request.user.has_perm('contact.can_message'):
             connections = \
                 list(Connection.objects.filter(contact__in=results).distinct())
 
@@ -214,14 +223,14 @@ class MassTextForm(ActionForm):
 
 class ReplyTextForm(ActionForm):
 
-    text = forms.CharField(max_length=160, required=True)
+    text = forms.CharField(required=True, widget=SMSInput())
     action_label = 'Reply to selected'
 
     def perform(self, request, results):
         if results is None or len(results) == 0:
             return ('A message must have one or more recipients!', 'error')
 
-        if request.user and request.user.has_perm('ureport.can_message'):
+        if request.user and request.user.has_perm('contact.can_message'):
             router = get_router()
             text = self.cleaned_data['text']
             start_sending_mass_messages()
@@ -298,7 +307,7 @@ class FlagMessageForm(ActionForm):
 class GenderFilterForm(FilterForm):
     """ filter contacts by their gender"""
 
-    gender = forms.ChoiceField(choices=(('', '-----'), ('M', 'Male'), ('F', 'Female'), ('None', 'N/A')))
+    gender = forms.ChoiceField(choices=(('', '-----'), ('M', 'Male'), ('F', 'Female'), ('None', 'N/A')), \)
 
     def filter(self, request, queryset):
 

@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import login_required
 from rapidsms_httprouter.models import Message
 from generic.sorters import SimpleSorter, TupleSorter
 from .forms import FreeSearchTextForm, DistictFilterMessageForm, HandledByForm, ReplyTextForm, FlaggedForm, FlagMessageForm
-from ureport.models import MassText
+from contact.models import MassText
 
 urlpatterns = patterns('',
    url(r'^contact/index/$', generic, {'model':Contact, 'filter_forms':[FreeSearchForm, FilterGroupsForm], 'action_forms':[MassTextForm], 'objects_per_page':25}),

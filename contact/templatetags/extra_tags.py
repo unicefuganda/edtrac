@@ -1,5 +1,5 @@
 from django import template
-from ureport.models import MessageFlag
+from contact.models import MessageFlag
 
 
 def flags(msg):

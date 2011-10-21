@@ -1,5 +1,5 @@
 from rapidsms_httprouter.models import Message
-from ureport.models import MassText
+from contact.models import MassText
 from poll.models import Poll
 
 def get_messages(**kwargs):
