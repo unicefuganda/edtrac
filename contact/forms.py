@@ -16,10 +16,11 @@ from generic.forms import ActionForm, FilterForm
 from contact.models import MassText, Flag
 from django.contrib.sites.models import Site
 from rapidsms.contrib.locations.models import Location
-import time
+from uganda_common.forms import SMSInput
 from django.conf import settings
 import datetime
 from rapidsms_httprouter.models import Message
+from django.forms.util import ErrorList
 
 
 class FlaggedMessageForm(forms.ModelForm):
@@ -78,17 +79,21 @@ class NewContactForm(forms.ModelForm):
 
 class FreeSearchForm(FilterForm):
 
-    """ concrete implementation of filter form 
+    """ concrete implementation of filter form
         TO DO: add ability to search for multiple search terms separated by 'or'
     """
 
-    search = forms.CharField(max_length=100, required=True, label="Free-form search", help_text="Use 'or' to search for multiple names")
+    search = forms.CharField(max_length=100, required=False, label="Free-form search",
+                             help_text="Use 'or' to search for multiple names")
 
     def filter(self, request, queryset):
         search = self.cleaned_data['search']
-        return queryset.filter(Q(name__icontains=search)
-                               | Q(reporting_location__name__icontains=search)
-                               | Q(connection__identity__icontains=search))
+        if search == "":
+            return queryset
+        else:
+            return queryset.filter(Q(name__icontains=search)
+                                   | Q(reporting_location__name__icontains=search)
+                                   | Q(connection__identity__icontains=search))
 
 class FreeSearchTextForm(FilterForm):
 
@@ -101,7 +106,9 @@ class FreeSearchTextForm(FilterForm):
         return queryset.filter(text__icontains=search)
 
 class HandledByForm(FilterForm):
-    type = forms.ChoiceField(choices=(('', '-----'), ('poll', 'Poll Response'), ('rapidsms_xforms', 'Report'), ('*', 'Other'),))
+    type = forms.ChoiceField(
+            choices=(('', '-----'), ('poll', 'Poll Response'), ('rapidsms_xforms', 'Report'), ('*', 'Other'),), \
+            required=False)
 
 
     def filter(self, request, queryset):
@@ -122,7 +129,7 @@ class DistictFilterForm(FilterForm):
                                  'No District')) + tuple([(int(d.pk),
                                  d.name) for d in
                                  Location.objects.filter(type__slug='district'
-                                 ).order_by('name')]))
+                                 ).order_by('name')]), required=False)
 
 
     def filter(self, request, queryset):
@@ -150,7 +157,7 @@ class DistictFilterMessageForm(FilterForm):
                                  'No District')) + tuple([(int(d.pk),
                                  d.name) for d in
                                  Location.objects.filter(type__slug='district'
-                                 ).order_by('name')]))
+                                 ).order_by('name')]), required=False)
 
 
     def filter(self, request, queryset):
@@ -192,7 +199,6 @@ class MassTextForm(ActionForm):
                               (u'\xa4', ''),
                               (u'\xc4', 'A')]:
             text = text.replace(find, replace)
-
         return text
 
     def perform(self, request, results):
@@ -203,8 +209,8 @@ class MassTextForm(ActionForm):
             connections = \
                 list(Connection.objects.filter(contact__in=results).distinct())
 
-            text = self.cleaned_data['text']
-            text = text.replace('%', '%%')
+            text = self.cleaned_data.get('text', "")
+            text = text.replace('%', u'\u0025')
 
             messages = Message.mass_text(text, connections)
 
@@ -322,25 +328,32 @@ class GenderFilterForm(FilterForm):
             return queryset.filter(gender=None)
 class AgeFilterForm(FilterForm):
     """ filter contacts by their age """
-    flag = forms.ChoiceField(label='' , choices=(('', '-----'), ('+=', 'Equal to'), ('>', 'Greater than'), ('<', 'Less than'), ('None', 'N/A')))
-    age = forms.CharField(max_length=20, label="Age", widget=forms.TextInput(attrs={'size':'20'}))
+    flag = forms.ChoiceField(label='' , choices=(('', '-----'), ('==', 'Equal to'), ('>', 'Greater than'), ('<', \
+                                        'Less than'), ('None', 'N/A')), required=False)
+    age = forms.CharField(max_length=20, label="Age", widget=forms.TextInput(attrs={'size':'20'}), required=False)
     def filter(self, request, queryset):
 
         flag = self.cleaned_data['flag']
-        age = int(self.cleaned_data['age'])
-        end = datetime.datetime.now()
-        start = end - datetime.timedelta(days=age * 365)
+        try:
+            age = int(self.cleaned_data['age'])
+            end = datetime.datetime.now()
+            start = end - datetime.timedelta(days=age * 365)
+        except ValueError:
+            age = None
+            start = None
+            end = None
 
         if flag == '':
             return queryset
         elif flag == '==':
-            return queryset.filter(birthdate__range=(start, end))
+            return queryset.exclude(birthdate=None).filter(birthdate__year=start.year)
         elif flag == '>':
-            return queryset.exclude(birthdate=None).filter(start, end)
-        elif flag == "<":
             return queryset.exclude(birthdate=None).exclude(birthdate__range=(start, end))
+        elif flag == "<":
+            return queryset.exclude(birthdate=None).filter(birthdate__range=(start, end))
         else:
             return queryset.filter(birthdate=None)
+
 
 
 
