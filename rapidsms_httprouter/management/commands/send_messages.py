@@ -122,7 +122,7 @@ class Command(BaseCommand, LoggerMixin):
                                   status__in=['Q']).order_by('priority', 'status', 'connection__backend__name')[:CHUNK_SIZE]
                     if to_process.count():
                         self.send_all(router_url, to_process)
-                    elif batch.messages.using(db).filter(status__in=['Q', 'P']).count() == 0:
+                    elif batch.messages.using(db).filter(status__in=['S', 'C']).count() == batch.messages.using(db).count():
                         batch.status = 'S'
                         batch.save()
                     else:
