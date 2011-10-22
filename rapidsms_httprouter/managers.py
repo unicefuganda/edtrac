@@ -323,11 +323,11 @@ class BulkInsertManager(models.Manager):
         self.ref_queue = {}
         self.ref_order = {}
         self.ref_cache = {}
-        
+
         self.related_fields = {}
         self.related_queue = {}
         self.related_classes = {}
-        
+
         self.m2one_queue = {}
         self.m2one_fields = {}
         self.m2one_classes = {}
@@ -335,7 +335,7 @@ class BulkInsertManager(models.Manager):
         self.m2m_queue = {}
         self.m2m_fields = {}
         self.m2m_classes = {}
-        
+
         self.update_map = {}
         self.defaults = {}
 
@@ -348,7 +348,7 @@ class BulkInsertManager(models.Manager):
             self.now = now
         else:
             self.now = datetime.datetime.now()
-            
+
         #Some default values may be invalidated by changing 'now'
         if self.initialized:
             self._collect_field_defaults()
@@ -373,29 +373,29 @@ class BulkInsertManager(models.Manager):
             #that all relationship hooks have been added to the underlying class
             self._related_init()
             self.tempModel = self.model()
-            
+
         if now is not None:
             if now != self.now:
                 self.now = now
                 self._collect_field_defaults()
-        
+
         #check for valid field names
         self._check_fields(kwargs=kwargs)
-        
+
         #Determine which related fields are present
         fk_or_one2one = set(kwargs.keys()).intersection(set(self.related_fields.keys()))
         many_to_one = set(kwargs.keys()).intersection(set(self.m2one_fields.keys()))
         many_to_many = set(kwargs.keys()).intersection(set(self.m2m_fields.keys()))
-        
+
         #pop off m2m and m2one names, the tempModel can't handle them
         m2m_dict = {}
         for name in many_to_many:
             m2m_dict[name] = kwargs.pop(name)
-            
+
         m2one_dict = {}
         for name in many_to_one:
             m2one_dict[name] = kwargs.pop(name)
-        
+
         #Pop off Foreign Key and OneToOne names if they need to be bulk inserted first
         related = []
         for name in fk_or_one2one:
@@ -414,8 +414,8 @@ class BulkInsertManager(models.Manager):
                 related += [(name, arg_hash)]
 
                 kwargs.pop(name)
-                
-            
+
+
         #Temporary model for signal dispatch and field preprocessing
         #self.tempModel = self.model()
         for name in kwargs.keys():
@@ -424,7 +424,7 @@ class BulkInsertManager(models.Manager):
                 setattr(self.tempModel, field.attname, kwargs[name])
                 continue
             setattr(self.tempModel, field.name, kwargs[name])
-                    
+
         #Preprocess field data unless 'raw' specified on call
         #Special handling for defaults on date and time fields to ensure
         #proper formatting for primary key recovery
@@ -434,24 +434,24 @@ class BulkInsertManager(models.Manager):
             watch[f.name] = val
             if isinstance(f, AutoField):
                 if f.name in kwargs.keys():
-                    kwargs[f.name] = f.get_db_prep_save(raw and val or f.pre_save(self.tempModel, True),connection=connection.connection)
+                    kwargs[f.name] = f.get_db_prep_save(raw and val or f.pre_save(self.tempModel, True))
             elif f.name in kwargs.keys():
-                kwargs[f.name] = f.get_db_prep_save(raw and val or f.pre_save(self.tempModel, True),connection=connection.connection)
+                kwargs[f.name] = f.get_db_prep_save(raw and val or f.pre_save(self.tempModel, True))
             else:
                 kwargs[f.name] = self.defaults[f.name]
-                
+
         #Presave could be called more than once for the same object
         if send_pre_save:
             signals.pre_save.send(sender=self.tempModel.__class__, instance=self.tempModel)
-            
+
         #Check for changes from pre_save
         for f in [field for field in self.tempModel._meta.fields if field.name in kwargs]:
             if watch[f.name] != getattr(self.tempModel, f.attname):
-                kwargs[f.name] = f.get_db_prep_save(raw and val or f.pre_save(self.tempModel, True),connection=connection.connection)
+                kwargs[f.name] = f.get_db_prep_save(raw and val or f.pre_save(self.tempModel, True))
 
         #hash to identify this arg:value set
         key = hash_dict(kwargs)
-        
+
         #Objects with the same arg:value signature are considered
         #the same object
         if _self_ref:
@@ -461,20 +461,20 @@ class BulkInsertManager(models.Manager):
         elif key not in self.queue:
             self.queue[key] = kwargs
             self.order[key] = len(self.queue)
-                
+
         #With the key computed, associate it with any Fk's and one2one's
         #that will be inserted later
         for name, arg_hash in related:
             if arg_hash not in self.related_queue[name]:
                 self.related_queue[name][arg_hash] = []
             self.related_queue[name][arg_hash] += [key]
-            
+
         for name in many_to_one:
             self._m2one_enqueue(name, m2one_dict[name], key)
-                
+
         for name in many_to_many:
             self._m2m_enqueue(name, m2m_dict[name], key)
-        
+
         #tempModel = None
         self._clear_tempModel()
         if clean_args:
@@ -483,7 +483,7 @@ class BulkInsertManager(models.Manager):
         for field in self.tempModel._meta.fields:
             val = field.get_default()
             setattr(self.tempModel, field.attname, val)
-            
+
     def bulk_insert_commit(self, now=None, autoclobber=False, depth=0, max_depth=5, send_post_save=True, _self_ref=False, **kwargs):
         """
         Bulk inserts all queued objects and relations to the database with one insert per affected table
@@ -500,13 +500,13 @@ class BulkInsertManager(models.Manager):
         """
         if not self.queue or depth > max_depth:
             return {}
-            
+
         self._check_fields(no_related=True, kwargs=kwargs)
 
         many_to_many = filter(lambda x: x['list'] != [], self.m2m_queue.values()) != []
         many_to_one = filter(lambda x: x != [], self.m2one_queue.values()) != []
         related = filter(lambda x: x != [], self.related_queue.values()) != []
-        
+
         m2m_depth = filter(lambda x: x['bulk'], self.m2m_queue.values())
         try:
             if not _self_ref:
@@ -514,7 +514,7 @@ class BulkInsertManager(models.Manager):
                 #Their primary keys are needed to save the root objects
                 if related:
                     self._fk_one2one_insert(depth, max_depth, autoclobber)
-        
+
                     #inserting a fk or one2one invalidates our kwargs signatures
                     #computing new hashes and mapping to the old hash for m2m and m2one
                     copy = {}
@@ -532,10 +532,10 @@ class BulkInsertManager(models.Manager):
                             order_copy[new_key] = sys.maxint
                     self.queue = copy
                     self.order = order_copy
-        
-        
+
+
                 order = self.order.items()
-                order.sort(lambda x,y: x[1] - y[1])
+                order.sort(lambda x, y: x[1] - y[1])
             else:
                 #Related Self References are bunched together and inserted once
                 #however, commit will be called for every self referencing field
@@ -543,28 +543,28 @@ class BulkInsertManager(models.Manager):
                 if not self.ref_queue:
                     return self.ref_cache, self.update_map
                 order = self.ref_order.items()
-                order.sort(lambda x,y: x[1] - y[1])
-        
+                order.sort(lambda x, y: x[1] - y[1])
+
             model_results = None
             #Saving the root objects
             queue = _self_ref and self.ref_queue or self.queue
             model_results = self.insert(table=self.model._meta.db_table,
                                 fields=[f for f in self.model._meta.fields if not isinstance(f, AutoField)],
                                 queue=queue,
-                                order = order,
+                                order=order,
                                 autoclobber=autoclobber)
 
             if model_results:
                 model_results = self.filter(pk__in=[obj[0] for obj in model_results])
 
             self._recover_pks(_self_ref)
-    
+
             if not _self_ref:
                 if many_to_many:
                     self._many_to_many_insert(depth, max_depth, autoclobber)
                 if many_to_one:
                     self._many_to_one_insert(depth, max_depth, autoclobber)
-                
+
         except Exception, e:
             self.reset()
             raise Exception, e
@@ -577,7 +577,7 @@ class BulkInsertManager(models.Manager):
                     setattr(self.tempModel, self.tempModel._meta.get_field(name).attname, args[name])
                 signals.post_save.send(sender=self.tempModel.__class__, instance=self.tempModel, created=True)
                 self._clear_tempModel()
-            
+
         if depth > 0:
             queue = dict(_self_ref and self.ref_queue or self.queue)
             update_map = self.update_map
@@ -590,7 +590,7 @@ class BulkInsertManager(models.Manager):
         if depth == 0 and model_results:
             return model_results
         return {}, {}
-        
+
     def reset(self, _self_ref=False):
         """
         Close and remove any temp files
@@ -600,7 +600,7 @@ class BulkInsertManager(models.Manager):
             self.ref_queue = {}
             self.ref_order = {}
             return
-            
+
         self.queue = {}
         self.ref_queue = {}
         for key in self.m2one_queue.keys():
@@ -613,7 +613,7 @@ class BulkInsertManager(models.Manager):
         self.order = {}
         self.ref_order = {}
         self.ref_cache = {}
-        
+
     ###################
     # PRIVATE METHODS #
     ###################
@@ -635,20 +635,20 @@ class BulkInsertManager(models.Manager):
             self.m2one_classes[name] = r.model
             self.m2one_fields[name] = r.field
             self.m2one_queue[name] = []
-            
+
         for f in self.model._meta.many_to_many:
             self.m2m_classes[f.name] = f.rel.to
             self.m2m_fields[f.name] = f
             self.m2m_queue[f.name] = {'list':[], 'bulk':False}
-            
+
         for m2m in self.model._meta.get_all_related_many_to_many_objects():
             name = m2m.field.rel.related_name or m2m.model.__name__.lower() + '_set'
             self.m2m_classes[name] = m2m.model
             self.m2m_fields[name] = m2m.field
             self.m2m_queue[name] = {'list':[], 'bulk':False}
-            
+
         self._collect_field_defaults()
-        
+
     def _collect_field_defaults(self):
         """
         Collect default values for each field
@@ -666,8 +666,8 @@ class BulkInsertManager(models.Manager):
                         self.defaults[f.name] = self.now.strftime('%H:%M:%S')
                     continue
             if not isinstance(f, AutoField):
-                self.defaults[f.name] = scrapModel._meta.get_field(f.name).get_db_prep_save(f.pre_save(scrapModel, True),connection=connection.connection)
-                
+                self.defaults[f.name] = scrapModel._meta.get_field(f.name).get_db_prep_save(f.pre_save(scrapModel, True))
+
     def _check_fields(self, no_related=False, kwargs={}):
         """
         Check that all fields given to bulk_insert and bulk_insert_commit are valid
@@ -679,9 +679,9 @@ class BulkInsertManager(models.Manager):
         invalid_fields = set(kwargs.keys()) - valid_fields
 
         assert len(invalid_fields) == 0, \
-                    "Invalid field(s): %s . Acceptable field values: %s . All Arguments: %s" %\
+                    "Invalid field(s): %s . Acceptable field values: %s . All Arguments: %s" % \
                     (', '.join(invalid_fields), ', '.join(valid_fields), ', '.join([str(t) for t in kwargs.items()]))
-            
+
     def _fk_one2one_insert(self, depth, max_depth, autoclobber):
         """
         Commit any related fk or one2one objects to the database
@@ -691,7 +691,7 @@ class BulkInsertManager(models.Manager):
             if self.related_queue[name]:
                 manager = self._find_bulk_manager(self.related_classes[name])
                 self_ref = self.related_classes[name] == self.model
-                r_queue, update_map = manager.bulk_insert_commit(now=self.now, depth=depth+1, 
+                r_queue, update_map = manager.bulk_insert_commit(now=self.now, depth=depth + 1,
                                                         max_depth=max_depth, autoclobber=autoclobber, _self_ref=self_ref)
                 if r_queue:
                     pk_name = self.related_classes[name]._meta.pk.name
@@ -706,7 +706,7 @@ class BulkInsertManager(models.Manager):
                                     print >> sys.stderr , "Warning: Too many recursive self references on a Foreign Key or OneToOne field class:%s field:%s - Value NOT Saved" % (self.model, name)
                                 else:
                                     raise KeyError, e
-                            
+
     def _many_to_one_insert(self, depth, max_depth, autoclobber):
         """
             Delayed bulk insert and commit of many to one relations
@@ -723,16 +723,16 @@ class BulkInsertManager(models.Manager):
                     pass
             else:
                 non_related_name = name + '_set'
-                
+
             self_ref = self.m2one_classes[name] == self.model
             for args_list, key in self.m2one_queue[name]:
                 key = self.update_map.get(key, key)
                 pk = self.queue[key][self.model._meta.pk.name]
-                for args in args_list:                      
+                for args in args_list:
                     args[non_related_name] = pk
                     manager.bulk_insert(now=self.now, _self_ref=self_ref, **args)
-            manager.bulk_insert_commit(now=self.now, depth=depth+1, max_depth=max_depth, autoclobber=autoclobber, _self_ref=self_ref)
-            
+            manager.bulk_insert_commit(now=self.now, depth=depth + 1, max_depth=max_depth, autoclobber=autoclobber, _self_ref=self_ref)
+
     def _many_to_many_insert(self, depth, max_depth, autoclobber):
         """
         Inserts all ManyToMany related objects and their relationships
@@ -741,7 +741,7 @@ class BulkInsertManager(models.Manager):
             if self.m2m_queue[name]['bulk']:
                 self_ref = self.m2m_classes[name] == self.model
                 manager = self._find_bulk_manager(self.m2m_classes[name])
-                r_queue, update_map = manager.bulk_insert_commit(now=self.now, depth=depth+1, max_depth=max_depth, autoclobber=autoclobber, _self_ref=self_ref)
+                r_queue, update_map = manager.bulk_insert_commit(now=self.now, depth=depth + 1, max_depth=max_depth, autoclobber=autoclobber, _self_ref=self_ref)
                 if r_queue:
                     for entry in self.m2m_queue[name]['list']:
                         for arg_hash in entry['bulk']:
@@ -749,18 +749,18 @@ class BulkInsertManager(models.Manager):
                 else:
                     warning = "Max recursion depth, %s, exceeded. Some relationships between %s and %s may not be defined."
                     sys.stderr.write(warning % (max_depth, self.model.__name__, self.m2m_classes[name].__name__))
-                
+
             if self.m2m_queue[name]['list']:
                 table = self.m2m_fields[name].m2m_db_table()
 
                 columns = [self.m2m_fields[name].m2m_column_name(), self.m2m_fields[name].m2m_reverse_name()]
-                
+
                 #Determine the direction of the ManyToMany Relationship
                 #The special case of a self referential field requires further checking
                 if self.m2m_fields[name].rel.to == self.model:
-                    if self.m2m_classes[name] != self.model or not filter(lambda x: x.name==name, self.model._meta.many_to_many):
+                    if self.m2m_classes[name] != self.model or not filter(lambda x: x.name == name, self.model._meta.many_to_many):
                         columns.reverse()
-                
+
                 #This value only matters for self referential relations
                 symmetrical = False
                 if self.m2m_classes[name] == self.model:
@@ -769,8 +769,8 @@ class BulkInsertManager(models.Manager):
                     for key in self.ref_cache.keys():
                         self.queue[key] = self.ref_cache[key]
 
-                self.insert_m2m(table, self.model._meta.pk.name, 
-                                        columns, self.queue, self.m2m_queue[name], 
+                self.insert_m2m(table, self.model._meta.pk.name,
+                                        columns, self.queue, self.m2m_queue[name],
                                         self.update_map, autoclobber, symmetrical)
 
     def _recover_pks(self, _self_ref=False):
@@ -779,25 +779,25 @@ class BulkInsertManager(models.Manager):
         Recover them 100 at a time
         """
         fields = [f for f in self.model._meta.fields if not isinstance(f, AutoField)]
-            
+
         qn = connection.ops.quote_name
         cursor = connection.cursor()
-        
+
         if self.model._meta.pk in fields:
             return #No keys to recover
-            
+
         recovery_fields = fields + [self.model._meta.pk]
 
         table = self.model._meta.db_table
         primary = self.model._meta.pk
 
         pk_index = len(recovery_fields) - 1
-        
+
         queue = _self_ref and self.ref_queue or self.queue
-        
+
         recover_limit = 100
         start = 0
-        for end in xrange(recover_limit, len(queue)+recover_limit, recover_limit):
+        for end in xrange(recover_limit, len(queue) + recover_limit, recover_limit):
             where = []
             query_data = []
             for kwargs in queue.values()[start:end]:
@@ -809,16 +809,16 @@ class BulkInsertManager(models.Manager):
                     else:
                         temp += ['%s = %%s' % (qn(f.column))]
                 where += ['(' + ' AND '.join(temp) + ')']
-            
+
             where = ' OR '.join(where)
-        
+
             sql = "SELECT %s FROM %s WHERE " % \
                     (','.join(["%s.%s" % (qn(table), qn(f.column)) for f in recovery_fields]), qn(table)) + \
                     where + " ORDER BY %s" % qn(primary.column)
 
             cursor.execute(sql, query_data)
             rows = cursor.fetchall()
-        
+
             result = []
             for row in rows:
                 temp = {}
@@ -830,18 +830,18 @@ class BulkInsertManager(models.Manager):
                     elif isinstance(r, datetime.time):
                         r = r.strftime('%H:%M:%S')
                     temp[f.name] = r
-                
+
                 try:
                     queue[hash_dict(temp)][primary.name] = row[pk_index]
                 except KeyError:
                     pass
-        
+
             for q in queue.values()[start:end]:
                 if primary.name not in q:
-                    raise Exception, "Integrity Error. Object %s could not be inserted" % ', '.join([unicode(k).encode('utf8') + ' : ' + unicode(v).encode('utf8') for k,v in q.items()])
+                    raise Exception, "Integrity Error. Object %s could not be inserted" % ', '.join([unicode(k).encode('utf8') + ' : ' + unicode(v).encode('utf8') for k, v in q.items()])
 
             start = end
-                
+
     def _find_bulk_manager(self, cls):
         """
         Locate a bulk manager on a related class
@@ -854,10 +854,10 @@ class BulkInsertManager(models.Manager):
                     return getattr(cls, attr)
             except:
                 pass
-                
+
         cls.add_to_class('_bulk_manager', self.__class__())
         return cls._bulk_manager
-        
+
     def _m2one_enqueue(self, name, value, key):
         """
         Queue for the many side of ManyToOne relationships
@@ -867,7 +867,7 @@ class BulkInsertManager(models.Manager):
         if not isinstance(value, list):
             value = [value]
         self.m2one_queue[name] += [(value, key)]
-            
+
     def _generate_args(self, obj):
         """
         If we have been supplied a model object with no primary key,
@@ -877,9 +877,9 @@ class BulkInsertManager(models.Manager):
         for f in obj._meta.fields:
             if isinstance(f, AutoField):
                 continue
-            args[f.name] = f.get_db_prep_save(f.pre_save(obj, True),connection=connection.connection)
+            args[f.name] = f.get_db_prep_save(f.pre_save(obj, True))
         return args
-        
+
     def _m2m_enqueue(self, name, value, key):
         """
         ManyToMany Queue
@@ -906,28 +906,28 @@ class BulkInsertManager(models.Manager):
                     bulk = [manager.bulk_insert(now=self.now, clean_args=True, _self_ref=self_ref, **args)]
                 else:
                     new_value += [getattr(v, pk)]
-            elif isinstance(value, (int,long)):
+            elif isinstance(value, (int, long)):
                 new_value += [long(v)]
             else:
-                raise ValueError, "ManyToMany list argument, %s=%s, must contain numbers, dicts or instances of %s" %\
+                raise ValueError, "ManyToMany list argument, %s=%s, must contain numbers, dicts or instances of %s" % \
                             (name, value, cls.__name__)
-            
+
         if bulk:
             self.m2m_queue[name]['bulk'] = True
         self.m2m_queue[name]['list'] += [{'values':new_value, 'key':key, 'bulk':bulk}]
 
     def insert_m2m(self, table, primary_key_name, columns, queue, m2m_queue, update_map, autoclobber, symmetrical):
         qn = connection.ops.quote_name
-        cursor = connection.cursor()    
-        
+        cursor = connection.cursor()
+
         if autoclobber is None or autoclobber == True:
             autoclobber = ''
         else:
             autoclobber = 'IGNORE'
-            
+
         sql = u'INSERT %s INTO %s (%s) ' % \
                 (autoclobber, qn(table), ', '.join([qn(c) for c in columns]))
-        
+
         value_list = []
         for obj in m2m_queue['list']:
             for value in obj['values']:
@@ -960,23 +960,23 @@ class BulkInsertManager(models.Manager):
         """
         qn = connection.ops.quote_name
         cursor = connection.cursor()
-        
+
         if autoclobber is None or autoclobber == True:
             autoclobber = ''
         else:
             autoclobber = 'IGNORE'
-            
+
         sql = u'INSERT %s INTO %s (%s) ' % \
                 (autoclobber, qn(table), ', '.join([qn(f.column) for f in fields]))
-                
+
         value_list = []
         for key, order in order:
             kwargs = queue[key]
             value_list += [kwargs[f.name] for f in fields]
 
-        arg_string = ', '.join([u'(' + ','.join(['%s']*len(fields)) + ')'] * len(queue.values()))
+        arg_string = ', '.join([u'(' + ','.join(['%s'] * len(fields)) + ')'] * len(queue.values()))
         values = 'VALUES %s' % arg_string
-        
+
         sql = sql + values + (" RETURNING %s.%s" % (qn(table), qn('id')))
         cursor.execute(sql, value_list)
         return cursor.fetchall()
