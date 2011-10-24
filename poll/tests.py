@@ -35,21 +35,26 @@ class BasicPatternTemplateTest(TestCase):
 
 class TestScript(TestCase):
 
-    def assertInteraction(self, connection, incoming_message, expected_response):
+    def fake_incoming(self,connection, incoming_message):
         router = get_router()
-        incoming_obj = router.handle_incoming(connection.backend.name, connection.identity, incoming_message)
+        return router.handle_incoming(connection.backend.name, connection.identity, incoming_message)
+
+
+    def assertInteraction(self, connection, incoming_message, expected_response):
+        incoming_obj = self.fake_incoming(connection, incoming_message)
         self.assertEquals(Message.objects.filter(in_response_to=incoming_obj, text=expected_response).count(), 1)
+
 
 class ProcessingTests(TestScript):
 
-    def tearDown(self):
-        settings.ROUTER_URL = self.old_router_url
+    #def tearDown(self):
+    #    settings.ROUTER_URL = self.old_router_url
 
     def setUp(self):
-        self.old_router_url = settings.ROUTER_URL
-        settings.ROUTER_URL = None
+        #self.old_router_url = settings.ROUTER_URL
+        #settings.ROUTER_URL = None
 
-        self.user = User.objects.create_user('admin', 'c@c.com', 'admin')
+        self.user,created = User.objects.get_or_create(username='admin')
 
         self.backend = Backend.objects.create(name='test')
 
@@ -161,3 +166,56 @@ class ProcessingTests(TestScript):
             self.assertEqual(r.categories.all()[0].category.name, c)
 
         self.assertEquals(r7.categories.count(), 0)
+    def test_response_type_handling(self):
+        #test allow all
+        poll1 = Poll.create_with_bulk(
+                'test response type handling',
+                Poll.TYPE_TEXT,
+                'ureport is bored.what would u like it 2 do?',
+                'yikes :(',
+                [self.contact1, self.contact2],
+                self.user)
+        poll1.start()
+        self.assertInteraction(self.connection1, 'get me a kindle :)', 'yikes :(')
+        self.assertInteraction(self.connection1, 'get me a kindle :)', 'yikes :(')
+        self.assertInteraction(self.connection1, 'get me an ipad :)', 'yikes :(')
+        self.assertInteraction(self.connection1, 'Arrest Bush :)', 'yikes :(')
+        self.assertEqual(Response.objects.filter(contact=self.contact1).count(), 4)
+        poll1.end()
+
+
+        #test ignore dups
+        poll2 = Poll.create_with_bulk(
+                'test response type handling',
+                Poll.TYPE_TEXT,
+                'ureport is bored.what would u like it 2 do?',
+                'yikes :(',
+                [self.contact1, self.contact2],
+                self.user)
+        poll2.response_type=Poll.RESPONSE_TYPE_NO_DUPS
+        poll2.save()
+
+        poll2.start()
+        self.assertInteraction(self.connection1, 'get me a kindle :)', 'yikes :(')
+        self.fake_incoming(self.connection1, 'get me a kindle :)')
+        self.assertInteraction(self.connection1, 'get me an ipad :)', 'yikes :(')
+        self.assertInteraction(self.connection1, 'Arrest Bush :)', 'yikes :(')
+        self.assertEqual(Response.objects.filter(contact=self.contact1,poll=poll2).count(), 3)
+        poll2.end()
+        #test allow one
+
+        poll3 = Poll.create_with_bulk(
+                'test response type handling',
+                Poll.TYPE_TEXT,
+                'ureport is bored.what would u like it 2 do?',
+                'yikes :(',
+                [self.contact1, self.contact2],
+                self.user)
+        poll3.response_type=Poll.RESPONSE_TYPE_ONE
+        poll3.save()
+        poll3.start()
+        self.assertInteraction(self.connection1, 'get me a kindle :)', 'yikes :(')
+        self.fake_incoming(self.connection1, 'get me a kindle :)')
+        self.fake_incoming(self.connection1, 'get me an ipad :)')
+        self.fake_incoming(self.connection1, 'Arrest Bush :)')
+        self.assertEqual(Response.objects.filter(contact=self.contact1,poll=poll3).count(), 1)
