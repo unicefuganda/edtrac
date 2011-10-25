@@ -1,32 +1,28 @@
+# -*- coding: utf-8 -*-
 from django.db import transaction
 from django.db.models import Q, Count
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_GET
 from django.template import RequestContext
 from django.shortcuts import redirect, get_object_or_404, render_to_response
 from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.conf import settings
 from django.contrib.sites.models import Site
 from django.contrib.auth.decorators import login_required, permission_required
 from django.utils import simplejson
 from django.utils.safestring import mark_safe
 from rapidsms_httprouter.router import get_router
 from rapidsms.messages.outgoing import OutgoingMessage
-from django.contrib.auth.models import Group
-from .models import Poll, Category, Rule, Response, ResponseCategory, STARTSWITH_PATTERN_TEMPLATE, CONTAINS_PATTERN_TEMPLATE
-from rapidsms.models import Contact
+from .models import Response
 from rapidsms.contrib.locations.models import Location
 from rapidsms.models import Connection, Backend
 from eav.models import Attribute
 from django.core.urlresolvers import reverse
 from django.views.decorators.cache import cache_control
+from django.conf import settings
 
 from .forms import *
-from .models import ResponseForm, NameResponseForm, NumericResponseForm, LocationResponseForm
+
 
 # CSV Export
-from rapidsms_httprouter.models import Message
-
 @require_GET
 def responses_as_csv(req, pk):
     poll = get_object_or_404(Poll, pk=pk)
@@ -85,6 +81,7 @@ def new_poll(req):
                 contacts = Contact.objects.filter(Q(pk__in=contacts) | Q(groups__in=groups)).distinct()
             name = form.cleaned_data['name']
             type = form.cleaned_data['type']
+            response_type = form.cleaned_data['response_type']
             poll_type = Poll.TYPE_TEXT if type == NewPollForm.TYPE_YES_NO else type
 
             poll = Poll.create_with_bulk(\
@@ -94,6 +91,8 @@ def new_poll(req):
                                  default_response,
                                  contacts,
                                  req.user)
+            poll.response_type=response_type
+            poll.save()
 
             if type == NewPollForm.TYPE_YES_NO:
                 poll.add_yesno_categories()

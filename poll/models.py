@@ -64,9 +64,6 @@ class ResponseCategory(models.Model):
     is_override = models.BooleanField(default=False)
     user = models.ForeignKey(User, null=True)
 
-POLL_RESPONSE_TYPES=(('allow all','All'),#allow all responses
-                     ('Ignore Duplicates','Idup'),# Ignore dups
-                     ('Allow One','One')) # allow only one
 class Poll(models.Model):
     """
     Polls represent a simple-question, simple-response communication modality
@@ -95,9 +92,9 @@ class Poll(models.Model):
     RESPONSE_TYPE_NO_DUPS='d'# ignore duplicates
 
     RESPONSE_TYPE_CHOICES=(
-                            (RESPONSE_TYPE_ALL,'allow all'),
-                            (RESPONSE_TYPE_ONE,'allow one'),
-                            (RESPONSE_TYPE_NO_DUPS,'ignore dups')
+                            (RESPONSE_TYPE_ALL,'Allow all'),
+                            (RESPONSE_TYPE_ONE,'Allow one'),
+                            (RESPONSE_TYPE_NO_DUPS,'Ignore duplicates')
 
     )
 
@@ -155,7 +152,7 @@ class Poll(models.Model):
     objects = models.Manager()
     on_site = CurrentSiteManager('sites')
     bulk = BulkInsertManager()
-    response_type=models.CharField(max_length=1,choices=POLL_RESPONSE_TYPES,default=RESPONSE_TYPE_ALL,null=True)
+    response_type=models.CharField(max_length=1,choices=RESPONSE_TYPE_CHOICES,default=RESPONSE_TYPE_ALL,null=True)
 
     class Meta:
         permissions = (

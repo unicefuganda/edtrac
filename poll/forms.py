@@ -1,11 +1,9 @@
 from django import forms
-from django.core.exceptions import ValidationError
-from django.conf import settings
 
 from django.contrib.auth.models import Group
 from .models import Poll, Category, Rule
 from rapidsms.models import Contact
-from mptt.forms import TreeNodeChoiceField
+from django.forms.widgets import RadioSelect
 
 import re
 
@@ -18,6 +16,7 @@ class NewPollForm(forms.Form): # pragma: no cover
                choices=(
                     (TYPE_YES_NO, 'Yes/No Question'),
                 ))
+    response_type=forms.ChoiceField(choices=Poll.RESPONSE_TYPE_CHOICES,widget=RadioSelect,initial=Poll.RESPONSE_TYPE_ALL)
 
     def updateTypes(self):
         self.fields['type'].widget.choices += [(choice['type'], choice['label']) for choice in Poll.TYPE_CHOICES.values()]
