@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import rapidsms
 import datetime
 
@@ -15,6 +16,17 @@ class App(AppBase):
                     'start_date')
                 if poll.response_type == Poll.RESPONSE_TYPE_ONE and poll.responses.filter(
                     contact=message.connection.contact).exists():
+                    old_response=poll.responses.filter(contact=message.connection.contact)[0]
+                    response_obj, response_msg = poll.process_response(message)
+                    if not response_obj.has_errors or old_response.has_errors:
+                        old_response.delete()
+                        if hasattr(message, 'db_message'):
+                            db_message = message.db_message
+                            db_message.handled_by = 'poll'
+                            db_message.save()
+                        message.respond(response_msg)
+                    else:
+                        response_obj.delete()
                     return False
                 elif poll.response_type == Poll.RESPONSE_TYPE_NO_DUPS and poll.responses.filter(
                     contact=message.connection.contact, message__text=message.text).exists():

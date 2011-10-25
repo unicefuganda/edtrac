@@ -207,15 +207,20 @@ class ProcessingTests(TestScript):
         poll3 = Poll.create_with_bulk(
                 'test response type handling',
                 Poll.TYPE_TEXT,
-                'ureport is bored.what would u like it 2 do?',
+                'Are u cool?',
                 'yikes :(',
                 [self.contact1, self.contact2],
                 self.user)
         poll3.response_type=Poll.RESPONSE_TYPE_ONE
+        poll3.add_yesno_categories()
         poll3.save()
         poll3.start()
-        self.assertInteraction(self.connection1, 'get me a kindle :)', 'yikes :(')
+        self.fake_incoming(self.connection1, 'what?')
+        self.assertEqual(Response.objects.filter(contact=self.contact1,poll=poll3).count(), 1)
+        self.assertInteraction(self.connection1, 'yes', 'yikes :(')
+        self.assertEqual(Response.objects.filter(contact=self.contact1,poll=poll3).count(), 1)
         self.fake_incoming(self.connection1, 'get me a kindle :)')
         self.fake_incoming(self.connection1, 'get me an ipad :)')
         self.fake_incoming(self.connection1, 'Arrest Bush :)')
         self.assertEqual(Response.objects.filter(contact=self.contact1,poll=poll3).count(), 1)
+        self.assertEqual(Response.objects.filter(contact=self.contact1,poll=poll3)[0].message.text, 'yes')
