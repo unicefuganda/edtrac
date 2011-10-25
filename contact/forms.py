@@ -52,7 +52,7 @@ class ReplyForm(forms.Form):
                               (u'\xa4', ''),
                               (u'\xc4', 'A')]:
             cleaned_data['message'] = text.replace(find, replace)
-            cleaned_data['message'] = text.replace('%', u'\u0025')
+            cleaned_data['message'] = text.replace('%', '%%')
         return cleaned_data
 
 
