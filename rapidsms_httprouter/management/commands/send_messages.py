@@ -73,14 +73,14 @@ class Command(BaseCommand, LoggerMixin):
             # kannel likes to send 202 responses, really any
             # 2xx value means things went okay
             if int(status_code / 100) == 2:
-                print "SMS%s SENT" % pks
+                self.info("SMS%s SENT" % pks)
                 msgs.update(status='S')
             else:
-                print "SMS%s Message not sent, got status: %s .. queued for later delivery." % (pks, status_code)
+                self.info("SMS%s Message not sent, got status: %s .. queued for later delivery." % (pks, status_code))
                 msgs.update(status='Q')
 
         except Exception as e:
-            print "SMS%s Message not sent: %s .. queued for later delivery." % (pks, str(e))
+            self.error("SMS%s Message not sent: %s .. queued for later delivery." % (pks, str(e)))
             msgs.update(status='Q')
 
 
@@ -110,24 +110,32 @@ class Command(BaseCommand, LoggerMixin):
         DBS = settings.DATABASES.keys()
         DBS.remove('default') # skip the dummy
         CHUNK_SIZE = getattr(settings, 'MESSAGE_CHUNK_SIZE', 400)
+        self.info("starting up")
         while (True):
+            self.info("entering main loop")
             for db in DBS:
+                self.info("servicing db '%s'" % db)
                 router_url = settings.DATABASES[db]['ROUTER_URL']
                 transaction.enter_transaction_management(using=db)
                 self.db = db
                 to_process = MessageBatch.objects.using(db).filter(status='Q')
+                self.info("looking for batch messages to process")
                 if to_process.count():
                     batch = to_process[0]
                     to_process = batch.messages.using(db).filter(direction='O',
                                   status__in=['Q']).order_by('priority', 'status', 'connection__backend__name')[:CHUNK_SIZE]
                     if to_process.count():
+                        self.info("found batch message %d with Queued messages to send" % batch.pk)
                         self.send_all(router_url, to_process)
                     elif batch.messages.using(db).filter(status__in=['S', 'C']).count() == batch.messages.using(db).count():
+                        self.info("found batch message %d ready to be closed" % batch.pk)
                         batch.status = 'S'
                         batch.save()
                     else:
+                        self.info("reverting to individual message sending")
                         self.send_individual(router_url)
                 else:
+                    self.info("no batches found, reverting to individual message sending")
                     self.send_individual(router_url)
 
                 transaction.commit(using=db)
