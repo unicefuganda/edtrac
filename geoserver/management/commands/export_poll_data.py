@@ -53,7 +53,7 @@ class Command(BaseCommand):
                             setattr(pd, c, values[c])
                         pd.save()
                     else:
-                        description = "\n".join(["%s: %0.1f%%" % (cat_name, \
+                        description = "<br/>".join(["%s: %0.1f%%" % (cat_name, \
                                                  (values[cat_name] * 100))\
                                                 for cat_name in category_names])
                         pd, _ = PollCategoryData.objects.using('geoserver').get_or_create(\
