@@ -61,7 +61,7 @@ def view_message_history(request, connection_id):
                 get_router().handle_outgoing(outgoing, in_response_to)
                 return redirect("/contact/%d/message_history/" % connection.pk)
             else:
-                reply_form.errors.setdefault('short_description', ErrorList)
+                reply_form.errors.setdefault('short_description', ErrorList())
                 reply_form.errors['recipient'].append("This number isn't in the system")
 
     return render_to_response("contact/message_history.html", {
