@@ -3,7 +3,7 @@ from script.utils.handling import find_best_response, find_closest_match
 from rapidsms.contrib.locations.models import Location
 import re
 from poll.models import Poll, LocationResponseForm, STARTSWITH_PATTERN_TEMPLATE
-
+from eav.models import Attribute
 
 def parse_district_value(value):
     location_template = STARTSWITH_PATTERN_TEMPLATE % '[a-zA-Z]*'
