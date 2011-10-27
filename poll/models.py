@@ -152,13 +152,14 @@ class Poll(models.Model):
     objects = models.Manager()
     on_site = CurrentSiteManager('sites')
     bulk = BulkInsertManager()
-    response_type=models.CharField(max_length=1,choices=RESPONSE_TYPE_CHOICES,default=RESPONSE_TYPE_ALL,null=True)
+    response_type=models.CharField(max_length=1,choices=RESPONSE_TYPE_CHOICES,default=RESPONSE_TYPE_ALL,null=True,blank=True)
 
     class Meta:
         permissions = (
             ("can_poll", "Can send polls"),
             ("can_edit_poll", "Can edit poll rules, categories, and responses"),
         )
+        ordering=["-end_date"]
 
     @classmethod
     def register_poll_type(cls, field_type, label, parserFunc, \
@@ -493,7 +494,7 @@ class Poll(models.Model):
         return categorized
 
     def __unicode__(self):
-        return self.name
+        return self.question
 
 class Category(models.Model):
     """
