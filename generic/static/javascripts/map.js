@@ -341,12 +341,16 @@ function plot_categorized_data(map, response, layer_name, layer_key) {
     circle.value = d;
     current_layer['overlays'] = [circle]
     google.maps.event.addListener(circle, 'click', get_description_popup(point, map));
+    
+    render_key();
+}
 
+function render_key() {
     $('#map_layers li.category').remove();
-     for (category in CATEGORY_COLOR_LOOKUP) {
-        category_span = '<span class="category" style="width:15px;height:15px;background-color:' + CATEGORY_COLOR_LOOKUP[category] + ';float:right;display:block;"></span>'
-        $('#map_layers ul').append('<li>' + category + category_span + '</li>')
-     }
+    for (category in CATEGORY_COLOR_LOOKUP) {
+       category_span = '<span class="category" style="width:15px;height:15px;background-color:' + CATEGORY_COLOR_LOOKUP[category] + ';position:absolute;right:0px;"></span>'
+       $('#map_layers ul').append('<li>' + category + category_span + '</li>')
+    }	
 }
 
 
