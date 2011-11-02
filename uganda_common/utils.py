@@ -12,7 +12,7 @@ from eav.models import Attribute
 from generic.utils import get_dates as get_dates_from_post
 from poll.models import Poll, LocationResponseForm, STARTSWITH_PATTERN_TEMPLATE
 from rapidsms.contrib.locations.models import Location
-from rapidsms.models import Backend
+from rapidsms.models import Backend, Contact
 from rapidsms_xforms.models import XForm, XFormField, XFormFieldConstraint, \
     XFormSubmission, XFormSubmissionValue
 from script.models import Script, ScriptStep, ScriptResponse
@@ -37,7 +37,10 @@ def get_location_for_user(user):
     try:
         return Location.objects.get(name__icontains=user.username, type__name='district')
     except:
-        return None
+        if Contact.objects.filter(user=user).exclude(reporting_location=None).count():
+            return Contact.objects.filter(user=user).exclude(reporting_location=None)[0].reporting_location
+
+    return None
 
 
 def previous_calendar_week():
