@@ -45,11 +45,12 @@ function action(elem, action) {
 }
 
 function select_all() {
-    $('input:checkbox[name=results]').attr('checked', $('#input_select_all').attr('checked'));
     if ($('#input_select_all').attr('checked')) {
         $('#span_select_everything').show();
+        $('input:checkbox[name=results]').attr('checked', 'checked');
     } else {
         $('#span_select_everything').hide();
+        $('input:checkbox[name=results]').attr('checked', false);
     }
 }
 
