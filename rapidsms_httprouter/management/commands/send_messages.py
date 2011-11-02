@@ -1,8 +1,10 @@
+import traceback
 from django.core.management.base import BaseCommand
 from rapidsms.models import Backend, Connection, Contact
 from rapidsms_httprouter.models import Message, MessageBatch
 from rapidsms_httprouter.router import get_router
 from django.conf import settings
+from django.core.mail import send_mail
 from django.db import transaction
 from urllib import quote_plus
 from urllib2 import urlopen
@@ -111,31 +113,43 @@ class Command(BaseCommand, LoggerMixin):
         DBS.remove('default') # skip the dummy
         CHUNK_SIZE = getattr(settings, 'MESSAGE_CHUNK_SIZE', 400)
         self.info("starting up")
+        recipients = getattr(settings, 'ADMINS', None)
+        if recipients:
+            recipients = [email for name, email in recipients]
         while (True):
             self.debug("entering main loop")
             for db in DBS:
-                self.debug("servicing db '%s'" % db)
-                router_url = settings.DATABASES[db]['ROUTER_URL']
-                transaction.enter_transaction_management(using=db)
-                self.db = db
-                to_process = MessageBatch.objects.using(db).filter(status='Q')
-                self.debug("looking for batch messages to process")
-                if to_process.count():
-                    batch = to_process[0]
-                    to_process = batch.messages.using(db).filter(direction='O',
-                                  status__in=['Q']).order_by('priority', 'status', 'connection__backend__name')[:CHUNK_SIZE]
+                try:
+                    self.debug("servicing db '%s'" % db)
+                    router_url = settings.DATABASES[db]['ROUTER_URL']
+                    transaction.enter_transaction_management(using=db)
+                    self.db = db
+                    to_process = MessageBatch.objects.using(db).filter(status='Q')
+                    self.debug("looking for batch messages to process")
                     if to_process.count():
-                        self.debug("found batch message %d with Queued messages to send" % batch.pk)
-                        self.send_all(router_url, to_process)
-                    elif batch.messages.using(db).filter(status__in=['S', 'C']).count() == batch.messages.using(db).count():
-                        self.info("found batch message %d ready to be closed" % batch.pk)
-                        batch.status = 'S'
-                        batch.save()
+                        batch = to_process[0]
+                        to_process = batch.messages.using(db).filter(direction='O',
+                                      status__in=['Q']).order_by('priority', 'status', 'connection__backend__name')[:CHUNK_SIZE]
+                        if to_process.count():
+                            self.debug("found batch message %d with Queued messages to send" % batch.pk)
+                            self.send_all(router_url, to_process)
+                        elif batch.messages.using(db).filter(status__in=['S', 'C']).count() == batch.messages.using(db).count():
+                            self.info("found batch message %d ready to be closed" % batch.pk)
+                            batch.status = 'S'
+                            batch.save()
+                        else:
+                            self.debug("reverting to individual message sending")
+                            self.send_individual(router_url)
                     else:
-                        self.debug("reverting to individual message sending")
+                        self.debug("no batches found, reverting to individual message sending")
                         self.send_individual(router_url)
-                else:
-                    self.debug("no batches found, reverting to individual message sending")
-                    self.send_individual(router_url)
+                    transaction.commit(using=db)
+                except Exception, exc:
+                    transaction.rollback(using=db)
+                    print self.critical(traceback.format_exc(exc))
+                    if recipients:
+                        send_mail('[Django] Error: messenger command', str(traceback.format_exc(exc)), 'root@uganda.rapidsms.org', recipients, fail_silently=True)
+                    continue
 
-                transaction.commit(using=db)
+
+
