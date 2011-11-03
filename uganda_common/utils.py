@@ -34,13 +34,17 @@ def get_location_for_user(user):
     """
     if called with an argument, *user*, the location of a user returned (by district)
     """
-    try:
-        return Location.objects.get(name__icontains=user.username, type__name='district')
-    except:
-        if Contact.objects.filter(user=user).exclude(reporting_location=None).count():
-            return Contact.objects.filter(user=user).exclude(reporting_location=None)[0].reporting_location
+    if user:
+        try:
+            return Location.objects.get(name__icontains=user.username, type__name='district')
+        except:
+            try:
+                if Contact.objects.filter(user=user).exclude(reporting_location=None).count():
+                    return Contact.objects.filter(user=user).exclude(reporting_location=None)[0].reporting_location
+            except:
+                pass
 
-    return None
+    return Location.tree.root_nodes()[0]
 
 
 def previous_calendar_week():

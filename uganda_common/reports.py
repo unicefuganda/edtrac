@@ -49,6 +49,51 @@ class XFormDateGetter(BasicDateGetter):
             }
 
 
+class DifferenceColumn(Column):
+    def __init__(self, left_column, right_column, **kwargs):
+        Column.__init__(self, **kwargs)
+        self.left_column = left_column
+        self.right_column = right_column
+
+    def set_report(self, report):
+        Column.set_report(self, report)
+        self.left_column.set_report(report)
+        self.right_column.set_report(report)
+
+    def add_to_report(self, report, key, dictionary):
+        temp = {}
+        self.left_column.add_to_report(report, 'left', temp)
+        self.right_column.add_to_report(report, 'right', temp)
+        for row_key, items in temp.items():
+            left = items.setdefault('left', 0)
+            right = items.setdefault('right', 0)
+            difference = left - right
+            dictionary.setdefault(row_key, {'location_name':items['location_name']})
+            dictionary[row_key][key] = difference
+
+    def get_chart(self):
+        from .views import DifferenceChartView
+        return DifferenceChartView(location_id=self.report.location.pk, \
+                         start_date=self.report.start_date, \
+                         end_date=self.report.end_date, \
+                         left_column=self.left_column, \
+                         right_column=self.right_column,
+                         chart_title=self.chart_title,
+                         chart_subtitle=self.chart_subtitle,
+                         chart_yaxis=self.chart_yaxis)
+
+    def get_view_function(self):
+        from .views import DifferenceChartView
+        return DifferenceChartView.as_view(location_id=self.report.location.pk, \
+                         start_date=self.report.start_date, \
+                         end_date=self.report.end_date, \
+                         left_column=self.left_column, \
+                         right_column=self.right_column,
+                         chart_title=self.chart_title,
+                         chart_subtitle=self.chart_subtitle,
+                         chart_yaxis=self.chart_yaxis)
+
+
 class QuotientColumn(Column):
     def __init__(self, top_column, bottom_column, **kwargs):
         Column.__init__(self, **kwargs)
