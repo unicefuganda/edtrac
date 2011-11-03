@@ -206,8 +206,10 @@ class ReportView(View, TemplateResponseMixin):
 
         self.report = self.compile_report()
 
-        self.get_default_column()[1].get_chart().add_data_to_context(context)
-        chart_url = "column/%s/" % self.get_default_column()[0]
+        chart_url = '#'
+        if self.has_chart:
+            self.get_default_column()[1].get_chart().add_data_to_context(context)
+            chart_url = "column/%s/" % self.get_default_column()[0]
 
         context.update({\
             'report':self.report, \
