@@ -26,4 +26,16 @@ class PollCategoryData(PollGeoData):
 class PollResponseData(PollGeoData):
     percentage = models.FloatField(blank=True, null=True, default=0)
 
-
+class EmisAttendenceData(models.Model):
+    district = models.CharField(max_length=100, blank=True, null=True)
+    start_date=models.DateTimeField(null=True)
+    end_date=models.DateTimeField(null=True)
+    boys=models.IntegerField(default=0)
+    girls=models.IntegerField(default=0)
+    total_pupils=models.IntegerField(default=0)
+    female_teachers=models.IntegerField(default=0)
+    male_teachers=models.IntegerField(default=0)
+    total_teachers=models.IntegerField(default=0)
+    
+    
+    
