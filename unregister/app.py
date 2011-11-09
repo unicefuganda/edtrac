@@ -13,7 +13,7 @@ class App (AppBase):
             message.respond(getattr(settings,'OPT_IN_CONFIRMATION',''))
         elif Blacklist.objects.filter(connection=message.connection).count():
             return True
-        elif message.text.strip() in getattr(settings,'OPT_OUT_WORDS',[]):
+        elif message.text.strip().lower() in getattr(settings,'OPT_OUT_WORDS',[]):
             Blacklist.objects.create(connection=message.connection)
             message.respond(getattr(settings,'OPT_OUT_CONFIRMATION',''))
             return True
