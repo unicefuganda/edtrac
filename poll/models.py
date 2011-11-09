@@ -405,6 +405,9 @@ class Poll(models.Model):
             if location.get_children().count() == 1:
                 location_where = 'T9.id = %d' % location.get_children()[0].pk
                 ulocation_where = 'T7.id = %d' % location.get_children()[0].pk
+            elif location.get_children().count() == 0:
+                location_where = 'T9.id = %d' % location.pk
+                ulocation_where = 'T7.id = %d' % location.pk
             else:
                 location_where = 'T9.id in %s' % (str(tuple(location.get_children().values_list('pk', flat=True))))
                 ulocation_where = 'T7.id in %s' % (str(tuple(location.get_children().values_list('pk', flat=True))))
