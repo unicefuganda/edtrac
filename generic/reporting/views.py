@@ -126,34 +126,12 @@ class ReportView(View, TemplateResponseMixin):
     def get_top_columns(self):
         return []
 
-    def itercolumnsubclasses(self, cls=Column, _seen=None):
-        """
-        itersubclasses(cls)
-    
-        Generator over all subclasses of Column, in depth first order.
-        """
-        if not isinstance(cls, type):
-            raise TypeError('itersubclasses must be called with '
-                            'new-style classes, not %.100r' % cls)
-        if _seen is None: _seen = set()
-        try:
-            subs = cls.__subclasses__()
-        except TypeError: # fails only when cls is type
-            subs = cls.__subclasses__(cls)
-        for sub in subs:
-            if sub not in _seen:
-                _seen.add(sub)
-                yield sub
-                for sub in self.itercolumnsubclasses(sub, _seen):
-                    yield sub
-
     def get_columns(self):
         toret = []
-        column_classes = list(self.itercolumnsubclasses()) #Column.__subclasses__()
         for attrname in dir(self):
             try:
                 val = getattr(self, attrname)
-                if type(val) in column_classes:
+                if issubclass(type(val), Column):
                     toret.append((attrname, val,))
             except AttributeError:
                 continue
