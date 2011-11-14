@@ -45,7 +45,7 @@ class Command(BaseCommand, LoggerMixin):
         # is this actually a dict?  if so, we want to look up the appropriate backend
         if type(router_url) is dict:
             router_dict = router_url
-            backend_name = backend.name
+            backend_name = backend
 
             # is there an entry for this backend?
             if backend_name in router_dict:
