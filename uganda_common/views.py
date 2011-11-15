@@ -49,8 +49,7 @@ class XFormChartView(ChartView):
         group_by = self.get_group_by(self.start_date, self.end_date)
 
         if self.attribute_keyword:
-            keyword = "%s_%s" % (self.xform_keyword, self.attribute_keyword)
-            data = total_attribute_value_api(keyword, self.start_date, self.end_date, location, group_by_timespan=group_by['group_by'])
+            data = total_attribute_value_api(self.attribute_keyword, self.start_date, self.end_date, location, group_by_timespan=group_by['group_by'])
         else:
             data = total_submissions_api(self.xform_keyword, self.start_date, self.end_date, location, self.extra_filters, group_by_timespan=group_by['group_by'])
 

@@ -186,9 +186,6 @@ class XFormAttributeColumn(Column):
     def __init__(self, keyword, extra_filters=None, **kwargs):
         Column.__init__(self, **kwargs)
         self.keyword = keyword
-        s = self.keyword.split('_')
-        self.xform_keyword = s[0]
-        self.attribute_keyword = s[1]
         self.extra_filters = extra_filters
         self.chart_yaxis = 'Number of Reports'
         if not self.chart_title:
@@ -203,8 +200,8 @@ class XFormAttributeColumn(Column):
         return XFormChartView(location_id=self.report.location.pk, \
                          start_date=self.report.start_date, \
                          end_date=self.report.end_date, \
-                         xform_keyword=self.xform_keyword,
-                         attribute_keyword=self.attribute_keyword,
+                         xform_keyword=None,
+                         attribute_keyword=self.keyword,
                          extra_filters=self.extra_filters,
                          chart_title=self.chart_title,
                          chart_subtitle=self.chart_subtitle,
@@ -215,8 +212,8 @@ class XFormAttributeColumn(Column):
         return XFormChartView.as_view(location_id=self.report.location.pk, \
                          start_date=self.report.start_date, \
                          end_date=self.report.end_date, \
-                         xform_keyword=self.xform_keyword,
-                         attribute_keyword=self.attribute_keyword,
+                         xform_keyword=None,
+                         attribute_keyword=self.keyword,
                          extra_filters=self.extra_filters,
                          chart_title=self.chart_title,
                          chart_subtitle=self.chart_subtitle,
