@@ -2,20 +2,15 @@ from django.test import TestCase
 from poll.models import STARTSWITH_PATTERN_TEMPLATE
 import re
 
-from datetime import datetime
 from django.contrib.auth.models import User
-from django.db.models import Manager
-from django.conf import settings
 
 from rapidsms.models import Contact, Connection, Backend
-from rapidsms.tests.scripted import TestScript
-from poll.models import Poll, Response, Category, Rule
+from poll.models import Poll, Response, Category, Rule,Translation
 from rapidsms_httprouter.router import get_router
 from rapidsms_httprouter.models import Message
-from rapidsms_httprouter.managers import ForUpdateManager
-from eav.models import Attribute
+from django.utils import translation
 
-from django.db.models.signals import post_save
+
 
 class BasicPatternTemplateTest(TestCase):
     def test_basic_pattern_template(self):
@@ -70,7 +65,7 @@ class ProcessingTests(TestScript):
                 Poll.TYPE_TEXT,
                 'test?',
                 'test!',
-                [self.contact1],
+                Contact.objects.filter(pk__in=[self.contact1.pk]),
                 self.user)
         p.start()
         # starting a poll should send out a message
@@ -86,7 +81,7 @@ class ProcessingTests(TestScript):
                  Poll.TYPE_NUMERIC,
                  'test?',
                  '#test!',
-                 [self.contact2],
+                 Contact.objects.filter(pk__in=[self.contact2.pk]),
                  self.user)
         p2.start()
 
@@ -103,7 +98,7 @@ class ProcessingTests(TestScript):
                 Poll.TYPE_TEXT,
                 'are you there?',
                 'glad to know where you are!',
-                [self.contact1, self.contact2],
+                Contact.objects.all(),
                 self.user)
         p.add_yesno_categories()
         p.start()
@@ -117,7 +112,7 @@ class ProcessingTests(TestScript):
                 Poll.TYPE_NUMERIC,
                 'how old are you?',
                 ':) go yo age!',
-                [self.contact1, self.contact2],
+                Contact.objects.all(),
                 self.user)
         p.start()
         self.assertInteraction(self.connection2, '19years', ':) go yo age!')
@@ -129,7 +124,7 @@ class ProcessingTests(TestScript):
                 Poll.TYPE_TEXT,
                 'whats your favorite food?',
                 'thanks!',
-                [self.contact1, self.contact2],
+                Contact.objects.all(),
                 self.user)
         p.start()
         self.assertInteraction(self.connection1, 'apples', 'thanks!')
@@ -166,6 +161,7 @@ class ProcessingTests(TestScript):
             self.assertEqual(r.categories.all()[0].category.name, c)
 
         self.assertEquals(r7.categories.count(), 0)
+
     def test_response_type_handling(self):
         #test allow all
         poll1 = Poll.create_with_bulk(
@@ -173,7 +169,7 @@ class ProcessingTests(TestScript):
                 Poll.TYPE_TEXT,
                 'ureport is bored.what would u like it 2 do?',
                 'yikes :(',
-                [self.contact1, self.contact2],
+                Contact.objects.all(),
                 self.user)
         poll1.start()
         self.assertInteraction(self.connection1, 'get me a kindle :)', 'yikes :(')
@@ -190,7 +186,7 @@ class ProcessingTests(TestScript):
                 Poll.TYPE_TEXT,
                 'ureport is bored.what would u like it 2 do?',
                 'yikes :(',
-                [self.contact1, self.contact2],
+                Contact.objects.all(),
                 self.user)
         poll2.response_type=Poll.RESPONSE_TYPE_NO_DUPS
         poll2.save()
@@ -209,7 +205,7 @@ class ProcessingTests(TestScript):
                 Poll.TYPE_TEXT,
                 'Are u cool?',
                 'yikes :(',
-                [self.contact1, self.contact2],
+                Contact.objects.all(),
                 self.user)
         poll3.response_type=Poll.RESPONSE_TYPE_ONE
         poll3.add_yesno_categories()
@@ -224,3 +220,41 @@ class ProcessingTests(TestScript):
         self.fake_incoming(self.connection1, 'Arrest Bush :)')
         self.assertEqual(Response.objects.filter(contact=self.contact1,poll=poll3).count(), 1)
         self.assertEqual(Response.objects.filter(contact=self.contact1,poll=poll3)[0].message.text, 'yes')
+
+    def test_poll_translation(self):
+        
+        t1=Translation.objects.create(field="How did you hear about Ureport?",
+                                   language="ach",
+                                   value="I winyo pi U-report ki kwene?")
+        t2=Translation.objects.create(field="Ureport gives you a chance to speak out on issues in your community & share opinions with youth around Uganda Best responses & results shared through the media",
+                                   language="ach",
+                                   value="Ureport mini kare me lok ikum jami matime i kama in ibedo iyee. Lagam mabejo kibiketo ne I karatac me ngec.")
+       
+        self.contact1.language = "en"
+        self.contact1.save()
+
+        self.contact2.language = "ach"
+        self.contact2.save()
+
+        t_poll = Poll.create_with_bulk(
+            'test translation',
+            Poll.TYPE_TEXT,
+            "How did you hear about Ureport?"
+            ,
+            "Ureport gives you a chance to speak out on issues in your community & share opinions with youth around Uganda Best responses & results shared through the media",
+            Contact.objects.all(),
+            self.user)
+        t_poll.add_yesno_categories()
+        t_poll.save()
+        t_poll.start()
+
+        self.assertEquals(Message.objects.count(), 2)
+        self.assertInteraction(self.connection1, 'yes', 'Ureport gives you a chance to speak out on issues in your community & share opinions with youth around Uganda Best responses & results shared through the media')
+        self.assertInteraction(self.connection2, 'no', 'Ureport mini kare me lok ikum jami matime i kama in ibedo iyee. Lagam mabejo kibiketo ne I karatac me ngec.')
+        
+
+            
+
+
+
+

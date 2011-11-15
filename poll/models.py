@@ -9,6 +9,8 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django import forms
+from django.db.models.query import QuerySet
+from django.utils.translation import ugettext as _
 from mptt.forms import TreeNodeChoiceField
 from rapidsms.models import Contact, Connection
 
@@ -23,6 +25,9 @@ from rapidsms_httprouter.managers import BulkInsertManager
 from rapidsms.messages.outgoing import OutgoingMessage
 from django.conf import settings
 import re
+from django.utils.translation import (ugettext, ugettext_lazy, activate,
+    deactivate, gettext_lazy)
+
 
 # The standard template allows for any amount of whitespace at the beginning,
 # followed by the alias(es) for a particular category, followed by any non-
@@ -140,14 +145,14 @@ class Poll(models.Model):
 
     name = models.CharField(max_length=32,
                             help_text="Human readable name.")
-    question = models.CharField(max_length=160)
+    question = models.CharField(_("question"),max_length=160)
     messages = models.ManyToManyField(Message, null=True)
     contacts = models.ManyToManyField(Contact, related_name='polls')
     user = models.ForeignKey(User)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
     type = models.SlugField(max_length=8, null=True, blank=True)
-    default_response = models.CharField(max_length=160)
+    default_response = models.CharField(_("default_response"),max_length=160)
     sites = models.ManyToManyField(Site)
     objects = models.Manager()
     on_site = CurrentSiteManager('sites')
@@ -204,20 +209,31 @@ class Poll(models.Model):
     @classmethod
     @transaction.commit_on_success
     def create_with_bulk(cls, name, type, question, default_response, contacts, user):
-        messages = Message.mass_text(question, Connection.objects.filter(contact__in=list(contacts)).distinct(), status='L')
+        localized_messages={}
+        for language in dict(settings.LANGUAGES).keys():
+            if language == "en":
+                """default to English for contacts with no language preference"""
+                localized_contacts=contacts.filter(language__in=["en",''])
+            else:
+
+                localized_contacts=contacts.filter(language=language)
+            if localized_contacts.exists():
+                messages = Message.mass_text(Translation.objects.gettext(field=question,language=language), Connection.objects.filter(contact__in=list(localized_contacts)).distinct(), status='L')
+                localized_messages[language] = [messages,localized_contacts]
         poll = Poll.objects.create(name=name, type=type, question=question, default_response=default_response, user=user)
 
         # This is the fastest (pretty much only) was to get contacts and messages M2M into the
         # DB fast enough at scale
         cursor = connection.cursor()
-        raw_sql = "insert into poll_poll_contacts (poll_id, contact_id) values %s" % ','.join(\
-            ["(%d, %d)" % (poll.pk, c.pk) for c in contacts])
-        cursor.execute(raw_sql)
+        for language in localized_messages.keys():
+            raw_sql = "insert into poll_poll_contacts (poll_id, contact_id) values %s" % ','.join(\
+                ["(%d, %d)" % (poll.pk, c.pk) for c in localized_messages.get(language)[1]])
+            cursor.execute(raw_sql)
 
-        raw_sql = "insert into poll_poll_messages (poll_id, message_id) values %s" % ','.join(\
-            ["(%d, %d)" % (poll.pk, m.pk) for m in messages])
-        cursor.execute(raw_sql)
-
+            raw_sql = "insert into poll_poll_messages (poll_id, message_id) values %s" % ','.join(\
+                ["(%d, %d)" % (poll.pk, m.pk) for m in localized_messages.get(language)[0]])
+            cursor.execute(raw_sql)
+        
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
             poll.sites.add(Site.objects.get_current())
         return poll
@@ -368,6 +384,7 @@ class Poll(models.Model):
         if not outgoing_message:
             return (resp, None,)
         else:
+            outgoing_message=Translation.objects.gettext(language=db_message.connection.contact.language,field=outgoing_message)
             return (resp, outgoing_message,)
 
     def get_numeric_detailed_data(self):
@@ -588,4 +605,33 @@ class Rule(models.Model):
             self.regex = CONTAINS_PATTERN_TEMPLATE % self.rule_string
         elif self.rule_type == Rule.TYPE_REGEX:
             self.regex = self.rule_string
+
+
+
+class TranslationManager(models.Manager):
+   def gettext(self,field,language):
+           #if name exists in po file get it else look
+           if self.filter(field=field,language=language).exists():
+               return self.filter(field=field,language=language)[0].value
+           else:
+               activate(language)
+               lang_str=ugettext(field)
+               deactivate()
+               return lang_str
+
+class Translation(models.Model):
+    field = models.TextField( db_index=True)
+    language = models.CharField(max_length=5, db_index=True,
+                                choices=settings.LANGUAGES)
+    value = models.TextField(blank=True)
+    objects=TranslationManager()
+    def __unicode__(self):
+        return u'%s: %s' % (self.language, self.value)
+
+    class Meta:
+        unique_together = ('field', 'language')
+
+   
+               
+
 
