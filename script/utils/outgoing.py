@@ -3,6 +3,7 @@
 import datetime
 from script.models import ScriptStep, ScriptProgress, Script, ScriptSession
 from rapidsms.models import Connection
+from poll.models import gettext_db
 
 def check_progress(connection):
     """
@@ -40,14 +41,14 @@ def check_progress(connection):
     elif progress.time_to_resend(d_now):
         progress.num_tries = (progress.num_tries or 0) + 1
         progress.save()
-        return progress.outgoing_message()
+        return gettext_db(progress.outgoing_message(),progress.language)
 
     # This happens unconditionally, to shortcircuit the case
     # where an expired step, set to COMPLETE above,
     # can immidately transition to the next step
     d_now = datetime.datetime.now()
     if progress.time_to_transition(d_now) and progress.moveon():
-        return progress.outgoing_message()
+        return gettext_db(progress.outgoing_message(),progress.language)
 
     return None
 

@@ -107,6 +107,7 @@ class ScriptProgress(models.Model):
                          (PENDING, 'In Progress'),))
     time = models.DateTimeField(auto_now=True)
     num_tries = models.IntegerField(blank=True, null=True)
+    language = models.CharField(max_length=5,choices=settings.LANGUAGES,null=True)
 
     def __unicode__(self):
         if self.step:

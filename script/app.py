@@ -1,9 +1,8 @@
-import rapidsms
-import datetime
 
 from rapidsms.apps.base import AppBase
 from script.utils.incoming import incoming_progress
 from .models import *
+from poll.models import gettext_db
 
 class App (AppBase):
 
@@ -18,7 +17,7 @@ class App (AppBase):
                 else:
                     response = incoming_progress(message)
                     if response:
-                        message.respond(response)
+                        message.respond(gettext_db(response,progress.language))
                     return True
         except ScriptProgress.DoesNotExist:
             pass
