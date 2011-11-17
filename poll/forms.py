@@ -1,7 +1,7 @@
 from django import forms
 
 from django.contrib.auth.models import Group
-from .models import Poll, Category, Rule
+from .models import Poll, Category, Rule ,Translation
 from rapidsms.models import Contact
 from django.forms.widgets import RadioSelect
 
@@ -23,7 +23,9 @@ class NewPollForm(forms.Form): # pragma: no cover
 
     name = forms.CharField(max_length=32, required=True)
     question = forms.CharField(max_length=160, required=True, widget=forms.Textarea())
+    question_luo = forms.CharField(max_length=160, required=False, widget=forms.Textarea())
     default_response = forms.CharField(max_length=160, required=False, widget=forms.Textarea())
+    default_response_luo = forms.CharField(max_length=160, required=False, widget=forms.Textarea())
     start_immediately = forms.BooleanField(required=False)
     contacts = forms.ModelMultipleChoiceField(queryset=Contact.objects.all(), required=False)
 
@@ -51,6 +53,9 @@ class NewPollForm(forms.Form): # pragma: no cover
 
         return cleaned_data
 
+class PollTranslation(forms.ModelForm):
+    class Meta:
+        model = Translation
 class EditPollForm(forms.ModelForm): # pragma: no cover
     class Meta:
         model = Poll

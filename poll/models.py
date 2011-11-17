@@ -22,11 +22,10 @@ from rapidsms.contrib.locations.nested import models as nested_models
 from rapidsms_httprouter.models import Message
 from rapidsms_httprouter.managers import BulkInsertManager
 
-from rapidsms.messages.outgoing import OutgoingMessage
 from django.conf import settings
 import re
-from django.utils.translation import (ugettext, ugettext_lazy, activate,
-    deactivate, gettext_lazy)
+from django.utils.translation import (ugettext, activate, deactivate)
+
 
 
 # The standard template allows for any amount of whitespace at the beginning,
@@ -38,11 +37,18 @@ CONTAINS_PATTERN_TEMPLATE = '^.*\s*(%s)(\s|[^a-zA-Z]|$)'
 
 # This can be configurable from settings, but here's a default list of 
 # accepted yes keywords
-YES_WORDS = ['yes', 'yeah', 'yep', 'yay', 'y']
+#YES_WORDS = ['yes', 'yeah', 'yep', 'yay', 'y']
+
+YES_WORDS = {
+    'en':['yes', 'yeah', 'yep', 'yay', 'y'],
+    'ach':['ada','da']
+}
 
 # This can be configurable from settings, but here's a default list of
 # accepted no keywords
-NO_WORDS = ['no', 'nope', 'nah', 'nay', 'n']
+NO_WORDS = {'en':['no', 'nope', 'nah', 'nay', 'n'],
+            'ach':['ku','k']
+}
 
 class ResponseForm(forms.Form):
     def __init__(self, data=None, **kwargs):
@@ -218,7 +224,7 @@ class Poll(models.Model):
 
                 localized_contacts=contacts.filter(language=language)
             if localized_contacts.exists():
-                messages = Message.mass_text(Translation.objects.gettext(field=question,language=language), Connection.objects.filter(contact__in=list(localized_contacts)).distinct(), status='L')
+                messages = Message.mass_text(gettext_db(field=question,language=language), Connection.objects.filter(contact__in=list(localized_contacts)).distinct(), status='L')
                 localized_messages[language] = [messages,localized_contacts]
         poll = Poll.objects.create(name=name, type=type, question=question, default_response=default_response, user=user)
 
@@ -242,17 +248,27 @@ class Poll(models.Model):
         """
         This creates a generic yes/no poll categories for a particular poll
         """
+        #langs = self.contacts.values_list('language',flat=True).distinct()
+        langs = dict(settings.LANGUAGES).keys()
         self.categories.create(name='yes')
-        self.categories.get(name='yes').rules.create(
-            regex=(STARTSWITH_PATTERN_TEMPLATE % '|'.join(YES_WORDS)),
-            rule_type=Rule.TYPE_REGEX,
-            rule_string=(STARTSWITH_PATTERN_TEMPLATE % '|'.join(YES_WORDS)))
         self.categories.create(name='no')
-        self.categories.get(name='no').rules.create(
-            regex=(STARTSWITH_PATTERN_TEMPLATE % '|'.join(NO_WORDS)),
-            rule_type=Rule.TYPE_REGEX,
-            rule_string=(STARTSWITH_PATTERN_TEMPLATE % '|'.join(NO_WORDS)))
         self.categories.create(name='unknown', default=True, error_category=True)
+
+          # add one rule to yes category per language
+        for l in langs:
+            no_rule_string = '|'.join(NO_WORDS[l])
+            yes_rule_string = '|'.join(YES_WORDS[l])
+
+            self.categories.get(name='yes').rules.create(
+                regex=(STARTSWITH_PATTERN_TEMPLATE % yes_rule_string ),
+                rule_type=Rule.TYPE_REGEX,
+                rule_string=(STARTSWITH_PATTERN_TEMPLATE % yes_rule_string))
+
+            self.categories.get(name='no').rules.create(
+                regex=(STARTSWITH_PATTERN_TEMPLATE % no_rule_string),
+                rule_type=Rule.TYPE_REGEX,
+                rule_string=(STARTSWITH_PATTERN_TEMPLATE % no_rule_string))
+
 
     def is_yesno_poll(self):
         return self.categories.count() == 3 and \
@@ -384,7 +400,7 @@ class Poll(models.Model):
         if not outgoing_message:
             return (resp, None,)
         else:
-            outgoing_message=Translation.objects.gettext(language=db_message.connection.contact.language,field=outgoing_message)
+            outgoing_message=gettext_db(language=db_message.connection.contact.language,field=outgoing_message)
             return (resp, outgoing_message,)
 
     def get_numeric_detailed_data(self):
@@ -607,24 +623,11 @@ class Rule(models.Model):
             self.regex = self.rule_string
 
 
-
-class TranslationManager(models.Manager):
-   def gettext(self,field,language):
-           #if name exists in po file get it else look
-           if self.filter(field=field,language=language).exists():
-               return self.filter(field=field,language=language)[0].value
-           else:
-               activate(language)
-               lang_str=ugettext(field)
-               deactivate()
-               return lang_str
-
 class Translation(models.Model):
     field = models.TextField( db_index=True)
     language = models.CharField(max_length=5, db_index=True,
                                 choices=settings.LANGUAGES)
     value = models.TextField(blank=True)
-    objects=TranslationManager()
     def __unicode__(self):
         return u'%s: %s' % (self.language, self.value)
 
@@ -632,6 +635,14 @@ class Translation(models.Model):
         unique_together = ('field', 'language')
 
    
-               
+def gettext_db(field,language):
+    #if name exists in po file get it else look
+    if Translation.objects.filter(field=field,language=language).exists():
+       return Translation.objects.filter(field=field,language=language)[0].value
+    else:
+       activate(language)
+       lang_str=ugettext(field)
+       deactivate()
+       return lang_str
 
 
