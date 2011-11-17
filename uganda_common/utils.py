@@ -415,17 +415,6 @@ def get_messages(request):
 
     return messages
 
-
-## TODO need a function that will get messages by connection -> for hotline, messages coming in from a particular backend
-def get_anonymous_messages(request, backend):
-    """
-    get messages coming in from polls, next is to filter by "backend" types
-    """
-    messages = Message.objects.filter(direction='I').filter(Q(application__in=["poll"])).\
-            exclude(pk__in=Response.objects.\
-            exclude(message=None).filter(has_errors=False).values_list('message_pk',flat=True))
-    return messages
-
 def parse_header_row(worksheet, fields):
 #    fields=['telephone number','name', 'district', 'county', 'village', 'age', 'gender']
     field_cols = {}
