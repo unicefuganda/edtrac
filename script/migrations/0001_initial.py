@@ -5,6 +5,8 @@ from south.v2 import SchemaMigration
 from django.db import models
 
 class Migration(SchemaMigration):
+    depends_on = (
+        ("poll", "0004_auto__add_translation__add_unique_translation_field_language"),)
 
     def forwards(self, orm):
         
