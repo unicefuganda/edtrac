@@ -48,7 +48,9 @@ def check_progress(connection):
     # can immidately transition to the next step
     d_now = datetime.datetime.now()
     if progress.time_to_transition(d_now) and progress.moveon():
-        return gettext_db(progress.outgoing_message(),progress.language)
+        if progress.language:
+            return gettext_db(progress.outgoing_message(),progress.language)
+        return progress.outgoing_message()
 
     return None
 
