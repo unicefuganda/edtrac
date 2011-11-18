@@ -1,13 +1,8 @@
-from .forms import DateRangeForm
-from django.conf import settings, settings
-from django.contrib.auth.models import User, Group
-from django.contrib.sites.models import Site
+from django.conf import settings
+from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
-from django.db.models import Count, Sum, Max, Min
-from django.db.models.base import ModelBase
-from django.db.models.query import QuerySet, ValuesQuerySet
+from django.db.models import Count, Sum
 from django.http import HttpResponse
-from django.utils.text import capfirst
 from eav.models import Attribute
 from generic.utils import get_dates as get_dates_from_post
 from poll.models import Poll, LocationResponseForm, STARTSWITH_PATTERN_TEMPLATE
@@ -18,10 +13,7 @@ from rapidsms_xforms.models import XForm, XFormField, XFormFieldConstraint, \
 from script.models import Script, ScriptStep, ScriptResponse
 from script.utils.handling import find_closest_match
 import datetime
-import difflib
 import re
-import traceback
-from .forms import DateRangeForm
 from django.db.models import Max, Min
 from xlrd import open_workbook
 from rapidsms.models import Connection
@@ -422,8 +414,6 @@ def get_messages(request):
     messages = messages.exclude(pk__in=Response.objects.exclude(message=None).filter(has_errors=False).values_list('message__pk', flat=True))
 
     return messages
-
-
 
 def parse_header_row(worksheet, fields):
 #    fields=['telephone number','name', 'district', 'county', 'village', 'age', 'gender']
