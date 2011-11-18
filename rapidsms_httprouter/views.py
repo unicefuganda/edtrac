@@ -136,9 +136,6 @@ class ReplyForm(forms.Form):
 class SearchForm(forms.Form):
     search = forms.CharField(label="Keywords", max_length=100, widget=forms.TextInput(attrs={'size':'60'}), required=False)
 
-class AnonymousReplyForm(forms.Form):
-    recipient = forms.CharField(max_length=20)
-    message = forms.CharField(max_length=140, label="Anonymous Message", widget=forms.TextInput(attrs={'size' : '60'}))
 
 def console(request):
     """
@@ -160,13 +157,6 @@ def console(request):
                                                        form.cleaned_data['sender'],
                                                        form.cleaned_data['text'])
             reply_form = ReplyForm()
-
-        elif request.POST['action'] == 'testanonymous':
-            form = SendForm(request.POST)
-            if form.is_valid():
-                backend = "yo8200"
-                message = get_router().handle_incoming(backend, form.cleaned_data['sender'], form.cleaned_data['text'])
-            anonymous_reply_form = AnonymousReplyForm()
 
         elif request.POST['action'] == 'reply':
             reply_form = ReplyForm(request.POST)
