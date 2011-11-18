@@ -145,7 +145,6 @@ def console(request):
     form = SendForm()
     reply_form = ReplyForm()
     search_form = SearchForm()
-    anonymous_reply_form = AnonymousReplyForm()
     queryset = Message.objects.all()
 
     if request.method == 'POST' and 'this_is_the_login_form' not in request.POST:
