@@ -41,7 +41,9 @@ def check_progress(connection):
     elif progress.time_to_resend(d_now):
         progress.num_tries = (progress.num_tries or 0) + 1
         progress.save()
-        return gettext_db(progress.outgoing_message(),progress.language)
+        if progress.language:
+            return gettext_db(progress.outgoing_message(),progress.language)
+        return progress.outgoing_message()
 
     # This happens unconditionally, to shortcircuit the case
     # where an expired step, set to COMPLETE above,
