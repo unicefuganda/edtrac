@@ -49,101 +49,70 @@ class XFormDateGetter(BasicDateGetter):
             }
 
 
-class DifferenceColumn(Column):
-    def __init__(self, left_column, right_column, **kwargs):
+class ArithmeticFunctionColumn(Column):
+    def func(self, first, second):
+        return first
+
+    def __init__(self, first_column, second_column, **kwargs):
         Column.__init__(self, **kwargs)
-        self.left_column = left_column
-        self.right_column = right_column
+        self.first_column = first_column
+        self.second_column = second_column
 
     def set_report(self, report):
         Column.set_report(self, report)
-        self.left_column.set_report(report)
-        self.right_column.set_report(report)
+        self.first_column.set_report(report)
+        self.second_column.set_report(report)
 
     def add_to_report(self, report, key, dictionary):
         temp = {}
-        self.left_column.add_to_report(report, 'left', temp)
-        self.right_column.add_to_report(report, 'right', temp)
+        self.first_column.add_to_report(report, 'first', temp)
+        self.second_column.add_to_report(report, 'second', temp)
         for row_key, items in temp.items():
-            left = items.setdefault('left', 0)
-            right = items.setdefault('right', 0)
-            difference = left - right
+            first = items.setdefault('first', 0)
+            second = items.setdefault('second', 0)
+            val = self.func(first, second)
             dictionary.setdefault(row_key, {'location_name':items['location_name']})
-            dictionary[row_key][key] = difference
+            dictionary[row_key][key] = val
 
     def get_chart(self):
-        from .views import DifferenceChartView
-        return DifferenceChartView(location_id=self.report.location.pk, \
+        from .views import ArithmeticChartView
+        return ArithmeticChartView(location_id=self.report.location.pk, \
                          start_date=self.report.start_date, \
                          end_date=self.report.end_date, \
-                         left_column=self.left_column, \
-                         right_column=self.right_column,
+                         main_column=self, \
+                         first_column=self.first_column, \
+                         second_column=self.second_column,
                          chart_title=self.chart_title,
                          chart_subtitle=self.chart_subtitle,
                          chart_yaxis=self.chart_yaxis)
 
     def get_view_function(self):
-        from .views import DifferenceChartView
-        return DifferenceChartView.as_view(location_id=self.report.location.pk, \
+        from .views import ArithmeticChartView
+        return ArithmeticChartView.as_view(location_id=self.report.location.pk, \
                          start_date=self.report.start_date, \
                          end_date=self.report.end_date, \
-                         left_column=self.left_column, \
-                         right_column=self.right_column,
+                         main_column=self, \
+                         first_column=self.first_column, \
+                         second_column=self.second_column,
                          chart_title=self.chart_title,
                          chart_subtitle=self.chart_subtitle,
                          chart_yaxis=self.chart_yaxis)
 
 
-class QuotientColumn(Column):
-    def __init__(self, top_column, bottom_column, **kwargs):
-        Column.__init__(self, **kwargs)
-        self.top_column = top_column
-        self.bottom_column = bottom_column
-        self.chart_yaxis = 'Percentage of Reports'
-        if not self.chart_title:
-            self.chart_title = 'Variation of %s' % self.get_title()
+class DifferenceColumn(ArithmeticFunctionColumn):
+    def func(self, first, second):
+        return first - second
 
 
-    def set_report(self, report):
-        Column.set_report(self, report)
-        self.top_column.set_report(report)
-        self.bottom_column.set_report(report)
+class QuotientColumn(ArithmeticFunctionColumn):
+    def func(self, first, second):
+        return round(((float(first) / second) * 100), 1)
 
 
-    def add_to_report(self, report, key, dictionary):
-        temp = {}
-        self.top_column.add_to_report(report, 'top', temp)
-        self.bottom_column.add_to_report(report, 'bottom', temp)
-        for row_key, items in temp.items():
-            if 'bottom' in items:
-                bottom = items['bottom']
-                top = items.setdefault('top', 0)
-                quotient = round(((float(top) / bottom) * 100), 1)
-                dictionary.setdefault(row_key, {'location_name':items['location_name']})
-                dictionary[row_key][key] = quotient
+class AdditionColumn(ArithmeticFunctionColumn):
+    def func(self, first, second):
+        return first + second
 
-
-    def get_chart(self):
-        from .views import PercentageChartView
-        return PercentageChartView(location_id=self.report.location.pk, \
-                         start_date=self.report.start_date, \
-                         end_date=self.report.end_date, \
-                         top_column=self.top_column, \
-                         bottom_column=self.bottom_column,
-                         chart_title=self.chart_title,
-                         chart_subtitle=self.chart_subtitle,
-                         chart_yaxis=self.chart_yaxis)
-
-    def get_view_function(self):
-        from .views import PercentageChartView
-        return PercentageChartView.as_view(location_id=self.report.location.pk, \
-                         start_date=self.report.start_date, \
-                         end_date=self.report.end_date, \
-                         top_column=self.top_column, \
-                         bottom_column=self.bottom_column,
-                         chart_title=self.chart_title,
-                         chart_subtitle=self.chart_subtitle,
-                         chart_yaxis=self.chart_yaxis)
 
 
 class XFormSubmissionColumn(Column):
