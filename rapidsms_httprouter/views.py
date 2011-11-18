@@ -161,6 +161,13 @@ def console(request):
                                                        form.cleaned_data['text'])
             reply_form = ReplyForm()
 
+        elif request.POST['action'] == 'testanonymous':
+            form = SendForm(request.POST)
+            if form.is_valid():
+                backend = "yo8200"
+                message = get_router().handle_incoming(backend, form.cleaned_data['sender'], form.cleaned_data['text'])
+            anonymous_reply_form = AnonymousReplyForm()
+
         elif request.POST['action'] == 'reply':
             reply_form = ReplyForm(request.POST)
             if reply_form.is_valid():
@@ -186,12 +193,6 @@ def console(request):
                         query &= (Q(text__icontains=term) | Q(in_response_to__text__icontains=term) | Q(connection__identity__icontains=term))
                     queryset = queryset.filter(query)
 
-        elif request.POST['action'] == 'testanonymous':
-            form = SendForm(request.POST)
-            if form.is_valid():
-                backend = "yo8200"
-                message = get_router().handle_incoming(backend, form.cleaned_data['sender'], form.cleaned_data['text'])
-            anonymous_reply_form = AnonymousReplyForm()
 
     paginator = Paginator(queryset.order_by('-id'), 20)
     page = request.GET.get('page')
