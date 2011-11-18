@@ -156,6 +156,7 @@ def console(request):
                                                        form.cleaned_data['sender'],
                                                        form.cleaned_data['text'])
             reply_form = ReplyForm()
+                        
 
         elif request.POST['action'] == 'reply':
             reply_form = ReplyForm(request.POST)
