@@ -400,7 +400,9 @@ class Poll(models.Model):
         if not outgoing_message:
             return (resp, None,)
         else:
-            outgoing_message=gettext_db(language=db_message.connection.contact.language,field=outgoing_message)
+            if db_message.connection.contact and  db_message.connection.contact.language:
+                outgoing_message=gettext_db(language=db_message.connection.contact.language,field=outgoing_message)
+                
             return (resp, outgoing_message,)
 
     def get_numeric_detailed_data(self):
