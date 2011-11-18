@@ -9,6 +9,7 @@
 
 {% block content %}
 <div class="tester module">
+
   <h2>Incoming Message Tester</h2>
   <form method="POST" class="tester-form">
     {{ form }}
@@ -16,6 +17,14 @@
     <input type="submit" value="test" />
     {% csrf_token %}
   </form>
+<br/>
+    <h2>Testing anonymous messaging</h2>
+<form method="POST" class="tester-form">
+    {{ form }}
+    <input type="hidden" name="action" value="testanonymous"/>
+    <input type="submit" value="test"/>
+    {% csrf_token %}
+</form>
 </div>
 
 <div class="sender module">

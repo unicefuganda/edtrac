@@ -136,6 +136,10 @@ class ReplyForm(forms.Form):
 class SearchForm(forms.Form):
     search = forms.CharField(label="Keywords", max_length=100, widget=forms.TextInput(attrs={'size':'60'}), required=False)
 
+class AnonymousReplyForm(forms.Form):
+    recipient = forms.CharField(max_length=20)
+    message = forms.CharField(max_length=140, label="Anonymous Message", widget=forms.TextInput(attrs={'size' : '60'}))
+
 def console(request):
     """
     Our web console, lets you see recent messages as well as send out new ones for
@@ -144,7 +148,7 @@ def console(request):
     form = SendForm()
     reply_form = ReplyForm()
     search_form = SearchForm()
-
+    anonymous_reply_form = AnonymousReplyForm()
     queryset = Message.objects.all()
 
     if request.method == 'POST' and 'this_is_the_login_form' not in request.POST:
@@ -156,7 +160,6 @@ def console(request):
                                                        form.cleaned_data['sender'],
                                                        form.cleaned_data['text'])
             reply_form = ReplyForm()
-                        
 
         elif request.POST['action'] == 'reply':
             reply_form = ReplyForm(request.POST)
@@ -181,8 +184,14 @@ def console(request):
                     query = (Q(text__icontains=term) | Q(in_response_to__text__icontains=term) | Q(connection__identity__icontains=term))
                     for term in terms[1:]:
                         query &= (Q(text__icontains=term) | Q(in_response_to__text__icontains=term) | Q(connection__identity__icontains=term))
-
                     queryset = queryset.filter(query)
+
+        elif request.POST['action'] == 'testanonymous':
+            form = SendForm(request.POST)
+            if form.is_valid():
+                backend = "yo8200"
+                message = get_router().handle_incoming(backend, form.cleaned_data['sender'], form.cleaned_data['text'])
+            anonymous_reply_form = AnonymousReplyForm()
 
     paginator = Paginator(queryset.order_by('-id'), 20)
     page = request.GET.get('page')
@@ -200,6 +209,7 @@ def console(request):
             "messages_table": MessageTable(queryset, request=request),
             "form": form,
             "reply_form": reply_form,
+            "anonymous_reply_form": anonymous_reply_form,
             "search_form": search_form,
             "messages": messages
         }, context_instance=RequestContext(request)
