@@ -199,7 +199,6 @@ def console(request):
             "messages_table": MessageTable(queryset, request=request),
             "form": form,
             "reply_form": reply_form,
-            "anonymous_reply_form": anonymous_reply_form,
             "search_form": search_form,
             "messages": messages
         }, context_instance=RequestContext(request)
