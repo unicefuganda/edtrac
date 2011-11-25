@@ -80,9 +80,17 @@ def new_poll(req):
                 groups = form.cleaned_data['groups']
                 contacts = Contact.objects.filter(Q(pk__in=contacts) | Q(groups__in=groups)).distinct()
             name = form.cleaned_data['name']
-            type = form.cleaned_data['type']
+            p_type = form.cleaned_data['type']
             response_type = form.cleaned_data['response_type']
-            poll_type = Poll.TYPE_TEXT if type == NewPollForm.TYPE_YES_NO else type
+            if not form.cleaned_data['default_response_luo'] == '' and not form.cleaned_data['default_response'] == '':
+                Translation.objects.create(language='ach', field=form.cleaned_data['default_response'],
+                                           value=form.cleaned_data['default_response_luo'])
+
+            if not form.cleaned_data['question_luo'] == '':
+                Translation.objects.create(language='ach', field=form.cleaned_data['question'],
+                                           value=form.cleaned_data['question_luo'])
+
+            poll_type = Poll.TYPE_TEXT if p_type == NewPollForm.TYPE_YES_NO else p_type
 
             poll = Poll.create_with_bulk(\
                                  name,
@@ -108,7 +116,7 @@ def new_poll(req):
         form.updateTypes()
 
     return render_to_response(
-        "polls/poll_create.html", { 'form': form },
+        "polls/poll_create.html", { 'form': form},
         context_instance=RequestContext(req))
 
 @login_required
@@ -236,8 +244,8 @@ def edit_poll(req, poll_id):
 def view_responses(req, poll_id, as_module=False):
     poll = get_object_or_404(Poll, pk=poll_id)
 
-    responses = poll.responses.all().order_by('-pk')
-
+    rresponses = poll.responses.all().order_by('-date')
+    print responses.count()
     breadcrumbs = (('Polls', reverse('polls')), ('Responses', ''))
 
     template = "polls/responses.html"
@@ -246,7 +254,7 @@ def view_responses(req, poll_id, as_module=False):
 
     typedef = Poll.TYPE_CHOICES[poll.type]
     return render_to_response(template,
-        { 'poll': poll, 'responses': responses, 'breadcrumbs': breadcrumbs, 'columns': typedef['report_columns'], 'db_type': typedef['db_type'], 'row_template':typedef['view_template']},
+        { 'poll': poll, 'responses': rresponses, 'breadcrumbs': breadcrumbs, 'columns': typedef['report_columns'], 'db_type': typedef['db_type'], 'row_template':typedef['view_template']},
         context_instance=RequestContext(req))
 
 def stats(req, poll_id, location_id=None):
@@ -603,3 +611,12 @@ def delete_rule (req, poll_id, category_id, rule_id):
     category.poll.reprocess_responses()
     return HttpResponse(status=200)
 
+def create_translation(request):
+    translation_form=PollTranslation()
+    if request.method == 'POST':
+        translation_form = PollTranslation(request.POST)
+        if translation_form.is_valid():
+            translation_form.save()
+            return HttpResponse("/fla")
+    return render_to_response('polls/translation.html', dict(translation_form=translation_form),
+            context_instance=RequestContext(request))
