@@ -45,12 +45,12 @@ class Command(BaseCommand):
 
     def handle(self, **options):
         uganda=Location.objects.get(name="Kotido")
-        print attendance_stats(uganda)
         districts=Location.objects.filter(type="district")
         for district in districts:
             district_data,created = EmisAttendenceData.objects.using('geoserver').get_or_create(district=district.name)
             try:
                 stats=attendance_stats(district)
+                print stats
             except (DatabaseError,IndexError):
                 continue
 
@@ -58,12 +58,21 @@ class Command(BaseCommand):
                 district_data.start_date=stats['dates'].get('start',None)
                 district_data.end_date=stats['dates'].get('end',None)
 
-                district_data.boys=dict(stats['stats']).get("boys",0)
-                district_data.girls=dict(stats['stats']).get("girls",0)
-                district_data.total_pupils=dict(stats['stats']).get("total pupils",0)
-                district_data.female_teachers=dict(stats['stats']).get("female teachers",0)
-                district_data.male_teachers=dict(stats['stats']).get("male teachers",0)
-                district_data.total_teachers=dict(stats['stats']).get("total teachers",None)
+                if not dict(stats['stats']).get("total pupils",0) == '-' and not dict(stats['stats']).get("total teachers",0) == '-':
+                    district_data.boys=dict(stats['stats']).get("boys",0)
+                    district_data.girls=dict(stats['stats']).get("girls",0)
+                    district_data.total_pupils=dict(stats['stats']).get("total pupils",0)
+                    district_data.female_teachers=dict(stats['stats']).get("female teachers",0)
+                    district_data.male_teachers=dict(stats['stats']).get("male teachers",0)
+                    district_data.total_teachers=dict(stats['stats']).get("total teachers",0)
+                else:
+                    district_data.boys=0
+                    district_data.girls=0
+                    district_data.total_pupils=0
+                    district_data.female_teachers=0
+                    district_data.male_teachers=0
+                    district_data.total_teachers=0
+                district_data.save()
             else:
                 continue
 
