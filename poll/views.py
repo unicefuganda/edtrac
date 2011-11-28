@@ -83,11 +83,11 @@ def new_poll(req):
             p_type = form.cleaned_data['type']
             response_type = form.cleaned_data['response_type']
             if not form.cleaned_data['default_response_luo'] == '' and not form.cleaned_data['default_response'] == '':
-                Translation.objects.create(language='ach', field=form.cleaned_data['default_response'],
+                translation,created = Translation.objects.get_or_create(language='ach', field=form.cleaned_data['default_response'],
                                            value=form.cleaned_data['default_response_luo'])
 
             if not form.cleaned_data['question_luo'] == '':
-                Translation.objects.create(language='ach', field=form.cleaned_data['question'],
+                translation,created = Translation.objects.get_or_create(language='ach', field=form.cleaned_data['question'],
                                            value=form.cleaned_data['question_luo'])
 
             poll_type = Poll.TYPE_TEXT if p_type == NewPollForm.TYPE_YES_NO else p_type
