@@ -7,6 +7,7 @@ from django.contrib.sites.managers import CurrentSiteManager
 from django.conf import settings
 from django.db import connection
 from script.signals import *
+from script.managers import ProgressManager
 from rapidsms.messages.incoming import IncomingMessage
 import difflib
 from django.contrib.auth.models import User
@@ -107,7 +108,9 @@ class ScriptProgress(models.Model):
                          (PENDING, 'In Progress'),))
     time = models.DateTimeField(auto_now=True)
     num_tries = models.IntegerField(blank=True, null=True)
-    language = models.CharField(max_length=5,choices=settings.LANGUAGES,null=True)
+    language = models.CharField(max_length=5, choices=settings.LANGUAGES, null=True)
+
+    objects = ProgressManager()
 
     def __unicode__(self):
         if self.step:
