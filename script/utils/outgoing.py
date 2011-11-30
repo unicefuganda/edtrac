@@ -15,20 +15,30 @@ def check_progress(script):
     and the current time.  This utility function should only be updating the ScriptProgress 
     objects accordingly.
     """
+    
+    to_start = ScriptProgress.objects.need_to_start(script)
+    to_start_list=list(to_start.values_list('connection',flat=True))
+    if to_start.exists():
+        for sp in to_start:
+            ScriptSession.objects.create(script=sp.script, connection=sp.connection)
 
-    to_start = ScriptProgress.objects.need_to_start(script).moveon(script, None)
-    for sp in to_start:
-        ScriptSession.objects.create(script=sp.script, connection=sp.connection)
-    # FIXME: mass text for to_start
+        to_start.moveon(script, None)
+        
+        ScriptProgress.objects.filter(pk__in=to_start_list).mass_text()
 
     for step in script.steps.all():
         # expire those steps that need it
-        ScriptProgress.objects.expired(script, step).expire(script, step).expire(script, step)
+        expired_progress_objects = ScriptProgress.objects.expired(script, step)
+        if expired_progress_objects.exists():
+            expired_progress_objects.expire(script, step)
 
         to_resend = ScriptProgress.objects.need_to_resend(script, step)
-        to_resend.filter(num_tries=None).update(num_tries=0)
-        to_resend.update(num_tries=F('num_tries') + 1)
-        # FIXME: mass text for resend
+        if to_resend.exists():
+            to_resend.filter(num_tries=None).update(num_tries=0)
+            print to_resend
+            to_resend.update(num_tries=F('num_tries') + 1)
+            print to_resend
+            to_resend.mass_text()
 #        if progress.language:
 #            return gettext_db(progress.outgoing_message(), progress.language)
 
@@ -36,8 +46,11 @@ def check_progress(script):
         # where an expired step, set to COMPLETE above,
         # can immidately transition to the next step
         to_transition = ScriptProgress.objects.need_to_transition(script, step)
-        to_transition.moveon(script, step)
-        # FIXME: mass text for transition
+        to_trans_list = list(to_transition.values_list('connection',flat=True))
+        if to_transition.exists():
+            to_trans_list=to_transition
+            to_transition.moveon(script, step)
+            ScriptProgress.objects.filter(pk__in=to_trans_list).mass_text()
 
 #        if progress.language:
 #            return gettext_db(progress.outgoing_message(), progress.language)
