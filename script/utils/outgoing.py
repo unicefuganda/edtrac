@@ -1,58 +1,43 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import datetime
+from django.db.models import F
 from script.models import ScriptStep, ScriptProgress, Script, ScriptSession
 from rapidsms.models import Connection
 from poll.models import gettext_db
 
-def check_progress(connection):
+def check_progress(script):
     """
-    This function should check if a given connection
-    (of type rapidsms.models.Connection) needs to be prompted
+    This function should check if a given script has script progress
+    objects that need to be prompted
     with any messages, based on the progress of the particular
-    Connection, the rules of the particular step in the script,
-    and the current time.  NOTE: This function doesn't need to
-    check if the particular connection belongs to a script: this
-    function is called from the check_script_progress management
-    command, which will already have performed that check.  This
-    utility function should only be updating the ScriptProgress model
-    accordingly.
-
-    Returns: any immediate message (as a string) that needs to be
-    queued (based on the rules of the script), on None if none are
-    needed.
+    script progress objects, the rules of the particular step in the script,
+    and the current time.  This utility function should only be updating the ScriptProgress 
+    objects accordingly.
     """
-    try:
-        progress = ScriptProgress.objects.filter(connection=connection, time__lte=datetime.datetime.now()).latest('time')
-    except ScriptProgress.DoesNotExist:
-        return None
 
-    d_now = datetime.datetime.now()
-    if progress.time_to_start(d_now):
-        progress.start()
-        return progress.outgoing_message()
-    elif progress.expired(d_now):
-        if progress.step.rule in [ScriptStep.WAIT_GIVEUP, ScriptStep.RESEND_GIVEUP, ScriptStep.STRICT_GIVEUP]:
-            progress.giveup()
-        else:
-            progress.status = ScriptProgress.COMPLETE
-            progress.save()
+    to_start = ScriptProgress.objects.need_to_start(script).moveon(script, None)
+    for sp in to_start:
+        ScriptSession.objects.create(script=sp.script, connection=sp.connection)
+    # FIXME: mass text for to_start
 
-    elif progress.time_to_resend(d_now):
-        progress.num_tries = (progress.num_tries or 0) + 1
-        progress.save()
-        if progress.language:
-            return gettext_db(progress.outgoing_message(),progress.language)
-        return progress.outgoing_message()
+    for step in script.steps.all():
+        # expire those steps that need it
+        ScriptProgress.objects.expired(script, step).expire(script, step).expire(script, step)
 
-    # This happens unconditionally, to shortcircuit the case
-    # where an expired step, set to COMPLETE above,
-    # can immidately transition to the next step
-    d_now = datetime.datetime.now()
-    if progress.time_to_transition(d_now) and progress.moveon():
-        if progress.language:
-            return gettext_db(progress.outgoing_message(),progress.language)
-        return progress.outgoing_message()
+        to_resend = ScriptProgress.objects.need_to_resend(script, step)
+        to_resend.filter(num_tries=None).update(num_tries=0)
+        to_resend.update(num_tries=F('num_tries') + 1)
+        # FIXME: mass text for resend
+#        if progress.language:
+#            return gettext_db(progress.outgoing_message(), progress.language)
 
-    return None
+        # This happens unconditionally, to shortcircuit the case
+        # where an expired step, set to COMPLETE above,
+        # can immidately transition to the next step
+        to_transition = ScriptProgress.objects.need_to_transition(script, step)
+        to_transition.moveon(script, step)
+        # FIXME: mass text for transition
 
+#        if progress.language:
+#            return gettext_db(progress.outgoing_message(), progress.language)

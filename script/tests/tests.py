@@ -35,6 +35,7 @@ class ModelTest(TestCase): #pragma: no cover
                 slug="test_autoreg",
                 name="The dummy registration script",
         )
+        self.script = script
         script.sites.add(Site.objects.get_current())
         script.steps.add(ScriptStep.objects.create(
             script=script,
@@ -110,7 +111,7 @@ class ModelTest(TestCase): #pragma: no cover
         connection = Connection.objects.all()[0]
         script = Script.objects.get(slug="test_autoreg")
         prog = ScriptProgress.objects.create(connection=connection, script=script)
-        response = check_progress(connection)
+        response = check_progress(self.script)
 
         self.assertEquals(response, 'Welcome to Script!  This system is awesome!  We will spam you with some personal questions now')
         self.assertEquals(ScriptSession.objects.count(), 1)
@@ -121,7 +122,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(prog.status, 'P')
 
         self.elapseTime(prog, 3601)
-        response = check_progress(connection)
+        response = check_progress(self.script)
         self.assertEquals(response, 'First question: what is your favorite way to be spammed?  Be DESCRIPTIVE')
         # refresh the progress object
         prog = ScriptProgress.objects.get(connection=connection)
@@ -132,7 +133,7 @@ class ModelTest(TestCase): #pragma: no cover
 
         # wait a day, with no response
         self.elapseTime(prog, 86401)
-        response = check_progress(connection)
+        response = check_progress(self.script)
         self.assertEquals(response, 'Second question: Do you like CHEESE?')
         prog = ScriptProgress.objects.get(connection=connection)
         self.assertEquals(prog.step.order, 2)
@@ -143,7 +144,7 @@ class ModelTest(TestCase): #pragma: no cover
         prog.status = 'P'
         prog.save()
         self.elapseTime(prog, 2)
-        response = check_progress(connection)
+        response = check_progress(self.script)
         # we've manually moved to the next step, which should merely close the script
         # and delete from ScriptProgress
         self.assertEquals(response, None)
@@ -278,7 +279,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(prog.status, 'P')
         self.assertEquals(prog.num_tries, 2)
 
-        response = check_progress(connection)
+        response = check_progress(self.script)
         # refresh progress
         prog = ScriptProgress.objects.get(connection=connection)
         self.assertEquals(prog.step.order, 2)
@@ -301,7 +302,7 @@ class ModelTest(TestCase): #pragma: no cover
         session = ScriptSession.objects.create(connection=connection, script=script)
         # elapse past the moveon time
         self.elapseTime(prog, 3601)
-        check_progress(connection)
+        check_progress(self.script)
         # refresh progress
         if giveup:
             self.assertEquals(ScriptProgress.objects.count(), 0)
@@ -312,7 +313,7 @@ class ModelTest(TestCase): #pragma: no cover
 
             # elapse past the start time of the next step
             self.elapseTime(prog, 3610)
-            response = check_progress(connection)
+            response = check_progress(self.script)
             self.assertEquals(response, prog.step.script.steps.get(order=3).message)
 
             prog = ScriptProgress.objects.get(connection=connection)
@@ -334,7 +335,7 @@ class ModelTest(TestCase): #pragma: no cover
         prog = ScriptProgress.objects.create(connection=connection, script=script, step=step, status='P')
         session = ScriptSession.objects.create(connection=connection, script=script)
         self.elapseTime(prog, 61)
-        response = check_progress(connection)
+        response = check_progress(self.script)
         self.assertEquals(response, "Second question: Do you like CHEESE?")
 
         # refresh progress
@@ -344,7 +345,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(prog.num_tries, 1)
 
         self.elapseTime(prog, 61)
-        response = check_progress(connection)
+        response = check_progress(self.script)
         self.assertEquals(response, "Second question: Do you like CHEESE?")
 
         # refresh progress
@@ -356,13 +357,13 @@ class ModelTest(TestCase): #pragma: no cover
         # check that we only retry twice
         prog = ScriptProgress.objects.get(connection=connection)
         self.elapseTime(prog, 61)
-        response = check_progress(connection)
+        response = check_progress(self.script)
         self.assertEquals(response, None)
 
         # elapse past the giveup time
         prog = ScriptProgress.objects.get(connection=connection)
         self.elapseTime(prog, 3600)
-        response = check_progress(connection)
+        response = check_progress(self.script)
 
         if giveup:
             self.assertEquals(ScriptProgress.objects.count(), 0)
@@ -374,7 +375,8 @@ class ModelTest(TestCase): #pragma: no cover
 
             # elapse past the start time of the next step
             self.elapseTime(prog, 3610)
-            response = check_progress(connection)
+            check_progress(self.script)
+            response = Message.objects.filter(direction='O', connection=connection).latest('date').text
             self.assertEquals(response, prog.step.script.steps.get(order=3).message)
 
             prog = ScriptProgress.objects.get(connection=connection)
@@ -450,12 +452,14 @@ class ModelTest(TestCase): #pragma: no cover
         step0.start_offset = 60
         step0.save()
 
-        response = check_progress(connection)
+        check_progress(self.script)
+        response = Message.objects.filter(direction='O', connection=connection).latest('date').text
         # we're still waiting to send the first message, for a full minute
         self.assertEquals(response, None)
         self.elapseTime(progress, 60)
 
-        response = check_progress(connection)
+        response = check_progress(self.script)
+        response = Message.objects.filter(direction='O', connection=connection).latest('date').text
         # we're ready for the first message to go out
         self.assertEquals(response, step0.message)
         # refresh progress
@@ -481,7 +485,8 @@ class ModelTest(TestCase): #pragma: no cover
         # now let's wait a full hour
         self.elapseTime(progress, 3600)
         step1 = script.steps.get(order=1)
-        response = check_progress(connection)
+        response = check_progress(self.script)
+        response = Message.objects.filter(direction='O', connection=connection).latest('date').text
         # the first poll question should go out now
         self.assertEquals(response, step1.poll.question)
         # refresh progress
@@ -492,7 +497,8 @@ class ModelTest(TestCase): #pragma: no cover
 
         # check that an additional call to check_progress doesn't re-send the
         # question
-        response = check_progress(connection)
+        check_progress(self.script)
+        response = Message.objects.filter(direction='O', connection=connection).latest('date').text
         # the first poll question should go out now
         self.assertEquals(response, None)
         # check that the step is still step 1, with status 'P'
@@ -511,7 +517,8 @@ class ModelTest(TestCase): #pragma: no cover
         progress = self.assertProgress(connection, 1, 'P', 1, 0)
         # check that this call to check_progress sends out the
         # next question
-        response = check_progress(connection)
+        check_progress(self.script)
+        response = Message.objects.filter(direction='O', connection=connection).latest('date').text
         step2 = script.steps.get(order=2)
         # the first poll question should go out now
         self.assertEquals(response, step2.poll.question)
@@ -548,7 +555,8 @@ class ModelTest(TestCase): #pragma: no cover
 
         # check that this call to check_progress sends out the
         # next question
-        response = check_progress(connection)
+        check_progress(self.script)
+        response = Message.objects.filter(direction='O', connection=connection).latest('date').text
         # the first poll question should go out now
         self.assertEquals(response, step2.poll.question)
         # check that the step is now step 2, with status 'P'
@@ -557,7 +565,8 @@ class ModelTest(TestCase): #pragma: no cover
         progress = self.assertProgress(connection, 2, 'P', 1, 1)
 
         # no movement until we get a response this time
-        response = check_progress(connection)
+        check_progress(self.script)
+        response = Message.objects.filter(direction='O', connection=connection).latest('date').text
         self.assertEquals(response, None)
         progress = self.assertProgress(connection, 2, 'P', 1, 1)
 
@@ -569,7 +578,8 @@ class ModelTest(TestCase): #pragma: no cover
         progress = self.assertProgress(connection, 2, 'P', 1, 2)
 
         # no movement until we get a response this time
-        response = check_progress(connection)
+        check_progress(self.script)
+        response = Message.objects.filter(direction='O', connection=connection).latest('date').text
         self.assertEquals(response, None)
         progress = self.assertProgress(connection, 2, 'P', 1, 2)
 
@@ -581,7 +591,8 @@ class ModelTest(TestCase): #pragma: no cover
         progress = self.assertProgress(connection, 2, 'C', 1, 3)
 
         # no movement until for a full hour
-        response = check_progress(connection)
+        check_progress(self.script)
+        response = Message.objects.filter(direction='O', connection=connection).latest('date').text
         self.assertEquals(response, None)
         progress = self.assertProgress(connection, 2, 'C', 1, 3)
 
@@ -597,7 +608,8 @@ class ModelTest(TestCase): #pragma: no cover
         self.elapseTime(progress, 3601)
         step3 = script.steps.get(order=3)
         # this should complete the script
-        response = check_progress(connection)
+        check_progress(self.script)
+        response = Message.objects.filter(direction='O', connection=connection).latest('date').text
         self.assertEquals(response, step3.message)
         progress = self.assertProgress(connection, 3, 'P', 1, 3)
 
@@ -611,7 +623,8 @@ class ModelTest(TestCase): #pragma: no cover
 
         # wait a few more seconds, then check that the script is closed out
         self.elapseTime(progress, 10)
-        response = check_progress(connection)
+        check_progress(self.script)
+        response = Message.objects.filter(direction='O', connection=connection).latest('date').text
         self.assertEquals(response, None)
         self.assertEquals(ScriptProgress.objects.count(), 0)
         self.assertEquals(ScriptSession.objects.all()[0].responses.count(), 3)
