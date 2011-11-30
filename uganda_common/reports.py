@@ -1,26 +1,192 @@
-from generic.reports import Column, Report
+from generic.reports import Report
+from generic.reporting.reports import Column
 from .utils import total_submissions, reorganize_location, total_attribute_value
 from rapidsms.contrib.locations.models import Location
+from generic.reporting.views import BasicDateGetter
+from generic.reporting.forms import DateRangeForm
+from django.db import connection
+import datetime
+
+class XFormDateGetter(BasicDateGetter):
+    def get_dates(self, request):
+        """
+        Process date variables from POST, session, or defaults
+        """
+        if request.POST:
+            form = DateRangeForm(request.POST)
+            if form.is_valid():
+                cursor = connection.cursor()
+                cursor.execute("select min(created) from rapidsms_xforms_xformsubmission")
+                min_date = cursor.fetchone()[0] or (datetime.datetime.now() - datetime.timedelta(365))
+                start_date = form.cleaned_data['start']
+                end_date = form.cleaned_data['end']
+                request.session['start_date'] = start_date
+                request.session['end_date'] = end_date
+                return {
+                    'max':datetime.datetime.now(),
+                    'min':min_date,
+                    'start':start_date,
+                    'end':end_date,
+                }
+            else:
+                return {}
+        else:
+            cursor = connection.cursor()
+            cursor.execute("select min(created), max(created) from rapidsms_xforms_xformsubmission")
+            min_date, end_date = cursor.fetchone()
+            end_date = end_date or datetime.datetime.now()
+            min_date = min_date or (datetime.datetime.now() - datetime.timedelta(365))
+            start_date = end_date - datetime.timedelta(days=30)
+            if request.session.get('start_date', None)  and request.session.get('end_date', None):
+                start_date = request.session['start_date']
+                end_date = request.session['end_date']
+
+            return {
+                'max':datetime.datetime.now(),
+                'min':min_date,
+                'start':start_date,
+                'end':end_date,
+            }
+
+
+class ArithmeticFunctionColumn(Column):
+    def func(self, first, second):
+        return first
+
+    def __init__(self, first_column, second_column, **kwargs):
+        Column.__init__(self, **kwargs)
+        self.first_column = first_column
+        self.second_column = second_column
+
+    def set_report(self, report):
+        Column.set_report(self, report)
+        self.first_column.set_report(report)
+        self.second_column.set_report(report)
+
+    def add_to_report(self, report, key, dictionary):
+        temp = {}
+        self.first_column.add_to_report(report, 'first', temp)
+        self.second_column.add_to_report(report, 'second', temp)
+        for row_key, items in temp.items():
+            first = items.setdefault('first', 0)
+            second = items.setdefault('second', 0)
+            val = self.func(first, second)
+            dictionary.setdefault(row_key, {'location_name':items['location_name']})
+            dictionary[row_key][key] = val
+
+    def get_chart(self):
+        from .views import ArithmeticChartView
+        return ArithmeticChartView(location_id=self.report.location.pk, \
+                         start_date=self.report.start_date, \
+                         end_date=self.report.end_date, \
+                         main_column=self, \
+                         first_column=self.first_column, \
+                         second_column=self.second_column,
+                         chart_title=self.chart_title,
+                         chart_subtitle=self.chart_subtitle,
+                         chart_yaxis=self.chart_yaxis)
+
+    def get_view_function(self):
+        from .views import ArithmeticChartView
+        return ArithmeticChartView.as_view(location_id=self.report.location.pk, \
+                         start_date=self.report.start_date, \
+                         end_date=self.report.end_date, \
+                         main_column=self, \
+                         first_column=self.first_column, \
+                         second_column=self.second_column,
+                         chart_title=self.chart_title,
+                         chart_subtitle=self.chart_subtitle,
+                         chart_yaxis=self.chart_yaxis)
+
+
+class DifferenceColumn(ArithmeticFunctionColumn):
+    def func(self, first, second):
+        return first - second
+
+
+class QuotientColumn(ArithmeticFunctionColumn):
+    def func(self, first, second):
+        return round(((float(first) / second) * 100), 1)
+
+
+class AdditionColumn(ArithmeticFunctionColumn):
+    def func(self, first, second):
+        return first + second
+
 
 
 class XFormSubmissionColumn(Column):
-    def __init__(self, keyword, extra_filters=None):
+    def __init__(self, keyword, extra_filters=None, **kwargs):
+        Column.__init__(self, **kwargs)
         self.keyword = keyword
         self.extra_filters = extra_filters
+        self.chart_yaxis = 'Number of Reports'
+        if not self.chart_title:
+            self.chart_title = 'Variation of %s' % self.get_title()
 
     def add_to_report(self, report, key, dictionary):
         val = total_submissions(self.keyword, report.start_date, report.end_date, report.location, self.extra_filters)
         reorganize_location(key, val, dictionary)
 
+    def get_chart(self):
+        from .views import XFormChartView
+        return XFormChartView(location_id=self.report.location.pk, \
+                         start_date=self.report.start_date, \
+                         end_date=self.report.end_date, \
+                         xform_keyword=self.keyword,
+                         extra_filters=self.extra_filters,
+                         chart_title=self.chart_title,
+                         chart_subtitle=self.chart_subtitle,
+                         chart_yaxis=self.chart_yaxis)
+
+    def get_view_function(self):
+        from .views import XFormChartView
+        return XFormChartView.as_view(location_id=self.report.location.pk, \
+                         start_date=self.report.start_date, \
+                         end_date=self.report.end_date, \
+                         xform_keyword=self.keyword,
+                         extra_filters=self.extra_filters,
+                         chart_title=self.chart_title,
+                         chart_subtitle=self.chart_subtitle,
+                         chart_yaxis=self.chart_yaxis)
+
 
 class XFormAttributeColumn(Column):
-    def __init__(self, keyword, extra_filters=None):
+    def __init__(self, keyword, extra_filters=None, **kwargs):
+        Column.__init__(self, **kwargs)
         self.keyword = keyword
         self.extra_filters = extra_filters
+        self.chart_yaxis = 'Number of Reports'
+        if not self.chart_title:
+            self.chart_title = 'Variation of %s' % self.get_title()
 
     def add_to_report(self, report, key, dictionary):
         val = total_attribute_value(self.keyword, report.start_date, report.end_date, report.location, self.extra_filters)
         reorganize_location(key, val, dictionary)
+
+    def get_chart(self):
+        from .views import XFormChartView
+        return XFormChartView(location_id=self.report.location.pk, \
+                         start_date=self.report.start_date, \
+                         end_date=self.report.end_date, \
+                         xform_keyword=None,
+                         attribute_keyword=self.keyword,
+                         extra_filters=self.extra_filters,
+                         chart_title=self.chart_title,
+                         chart_subtitle=self.chart_subtitle,
+                         chart_yaxis=self.chart_yaxis)
+
+    def get_view_function(self):
+        from .views import XFormChartView
+        return XFormChartView.as_view(location_id=self.report.location.pk, \
+                         start_date=self.report.start_date, \
+                         end_date=self.report.end_date, \
+                         xform_keyword=None,
+                         attribute_keyword=self.keyword,
+                         extra_filters=self.extra_filters,
+                         chart_title=self.chart_title,
+                         chart_subtitle=self.chart_subtitle,
+                         chart_yaxis=self.chart_yaxis)
 
 
 class PollNumericResultsColumn(Column):

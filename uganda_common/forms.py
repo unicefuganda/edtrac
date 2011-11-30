@@ -77,7 +77,7 @@ class SMSInput(forms.Textarea):
 
         """
         style = """
-        width: 250px;
+        width: 18em;
         height: 56px;
         border: 1px solid #CCCCCC;
         color: #222222;
