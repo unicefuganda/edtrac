@@ -392,27 +392,27 @@ class ModelTest(TestCase): #pragma: no cover
 
     def testResendGiveup(self):
         self.resendFlow(giveup=True)
-
-    #test signals
-    def testScriptSignals(self):
-        connection = Connection.objects.all()[0]
-        script = Script.objects.get(slug="test_autoreg")
-        prog = ScriptProgress.objects.create(connection=connection, script=script)
-        prog.step = ScriptStep.objects.get(script__slug='test_autoreg', order=2)
-        prog.save()
-        n_step = ScriptStep.objects.get(script__slug='test_autoreg', order=3)
-        #call back
-        def receive(sender, **kwargs):
-            self.assertEqual(kwargs['connection'].pk, connection.pk)
-            #self.assertEqual(kwargs['step'],n_step)
-            received_signals.append(kwargs.get('signal'))
-        # Connect signals and keep track of handled ones
-        received_signals = []
-        expected_signals = [script_progress_pre_change, script_progress]
-        for signal in expected_signals:
-            signal.connect(receive, weak=False)
-        prog.moveon()
-        self.assertEqual(received_signals, expected_signals)
+#
+#    #test signals
+#    def testScriptSignals(self):
+#        connection = Connection.objects.all()[0]
+#        script = Script.objects.get(slug="test_autoreg")
+#        prog = ScriptProgress.objects.create(connection=connection, script=script)
+#        prog.step = ScriptStep.objects.get(script__slug='test_autoreg', order=2)
+#        prog.save()
+#        n_step = ScriptStep.objects.get(script__slug='test_autoreg', order=3)
+##        call back
+##        def receive(sender, **kwargs):
+##            self.assertEqual(kwargs['connection'].pk, connection.pk)
+##            #self.assertEqual(kwargs['step'],n_step)
+##            received_signals.append(kwargs.get('signal'))
+##        # Connect signals and keep track of handled ones
+##        received_signals = []
+##        expected_signals = [script_progress_pre_change, script_progress]
+##        for signal in expected_signals:
+##            signal.connect(receive, weak=False)
+##        prog.moveon()
+##        self.assertEqual(received_signals, expected_signals)
 
     def assertProgress(self, connection, step_num, step_status, session_count, response_count):
         progress = ScriptProgress.objects.get(connection=connection)
