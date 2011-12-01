@@ -118,7 +118,6 @@ class ModelTest(TestCase): #pragma: no cover
             response = response.latest('date').text
         else:
             response=None
-        print Message.objects.all()
         self.assertEquals(response, 'Welcome to Script!  This system is awesome!  We will spam you with some personal questions now')
         self.assertEquals(ScriptSession.objects.count(), 1)
         self.assertEquals(ScriptSession.objects.all()[0].responses.count(), 0)
@@ -127,7 +126,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(prog.step.order, 0)
         self.assertEquals(prog.status, 'P')
 
-        self.elapseTime(prog, 3601)
+        self.elapseTime(prog, 3607)
         res_count = Message.objects.filter(direction='O', connection=connection).count()
         check_progress(self.script)
         response = Message.objects.filter(direction='O', connection=connection)
@@ -135,7 +134,6 @@ class ModelTest(TestCase): #pragma: no cover
             response = response.latest('date').text
         else:
             response = None
-        print Message.objects.all()
         self.assertEquals(response, 'First question: what is your favorite way to be spammed?  Be DESCRIPTIVE')
         # refresh the progress object
         prog = ScriptProgress.objects.get(connection=connection)
@@ -172,7 +170,11 @@ class ModelTest(TestCase): #pragma: no cover
         # we've manually moved to the next step, which should merely close the script
         # and delete from ScriptProgress
         self.assertEquals(response, None)
+        for p in ScriptProgress.objects.all():
+            print p.status
+            print p.step.order
         self.assertEquals(ScriptProgress.objects.count(), 0)
+
 
         # make sure the ScriptSession table is still correct
         self.assertEquals(ScriptSession.objects.count(), 1)

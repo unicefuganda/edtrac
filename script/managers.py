@@ -57,28 +57,30 @@ class ScriptProgressQuerySet(QuerySet):
           Parameters:
           script: The script the progress object belongs to
         """
+        if not step:
+            return self.none()
         curtime = datetime.datetime.now()
-        if step:
-            steps = script.steps.filter(order__gt=step.order)
-        else:
-            steps = script.steps.all()
-        if steps.count():
-            next_step = steps.order_by('order')[0]
 
-            if step and next_step:
-                return self.filter(step=step, script=script, status='C',
-                                   time__lte=(curtime - datetime.timedelta(seconds=next_step.start_offset)))
-            elif step and not next_step:
-                last_step = script.steps.order_by('-order')[0].order
-                if last_step == self.step.order:
-                    return self.filter(status="C", step=step, script=script)
-            elif not step:
-                return self.filter(time__lte=(curtime - datetime.timedelta(seconds=next_step.start_offset)))
-        return self.none()
+        next_steps = script.steps.filter(order__gt=step.order).order_by('-order')
+        next_step = None
+        if next_steps.exists():
+            next_step = next_steps[0]
+
+        if step and next_step:
+            return self.filter(step=step, script=script, status='C',
+                               time__lte=(curtime - datetime.timedelta(seconds=next_step.start_offset)))
+        elif step and not next_step:
+            # if there isn't a next step, we're at the end of the script,
+            # and all ScriptProgress objects in "C"omplete status
+            # need to be transitioned to giveup()
+            return self.filter(step=step, script=script, status="C")
+
 
 
     def expired(self, script, step):
-        if step.start_offset is None:
+
+        
+        if step.giveup_offset is None:
             return self.none()
         else:
             curtime = datetime.datetime.now()
@@ -89,11 +91,11 @@ class ScriptProgressQuerySet(QuerySet):
                 return self.filter(step=step, script=script, status=self.model.PENDING).filter(\
                     step__rule__in=give_up_rules,\
                     num_tries__gte=num_tries,\
-                    time__lte=(curtime - datetime.timedelta(seconds=step.start_offset)))
+                    time__lte=(curtime - datetime.timedelta(seconds=step.giveup_offset)))
             else:
                 return self.filter(step=step, script=script, status=self.model.PENDING).filter(
                     step__rule__in=[step.STRICT_MOVEON, step.WAIT_MOVEON, step.WAIT_GIVEUP],
-                    time__lte=(curtime - datetime.timedelta(seconds=step.start_offset)))
+                    time__lte=(curtime - datetime.timedelta(seconds=step.giveup_offset)))
 
 
     def expire(self, script, step):
@@ -115,7 +117,7 @@ class ScriptProgressQuerySet(QuerySet):
             session.end_time = datetime.datetime.now()
             session.save()
             script_progress_was_completed.send(sender=sp, connection=sp.connection)
-        spses.delete()
+        return spses.delete()
 
 
     def moveon(self, script, step):
@@ -128,18 +130,18 @@ class ScriptProgressQuerySet(QuerySet):
 
         else:
             steps = script.steps.all()
-        script_progres_objects = self.need_to_transition(script, step)
-        script_progres_list = list(script_progres_objects.values_list('connection', flat=True))
+
+        script_progress_list = list(self.values_list('pk', flat=True))
 
         if steps.count():
             next_step = steps.order_by('order')[0]
         else:
             next_step = None
         if next_step:
-            for sp in script_progres_objects:
+            for sp in self:
                 script_progress_pre_change.send(sender=sp, connection=sp.connection, step=step)
             self.update(step=next_step, status=self.model.PENDING)
-            for sp in self.model._default_manager.filter(pk__in=script_progres_list):
+            for sp in self.model._default_manager.filter(pk__in=script_progress_list):
                 script_progress.send(sender=sp, connection=sp.connection, step=next_step)
             return True
         else:

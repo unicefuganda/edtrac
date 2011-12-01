@@ -18,7 +18,7 @@ def check_progress(script):
     
 
 
-    for step in script.steps.all():
+    for step in script.steps.order_by("order"):
         # expire those steps that need it
         expired_progress_objects = ScriptProgress.objects.expired(script, step)
         if expired_progress_objects.exists():
