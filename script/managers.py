@@ -108,8 +108,7 @@ class ScriptProgressQuerySet(QuerySet):
         fires the appropriate signal.
         """
         from script.models import ScriptSession
-        expired = self.expired(script, step)
-        spses = expired.filter(step__rule__in=[step.WAIT_GIVEUP, step.RESEND_GIVEUP, step.STRICT_GIVEUP])
+        spses = self
         for sp in spses:
             session = ScriptSession.objects.filter(script=script, connection=sp.connection, end_time=None).latest(
                 'start_time')
