@@ -124,7 +124,6 @@ class ScriptProgressQuerySet(QuerySet):
         Move the step to the next in order (if one exists, otherwise end the script),
         sending the appropriate signals.
         """
-        import pdb;pdb.set_trace()
         if step:
             steps = script.steps.filter(order__gt=step.order)
 
