@@ -35,7 +35,7 @@ def set_default_dates(dates, request, context):
     max_date = dates.setdefault('max', datetime.datetime.now())
     min_date = dates.setdefault('min', max_date - datetime.timedelta(days=365))
     min_date = datetime.datetime(min_date.year, min_date.month, 1)
-    max_date = datetime.datetime(max_date.year, max_date.month + 1, 1) - datetime.timedelta(days=1)
+    max_date = datetime.datetime(max_date.year, max_date.month, 1) + datetime.timedelta(days=30)
     start_date = dates.setdefault('start', min_date)
     start_date = datetime.datetime(start_date.year, start_date.month, start_date.day)
     end_date = dates.setdefault('end', min_date)
