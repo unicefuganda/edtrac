@@ -118,6 +118,7 @@ class ModelTest(TestCase): #pragma: no cover
             response = response.latest('date').text
         else:
             response=None
+        print Message.objects.all()
         self.assertEquals(response, 'Welcome to Script!  This system is awesome!  We will spam you with some personal questions now')
         self.assertEquals(ScriptSession.objects.count(), 1)
         self.assertEquals(ScriptSession.objects.all()[0].responses.count(), 0)
@@ -134,6 +135,7 @@ class ModelTest(TestCase): #pragma: no cover
             response = response.latest('date').text
         else:
             response = None
+        print Message.objects.all()
         self.assertEquals(response, 'First question: what is your favorite way to be spammed?  Be DESCRIPTIVE')
         # refresh the progress object
         prog = ScriptProgress.objects.get(connection=connection)

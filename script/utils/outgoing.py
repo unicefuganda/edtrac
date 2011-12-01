@@ -16,15 +16,7 @@ def check_progress(script):
     objects accordingly.
     """
     
-    to_start = ScriptProgress.objects.need_to_start(script)
-    to_start_list=list(to_start.values_list('connection',flat=True))
-    if to_start.exists():
-        for sp in to_start:
-            ScriptSession.objects.create(script=sp.script, connection=sp.connection)
 
-        to_start.moveon(script, None)
-        
-        ScriptProgress.objects.filter(pk__in=to_start_list).mass_text()
 
     for step in script.steps.all():
         # expire those steps that need it
@@ -35,9 +27,7 @@ def check_progress(script):
         to_resend = ScriptProgress.objects.need_to_resend(script, step)
         if to_resend.exists():
             to_resend.filter(num_tries=None).update(num_tries=0)
-            print to_resend
             to_resend.update(num_tries=F('num_tries') + 1)
-            print to_resend
             to_resend.mass_text()
 #        if progress.language:
 #            return gettext_db(progress.outgoing_message(), progress.language)
@@ -48,9 +38,18 @@ def check_progress(script):
         to_transition = ScriptProgress.objects.need_to_transition(script, step)
         to_trans_list = list(to_transition.values_list('connection',flat=True))
         if to_transition.exists():
-            to_trans_list=to_transition
+
             to_transition.moveon(script, step)
-            ScriptProgress.objects.filter(pk__in=to_trans_list).mass_text()
+            ScriptProgress.objects.filter(connection__pk__in=to_trans_list).mass_text()
 
 #        if progress.language:
 #            return gettext_db(progress.outgoing_message(), progress.language)
+    to_start = ScriptProgress.objects.need_to_start(script)
+    to_start_list=list(to_start.values_list('connection',flat=True))
+    if to_start.exists():
+        for sp in to_start:
+            ScriptSession.objects.create(script=sp.script, connection=sp.connection)
+
+        to_start.moveon(script, None)
+
+        ScriptProgress.objects.filter(connection__pk__in=to_start_list).mass_text()
