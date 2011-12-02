@@ -40,7 +40,7 @@ class ScriptProgressQuerySet(QuerySet):
         script: The script the progress object belongs to
         step: The script step  the progress is at
         """
-        if not step.retry_offset:
+        if step.retry_offset is None:
             return self.none()
 
         curtime = datetime.datetime.now()
@@ -67,10 +67,10 @@ class ScriptProgressQuerySet(QuerySet):
         if next_steps.exists():
             next_step = next_steps[0]
 
-        if step and next_step:
+        if next_step:
             return self.filter(step=step, script=script, status='C',
                                time__lte=(curtime - datetime.timedelta(seconds=next_step.start_offset)))
-        elif step and not next_step:
+        else:
             # if there isn't a next step, we're at the end of the script,
             # and all ScriptProgress objects in "C"omplete status
             # need to be transitioned to giveup()
@@ -79,31 +79,26 @@ class ScriptProgressQuerySet(QuerySet):
 
 
     def expired(self, script, step):
-
-
+        curtime = datetime.datetime.now()
         if step.giveup_offset is None:
             return self.none()
-        else:
-            curtime = datetime.datetime.now()
-            give_up_rules = [step.RESEND_MOVEON, step.RESEND_GIVEUP, step.STRICT_GIVEUP,
-                             step.STRICT_MOVEON, step.WAIT_MOVEON, step.WAIT_GIVEUP]
-            num_tries = step.num_tries
-            if num_tries:
-                return self.filter(step=step, script=script, status=self.model.PENDING).filter(\
-                    step__rule__in=give_up_rules, \
-                    num_tries__gte=num_tries, \
-                    time__lte=(curtime - datetime.timedelta(seconds=step.giveup_offset)))
-            else:
-                return self.filter(step=step, script=script, status=self.model.PENDING).filter(
-                    step__rule__in=[step.STRICT_MOVEON, step.WAIT_MOVEON, step.WAIT_GIVEUP],
-                    time__lte=(curtime - datetime.timedelta(seconds=step.giveup_offset)))
 
+        toret = self.filter(step=step, script=script, status=self.model.PENDING, \
+                            time__lte=(curtime - datetime.timedelta(seconds=step.giveup_offset)))
+        if step.rule in [step.WAIT_MOVEON, step.WAIT_GIVEUP]:
+            return toret
+        elif step.rule in [step.RESEND_MOVEON, \
+                                    step.RESEND_GIVEUP, \
+                                    step.STRICT_GIVEUP, \
+                                    step.STRICT_MOVEON]:
+            return toret.filter(num_tries__gte=step.num_tries)
+        else:
+            return self.none()
 
     def expire(self, script, step):
         give_up_rules = [step.WAIT_GIVEUP, step.RESEND_GIVEUP, step.STRICT_GIVEUP]
         self.filter(step__rule__in=give_up_rules).giveup(script, step)
-        self.exclude(step__rule__in=give_up_rules).update(status=self.model.COMPLETE)
-
+        self.exclude(step__rule__in=give_up_rules).update(status=self.model.COMPLETE, time=datetime.datetime.now())
 
     def giveup(self, script, step):
         """
@@ -119,7 +114,6 @@ class ScriptProgressQuerySet(QuerySet):
             session.save()
             script_progress_was_completed.send(sender=sp, connection=sp.connection)
         return spses.delete()
-
 
     def moveon(self, script, step):
         """
@@ -141,13 +135,12 @@ class ScriptProgressQuerySet(QuerySet):
         if next_step:
             for sp in self:
                 script_progress_pre_change.send(sender=sp, connection=sp.connection, step=step)
-            self.update(step=next_step, status=self.model.PENDING)
+            self.update(step=next_step, status=self.model.PENDING, time=datetime.datetime.now())
             for sp in self.model._default_manager.filter(pk__in=script_progress_list):
                 script_progress.send(sender=sp, connection=sp.connection, step=next_step)
             return True
         else:
             return self.giveup(script, step)
-
 
     def mass_text(self):
         #get one scriptprogress since they are all supposed to be on the same step

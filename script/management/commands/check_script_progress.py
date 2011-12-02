@@ -52,11 +52,12 @@ class Command(BaseCommand):
             try:
                 for script in Script.objects.all():
                     check_progress(script)
-
+                transaction.commit()
             except Exception, exc:
                 transaction.rollback()
                 print traceback.format_exc(exc)
                 logger.debug(str(exc))
                 if recipients:
                     send_mail('[Django] Error: check_script_progress cron', str(traceback.format_exc(exc)), 'root@uganda.rapidsms.org', recipients, fail_silently=True)
-                continue
+
+

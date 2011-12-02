@@ -26,7 +26,7 @@ def check_progress(script):
         if to_resend.exists():
             to_resend_list = list(to_resend.values_list('pk', flat=True))
             to_resend.filter(num_tries=None).update(num_tries=0)
-            to_resend.update(num_tries=F('num_tries') + 1)
+            to_resend.update(num_tries=F('num_tries') + 1, time=datetime.datetime.now())
             ScriptProgress.objects.filter(pk__in=to_resend_list).mass_text()
 
         # This happens unconditionally, to shortcircuit the case

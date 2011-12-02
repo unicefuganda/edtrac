@@ -414,7 +414,7 @@ class ModelTest(TestCase): #pragma: no cover
 
         # elapse past the giveup time
         prog = ScriptProgress.objects.get(connection=connection)
-        self.elapseTime(prog, 3600)
+        self.elapseTime(prog, 3601)
         res_count = Message.objects.filter(direction='O', connection=connection).count()
         check_progress(self.script)
         response = Message.objects.filter(direction='O', connection=connection)
