@@ -61,7 +61,7 @@ class ScriptProgressQuerySet(QuerySet):
             return self.none()
         curtime = datetime.datetime.now()
 
-        next_steps = script.steps.filter(order__gt=step.order).order_by('-order')
+        next_steps = script.steps.filter(order__gt=step.order).order_by('order')
         next_step = None
         if next_steps.exists():
             next_step = next_steps[0]
@@ -79,7 +79,7 @@ class ScriptProgressQuerySet(QuerySet):
 
     def expired(self, script, step):
 
-        
+
         if step.giveup_offset is None:
             return self.none()
         else:
@@ -89,8 +89,8 @@ class ScriptProgressQuerySet(QuerySet):
             num_tries = step.num_tries
             if num_tries:
                 return self.filter(step=step, script=script, status=self.model.PENDING).filter(\
-                    step__rule__in=give_up_rules,\
-                    num_tries__gte=num_tries,\
+                    step__rule__in=give_up_rules, \
+                    num_tries__gte=num_tries, \
                     time__lte=(curtime - datetime.timedelta(seconds=step.giveup_offset)))
             else:
                 return self.filter(step=step, script=script, status=self.model.PENDING).filter(
