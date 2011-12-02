@@ -165,7 +165,7 @@ class ScriptProgressQuerySet(QuerySet):
             if localized_progs.exists():
                 localized_conns = localized_progs.values_list('connection', flat=True)
                 messages = Message.mass_text(gettext_db(field=text, language=language),
-                                             Connection.objects.filter(pk__in=localized_conns).distinct(), status='L')
+                                             Connection.objects.filter(pk__in=localized_conns).distinct(), status='P')
         return True
 
 
