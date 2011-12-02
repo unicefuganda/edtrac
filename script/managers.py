@@ -44,10 +44,11 @@ class ScriptProgressQuerySet(QuerySet):
             return self.none()
 
         curtime = datetime.datetime.now()
-        return self.filter(step=step, script=script,
+        toret = self.filter(step=step, script=script,
                            step__rule__in=[step.RESEND_MOVEON, step.RESEND_GIVEUP, step.STRICT_GIVEUP,
-                                           step.STRICT_MOVEON], num_tries__lt=step.num_tries,
+                                           step.STRICT_MOVEON],
                            time__lte=(curtime - datetime.timedelta(seconds=step.retry_offset)))
+        return toret.filter(Q(num_tries__lt=step.num_tries) | Q(num_tries=None))
 
     def need_to_transition(self, script, step):
         """

@@ -18,6 +18,7 @@ from django.contrib.auth.models import User
 from poll.models import Poll, Response
 from django.conf import settings
 from django.db import connection
+from django.db.models import Q
 import datetime
 
 class ModelTest(TestCase): #pragma: no cover
@@ -117,7 +118,7 @@ class ModelTest(TestCase): #pragma: no cover
         if response.exists():
             response = response.latest('date').text
         else:
-            response=None
+            response = None
         self.assertEquals(response, 'Welcome to Script!  This system is awesome!  We will spam you with some personal questions now')
         self.assertEquals(ScriptSession.objects.count(), 1)
         self.assertEquals(ScriptSession.objects.all()[0].responses.count(), 0)
@@ -166,7 +167,7 @@ class ModelTest(TestCase): #pragma: no cover
         if response.exists() and not response.count() == res_count:
             response = response.latest('date').text
         else:
-            response=None
+            response = None
         # we've manually moved to the next step, which should merely close the script
         # and delete from ScriptProgress
         self.assertEquals(response, None)
@@ -402,9 +403,10 @@ class ModelTest(TestCase): #pragma: no cover
         prog = ScriptProgress.objects.get(connection=connection)
         self.elapseTime(prog, 61)
 
+        res_count = Message.objects.filter(direction='O', connection=connection).count()
         check_progress(self.script)
         response = Message.objects.filter(direction='O', connection=connection)
-        if response.exists():
+        if response.exists() and not response.count() == res_count:
             response = response.latest('date').text
         else:
             response = None
