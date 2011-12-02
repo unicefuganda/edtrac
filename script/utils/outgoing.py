@@ -18,7 +18,7 @@ def check_progress(script):
     
 
 
-    for step in script.steps.order_by("order"):
+    for step in script.steps.order_by("-order"):
         # expire those steps that need it
         expired_progress_objects = ScriptProgress.objects.expired(script, step)
         if expired_progress_objects.exists():
@@ -29,8 +29,7 @@ def check_progress(script):
             to_resend.filter(num_tries=None).update(num_tries=0)
             to_resend.update(num_tries=F('num_tries') + 1)
             to_resend.mass_text()
-#        if progress.language:
-#            return gettext_db(progress.outgoing_message(), progress.language)
+
 
         # This happens unconditionally, to shortcircuit the case
         # where an expired step, set to COMPLETE above,
@@ -42,8 +41,6 @@ def check_progress(script):
             to_transition.moveon(script, step)
             ScriptProgress.objects.filter(connection__pk__in=to_trans_list).mass_text()
 
-#        if progress.language:
-#            return gettext_db(progress.outgoing_message(), progress.language)
     to_start = ScriptProgress.objects.need_to_start(script)
     to_start_list=list(to_start.values_list('connection',flat=True))
     if to_start.exists():
