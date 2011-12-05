@@ -59,6 +59,8 @@ class ProcessingTests(TestScript):
         self.contact2 = Contact.objects.create(name='Test McTesterton')
         self.connection2 = Connection.objects.create(backend=self.backend, identity='5555555', contact=self.contact2)
 
+
+
     def test_simple_poll_responses(self):
         p = Poll.create_with_bulk(
                 'test poll1',
@@ -251,6 +253,20 @@ class ProcessingTests(TestScript):
         self.assertEquals(Message.objects.count(), 2)
         self.assertInteraction(self.connection1, 'yes', 'Ureport gives you a chance to speak out on issues in your community & share opinions with youth around Uganda Best responses & results shared through the media')
         self.assertInteraction(self.connection2, 'no', 'Ureport mini kare me lok ikum jami matime i kama in ibedo iyee. Lagam mabejo kibiketo ne I karatac me ngec.')
+        
+    def test_null_responses(self):
+     
+        no_response_poll = Poll.create_with_bulk(
+                'test response type handling',
+                Poll.TYPE_TEXT,
+                'Can we defeat Sauron?',
+                None,
+                Contact.objects.all(),
+                self.user)
+        no_response_poll.start()
+
+        self.fake_incoming(self.connection1, 'my precious :)')
+        self.assertEqual(Message.objects.filter(connection=self.connection1,direction="O").count(),1)
         
 
             
