@@ -29,7 +29,7 @@ class ScriptProgressQuerySet(QuerySet):
         """
         curtime = datetime.datetime.now()
         start_offset = script.steps.get(order=0).start_offset
-        return self.filter(step=None, time__lte=(curtime - datetime.timedelta(seconds=start_offset)))
+        return self.filter(script=script, step=None, time__lte=(curtime - datetime.timedelta(seconds=start_offset)))
 
     def need_to_resend(self, script, step):
         """
