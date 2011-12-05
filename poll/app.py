@@ -24,7 +24,8 @@ class App(AppBase):
                             db_message = message.db_message
                             db_message.handled_by = 'poll'
                             db_message.save()
-                        message.respond(response_msg)
+                        if response_msg and response_msg.strip():
+                            message.respond(response_msg)
                     else:
                         response_obj.delete()
                     return False
@@ -40,7 +41,8 @@ class App(AppBase):
                         db_message = message.db_message
                         db_message.handled_by = 'poll'
                         db_message.save()
-                    message.respond(response_msg)
+                    if response_msg and response_msg.strip():
+                        message.respond(response_msg)
                     # play nice, let other things handle responses
                     return False
             except Poll.DoesNotExist:

@@ -158,7 +158,7 @@ class Poll(models.Model):
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
     type = models.SlugField(max_length=8, null=True, blank=True)
-    default_response = models.CharField(_("default_response"),max_length=160)
+    default_response = models.CharField(_("default_response"),max_length=160,null=True,blank=True)
     sites = models.ManyToManyField(Site)
     objects = models.Manager()
     on_site = CurrentSiteManager('sites')
