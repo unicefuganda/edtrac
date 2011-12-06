@@ -6,12 +6,8 @@ from django.db import models
 
 class Migration(SchemaMigration):
     depends_on = (
-<<<<<<< Updated upstream
-        ("poll", "0001_initial"),)
-=======
           ("poll", "0001_initial"),
        )
->>>>>>> Stashed changes
 
     def forwards(self, orm):
         
