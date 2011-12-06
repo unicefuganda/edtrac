@@ -5,6 +5,9 @@ from south.v2 import SchemaMigration
 from django.db import models
 
 class Migration(SchemaMigration):
+    depends_on = (
+        ("eav", "0001_initial"),
+         ("rapidsms_httprouter", "0001_initial"),)
 
     def forwards(self, orm):
         
@@ -19,12 +22,21 @@ class Migration(SchemaMigration):
             ('command_prefix', self.gf('django.db.models.fields.CharField')(default='+', max_length=1, null=True, blank=True)),
             ('keyword_prefix', self.gf('django.db.models.fields.CharField')(max_length=1, null=True, blank=True)),
             ('separator', self.gf('django.db.models.fields.CharField')(max_length=8, null=True, blank=True)),
+            ('restrict_message', self.gf('django.db.models.fields.CharField')(max_length=160, null=True, blank=True)),
             ('owner', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
             ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
             ('site', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['sites.Site'])),
         ))
         db.send_create_signal('rapidsms_xforms', ['XForm'])
+
+        # Adding M2M table for field restrict_to on 'XForm'
+        db.create_table('rapidsms_xforms_xform_restrict_to', (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('xform', models.ForeignKey(orm['rapidsms_xforms.xform'], null=False)),
+            ('group', models.ForeignKey(orm['auth.group'], null=False))
+        ))
+        db.create_unique('rapidsms_xforms_xform_restrict_to', ['xform_id', 'group_id'])
 
         # Adding model 'XFormField'
         db.create_table('rapidsms_xforms_xformfield', (
@@ -33,6 +45,7 @@ class Migration(SchemaMigration):
             ('field_type', self.gf('django.db.models.fields.SlugField')(db_index=True, max_length=8, null=True, blank=True)),
             ('command', self.gf('eav.fields.EavSlugField')(max_length=32, db_index=True)),
             ('order', self.gf('django.db.models.fields.IntegerField')(default=0)),
+            ('question', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
         ))
         db.send_create_signal('rapidsms_xforms', ['XFormField'])
 
@@ -42,7 +55,7 @@ class Migration(SchemaMigration):
             ('field', self.gf('django.db.models.fields.related.ForeignKey')(related_name='constraints', to=orm['rapidsms_xforms.XFormField'])),
             ('type', self.gf('django.db.models.fields.CharField')(max_length=10)),
             ('test', self.gf('django.db.models.fields.CharField')(max_length=255, null=True)),
-            ('message', self.gf('django.db.models.fields.CharField')(max_length=100)),
+            ('message', self.gf('django.db.models.fields.CharField')(max_length=160)),
             ('order', self.gf('django.db.models.fields.IntegerField')(default=1000)),
         ))
         db.send_create_signal('rapidsms_xforms', ['XFormFieldConstraint'])
@@ -68,11 +81,21 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal('rapidsms_xforms', ['XFormSubmissionValue'])
 
+        # Adding model 'BinaryValue'
+        db.create_table('rapidsms_xforms_binaryvalue', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('binary', self.gf('django.db.models.fields.files.FileField')(max_length=100)),
+        ))
+        db.send_create_signal('rapidsms_xforms', ['BinaryValue'])
+
 
     def backwards(self, orm):
         
         # Deleting model 'XForm'
         db.delete_table('rapidsms_xforms_xform')
+
+        # Removing M2M table for field restrict_to on 'XForm'
+        db.delete_table('rapidsms_xforms_xform_restrict_to')
 
         # Deleting model 'XFormField'
         db.delete_table('rapidsms_xforms_xformfield')
@@ -85,6 +108,9 @@ class Migration(SchemaMigration):
 
         # Deleting model 'XFormSubmissionValue'
         db.delete_table('rapidsms_xforms_xformsubmissionvalue')
+
+        # Deleting model 'BinaryValue'
+        db.delete_table('rapidsms_xforms_binaryvalue')
 
 
     models = {
@@ -168,7 +194,9 @@ class Migration(SchemaMigration):
         },
         'locations.location': {
             'Meta': {'object_name': 'Location'},
+            'code': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'level': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             'lft': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
@@ -191,6 +219,55 @@ class Migration(SchemaMigration):
             'latitude': ('django.db.models.fields.DecimalField', [], {'max_digits': '13', 'decimal_places': '10'}),
             'longitude': ('django.db.models.fields.DecimalField', [], {'max_digits': '13', 'decimal_places': '10'})
         },
+        'logistics.contactrole': {
+            'Meta': {'object_name': 'ContactRole'},
+            'code': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '100', 'blank': 'True'}),
+            'responsibilities': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['logistics.Responsibility']", 'null': 'True', 'blank': 'True'})
+        },
+        'logistics.product': {
+            'Meta': {'object_name': 'Product'},
+            'average_monthly_consumption': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True', 'blank': 'True'}),
+            'description': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'emergency_order_level': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True', 'blank': 'True'}),
+            'equivalents': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "'equivalents_rel_+'", 'null': 'True', 'to': "orm['logistics.Product']"}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'product_code': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
+            'sms_code': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '10'}),
+            'type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['logistics.ProductType']"}),
+            'units': ('django.db.models.fields.CharField', [], {'max_length': '100'})
+        },
+        'logistics.producttype': {
+            'Meta': {'object_name': 'ProductType'},
+            'code': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '10'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
+        },
+        'logistics.responsibility': {
+            'Meta': {'object_name': 'Responsibility'},
+            'code': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '100', 'blank': 'True'})
+        },
+        'logistics.supplypoint': {
+            'Meta': {'object_name': 'SupplyPoint'},
+            'active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'code': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'}),
+            'created_at': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'last_reported': ('django.db.models.fields.DateTimeField', [], {'default': 'None', 'null': 'True', 'blank': 'True'}),
+            'location': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['locations.Location']"}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'supplied_by': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['logistics.SupplyPoint']", 'null': 'True', 'blank': 'True'}),
+            'type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['logistics.SupplyPointType']"})
+        },
+        'logistics.supplypointtype': {
+            'Meta': {'object_name': 'SupplyPointType'},
+            'code': ('django.db.models.fields.SlugField', [], {'unique': 'True', 'max_length': '50', 'primary_key': 'True', 'db_index': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
+        },
         'rapidsms.backend': {
             'Meta': {'object_name': 'Backend'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
@@ -205,13 +282,24 @@ class Migration(SchemaMigration):
         },
         'rapidsms.contact': {
             'Meta': {'object_name': 'Contact'},
+            'active': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'birthdate': ('django.db.models.fields.DateTimeField', [], {'null': 'True'}),
+            'commodities': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "'reported_by'", 'null': 'True', 'symmetrical': 'False', 'to': "orm['logistics.Product']"}),
+            'gender': ('django.db.models.fields.CharField', [], {'max_length': '1', 'null': 'True'}),
             'groups': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['auth.Group']", 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'is_approved': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'language': ('django.db.models.fields.CharField', [], {'max_length': '6', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100', 'blank': 'True'}),
+            'needs_reminders': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'reporting_location': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['locations.Location']", 'null': 'True', 'blank': 'True'}),
+            'role': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['logistics.ContactRole']", 'null': 'True', 'blank': 'True'}),
+            'supply_point': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['logistics.SupplyPoint']", 'null': 'True', 'blank': 'True'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'contact'", 'unique': 'True', 'null': 'True', 'to': "orm['auth.User']"}),
-            'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'})
+            'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'}),
+            'village': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'villagers'", 'null': 'True', 'to': "orm['locations.Location']"}),
+            'village_name': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'})
         },
         'rapidsms_httprouter.message': {
             'Meta': {'object_name': 'Message'},
@@ -231,6 +319,11 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'status': ('django.db.models.fields.CharField', [], {'max_length': '1'})
         },
+        'rapidsms_xforms.binaryvalue': {
+            'Meta': {'object_name': 'BinaryValue'},
+            'binary': ('django.db.models.fields.files.FileField', [], {'max_length': '100'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
+        },
         'rapidsms_xforms.xform': {
             'Meta': {'object_name': 'XForm'},
             'active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
@@ -244,6 +337,8 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.CharField', [], {'max_length': '32'}),
             'owner': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"}),
             'response': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'restrict_message': ('django.db.models.fields.CharField', [], {'max_length': '160', 'null': 'True', 'blank': 'True'}),
+            'restrict_to': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['auth.Group']", 'null': 'True', 'blank': 'True'}),
             'separator': ('django.db.models.fields.CharField', [], {'max_length': '8', 'null': 'True', 'blank': 'True'}),
             'site': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['sites.Site']"})
         },
@@ -253,13 +348,14 @@ class Migration(SchemaMigration):
             'command': ('eav.fields.EavSlugField', [], {'max_length': '32', 'db_index': 'True'}),
             'field_type': ('django.db.models.fields.SlugField', [], {'db_index': 'True', 'max_length': '8', 'null': 'True', 'blank': 'True'}),
             'order': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
+            'question': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'xform': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'fields'", 'to': "orm['rapidsms_xforms.XForm']"})
         },
         'rapidsms_xforms.xformfieldconstraint': {
             'Meta': {'object_name': 'XFormFieldConstraint'},
             'field': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'constraints'", 'to': "orm['rapidsms_xforms.XFormField']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'message': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'message': ('django.db.models.fields.CharField', [], {'max_length': '160'}),
             'order': ('django.db.models.fields.IntegerField', [], {'default': '1000'}),
             'test': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'}),
             'type': ('django.db.models.fields.CharField', [], {'max_length': '10'})
