@@ -163,7 +163,10 @@ class ExcelResponse(HttpResponse):
                     else:
                         cell_style = styles['default']
 
-                    sheet.write(rowx, colx, value, style=cell_style)
+                    try:
+                        sheet.write(rowx, colx, value, style=cell_style)
+                    except:
+                        sheet.write(rowx, colx, str(value), style=styles['default'])
             if write_to_file:
                 book.save(output_name)
             book.save(output)
