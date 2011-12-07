@@ -2,9 +2,6 @@
 # -*- coding: utf-8 -*-
 from django import forms
 from rapidsms.models import Contact, Connection
-from django.forms.widgets import Widget
-from django.template.loader import get_template
-from django.template.context import Context
 from django.core.paginator import Paginator, Page
 from django.contrib.auth.models import Group
 from django.db.models import Q
@@ -149,10 +146,21 @@ class DistictFilterForm(FilterForm):
             else:
                 return queryset
 
+class MultipleDistictFilterForm(FilterForm):
+
+    districts = forms.ModelMultipleChoiceField(queryset=
+                                 Location.objects.filter(type__slug='district'
+                                 ).order_by('name'), required=False)
+
+
+    def filter(self, request, queryset):
+        districts = self.cleaned_data['districts']
+        return queryset.filter(reporting_location__in=districts)
+
+
 class DistictFilterMessageForm(FilterForm):
 
     """ filter cvs districs on their districts """
-
     district = forms.ChoiceField(choices=(('', '-----'), (-1,
                                  'No District')) + tuple([(int(d.pk),
                                  d.name) for d in
