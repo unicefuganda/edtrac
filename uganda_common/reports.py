@@ -106,7 +106,14 @@ class DifferenceColumn(ArithmeticFunctionColumn):
 
 class QuotientColumn(ArithmeticFunctionColumn):
     def func(self, first, second):
-        return round(((float(first) / second) * 100), 1)
+        if second > 0:
+            return round(((float(first) / second) * 100), 1)
+        
+class InverseQuotientColumn(ArithmeticFunctionColumn):
+    def func(self, first, second):
+        if second > 0:
+            quotient = round(((float(first) / second) * 100), 1)
+            return 100 - quotient
 
 
 class AdditionColumn(ArithmeticFunctionColumn):
