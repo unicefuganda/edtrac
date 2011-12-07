@@ -30,6 +30,28 @@ class ReplyForm(forms.Form):
     message = forms.CharField(max_length=160, widget=forms.TextInput(attrs={'size':'60'}))
     in_response_to = forms.ModelChoiceField(queryset=Message.objects.filter(direction='I'), widget=forms.HiddenInput())
 
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        text = cleaned_data.get('message')
+
+        #replace common MS-word characters with SMS-friendly characters
+        for find, replace in [(u'\u201c', '"'),
+                              (u'\u201d', '"'),
+                              (u'\u201f', '"'),
+                              (u'\u2018', "'"),
+                              (u'\u2019', "'"),
+                              (u'\u201B', "'"),
+                              (u'\u2013', "-"),
+                              (u'\u2014', "-"),
+                              (u'\u2015', "-"),
+                              (u'\xa7', "$"),
+                              (u'\xa1', "i"),
+                              (u'\xa4', ''),
+                              (u'\xc4', 'A')]:
+            cleaned_data['message'] = text.replace(find, replace)
+            cleaned_data['message'] = text.replace('%', '%%')
+        return cleaned_data
+
 
 class FilterGroupsForm(FilterForm):
 

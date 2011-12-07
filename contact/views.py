@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from . import forms
 from .forms import ReplyForm
 from rapidsms_httprouter.router import get_router
+from django.forms.util import ErrorList
 
 def add_contact(request):
 
@@ -53,7 +54,7 @@ def view_message_history(request, connection_id):
         reply_form = ReplyForm(request.POST)
         if reply_form.is_valid():
             if Connection.objects.filter(identity=reply_form.cleaned_data['recipient']).count():
-                text = reply_form.cleaned_data['message']
+                text = reply_form.cleaned_data.get('message')
                 conn = Connection.objects.filter(identity=reply_form.cleaned_data['recipient'])[0]
                 in_response_to = reply_form.cleaned_data['in_response_to']
                 outgoing = OutgoingMessage(conn, text)

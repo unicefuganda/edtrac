@@ -80,7 +80,7 @@
 }
 
 #actions {
-    height:4.5em;
+    height:9em;
 }
 
 #div_action_0 {
@@ -92,7 +92,7 @@
 #div_action_0 a {
     position:absolute;
     top:1em;
-    left:18em;
+    left:25em;
     white-space:nowrap;
 }
 
