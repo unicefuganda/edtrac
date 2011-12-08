@@ -39,10 +39,10 @@ class MessageBatch(models.Model):
 class Message(models.Model):
     connection = models.ForeignKey(Connection, related_name='messages')
     text = models.TextField()
-    direction = models.CharField(max_length=1, choices=DIRECTION_CHOICES)
-    status = models.CharField(max_length=1, choices=STATUS_CHOICES)
+    direction = models.CharField(max_length=1, choices=DIRECTION_CHOICES, db_index=True)
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES, db_index=True)
     date = models.DateTimeField(auto_now_add=True)
-    priority = models.IntegerField(default=10)
+    priority = models.IntegerField(default=10, db_index=True)
 
     in_response_to = models.ForeignKey('self', related_name='responses', null=True)
     application = models.CharField(max_length=100, null=True)
