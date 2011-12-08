@@ -1,5 +1,6 @@
 from django.db import models
 from rapidsms.models import Connection
+from rapidsms_httprouter.models import mass_text_sent
 
 class Blacklist(models.Model):
     connection = models.ForeignKey(Connection)
