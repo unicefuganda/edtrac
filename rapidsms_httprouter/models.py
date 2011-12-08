@@ -1,7 +1,7 @@
 import datetime
 from django.db import models, transaction
-import django
-
+#import django
+import django.dispatch
 from rapidsms.models import Contact, Connection
 
 from .managers import ForUpdateManager, BulkInsertManager
