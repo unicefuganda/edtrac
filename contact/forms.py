@@ -106,7 +106,7 @@ class FreeSearchForm(FilterForm):
                              help_text="Use 'or' to search for multiple names")
 
     def filter(self, request, queryset):
-        search = self.cleaned_data['search']
+        search = self.cleaned_data['search'].strip()
         if search == "":
             return queryset
         else:
@@ -177,7 +177,10 @@ class MultipleDistictFilterForm(FilterForm):
 
     def filter(self, request, queryset):
         districts = self.cleaned_data['districts']
-        return queryset.filter(reporting_location__in=districts)
+        if len(districts):
+            return queryset.filter(reporting_location__in=districts)
+        else:
+            return queryset
 
 
 class DistictFilterMessageForm(FilterForm):
