@@ -17,6 +17,8 @@ from rapidsms.models import Contact, Connection
 from eav import register
 from eav.models import Value, Attribute
 
+from generic.sorters import SimpleSorter
+
 from rapidsms.contrib.locations.models import Location
 from rapidsms.contrib.locations.nested import models as nested_models
 from rapidsms_httprouter.models import Message
@@ -118,7 +120,7 @@ class Poll(models.Model):
                         parser=None,
                         view_template='polls/response_location_view.html',
                         edit_template='polls/response_location_edit.html',
-                        report_columns=(('Text', 'text'), ('Location', 'location'), ('Categories', 'categories')),
+                        report_columns=((('Text', 'text', True, 'message__text', SimpleSorter()), ('Location', 'location',True,'eav_values__generic_value_id',SimpleSorter()), ('Categories', 'categories',True, 'categories__category__name', SimpleSorter()))),
                         edit_form=LocationResponseForm),
         TYPE_NUMERIC: dict(
                         label='Numeric Response',
@@ -127,7 +129,7 @@ class Poll(models.Model):
                         parser=None,
                         view_template='polls/response_numeric_view.html',
                         edit_template='polls/response_numeric_edit.html',
-                        report_columns=(('Text', 'text'), ('Value', 'value'), ('Categories', 'categories')),
+                        report_columns=((('Text', 'text', True, 'message__text', SimpleSorter()), ('Value', 'value',True,'eav_values__value_float',SimpleSorter()), ('Categories', 'categories',True, 'categories__category__name', SimpleSorter()))),
                         edit_form=NumericResponseForm),
         TYPE_TEXT:  dict(
                         label='Free-form',
@@ -136,7 +138,7 @@ class Poll(models.Model):
                         parser=None,
                         view_template='polls/response_text_view.html',
                         edit_template='polls/response_text_edit.html',
-                        report_columns=(('Text', 'text'), ('Categories', 'categories')),
+                        report_columns=(('Text', 'text', True, 'message__text', SimpleSorter()), ('Categories', 'categories',True, 'categories__category__name', SimpleSorter())),
                         edit_form=ResponseForm),
         TYPE_REGISTRATION:  dict(
                         label='Name/registration-based',
@@ -145,7 +147,7 @@ class Poll(models.Model):
                         parser=None,
                         view_template='polls/response_registration_view.html',
                         edit_template='polls/response_registration_edit.html',
-                        report_columns=(('Text', 'text'), ('Categories', 'categories')),
+                        report_columns=(('Text', 'text', True, 'message__text', SimpleSorter()), ('Categories', 'categories',True, 'categories__category__name', SimpleSorter())),
                         edit_form=NameResponseForm),
     }
 
