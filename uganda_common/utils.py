@@ -8,9 +8,10 @@ from generic.utils import get_dates as get_dates_from_post
 from poll.models import Poll, LocationResponseForm, STARTSWITH_PATTERN_TEMPLATE
 from rapidsms.contrib.locations.models import Location
 from rapidsms.models import Backend, Contact
-from rapidsms_xforms.models import XForm, XFormField, XFormFieldConstraint, \
+from rapidsms_xforms.models import XForm, XFormField, XFormFieldConstraint,\
     XFormSubmission, XFormSubmissionValue
 from script.models import Script, ScriptStep, ScriptResponse
+from generic.sorters import SimpleSorter
 from script.utils.handling import find_closest_match
 import datetime
 import re
@@ -90,12 +91,15 @@ def assign_backend(number):
             break
     return (number, backendobj)
 
+
 class ExcelResponse(HttpResponse):
     """
     This class contains utilities that are used to produce Excel reports from datasets stored in a database or scraped
     from a form.
     """
-    def __init__(self, data, output_name='excel_report', headers=None, write_to_file=False, force_csv=False, encoding='utf8'):
+
+    def __init__(self, data, output_name='excel_report', headers=None, write_to_file=False, force_csv=False,
+                 encoding='utf8'):
         # Make sure we've got the right type of data to work with
         valid_data = False
         if hasattr(data, '__getitem__'):
@@ -107,6 +111,7 @@ class ExcelResponse(HttpResponse):
             if hasattr(data[0], '__getitem__'):
                 valid_data = True
         import StringIO
+
         output = StringIO.StringIO()
         # Excel has a limit on number of rows; if we have more than that, make a csv
         use_xls = False
@@ -148,7 +153,7 @@ class ExcelResponse(HttpResponse):
                       'date': xlwt.easyxf(num_format_str='yyyy-mm-dd'),
                       'time': xlwt.easyxf(num_format_str='hh:mm:ss'),
                       'default': style0,
-                      'header':style}
+                      'header': style}
 
             for rowx, row in enumerate(data):
                 for colx, value in enumerate(row):
@@ -188,8 +193,9 @@ class ExcelResponse(HttpResponse):
         super(ExcelResponse, self).__init__(content=output.getvalue(),
                                             mimetype=mimetype)
 
-        self['Content-Disposition'] = 'attachment;filename="%s.%s"' % \
-            (output_name.replace('"', '\"'), file_ext)
+        self['Content-Disposition'] = 'attachment;filename="%s.%s"' %\
+                                      (output_name.replace('"', '\"'), file_ext)
+
 
 def parse_district_value(value):
     """
@@ -199,17 +205,18 @@ def parse_district_value(value):
     regex = re.compile(location_template)
     toret = find_closest_match(value, Location.objects.filter(type__name='district'))
     if not toret:
-        raise ValidationError("We didn't recognize your district.  Please carefully type the name of your district and re-send.")
+        raise ValidationError(
+            "We didn't recognize your district.  Please carefully type the name of your district and re-send.")
     else:
         return toret
 
-Poll.register_poll_type('district', 'District Response', parse_district_value, db_type=Attribute.TYPE_OBJECT, \
+Poll.register_poll_type('district', 'District Response', parse_district_value, db_type=Attribute.TYPE_OBJECT,\
                         view_template='polls/response_location_view.html',
                         edit_template='polls/response_location_edit.html',
-                        report_columns=(('Text', 'text'), ('Location', 'location'), ('Categories', 'categories')),
+                        report_columns=((('Text', 'text', True, 'message__text', SimpleSorter()), (
+                            'Location', 'location', True, 'eav_values__generic_value_id', SimpleSorter()), (
+                            'Categories', 'categories', True, 'categories__category__name', SimpleSorter()))),
                         edit_form=LocationResponseForm)
-
-
 
 GROUP_BY_WEEK = 1
 GROUP_BY_MONTH = 2
@@ -232,18 +239,18 @@ months = {
 }
 
 quarters = {
-    1:'First',
-    2:'Second',
-    3:'Third',
-    4:'Forth'
+    1: 'First',
+    2: 'Second',
+    3: 'Third',
+    4: 'Forth'
 }
 
 GROUP_BY_SELECTS = {
-    GROUP_BY_DAY:('day', 'date(rapidsms_xforms_xformsubmission.created)',),
-    GROUP_BY_WEEK:('week', 'extract(week from rapidsms_xforms_xformsubmission.created)',),
-    GROUP_BY_MONTH:('month', 'extract(month from rapidsms_xforms_xformsubmission.created)',),
-    GROUP_BY_QUARTER:('quarter', 'extract(quarter from rapidsms_xforms_xformsubmission.created)',),
-}
+    GROUP_BY_DAY: ('day', 'date(rapidsms_xforms_xformsubmission.created)',),
+    GROUP_BY_WEEK: ('week', 'extract(week from rapidsms_xforms_xformsubmission.created)',),
+    GROUP_BY_MONTH: ('month', 'extract(month from rapidsms_xforms_xformsubmission.created)',),
+    GROUP_BY_QUARTER: ('quarter', 'extract(quarter from rapidsms_xforms_xformsubmission.created)',),
+    }
 
 
 def total_submissions(keyword, start_date, end_date, location, extra_filters=None, group_by_timespan=None):
@@ -259,37 +266,37 @@ def total_submissions(keyword, start_date, end_date, location, extra_filters=Non
         q = XFormSubmission.objects
         tnum = 6
     select = {
-        'location_name':'T%d.name' % tnum,
-        'location_id':'T%d.id' % tnum,
-        'rght':'T%d.rght' % tnum,
-        'lft':'T%d.lft' % tnum,
-    }
+        'location_name': 'T%d.name' % tnum,
+        'location_id': 'T%d.id' % tnum,
+        'rght': 'T%d.rght' % tnum,
+        'lft': 'T%d.lft' % tnum,
+        }
 
     values = ['location_name', 'location_id', 'lft', 'rght']
     if group_by_timespan:
-         select_value = GROUP_BY_SELECTS[group_by_timespan][0]
-         select_clause = GROUP_BY_SELECTS[group_by_timespan][1]
-         select.update({select_value:select_clause,
-                        'year':'extract (year from rapidsms_xforms_xformsubmission.created)', })
-         values.extend([select_value, 'year'])
+        select_value = GROUP_BY_SELECTS[group_by_timespan][0]
+        select_clause = GROUP_BY_SELECTS[group_by_timespan][1]
+        select.update({select_value: select_clause,
+                       'year': 'extract (year from rapidsms_xforms_xformsubmission.created)', })
+        values.extend([select_value, 'year'])
     if location.get_children().count() > 1:
         location_children_where = 'T%d.id in %s' % (tnum, (str(tuple(location.get_children().values_list(\
-                       'pk', flat=True)))))
+            'pk', flat=True)))))
     else:
         location_children_where = 'T%d.id = %d' % (tnum, location.get_children()[0].pk)
 
     return q.filter(
-               xform__keyword=keyword,
-               has_errors=False,
-               created__lte=end_date,
-               created__gte=start_date).values(
-               'connection__contact__reporting_location__name').extra(
-               tables=['locations_location'],
-               where=[\
-                   'T%d.lft <= locations_location.lft' % tnum, \
-                   'T%d.rght >= locations_location.rght' % tnum, \
-                   location_children_where]).extra(\
-               select=select).values(*values).annotate(value=Count('id')).extra(order_by=['location_name'])
+        xform__keyword=keyword,
+        has_errors=False,
+        created__lte=end_date,
+        created__gte=start_date).values(
+        'connection__contact__reporting_location__name').extra(
+        tables=['locations_location'],
+        where=[\
+            'T%d.lft <= locations_location.lft' % tnum,\
+            'T%d.rght >= locations_location.rght' % tnum,\
+            location_children_where]).extra(\
+        select=select).values(*values).annotate(value=Count('id')).extra(order_by=['location_name'])
 
 
 def total_attribute_value(attribute_slug_list, start_date, end_date, location, group_by_timespan=None):
@@ -297,48 +304,49 @@ def total_attribute_value(attribute_slug_list, start_date, end_date, location, g
         attribute_slug_list = [attribute_slug_list]
 
     select = {
-        'location_name':'T8.name',
-        'location_id':'T8.id',
-        'rght':'T8.rght',
-        'lft':'T8.lft',
-    }
+        'location_name': 'T8.name',
+        'location_id': 'T8.id',
+        'rght': 'T8.rght',
+        'lft': 'T8.lft',
+        }
     values = ['location_name', 'location_id', 'lft', 'rght']
     if group_by_timespan:
         select_value = GROUP_BY_SELECTS[group_by_timespan][0]
         select_clause = GROUP_BY_SELECTS[group_by_timespan][1]
-        select.update({select_value:select_clause,
-                        'year':'extract (year from rapidsms_xforms_xformsubmission.created)', })
+        select.update({select_value: select_clause,
+                       'year': 'extract (year from rapidsms_xforms_xformsubmission.created)', })
         values.extend([select_value, 'year'])
     if location.get_children().count() > 1:
         location_children_where = 'T8.id in %s' % (str(tuple(location.get_children().values_list(\
-                       'pk', flat=True))))
+            'pk', flat=True))))
     else:
         location_children_where = 'T8.id = %d' % location.get_children()[0].pk
     return XFormSubmissionValue.objects.filter(
-               submission__has_errors=False,
-               attribute__slug__in=attribute_slug_list,
-               submission__created__lte=end_date,
-               submission__created__gte=start_date).values(
-               'submission__connection__contact__reporting_location__name').extra(
-               tables=['locations_location'],
-               where=[\
-                   'T8.lft <= locations_location.lft',
-                   'T8.rght >= locations_location.rght',
-                   location_children_where]).extra(\
-               select=select).values(*values).annotate(value=Sum('value_int')).extra(order_by=['location_name'])
+        submission__has_errors=False,
+        attribute__slug__in=attribute_slug_list,
+        submission__created__lte=end_date,
+        submission__created__gte=start_date).values(
+        'submission__connection__contact__reporting_location__name').extra(
+        tables=['locations_location'],
+        where=[\
+            'T8.lft <= locations_location.lft',
+            'T8.rght >= locations_location.rght',
+            location_children_where]).extra(\
+        select=select).values(*values).annotate(value=Sum('value_int')).extra(order_by=['location_name'])
 
 
 def reorganize_location(key, report, report_dict):
     for rdict in report:
         location = rdict['location_id']
-        report_dict.setdefault(location, {'location_name':rdict['location_name'], 'diff':(rdict['rght'] - rdict['lft'])})
+        report_dict.setdefault(location,
+                {'location_name': rdict['location_name'], 'diff': (rdict['rght'] - rdict['lft'])})
         report_dict[location][key] = rdict['value']
 
 
 def reorganize_dictionary(key, report, report_dict, unique_key, default_values, value_key):
     for rdict in report:
         id = rdict[unique_key]
-        report_dict.setdefault(id, {default_values:rdict[default_values]})
+        report_dict.setdefault(id, {default_values: rdict[default_values]})
         report_dict[id][key] = rdict[value_key]
 
 
@@ -378,22 +386,23 @@ def get_group_by(start_date, end_date):
     else:
         group_by = GROUP_BY_QUARTER
         prefix = 'quarter'
-    return {'group_by':group_by, 'group_by_name':prefix}
+    return {'group_by': group_by, 'group_by_name': prefix}
+
 
 def get_xform_dates(request):
     """
     Process date variables from POST
     """
-#    dates = {}
+    #    dates = {}
     dates = get_dates_from_post(request)
     if ('start' in dates) and ('end' in dates):
         request.session['start_date'] = dates['start']
         request.session['end_date'] = dates['end']
     elif request.GET.get('start_date', None) and request.GET.get('end_date', None):
-        request.session['start_date'] = dates['start'] = \
-            datetime.datetime.fromtimestamp(int(request.GET['start_date']))
-        request.session['end_date'] = dates['end'] = end_date = \
-            datetime.datetime.fromtimestamp(int(request.GET['end_date']))
+        request.session['start_date'] = dates['start'] =\
+        datetime.datetime.fromtimestamp(int(request.GET['start_date']))
+        request.session['end_date'] = dates['end'] = end_date =\
+        datetime.datetime.fromtimestamp(int(request.GET['end_date']))
     elif request.session.get('start_date', None) and request.session.get('end_date', None):
         dates['start'] = request.session['start_date']
         dates['end'] = request.session['end_date']
@@ -402,8 +411,8 @@ def get_xform_dates(request):
     dates['min'] = dts.get('created__min', None)
     return dates
 
-def get_messages(request):
 
+def get_messages(request):
     #First we get all incoming messages
     messages = Message.objects.filter(direction='I')
 
@@ -411,12 +420,16 @@ def get_messages(request):
     messages = messages.filter(Q(application=None) | Q(application__in=['rapidsms_xforms', 'poll']))
 
     #Exclude XForm submissions
-    messages = messages.exclude(pk__in=XFormSubmission.objects.exclude(message=None).filter(has_errors=False).values_list('message__pk', flat=True))
+    messages = messages.exclude(
+        pk__in=XFormSubmission.objects.exclude(message=None).filter(has_errors=False).values_list('message__pk',
+                                                                                                  flat=True))
 
     # Exclude Poll responses
-    messages = messages.exclude(pk__in=Response.objects.exclude(message=None).filter(has_errors=False).values_list('message__pk', flat=True))
+    messages = messages.exclude(
+        pk__in=Response.objects.exclude(message=None).filter(has_errors=False).values_list('message__pk', flat=True))
 
     return messages
+
 
 def parse_header_row(worksheet, fields):
 #    fields=['telephone number','name', 'district', 'county', 'village', 'age', 'gender']
@@ -427,6 +440,7 @@ def parse_header_row(worksheet, fields):
             field_cols[value.lower()] = col
     return field_cols
 
+
 def parse_telephone(row, worksheet, cols):
     try:
         number = str(worksheet.cell(row, cols['telephone number']).value)
@@ -434,34 +448,41 @@ def parse_telephone(row, worksheet, cols):
         number = str(worksheet.cell(row, cols['telephone']).value)
     return number.replace('-', '').strip().replace(' ', '')
 
+
 def parse_name(row, worksheet, cols):
     try:
         name = str(worksheet.cell(row, cols['company name']).value).strip()
     except KeyError:
         name = str(worksheet.cell(row, cols['name']).value).strip()
     if name.__len__() > 0:
-#        name = str(worksheet.cell(row, cols['name']).value)
+    #        name = str(worksheet.cell(row, cols['name']).value)
         return ' '.join([t.capitalize() for t in name.lower().split()])
     else:
         return 'Anonymous User'
 
+
 def parse_district(row, worksheet, cols):
     return str(worksheet.cell(row, cols['district']).value)
+
 
 def parse_village(row, worksheet, cols):
     return str(worksheet.cell(row, cols['village']).value)
 
+
 def parse_birthdate(row, worksheet, cols):
     try:
         age = int(worksheet.cell(row, cols['age']).value)
-        birthdate = '%d/%d/%d' % (datetime.datetime.now().day, datetime.datetime.now().month, datetime.datetime.now().year - age)
+        birthdate = '%d/%d/%d' % (
+        datetime.datetime.now().day, datetime.datetime.now().month, datetime.datetime.now().year - age)
         return datetime.datetime.strptime(birthdate.strip(), '%d/%m/%Y')
     except ValueError:
         return None
 
+
 def parse_gender(row, worksheet, cols):
     gender = str(worksheet.cell(row, cols['gender']).value)
     return gender.upper()[:1] if gender else None
+
 
 def handle_excel_file(file, group, fields):
     if file:
@@ -501,7 +522,8 @@ def handle_excel_file(file, group, fields):
                     birthdate = parse_birthdate(row, worksheet, cols) if 'age' in fields else None
                     gender = parse_gender(row, worksheet, cols) if 'gender' in fields else None
                     if district:
-                        contact['reporting_location'] = find_closest_match(district, Area.objects.filter(kind__name='district'))
+                        contact['reporting_location'] = find_closest_match(district,
+                                                                           Area.objects.filter(kind__name='district'))
                     if village:
                         contact['village'] = find_closest_match(village, Area.objects)
                     if birthdate:
@@ -537,9 +559,11 @@ def handle_excel_file(file, group, fields):
             if len(contacts) > 0:
                 info = 'Contacts with numbers... ' + ' ,'.join(contacts) + " have been uploaded !\n\n"
             if len(duplicates) > 0:
-                info = info + 'The following numbers already exist in the system and thus have not been uploaded: ' + ' ,'.join(duplicates) + '\n\n'
+                info = info + 'The following numbers already exist in the system and thus have not been uploaded: ' + ' ,'.join(
+                    duplicates) + '\n\n'
             if len(invalid) > 0:
-                info = info + 'The following numbers may be invalid and thus have not been added to the system: ' + ' ,'.join(invalid) + '\n\n'
+                info = info + 'The following numbers may be invalid and thus have not been added to the system: ' + ' ,'.join(
+                    invalid) + '\n\n'
         else:
             info = "You seem to have uploaded an empty excel file, please fill the excel Contacts Template with contacts and upload again..."
     else:
