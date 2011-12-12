@@ -76,7 +76,10 @@ class ArithmeticChartView(XFormChartView):
     second_column = None
     main_column = None
     date_getter = XFormDateGetter()
-
+    second_must_exist = False
+    first_must_exist = False
+    missing_first_default_value = 0
+    missing_second_default_value = 0
 
     def func(self, first, second):
         return self.main_column.func(first, second)
@@ -108,68 +111,123 @@ class ArithmeticChartView(XFormChartView):
 
 
     def get_data(self):
+        """
+        This function is all about stitching two different columns of chart
+        data together using an arithmetic function.  The chart data from the
+        two subcharts will be in its view-returnable state, i.e., a list of 
+        lists, the sublists each containing two elements: a timestamp and a value.
+        
+        In most cases, the absence of one data point in one of the two charts
+        implies that its value should be zero when the arithmetic function to merge 
+        the two.  However, the behavior is different when the first set of data is
+        to be divided by the other: the first data point should be discarded if the 
+        second is absent, as a default value of zero in the second would result in
+        a Division by Zero error.  Hence the ability to branch on different parameters
+        to determine the 'merge' behavior in this function (see the non-default parameters
+        that QuotientColumn passes in. 
+        """
         first_chart = self.first_column.get_chart().get_data()
         second_chart = self.second_column.get_chart().get_data()
         chart_data = []
+        series_names = []
+        for second_data_series in second_chart['series']:
+            if not second_data_series['name'] in series_names:
+                series_names.append(second_data_series['name'])
 
-        # Iterate over the right data dictionary, it's required
-        for right_data_series in second_chart['series']:
-            # we'll append a new series of computed values to chart_data
-            # at the end
-            series_to_add = {}
+        for first_data_series in first_chart['series']:
+            if not first_data_series['name'] in series_names:
+                series_names.append(first_data_series['name'])
 
-            # current series we're dividing out
-            series_name = right_data_series['name']
-            series_to_add['name'] = series_name
-
-            # start with an empty data set
+        for series_name in series_names:
             data_to_add = []
-            series_to_add['data'] = data_to_add
+            series_to_add = {'name': series_name, 'data':data_to_add}
 
+            right_data_series = {'data':[]}
+            # find the corresponding series in the second data dictionary,
+            # if it exists, otherwise we end up with an empty list
+            for t in second_chart['series']:
+                if t['name'] == series_name:
+                    right_data_series = t
+                    break
+            right_data = right_data_series['data']
+
+            left_data_series = {'data':[]}
             # find the corresponding series in the first data dictionary,
             # if it exists, otherwise we end up with an empty list
-            left_data_series = {'data':[]}
             for t in first_chart['series']:
                 if t['name'] == series_name:
                     left_data_series = t
                     break
+            left_data = left_data_series['data']
 
             right_counter = 0
             left_counter = 0
-            right_data = right_data_series['data']
-            left_data = left_data_series['data']
+
             # pair-wise iteration over left and right data, looking for
             # matching timestamps so we can divide the values out
             while left_counter < len(left_data) and right_counter < len(right_data):
                 left_ts = left_data[left_counter][0]
                 right_ts = right_data[right_counter][0]
                 if left_ts == right_ts:
-                    # perfect, timestamps match so we can divide this one
-                    # out and add it to data_to_add
+                    # perfect, timestamps match so we can apply the function
+                    # cleanly to this pair add it to data_to_add
+
                     # first add the timestamp
                     datum = [left_data[left_counter][0]]
                     # calculate the value
                     value = self.func(left_data[left_counter][1], right_data[right_counter][1])
+
+                    # append that shizzle
                     datum.append(value)
                     data_to_add.append(datum)
+
+                    # both counters move forward
                     right_counter += 1
                     left_counter += 1
                 elif left_ts < right_ts:
+                    # we're missing a second value.  In the case of division arithmetic
+                    # you MUST ensure that self.second_must_exist is True
+                    # and that the missing_second_default value is 'skip', 
+                    # as the appropriate behavior is to just omit this pairwise
+                    # data point and move on
+                    if self.second_must_exist:
+                        if not self.missing_second_default_value == 'skip':
+                            data_to_add.append([left_ts, self.missing_second_default_value])
+                    else:
+                        data_to_add.append([left_ts, self.func(left_data[left_counter][1], self.missing_second_default_value)])
                     # we're missing a right value for a corresponding left
-                    # that'd be a divide by zero, so we just skip it
+                    # that'd be a divide by zero (in the case of QuotientColumns, 
+                    # so we just skip it
                     left_counter += 1
                 elif right_ts < left_ts:
-                    # we're missing a left value for a corresponding right
-                    # this is equivalent to a 0 value for the left,
-                    # so let's append that
-                    data_to_add.append([right_ts, 0])
+                    # we're missing a first value for a corresponding right
+                    if self.first_must_exist:
+                        if not self.missing_first_default_value == 'skip':
+                            data_to_add.append([right_ts, self.missing_first_default_value])
+                    else:
+                        data_to_add.append([right_ts, self.func(self.missing_first_default_value, right_data[right_counter][1])])
+
                     right_counter += 1
 
-            # append any leftover right values as zeroes, we've run out
-            # of left values
+
+            # we've run out of first values
+            while left_counter < len(left_data):
+                left_ts = left_data[left_counter][0]
+                if self.second_must_exist:
+                    if not self.missing_second_default_value == 'skip':
+                        data_to_add.append([left_ts, self.missing_second_default_value])
+                else:
+                    data_to_add.append([left_ts, self.func(left_data[left_counter][1], self.missing_second_default_value)])
+                left_counter += 1
+
+            # we've run out of second values            
             while right_counter < len(right_data):
                 right_ts = right_data[right_counter][0]
-                data_to_add.append([right_ts, 0])
+                if self.first_must_exist:
+                    if not self.missing_first_default_value == 'skip':
+                        data_to_add.append([right_ts, self.missing_first_default_value])
+                else:
+                    data_to_add.append([right_ts, self.func(self.missing_first_default_value, right_data[right_counter][1])])
                 right_counter += 1
 
             chart_data.append(series_to_add)

@@ -108,6 +108,33 @@ class QuotientColumn(ArithmeticFunctionColumn):
     def func(self, first, second):
         return round(((float(first) / second) * 100), 1)
 
+    def get_chart(self):
+        from .views import ArithmeticChartView
+        return ArithmeticChartView(location_id=self.report.location.pk, \
+                         start_date=self.report.start_date, \
+                         end_date=self.report.end_date, \
+                         main_column=self, \
+                         first_column=self.first_column, \
+                         second_column=self.second_column, \
+                         chart_title=self.chart_title, \
+                         chart_subtitle=self.chart_subtitle, \
+                         chart_yaxis=self.chart_yaxis, \
+                         second_must_exist=True, \
+                         missing_second_default_value='skip')
+
+    def get_view_function(self):
+        from .views import ArithmeticChartView
+        return ArithmeticChartView.as_view(location_id=self.report.location.pk, \
+                         start_date=self.report.start_date, \
+                         end_date=self.report.end_date, \
+                         main_column=self, \
+                         first_column=self.first_column, \
+                         second_column=self.second_column, \
+                         chart_title=self.chart_title, \
+                         chart_yaxis=self.chart_yaxis, \
+                         second_must_exist=True, \
+                         missing_second_default_value='skip')
+
 
 class AdditionColumn(ArithmeticFunctionColumn):
     def func(self, first, second):
