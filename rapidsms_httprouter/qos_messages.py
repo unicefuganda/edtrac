@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.mail import send_mail
-from rapidsms.models import Backend
+from rapidsms.models import Backend, Connection
+from rapidsms_httprouter.models import Message
 import traceback
 from rapidsms.log.mixin import LoggerMixin
 from datetime import datetime, timedelta
@@ -26,10 +27,7 @@ def get_backends_by_type(btype='shortcode'):
 
         
 def gen_qos_msg():
-    return datetime.now().strftime('%y-%m-%dT%h:%m:%s:%f')
-
-def retrieve_dt_from_qos_msg(msg):
-    return datetime.strptime(msg,'%Y-%m-%dT%H:%M:%S:%f')
+    return datetime.now().strftime('%Y-%m-%d %H')
 
 def get_recipients():
     recipients = getattr(settings, 'ADMINS', None)
@@ -47,3 +45,29 @@ def get_qos_time_offset():
     qos_interval = getattr(settings,'QOS_INTERVAL', {'hours':1,'minutes':0,'offset':5})
     time_offset = datetime.now() - timedelta(hours=qos_interval['hours'],minutes=(qos_interval['minutes']+qos_interval['offset']))
     return time_offset
+
+def get_alarms():
+    msgs = []
+    shortcode_backends = get_backends_by_type(btype="shortcode")
+    time_offset = get_qos_time_offset()
+    for si in shortcode_backends:
+        for mi in settings.ALLOWED_MODEMS[si.name]:
+            try:
+                b = Message.objects.filter(date__gt=time_offset, direction='I',
+                        connection=Connection(identity=settings.SHORTCODE_BACKENDS[si.name], backend=mi, text=gen_qos_msg()))
+                if not b.count():
+                    msg = "Could not get response from %s when sender is %s Backend"%(settings.SHORTCODE_BACKENDS[si.name],mi.name)
+                    msgs.append(msg)
+                    
+            except Connection.DoesNotExist:
+                msg = "Could not get response from %s when sender is %s Backend"%(settings.SHORTCODE_BACKENDS[si.name],mi.name)
+                msgs.append(msg)
+            try:
+                b = Message.objects.filter(date__gt=time_offset, direction='I',
+                        connection=Connection(identity=settings.MODEM_BACKENDS[mi.name], backend=si, text=gen_qos_msg()))
+                if not b.count():
+                    msg = "Could not get response from %s when sender is %s Backend"%(settings.MODEM_BACKENDS[mi.name],si.name)
+                    msgs.append(msg)
+            except Connection.DoesNotExist:
+                msg = "Could not get response from %s when sender is %s Backend"%(settings.MODEM_BACKENDS[mi.name],si.name)
+    return msgs
