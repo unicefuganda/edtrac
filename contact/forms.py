@@ -109,6 +109,12 @@ class FreeSearchForm(FilterForm):
         search = self.cleaned_data['search'].strip()
         if search == "":
             return queryset
+        elif search[0] in ["'",'"'] and search[-1] in ["'",'"']:
+            search=search[1:-1]
+            return queryset.filter(Q(name__iregex=".*\m(%s)\y.*"%search)
+                                   | Q(reporting_location__name__iregex=".*\m(%s)\y.*"%search)
+                                   | Q(connection__identity__iregex=".*\m(%s)\y.*"%search))
+
         else:
             return queryset.filter(Q(name__icontains=search)
                                    | Q(reporting_location__name__icontains=search)
