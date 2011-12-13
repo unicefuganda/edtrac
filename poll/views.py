@@ -1,32 +1,28 @@
+# -*- coding: utf-8 -*-
 from django.db import transaction
 from django.db.models import Q, Count
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_GET
 from django.template import RequestContext
 from django.shortcuts import redirect, get_object_or_404, render_to_response
 from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.conf import settings
 from django.contrib.sites.models import Site
 from django.contrib.auth.decorators import login_required, permission_required
 from django.utils import simplejson
 from django.utils.safestring import mark_safe
 from rapidsms_httprouter.router import get_router
 from rapidsms.messages.outgoing import OutgoingMessage
-from django.contrib.auth.models import Group
-from .models import Poll, Category, Rule, Response, ResponseCategory, STARTSWITH_PATTERN_TEMPLATE, CONTAINS_PATTERN_TEMPLATE
-from rapidsms.models import Contact
+from .models import Response
 from rapidsms.contrib.locations.models import Location
 from rapidsms.models import Connection, Backend
 from eav.models import Attribute
 from django.core.urlresolvers import reverse
 from django.views.decorators.cache import cache_control
+from django.conf import settings
 
 from .forms import *
-from .models import ResponseForm, NameResponseForm, NumericResponseForm, LocationResponseForm
+
 
 # CSV Export
-from rapidsms_httprouter.models import Message
-
 @require_GET
 def responses_as_csv(req, pk):
     poll = get_object_or_404(Poll, pk=pk)
@@ -84,8 +80,17 @@ def new_poll(req):
                 groups = form.cleaned_data['groups']
                 contacts = Contact.objects.filter(Q(pk__in=contacts) | Q(groups__in=groups)).distinct()
             name = form.cleaned_data['name']
-            type = form.cleaned_data['type']
-            poll_type = Poll.TYPE_TEXT if type == NewPollForm.TYPE_YES_NO else type
+            p_type = form.cleaned_data['type']
+            response_type = form.cleaned_data['response_type']
+            if not form.cleaned_data['default_response_luo'] == '' and not form.cleaned_data['default_response'] == '':
+                translation,created = Translation.objects.get_or_create(language='ach', field=form.cleaned_data['default_response'],
+                                           value=form.cleaned_data['default_response_luo'])
+
+            if not form.cleaned_data['question_luo'] == '':
+                translation,created = Translation.objects.get_or_create(language='ach', field=form.cleaned_data['question'],
+                                           value=form.cleaned_data['question_luo'])
+
+            poll_type = Poll.TYPE_TEXT if p_type == NewPollForm.TYPE_YES_NO else p_type
 
             poll = Poll.create_with_bulk(\
                                  name,
@@ -94,6 +99,8 @@ def new_poll(req):
                                  default_response,
                                  contacts,
                                  req.user)
+            poll.response_type=response_type
+            poll.save()
 
             if type == NewPollForm.TYPE_YES_NO:
                 poll.add_yesno_categories()
@@ -109,7 +116,7 @@ def new_poll(req):
         form.updateTypes()
 
     return render_to_response(
-        "polls/poll_create.html", { 'form': form },
+        "polls/poll_create.html", { 'form': form},
         context_instance=RequestContext(req))
 
 @login_required
@@ -125,7 +132,10 @@ def view_poll(req, poll_id):
 def view_report(req, poll_id, location_id=None, as_module=False):
     template = "polls/poll_report.html"
     poll = get_object_or_404(Poll, pk=poll_id)
-    response_rate =  poll.responses.distinct().count()* 100.0 / poll.contacts.all().distinct().count()
+    try:
+        response_rate =  poll.responses.distinct().count()* 100.0 / poll.contacts.distinct().count()
+    except ZeroDivisionError:
+        response_rate="N/A"
     if as_module:
         if poll.type == Poll.TYPE_TEXT:
             template = "polls/poll_report_text.html"
@@ -234,8 +244,8 @@ def edit_poll(req, poll_id):
 def view_responses(req, poll_id, as_module=False):
     poll = get_object_or_404(Poll, pk=poll_id)
 
-    responses = poll.responses.all().order_by('-pk')
-
+    rresponses = poll.responses.all().order_by('-date')
+    print responses.count()
     breadcrumbs = (('Polls', reverse('polls')), ('Responses', ''))
 
     template = "polls/responses.html"
@@ -244,7 +254,7 @@ def view_responses(req, poll_id, as_module=False):
 
     typedef = Poll.TYPE_CHOICES[poll.type]
     return render_to_response(template,
-        { 'poll': poll, 'responses': responses, 'breadcrumbs': breadcrumbs, 'columns': typedef['report_columns'], 'db_type': typedef['db_type'], 'row_template':typedef['view_template']},
+        { 'poll': poll, 'responses': rresponses, 'breadcrumbs': breadcrumbs, 'columns': typedef['report_columns'], 'db_type': typedef['db_type'], 'row_template':typedef['view_template']},
         context_instance=RequestContext(req))
 
 def stats(req, poll_id, location_id=None):
@@ -601,3 +611,12 @@ def delete_rule (req, poll_id, category_id, rule_id):
     category.poll.reprocess_responses()
     return HttpResponse(status=200)
 
+def create_translation(request):
+    translation_form=PollTranslation()
+    if request.method == 'POST':
+        translation_form = PollTranslation(request.POST)
+        if translation_form.is_valid():
+            translation_form.save()
+            return HttpResponse("/fla")
+    return render_to_response('polls/translation.html', dict(translation_form=translation_form),
+            context_instance=RequestContext(request))
