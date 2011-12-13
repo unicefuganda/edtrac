@@ -18,6 +18,7 @@ from eav.models import Attribute
 from django.core.urlresolvers import reverse
 from django.views.decorators.cache import cache_control
 from django.conf import settings
+from multiprocessing import Process,Queue
 
 from .forms import *
 
@@ -66,6 +67,28 @@ def demo(req, poll_id):
     router.handle_outgoing(outgoing)
     return HttpResponse(status=200)
 
+def create_poll(name,poll_type,question,default_response,contacts,user,response_type,start_immediately=False,output=None):
+    
+    poll = Poll.create_with_bulk(\
+                                 name,
+                                 poll_type,
+                                 question,
+                                 default_response,
+                                 contacts,
+                                 user)
+    output.put(poll)
+    poll.response_type=response_type
+    poll.save()
+
+    if type == NewPollForm.TYPE_YES_NO:
+        poll.add_yesno_categories()
+
+    if settings.SITE_ID:
+        poll.sites.add(Site.objects.get_current())
+    if start_immediately:
+        poll.start()
+
+
 @permission_required('poll.can_poll')
 def new_poll(req):
     if req.method == 'POST':
@@ -92,25 +115,33 @@ def new_poll(req):
 
             poll_type = Poll.TYPE_TEXT if p_type == NewPollForm.TYPE_YES_NO else p_type
 
-            poll = Poll.create_with_bulk(\
-                                 name,
-                                 poll_type,
-                                 question,
-                                 default_response,
-                                 contacts,
-                                 req.user)
-            poll.response_type=response_type
-            poll.save()
+#            poll = Poll.create_with_bulk(\
+#                                 name,
+#                                 poll_type,
+#                                 question,
+#                                 default_response,
+#                                 contacts,
+#                                 req.user)
+#            poll.response_type=response_type
+#            poll.save()
+#
+#            if type == NewPollForm.TYPE_YES_NO:
+#                poll.add_yesno_categories()
+#
+#            if settings.SITE_ID:
+#                poll.sites.add(Site.objects.get_current())
+#            if form.cleaned_data['start_immediately']:
+#                poll.start()
+            #create background process
+            start_immediately=form.cleaned_data['start_immediately']
 
-            if type == NewPollForm.TYPE_YES_NO:
-                poll.add_yesno_categories()
-
-            if settings.SITE_ID:
-                poll.sites.add(Site.objects.get_current())
-            if form.cleaned_data['start_immediately']:
-                poll.start()
-
-            return redirect(reverse('poll.views.view_poll', args=[poll.pk]))
+            done_queue = Queue()
+            process=Process(target=create_poll, args=(name, poll_type,question,default_response,contacts,req.user,response_type,start_immediately,done_queue))
+            process.daemon=True
+            process.start()
+            #print process.pid
+            #poll=done_queue.get()
+            return redirect(reverse('poll.views.polls'))
     else:
         form = NewPollForm()
         form.updateTypes()
@@ -154,7 +185,9 @@ def view_report(req, poll_id, location_id=None, as_module=False):
         locations = get_object_or_404(Location, pk=location_id)
         locations = [locations, ]
     else:
-        locations = Location.tree.root_nodes().order_by('name')
+        locations = Location.tree.root_nodes().order_by('name').distinct()
+        print locations
+        
 
     results = []
     for location in locations:
