@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.core.management import BaseCommand
 from django.core.mail import send_mail
-from rapidsms.models import Connection
+from rapidsms.models import Connection,Backend
 from rapidsms_httprouter.models import Message
 from rapidsms.log.mixin import LoggerMixin
 from rapidsms_httprouter.qos_messages import get_backends_by_type,gen_qos_msg
@@ -10,13 +10,14 @@ class Command(BaseCommand, LoggerMixin):
     help = """Sends quality of Service messages
     """     
     def send_qos_messages(self):
-        shortcode_backends = get_backends_by_type(btype="shortcode")
+        shortcode_backends = get_backends_by_type(btype="test")
         for si in shortcode_backends:
             for mi in settings.ALLOWED_MODEMS[si.name]:
+                (mb,t) = Backend.objects.get_or_create(name=mi)
                 Message.objects.create(text=gen_qos_msg(), direction='O',
-                        connection = Connection.objects.get(identity=settings.MODEM_BACKENDS[mi.name], backend=si))
+                        connection = Connection.objects.get_or_create(identity=settings.MODEM_BACKENDS[mb.name], backend=si)[0])
                 Message.objects.create(text=gen_qos_msg(), direction='O',
-                        connection = Connection.objects.get(identity=settings.SHORTCODE_BACKENDS[si.name], backend=mi))
+                        connection = Connection.objects.get_or_create(identity=settings.SHORTCODE_BACKENDS[si.name], backend=mb)[0])
     
-    def handler(self, *args, **options):
+    def handle(self, *args, **options):
         self.send_qos_messages()
