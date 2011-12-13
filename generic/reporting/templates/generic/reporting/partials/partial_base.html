@@ -1,0 +1,39 @@
+{% load reportdict %}
+<table style="width:100%">
+    <thead>
+	    {% if top_columns %}
+	        <tr>
+		        <th>
+		            &nbsp;
+		        </th>
+	            {% for title, link, colspan in top_columns %}
+	                <th colspan="{{ colspan }}"><a href="{{ link }}">{{ title }}</a></th>
+	            {% endfor %}
+	        </tr>
+	    {% endif %}
+	    <tr>
+	        <th>
+	            &nbsp;
+	        </th>
+	        {% for attname, colinstance in columns %}
+		        <th>
+		               <a onclick="load_chart('column/{{ attname }}/')">{{ colinstance.get_title }}</a>
+		        </th>
+	        {% endfor %}
+	    </tr>
+    </thead>
+    {% for d in report %}
+	    <tr>
+	        <td><a href="javascript:void(0)" onclick="drill(this, '{{ d|reportdict:drill_key }}')">{{ d|reportdict:row_name_key }}</a></td>
+	        {% for attname, colinstance in columns %}
+	            {% if not attname == drill_key %}
+	               {% if not attname == row_name_key %}
+			            <td>
+			                   {{ d|reportdict:attname }}
+			            </td>
+	               {% endif %}
+	            {% endif %}
+	        {% endfor %}
+	    </tr>
+    {% endfor %}
+</table>
