@@ -23,7 +23,7 @@ def get_backends_by_type(btype='shortcode'):
             backends.append('console')
             return Backend.objects.using('default').exclude(name__in=backends).order_by('name')
         else:
-            return []
+            return [Backend.objects.get_or_create(name="test_backend")[0]]
 
         
 def gen_qos_msg():
@@ -46,28 +46,29 @@ def get_qos_time_offset():
     time_offset = datetime.now() - timedelta(hours=qos_interval['hours'],minutes=(qos_interval['minutes']+qos_interval['offset']))
     return time_offset
 
-def get_alarms():
+def get_alarms(mode="shortcode"):
+    # here mode refers to test mode which returns test backends
+    if mode =="test": 
+        btype = "test"
+    else:
+        btype = mode
     msgs = []
-    shortcode_backends = get_backends_by_type(btype="shortcode")
+    shortcode_backends = get_backends_by_type(btype=btype)
     time_offset = get_qos_time_offset()
     for si in shortcode_backends:
         for mi in settings.ALLOWED_MODEMS[si.name]:
-            try:
-                b = Message.objects.filter(date__gt=time_offset, direction='I',
-                        connection=Connection(identity=settings.SHORTCODE_BACKENDS[si.name], backend=mi, text=gen_qos_msg()))
-                if not b.count():
-                    msg = "Could not get response from %s when sender is %s Backend"%(settings.SHORTCODE_BACKENDS[si.name],mi.name)
-                    msgs.append(msg)
-                    
-            except Connection.DoesNotExist:
-                msg = "Could not get response from %s when sender is %s Backend"%(settings.SHORTCODE_BACKENDS[si.name],mi.name)
+            (mb,t) = Backend.objects.get_or_create(name=mi)
+            
+            b = Message.objects.filter(date__gt=time_offset, direction='I',text=gen_qos_msg(),
+                    connection=Connection.objects.get_or_create(identity=settings.SHORTCODE_BACKENDS[si.name], backend=mb)[0])
+            if not b.count():
+                msg = "Could not get response from %s when sender is %s Backend"%(settings.SHORTCODE_BACKENDS[si.name],mb.name)
                 msgs.append(msg)
-            try:
-                b = Message.objects.filter(date__gt=time_offset, direction='I',
-                        connection=Connection(identity=settings.MODEM_BACKENDS[mi.name], backend=si, text=gen_qos_msg()))
-                if not b.count():
-                    msg = "Could not get response from %s when sender is %s Backend"%(settings.MODEM_BACKENDS[mi.name],si.name)
-                    msgs.append(msg)
-            except Connection.DoesNotExist:
-                msg = "Could not get response from %s when sender is %s Backend"%(settings.MODEM_BACKENDS[mi.name],si.name)
+                    
+            
+            b = Message.objects.filter(date__gt=time_offset, direction='I',text=gen_qos_msg(),
+                    connection=Connection.objects.get_or_create(identity=settings.MODEM_BACKENDS[mi], backend=si)[0])
+            if not b.count():
+                msg = "Could not get response from %s when sender is %s Backend"%(settings.MODEM_BACKENDS[mi],si.name)
+                msgs.append(msg)
     return msgs
