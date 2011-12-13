@@ -203,7 +203,7 @@ def generic(request,
                 ranges.append(low_range)
                 ranges.append(range(10, max(0, page - 2), 10))
                 ranges.append(range(max(0, page - 2), min(paginator.num_pages, page + 3)))
-                ranges.append(range((round(min(paginator.num_pages, page + 3) / 10) + 1) * 10, paginator.num_pages - 10, 10))
+                ranges.append(range(int(round(min(paginator.num_pages, page + 3) / 10) + 1) * 10, paginator.num_pages - 10, 10))
                 ranges.append(high_range)
 
         else:
