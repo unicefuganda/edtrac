@@ -1,0 +1,17 @@
+{% extends "generic/partials/partial_header.html" %}
+{% block tablehead %}
+<tr>
+	<td height="40">Total Number of Schools: {{ object_list|length }}</td>
+	<td colspan="9" align="right">Download the detailed <a href="#" onclick="getStats('{% url to-excel %}')">Pupil Attendance Report</a></td>
+</tr>
+<tr>
+    {% for name, colspan, href in top_columns %}
+        <td colspan="{{ colspan }}" class="stats_title">
+            {% if href %}<a href="{{ href }}">{{ name }}</a>{% else %}
+            {{ name }}
+            {% endif %}
+        </td>
+    {% endfor %}
+</tr>
+{{ block.super }}
+{% endblock %}

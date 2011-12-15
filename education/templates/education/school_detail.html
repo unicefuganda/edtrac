@@ -1,0 +1,42 @@
+{% extends "education/index.html" %}
+{% load humanize %}
+{% block content %}
+    <div class="module">
+        <h2>Last Submissions from {{ school }}</h2>
+        <p> 
+        	<table width="100%" cellpadding="5" cellspacing="0" class="school_detail" border="1">
+        	    <thead>
+        	        <tr>
+        	            <th>Category/Poll</th>
+        	            <th>Value</th>
+        	            <th>Reporter</th>
+        	            <th>Submission Date</th>
+        	        </tr>
+        	    </thead>
+        	    <tbody>
+        	        {% for xform, values in last_submissions.xforms %}
+        	        {{ xforms }}
+        	        <tr>
+        	            <td>{{ xform.name }}</td>
+        	            {% for value in values %}
+            	            <td>{% if value.value_int__sum %}{{ value.value_int__sum }}{% else %}&nbsp;{% endif %}</td>
+            	            <td>{{ value.submission.connection.contact.name }}</td>
+            	            <td>{{ value.submission.created|date:"d-m-Y"}}</td>
+            	         {% endfor %}
+        	        </tr>
+        	        {% endfor %}
+        	        {% for poll, values in last_submissions.scripted_polls %}
+                    <tr>
+                        <td width="50%">{{ poll.question }}</td>
+                        {% for value in values %}
+                            <td>{{ value.message.text }}</td>
+                            <td>{{ value.message.connection.contact.name }}</td>
+                            <td>{{ value.message.date|date:"d-m-Y" }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}    
+        	    </tbody>
+        	</table>
+        </p>
+	</div>
+{% endblock %}

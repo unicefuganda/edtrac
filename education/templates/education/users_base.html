@@ -1,0 +1,33 @@
+{% extends "generic/base.html" %}
+{% block title %}
+    Users - {{ block.super }}
+{% endblock %}
+{% block stylesheets %}
+    {{ block.super }}
+      <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/widgets.css" />
+{% endblock %}
+{% block javascripts %}
+    {{ block.super }}
+    {{ user_form.media }}
+     <script type="text/javascript" src="/admin/jsi18n/"></script>
+{% endblock %}
+{% block content %}
+<div class="module">
+<h2>
+    Add New User
+</h2>
+    </div>
+<form action="/emis/users/add/" method="Post" >
+        <table >
+
+
+        {{ user_form.as_table }}
+
+        <tr><td></td><td><input type="submit" value="Save User"> </td></tr>
+
+
+    </table>
+     </form>
+    
+    {{ block.super }}
+{% endblock %}

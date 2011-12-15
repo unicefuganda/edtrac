@@ -1,0 +1,8 @@
+{% extends "generic/reporting/report_base.html" %}
+{% block content %}
+    {% if user.is_superuser or user.get_profile.role == "Admins" %}
+        <a href="{% url emis-users %}">Manage Users &raquo; </a> | 
+    {% endif %}
+    <a href="/static/emis/spreadsheets/reports.xls">Download all reports &raquo;</a>
+    {{ block.super }}
+{% endblock %}

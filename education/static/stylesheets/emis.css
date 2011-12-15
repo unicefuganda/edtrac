@@ -1,0 +1,291 @@
+table th  a {
+    color: #4bd;
+}
+
+div#map {
+    margin-top:40px;
+    width: 75%;
+    height: 400px;
+    border: 1px solid #1ebfd2;
+    float:left;
+}
+
+div#overlays {
+    margin-top:40px;
+    width: 20%;
+    height: 400px;
+    border: 1px solid #1ebfd2;
+    float: right;
+    margin-right: 20px;
+}
+div#overlays li{
+    border-bottom:1px solid #ffffff;
+    list-style:none;
+    background-color:#4bd;
+}
+
+div#overlays li a{
+    color:#000000;
+}
+.help{
+    color: #389ece;
+  font-weight: bold;
+  margin-bottom: 1em;
+}
+
+.ajax_loading{
+    background-image:url("../icons/ajax-loader.gif");
+    background-repeat:no-repeat;
+    background-position: center center;
+
+}
+
+div.breadcrumb{
+    border-bottom:1px solid #ccc;
+    padding:0 0 10px 10px;
+    text-transform:capitalize;
+}
+
+div.breadcrumb span{
+    font-weight:bold;
+}
+
+.results ul {
+    list-style-type:none;
+    margin:2px;
+    padding:0;
+}
+
+.results li {
+    padding:1px;
+    font-size:6pt;
+}
+
+div.buttons a img{
+    margin:0 3px -3px 0 !important;
+    padding:0;
+    border:none;
+    width:16px;
+    height:16px;
+}
+
+div.module {
+    margin-top: 1em;
+}
+
+#filters {
+    height: 5em;
+}
+
+#div_filter_0 {
+    position:absolute;
+    left:0;
+    top: 3em;
+}
+
+#div_filter_1 {
+    position:absolute;
+    left:33%;
+    top: 3em;
+}
+
+#div_filter_2 {
+    position:absolute;
+    left:66%;
+    top: 3em;
+}
+
+#div_filter_update {
+    float:right;
+    position:absolute;
+    right:0;
+    bottom: 0;
+}
+
+#div_filter_clear {
+    float:right;
+    position:absolute;
+    right: 0;
+    top: 3em;
+}
+
+/*#actions {
+    height:7em;
+}
+
+#id_location {
+    width: 7em;
+}
+
+#div_action_0 {
+    position:absolute;
+    top:3em;
+    left:0;
+}*/
+
+#actions {
+   height:10em;
+}
+#div_action_0 {
+   position:absolute;
+   top:3em;
+   left:0;
+   width:50%;
+}
+
+#div_action_0 a {
+   position:absolute;
+   top: 1em;
+   left: 25em;
+}
+
+.filter_form_help {
+    display:none;
+}
+
+#div_add_contact {
+    background-color:#efefef;
+    border:0px;
+    border-collapse:collapse;
+    font-weight:bold;
+    padding: 15px;
+}
+td.stat {
+	padding:0 0 1.0em 0;
+}
+span.stats	{
+	font-size:1.2em;
+	font-weight:bold;
+}
+
+span.dates {
+	color:red;
+	float:right;
+	font-weight:bold;
+}
+
+p {
+	padding:0 0 0.2em 0;
+}
+
+.ratios-left {
+    text-align: left;
+    font-weight:bold;
+    padding:1em;
+    background-color: #FFEEBE;
+}
+
+.ratios-right {
+    text-align: left;
+    padding: 0.5em;
+    font-size: 1em;
+    background-color: #FFFFBE;
+}
+
+.alerts-odd {
+    background-color: #FFEEBE;
+}
+
+.alerts-even {
+    background-color: #FFFFBE;
+}
+
+.alert{
+    text-align:left;
+    font-size:1.1em;
+    padding:0.5em;
+}
+
+.red-alert{
+    color:red;
+}
+.qt-head {
+	text-align: center;
+	font-weight:bold;
+	padding:0.5em;
+	background-color: #FFEEBE;
+}
+
+.qt-body {
+	text-align: center;
+	padding: 0.5em;
+	font-size: 2em;
+	background-color: #FFFFBE;
+}
+
+.school_detail{
+    border-collapse:collapse;
+    border-color:#cecece;
+}
+.school_detail th{
+    text-align:left;
+}
+
+.filter_form_help {
+    font-size:8pt;
+    color:gray;
+    position:relative;
+    float:left;
+    top:.5em;
+}
+
+#filters {
+    height:6.5em;
+}
+
+#div_filter_0 {
+    position:absolute;
+    left:0;
+    top:3em;
+}
+
+#div_filter_0 input {
+    position:absolute;
+	margin-left:5%;
+/*    left:70%;*/
+    top:0em;
+}
+
+#div_filter_1 {
+    position:absolute;
+    left:27%;
+    top: 3em;
+}
+
+#div_filter_2 {
+    position:absolute;
+    left:49%;
+    top: 3em;
+}
+
+#div_filter_3 {
+    position:absolute;
+    left:64%;
+    top: 3em;
+}
+
+#div_filter_update {
+    position:absolute;
+    right:1em;
+    top: 5em;
+}
+
+#div_filter_clear {
+    position:absolute;
+    right:7em;
+    top: 5em;
+}
+
+td.stats_title{
+	font-size:1.2em;
+	font-weight:bold;
+}
+
+
+div#boy_container{
+    margin-top: 10px;
+}
+div#girl_container{
+    padding: 10px;
+    margin-top:20px;
+}
