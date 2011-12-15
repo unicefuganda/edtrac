@@ -1,0 +1,15 @@
+<div id="div_add_contact">
+    <table class="add-contact">
+        <tr>
+            <td>Phone Number: {{ form.identity.errors }}</td>
+            <td>{{ form.identity }}</td>
+            <td id="addelm"><a href="javascript:void(0)" onclick="addPhoneElm(this);">+</a></td>
+        </tr>
+        <tr>
+            <td colspan="6">
+                <a href="javascript:void(0)" onclick="addNumbers(this, '{% url education.views.add_connection %}');$('#add_contact_anchor_row').show();">Add</a> | 
+                <a href="javascript:void(0)" onclick="$('#add_contact_form').html('');$('#add_contact_anchor_row').show();">Cancel</a>
+            </td>
+        </tr>
+    </table>
+</div>

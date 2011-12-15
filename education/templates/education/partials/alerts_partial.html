@@ -1,0 +1,10 @@
+<table width="100%" cellspacing="0" cellpadding="0">
+    <tr>
+        <td colspan={{ attendance_stats.stats|length }} class="stat"><span class="stats">Alerts</span></td>
+    </tr>
+    {% for num, perc, text in alerts %}
+        <tr class="{% cycle 'alerts-odd' 'alerts-even' %}">
+            <td width=100% class="alert"><a href="{% url emis-alerts forloop.counter %}">{{ num }} - ({{ perc }}) of Schools</a> {{ text }}</td>
+        </tr>
+    {% endfor %}
+</table>

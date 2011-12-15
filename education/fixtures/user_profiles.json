@@ -1,0 +1,80 @@
+[
+        {
+        "pk": 113,
+        "model": "auth.group",
+        "fields": {
+            "name": "Admins",
+            "permissions": []
+        }
+    },
+         {
+        "pk": 1,
+        "model": "education.userprofile",
+        "fields": {
+            "user": 58,
+            "role": 109,
+            "name": "Kaabong District",
+            "location": 1143
+        }
+    },
+    {
+        "pk": 4,
+        "model": "education.userprofile",
+        "fields": {
+            "user": 59,
+            "role": 109,
+            "name": "Kotido District",
+            "location": 1166
+        }
+    },
+    {
+        "pk": 3,
+        "model": "education.userprofile",
+        "fields": {
+            "user": 60,
+            "role": 109,
+            "name": "Kabarole District",
+            "location": 1145
+        }
+    },
+    {
+        "pk": 2,
+        "model": "education.userprofile",
+        "fields": {
+            "user": 61,
+            "role": 109,
+            "name": "Kyegegwa District",
+            "location": 1171
+        }
+    },
+    {
+        "pk": 5,
+        "model": "education.userprofile",
+        "fields": {
+            "user": 62,
+            "role": 112,
+            "name": "Simon Peter Aturia",
+            "location": 1143
+        }
+    },
+    {
+        "pk": 6,
+        "model": "education.userprofile",
+        "fields": {
+            "user": 63,
+            "role": 112,
+            "name": "Martin Ngolobe",
+            "location": 1166
+        }
+    },
+    {
+        "pk": 7,
+        "model": "education.userprofile",
+        "fields": {
+            "user": 1,
+            "role": 113,
+            "name": "Administrator",
+            "location": 1
+        }
+    }
+]

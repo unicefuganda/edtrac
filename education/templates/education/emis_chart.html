@@ -1,0 +1,193 @@
+{% extends "education/index.html" %}
+{% load humanize %}
+{% block javascripts %}
+    
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js" type="text/javascript"></script>
+    <script src="{{MEDIA_URL}}education/javascripts/highcharts.js" type="text/javascript"></script>
+{% endblock %}
+{% block content %}
+        <script type="text/javascript">
+        var chart;
+        $(document).ready(function(){
+            chart = new Highcharts.Chart(
+                {
+                    chart: {
+                        renderTo: 'boy_container',
+                        defaultSeriesType:'line',
+                        marginRight:130,
+                        marginBottom:30
+                    },
+                    title:{
+                        text:'Attendance of Boys',
+                        x:-20 // center
+                    },
+                    subtitles : {
+                        text:'',
+                        x:-20
+                    },
+                    xAxis: {
+                        categories:['{{categories|join:"','"}}']
+
+                    },
+
+                    yAxis: {
+                        title:{
+                            text:'Number of Students'
+                        },
+                        plotLines:[
+                        {
+                            value:0,
+                            width:1,
+                            color:'#808080'
+                        }]
+                    },
+                    tooltip:{
+                        formatter:function(){
+                            return ''+this.series.name + ''+this.x + ': '+this.y;
+                        }
+                    },
+/*                    legend:{
+                        layout:'vertical',
+                        align:'right',
+                        verticalAlign:'top',
+                        x:-10,
+                        y:100,
+                        borderWidth:0
+                    },*/
+                    series:[
+                            {% for item in boy_attendance %}
+                                {
+                                    name:'{{ item.0 }}',
+                                    data:{{ item.1|safe }}
+                                },
+                            {% endfor %}
+                    ]
+                });
+        });
+    </script>
+   <div id="boy_container">
+   </div>
+
+    <div id="girl_container"></div>
+            <script type="text/javascript">
+        var chart;
+        $(document).ready(function(){
+            chart = new Highcharts.Chart(
+                {
+                    chart: {
+                        renderTo: 'girl_container',
+                        defaultSeriesType:'line',
+                        marginRight:130,
+                        marginBottom:30
+                    },
+                    title:{
+                        text:'Attendance of Girls',
+                        x:-20 // center
+                    },
+                    subtitles : {
+                        text:'',
+                        x:-20
+                    },
+                    xAxis: {
+                        categories:['{{categories|join:"','"}}']
+
+                    },
+
+                    yAxis: {
+                        title:{
+                            text:'Number of Students'
+                        },
+                        plotLines:[
+                        {
+                            value:0,
+                            width:1,
+                            color:'#808080'
+                        }]
+                    },
+                    tooltip:{
+                        formatter:function(){
+                            return ''+this.series.name + ''+this.x + ': '+this.y;
+                        }
+                    },
+                    legend:{
+                        layout:'vertical',
+                        align:'bottom',
+                        verticalAlign:'top',
+                        x:-10,
+                        y:100,
+                        borderWidth:0
+                    },
+                    series:[
+                            {% for item in girl_attendance %}
+                                {
+                                    name:'{{ item.0 }}',
+                                    data:{{ item.1|safe }}
+                                },
+                            {% endfor %}
+                    ]
+                });
+        });
+    </script>
+
+    <div id="all_data_container"></div>
+    <script type="text/javascript">
+    var chart;
+    $(document).ready(function(){
+        chart = new Highcharts.Chart(
+        {
+            chart: {
+                renderTo: 'all_data_container',
+                defaultSeriesType:'line',
+                marginRight:130,
+                marginBottom:30
+            },
+            title:{
+                text:'Attendance of Pupils',
+                x:-20 // center
+            },
+            subtitles : {
+                text:'',
+                x:-20
+            },
+            xAxis: {
+                categories:['wk1', 'wk2', 'wk3', 'wk4']
+
+            },
+
+            yAxis: {
+                title:{
+                    text:'Number of Students'
+                },
+                plotLines:[
+                {
+                    value:0,
+                    width:1,
+                    color:'#808080'
+                }]
+            },
+            tooltip:{
+                formatter:function(){
+                    return ''+this.series.name + ''+this.x + ': '+this.y;
+                }
+            },
+            legend:{
+                layout:'vertical',
+                align:'bottom',
+                verticalAlign:'top',
+                x:-10,
+                y:100,
+                borderWidth:0
+            },
+            series:[
+                    {% for item in pupil_attendance %}
+                        {
+                            name:'{{ item.0 }}',
+                            data:{{ item.1|safe }}
+                        },
+                    {% endfor %}
+            ]
+        });
+});
+</script>
+
+{% endblock %}

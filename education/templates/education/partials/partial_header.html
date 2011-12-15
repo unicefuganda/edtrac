@@ -1,0 +1,13 @@
+{% extends "generic/partials/partial_header.html" %}
+{% block tablehead %}
+<tr>
+    {% for name, colspan, href in top_columns %}
+        <td colspan="{{ colspan }}" class="stats_title">
+            {% if href %}<a href="{{ href }}">{{ name }}</a>{% else %}
+            {{ name }}
+            {% endif %}
+        </td>
+    {% endfor %}
+</tr>
+{{ block.super }}
+{% endblock %}

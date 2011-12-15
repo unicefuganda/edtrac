@@ -1,0 +1,13 @@
+{% load dict %}
+<tr>
+<td>
+    {% if object.diff <= 1%}
+        {{ object.key }}
+    {% else %}
+        <a onclick="$('#drill_key').val('{{object.location_id }}');filter(document.getElementById('drill_key'));">{{ object.key }}</a>
+    {% endif %}
+</td>
+{% for colattr in object_list.columns %}
+<td>{% if object|dict:colattr %}{{ object|dict:colattr }}{% else %}0{% endif %}</td>
+{% endfor %}
+</tr>

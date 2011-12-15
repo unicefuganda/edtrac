@@ -1,0 +1,30 @@
+{% extends "generic/partials/partial_header.html" %}
+<div>
+    <h3>Add New User</h3>
+<form action="/emis/users/add/" method="Post" >
+        <table >
+
+
+        {{ user_form.as_table }}
+
+        <tr><td></td><td><input type="submit" value="Save User"> </td></tr>
+
+
+    </table>
+     </form>
+    </div>
+{% block toprow %}
+
+{% endblock %}
+{% block tablehead %}
+<tr>
+    {% for name, colspan, href in top_columns %}
+        <td colspan="{{ colspan }}" class="stats_title">
+            {% if href %}<a href="{{ href }}">{{ name }}</a>{% else %}
+            {{ name }}
+            {% endif %}
+        </td>
+    {% endfor %}
+</tr>
+{{ block.super }}
+{% endblock %}
