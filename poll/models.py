@@ -10,20 +10,26 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django import forms
+from django.db.models.query import QuerySet
+from django.utils.translation import ugettext as _
 from mptt.forms import TreeNodeChoiceField
 from rapidsms.models import Contact, Connection
 
 from eav import register
 from eav.models import Value, Attribute
 
+from generic.sorters import SimpleSorter
+
 from rapidsms.contrib.locations.models import Location
 from rapidsms.contrib.locations.nested import models as nested_models
 from rapidsms_httprouter.models import Message
 from rapidsms_httprouter.managers import BulkInsertManager
 
-from rapidsms.messages.outgoing import OutgoingMessage
 from django.conf import settings
 import re
+from django.utils.translation import (ugettext, activate, deactivate)
+
+
 
 poll_started = django.dispatch.Signal(providing_args=[])
 
@@ -36,11 +42,18 @@ CONTAINS_PATTERN_TEMPLATE = '^.*\s*(%s)(\s|[^a-zA-Z]|$)'
 
 # This can be configurable from settings, but here's a default list of 
 # accepted yes keywords
-YES_WORDS = ['yes', 'yeah', 'yep', 'yay', 'y']
+#YES_WORDS = ['yes', 'yeah', 'yep', 'yay', 'y']
+
+YES_WORDS = {
+    'en':['yes', 'yeah', 'yep', 'yay', 'y'],
+    'ach':['ada','da']
+}
 
 # This can be configurable from settings, but here's a default list of
 # accepted no keywords
-NO_WORDS = ['no', 'nope', 'nah', 'nay', 'n']
+NO_WORDS = {'en':['no', 'nope', 'nah', 'nay', 'n'],
+            'ach':['ku','k']
+}
 
 class ResponseForm(forms.Form):
     def __init__(self, data=None, **kwargs):
@@ -90,6 +103,18 @@ class Poll(models.Model):
     TYPE_LOCATION = 'l'
     TYPE_REGISTRATION = 'r'
 
+    RESPONSE_TYPE_ALL='a'# all all responses
+    RESPONSE_TYPE_ONE='o' # allow only one
+    RESPONSE_TYPE_NO_DUPS='d'# ignore duplicates
+
+    RESPONSE_TYPE_CHOICES=(
+                            (RESPONSE_TYPE_ALL,'Allow all'),
+                            (RESPONSE_TYPE_ONE,'Allow one'),
+                            (RESPONSE_TYPE_NO_DUPS,'Ignore duplicates')
+
+    )
+
+
     TYPE_CHOICES = {
         TYPE_LOCATION: dict(
                         label='Location-based',
@@ -98,7 +123,7 @@ class Poll(models.Model):
                         parser=None,
                         view_template='polls/response_location_view.html',
                         edit_template='polls/response_location_edit.html',
-                        report_columns=(('Text', 'text'), ('Location', 'location'), ('Categories', 'categories')),
+                        report_columns=((('Text', 'text', True, 'message__text', SimpleSorter()), ('Location', 'location',True,'eav_values__generic_value_id',SimpleSorter()), ('Categories', 'categories',True, 'categories__category__name', SimpleSorter()))),
                         edit_form=LocationResponseForm),
         TYPE_NUMERIC: dict(
                         label='Numeric Response',
@@ -107,7 +132,7 @@ class Poll(models.Model):
                         parser=None,
                         view_template='polls/response_numeric_view.html',
                         edit_template='polls/response_numeric_edit.html',
-                        report_columns=(('Text', 'text'), ('Value', 'value'), ('Categories', 'categories')),
+                        report_columns=((('Text', 'text', True, 'message__text', SimpleSorter()), ('Value', 'value',True,'eav_values__value_float',SimpleSorter()), ('Categories', 'categories',True, 'categories__category__name', SimpleSorter()))),
                         edit_form=NumericResponseForm),
         TYPE_TEXT:  dict(
                         label='Free-form',
@@ -116,7 +141,7 @@ class Poll(models.Model):
                         parser=None,
                         view_template='polls/response_text_view.html',
                         edit_template='polls/response_text_edit.html',
-                        report_columns=(('Text', 'text'), ('Categories', 'categories')),
+                        report_columns=(('Text', 'text', True, 'message__text', SimpleSorter()), ('Categories', 'categories',True, 'categories__category__name', SimpleSorter())),
                         edit_form=ResponseForm),
         TYPE_REGISTRATION:  dict(
                         label='Name/registration-based',
@@ -125,30 +150,32 @@ class Poll(models.Model):
                         parser=None,
                         view_template='polls/response_registration_view.html',
                         edit_template='polls/response_registration_edit.html',
-                        report_columns=(('Text', 'text'), ('Categories', 'categories')),
+                        report_columns=(('Text', 'text', True, 'message__text', SimpleSorter()), ('Categories', 'categories',True, 'categories__category__name', SimpleSorter())),
                         edit_form=NameResponseForm),
     }
 
     name = models.CharField(max_length=32,
                             help_text="Human readable name.")
-    question = models.CharField(max_length=160)
+    question = models.CharField(_("question"),max_length=160)
     messages = models.ManyToManyField(Message, null=True)
     contacts = models.ManyToManyField(Contact, related_name='polls')
     user = models.ForeignKey(User)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
     type = models.SlugField(max_length=8, null=True, blank=True)
-    default_response = models.CharField(max_length=160)
+    default_response = models.CharField(_("default_response"),max_length=160,null=True,blank=True)
     sites = models.ManyToManyField(Site)
     objects = models.Manager()
     on_site = CurrentSiteManager('sites')
     bulk = BulkInsertManager()
+    response_type=models.CharField(max_length=1,choices=RESPONSE_TYPE_CHOICES,default=RESPONSE_TYPE_ALL,null=True,blank=True)
 
     class Meta:
         permissions = (
             ("can_poll", "Can send polls"),
             ("can_edit_poll", "Can edit poll rules, categories, and responses"),
         )
+        ordering=["-end_date"]
 
     @classmethod
     def register_poll_type(cls, field_type, label, parserFunc, \
@@ -193,20 +220,31 @@ class Poll(models.Model):
     @classmethod
     @transaction.commit_on_success
     def create_with_bulk(cls, name, type, question, default_response, contacts, user):
-        messages = Message.mass_text(question, Connection.objects.filter(contact__in=list(contacts)).distinct(), status='L')
+        localized_messages={}
+        for language in dict(settings.LANGUAGES).keys():
+            if language == "en":
+                """default to English for contacts with no language preference"""
+                localized_contacts=contacts.filter(language__in=["en",''])
+            else:
+
+                localized_contacts=contacts.filter(language=language)
+            if localized_contacts.exists():
+                messages = Message.mass_text(gettext_db(field=question,language=language), Connection.objects.filter(contact__in=list(localized_contacts)).distinct(), status='L')
+                localized_messages[language] = [messages,localized_contacts]
         poll = Poll.objects.create(name=name, type=type, question=question, default_response=default_response, user=user)
 
         # This is the fastest (pretty much only) was to get contacts and messages M2M into the
         # DB fast enough at scale
         cursor = connection.cursor()
-        raw_sql = "insert into poll_poll_contacts (poll_id, contact_id) values %s" % ','.join(\
-            ["(%d, %d)" % (poll.pk, c.pk) for c in contacts])
-        cursor.execute(raw_sql)
+        for language in localized_messages.keys():
+            raw_sql = "insert into poll_poll_contacts (poll_id, contact_id) values %s" % ','.join(\
+                ["(%d, %d)" % (poll.pk, c.pk) for c in localized_messages.get(language)[1]])
+            cursor.execute(raw_sql)
 
-        raw_sql = "insert into poll_poll_messages (poll_id, message_id) values %s" % ','.join(\
-            ["(%d, %d)" % (poll.pk, m.pk) for m in messages])
-        cursor.execute(raw_sql)
-
+            raw_sql = "insert into poll_poll_messages (poll_id, message_id) values %s" % ','.join(\
+                ["(%d, %d)" % (poll.pk, m.pk) for m in localized_messages.get(language)[0]])
+            cursor.execute(raw_sql)
+        
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
             poll.sites.add(Site.objects.get_current())
         return poll
@@ -215,17 +253,27 @@ class Poll(models.Model):
         """
         This creates a generic yes/no poll categories for a particular poll
         """
+        #langs = self.contacts.values_list('language',flat=True).distinct()
+        langs = dict(settings.LANGUAGES).keys()
         self.categories.create(name='yes')
-        self.categories.get(name='yes').rules.create(
-            regex=(STARTSWITH_PATTERN_TEMPLATE % '|'.join(YES_WORDS)),
-            rule_type=Rule.TYPE_REGEX,
-            rule_string=(STARTSWITH_PATTERN_TEMPLATE % '|'.join(YES_WORDS)))
         self.categories.create(name='no')
-        self.categories.get(name='no').rules.create(
-            regex=(STARTSWITH_PATTERN_TEMPLATE % '|'.join(NO_WORDS)),
-            rule_type=Rule.TYPE_REGEX,
-            rule_string=(STARTSWITH_PATTERN_TEMPLATE % '|'.join(NO_WORDS)))
         self.categories.create(name='unknown', default=True, error_category=True)
+
+          # add one rule to yes category per language
+        for l in langs:
+            no_rule_string = '|'.join(NO_WORDS[l])
+            yes_rule_string = '|'.join(YES_WORDS[l])
+
+            self.categories.get(name='yes').rules.create(
+                regex=(STARTSWITH_PATTERN_TEMPLATE % yes_rule_string ),
+                rule_type=Rule.TYPE_REGEX,
+                rule_string=(STARTSWITH_PATTERN_TEMPLATE % yes_rule_string))
+
+            self.categories.get(name='no').rules.create(
+                regex=(STARTSWITH_PATTERN_TEMPLATE % no_rule_string),
+                rule_type=Rule.TYPE_REGEX,
+                rule_string=(STARTSWITH_PATTERN_TEMPLATE % no_rule_string))
+
 
     def is_yesno_poll(self):
         return self.categories.count() == 3 and \
@@ -358,6 +406,9 @@ class Poll(models.Model):
         if not outgoing_message:
             return (resp, None,)
         else:
+            if db_message.connection.contact and  db_message.connection.contact.language:
+                outgoing_message=gettext_db(language=db_message.connection.contact.language,field=outgoing_message)
+                
             return (resp, outgoing_message,)
 
     def get_numeric_detailed_data(self):
@@ -395,6 +446,9 @@ class Poll(models.Model):
             if location.get_children().count() == 1:
                 location_where = 'T9.id = %d' % location.get_children()[0].pk
                 ulocation_where = 'T7.id = %d' % location.get_children()[0].pk
+            elif location.get_children().count() == 0:
+                location_where = 'T9.id = %d' % location.pk
+                ulocation_where = 'T7.id = %d' % location.pk
             else:
                 location_where = 'T9.id in %s' % (str(tuple(location.get_children().values_list('pk', flat=True))))
                 ulocation_where = 'T7.id in %s' % (str(tuple(location.get_children().values_list('pk', flat=True))))
@@ -484,7 +538,7 @@ class Poll(models.Model):
         return categorized
 
     def __unicode__(self):
-        return self.name
+        return self.question
 
 class Category(models.Model):
     """
@@ -575,4 +629,28 @@ class Rule(models.Model):
             self.regex = CONTAINS_PATTERN_TEMPLATE % self.rule_string
         elif self.rule_type == Rule.TYPE_REGEX:
             self.regex = self.rule_string
+
+
+class Translation(models.Model):
+    field = models.TextField( db_index=True)
+    language = models.CharField(max_length=5, db_index=True,
+                                choices=settings.LANGUAGES)
+    value = models.TextField(blank=True)
+    def __unicode__(self):
+        return u'%s: %s' % (self.language, self.value)
+
+    class Meta:
+        unique_together = ('field', 'language')
+
+   
+def gettext_db(field,language):
+    #if name exists in po file get it else look
+    if Translation.objects.filter(field=field,language=language).exists():
+       return Translation.objects.filter(field=field,language=language)[0].value
+    else:
+       activate(language)
+       lang_str=ugettext(field)
+       deactivate()
+       return lang_str
+
 

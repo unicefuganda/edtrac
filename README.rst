@@ -23,7 +23,7 @@ dependencies
 ============
 The polling app depends on:
  - eav: (github.com:/mvpdev/django-eav.git)
- - simple_locations: (github.com/yeleman/simple_locations.git)
+ - rapidsms: (github.com/rapidsms/rapidsms.git)
 
 enhancements
 =============
@@ -31,14 +31,14 @@ Currently, to keep the polling app light, the more complicated visualizations ar
 
 usage
 =====
-Then to use xforms, edit your ``settings.py`` to add ``poll`` and ``uni_form``::
+Then to use polls, edit your ``settings.py`` to add ``poll`` and ``uni_form``::
 
   INSTALLED_APPS = ( "rapidsms",
    		       .. other apps ..
   		     "uni_form",
   		     "poll" )
 
-You will probably also want to add XForms as one of the main RapidSMS tabs::
+You will probably also want to add Polls as one of the main RapidSMS tabs::
 
   TABS = [
     ('rapidsms.views.dashboard', 'Dashboard'),	

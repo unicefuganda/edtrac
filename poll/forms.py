@@ -1,11 +1,9 @@
 from django import forms
-from django.core.exceptions import ValidationError
-from django.conf import settings
 
 from django.contrib.auth.models import Group
-from .models import Poll, Category, Rule
+from .models import Poll, Category, Rule ,Translation
 from rapidsms.models import Contact
-from mptt.forms import TreeNodeChoiceField
+from django.forms.widgets import RadioSelect
 
 import re
 
@@ -18,13 +16,16 @@ class NewPollForm(forms.Form): # pragma: no cover
                choices=(
                     (TYPE_YES_NO, 'Yes/No Question'),
                 ))
+    response_type=forms.ChoiceField(choices=Poll.RESPONSE_TYPE_CHOICES,widget=RadioSelect,initial=Poll.RESPONSE_TYPE_ALL)
 
     def updateTypes(self):
         self.fields['type'].widget.choices += [(choice['type'], choice['label']) for choice in Poll.TYPE_CHOICES.values()]
 
     name = forms.CharField(max_length=32, required=True)
     question = forms.CharField(max_length=160, required=True, widget=forms.Textarea())
+    question_luo = forms.CharField(max_length=160, required=False, widget=forms.Textarea())
     default_response = forms.CharField(max_length=160, required=False, widget=forms.Textarea())
+    default_response_luo = forms.CharField(max_length=160, required=False, widget=forms.Textarea())
     start_immediately = forms.BooleanField(required=False)
     contacts = forms.ModelMultipleChoiceField(queryset=Contact.objects.all(), required=False)
 
@@ -52,6 +53,9 @@ class NewPollForm(forms.Form): # pragma: no cover
 
         return cleaned_data
 
+class PollTranslation(forms.ModelForm):
+    class Meta:
+        model = Translation
 class EditPollForm(forms.ModelForm): # pragma: no cover
     class Meta:
         model = Poll
