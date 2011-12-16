@@ -26,6 +26,7 @@ from multiprocessing import Process, Queue
 
 from forms import *
 import os
+import subprocess
 
 # CSV Export
 
@@ -82,6 +83,8 @@ def demo(req, poll_id):
     router.handle_outgoing(outgoing)
     return HttpResponse(status=200)
 
+def quote(string):
+    return string.replace('"','\"').replace("'","\'")
 
 @permission_required('poll.can_poll')
 def new_poll(req):
@@ -130,18 +133,18 @@ def new_poll(req):
 
             # run poll creation as a daemon process to avoid nginx timing out
 
-            os.system('nohup python manage.py send_poll -n "%s" -t "%s" -q "%s" -r "%s" -c "%s" -u "%s" -s "%s" -e "%s" -g "%s"&'
-                       % (
-                name,
+            args = "['nohup', 'python', 'manage.py' ,'send_poll', '-n', '%s', '-t', '%s', '-q' ,'%s','-r', '%s','-c', '\"%s\"', '-u', '%s','-s', '%s','-e', '%s','-g', '\"%s\"','&']"% (
+                quote(name),
                 poll_type,
-                question,
-                str(default_response),
+                quote(question),
+                quote(str(default_response)),
                 str(contacts),
                 req.user.pk,
                 start_immediately,
                 response_type,
-                str(groups),
-                ))
+                str(groups)
+                )
+            subprocess.Popen(eval(args))
             return redirect(reverse('poll.views.polls'))
     else:
         form = NewPollForm()
