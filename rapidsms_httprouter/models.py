@@ -1,7 +1,7 @@
 import datetime
 from django.db import models, transaction
-import django
-
+#import django
+import django.dispatch
 from rapidsms.models import Contact, Connection
 
 from .managers import ForUpdateManager, BulkInsertManager
@@ -38,7 +38,7 @@ class MessageBatch(models.Model):
 
 class Message(models.Model):
     connection = models.ForeignKey(Connection, related_name='messages')
-    text = models.TextField()
+    text = models.TextField(db_index=True)
     direction = models.CharField(max_length=1, choices=DIRECTION_CHOICES, db_index=True)
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, db_index=True)
     date = models.DateTimeField(auto_now_add=True)

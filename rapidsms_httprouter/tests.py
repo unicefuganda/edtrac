@@ -16,6 +16,9 @@ from rapidsms.apps.base import AppBase
 from rapidsms.messages.incoming import IncomingMessage
 from rapidsms.messages.outgoing import OutgoingMessage
 from django.conf import settings
+from django.core.management import call_command
+from qos_messages import gen_qos_msg,get_alarms,get_backends_by_type,gen_qos_msg
+from datetime import datetime
 
 class BackendTest(TransactionTestCase):
 
@@ -397,8 +400,88 @@ class ViewTest(TestCase):
             self.assertEquals('D', message.status)
         finally:
             settings.ROUTER_PASSWORD = None
-    
+            
+            
+class QOSTest(TestCase):
+    def fake_incoming(self, message, connection=None):
+        if connection is None:
+            connection = self.connection
+        router = get_router()
+        router.handle_incoming(connection.backend.name, connection.identity, message)
+        #form = XForm.find_form(message)
+        #if form:
+        #    return XFormSubmission.objects.all().order_by('-created')[0]
 
+    def setUp(self):
+        #self.backend = Backend.objects.create(name='test')
+        #self.connection = Connection.objects.create(identity='8675309', backend=self.backend)
+        (self.backend, created) = Backend.objects.get_or_create(name="test_backend")
+        (self.connection, created) = Connection.objects.get_or_create(backend=self.backend, identity='2067799294')
+
+        
+        (self.backend2, created) = Backend.objects.get_or_create(name="test_backend2")
+        (self.connection2, created) = Connection.objects.get_or_create(backend=self.backend2, identity='2067799291')
+        
+        settings.SHORTCODE_BACKENDS = {self.backend.name: self.connection.identity}
+        settings.MODEM_BACKENDS = {self.backend2.name: self.connection2.identity}
+        settings.ALLOWED_MODEMS = {self.backend.name: [self.backend2.name]}
+        #self.shortcode_backends = get_backends_by_type(btype="shortcode")
+        self.shortcode_backends = []
+        self.shortcode_backends.append(self.backend)
+        self.dt = datetime.now()
+        self.txt = gen_qos_msg()
+        call_command('send_qos_messages')
+    
+        
+        
+    def testMsgsSent(self):
+        def count_sent_msgs():
+            total = 0
+            for si in self.shortcode_backends:
+                for mi in settings.ALLOWED_MODEMS[si.name]:
+                    (mb,t) = Backend.objects.get_or_create(name=mi)
+                    b = Message.objects.filter(direction='O',date__gt=self.dt,
+                        connection=Connection.objects.get_or_create(identity=settings.SHORTCODE_BACKENDS[si.name], 
+                        backend=mb)[0])
+                    if b.count():
+                        total += b.count()
+                    b = Message.objects.filter(date__gt=self.dt, direction='O',
+                        connection=Connection.objects.get_or_create(identity=settings.MODEM_BACKENDS[mb.name], backend=si)[0])
+                    if b.count():
+                        total += b.count()
+            return total
+        
+        self.assertEquals(count_sent_msgs(), 2)
+        a = Message.objects.filter(date__gt=self.dt, direction='O',connection__backend__name=self.backend.name)[0]
+        self.assertEquals(a.connection.identity, self.connection2.identity)
+        self.assertEquals(a.text, self.txt)
+        
+        b = Message.objects.filter(date__gt=self.dt, direction='O',connection__backend__name=self.backend2.name)[0]
+        self.assertEquals(b.connection.identity, self.connection.identity)
+        self.assertEquals(b.text, self.txt)
+                        
+        
+    def testNoAlarms(self):
+        
+        def create_expected_msgs():
+            for si in self.shortcode_backends:
+                for mi in settings.ALLOWED_MODEMS[si.name]:
+                    (mb,t) = Backend.objects.get_or_create(name=mi)
+                    Message.objects.create(text=self.txt, direction='I',
+                            connection = Connection.objects.get(identity=settings.MODEM_BACKENDS[mi], backend=si))
+                    Message.objects.create(text=self.txt, direction='I',
+                            connection = Connection.objects.get(identity=settings.SHORTCODE_BACKENDS[si.name], backend=mb))
+        create_expected_msgs()
+        call_command('monitor_qos_messages')
+        alarms = get_alarms()
+        self.assertEquals(len(alarms),0)
+        
+    def testAlarms(self):
+        call_command('monitor_qos_messages')
+        alarms = get_alarms(mode="test")
+        self.assertEquals(len(alarms),2)
+        
+        
         
     
     
