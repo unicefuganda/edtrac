@@ -303,7 +303,7 @@ class Poll(models.Model):
             resp.has_errors = False
             for category in self.categories.all():
                 for rule in category.rules.all():
-                    regex = re.compile(rule.regex)
+                    regex = re.compile(rule.regex,re.IGNORECASE)
                     if resp.eav.poll_text_value:
                         if regex.search(resp.eav.poll_text_value.lower()) and not resp.categories.filter(category=category).count():
                             if category.error_category:
@@ -324,7 +324,7 @@ class Poll(models.Model):
         outgoing_message = self.default_response
         if (self.type == Poll.TYPE_LOCATION):
             location_template = STARTSWITH_PATTERN_TEMPLATE % '[a-zA-Z]*'
-            regex = re.compile(location_template)
+            regex = re.compile(location_template,re.IGNORECASE)
             if regex.search(message.text):
                 spn = regex.search(message.text).span()
                 location_str = message.text[spn[0]:spn[1]]
@@ -360,7 +360,7 @@ class Poll(models.Model):
             if self.categories:
                 for category in self.categories.all():
                     for rule in category.rules.all():
-                        regex = re.compile(rule.regex)
+                        regex = re.compile(rule.regex,re.IGNORECASE)
                         if regex.search(message.text.lower()):
                             rc = ResponseCategory.objects.create(response=resp, category=category)
                             resp.categories.add(rc)
