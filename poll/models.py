@@ -1,6 +1,7 @@
 import datetime
 import difflib
 
+import django
 from django.db import models, transaction, connection
 from django.db.models import Sum, Avg, Count, Max, Min, StdDev
 from django.contrib.sites.models import Site
@@ -23,6 +24,8 @@ from rapidsms_httprouter.managers import BulkInsertManager
 from rapidsms.messages.outgoing import OutgoingMessage
 from django.conf import settings
 import re
+
+poll_started = django.dispatch.Signal(providing_args=[])
 
 # The standard template allows for any amount of whitespace at the beginning,
 # followed by the alias(es) for a particular category, followed by any non-
@@ -241,6 +244,7 @@ class Poll(models.Model):
         self.messages.update(status='P')
         self.start_date = datetime.datetime.now()
         self.save()
+        poll_started.send(sender=self)
 
 
     def end(self):
