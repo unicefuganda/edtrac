@@ -1,0 +1,36 @@
+[submodule "edtrac_project/rapidsms"]
+	path = edtrac_project/rapidsms
+	url = git://github.com/unicefuganda/rapidsms
+[submodule "edtrac_project/rapidsms_unregister"]
+	path = edtrac_project/rapidsms_unregister
+	url = git://github.com/unicefuganda/rapidsms-unregister
+[submodule "edtrac_project/rapidsms_contact"]
+	path = edtrac_project/rapidsms_contact
+	url = git://github.com/unicefuganda/rapidsms-contact.git
+[submodule "edtrac_project/rapidsms_generic"]
+	path = edtrac_project/rapidsms_generic
+	url = git://github.com/unicefuganda/rapidsms-generic.git
+[submodule "edtrac_project/rapidsms_uganda_common"]
+	path = edtrac_project/rapidsms_uganda_common
+	url = git://github.com/unicefuganda/rapidsms-uganda-common
+[submodule "edtrac_project/rapidsms_polls"]
+	path = edtrac_project/rapidsms_polls
+	url = git://github.com/unicefuganda/rapidsms-polls.git
+[submodule "edtrac_project/rapidsms_script"]
+	path = edtrac_project/rapidsms_script
+	url = git://github.com/unicefuganda/rapidsms-script.git
+[submodule "edtrac_project/rapidsms_httprouter_src"]
+	path = edtrac_project/rapidsms_httprouter_src
+	url = git://github.com/unicefuganda/rapidsms-httprouter.git
+[submodule "edtrac_project/rapidsms_auth"]
+	path = edtrac_project/rapidsms_auth
+	url = git://github.com/unicefuganda/rapidsms-auth.git
+[submodule "edtrac_project/rapidsms_xforms_src"]
+	path = edtrac_project/rapidsms_xforms_src
+	url = git://github.com/unicefuganda/rapidsms-xforms.git
+[submodule "edtrac_project/django_eav"]
+	path = edtrac_project/django_eav
+	url = git://github.com/unicefuganda/django-eav.git
+[submodule "edtrac_project/rapidsms_edtrac"]
+	path = edtrac_project/rapidsms_edtrac
+	url = git://github.com/unicefuganda/rapidsms-edtrac.git
