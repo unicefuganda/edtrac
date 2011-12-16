@@ -6,7 +6,7 @@ from rapidsms.models import Contact, Connection
 
 from .managers import ForUpdateManager, BulkInsertManager
 
-mass_text_sent = django.dispatch.Signal(providing_args=["messages"])
+mass_text_sent = django.dispatch.Signal(providing_args=["messages", "status"])
 
 DIRECTION_CHOICES = (
     ("I", "Incoming"),
@@ -79,7 +79,7 @@ class Message(models.Model):
                 batch=batch,
                 connection=connection)
         toret = Message.bulk.bulk_insert_commit(send_post_save=False, autoclobber=True)
-        mass_text_sent.send(sender=batch, messages=toret)
+        mass_text_sent.send(sender=batch, messages=toret, status=status)
         return toret
 
 
