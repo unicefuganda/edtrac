@@ -28,10 +28,11 @@ def init_autoreg():
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
             script.sites.add(Site.objects.get_current())
         user, created = User.objects.get_or_create(username="admin")
-
+        
+        role_poll, c = Poll.objects.get_or_create(name='emis_role', user=user, type=Poll.TYPE_TEXT, question='Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM', default_response='')
         script.steps.add(ScriptStep.objects.create(
             script=script,
-            poll=Poll.objects.create(name='emis_role', user=user, type=Poll.TYPE_TEXT, question='Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM', default_response=''),
+            poll=role_poll,
             order=0,
             rule=ScriptStep.RESEND_MOVEON,
             num_tries=1,
@@ -39,9 +40,10 @@ def init_autoreg():
             retry_offset=86400,
             giveup_offset=86400,
         ))
+        gender_poll, c = Poll.objects.get_or_create(name='emis_gender', user=user, type=Poll.TYPE_TEXT, question='Are you female or male?', default_response='')
         script.steps.add(ScriptStep.objects.create(
             script=script,
-            poll=Poll.objects.create(name='emis_gender', user=user, type=Poll.TYPE_TEXT, question='Are you female or male?', default_response=''),
+            poll=gender_poll,
             order=1,
             rule=ScriptStep.RESEND_MOVEON,
             num_tries=1,
@@ -49,9 +51,10 @@ def init_autoreg():
             retry_offset=86400,
             giveup_offset=86400,
         ))
+        class_poll, c = Poll.objects.get_or_create(name='emis_class', user=user, type=Poll.TYPE_TEXT, question='Which class do you teach? P3 or P6', default_response='')
         script.steps.add(ScriptStep.objects.create(
             script=script,
-            poll=Poll.objects.create(name='emis_class', user=user, type=Poll.TYPE_TEXT, question='Which class do you teach? P3 or P6', default_response=''),
+            poll=class_poll,
             order=2,
             rule=ScriptStep.RESEND_MOVEON,
             num_tries=1,
@@ -59,9 +62,10 @@ def init_autoreg():
             retry_offset=86400,
             giveup_offset=86400,
         ))
+        district_poll, c = Poll.objects.get_or_create(name='emis_district', user=user, type='district', question='What is the name of your district?', default_response='')
         script.steps.add(ScriptStep.objects.create(
             script=script,
-            poll=Poll.objects.create(name='emis_district', user=user, type='district', question='What is the name of your district?', default_response=''),
+            poll=district_poll,
             order=3,
             rule=ScriptStep.STRICT_MOVEON,
             start_offset=0,
@@ -69,9 +73,10 @@ def init_autoreg():
             num_tries=1,
             giveup_offset=86400,
         ))
+        subcounty_poll, c = Poll.objects.get_or_create(name='emis_subcounty',user=user,type=Poll.TYPE_TEXT, question='What is the name of your sub county?', default_response='')
         script.steps.add(ScriptStep.objects.create(
             script=script,
-            poll=Poll.objects.create(name='emis_subcounty',user=user,type=Poll.TYPE_TEXT, question='What is the name of your sub county?', default_response=''),
+            poll=subcounty_poll,
             order=4,
             rule=ScriptStep.RESEND_MOVEON,
             start_offset=0,
@@ -79,9 +84,10 @@ def init_autoreg():
             num_tries=1,
             giveup_offset=86400,
         ))
+        school_poll, c = Poll.objects.get_or_create(name='emis_school', user=user, type=Poll.TYPE_TEXT, question='What is the name of your school?', default_response='')
         script.steps.add(ScriptStep.objects.create(
             script=script,
-            poll=Poll.objects.create(name='emis_school', user=user, type=Poll.TYPE_TEXT, question='What is the name of your school?', default_response=''),
+            poll=school_poll,
             order=5,
             rule=ScriptStep.RESEND_MOVEON,
             start_offset=0,
@@ -89,9 +95,10 @@ def init_autoreg():
             num_tries=1,
             giveup_offset=86400,
         ))
+        name_poll, c = Poll.objects.get_or_create(name='emis_name', user=user, type=Poll.TYPE_TEXT, question='What is your name?', default_response='')
         script.steps.add(ScriptStep.objects.create(
             script=script,
-            poll=Poll.objects.create(name='emis_name', user=user, type=Poll.TYPE_TEXT, question='What is your name?', default_response=''),
+            poll=name_poll,
             order=6,
             rule=ScriptStep.RESEND_MOVEON,
             num_tries=1,
