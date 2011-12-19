@@ -13,6 +13,7 @@ import calendar
 from django.conf import settings
 import datetime
 import time
+from difflib import get_close_matches
 from django.db.models import Sum
 from django.forms import ValidationError
 from django.contrib.auth.models import Group, User
@@ -29,7 +30,11 @@ class School(models.Model):
 
 
 class EmisReporter(Contact):
-#    school = models.ForeignKey(School, null=True, related_name="old_schools")
+    CLASS_CHOICES = (
+        ('P3', 'Primary Three'),
+        ('P6', 'Primary Six'),
+    )
+    grade = models.CharField(max_length=2, choices=CLASS_CHOICES, null=True)
     schools = models.ManyToManyField(School, null=True)
     
     def is_member_of(self, group):
@@ -64,9 +69,29 @@ class UserProfile(models.Model):
     
     def is_member_of(self, group):
         return group.lower() == self.role.name.lower()
+    
+class PollSchedule(models.Model):
+    poll = models.ForeignKey(Poll)
+    date = models.DateTimeField(auto_now=True)
+    group = models.ForeignKey(Group)
 
 def parse_date(command, value):
     return parse_date_value(value)
+
+def parse_gender(gender):
+    gender = get_close_matches(gender, ['M', 'Male', 'F', 'Female'], 1, 0.6)
+    try:
+        return list(gender[0])[0]
+    except:
+        return None 
+    
+def parse_grade(grade):
+    grade = get_close_matches(grade, ['P 3', 'P3','p3', 'P 6', 'P6', 'p6'], 1, 0.6)
+    try:
+        cls = list(grade[0])[1] if list(grade[0])[1].strip() else list(grade[0])[2]
+        return (list(grade[0])[0]).upper() + cls
+    except:
+        return None 
 
 
 def parse_date_value(value):
@@ -140,16 +165,19 @@ def emis_autoreg(**kwargs):
     session = ScriptSession.objects.filter(script=progress.script, connection=connection).order_by('-end_time')[0]
     script = progress.script
 
-    role_poll = script.steps.get(order=1).poll
-    district_poll = script.steps.get(order=2).poll
-    subcounty_poll = script.steps.get(order=3).poll
-    school_poll = script.steps.get(order=4).poll
-    schools_poll = script.steps.get(order=5).poll
+    role_poll = script.steps.get(order=0).poll
+    gender_poll = script.steps.get(order=1).poll
+    class_poll = script.steps.get(order=2).poll
+    district_poll = script.steps.get(order=3).poll
+    subcounty_poll = script.steps.get(order=4).poll
+    school_poll = script.steps.get(order=5).poll
     name_poll = script.steps.get(order=6).poll
 
     name = find_best_response(session, name_poll)
     role = find_best_response(session, role_poll)
-    default_group = Group.objects.get(name='Other EMIS Reporters')
+    gender = find_best_response(session, gender_poll)
+    grade = find_best_response(session, class_poll)
+    default_group = Group.objects.get(name='Other Reporters')
     subcounty = find_best_response(session, subcounty_poll)
     district = find_best_response(session, district_poll)
 
@@ -181,7 +209,7 @@ def emis_autoreg(**kwargs):
     connection.contact = contact
     connection.save()
 
-    group = Group.objects.get(name='Other EMIS Reporters')
+    group = Group.objects.get(name='Other Reporters')
     default_group = group
     if role:
         group = find_closest_match(role, Group.objects)
@@ -195,6 +223,12 @@ def emis_autoreg(**kwargs):
         contact.reporting_location = district
     else:
         contact.reporting_location = Location.tree.root_nodes()[0]
+
+    if parse_gender(gender):
+        contact.gender = parse_gender(gender)
+        
+    if parse_grade(grade):
+        contact.grade = parse_grade(grade)
 
     if name:
         contact.name = name
@@ -218,58 +252,39 @@ def emis_autoreg(**kwargs):
             contact.schools.add(reporting_school)
             contact.save()
 
-    schools = find_best_response(session, schools_poll)
-    if schools:
-        reporting_school = None
-        school_list = schools.split(',')
-        for school in school_list:
-            if subcounty:
-                reporting_school = find_closest_match(school, School.objects.filter(location__name__in=[subcounty], \
-                                                                                location__type__name='sub_county'), True)
-            elif district:
-                reporting_school = find_closest_match(school, School.objects.filter(location__name__in=[district.name], \
-                                                                                location__type__name='district'), True)
-            else:
-                reporting_school = find_closest_match(school, School.objects.filter(location__name=Location.tree.root_nodes()[0].name))
-            if reporting_school:
-                contact.schools.add(reporting_school)
-                contact.save()
-
     if not getattr(settings, 'TRAINING_MODE', False):
         # Now that you have their roll, they should be signed up for the periodic polling
-        _schedule_monthly_script(group, connection, 'emis_abuse', 'last', ['Teachers', 'Head Teachers'])
-        _schedule_monthly_script(group, connection, 'emis_meals', 20, ['Teachers', 'Head Teachers'])
-        #termly messages go out mid April, July or November by default
-        _schedule_termly_script(group, connection, 'emis_school_administrative', ['Head Teachers'])
-        # Schedule annual messages
-        d = datetime.datetime.now()
-        start_of_year = datetime.datetime(d.year, 1, 1, d.hour, d.minute, d.second, d.microsecond)\
-            if d.month < 3 else datetime.datetime(d.year + 1, 1, 1, d.hour, d.minute, d.second, d.microsecond)
-        if group.name in ['Head Teachers']:
-            sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug='emis_annual'))
-            sp.set_time(start_of_year + datetime.timedelta(weeks=getattr(settings, 'SCHOOL_ANNUAL_MESSAGES_START', 12)))
-
-        _schedule_monthly_script(group, connection, 'emis_smc_monthly', 28, ['SMC'])
-        #termly messages go out mid April, July or November
+        _schedule_weekly_scripts(group, connection, ['Teachers', 'Head Teachers', 'SMC'])
+        _schedule_monthly_script(group, connection, 'emis_teachers_monthly', 'last', ['Teachers'])
+        _schedule_monthly_script(group, connection, 'emis_head_teachers_monthly', 'last', ['Head Teachers'])
+        _schedule_monthly_script(group, connection, 'emis_smc_monthly', 5, ['SMC'])
+        _schedule_monthly_script(group, connection, 'emis_gem_monthly', 20, ['GEM'])
+        #termly messages go out mid April, July or November by default, this can be overwridden by manual process
+        _schedule_termly_script(group, connection, 'emis_head_teachers_termly', ['Head Teachers'])
         _schedule_termly_script(group, connection, 'emis_smc_termly', ['SMC'])
 
-        holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
-        if group.name in ['SMC']:
-            d = datetime.datetime.now()
-            # get the date to a thursday
-            d = d + datetime.timedelta((3 - d.weekday()) % 7)
-            in_holiday = True
-            while in_holiday:
-                in_holiday = False
-                for start, end in holidays:
-                    if d >= start and d <= end:
-                        in_holiday = True
-                        break
-                if in_holiday:
-                    d = d + datetime.timedelta(7)
-            sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug='emis_head_teacher_presence'))
-            sp.set_time(d)
+def _next_thursday():
+    holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
+    d = datetime.datetime.now()
+    d = d + datetime.timedelta((3 - d.weekday()) % 7)
+    in_holiday = True
+    while in_holiday:
+        in_holiday = False
+        for start, end in holidays:
+            if d >= start and d <= end:
+                in_holiday = True
+                break
+        if in_holiday:
+            d = d + datetime.timedelta(7)
+    return d
 
+def _schedule_weekly_scripts(group, connection, grps):
+    if group.name in grps:
+        d = _next_thursday()
+        script_slug = "emis_%s" % group.name.lower().replace(' ', '_') + '_weekly'       
+        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
+        sp.set_time(d)
+    
 def _schedule_monthly_script(group, connection, script_slug, day_offset, role_names):
     holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
     if group.name in role_names:
@@ -347,48 +362,20 @@ def emis_reschedule_script(**kwargs):
     if not connection.contact.groups.count():
         return
     group = connection.contact.groups.all()[0]
-    if slug == 'emis_abuse':
-        _schedule_monthly_script(group, connection, 'emis_abuse', 'last', ['Teachers', 'Head Teachers'])
-    elif slug == 'emis_meals':
-        _schedule_monthly_script(group, connection, 'emis_meals', 20, ['Teachers', 'Head Teachers'])
-    elif slug == 'emis_school_administrative':
-        #termly messages go out mid April, July or November by default
-        _schedule_termly_script(group, connection, 'emis_school_administrative', ['Head Teachers'])
-    #schedule termly polls
-    elif slug == 'emis_smc_termly':
-        #termly messages go out mid April, July or November
-        _schedule_termly_script(group, connection, 'emis_smc_termly', ['SMC'])
-    elif slug == 'emis_annual':
-        #Schedule annual polls
-        d = ScriptSession.objects.filter(script__slug='emis_annual', \
-                            connection=connection, \
-                            ).order_by('-end_time')[0].end_time
-
-        start_of_year = datetime.datetime(d.year + 1, 1, 1, d.hour, d.minute, d.second, d.microsecond)
-        if group.name in ['Head Teachers']:
-            sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug='emis_annual'))
-            sp.set_time(start_of_year + datetime.timedelta(weeks=getattr(settings, 'SCHOOL_ANNUAL_MESSAGES_START', 12)))
-
+    if slug in ["emis_%s" % g.lower().replace(' ', '_') + '_weekly' for g in ['Teachers', 'Head Teachers', 'SMC']]:
+        _schedule_weekly_scripts(group, connection, ['Teachers', 'Head Teachers', 'SMC'])
+    elif slug == 'emis_teachers_monthly':
+        _schedule_monthly_script(group, connection, 'emis_teachers_monthly', 'last', ['Teachers'])
+    elif slug == 'emis_head_teachers_monthly':
+        _schedule_monthly_script(group, connection, 'emis_head_teachers_monthly', 'last', ['Head Teachers'])
     elif slug == 'emis_smc_monthly':
-        _schedule_monthly_script(group, connection, 'emis_smc_monthly', 28, ['SMC'])
-    elif slug == 'emis_head_teacher_presence':
-        holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
-        if group.name in ['SMC']:
-            d = datetime.datetime.now()
-            # get the date to a thursday
-            d = d + datetime.timedelta((3 - d.weekday()) % 7)
-            in_holiday = True
-            while in_holiday:
-                in_holiday = False
-                for start, end in holidays:
-                    if d >= start and d <= end:
-                        in_holiday = True
-                        break
-                if in_holiday:
-                    d = d + datetime.timedelta(7)
-            sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug='emis_head_teacher_presence'))
-            sp.set_time(d)
-
+        _schedule_monthly_script(group, connection, 'emis_smc_monthly', 5, ['SMC'])
+    elif slug == 'emis_gem_monthly':
+        _schedule_monthly_script(group, connection, 'emis_gem_monthly', 20, ['GEM'])
+    elif slug == 'emis_head_teachers_termly':
+        _schedule_termly_script(group, connection, 'emis_head_teachers_termly', ['Head Teachers'])
+    else:
+        _schedule_termly_script(group, connection, 'emis_smc_termly', ['SMC'])
 
 def emis_autoreg_transition(**kwargs):
 
@@ -407,9 +394,9 @@ def emis_autoreg_transition(**kwargs):
     if role:
         group = find_closest_match(role, Group.objects)
     skipsteps = {
-        'emis_subcounty':['Teachers', 'Head Teachers', 'SMC'],
-        'emis_one_school':['Teachers', 'Head Teachers', 'SMC'],
-        'emis_many_school':['GEM'],
+        'emis_gender':['Head Teachers'],
+        'emis_class':['Teachers'],
+        'emis_school':['GEM'],
     }
     skipped = True
     while group and skipped:
