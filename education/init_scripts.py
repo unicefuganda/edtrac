@@ -137,7 +137,7 @@ def init_scripts():
         'head teachers monthly':[(Poll.TYPE_NUMERIC, 'emis_headteachers_abuse', 'How many abuse cases were recorded in the record book this month?',),
                                 (Poll.TYPE_TEXT, 'emis_headteachers_meals', 'How many children do you think had lunch today? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%',),
                            ],
-        'smc monthly':[(Poll.TYPE_TEXT, 'emis_headteachers_meals', 'How many children do you think had lunch today? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%',),
+        'smc monthly':[(Poll.TYPE_TEXT, 'emis_smc_meals', 'How many children do you think had lunch today? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%',),
                            ],
         'gem monthly':[(Poll.TYPE_TEXT, 'emis_gem_headteacher_present', 'Name the schools where the Head teacher was present at your last visit? Separate schools with a comma e.g St Peters PS, St John PS',),
                        (Poll.TYPE_TEXT, 'emis_gem_headteacher_absent', 'Name the schools where the Head teacher was absent at your last visit? Separate schools with a comma e.g St Peters PS, St John PS',),

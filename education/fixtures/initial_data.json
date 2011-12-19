@@ -499,7 +499,7 @@
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
-            "question": "How many children did you observe having a meal at lunch today, Reply with ONE of the following- none, very few, less than half, more than half, very many", 
+            "question": "How many children do you think had lunch today? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%", 
             "sites": [
                 5
             ], 
@@ -1930,7 +1930,7 @@
             "num_tries": 1, 
             "start_offset": 60, 
             "message": "", 
-            "poll": 132, 
+            "poll": 104, 
             "order": 0, 
             "giveup_offset": 86400
         }
