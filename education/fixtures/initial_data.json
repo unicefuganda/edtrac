@@ -1,4 +1,5 @@
-[   {
+[   
+    {
         "pk": 1,
         "model": "sites.site",
         "fields": {
@@ -13,1125 +14,13 @@
             "domain": "emis.rapidsms.org",
             "name": ""
         }
-    },
-    {
-        "pk": 159, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Head Teacher presense at School at Last Visit", 
-            "created": "2011-08-03 11:18:00", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:18:00", 
-            "type": "emisbool", 
-            "slug": "gemteachers_htpresent", 
-            "name": "Head Teacher presense at School at Last Visit"
-        }
-    }, 
-    {
-        "pk": 100, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "A response value for a Poll with expected location-based responses", 
-            "created": "2011-08-03 11:17:02", 
-            "datatype": "object", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:02", 
-            "type": null, 
-            "slug": "poll_location_value", 
-            "name": "Location"
-        }
-    }, 
-    {
-        "pk": 97, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "The location associated with a particular contact", 
-            "created": "2011-04-28 18:45:42", 
-            "datatype": "object", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 2, 
-            "modified": "2011-04-28 18:45:42", 
-            "type": null, 
-            "slug": "contact_location", 
-            "name": "Location"
-        }
-    }, 
-    {
-        "pk": 101, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "The location associated with a particular contact", 
-            "created": "2011-08-03 11:17:02", 
-            "datatype": "object", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:02", 
-            "type": null, 
-            "slug": "contact_location", 
-            "name": "Location"
-        }
-    }, 
-    {
-        "pk": 96, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "The location associated with a particular contact", 
-            "created": "2011-03-21 10:25:34", 
-            "datatype": "object", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 3, 
-            "modified": "2011-03-21 10:25:34", 
-            "type": null, 
-            "slug": "contact_location", 
-            "name": "Location"
-        }
-    }, 
-    {
-        "pk": 98, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "A response value for a Poll with expected numeric responses", 
-            "created": "2011-08-03 11:17:01", 
-            "datatype": "float", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:02", 
-            "type": null, 
-            "slug": "poll_number_value", 
-            "name": "Number"
-        }
-    }, 
-    {
-        "pk": 157, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of Abuse Cases Reported", 
-            "created": "2011-08-03 11:17:59", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:59", 
-            "type": "int", 
-            "slug": "gemabuse_cases", 
-            "name": "Number of Abuse Cases Reported"
-        }
-    }, 
-    {
-        "pk": 142, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of boys enrolled in P1", 
-            "created": "2011-08-03 11:17:56", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:56", 
-            "type": "int", 
-            "slug": "enrolledb_p1", 
-            "name": "Number of boys enrolled in P1"
-        }
-    }, 
-    {
-        "pk": 143, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of boys enrolled in P2", 
-            "created": "2011-08-03 11:17:56", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:56", 
-            "type": "int", 
-            "slug": "enrolledb_p2", 
-            "name": "Number of boys enrolled in P2"
-        }
-    }, 
-    {
-        "pk": 144, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of boys enrolled in P3", 
-            "created": "2011-08-03 11:17:56", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:56", 
-            "type": "int", 
-            "slug": "enrolledb_p3", 
-            "name": "Number of boys enrolled in P3"
-        }
-    }, 
-    {
-        "pk": 145, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of boys enrolled in P4", 
-            "created": "2011-08-03 11:17:56", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:56", 
-            "type": "int", 
-            "slug": "enrolledb_p4", 
-            "name": "Number of boys enrolled in P4"
-        }
-    }, 
-    {
-        "pk": 146, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of boys enrolled in P5", 
-            "created": "2011-08-03 11:17:56", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:56", 
-            "type": "int", 
-            "slug": "enrolledb_p5", 
-            "name": "Number of boys enrolled in P5"
-        }
-    }, 
-    {
-        "pk": 147, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of boys enrolled in P6", 
-            "created": "2011-08-03 11:17:57", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:57", 
-            "type": "int", 
-            "slug": "enrolledb_p6", 
-            "name": "Number of boys enrolled in P6"
-        }
-    }, 
-    {
-        "pk": 148, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of boys enrolled in P7", 
-            "created": "2011-08-03 11:17:57", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:57", 
-            "type": "int", 
-            "slug": "enrolledb_p7", 
-            "name": "Number of boys enrolled in P7"
-        }
-    }, 
-    {
-        "pk": 102, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of boys in P1", 
-            "created": "2011-08-03 11:17:48", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:48", 
-            "type": "int", 
-            "slug": "boys_p1", 
-            "name": "Number of boys in P1"
-        }
-    }, 
-    {
-        "pk": 103, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of boys in P2", 
-            "created": "2011-08-03 11:17:49", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:49", 
-            "type": "int", 
-            "slug": "boys_p2", 
-            "name": "Number of boys in P2"
-        }
-    }, 
-    {
-        "pk": 104, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of boys in P3", 
-            "created": "2011-08-03 11:17:49", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:49", 
-            "type": "int", 
-            "slug": "boys_p3", 
-            "name": "Number of boys in P3"
-        }
-    }, 
-    {
-        "pk": 105, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of boys in P4", 
-            "created": "2011-08-03 11:17:49", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:50", 
-            "type": "int", 
-            "slug": "boys_p4", 
-            "name": "Number of boys in P4"
-        }
-    }, 
-    {
-        "pk": 106, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of boys in P5", 
-            "created": "2011-08-03 11:17:50", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:50", 
-            "type": "int", 
-            "slug": "boys_p5", 
-            "name": "Number of boys in P5"
-        }
-    }, 
-    {
-        "pk": 107, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of boys in P6", 
-            "created": "2011-08-03 11:17:50", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:50", 
-            "type": "int", 
-            "slug": "boys_p6", 
-            "name": "Number of boys in P6"
-        }
-    }, 
-    {
-        "pk": 108, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of boys in P7", 
-            "created": "2011-08-03 11:17:50", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:50", 
-            "type": "int", 
-            "slug": "boys_p7", 
-            "name": "Number of boys in P7"
-        }
-    }, 
-    {
-        "pk": 118, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of classrooms for P1", 
-            "created": "2011-08-03 11:17:51", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:51", 
-            "type": "int", 
-            "slug": "classrooms_p1", 
-            "name": "Number of classrooms for P1"
-        }
-    }, 
-    {
-        "pk": 119, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of classrooms for P2", 
-            "created": "2011-08-03 11:17:51", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:51", 
-            "type": "int", 
-            "slug": "classrooms_p2", 
-            "name": "Number of classrooms for P2"
-        }
-    }, 
-    {
-        "pk": 120, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of classrooms for P3", 
-            "created": "2011-08-03 11:17:52", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:52", 
-            "type": "int", 
-            "slug": "classrooms_p3", 
-            "name": "Number of classrooms for P3"
-        }
-    }, 
-    {
-        "pk": 121, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of classrooms for P4", 
-            "created": "2011-08-03 11:17:52", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:52", 
-            "type": "int", 
-            "slug": "classrooms_p4", 
-            "name": "Number of classrooms for P4"
-        }
-    }, 
-    {
-        "pk": 122, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of classrooms for P5", 
-            "created": "2011-08-03 11:17:52", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:52", 
-            "type": "int", 
-            "slug": "classrooms_p5", 
-            "name": "Number of classrooms for P5"
-        }
-    }, 
-    {
-        "pk": 123, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of classrooms for P6", 
-            "created": "2011-08-03 11:17:53", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:53", 
-            "type": "int", 
-            "slug": "classrooms_p6", 
-            "name": "Number of classrooms for P6"
-        }
-    }, 
-    {
-        "pk": 124, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of classrooms for P7", 
-            "created": "2011-08-03 11:17:53", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:53", 
-            "type": "int", 
-            "slug": "classrooms_p7", 
-            "name": "Number of classrooms for P7"
-        }
-    }, 
-    {
-        "pk": 125, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of classrooms in use for P1", 
-            "created": "2011-08-03 11:17:53", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:53", 
-            "type": "int", 
-            "slug": "classroomsused_p1", 
-            "name": "Number of classrooms in use for P1"
-        }
-    }, 
-    {
-        "pk": 126, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of classrooms in use for P2", 
-            "created": "2011-08-03 11:17:53", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:53", 
-            "type": "int", 
-            "slug": "classroomsused_p2", 
-            "name": "Number of classrooms in use for P2"
-        }
-    }, 
-    {
-        "pk": 127, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of classrooms in use for P3", 
-            "created": "2011-08-03 11:17:53", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:53", 
-            "type": "int", 
-            "slug": "classroomsused_p3", 
-            "name": "Number of classrooms in use for P3"
-        }
-    }, 
-    {
-        "pk": 128, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of classrooms in use for P4", 
-            "created": "2011-08-03 11:17:53", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:53", 
-            "type": "int", 
-            "slug": "classroomsused_p4", 
-            "name": "Number of classrooms in use for P4"
-        }
-    }, 
-    {
-        "pk": 129, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of classrooms in use for P5", 
-            "created": "2011-08-03 11:17:54", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:54", 
-            "type": "int", 
-            "slug": "classroomsused_p5", 
-            "name": "Number of classrooms in use for P5"
-        }
-    }, 
-    {
-        "pk": 130, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of classrooms in use for P6", 
-            "created": "2011-08-03 11:17:54", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:54", 
-            "type": "int", 
-            "slug": "classroomsused_p6", 
-            "name": "Number of classrooms in use for P6"
-        }
-    }, 
-    {
-        "pk": 131, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of classrooms in use for P7", 
-            "created": "2011-08-03 11:17:54", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:54", 
-            "type": "int", 
-            "slug": "classroomsused_p7", 
-            "name": "Number of classrooms in use for P7"
-        }
-    }, 
-    {
-        "pk": 140, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of Female Teachers Deployed", 
-            "created": "2011-08-03 11:17:55", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:55", 
-            "type": "int", 
-            "slug": "deploy_f", 
-            "name": "Number of Female Teachers Deployed"
-        }
-    }, 
-    {
-        "pk": 116, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of female teachers present", 
-            "created": "2011-08-03 11:17:51", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-15 14:58:42", 
-            "type": "int", 
-            "slug": "teachers_f", 
-            "name": "Number of female teachers present"
-        }
-    }, 
-    {
-        "pk": 149, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of girls enrolled in P1", 
-            "created": "2011-08-03 11:17:57", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:57", 
-            "type": "int", 
-            "slug": "enrolledg_p1", 
-            "name": "Number of girls enrolled in P1"
-        }
-    }, 
-    {
-        "pk": 150, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of girls enrolled in P2", 
-            "created": "2011-08-03 11:17:57", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:57", 
-            "type": "int", 
-            "slug": "enrolledg_p2", 
-            "name": "Number of girls enrolled in P2"
-        }
-    }, 
-    {
-        "pk": 151, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of girls enrolled in P3", 
-            "created": "2011-08-03 11:17:58", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:58", 
-            "type": "int", 
-            "slug": "enrolledg_p3", 
-            "name": "Number of girls enrolled in P3"
-        }
-    }, 
-    {
-        "pk": 152, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of girls enrolled in P4", 
-            "created": "2011-08-03 11:17:58", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:58", 
-            "type": "int", 
-            "slug": "enrolledg_p4", 
-            "name": "Number of girls enrolled in P4"
-        }
-    }, 
-    {
-        "pk": 153, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of girls enrolled in P5", 
-            "created": "2011-08-03 11:17:58", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:58", 
-            "type": "int", 
-            "slug": "enrolledg_p5", 
-            "name": "Number of girls enrolled in P5"
-        }
-    }, 
-    {
-        "pk": 154, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of girls enrolled in P6", 
-            "created": "2011-08-03 11:17:58", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:58", 
-            "type": "int", 
-            "slug": "enrolledg_p6", 
-            "name": "Number of girls enrolled in P6"
-        }
-    }, 
-    {
-        "pk": 155, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of girls enrolled in P7", 
-            "created": "2011-08-03 11:17:59", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:59", 
-            "type": "int", 
-            "slug": "enrolledg_p7", 
-            "name": "Number of girls enrolled in P7"
-        }
-    }, 
-    {
-        "pk": 109, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of girls in P1", 
-            "created": "2011-08-03 11:17:50", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:50", 
-            "type": "int", 
-            "slug": "girls_p1", 
-            "name": "Number of girls in P1"
-        }
-    }, 
-    {
-        "pk": 110, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of girls in P2", 
-            "created": "2011-08-03 11:17:50", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:50", 
-            "type": "int", 
-            "slug": "girls_p2", 
-            "name": "Number of girls in P2"
-        }
-    }, 
-    {
-        "pk": 111, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of girls in P3", 
-            "created": "2011-08-03 11:17:50", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:50", 
-            "type": "int", 
-            "slug": "girls_p3", 
-            "name": "Number of girls in P3"
-        }
-    }, 
-    {
-        "pk": 112, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of girls in P4", 
-            "created": "2011-08-03 11:17:50", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:50", 
-            "type": "int", 
-            "slug": "girls_p4", 
-            "name": "Number of girls in P4"
-        }
-    }, 
+    },   
     {
         "pk": 113, 
-        "model": "eav.attribute", 
+        "model": "auth.group", 
         "fields": {
-            "description": "Number of girls in P5", 
-            "created": "2011-08-03 11:17:50", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:50", 
-            "type": "int", 
-            "slug": "girls_p5", 
-            "name": "Number of girls in P5"
-        }
-    }, 
-    {
-        "pk": 114, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of girls in P6", 
-            "created": "2011-08-03 11:17:50", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:50", 
-            "type": "int", 
-            "slug": "girls_p6", 
-            "name": "Number of girls in P6"
-        }
-    }, 
-    {
-        "pk": 115, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of girls in P7", 
-            "created": "2011-08-03 11:17:51", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:51", 
-            "type": "int", 
-            "slug": "girls_p7", 
-            "name": "Number of girls in P7"
-        }
-    }, 
-    {
-        "pk": 134, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of Latries for Female Teachers", 
-            "created": "2011-08-03 11:17:54", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:54", 
-            "type": "int", 
-            "slug": "latrines_f", 
-            "name": "Number of Latries for Female Teachers"
-        }
-    }, 
-    {
-        "pk": 138, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of Latries for Female Teachers", 
-            "created": "2011-08-03 11:17:55", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:55", 
-            "type": "int", 
-            "slug": "latrinesused_f", 
-            "name": "Number of Latrines in use for Female Teachers"
-        }
-    }, 
-    {
-        "pk": 135, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of Latrines for Male Teachers",
-            "created": "2011-08-03 11:17:54", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:54", 
-            "type": "int", 
-            "slug": "latrines_m", 
-            "name": "Number of Latrines for Male Teachers"
-        }
-    }, 
-    {
-        "pk": 139, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of Latries for Male Teachers", 
-            "created": "2011-08-03 11:17:55", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:55", 
-            "type": "int", 
-            "slug": "latrinesused_m", 
-            "name": "Number of Latries for Male Teachers"
-        }
-    }, 
-    {
-        "pk": 137, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of Latrines for Boys", 
-            "created": "2011-08-03 11:17:55", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:55", 
-            "type": "int", 
-            "slug": "latrinesused_b", 
-            "name": "Number of Latrines for Boys"
-        }
-    }, 
-    {
-        "pk": 133, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of Latrines for Boys", 
-            "created": "2011-08-03 11:17:54", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:54", 
-            "type": "int", 
-            "slug": "latrines_b", 
-            "name": "Number of Latrines for Boys"
-        }
-    }, 
-    {
-        "pk": 132, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of Latrines for Girls", 
-            "created": "2011-08-03 11:17:54", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:54", 
-            "type": "int", 
-            "slug": "latrines_g", 
-            "name": "Number of Latrines for Girls"
-        }
-    }, 
-    {
-        "pk": 136, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of Latrines for Girls", 
-            "created": "2011-08-03 11:17:55", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:55", 
-            "type": "int", 
-            "slug": "latrinesused_g", 
-            "name": "Number of Latrines for Girls"
-        }
-    }, 
-    {
-        "pk": 141, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of Male Teachers Deployed", 
-            "created": "2011-08-03 11:17:55", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:56", 
-            "type": "int", 
-            "slug": "deploy_m", 
-            "name": "Number of Male Teachers Deployed"
-        }
-    }, 
-    {
-        "pk": 117, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of male teachers present", 
-            "created": "2011-08-03 11:17:51", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-15 14:58:52", 
-            "type": "int", 
-            "slug": "teachers_m", 
-            "name": "Number of male teachers present"
-        }
-    }, 
-    {
-        "pk": 160, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of shared latrines by Everybody", 
-            "created": "2011-09-21 10:34:05", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-09-21 10:34:05", 
-            "type": null, 
-            "slug": "latrines_s", 
-            "name": "Number of shared latrines by Everybody"
-        }
-    }, 
-    {
-        "pk": 161, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of shared latrines by Pupils", 
-            "created": "2011-09-21 10:34:08", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-09-21 10:34:08", 
-            "type": null, 
-            "slug": "latrines_sp", 
-            "name": "Number of shared latrines by Pupils"
-        }
-    }, 
-    {
-        "pk": 162, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of shared latrines by Teachers", 
-            "created": "2011-09-21 10:34:10", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-09-21 10:34:10", 
-            "type": null, 
-            "slug": "latrines_st", 
-            "name": "Number of shared latrines by Teachers"
-        }
-    }, 
-    {
-        "pk": 163, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of shared latrines used by Everybody", 
-            "created": "2011-09-21 10:35:51", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-09-21 10:35:51", 
-            "type": null, 
-            "slug": "latrinesused_s", 
-            "name": "Number of shared latrines used by Everybody"
-        }
-    }, 
-    {
-        "pk": 164, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of shared latrines used by Pupils", 
-            "created": "2011-09-21 10:35:53", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-09-21 10:35:53", 
-            "type": null, 
-            "slug": "latrinesused_sp", 
-            "name": "Number of shared latrines used by Pupils"
-        }
-    }, 
-    {
-        "pk": 165, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "Number of shared latrines used by Teachers", 
-            "created": "2011-09-21 10:35:54", 
-            "datatype": "int", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-09-21 10:35:54", 
-            "type": null, 
-            "slug": "latrinesused_st", 
-            "name": "Number of shared latrines used by Teachers"
-        }
-    }, 
-    {
-        "pk": 158, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "School Code", 
-            "created": "2011-08-03 11:17:59", 
-            "datatype": "text", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:59", 
-            "type": "text", 
-            "slug": "gemteachers_schoolcode", 
-            "name": "School Code"
-        }
-    }, 
-    {
-        "pk": 156, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "School Name", 
-            "created": "2011-08-03 11:17:59", 
-            "datatype": "text", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:59", 
-            "type": "text", 
-            "slug": "gemabuse_school", 
-            "name": "School Name"
-        }
-    }, 
-    {
-        "pk": 99, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "A response value for a Poll with expected text responses", 
-            "created": "2011-08-03 11:17:02", 
-            "datatype": "text", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:02", 
-            "type": null, 
-            "slug": "poll_text_value", 
-            "name": "Text"
+            "name": "Admins", 
+            "permissions": []
         }
     }, 
     {
@@ -1202,7 +91,7 @@
         "pk": 111, 
         "model": "auth.group", 
         "fields": {
-            "name": "Other EMIS Reporters", 
+            "name": "Other Reporters", 
             "permissions": []
         }
     }, 
@@ -1215,1607 +104,202 @@
         }
     }, 
     {
-        "pk": 12, 
-        "model": "rapidsms_xforms.xform", 
-        "fields": {
-            "name": "Boys Attendance", 
-            "keyword": "boys", 
-            "created": "2011-08-03 11:17:48", 
-            "modified": "2011-08-03 11:17:48", 
-            "site": 5, 
-            "owner": 1, 
-            "separator": ",;:*.\\s\"", 
-            "active": true, 
-            "command_prefix": "", 
-            "response": "", 
-            "keyword_prefix": "", 
-            "description": "Weekly Attendance for Boys"
-        }
-    }, 
-    {
-        "pk": 13, 
-        "model": "rapidsms_xforms.xform", 
-        "fields": {
-            "name": "Girls Attendance", 
-            "keyword": "girls", 
-            "created": "2011-08-03 11:17:50", 
-            "modified": "2011-08-03 11:17:50", 
-            "site": 5, 
-            "owner": 1, 
-            "separator": ",;:*.\\s\"", 
-            "active": true, 
-            "command_prefix": "", 
-            "response": "", 
-            "keyword_prefix": "", 
-            "description": "Weekly Attendance for Girls"
-        }
-    }, 
-    {
-        "pk": 14, 
-        "model": "rapidsms_xforms.xform", 
-        "fields": {
-            "name": "Teachers Attendance", 
-            "keyword": "teachers", 
-            "created": "2011-08-03 11:17:51", 
-            "modified": "2011-08-03 11:17:51", 
-            "site": 5, 
-            "owner": 1, 
-            "separator": ",;:*.\\s\"", 
-            "active": true, 
-            "command_prefix": "", 
-            "response": "", 
-            "keyword_prefix": "", 
-            "description": "Weekly Attendance for Teachers"
-        }
-    }, 
-    {
-        "pk": 15, 
-        "model": "rapidsms_xforms.xform", 
-        "fields": {
-            "name": "Classrooms", 
-            "keyword": "classrooms", 
-            "created": "2011-08-03 11:17:51", 
-            "modified": "2011-08-03 11:17:51", 
-            "site": 5, 
-            "owner": 1, 
-            "separator": ",;:*.\\s\"", 
-            "active": true, 
-            "command_prefix": "", 
-            "response": "", 
-            "keyword_prefix": "", 
-            "description": "Classrooms at School"
-        }
-    }, 
-    {
-        "pk": 16, 
-        "model": "rapidsms_xforms.xform", 
-        "fields": {
-            "name": "Used Classrooms", 
-            "keyword": "classroomsused", 
-            "created": "2011-08-03 11:17:53", 
-            "modified": "2011-08-03 11:17:53", 
-            "site": 5, 
-            "owner": 1, 
-            "separator": ",;:*.\\s\"", 
-            "active": true, 
-            "command_prefix": "", 
-            "response": "", 
-            "keyword_prefix": "", 
-            "description": "Classrooms in use at School"
-        }
-    }, 
-    {
-        "pk": 17, 
-        "model": "rapidsms_xforms.xform", 
-        "fields": {
-            "name": "Latrines", 
-            "keyword": "latrines", 
-            "created": "2011-08-03 11:17:54", 
-            "modified": "2011-08-03 11:17:54", 
-            "site": 5, 
-            "owner": 1, 
-            "separator": ",;:*.\\s\"", 
-            "active": true, 
-            "command_prefix": "", 
-            "response": "", 
-            "keyword_prefix": "", 
-            "description": "Latrines at School"
-        }
-    }, 
-    {
-        "pk": 18, 
-        "model": "rapidsms_xforms.xform", 
-        "fields": {
-            "name": "Used Latrines", 
-            "keyword": "latrinesused", 
-            "created": "2011-08-03 11:17:55", 
-            "modified": "2011-08-03 11:17:55", 
-            "site": 5, 
-            "owner": 1, 
-            "separator": ",;:*.\\s\"", 
-            "active": true, 
-            "command_prefix": "", 
-            "response": "", 
-            "keyword_prefix": "", 
-            "description": "Latrines in use at School"
-        }
-    }, 
-    {
-        "pk": 19, 
-        "model": "rapidsms_xforms.xform", 
-        "fields": {
-            "name": "Deployment", 
-            "keyword": "deploy", 
-            "created": "2011-08-03 11:17:55", 
-            "modified": "2011-08-03 11:17:55", 
-            "site": 5, 
-            "owner": 1, 
-            "separator": ",;:*.\\s\"", 
-            "active": true, 
-            "command_prefix": "", 
-            "response": "", 
-            "keyword_prefix": "", 
-            "description": "Teacher Deployment"
-        }
-    }, 
-    {
-        "pk": 20, 
-        "model": "rapidsms_xforms.xform", 
-        "fields": {
-            "name": "Boys Enrolment", 
-            "keyword": "enrolledb", 
-            "created": "2011-08-03 11:17:56", 
-            "modified": "2011-08-03 11:17:56", 
-            "site": 5, 
-            "owner": 1, 
-            "separator": ",;:*.\\s\"", 
-            "active": true, 
-            "command_prefix": "", 
-            "response": "", 
-            "keyword_prefix": "", 
-            "description": "Number of Boys enrolled at School"
-        }
-    }, 
-    {
-        "pk": 21, 
-        "model": "rapidsms_xforms.xform", 
-        "fields": {
-            "name": "Girls Enrolment", 
-            "keyword": "enrolledg", 
-            "created": "2011-08-03 11:17:57", 
-            "modified": "2011-08-03 11:17:57", 
-            "site": 5, 
-            "owner": 1, 
-            "separator": ",;:*.\\s\"", 
-            "active": true, 
-            "command_prefix": "", 
-            "response": "", 
-            "keyword_prefix": "", 
-            "description": "Number of Girls enrolled at School"
-        }
-    }, 
-    {
-        "pk": 22, 
-        "model": "rapidsms_xforms.xform", 
-        "fields": {
-            "name": "GEM Abuse Cases", 
-            "keyword": "gemabuse", 
-            "created": "2011-08-03 11:17:59", 
-            "modified": "2011-08-03 11:17:59", 
-            "site": 5, 
-            "owner": 1, 
-            "separator": ",;:*.\\s\"", 
-            "active": true, 
-            "command_prefix": "", 
-            "response": "", 
-            "keyword_prefix": "", 
-            "description": "Number of abuses happening in Schools reported to GEM"
-        }
-    }, 
-    {
-        "pk": 23, 
-        "model": "rapidsms_xforms.xform", 
-        "fields": {
-            "name": "GEM Teacher Attendance", 
-            "keyword": "gemteachers", 
-            "created": "2011-08-03 11:17:59", 
-            "modified": "2011-08-03 11:17:59", 
-            "site": 5, 
-            "owner": 1, 
-            "separator": ",;:*.\\s\"", 
-            "active": true, 
-            "command_prefix": "", 
-            "response": "", 
-            "keyword_prefix": "", 
-            "description": "Number of Head Teacher presence at School based on last Visit"
-        }
-    }, 
-    {
-        "pk": 102, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p1", 
-            "order": 0, 
-            "xform": 12
-        }
-    }, 
-    {
-        "pk": 109, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p1", 
-            "order": 0, 
-            "xform": 13
-        }
-    }, 
-    {
-        "pk": 116, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "f", 
-            "order": 0, 
-            "xform": 14
-        }
-    }, 
-    {
-        "pk": 118, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p1", 
-            "order": 0, 
-            "xform": 15
-        }
-    }, 
-    {
-        "pk": 125, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p1", 
-            "order": 0, 
-            "xform": 16
-        }
-    }, 
-    {
-        "pk": 132, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "g", 
-            "order": 0, 
-            "xform": 17
-        }
-    }, 
-    {
-        "pk": 136, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "g", 
-            "order": 0, 
-            "xform": 18
-        }
-    }, 
-    {
-        "pk": 140, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "f", 
-            "order": 0, 
-            "xform": 19
-        }
-    }, 
-    {
-        "pk": 142, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p1", 
-            "order": 0, 
-            "xform": 20
-        }
-    }, 
-    {
-        "pk": 149, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p1", 
-            "order": 0, 
-            "xform": 21
-        }
-    }, 
-    {
-        "pk": 156, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "text", 
-            "command": "school", 
-            "order": 1, 
-            "xform": 22
-        }
-    }, 
-    {
-        "pk": 158, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "text", 
-            "command": "schoolcode", 
-            "order": 0, 
-            "xform": 23
-        }
-    }, 
-    {
-        "pk": 103, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p2", 
-            "order": 1, 
-            "xform": 12
-        }
-    }, 
-    {
-        "pk": 110, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p2", 
-            "order": 1, 
-            "xform": 13
-        }
-    }, 
-    {
-        "pk": 117, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "m", 
-            "order": 1, 
-            "xform": 14
-        }
-    }, 
-    {
-        "pk": 119, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p2", 
-            "order": 1, 
-            "xform": 15
-        }
-    }, 
-    {
-        "pk": 126, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p2", 
-            "order": 1, 
-            "xform": 16
-        }
-    }, 
-    {
-        "pk": 133, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "b", 
-            "order": 1, 
-            "xform": 17
-        }
-    }, 
-    {
-        "pk": 137, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "b", 
-            "order": 1, 
-            "xform": 18
-        }
-    }, 
-    {
-        "pk": 141, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "m", 
-            "order": 1, 
-            "xform": 19
-        }
-    }, 
-    {
-        "pk": 143, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p2", 
-            "order": 1, 
-            "xform": 20
-        }
-    }, 
-    {
-        "pk": 150, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p2", 
-            "order": 1, 
-            "xform": 21
-        }
-    }, 
-    {
-        "pk": 157, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "cases", 
-            "order": 0, 
-            "xform": 22
-        }
-    }, 
-    {
-        "pk": 159, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "emisbool", 
-            "command": "htpresent", 
-            "order": 1, 
-            "xform": 23
-        }
-    }, 
-    {
-        "pk": 104, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p3", 
-            "order": 2, 
-            "xform": 12
-        }
-    }, 
-    {
-        "pk": 111, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p3", 
-            "order": 2, 
-            "xform": 13
-        }
-    }, 
-    {
-        "pk": 120, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p3", 
-            "order": 2, 
-            "xform": 15
-        }
-    }, 
-    {
-        "pk": 127, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p3", 
-            "order": 2, 
-            "xform": 16
-        }
-    }, 
-    {
-        "pk": 134, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "f", 
-            "order": 2, 
-            "xform": 17
-        }
-    }, 
-    {
-        "pk": 138, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "f", 
-            "order": 2, 
-            "xform": 18
-        }
-    }, 
-    {
-        "pk": 144, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p3", 
-            "order": 2, 
-            "xform": 20
-        }
-    }, 
-    {
-        "pk": 151, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p3", 
-            "order": 2, 
-            "xform": 21
-        }
-    }, 
-    {
-        "pk": 105, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p4", 
-            "order": 3, 
-            "xform": 12
-        }
-    }, 
-    {
-        "pk": 112, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p4", 
-            "order": 3, 
-            "xform": 13
-        }
-    }, 
-    {
-        "pk": 121, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p4", 
-            "order": 3, 
-            "xform": 15
-        }
-    }, 
-    {
-        "pk": 128, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p4", 
-            "order": 3, 
-            "xform": 16
-        }
-    }, 
-    {
-        "pk": 135, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "m", 
-            "order": 3, 
-            "xform": 17
-        }
-    }, 
-    {
-        "pk": 139, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "m", 
-            "order": 3, 
-            "xform": 18
-        }
-    }, 
-    {
-        "pk": 145, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p4", 
-            "order": 3, 
-            "xform": 20
-        }
-    }, 
-    {
-        "pk": 152, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p4", 
-            "order": 3, 
-            "xform": 21
-        }
-    }, 
-    {
-        "pk": 106, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p5", 
-            "order": 4, 
-            "xform": 12
-        }
-    }, 
-    {
-        "pk": 113, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p5", 
-            "order": 4, 
-            "xform": 13
-        }
-    }, 
-    {
-        "pk": 122, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p5", 
-            "order": 4, 
-            "xform": 15
-        }
-    }, 
-    {
-        "pk": 129, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p5", 
-            "order": 4, 
-            "xform": 16
-        }
-    }, 
-    {
-        "pk": 146, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p5", 
-            "order": 4, 
-            "xform": 20
-        }
-    }, 
-    {
-        "pk": 153, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p5", 
-            "order": 4, 
-            "xform": 21
-        }
-    }, 
-    {
-        "pk": 160, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "s", 
-            "order": 4, 
-            "xform": 17
-        }
-    }, 
-    {
-        "pk": 163, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "s", 
-            "order": 4, 
-            "xform": 18
-        }
-    }, 
-    {
-        "pk": 107, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p6", 
-            "order": 5, 
-            "xform": 12
-        }
-    }, 
-    {
         "pk": 114, 
-        "model": "rapidsms_xforms.xformfield", 
+        "model": "auth.group", 
         "fields": {
-            "field_type": "int", 
-            "command": "p6", 
-            "order": 5, 
-            "xform": 13
-        }
-    }, 
-    {
-        "pk": 123, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p6", 
-            "order": 5, 
-            "xform": 15
-        }
-    }, 
-    {
-        "pk": 130, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p6", 
-            "order": 5, 
-            "xform": 16
-        }
-    }, 
-    {
-        "pk": 147, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p6", 
-            "order": 5, 
-            "xform": 20
-        }
-    }, 
-    {
-        "pk": 154, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p6", 
-            "order": 5, 
-            "xform": 21
-        }
-    }, 
-    {
-        "pk": 161, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "sp", 
-            "order": 5, 
-            "xform": 17
-        }
-    }, 
-    {
-        "pk": 164, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "sp", 
-            "order": 5, 
-            "xform": 18
-        }
-    }, 
-    {
-        "pk": 108, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p7", 
-            "order": 6, 
-            "xform": 12
+            "name": "Ministry Officials", 
+            "permissions": []
         }
     }, 
     {
         "pk": 115, 
-        "model": "rapidsms_xforms.xformfield", 
+        "model": "auth.group", 
         "fields": {
-            "field_type": "int", 
-            "command": "p7", 
-            "order": 6, 
-            "xform": 13
-        }
-    }, 
-    {
-        "pk": 124, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p7", 
-            "order": 6, 
-            "xform": 15
-        }
-    }, 
-    {
-        "pk": 131, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p7", 
-            "order": 6, 
-            "xform": 16
-        }
-    }, 
-    {
-        "pk": 148, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p7", 
-            "order": 6, 
-            "xform": 20
-        }
-    }, 
-    {
-        "pk": 155, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "p7", 
-            "order": 6, 
-            "xform": 21
-        }
-    }, 
-    {
-        "pk": 162, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "st", 
-            "order": 6, 
-            "xform": 17
-        }
-    }, 
-    {
-        "pk": 165, 
-        "model": "rapidsms_xforms.xformfield", 
-        "fields": {
-            "field_type": "int", 
-            "command": "st", 
-            "order": 6, 
-            "xform": 18
-        }
-    }, 
-    {
-        "pk": 14, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 102, 
-            "message": "Expected Number of boys in P1, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 15, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 103, 
-            "message": "Expected Number of boys in P2, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 16, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 104, 
-            "message": "Expected Number of boys in P3, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 17, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 105, 
-            "message": "Expected Number of boys in P4, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 18, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 106, 
-            "message": "Expected Number of boys in P5, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 19, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 107, 
-            "message": "Expected Number of boys in P6, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 20, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 108, 
-            "message": "Expected Number of boys in P7, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 21, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 109, 
-            "message": "Expected Number of girls in P1, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 22, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 110, 
-            "message": "Expected Number of girls in P2, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 23, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 111, 
-            "message": "Expected Number of girls in P3, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 24, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 112, 
-            "message": "Expected Number of girls in P4, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 25, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 113, 
-            "message": "Expected Number of girls in P5, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 26, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 114, 
-            "message": "Expected Number of girls in P6, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 27, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 115, 
-            "message": "Expected Number of girls in P7, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 28, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 116, 
-            "message": "Expected Number of female teachers present, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 29, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 117, 
-            "message": "Expected Number of male teachers present, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 30, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 118, 
-            "message": "Expected Number of classrooms for P1, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 31, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 119, 
-            "message": "Expected Number of classrooms for P2, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 32, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 120, 
-            "message": "Expected Number of classrooms for P3, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 33, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 121, 
-            "message": "Expected Number of classrooms for P4, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 34, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 122, 
-            "message": "Expected Number of classrooms for P5, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 35, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 123, 
-            "message": "Expected Number of classrooms for P6, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 36, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 124, 
-            "message": "Expected Number of classrooms for P7, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 37, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 125, 
-            "message": "Expected Number of classrooms in use for P1, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 38, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 126, 
-            "message": "Expected Number of classrooms in use for P2, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 39, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 127, 
-            "message": "Expected Number of classrooms in use for P3, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 40, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 128, 
-            "message": "Expected Number of classrooms in use for P4, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 41, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 129, 
-            "message": "Expected Number of classrooms in use for P5, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 42, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 130, 
-            "message": "Expected Number of classrooms in use for P6, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 43, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 131, 
-            "message": "Expected Number of classrooms in use for P7, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 44, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 132, 
-            "message": "Expected Number of Latrines for Girls, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 45, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 133, 
-            "message": "Expected Number of Latrines for Boys, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 46, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 134, 
-            "message": "Expected Number of Latries for Female Teachers, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 47, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 135, 
-            "message": "Expected Number of Latries for Female Teachers, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 48, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 136, 
-            "message": "Expected Number of Latrines for Girls, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 49, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 137, 
-            "message": "Expected Number of Latrines for Boys, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 50, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 138, 
-            "message": "Expected Number of Latries for Female Teachers, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 51, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 139, 
-            "message": "Expected Number of Latries for Male Teachers, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 52, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 140, 
-            "message": "Expected Number of Female Teachers Deployed, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 53, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 141, 
-            "message": "Expected Number of Male Teachers Deployed, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 54, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 142, 
-            "message": "Expected Number of boys enrolled in P1, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 55, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 143, 
-            "message": "Expected Number of boys enrolled in P2, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 56, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 144, 
-            "message": "Expected Number of boys enrolled in P3, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 57, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 145, 
-            "message": "Expected Number of boys enrolled in P4, none provided.", 
-            "type": "req_val", 
-            "order": 1000
+            "name": "UNICEF Officials", 
+            "permissions": []
         }
     }, 
     {
         "pk": 58, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
+        "model": "auth.user", 
         "fields": {
-            "test": null, 
-            "field": 146, 
-            "message": "Expected Number of boys enrolled in P5, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 59, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 147, 
-            "message": "Expected Number of boys enrolled in P6, none provided.", 
-            "type": "req_val", 
-            "order": 1000
+            "username": "Kaabong", 
+            "first_name": "", 
+            "last_name": "", 
+            "is_active": true, 
+            "is_superuser": false, 
+            "is_staff": false, 
+            "last_login": "2011-12-09 12:21:41", 
+            "groups": [
+                109
+            ], 
+            "user_permissions": [], 
+            "password": "sha1$3d204$67d2d5163f6eb128ef7bf4ee1485874f56731cdf", 
+            "email": "test@test.com", 
+            "date_joined": "2011-09-16 14:20:16"
         }
     }, 
     {
         "pk": 60, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
+        "model": "auth.user", 
         "fields": {
-            "test": null, 
-            "field": 148, 
-            "message": "Expected Number of boys enrolled in P7, none provided.", 
-            "type": "req_val", 
-            "order": 1000
+            "username": "Kabarole", 
+            "first_name": "", 
+            "last_name": "", 
+            "is_active": true, 
+            "is_superuser": false, 
+            "is_staff": false, 
+            "last_login": "2011-12-08 11:59:42", 
+            "groups": [
+                109
+            ], 
+            "user_permissions": [], 
+            "password": "sha1$2ba89$3055861a2e25fde57811a61949e6beefe99692f5", 
+            "email": "test@test.com", 
+            "date_joined": "2011-09-16 14:21:30"
+        }
+    }, 
+    {
+        "pk": 59, 
+        "model": "auth.user", 
+        "fields": {
+            "username": "Kotido", 
+            "first_name": "", 
+            "last_name": "", 
+            "is_active": true, 
+            "is_superuser": false, 
+            "is_staff": false, 
+            "last_login": "2011-12-08 11:55:12", 
+            "groups": [
+                109
+            ], 
+            "user_permissions": [], 
+            "password": "sha1$d4866$7c244394e3a6d6bf59f0cbc637f8c4decda9bc8c", 
+            "email": "test@test.com", 
+            "date_joined": "2011-09-16 14:20:56"
         }
     }, 
     {
         "pk": 61, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
+        "model": "auth.user", 
         "fields": {
-            "test": null, 
-            "field": 149, 
-            "message": "Expected Number of girls enrolled in P1, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 62, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 150, 
-            "message": "Expected Number of girls enrolled in P2, none provided.", 
-            "type": "req_val", 
-            "order": 1000
+            "username": "Kyegegwa", 
+            "first_name": "", 
+            "last_name": "", 
+            "is_active": true, 
+            "is_superuser": false, 
+            "is_staff": false, 
+            "last_login": "2011-12-08 11:57:26", 
+            "groups": [
+                109
+            ], 
+            "user_permissions": [], 
+            "password": "sha1$08ee0$5dad8479abe4baef820724e116591447c32444b2", 
+            "email": "test@test.com", 
+            "date_joined": "2011-09-16 14:22:16"
         }
     }, 
     {
         "pk": 63, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
+        "model": "auth.user", 
         "fields": {
-            "test": null, 
-            "field": 151, 
-            "message": "Expected Number of girls enrolled in P3, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 64, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 152, 
-            "message": "Expected Number of girls enrolled in P4, none provided.", 
-            "type": "req_val", 
-            "order": 1000
+            "username": "Martin.Ngolobe", 
+            "first_name": "", 
+            "last_name": "", 
+            "is_active": true, 
+            "is_superuser": true, 
+            "is_staff": true, 
+            "last_login": "2011-11-16 09:37:00", 
+            "groups": [
+                112
+            ], 
+            "user_permissions": [], 
+            "password": "sha1$86d88$9a631d1a415bc82e19d8298f959c488daada487c", 
+            "email": "mngolobe@unicef.org", 
+            "date_joined": "2011-10-14 10:06:52"
         }
     }, 
     {
         "pk": 65, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
+        "model": "auth.user", 
         "fields": {
-            "test": null, 
-            "field": 153, 
-            "message": "Expected Number of girls enrolled in P5, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 66, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 154, 
-            "message": "Expected Number of girls enrolled in P6, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 67, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 155, 
-            "message": "Expected Number of girls enrolled in P7, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 68, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 156, 
-            "message": "Expected School Code, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 69, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 157, 
-            "message": "Expected Number of Abuse Cases Reported, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 70, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 158, 
-            "message": "Expected School Code, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 71, 
-        "model": "rapidsms_xforms.xformfieldconstraint", 
-        "fields": {
-            "test": null, 
-            "field": 159, 
-            "message": "Expected Head Teacher presense at School at Last Visit, none provided.", 
-            "type": "req_val", 
-            "order": 1000
-        }
-    }, 
-    {
-        "pk": 88, 
-        "model": "poll.poll", 
-        "fields": {
-            "default_response": "", 
-            "name": "emis_role", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "To register,tell us your role? Teacher, Head Teacher, SMC, GEM, CCT, DEO,or District Official.Reply with one of the roles listed.", 
-            "sites": [
-                5
+            "username": "Sam.Odeke", 
+            "first_name": "Sam", 
+            "last_name": "Odeke", 
+            "is_active": true, 
+            "is_superuser": false, 
+            "is_staff": false, 
+            "last_login": "2011-11-18 13:46:50", 
+            "groups": [
+                112
             ], 
-            "user": 1, 
-            "type": "t", 
-            "start_date": null
+            "user_permissions": [], 
+            "password": "sha1$250de$030e63f9de0448ce731cb35c675a2150bd098362", 
+            "email": "", 
+            "date_joined": "2011-11-18 13:46:50"
         }
     }, 
     {
-        "pk": 89, 
-        "model": "poll.poll", 
+        "pk": 64, 
+        "model": "auth.user", 
         "fields": {
-            "default_response": "", 
-            "name": "emis_district", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "What is the name of your district?", 
-            "sites": [
-                5
+            "username": "Fred.Kagwire", 
+            "first_name": "Fred", 
+            "last_name": "Kagwire", 
+            "is_active": true, 
+            "is_superuser": false, 
+            "is_staff": false, 
+            "last_login": "2011-11-16 10:13:39", 
+            "groups": [
+                112
             ], 
-            "user": 1, 
-            "type": "district", 
-            "start_date": null
+            "user_permissions": [], 
+            "password": "sha1$2c21f$0c1817e94c57396afd754fb773b269f8fbaa177e", 
+            "email": "", 
+            "date_joined": "2011-11-16 10:13:39"
         }
     }, 
     {
-        "pk": 90, 
-        "model": "poll.poll", 
+        "pk": 62, 
+        "model": "auth.user", 
         "fields": {
-            "default_response": "", 
-            "name": "emis_subcounty", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "What is the name of your sub county?", 
-            "sites": [
-                5
+            "username": "Simon.Peter.Aturia", 
+            "first_name": "", 
+            "last_name": "", 
+            "is_active": true, 
+            "is_superuser": true, 
+            "is_staff": true, 
+            "last_login": "2011-11-22 14:33:42", 
+            "groups": [
+                112
             ], 
-            "user": 1, 
-            "type": "t", 
-            "start_date": null
+            "user_permissions": [], 
+            "password": "sha1$cc8e4$7e930e22ed7ac45c54f3d974a71ddd809d49e0dd", 
+            "email": "saturia@unicef.org", 
+            "date_joined": "2011-10-14 10:06:52"
         }
     }, 
     {
-        "pk": 91, 
-        "model": "poll.poll", 
+        "pk": 1, 
+        "model": "auth.user", 
         "fields": {
-            "default_response": "", 
-            "name": "emis_one_school", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "What is the name of your school?", 
-            "sites": [
-                5
+            "username": "admin", 
+            "first_name": "", 
+            "last_name": "", 
+            "is_active": true, 
+            "is_superuser": true, 
+            "is_staff": true, 
+            "last_login": "2011-12-16 13:42:54", 
+            "groups": [
+                106, 
+                107
             ], 
-            "user": 1, 
-            "type": "t", 
-            "start_date": null
+            "user_permissions": [], 
+            "password": "sha1$2ff0e$30ad33c5ea22eae40d3ca759567c7e9d49d7ca41", 
+            "email": "david.a.mccann@gmail.com", 
+            "date_joined": "2010-10-25 00:17:35"
         }
-    }, 
-    {
-        "pk": 92, 
-        "model": "poll.poll", 
-        "fields": {
-            "default_response": "", 
-            "name": "emis_many_school", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "Name the schools you are resonsible for.Separate each school name with a comma, for example \"St. Mary Secondary,Pader Primary\"", 
-            "sites": [
-                5
-            ], 
-            "user": 1, 
-            "type": "t", 
-            "start_date": null
-        }
-    }, 
-    {
-        "pk": 93, 
-        "model": "poll.poll", 
-        "fields": {
-            "default_response": "", 
-            "name": "emis_name", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "What is your name?", 
-            "sites": [
-                5
-            ], 
-            "user": 1, 
-            "type": "t", 
-            "start_date": null
-        }
-    }, 
+    },
     {
         "pk": 94, 
         "model": "poll.poll", 
@@ -2831,7 +315,8 @@
             ], 
             "user": 1, 
             "type": "n", 
-            "start_date": null
+            "start_date": null, 
+            "response_type": "a"
         }
     }, 
     {
@@ -2849,7 +334,8 @@
             ], 
             "user": 1, 
             "type": "date", 
-            "start_date": null
+            "start_date": null, 
+            "response_type": "a"
         }
     }, 
     {
@@ -2867,7 +353,8 @@
             ], 
             "user": 1, 
             "type": "date", 
-            "start_date": null
+            "start_date": null, 
+            "response_type": "a"
         }
     }, 
     {
@@ -2885,7 +372,8 @@
             ], 
             "user": 1, 
             "type": "t", 
-            "start_date": null
+            "start_date": null, 
+            "response_type": "a"
         }
     }, 
     {
@@ -2903,7 +391,8 @@
             ], 
             "user": 1, 
             "type": "t", 
-            "start_date": null
+            "start_date": null, 
+            "response_type": "a"
         }
     }, 
     {
@@ -2921,7 +410,8 @@
             ], 
             "user": 1, 
             "type": "t", 
-            "start_date": null
+            "start_date": null, 
+            "response_type": "a"
         }
     }, 
     {
@@ -2939,7 +429,8 @@
             ], 
             "user": 1, 
             "type": "t", 
-            "start_date": null
+            "start_date": null, 
+            "response_type": "a"
         }
     }, 
     {
@@ -2957,7 +448,8 @@
             ], 
             "user": 1, 
             "type": "t", 
-            "start_date": null
+            "start_date": null, 
+            "response_type": "a"
         }
     }, 
     {
@@ -2975,7 +467,8 @@
             ], 
             "user": 1, 
             "type": "t", 
-            "start_date": null
+            "start_date": null, 
+            "response_type": "a"
         }
     }, 
     {
@@ -2993,7 +486,8 @@
             ], 
             "user": 1, 
             "type": "t", 
-            "start_date": null
+            "start_date": null, 
+            "response_type": "a"
         }
     }, 
     {
@@ -3011,7 +505,8 @@
             ], 
             "user": 1, 
             "type": "t", 
-            "start_date": null
+            "start_date": null, 
+            "response_type": "a"
         }
     }, 
     {
@@ -3029,7 +524,8 @@
             ], 
             "user": 1, 
             "type": "t", 
-            "start_date": null
+            "start_date": null, 
+            "response_type": "a"
         }
     }, 
     {
@@ -3047,7 +543,8 @@
             ], 
             "user": 1, 
             "type": "t", 
-            "start_date": null
+            "start_date": null, 
+            "response_type": "a"
         }
     }, 
     {
@@ -3065,7 +562,8 @@
             ], 
             "user": 1, 
             "type": "n", 
-            "start_date": null
+            "start_date": null, 
+            "response_type": "a"
         }
     }, 
     {
@@ -3083,7 +581,8 @@
             ], 
             "user": 1, 
             "type": "t", 
-            "start_date": null
+            "start_date": null, 
+            "response_type": "a"
         }
     }, 
     {
@@ -3101,7 +600,8 @@
             ], 
             "user": 1, 
             "type": "n", 
-            "start_date": null
+            "start_date": null, 
+            "response_type": "a"
         }
     }, 
     {
@@ -3119,19 +619,578 @@
             ], 
             "user": 1, 
             "type": "t", 
-            "start_date": null
+            "start_date": null, 
+            "response_type": "a"
         }
     }, 
     {
-        "pk": 140, 
+        "pk": 89, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_district", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "What is the name of your district?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "district", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 90, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_subcounty", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "What is the name of your sub county?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 91, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_one_school", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "What is the name of your school?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 92, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_many_school", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Name the schools you are resonsible for.Separate each school name with a comma, for example \"St. Mary Secondary,Pader Primary\"", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 93, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_name", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "What is your name?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 88, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_role", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 111, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_female_teachers_attendance", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many female teachers are at school today?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 112, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_male_teachers_attendance", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many male teachers are at school today?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 113, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_smc_upe_grant", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Has UPE capitation grant been displayed on the school notice board? Answer YES or NO", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 114, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_p3curriculum_progress", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "What is the progress of the P3 school curriculum this week?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 115, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_p6curriculum_progress", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "What is the progress of the P6 school curriculum this week?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 116, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_boysp3_attendance", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many P3 boys are at school today?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 117, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_boysp6_attendance", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many P6 boys are at school today?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 118, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_girlsp3_attendance", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many P3 girls are at school today?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 119, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_girlsp6_attendance", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many P6 girls are at school today?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 120, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_boysp3_enrollment", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many boys are enrolled in P3 this term?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 121, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_boysp6_enrollment", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many boys are enrolled in P6 this term?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 122, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_girlsp3_enrollment", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many girls are enrolled in P3 this term?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 123, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_girlsp6_enrollment", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many girls are enrolled in P6 this term?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 124, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_female_teachers_deployment", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many female teachers are deployed in your school this term?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 125, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_male_teachers_deployment", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many male teachers are deployed in your school this term?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 126, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_upe_grant", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Has the UPE grant been displayed on the school notice board? Answer YES or NO", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 127, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_gem_headteacher_present", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Name the schools where the Head teacher was present at your last visit? Separate schools with a comma e.g St Peters PS, St John PS", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 128, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_gem_headteacher_absent", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Name the schools where the Head teacher was absent at your last visit? Separate schools with a comma e.g St Peters PS, St John PS", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 129, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_head_teachers_attendance", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Has the head teacher been at school for at least 3 days? Answer YES or NO", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 130, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_headteachers_abuse", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many abuse cases were recorded in the record book this month?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 131, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_headteachers_meals", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many children do you think had lunch today? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 132, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_headteachers_meals", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many children do you think had lunch today? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 156, 
         "model": "poll.category", 
         "fields": {
             "error_category": false, 
-            "name": "yes", 
+            "name": "no", 
             "color": "", 
             "priority": null, 
             "default": false, 
-            "poll": 105, 
+            "poll": 129, 
+            "response": null
+        }
+    }, 
+    {
+        "pk": 147, 
+        "model": "poll.category", 
+        "fields": {
+            "error_category": false, 
+            "name": "no", 
+            "color": "", 
+            "priority": null, 
+            "default": false, 
+            "poll": 108, 
+            "response": null
+        }
+    }, 
+    {
+        "pk": 153, 
+        "model": "poll.category", 
+        "fields": {
+            "error_category": false, 
+            "name": "no", 
+            "color": "", 
+            "priority": null, 
+            "default": false, 
+            "poll": 126, 
             "response": null
         }
     }, 
@@ -3149,28 +1208,15 @@
         }
     }, 
     {
-        "pk": 142, 
-        "model": "poll.category", 
-        "fields": {
-            "error_category": true, 
-            "name": "unknown", 
-            "color": "", 
-            "priority": null, 
-            "default": true, 
-            "poll": 105, 
-            "response": null
-        }
-    }, 
-    {
-        "pk": 143, 
+        "pk": 150, 
         "model": "poll.category", 
         "fields": {
             "error_category": false, 
-            "name": "yes", 
+            "name": "no", 
             "color": "", 
             "priority": null, 
             "default": false, 
-            "poll": 106, 
+            "poll": 113, 
             "response": null
         }
     }, 
@@ -3188,6 +1234,32 @@
         }
     }, 
     {
+        "pk": 151, 
+        "model": "poll.category", 
+        "fields": {
+            "error_category": true, 
+            "name": "unknown", 
+            "color": "", 
+            "priority": null, 
+            "default": true, 
+            "poll": 113, 
+            "response": null
+        }
+    }, 
+    {
+        "pk": 154, 
+        "model": "poll.category", 
+        "fields": {
+            "error_category": true, 
+            "name": "unknown", 
+            "color": "", 
+            "priority": null, 
+            "default": true, 
+            "poll": 126, 
+            "response": null
+        }
+    }, 
+    {
         "pk": 145, 
         "model": "poll.category", 
         "fields": {
@@ -3196,6 +1268,71 @@
             "color": "", 
             "priority": null, 
             "default": true, 
+            "poll": 106, 
+            "response": null
+        }
+    }, 
+    {
+        "pk": 157, 
+        "model": "poll.category", 
+        "fields": {
+            "error_category": true, 
+            "name": "unknown", 
+            "color": "", 
+            "priority": null, 
+            "default": true, 
+            "poll": 129, 
+            "response": null
+        }
+    }, 
+    {
+        "pk": 142, 
+        "model": "poll.category", 
+        "fields": {
+            "error_category": true, 
+            "name": "unknown", 
+            "color": "", 
+            "priority": null, 
+            "default": true, 
+            "poll": 105, 
+            "response": null
+        }
+    }, 
+    {
+        "pk": 148, 
+        "model": "poll.category", 
+        "fields": {
+            "error_category": true, 
+            "name": "unknown", 
+            "color": "", 
+            "priority": null, 
+            "default": true, 
+            "poll": 108, 
+            "response": null
+        }
+    }, 
+    {
+        "pk": 149, 
+        "model": "poll.category", 
+        "fields": {
+            "error_category": false, 
+            "name": "yes", 
+            "color": "", 
+            "priority": null, 
+            "default": false, 
+            "poll": 113, 
+            "response": null
+        }
+    }, 
+    {
+        "pk": 143, 
+        "model": "poll.category", 
+        "fields": {
+            "error_category": false, 
+            "name": "yes", 
+            "color": "", 
+            "priority": null, 
+            "default": false, 
             "poll": 106, 
             "response": null
         }
@@ -3214,31 +1351,44 @@
         }
     }, 
     {
-        "pk": 147, 
+        "pk": 140, 
         "model": "poll.category", 
         "fields": {
             "error_category": false, 
-            "name": "no", 
+            "name": "yes", 
             "color": "", 
             "priority": null, 
             "default": false, 
-            "poll": 108, 
+            "poll": 105, 
             "response": null
         }
     }, 
     {
-        "pk": 148, 
+        "pk": 152, 
         "model": "poll.category", 
         "fields": {
-            "error_category": true, 
-            "name": "unknown", 
+            "error_category": false, 
+            "name": "yes", 
             "color": "", 
             "priority": null, 
-            "default": true, 
-            "poll": 108, 
+            "default": false, 
+            "poll": 126, 
             "response": null
         }
-    },
+    }, 
+    {
+        "pk": 155, 
+        "model": "poll.category", 
+        "fields": {
+            "error_category": false, 
+            "name": "yes", 
+            "color": "", 
+            "priority": null, 
+            "default": false, 
+            "poll": 129, 
+            "response": null
+        }
+    }, 
     {
         "pk": 88, 
         "model": "poll.rule", 
@@ -3298,6 +1448,46 @@
             "rule_string": "^\\s*(no|nope|nah|nay|n)(\\s|[^a-zA-Z]|$)", 
             "rule_type": "r"
         }
+    }, 
+    {
+        "pk": 94, 
+        "model": "poll.rule", 
+        "fields": {
+            "regex": "^\\s*(yes|yeah|yep|yay|y)(\\s|[^a-zA-Z]|$)", 
+            "category": 152, 
+            "rule_string": "^\\s*(yes|yeah|yep|yay|y)(\\s|[^a-zA-Z]|$)", 
+            "rule_type": "r"
+        }
+    }, 
+    {
+        "pk": 95, 
+        "model": "poll.rule", 
+        "fields": {
+            "regex": "^\\s*(no|nope|nah|nay|n)(\\s|[^a-zA-Z]|$)", 
+            "category": 153, 
+            "rule_string": "^\\s*(no|nope|nah|nay|n)(\\s|[^a-zA-Z]|$)", 
+            "rule_type": "r"
+        }
+    }, 
+    {
+        "pk": 96, 
+        "model": "poll.rule", 
+        "fields": {
+            "regex": "^\\s*(yes|yeah|yep|yay|y)(\\s|[^a-zA-Z]|$)", 
+            "category": 155, 
+            "rule_string": "^\\s*(yes|yeah|yep|yay|y)(\\s|[^a-zA-Z]|$)", 
+            "rule_type": "r"
+        }
+    }, 
+    {
+        "pk": 97, 
+        "model": "poll.rule", 
+        "fields": {
+            "regex": "^\\s*(no|nope|nah|nay|n)(\\s|[^a-zA-Z]|$)", 
+            "category": 156, 
+            "rule_string": "^\\s*(no|nope|nah|nay|n)(\\s|[^a-zA-Z]|$)", 
+            "rule_type": "r"
+        }
     },
     {
         "pk": "emis_autoreg", 
@@ -3311,66 +1501,11 @@
         }
     }, 
     {
-        "pk": "emis_head_teacher_presence", 
+        "pk": "emis_head_teachers_weekly", 
         "model": "script.script", 
         "fields": {
             "enabled": false, 
-            "name": "Education monitoring head teacher presence script", 
-            "sites": [
-                5
-            ]
-        }
-    }, 
-    {
-        "pk": "emis_abuse", 
-        "model": "script.script", 
-        "fields": {
-            "enabled": false, 
-            "name": "Education monitoring abuse script", 
-            "sites": [
-                5
-            ]
-        }
-    }, 
-    {
-        "pk": "emis_meals", 
-        "model": "script.script", 
-        "fields": {
-            "enabled": false, 
-            "name": "Education monitoring meals script", 
-            "sites": [
-                5
-            ]
-        }
-    }, 
-    {
-        "pk": "emis_school_administrative", 
-        "model": "script.script", 
-        "fields": {
-            "enabled": false, 
-            "name": "Education monitoring school administrative script", 
-            "sites": [
-                5
-            ]
-        }
-    }, 
-    {
-        "pk": "emis_annual", 
-        "model": "script.script", 
-        "fields": {
-            "enabled": false, 
-            "name": "Education monitoring annual script", 
-            "sites": [
-                5
-            ]
-        }
-    }, 
-    {
-        "pk": "emis_smc_monthly", 
-        "model": "script.script", 
-        "fields": {
-            "enabled": false, 
-            "name": "Education monitoring smc monthly script", 
+            "name": "Education monitoring head teachers weekly script", 
             "sites": [
                 5
             ]
@@ -3388,295 +1523,404 @@
         }
     }, 
     {
-        "pk": 48, 
-        "model": "script.scriptstep", 
+        "pk": "emis_teachers_monthly", 
+        "model": "script.script", 
         "fields": {
-            "script": "emis_autoreg", 
-            "retry_offset": null, 
-            "rule": "w", 
-            "email": null, 
-            "num_tries": null, 
-            "start_offset": 0, 
-            "message": "Welcome to the SMS based school data collection pilot.The information you provide is valuable to improving the quality of education in Uganda.", 
-            "poll": null, 
-            "order": 0, 
-            "giveup_offset": 60
+            "enabled": false, 
+            "name": "Education monitoring teachers monthly script", 
+            "sites": [
+                5
+            ]
         }
     }, 
     {
-        "pk": 49, 
+        "pk": "emis_teachers_weekly", 
+        "model": "script.script", 
+        "fields": {
+            "enabled": false, 
+            "name": "Education monitoring teachers weekly script", 
+            "sites": [
+                5
+            ]
+        }
+    }, 
+    {
+        "pk": "emis_head_teachers_termly", 
+        "model": "script.script", 
+        "fields": {
+            "enabled": false, 
+            "name": "Education monitoring head teachers termly script", 
+            "sites": [
+                5
+            ]
+        }
+    }, 
+    {
+        "pk": "emis_gem_monthly", 
+        "model": "script.script", 
+        "fields": {
+            "enabled": false, 
+            "name": "Education monitoring gem monthly script", 
+            "sites": [
+                5
+            ]
+        }
+    }, 
+    {
+        "pk": "emis_smc_weekly", 
+        "model": "script.script", 
+        "fields": {
+            "enabled": false, 
+            "name": "Education monitoring smc weekly script", 
+            "sites": [
+                5
+            ]
+        }
+    }, 
+    {
+        "pk": "emis_head_teachers_monthly", 
+        "model": "script.script", 
+        "fields": {
+            "enabled": false, 
+            "name": "Education monitoring head teachers monthly script", 
+            "sites": [
+                5
+            ]
+        }
+    }, 
+    {
+        "pk": "emis_smc_monthly", 
+        "model": "script.script", 
+        "fields": {
+            "enabled": false, 
+            "name": "Education monitoring smc monthly script", 
+            "sites": [
+                5
+            ]
+        }
+    }, 
+    {
+        "pk": 76, 
         "model": "script.scriptstep", 
         "fields": {
-            "script": "emis_autoreg", 
+            "script": "emis_head_teachers_weekly", 
             "retry_offset": 86400, 
             "rule": "R", 
             "email": null, 
             "num_tries": 1, 
-            "start_offset": 0, 
+            "start_offset": 60, 
             "message": "", 
-            "poll": 88, 
+            "poll": 111, 
+            "order": 0, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 77, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_head_teachers_weekly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 112, 
             "order": 1, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 50, 
+        "pk": 78, 
         "model": "script.scriptstep", 
         "fields": {
-            "script": "emis_autoreg", 
+            "script": "emis_teachers_monthly", 
             "retry_offset": 86400, 
-            "rule": "M", 
+            "rule": "R", 
             "email": null, 
             "num_tries": 1, 
-            "start_offset": 0, 
+            "start_offset": 60, 
             "message": "", 
-            "poll": 89, 
+            "poll": 114, 
+            "order": 0, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 79, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_teachers_monthly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 115, 
+            "order": 1, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 80, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_teachers_weekly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 116, 
+            "order": 0, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 81, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_teachers_weekly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 117, 
+            "order": 1, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 82, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_teachers_weekly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 118, 
             "order": 2, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 51, 
+        "pk": 83, 
         "model": "script.scriptstep", 
         "fields": {
-            "script": "emis_autoreg", 
+            "script": "emis_teachers_weekly", 
             "retry_offset": 86400, 
             "rule": "R", 
             "email": null, 
             "num_tries": 1, 
-            "start_offset": 0, 
+            "start_offset": 60, 
             "message": "", 
-            "poll": 90, 
+            "poll": 119, 
             "order": 3, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 52, 
+        "pk": 84, 
         "model": "script.scriptstep", 
         "fields": {
-            "script": "emis_autoreg", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 0, 
-            "message": "", 
-            "poll": 91, 
-            "order": 4, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 53, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "emis_autoreg", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 0, 
-            "message": "", 
-            "poll": 92, 
-            "order": 5, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 54, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "emis_autoreg", 
+            "script": "emis_head_teachers_termly", 
             "retry_offset": 86400, 
             "rule": "R", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
             "message": "", 
-            "poll": 93, 
-            "order": 6, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 55, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "emis_autoreg", 
-            "retry_offset": null, 
-            "rule": "w", 
-            "email": null, 
-            "num_tries": null, 
-            "start_offset": 60, 
-            "message": "Welcome to the school monitoring pilot.The information you provide contributes to keeping children in school.", 
-            "poll": null, 
-            "order": 7, 
-            "giveup_offset": 0
-        }
-    }, 
-    {
-        "pk": 56, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "emis_school_administrative", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 94, 
+            "poll": 120, 
             "order": 0, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 57, 
+        "pk": 85, 
         "model": "script.scriptstep", 
         "fields": {
-            "script": "emis_school_administrative", 
+            "script": "emis_head_teachers_termly", 
             "retry_offset": 86400, 
             "rule": "R", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
             "message": "", 
-            "poll": 95, 
+            "poll": 121, 
             "order": 1, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 58, 
+        "pk": 86, 
         "model": "script.scriptstep", 
         "fields": {
-            "script": "emis_school_administrative", 
+            "script": "emis_head_teachers_termly", 
             "retry_offset": 86400, 
             "rule": "R", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
             "message": "", 
-            "poll": 96, 
+            "poll": 122, 
             "order": 2, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 59, 
+        "pk": 87, 
         "model": "script.scriptstep", 
         "fields": {
-            "script": "emis_annual", 
+            "script": "emis_head_teachers_termly", 
             "retry_offset": 86400, 
             "rule": "R", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
             "message": "", 
-            "poll": 97, 
-            "order": 0, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 60, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "emis_annual", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 98, 
-            "order": 1, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 61, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "emis_annual", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 99, 
-            "order": 2, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 62, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "emis_annual", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 100, 
+            "poll": 123, 
             "order": 3, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 63, 
+        "pk": 88, 
         "model": "script.scriptstep", 
         "fields": {
-            "script": "emis_annual", 
+            "script": "emis_head_teachers_termly", 
             "retry_offset": 86400, 
             "rule": "R", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
             "message": "", 
-            "poll": 101, 
+            "poll": 124, 
             "order": 4, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 64, 
+        "pk": 89, 
         "model": "script.scriptstep", 
         "fields": {
-            "script": "emis_annual", 
+            "script": "emis_head_teachers_termly", 
             "retry_offset": 86400, 
             "rule": "R", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
             "message": "", 
-            "poll": 102, 
+            "poll": 125, 
             "order": 5, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 65, 
+        "pk": 90, 
         "model": "script.scriptstep", 
         "fields": {
-            "script": "emis_annual", 
+            "script": "emis_head_teachers_termly", 
             "retry_offset": 86400, 
             "rule": "R", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
             "message": "", 
-            "poll": 103, 
+            "poll": 126, 
             "order": 6, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 66, 
+        "pk": 91, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_gem_monthly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 127, 
+            "order": 0, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 92, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_gem_monthly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 128, 
+            "order": 1, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 93, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_smc_weekly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 129, 
+            "order": 0, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 94, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_head_teachers_monthly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 130, 
+            "order": 0, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 95, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_head_teachers_monthly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 131, 
+            "order": 1, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 96, 
         "model": "script.scriptstep", 
         "fields": {
             "script": "emis_smc_monthly", 
@@ -3686,105 +1930,21 @@
             "num_tries": 1, 
             "start_offset": 60, 
             "message": "", 
-            "poll": 104, 
+            "poll": 132, 
             "order": 0, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 70, 
-        "model": "script.scriptstep", 
+        "pk": 1, 
+        "model": "script.email", 
         "fields": {
-            "script": "emis_head_teacher_presence", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 108, 
-            "order": 0, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 71, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "emis_abuse", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 109, 
-            "order": 0, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 72, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "emis_meals", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 110, 
-            "order": 0, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 73, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "emis_smc_termly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 105, 
-            "order": 0, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 74, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "emis_smc_termly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 106, 
-            "order": 1, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 75, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "emis_smc_termly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 107, 
-            "order": 2, 
-            "giveup_offset": 86400
+            "message": "{% load message_content %}{{ connection|excel_reminder_msg }}{{ connection|outstanding_deliveries_msg }}", 
+            "sender": "no-reply@uganda.rapidsms.org", 
+            "recipients": [
+                1
+            ], 
+            "subject": "{% load message_content %}SupplyTracking: {{ connection|email_subject }}"
         }
     }
 ]
