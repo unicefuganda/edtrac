@@ -27,7 +27,7 @@ from unregister.models import Blacklist
 
 
 class ModelTest(TestCase): #pragma: no cover
-
+    
     def fake_incoming(self, message, connection=None):
         if connection is None:
             connection = self.connection
@@ -106,6 +106,7 @@ class ModelTest(TestCase): #pragma: no cover
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
             site_id = getattr(settings, 'SITE_ID', 1)
             Site.objects.get_or_create(pk=site_id, defaults={'domain':'rapidemis.com'})
+#        fixtures = ['initial_data.json']
         User.objects.get_or_create(username='admin')
         self.backend = Backend.objects.create(name='test')
         self.connection = Connection.objects.create(identity='8675309', backend=self.backend)
@@ -142,9 +143,10 @@ class ModelTest(TestCase): #pragma: no cover
 
         self.fake_script_dialog(script_prog, self.connection, [\
             ('emis_role', 'teacher'), \
+            ('emis_class', 'P3'),\
             ('emis_district', 'kampala'), \
             ('emis_subcounty', 'kampala'), \
-            ('emis_one_school', 'st. marys'), \
+            ('emis_school', 'st. marys'), \
             ('emis_name', 'testy mctesterton'), \
         ])
         self.assertEquals(EmisReporter.objects.count(), 1)
@@ -153,6 +155,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(contact.reporting_location, self.kampala_subcounty)
         self.assertEquals(contact.schools.all()[0], self.kampala_school)
         self.assertEquals(contact.groups.all()[0].name, 'Teachers')
+        self.assertEquals(contact.grade, 'P3')
         self.assertEquals(contact.default_connection, self.connection)
 
     def testBadAutoReg(self):
