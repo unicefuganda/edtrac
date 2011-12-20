@@ -1,13 +1,9 @@
-#from django.db import connection
 from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
-from django.views.generic import TemplateView
 from django.contrib.auth.decorators import user_passes_test
-from django.db.models import Sum
-from django import forms
 from .forms import *
 from .models import *
 from uganda_common.utils import *
