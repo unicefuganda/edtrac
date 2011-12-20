@@ -218,15 +218,6 @@ def get_flagged_messages(**kwargs):
 
     return MessageFlag.objects.all()
 
-def list_poll_responses(poll):
-    """
-    pass a poll object and you get yourself a dict with locations vs responses (quite handy for the charts)
-    dependecies: Contact and Location must be in your module; this lists all Poll responses by district
-    """
-    to_ret = {}
-    for location in Location.objects.filter(type__name="district"):
-        to_ret[location.__unicode__()] = poll.responses.filter(contact__in=Contact.objects.filter(reporting_location=location))
-    return to_ret
 
 
 def compute_average_percentage(list_of_percentages):
@@ -242,6 +233,18 @@ def compute_average_percentage(list_of_percentages):
         print "non-numeric characters used"
         pass
     return sum(sanitize) / float(len(sanitize))
+
+
+def list_poll_responses(poll):
+    """
+    pass a poll object and you get yourself a dict with locations vs responses (quite handy for the charts)
+    dependecies: Contact and Location must be in your module; this lists all Poll responses by district
+    """
+    to_ret = {}
+    for location in Location.objects.filter(type__name="district"):
+        to_ret[location.__unicode__()] = compute_average_percentage([msg.text for msg in poll.responses.filter(contact__in=Contact.objects.filter(reporting_location=location))])
+    return to_ret
+
 
 
 
