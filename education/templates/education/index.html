@@ -1,3 +1,5 @@
+{# What the dashboard of Ministry of Education will contain; template will be inherited for other role-based views #}
+
 {% extends "layout.html" %}
 {% block stylesheets %}
     <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/layout.css" />
@@ -29,7 +31,6 @@
      {% endif %}
 </div>
 
-
 <div class="charts">
     <div id="col-1">
         <div id="abuse">
@@ -48,6 +49,7 @@
         </div>
         <div id="capitation">
             <h3>UPE Capitation Progress this School Term</h3>
+            <<< some chart >>>
         </div>
     </div>
 </div>

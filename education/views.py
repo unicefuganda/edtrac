@@ -23,15 +23,34 @@ import  re
 Num_REG = re.compile('\d+')
 
 super_user_required=user_passes_test(lambda u: u.groups.filter(name__in=['Admins','DFO']).exists() or u.is_superuser)
+
+
+#def create_vars(model):
+#    cv =  {}
+#    for m in model:
+#        cv[]
+
+
 @login_required
-def index(request):
-    return render_to_response("education/index.html", {}, RequestContext(request))
+def index(request, **kwargs):
+    """
+    kwargs is where we list the variables that can be passed as our context
+    use as follows: index(request, context_vars={'some_model_queryset'=Model.objects.all})
+    """
+    if not kwargs['context_vars']:
+        return render_to_response("education/index.html", {}, RequestContext(request))
+    else:
+        context_vars = kwargs['context_vars']
+        return render_to_response("education/index.html",context_vars, RequestContext(request))
 
 @login_required
 def dashboard(request):
     profile = request.user.get_profile()
     if profile.is_member_of('DEO'):
         return deo_dashboard(request)
+    # use index() as follows for other roles.
+    #elif profile.is_member_of('SOME_ROLE'):
+    #   return index(request, context_vars={'Abuses':Abuse.objects.all()})
     else:
         return index(request)
 #        return HttpResponseRedirect('/emis/stats/')
