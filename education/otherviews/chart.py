@@ -3,6 +3,7 @@ from uganda_common.views import XFormChartView
 from rapidsms.contrib.locations.models import Location
 from poll.models import Poll
 import datetime
+from education.utils import compute_average_percentage, list_poll_responses
 #POPULATE DATA for charts
 
 #slug names

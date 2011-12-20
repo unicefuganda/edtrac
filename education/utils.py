@@ -221,7 +221,7 @@ def get_flagged_messages(**kwargs):
 def list_poll_responses(poll):
     """
     pass a poll object and you get yourself a dict with locations vs responses (quite handy for the charts)
-    dependecies: Contact and Location must be in your module
+    dependecies: Contact and Location must be in your module; this lists all Poll responses by district
     """
     to_ret = {}
     for location in Location.objects.filter(type__name="district"):
