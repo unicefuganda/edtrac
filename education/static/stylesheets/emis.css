@@ -291,11 +291,16 @@ div#girl_container{
 }
 
 div.charts {
-    padding:10px;
-    width:600px;
+    width:inherit;
 }
 div#col-1, div#col-2{
-    width:300px;
+    width:50%;
+}
+div#col-1, div#col-2 h3{
+    text-align: center;
+}
+div#col-1{
+    float:left;
 }
 div#col-2{
     float:right;
