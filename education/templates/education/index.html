@@ -38,6 +38,7 @@
 
 {% block indicators %}
         <div class="wrappit">
+
         <div class="map">
             <div class="img">
                 <h3>Boys Attendance this week</h3>
@@ -60,7 +61,7 @@
 
         <div class="weekly_data">
             <h2>This Week</h2>
-            <table>
+            <table style="border-bottom: 20px;">
                 <thead>
                 <th>
                     Group
@@ -140,7 +141,20 @@
                     </td>
                 </tr>
             </table>
+
+            <span style="color: gray; margin-bottom:10px; padding:20px; font-size: 1.5em;">
+                <!--TODO: pass variable that will display this dynamically -->
+                <u>30% of Total Reporters Reported</u>
+            </span><br/>
+            <span style="color: gray; padding:20px; font-size: 1.5em;">
+                <!--TODO: pass variable that will display this dynamically -->
+                15% of Community Reporters Reported
+            </span>
+
+
         </div>
+
+
         </div>
 {% endblock %}
 
