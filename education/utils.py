@@ -218,6 +218,33 @@ def get_flagged_messages(**kwargs):
 
     return MessageFlag.objects.all()
 
+def list_poll_responses(poll):
+    """
+    pass a poll object and you get yourself a dict with locations vs responses (quite handy for the charts)
+    dependecies: Contact and Location must be in your module
+    """
+    to_ret = {}
+    for location in Location.objects.filter(type__name="district"):
+        to_ret[location.__unicode__()] = poll.responses.filter(contact__in=Contact.objects.filter(reporting_location=location))
+    return to_ret
+
+
+def compute_average_percentage(list_of_percentages):
+    """Average percentage"""
+    sanitize = []
+    try:
+        for i in list_of_percentages:
+            if isinstance(float(i), float):
+                sanitize.append(float(i))
+            else:
+                pass
+    except ValueError:
+        print "non-numeric characters used"
+        pass
+    return sum(sanitize) / float(len(sanitize))
+
+
+
 ## a manual reschedule of all monthly polls
 #def reschedule_monthly_polls():
 #    slugs = ['emis_abuse', 'emis_meals', 'emis_smc_monthly']
