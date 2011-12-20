@@ -14,6 +14,1030 @@
             "domain": "emis.rapidsms.org",
             "name": ""
         }
+    },
+    {
+        "pk": 159, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Head Teacher presense at School at Last Visit", 
+            "created": "2011-08-03 11:18:00", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:18:00", 
+            "type": "emisbool", 
+            "slug": "gemteachers_htpresent", 
+            "name": "Head Teacher presense at School at Last Visit"
+        }
+    }, 
+    {
+        "pk": 100, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "A response value for a Poll with expected location-based responses", 
+            "created": "2011-08-03 11:17:02", 
+            "datatype": "object", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:02", 
+            "type": null, 
+            "slug": "poll_location_value", 
+            "name": "Location"
+        }
+    }, 
+    {
+        "pk": 96, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "The location associated with a particular contact", 
+            "created": "2011-03-21 10:25:34", 
+            "datatype": "object", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 3, 
+            "modified": "2011-03-21 10:25:34", 
+            "type": null, 
+            "slug": "contact_location", 
+            "name": "Location"
+        }
+    }, 
+    {
+        "pk": 101, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "The location associated with a particular contact", 
+            "created": "2011-08-03 11:17:02", 
+            "datatype": "object", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:02", 
+            "type": null, 
+            "slug": "contact_location", 
+            "name": "Location"
+        }
+    }, 
+    {
+        "pk": 97, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "The location associated with a particular contact", 
+            "created": "2011-04-28 18:45:42", 
+            "datatype": "object", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 2, 
+            "modified": "2011-04-28 18:45:42", 
+            "type": null, 
+            "slug": "contact_location", 
+            "name": "Location"
+        }
+    }, 
+    {
+        "pk": 98, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "A response value for a Poll with expected numeric responses", 
+            "created": "2011-08-03 11:17:01", 
+            "datatype": "float", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:02", 
+            "type": null, 
+            "slug": "poll_number_value", 
+            "name": "Number"
+        }
+    }, 
+    {
+        "pk": 157, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of Abuse Cases Reported", 
+            "created": "2011-08-03 11:17:59", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:59", 
+            "type": "int", 
+            "slug": "gemabuse_cases", 
+            "name": "Number of Abuse Cases Reported"
+        }
+    }, 
+    {
+        "pk": 140, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of Female Teachers Deployed", 
+            "created": "2011-08-03 11:17:55", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:55", 
+            "type": "int", 
+            "slug": "deploy_f", 
+            "name": "Number of Female Teachers Deployed"
+        }
+    }, 
+    {
+        "pk": 134, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of Latries for Female Teachers", 
+            "created": "2011-08-03 11:17:54", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:54", 
+            "type": "int", 
+            "slug": "latrines_f", 
+            "name": "Number of Latries for Female Teachers"
+        }
+    }, 
+    {
+        "pk": 139, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of Latries for Male Teachers", 
+            "created": "2011-08-03 11:17:55", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:55", 
+            "type": "int", 
+            "slug": "latrinesused_m", 
+            "name": "Number of Latries for Male Teachers"
+        }
+    },
+    {
+        "pk": 141, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of Male Teachers Deployed", 
+            "created": "2011-08-03 11:17:55", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:56", 
+            "type": "int", 
+            "slug": "deploy_m", 
+            "name": "Number of Male Teachers Deployed"
+        }
+    }, 
+    {
+        "pk": 142, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of boys enrolled in P1", 
+            "created": "2011-08-03 11:17:56", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:56", 
+            "type": "int", 
+            "slug": "enrolledb_p1", 
+            "name": "Number of boys enrolled in P1"
+        }
+    }, 
+    {
+        "pk": 143, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of boys enrolled in P2", 
+            "created": "2011-08-03 11:17:56", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:56", 
+            "type": "int", 
+            "slug": "enrolledb_p2", 
+            "name": "Number of boys enrolled in P2"
+        }
+    }, 
+    {
+        "pk": 144, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of boys enrolled in P3", 
+            "created": "2011-08-03 11:17:56", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:56", 
+            "type": "int", 
+            "slug": "enrolledb_p3", 
+            "name": "Number of boys enrolled in P3"
+        }
+    }, 
+    {
+        "pk": 145, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of boys enrolled in P4", 
+            "created": "2011-08-03 11:17:56", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:56", 
+            "type": "int", 
+            "slug": "enrolledb_p4", 
+            "name": "Number of boys enrolled in P4"
+        }
+    }, 
+    {
+        "pk": 146, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of boys enrolled in P5", 
+            "created": "2011-08-03 11:17:56", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:56", 
+            "type": "int", 
+            "slug": "enrolledb_p5", 
+            "name": "Number of boys enrolled in P5"
+        }
+    }, 
+    {
+        "pk": 147, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of boys enrolled in P6", 
+            "created": "2011-08-03 11:17:57", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:57", 
+            "type": "int", 
+            "slug": "enrolledb_p6", 
+            "name": "Number of boys enrolled in P6"
+        }
+    }, 
+    {
+        "pk": 148, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of boys enrolled in P7", 
+            "created": "2011-08-03 11:17:57", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:57", 
+            "type": "int", 
+            "slug": "enrolledb_p7", 
+            "name": "Number of boys enrolled in P7"
+        }
+    }, 
+    {
+        "pk": 102, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of boys in P1", 
+            "created": "2011-08-03 11:17:48", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:48", 
+            "type": "int", 
+            "slug": "boys_p1", 
+            "name": "Number of boys in P1"
+        }
+    }, 
+    {
+        "pk": 103, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of boys in P2", 
+            "created": "2011-08-03 11:17:49", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:49", 
+            "type": "int", 
+            "slug": "boys_p2", 
+            "name": "Number of boys in P2"
+        }
+    }, 
+    {
+        "pk": 104, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of boys in P3", 
+            "created": "2011-08-03 11:17:49", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:49", 
+            "type": "int", 
+            "slug": "boys_p3", 
+            "name": "Number of boys in P3"
+        }
+    }, 
+    {
+        "pk": 105, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of boys in P4", 
+            "created": "2011-08-03 11:17:49", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:50", 
+            "type": "int", 
+            "slug": "boys_p4", 
+            "name": "Number of boys in P4"
+        }
+    }, 
+    {
+        "pk": 106, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of boys in P5", 
+            "created": "2011-08-03 11:17:50", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:50", 
+            "type": "int", 
+            "slug": "boys_p5", 
+            "name": "Number of boys in P5"
+        }
+    }, 
+    {
+        "pk": 107, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of boys in P6", 
+            "created": "2011-08-03 11:17:50", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:50", 
+            "type": "int", 
+            "slug": "boys_p6", 
+            "name": "Number of boys in P6"
+        }
+    }, 
+    {
+        "pk": 108, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of boys in P7", 
+            "created": "2011-08-03 11:17:50", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:50", 
+            "type": "int", 
+            "slug": "boys_p7", 
+            "name": "Number of boys in P7"
+        }
+    }, 
+    {
+        "pk": 118, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of classrooms for P1", 
+            "created": "2011-08-03 11:17:51", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:51", 
+            "type": "int", 
+            "slug": "classrooms_p1", 
+            "name": "Number of classrooms for P1"
+        }
+    }, 
+    {
+        "pk": 119, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of classrooms for P2", 
+            "created": "2011-08-03 11:17:51", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:51", 
+            "type": "int", 
+            "slug": "classrooms_p2", 
+            "name": "Number of classrooms for P2"
+        }
+    }, 
+    {
+        "pk": 120, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of classrooms for P3", 
+            "created": "2011-08-03 11:17:52", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:52", 
+            "type": "int", 
+            "slug": "classrooms_p3", 
+            "name": "Number of classrooms for P3"
+        }
+    }, 
+    {
+        "pk": 121, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of classrooms for P4", 
+            "created": "2011-08-03 11:17:52", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:52", 
+            "type": "int", 
+            "slug": "classrooms_p4", 
+            "name": "Number of classrooms for P4"
+        }
+    }, 
+    {
+        "pk": 122, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of classrooms for P5", 
+            "created": "2011-08-03 11:17:52", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:52", 
+            "type": "int", 
+            "slug": "classrooms_p5", 
+            "name": "Number of classrooms for P5"
+        }
+    }, 
+    {
+        "pk": 123, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of classrooms for P6", 
+            "created": "2011-08-03 11:17:53", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:53", 
+            "type": "int", 
+            "slug": "classrooms_p6", 
+            "name": "Number of classrooms for P6"
+        }
+    }, 
+    {
+        "pk": 124, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of classrooms for P7", 
+            "created": "2011-08-03 11:17:53", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:53", 
+            "type": "int", 
+            "slug": "classrooms_p7", 
+            "name": "Number of classrooms for P7"
+        }
+    }, 
+    {
+        "pk": 125, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of classrooms in use for P1", 
+            "created": "2011-08-03 11:17:53", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:53", 
+            "type": "int", 
+            "slug": "classroomsused_p1", 
+            "name": "Number of classrooms in use for P1"
+        }
+    }, 
+    {
+        "pk": 126, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of classrooms in use for P2", 
+            "created": "2011-08-03 11:17:53", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:53", 
+            "type": "int", 
+            "slug": "classroomsused_p2", 
+            "name": "Number of classrooms in use for P2"
+        }
+    }, 
+    {
+        "pk": 127, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of classrooms in use for P3", 
+            "created": "2011-08-03 11:17:53", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:53", 
+            "type": "int", 
+            "slug": "classroomsused_p3", 
+            "name": "Number of classrooms in use for P3"
+        }
+    }, 
+    {
+        "pk": 128, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of classrooms in use for P4", 
+            "created": "2011-08-03 11:17:53", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:53", 
+            "type": "int", 
+            "slug": "classroomsused_p4", 
+            "name": "Number of classrooms in use for P4"
+        }
+    }, 
+    {
+        "pk": 129, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of classrooms in use for P5", 
+            "created": "2011-08-03 11:17:54", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:54", 
+            "type": "int", 
+            "slug": "classroomsused_p5", 
+            "name": "Number of classrooms in use for P5"
+        }
+    }, 
+    {
+        "pk": 130, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of classrooms in use for P6", 
+            "created": "2011-08-03 11:17:54", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:54", 
+            "type": "int", 
+            "slug": "classroomsused_p6", 
+            "name": "Number of classrooms in use for P6"
+        }
+    }, 
+    {
+        "pk": 131, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of classrooms in use for P7", 
+            "created": "2011-08-03 11:17:54", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:54", 
+            "type": "int", 
+            "slug": "classroomsused_p7", 
+            "name": "Number of classrooms in use for P7"
+        }
+    }, 
+    {
+        "pk": 116, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of female teachers present", 
+            "created": "2011-08-03 11:17:51", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-15 14:58:42", 
+            "type": "int", 
+            "slug": "teachers_f", 
+            "name": "Number of female teachers present"
+        }
+    }, 
+    {
+        "pk": 149, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of girls enrolled in P1", 
+            "created": "2011-08-03 11:17:57", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:57", 
+            "type": "int", 
+            "slug": "enrolledg_p1", 
+            "name": "Number of girls enrolled in P1"
+        }
+    }, 
+    {
+        "pk": 150, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of girls enrolled in P2", 
+            "created": "2011-08-03 11:17:57", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:57", 
+            "type": "int", 
+            "slug": "enrolledg_p2", 
+            "name": "Number of girls enrolled in P2"
+        }
+    }, 
+    {
+        "pk": 151, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of girls enrolled in P3", 
+            "created": "2011-08-03 11:17:58", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:58", 
+            "type": "int", 
+            "slug": "enrolledg_p3", 
+            "name": "Number of girls enrolled in P3"
+        }
+    }, 
+    {
+        "pk": 152, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of girls enrolled in P4", 
+            "created": "2011-08-03 11:17:58", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:58", 
+            "type": "int", 
+            "slug": "enrolledg_p4", 
+            "name": "Number of girls enrolled in P4"
+        }
+    }, 
+    {
+        "pk": 153, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of girls enrolled in P5", 
+            "created": "2011-08-03 11:17:58", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:58", 
+            "type": "int", 
+            "slug": "enrolledg_p5", 
+            "name": "Number of girls enrolled in P5"
+        }
+    }, 
+    {
+        "pk": 154, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of girls enrolled in P6", 
+            "created": "2011-08-03 11:17:58", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:58", 
+            "type": "int", 
+            "slug": "enrolledg_p6", 
+            "name": "Number of girls enrolled in P6"
+        }
+    }, 
+    {
+        "pk": 155, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of girls enrolled in P7", 
+            "created": "2011-08-03 11:17:59", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:59", 
+            "type": "int", 
+            "slug": "enrolledg_p7", 
+            "name": "Number of girls enrolled in P7"
+        }
+    }, 
+    {
+        "pk": 109, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of girls in P1", 
+            "created": "2011-08-03 11:17:50", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:50", 
+            "type": "int", 
+            "slug": "girls_p1", 
+            "name": "Number of girls in P1"
+        }
+    }, 
+    {
+        "pk": 110, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of girls in P2", 
+            "created": "2011-08-03 11:17:50", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:50", 
+            "type": "int", 
+            "slug": "girls_p2", 
+            "name": "Number of girls in P2"
+        }
+    }, 
+    {
+        "pk": 111, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of girls in P3", 
+            "created": "2011-08-03 11:17:50", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:50", 
+            "type": "int", 
+            "slug": "girls_p3", 
+            "name": "Number of girls in P3"
+        }
+    }, 
+    {
+        "pk": 112, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of girls in P4", 
+            "created": "2011-08-03 11:17:50", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:50", 
+            "type": "int", 
+            "slug": "girls_p4", 
+            "name": "Number of girls in P4"
+        }
+    }, 
+    {
+        "pk": 113, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of girls in P5", 
+            "created": "2011-08-03 11:17:50", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:50", 
+            "type": "int", 
+            "slug": "girls_p5", 
+            "name": "Number of girls in P5"
+        }
+    }, 
+    {
+        "pk": 114, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of girls in P6", 
+            "created": "2011-08-03 11:17:50", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:50", 
+            "type": "int", 
+            "slug": "girls_p6", 
+            "name": "Number of girls in P6"
+        }
+    }, 
+    {
+        "pk": 115, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of girls in P7", 
+            "created": "2011-08-03 11:17:51", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:51", 
+            "type": "int", 
+            "slug": "girls_p7", 
+            "name": "Number of girls in P7"
+        }
+    }, 
+    {
+        "pk": 117, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of male teachers present", 
+            "created": "2011-08-03 11:17:51", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-15 14:58:52", 
+            "type": "int", 
+            "slug": "teachers_m", 
+            "name": "Number of male teachers present"
+        }
+    }, 
+    {
+        "pk": 160, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of shared latrines by Everybody", 
+            "created": "2011-09-21 10:34:05", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-09-21 10:34:05", 
+            "type": null, 
+            "slug": "latrines_s", 
+            "name": "Number of shared latrines by Everybody"
+        }
+    }, 
+    {
+        "pk": 161, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of shared latrines by Pupils", 
+            "created": "2011-09-21 10:34:08", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-09-21 10:34:08", 
+            "type": null, 
+            "slug": "latrines_sp", 
+            "name": "Number of shared latrines by Pupils"
+        }
+    }, 
+    {
+        "pk": 162, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of shared latrines by Teachers", 
+            "created": "2011-09-21 10:34:10", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-09-21 10:34:10", 
+            "type": null, 
+            "slug": "latrines_st", 
+            "name": "Number of shared latrines by Teachers"
+        }
+    }, 
+    {
+        "pk": 163, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of shared latrines used by Everybody", 
+            "created": "2011-09-21 10:35:51", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-09-21 10:35:51", 
+            "type": null, 
+            "slug": "latrinesused_s", 
+            "name": "Number of shared latrines used by Everybody"
+        }
+    }, 
+    {
+        "pk": 164, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of shared latrines used by Pupils", 
+            "created": "2011-09-21 10:35:53", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-09-21 10:35:53", 
+            "type": null, 
+            "slug": "latrinesused_sp", 
+            "name": "Number of shared latrines used by Pupils"
+        }
+    }, 
+    {
+        "pk": 165, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of shared latrines used by Teachers", 
+            "created": "2011-09-21 10:35:54", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-09-21 10:35:54", 
+            "type": null, 
+            "slug": "latrinesused_st", 
+            "name": "Number of shared latrines used by Teachers"
+        }
+    }, 
+    {
+        "pk": 158, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "School Code", 
+            "created": "2011-08-03 11:17:59", 
+            "datatype": "text", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:59", 
+            "type": "text", 
+            "slug": "gemteachers_schoolcode", 
+            "name": "School Code"
+        }
+    }, 
+    {
+        "pk": 156, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "School Name", 
+            "created": "2011-08-03 11:17:59", 
+            "datatype": "text", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:59", 
+            "type": "text", 
+            "slug": "gemabuse_school", 
+            "name": "School Name"
+        }
+    }, 
+    {
+        "pk": 99, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "A response value for a Poll with expected text responses", 
+            "created": "2011-08-03 11:17:02", 
+            "datatype": "text", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:02", 
+            "type": null, 
+            "slug": "poll_text_value", 
+            "name": "Text"
+        }
     },   
     {
         "pk": 113, 
@@ -491,25 +1515,6 @@
         }
     }, 
     {
-        "pk": 104, 
-        "model": "poll.poll", 
-        "fields": {
-            "default_response": "", 
-            "name": "emis_smc_meals", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "How many children do you think had lunch today? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%", 
-            "sites": [
-                5
-            ], 
-            "user": 1, 
-            "type": "t", 
-            "start_date": null, 
-            "response_type": "a"
-        }
-    }, 
-    {
         "pk": 105, 
         "model": "poll.poll", 
         "fields": {
@@ -529,34 +1534,15 @@
         }
     }, 
     {
-        "pk": 106, 
+        "pk": 121, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
-            "name": "emis_inspection_yesno", 
+            "name": "emis_boysp6_enrollment", 
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
-            "question": "Do you know if your school was inspected this term? Answer YES if there was inspection and NO if there was no inspection", 
-            "sites": [
-                5
-            ], 
-            "user": 1, 
-            "type": "t", 
-            "start_date": null, 
-            "response_type": "a"
-        }
-    }, 
-    {
-        "pk": 107, 
-        "model": "poll.poll", 
-        "fields": {
-            "default_response": "", 
-            "name": "emis_meetings", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "How many SMC meetings have you held this term?Give number of meetings held, if none, reply 0.", 
+            "question": "How many boys are enrolled in P6 this term?", 
             "sites": [
                 5
             ], 
@@ -567,15 +1553,91 @@
         }
     }, 
     {
-        "pk": 108, 
+        "pk": 122, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
-            "name": "emis_absence", 
+            "name": "emis_girlsp3_enrollment", 
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
-            "question": "Do you know if the head teacher was present at school today? Answer YES or NO", 
+            "question": "How many girls are enrolled in P3 this term?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 123, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_girlsp6_enrollment", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many girls are enrolled in P6 this term?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 124, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_female_teachers_deployment", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many female teachers are deployed in your school this term?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 125, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_male_teachers_deployment", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many male teachers are deployed in your school this term?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 126, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_upe_grant", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Has the UPE grant been displayed on the school notice board? Answer YES or NO", 
             "sites": [
                 5
             ], 
@@ -586,11 +1648,68 @@
         }
     }, 
     {
-        "pk": 109, 
+        "pk": 127, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
-            "name": "emis_abuse", 
+            "name": "emis_gem_headteacher_present", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Name the schools where the Head teacher was present at your last visit? Separate schools with a comma e.g St Peters PS, St John PS", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 128, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_gem_headteacher_absent", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Name the schools where the Head teacher was absent at your last visit? Separate schools with a comma e.g St Peters PS, St John PS", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 129, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_head_teachers_attendance", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Has the head teacher been at school for at least 3 days? Answer YES or NO", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 130, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_headteachers_abuse", 
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
@@ -605,15 +1724,15 @@
         }
     }, 
     {
-        "pk": 110, 
+        "pk": 131, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
-            "name": "emis_meals", 
+            "name": "emis_headteachers_meals", 
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
-            "question": "How many children had meals at lunch today? Reply with ONE of the following - none, very few, less than half, more than half, very many", 
+            "question": "How many children do you think had lunch today? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%", 
             "sites": [
                 5
             ], 
@@ -624,20 +1743,77 @@
         }
     }, 
     {
-        "pk": 89, 
+        "pk": 132, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
-            "name": "emis_district", 
+            "name": "emis_headteachers_meals", 
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
-            "question": "What is the name of your district?", 
+            "question": "How many children do you think had lunch today? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%", 
             "sites": [
                 5
             ], 
             "user": 1, 
-            "type": "district", 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 133, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_gender", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Are you female or male?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 134, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_class", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Which class do you teach? P3 or P6", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 135, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_school", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "What is the name of your school?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
             "start_date": null, 
             "response_type": "a"
         }
@@ -928,110 +2104,15 @@
         }
     }, 
     {
-        "pk": 121, 
+        "pk": 104, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
-            "name": "emis_boysp6_enrollment", 
+            "name": "emis_smc_meals", 
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
-            "question": "How many boys are enrolled in P6 this term?", 
-            "sites": [
-                5
-            ], 
-            "user": 1, 
-            "type": "n", 
-            "start_date": null, 
-            "response_type": "a"
-        }
-    }, 
-    {
-        "pk": 122, 
-        "model": "poll.poll", 
-        "fields": {
-            "default_response": "", 
-            "name": "emis_girlsp3_enrollment", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "How many girls are enrolled in P3 this term?", 
-            "sites": [
-                5
-            ], 
-            "user": 1, 
-            "type": "n", 
-            "start_date": null, 
-            "response_type": "a"
-        }
-    }, 
-    {
-        "pk": 123, 
-        "model": "poll.poll", 
-        "fields": {
-            "default_response": "", 
-            "name": "emis_girlsp6_enrollment", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "How many girls are enrolled in P6 this term?", 
-            "sites": [
-                5
-            ], 
-            "user": 1, 
-            "type": "n", 
-            "start_date": null, 
-            "response_type": "a"
-        }
-    }, 
-    {
-        "pk": 124, 
-        "model": "poll.poll", 
-        "fields": {
-            "default_response": "", 
-            "name": "emis_female_teachers_deployment", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "How many female teachers are deployed in your school this term?", 
-            "sites": [
-                5
-            ], 
-            "user": 1, 
-            "type": "n", 
-            "start_date": null, 
-            "response_type": "a"
-        }
-    }, 
-    {
-        "pk": 125, 
-        "model": "poll.poll", 
-        "fields": {
-            "default_response": "", 
-            "name": "emis_male_teachers_deployment", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "How many male teachers are deployed in your school this term?", 
-            "sites": [
-                5
-            ], 
-            "user": 1, 
-            "type": "n", 
-            "start_date": null, 
-            "response_type": "a"
-        }
-    }, 
-    {
-        "pk": 126, 
-        "model": "poll.poll", 
-        "fields": {
-            "default_response": "", 
-            "name": "emis_upe_grant", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "Has the UPE grant been displayed on the school notice board? Answer YES or NO", 
+            "question": "How many children do you think had lunch today? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%", 
             "sites": [
                 5
             ], 
@@ -1042,15 +2123,15 @@
         }
     }, 
     {
-        "pk": 127, 
+        "pk": 106, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
-            "name": "emis_gem_headteacher_present", 
+            "name": "emis_inspection_yesno", 
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
-            "question": "Name the schools where the Head teacher was present at your last visit? Separate schools with a comma e.g St Peters PS, St John PS", 
+            "question": "Do you know if your school was inspected this term? Answer YES if there was inspection and NO if there was no inspection", 
             "sites": [
                 5
             ], 
@@ -1061,15 +2142,34 @@
         }
     }, 
     {
-        "pk": 128, 
+        "pk": 107, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
-            "name": "emis_gem_headteacher_absent", 
+            "name": "emis_meetings", 
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
-            "question": "Name the schools where the Head teacher was absent at your last visit? Separate schools with a comma e.g St Peters PS, St John PS", 
+            "question": "How many SMC meetings have you held this term?Give number of meetings held, if none, reply 0.", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 108, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_absence", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Do you know if the head teacher was present at school today? Answer YES or NO", 
             "sites": [
                 5
             ], 
@@ -1080,30 +2180,11 @@
         }
     }, 
     {
-        "pk": 129, 
+        "pk": 109, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
-            "name": "emis_head_teachers_attendance", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "Has the head teacher been at school for at least 3 days? Answer YES or NO", 
-            "sites": [
-                5
-            ], 
-            "user": 1, 
-            "type": "t", 
-            "start_date": null, 
-            "response_type": "a"
-        }
-    }, 
-    {
-        "pk": 130, 
-        "model": "poll.poll", 
-        "fields": {
-            "default_response": "", 
-            "name": "emis_headteachers_abuse", 
+            "name": "emis_abuse", 
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
@@ -1118,15 +2199,15 @@
         }
     }, 
     {
-        "pk": 131, 
+        "pk": 110, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
-            "name": "emis_headteachers_meals", 
+            "name": "emis_meals", 
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
-            "question": "How many children do you think had lunch today? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%", 
+            "question": "How many children had meals at lunch today? Reply with ONE of the following - none, very few, less than half, more than half, very many", 
             "sites": [
                 5
             ], 
@@ -1137,20 +2218,20 @@
         }
     }, 
     {
-        "pk": 132, 
+        "pk": 89, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
-            "name": "emis_headteachers_meals", 
+            "name": "emis_district", 
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
-            "question": "How many children do you think had lunch today? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%", 
+            "question": "What is the name of your district?", 
             "sites": [
                 5
             ], 
             "user": 1, 
-            "type": "t", 
+            "type": "district", 
             "start_date": null, 
             "response_type": "a"
         }
@@ -1600,6 +2681,54 @@
         }
     }, 
     {
+        "pk": 102, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 0, 
+            "message": "", 
+            "poll": 135, 
+            "order": 5, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 103, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 93, 
+            "order": 6, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 104, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_autoreg", 
+            "retry_offset": null, 
+            "rule": "w", 
+            "email": null, 
+            "num_tries": null, 
+            "start_offset": 60, 
+            "message": "Welcome EdTrac.The information you shall provide contributes to keeping children in school.", 
+            "poll": null, 
+            "order": 7, 
+            "giveup_offset": 0
+        }
+    }, 
+    {
         "pk": 76, 
         "model": "script.scriptstep", 
         "fields": {
@@ -1932,6 +3061,86 @@
             "message": "", 
             "poll": 104, 
             "order": 0, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 97, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 0, 
+            "message": "", 
+            "poll": 88, 
+            "order": 0, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 98, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 0, 
+            "message": "", 
+            "poll": 133, 
+            "order": 1, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 99, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 0, 
+            "message": "", 
+            "poll": 134, 
+            "order": 2, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 100, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "M", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 0, 
+            "message": "", 
+            "poll": 89, 
+            "order": 3, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 101, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 0, 
+            "message": "", 
+            "poll": 90, 
+            "order": 4, 
             "giveup_offset": 86400
         }
     }, 

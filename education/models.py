@@ -224,11 +224,15 @@ def emis_autoreg(**kwargs):
     else:
         contact.reporting_location = Location.tree.root_nodes()[0]
 
-    if parse_gender(gender):
-        contact.gender = parse_gender(gender)
+    if gender:
+        gender = parse_gender(gender)
+        if gender:
+            contact.gender = gender
         
-    if parse_grade(grade):
-        contact.grade = parse_grade(grade)
+    if grade:
+        grade = parse_grade(grade)
+        if grade:
+            contact.grade = grade
 
     if name:
         contact.name = name
