@@ -36,6 +36,101 @@
      {% endif %}
 </div>
 
+{% block indicators %}
+        <div class="wrapper">
+        <div class="map">
+            <img border="0" src="http://maps.googleapis.com/maps/api/staticmap?center=Kampala,Uganda&amp;zoom=14&amp;size=350x300&amp;maptype=roadmap&amp;markers=color:blue%7Clabel:S%7C40.702147,-74.015794&amp;markers=color:green%7Clabel:G%7C40.711614,-74.012318&amp;markers=color:red%7Clabel:C%7C40.718217,-73.998284&amp;sensor=false" alt="Points of Interest in Lower Manhattan">
+            <div class="indicator">
+
+            </div>
+        </div>
+
+        <div class="weekly_data">
+            <table>
+                <thead>
+                <th>
+                    Group
+                </th>
+                <th>
+                    % Absent
+                </th>
+                <th>
+                    % Present
+                </th>
+                <th>
+                    Change
+                </th>
+                </thead>
+                <tr>
+                    <td>Boys P3</td>
+                    <td>10%</td>
+                    <td>40%</td>
+                    <td>
+                        >
+                    </td>
+                </tr>
+                <tr>
+                    <td>Boys P6</td>
+                    <td>25%</td>
+                    <td>70%</td>
+                    <td>
+                        >
+                    </td>
+                </tr>
+                <tr>
+                    <td>Girls P3</td>
+                    <td>5%</td>
+                    <td>22%</td>
+                    <td>
+                        >
+                    </td>
+                </tr>
+                <tr>
+                    <td>Girls P6</td>
+                    <td>15%</td>
+                    <td>18%</td>
+                    <td>
+                        >
+                    </td>
+                </tr>
+                <tr>
+                    <td>Female Teachers</td>
+                    <td>15%</td>
+                    <td>48%</td>
+                    <td>
+                        >
+                    </td>
+                </tr>
+                <tr>
+                    <td>Male Teachers</td>
+                    <td>10%</td>
+                    <td>40%</td>
+                    <td>
+                        >
+                    </td>
+                </tr>
+                <tr>
+                    <td>Female Head Teachers</td>
+                    <td>10%</td>
+                    <td>40%</td>
+                    <td>
+                        >
+                    </td>
+                </tr>
+                <tr>
+                    <td>Male Head Teachers</td>
+                    <td>10%</td>
+                    <td>40%</td>
+                    <td>
+                        >
+                    </td>
+                </tr>
+            </table>
+        </div>
+        </div>
+{% endblock %}
+
+{% block charts %}
 <div class="charts">
     <div id="col-1">
         <div id="abuse">
@@ -75,7 +170,7 @@
 
 </div>
 
-
+{% endblock %}
 
 
 {% endblock %}
