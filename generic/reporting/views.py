@@ -101,6 +101,7 @@ class ReportView(View, TemplateResponseMixin):
     http_method_names = ['get', 'post']
     template_name = "generic/reporting/report_base.html"
     partial_base = "generic/reporting/partials/partial_base.html"
+    partial_row = "generic/reporting/partials/partial_row.html"
     drill_key = "key"
     row_name_key = "location_name"
     needs_date = True
@@ -194,6 +195,7 @@ class ReportView(View, TemplateResponseMixin):
             'columns':self.columns, \
             'top_columns':self.top_columns, \
             'partial_base':self.partial_base, \
+            'partial_row':self.partial_row, \
             'drill_key':self.drill_key, \
             'row_name_key':self.row_name_key, \
             'needs_date':self.needs_date, \
