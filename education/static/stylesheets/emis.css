@@ -293,8 +293,15 @@ div#girl_container{
 div.charts {
     width:inherit;
 }
+
 div#col-1, div#col-2{
     width:50%;
+}
+div#col-1 span{
+    text-align: center;
+}
+span#lunch_verdict{
+    text-align: right;
 }
 div#col-1, div#col-2 h3{
     text-align: center;
@@ -304,4 +311,7 @@ div#col-1{
 }
 div#col-2{
     float:right;
+}
+div#smc_meetings{
+    margin-top:40px;
 }

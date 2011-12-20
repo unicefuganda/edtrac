@@ -11,6 +11,7 @@
 {% block javascripts %}
     {{ block.super }}
     <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/highcharts.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/emis_dashboard_charts.js"></script>
 {% endblock javascripts %}
 {% block content %}
 <div class="module">
@@ -38,24 +39,40 @@
 <div class="charts">
     <div id="col-1">
         <div id="abuse">
-            <h3>Abuse Cases Reported this Month</h3>
-            <<< some chart >>>
+            <script type="text/javascript">
+                $(document).ready(abuses());
+            </script>
+            <!--
+            TODO remove this: compute and get number of reports or schools that reported
+            colorize different percentages (i.e. red for critical, yellow for something, etc.
+            -->
+            <span id="abuse_verdict" style="width:30px; color:red;">
+                78% of Schools reported this Month
+            </span>
         </div>
-        <div id="smc-meetings">
-            <h3>SMC Meetings this School Term</h3>
-            <<< some chart >>
+        <div id="smc_meetings">
+            <script type="text/javascript">
+                $(document).ready(smc_meetings());
+            </script>
+            <span id="smc_meetings_verdict" style="width:30px; color:blue;">
+                22% of Schools reported this Month
+            </span>
         </div>
     </div>
     <div id="col-2">
         <div id="lunch">
-            <h3>Lunch at School this Month</h3>
-            <<< some chart >>>
+            <script type="text/javascript">
+                $(document).ready(lunches());
+            </script>
+            <span id="lunch_verdict" style="width:30px; color:green;">
+                46% of Schools reported this Month
+            </span>
         </div>
         <div id="capitation">
             <h3>UPE Capitation Progress this School Term</h3>
-            <<< some chart >>>
         </div>
     </div>
+
 </div>
 
 
