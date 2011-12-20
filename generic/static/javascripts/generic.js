@@ -33,15 +33,23 @@ function sort(elem, col, ascending) {
 }
 
 function action(elem, action) {
-    $('#input_action').val(action);
-    form = $(elem).parents("form");
-    form_data = form.serializeArray();
-    $('#div_results_loading').show();
-    overlay_loading_panel($('#actions'));
-    $('#object_list').load("./", form_data, function() {
-        $('#div_results_loading').hide();
-        $('#div_panel_loading').hide();
-    });
+   
+    if (!($(elem).is('.delete')) ||
+            (confirm("Are you sure?"))) {
+
+        $('#input_action').val(action);
+        form = $(elem).parents("form");
+        form_data = form.serializeArray();
+        $('#div_results_loading').show();
+        overlay_loading_panel($('#actions'));
+        $('#object_list').load("./", form_data, function() {
+            $('#div_results_loading').hide();
+            $('#div_panel_loading').hide();
+        });
+    }
+    else {
+        //user clicked no
+    }
 }
 
 function select_all() {

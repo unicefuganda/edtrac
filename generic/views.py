@@ -182,9 +182,6 @@ def generic(request,
             filtered_list = paginator.page(paginator.num_pages).object_list
             page = paginator.num_pages
         if paginator.num_pages > 10:
-            low_range = []
-            mid_range = []
-            high_range = []
             low_range = range(1, 6)
             high_range = range(paginator.num_pages - 4, paginator.num_pages + 1)
             if page < 10:
@@ -203,7 +200,7 @@ def generic(request,
                 ranges.append(low_range)
                 ranges.append(range(10, max(0, page - 2), 10))
                 ranges.append(range(max(0, page - 2), min(paginator.num_pages, page + 3)))
-                ranges.append(range((round(min(paginator.num_pages, page + 3) / 10) + 1) * 10, paginator.num_pages - 10, 10))
+                ranges.append(range(int(round(min(paginator.num_pages, page + 3) / 10) + 1) * 10, paginator.num_pages - 10, 10))
                 ranges.append(high_range)
 
         else:
