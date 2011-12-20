@@ -293,6 +293,7 @@ div#girl_container{
 div.charts {
     width:inherit;
     clear:both;
+    border: #000000 solid;
 }
 
 div#col-1, div#col-2{
@@ -317,12 +318,21 @@ div#smc_meetings{
     margin-top:40px;
 }
 
-div.wrapper{
+div.wrappit{
     width:inherit;
-    margin-bottom: 200px;
+    border: #000000 solid;
 }
 div.map, div.weekly_data{
     width: 50%;
+}
+div.map img{
+    float: left;
+    width: 280px;
+}
+
+div.indicator{
+    width:150px;
+    float:right;
 }
 div.map{
     float:left;

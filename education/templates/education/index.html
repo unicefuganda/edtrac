@@ -37,11 +37,24 @@
 </div>
 
 {% block indicators %}
-        <div class="wrapper">
+        <div class="wrappit">
         <div class="map">
-            <img border="0" src="http://maps.googleapis.com/maps/api/staticmap?center=Kampala,Uganda&amp;zoom=14&amp;size=350x300&amp;maptype=roadmap&amp;markers=color:blue%7Clabel:S%7C40.702147,-74.015794&amp;markers=color:green%7Clabel:G%7C40.711614,-74.012318&amp;markers=color:red%7Clabel:C%7C40.718217,-73.998284&amp;sensor=false" alt="Points of Interest in Lower Manhattan">
+            <div class="img">
+                <h3>Boys Attendance this week</h3>
+            <img border="0" src="http://maps.googleapis.com/maps/api/staticmap?center=Kampala,Uganda&amp;zoom=14&amp;size=380x300&amp;maptype=roadmap&amp;markers=color:blue%7Clabel:S%7C40.702147,-74.015794&amp;markers=color:green%7Clabel:G%7C40.711614,-74.012318&amp;markers=color:red%7Clabel:C%7C40.718217,-73.998284&amp;sensor=false" alt="Points of Interest in Lower Manhattan">
+            </div>
             <div class="indicator">
-
+                <h3>Select an indicator to...</h3>
+                <form>
+                    <!-- TODO: using django forms a more dynamic form will be created. This is demo code!!! -->
+                    <input type="checkbox" name="girls_attendance" value="girls">Girls Attendance<br/>
+                    <input type="checkbox" name="boys_attendance" value="boys">Boys Attendance<br/>
+                    <input type="checkbox" name="teachers_attendance" value="teachers">Teachers Attendance<br/>
+                    <input type="checkbox" name="headteacher_attendance" value="headteachers">HeadTeacher Attendance<br/>
+                    <input type="checkbox" name="meals_consumption" value="meals">Meals Consumption<br/>
+                    <input type="checkbox" name="abuse_incidences" value="abuse">Abuse Incidences<br/>
+                    <input type="checkbox" name="curriculum_progress" value="progress">Curriculum Progress<br/>
+                </form>
             </div>
         </div>
 
