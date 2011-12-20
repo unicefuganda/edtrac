@@ -7,7 +7,7 @@ from script.models import *
 from rapidsms.contrib.locations.models import Location
 from rapidsms_xforms.models import XFormField, XForm, XFormSubmission, dl_distance, xform_received
 from script.utils.handling import find_best_response, find_closest_match
-#from .utils import *
+from education.utils import _schedule_weekly_scripts, _schedule_monthly_script, _schedule_termly_script
 import re
 import calendar
 from django.conf import settings
@@ -267,94 +267,6 @@ def emis_autoreg(**kwargs):
         _schedule_termly_script(group, connection, 'emis_head_teachers_termly', ['Head Teachers'])
         _schedule_termly_script(group, connection, 'emis_smc_termly', ['SMC'])
 
-def _next_thursday():
-    holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
-    d = datetime.datetime.now()
-    d = d + datetime.timedelta((3 - d.weekday()) % 7)
-    in_holiday = True
-    while in_holiday:
-        in_holiday = False
-        for start, end in holidays:
-            if d >= start and d <= end:
-                in_holiday = True
-                break
-        if in_holiday:
-            d = d + datetime.timedelta(7)
-    return d
-
-def _schedule_weekly_scripts(group, connection, grps):
-    if group.name in grps:
-        d = _next_thursday()
-        script_slug = "emis_%s" % group.name.lower().replace(' ', '_') + '_weekly'       
-        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-        sp.set_time(d)
-    
-def _schedule_monthly_script(group, connection, script_slug, day_offset, role_names):
-    holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
-    if group.name in role_names:
-        d = datetime.datetime.now()
-        day = calendar.mdays[d.month] if day_offset == 'last' else day_offset
-        d = datetime.datetime(d.year, d.month, day, d.hour, d.minute, d.second, d.microsecond)
-        #if d is weekend, set time to next monday
-        if d.weekday() == 5:
-            d = d + datetime.timedelta((0 - d.weekday()) % 7)
-        if d.weekday() == 6:
-            d = d + datetime.timedelta((0 - d.weekday()) % 7)
-        in_holiday = True
-        while in_holiday:
-            in_holiday = False
-            for start, end in holidays:
-                if d >= start and d <= end:
-                    in_holiday = True
-                    break
-            if in_holiday:
-                d = d + datetime.timedelta(31)
-                day = calendar.mdays[d.month] if day_offset == 'last' else day_offset
-                d = datetime.datetime(d.year, d.month, day, d.hour, d.minute, d.second, d.microsecond)
-                #if d is weekend, set time to next monday
-                if d.weekday() == 5:
-                    d = d + datetime.timedelta((0 - d.weekday()) % 7)
-                if d.weekday() == 6:
-                    d = d + datetime.timedelta((0 - d.weekday()) % 7)
-        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-        sp.set_time(d)
-
-def _schedule_termly_script(group, connection, script_slug, role_names):
-    holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
-    if group.name in role_names:
-        #termly messages are automatically scheduled for mid April, July and Nov
-        d = datetime.datetime.now()
-        start_of_year = datetime.datetime(d.year + 1, 1, 1, d.hour, d.minute, d.second, d.microsecond)
-        if d <= start_of_year + datetime.timedelta(days=((3*30)+15)):
-            d = datetime.datetime(d.year, 4, 15, d.hour, d.minute, d.second, d.microsecond)
-        elif d > start_of_year + datetime.timedelta(days=((3*30)+15)) and d <= start_of_year + datetime.timedelta(days=((6*30)+15)):
-            d = datetime.datetime(d.year, 7, 15, d.hour, d.minute, d.second, d.microsecond)
-        elif d > start_of_year + datetime.timedelta(days=((6*30)+15)) and d <= start_of_year + datetime.timedelta(days=((10*30)+15)):
-            d = datetime.datetime(d.year, 11, 15, d.hour, d.minute, d.second, d.microsecond)
-        else:
-            d = datetime.datetime(d.year, 4, 15, d.hour, d.minute, d.second, d.microsecond)
-        #if d is weekend, set time to next monday
-        if d.weekday() == 5:
-            d = d + datetime.timedelta((0 - d.weekday()) % 7)
-        if d.weekday() == 6:
-            d = d + datetime.timedelta((0 - d.weekday()) % 7)
-        in_holiday = True
-        while in_holiday:
-            in_holiday = False
-            for start, end in holidays:
-                if d >= start and d <= end:
-                    in_holiday = True
-                    break
-            if in_holiday:
-                #if d is weekend, set time to next monday
-                if d.weekday() == 5:
-                    d = d + datetime.timedelta((0 - d.weekday()) % 7)
-                if d.weekday() == 6:
-                    d = d + datetime.timedelta((0 - d.weekday()) % 7)
-        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-        sp.set_time(d)
-
-
 def emis_reschedule_script(**kwargs):
     connection = kwargs['connection']
     progress = kwargs['sender']
@@ -472,6 +384,96 @@ def xform_received_handler(sender, **kwargs):
 def eliminate_duplicates(sender, **kwargs):
     messages = kwargs['messages']
     messages.exclude(connection__backend__name='yo6200').update(status='C')
+    
+#poll schedulers
+# a manual reschedule of all monthly polls
+def reschedule_monthly_polls():
+    slugs = ['emis_abuse', 'emis_meals', 'emis_smc_monthly']
+    #enable scripts in case they are disabled
+    Script.objects.filter(slug__in=slugs).update(enabled=True)
+    #first remove all existing script progress for the monthly scripts
+    ScriptProgress.objects.filter(script__slug__in=slugs).delete()
+    for slug in slugs:
+        reporters = EmisReporter.objects.all()
+        for reporter in reporters:
+            if reporter.default_connection and reporter.groups.count() > 0:
+                connection = reporter.default_connection
+                group = reporter.groups.all()[0]
+                if slug == 'emis_abuse':
+                    _schedule_monthly_script(group, connection, 'emis_abuse', 'last', ['Teachers', 'Head Teachers'])
+                elif slug == 'emis_meals':
+                    _schedule_monthly_script(group, connection, 'emis_meals', 20, ['Teachers', 'Head Teachers'])
+                else:
+                    _schedule_monthly_script(group, connection, 'emis_smc_monthly', 28, ['SMC'])
+
+#reschedule weekly SMS questions                
+def reschedule_weekly_smc_polls():
+    #enable script in case its disabled
+    Script.objects.filter(slug='emis_head_teacher_presence').update(enabled=True)
+    #first destroy all existing script progress for the SMCs
+    ScriptProgress.objects.filter(connection__contact__groups__name='SMC', script__slug='emis_head_teacher_presence').delete()
+    smcs = EmisReporter.objects.filter(groups__name='SMC')
+    import datetime
+    for smc in smcs:
+        connection = smc.default_connection
+        holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
+        d = datetime.datetime.now()
+        # get the date to a thursday
+        d = d + datetime.timedelta((3 - d.weekday()) % 7)
+        in_holiday = True
+        while in_holiday:
+            in_holiday = False
+            for start, end in holidays:
+                if d >= start and d <= end:
+                    in_holiday = True
+                    break
+            if in_holiday:
+                d = d + datetime.timedelta(7)
+        sp, created = ScriptProgress.objects.get_or_create(connection=connection, script=Script.objects.get(slug='emis_head_teacher_presence'))
+        sp.set_time(d)
+        
+def reschedule_annual_polls():
+    #enable script in case its disabled
+    Script.objects.filter(slug='emis_annual').update(enabled=True)
+    #first destroy all existing script progress for head teachers in annual script
+    ScriptProgress.objects.filter(connection__contact__groups__name__iexact='head teachers', script__slug='emis_annual').delete()
+    headteachers = EmisReporter.objects.filter(groups__name__iexact='head teachers')
+    # Schedule annual messages
+    d = datetime.datetime.now()
+    start_of_year = datetime.datetime(d.year, 1, 1, d.hour, d.minute, d.second, d.microsecond)\
+        if d.month < 3 else datetime.datetime(d.year + 1, 1, 1, d.hour, d.minute, d.second, d.microsecond)
+    for headteacher in headteachers:
+        connection = headteacher.default_connection
+        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug='emis_annual'))
+        sp.set_time(start_of_year + datetime.timedelta(weeks=getattr(settings, 'SCHOOL_ANNUAL_MESSAGES_START', 12)))
+    
+    
+def reschedule_termly_polls(date):
+    #enable script in case its disabled
+    Script.objects.filter(slug='emis_school_administrative').update(enabled=True)
+    #first destroy all existing script progress for head teachers in annual script
+    ScriptProgress.objects.filter(connection__contact__groups__name__iexact='head teachers',\
+                                script__slug='emis_school_administrative').delete()
+    reporters = EmisReporter.objects.filter(groups__name__iexact='head teachers')
+    # Schedule annual messages
+    d = datetime.datetime.now()
+    dl = date.split('-')
+    new_time = datetime.datetime(int(dl[0]), int(dl[1]), int(dl[2]), d.hour, d.minute, d.second, d.microsecond)
+    for reporter in reporters:
+        connection = reporter.default_connection
+        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug='emis_school_administrative'))
+        sp.set_time(new_time)
+    
+    #now the smcs termly scripts
+    Script.objects.filter(slug='emis_smc_termly').update(enabled=True)
+    #first destroy all existing script progress for smcs in their termly script
+    ScriptProgress.objects.filter(connection__contact__groups__name__iexact='smc',\
+                                script__slug='emis_smc_termly').delete()
+    reporters = EmisReporter.objects.filter(groups__name__iexact='smc')
+    for reporter in reporters:
+        connection = reporter.default_connection
+        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug='emis_smc_termly'))
+        sp.set_time(new_time)
 
 
 Poll.register_poll_type('date', 'Date Response', parse_date_value, db_type=Attribute.TYPE_OBJECT)

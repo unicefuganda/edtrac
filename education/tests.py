@@ -24,6 +24,7 @@ from django.db import connection
 from script.utils.outgoing import check_progress
 from django.core.management import call_command
 from unregister.models import Blacklist
+from education.utils import _next_thursday
 
 
 class ModelTest(TestCase): #pragma: no cover
@@ -156,8 +157,11 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(contact.schools.all()[0], self.kampala_school)
         self.assertEquals(contact.groups.all()[0].name, 'Teachers')
         self.assertEquals(contact.grade, 'P3')
+        self.assertEquals(contact.gender, None)
         self.assertEquals(contact.default_connection, self.connection)
-
+        self.assertEquals(ScriptProgress.objects.filter(connection=self.connection).count(), 3)
+        self.assertListEqual(list(ScriptProgress.objects.filter(connection=self.connection).values_list('script__slug', flat=True)), ['emis_autoreg', 'emis_teachers_weekly', 'emis_teachers_monthly'])
+    
     def testBadAutoReg(self):
         """
         Crummy answers
@@ -172,7 +176,7 @@ class ModelTest(TestCase): #pragma: no cover
         ])
         self.assertEquals(EmisReporter.objects.count(), 1)
         contact = EmisReporter.objects.all()[0]
-        self.assertEquals(contact.groups.all()[0].name, 'Other EMIS Reporters')
+        self.assertEquals(contact.groups.all()[0].name, 'Other Reporters')
         self.assertEquals(contact.reporting_location, self.kampala_district)
 
     def testAutoRegNoLocationData(self):
@@ -193,13 +197,13 @@ class ModelTest(TestCase): #pragma: no cover
         self.fake_script_dialog(script_prog, self.connection, [\
             ('emis_district', 'kampala'), \
             ('emis_subcounty', 'Gul'), \
-            ('emis_one_school', 'St Marys'), \
+            ('emis_school', 'St Marys'), \
         ])
         contact = EmisReporter.objects.all()[0]
-        self.assertEquals(contact.groups.all()[0].name, 'Other EMIS Reporters')
+        self.assertEquals(contact.groups.all()[0].name, 'Other Reporters')
         self.assertEquals(contact.reporting_location, self.gulu_subcounty)
         self.assertEquals(contact.name, 'Anonymous User')
-
+        
     def testGemAutoReg(self):
         self.fake_incoming('join')
         self.assertEquals(ScriptProgress.objects.count(), 1)
