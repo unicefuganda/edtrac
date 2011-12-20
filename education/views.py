@@ -37,7 +37,6 @@ def index(request, **kwargs):
     kwargs is where we list the variables that can be passed as our context
     use as follows: index(request, context_vars={'some_model_queryset'=Model.objects.all})
     """
-    import pdb; pdb.set_trace()
     if not kwargs:
         return render_to_response("education/index.html", {}, RequestContext(request))
     else:
