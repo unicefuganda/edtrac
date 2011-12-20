@@ -325,7 +325,7 @@ div.wrappit{
 div.map, div.weekly_data{
     width: 50%;
 }
-div.map img{
+div.img, div.img img, div.img h3{
     float: left;
     width: 280px;
 }
