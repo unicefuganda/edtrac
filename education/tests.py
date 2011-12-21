@@ -213,47 +213,152 @@ class ModelTest(TestCase): #pragma: no cover
         self.fake_script_dialog(script_prog, self.connection, [\
             ('emis_role', 'gem'), \
             ('emis_district', 'kampala'), \
-            ('emis_many_school', 'st. marys, st. peters'), \
             ('emis_name', 'testy mctesterton'), \
         ])
         self.assertEquals(EmisReporter.objects.count(), 1)
         contact = EmisReporter.objects.all()[0]
         self.assertEquals(contact.name, 'Testy Mctesterton')
         self.assertEquals(contact.reporting_location, self.kampala_district)
-        self.assertEquals(contact.schools.count(), 2)
-        self.assertEquals(len(set(contact.schools.all()) & set([self.kampala_school2, self.kampala_school3])), 2)
         self.assertEquals(contact.groups.all()[0].name, 'GEM')
+        self.assertEquals(ScriptProgress.objects.filter(connection=self.connection).count(), 2)
+        self.assertListEqual(list(ScriptProgress.objects.filter(connection=self.connection).values_list('script__slug', flat=True)), ['emis_autoreg', 'emis_gem_monthly'])
 
-    def testGemQuestions(self):
+    def testTeacherAutoregProgression(self):
+        Script.objects.filter(slug='emis_autoreg').update(enabled=True) 
         self.fake_incoming('join')
-        script_prog = ScriptProgress.objects.get(connection=self.connection)
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
         self.elapseTime2(script_prog, 3601)
-        call_command('check_script_progress', e=0, l=20)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Welcome to the SMS based school data collection pilot.The information you provide is valuable to improving the quality of education in Uganda.')
-        script_prog = ScriptProgress.objects.get(connection=self.connection)
+        check_progress(script_prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM')
+        self.fake_incoming('Teacher')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
         self.elapseTime2(script_prog, 3601)
-        call_command('check_script_progress', e=0, l=20)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'To register,tell us your role? Teacher, Head Teacher, SMC, GEM, CCT, DEO,or District Official.Reply with one of the roles listed.')
-        self.fake_incoming('GEM')
-        script_prog = ScriptProgress.objects.get(connection=self.connection)
+        check_progress(script_prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Which class do you teach? P3 or P6')
+        self.fake_incoming('P3')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
         self.elapseTime2(script_prog, 3601)
-        call_command('check_script_progress', e=0, l=20)
+        check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is the name of your district?')
         self.fake_incoming('Kampala')
-        script_prog = ScriptProgress.objects.get(connection=self.connection)
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
         self.elapseTime2(script_prog, 3601)
-        call_command('check_script_progress', e=0, l=20)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Name the schools you are resonsible for.Separate each school name with a comma, for example "St. Mary Secondary,Pader Primary"')
-        self.fake_incoming('St. Marys, St. Peters')
-        script_prog = ScriptProgress.objects.get(connection=self.connection)
+        check_progress(script_prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is the name of your sub county?')
+        self.fake_incoming('Kampala')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
         self.elapseTime2(script_prog, 3601)
-        call_command('check_script_progress', e=0, l=20)
+        check_progress(script_prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is the name of your school?')
+        self.fake_incoming('St. Marys')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        self.elapseTime2(script_prog, 3601)
+        check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is your name?')
         self.fake_incoming('test mctester')
-        script_prog = ScriptProgress.objects.get(connection=self.connection)
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
         self.elapseTime2(script_prog, 3601)
-        call_command('check_script_progress', e=0, l=20)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Welcome to the school monitoring pilot.The information you provide contributes to keeping children in school.')
+        check_progress(script_prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Welcome EdTrac.The information you shall provide contributes to keeping children in school.')
+    
+    def testHeadTeacherAutoregProgression(self):
+        Script.objects.filter(slug='emis_autoreg').update(enabled=True) 
+        self.fake_incoming('join')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        self.elapseTime2(script_prog, 3601)
+        check_progress(script_prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM')
+        self.fake_incoming('Head Teacher')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        self.elapseTime2(script_prog, 3601)
+        check_progress(script_prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Are you female or male?')
+        self.fake_incoming('Male')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        self.elapseTime2(script_prog, 3601)
+        check_progress(script_prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is the name of your district?')
+        self.fake_incoming('Kampala')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        self.elapseTime2(script_prog, 3601)
+        check_progress(script_prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is the name of your sub county?')
+        self.fake_incoming('Kampala')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        self.elapseTime2(script_prog, 3601)
+        check_progress(script_prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is the name of your school?')
+        self.fake_incoming('St. Marys')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        self.elapseTime2(script_prog, 3601)
+        check_progress(script_prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is your name?')
+        self.fake_incoming('test mctester')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        self.elapseTime2(script_prog, 3601)
+        check_progress(script_prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Welcome EdTrac.The information you shall provide contributes to keeping children in school.')
+        
+    def testSMCAutoregProgression(self):
+        Script.objects.filter(slug='emis_autoreg').update(enabled=True) 
+        self.fake_incoming('join')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        self.elapseTime2(script_prog, 3601)
+        check_progress(script_prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM')
+        self.fake_incoming('SMC')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        self.elapseTime2(script_prog, 3601)
+        check_progress(script_prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is the name of your district?')
+        self.fake_incoming('Kampala')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        self.elapseTime2(script_prog, 3601)
+        check_progress(script_prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is the name of your sub county?')
+        self.fake_incoming('Kampala')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        self.elapseTime2(script_prog, 3601)
+        check_progress(script_prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is the name of your school?')
+        self.fake_incoming('St. Marys')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        self.elapseTime2(script_prog, 3601)
+        check_progress(script_prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is your name?')
+        self.fake_incoming('test mctester')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        self.elapseTime2(script_prog, 3601)
+        check_progress(script_prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Welcome EdTrac.The information you shall provide contributes to keeping children in school.')
+    
+    def testGEMAutoregProgression(self):
+        Script.objects.filter(slug='emis_autoreg').update(enabled=True) 
+        self.fake_incoming('join')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        self.elapseTime2(script_prog, 3601)
+        check_progress(script_prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM')
+        self.fake_incoming('GEM')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        self.elapseTime2(script_prog, 3601)
+        check_progress(script_prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is the name of your district?')
+        self.fake_incoming('Kampala')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        self.elapseTime2(script_prog, 3601)
+        check_progress(script_prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is the name of your sub county?')
+        self.fake_incoming('Kampala')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        self.elapseTime2(script_prog, 3601)
+        check_progress(script_prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is your name?')
+        self.fake_incoming('test mctester')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        self.elapseTime2(script_prog, 3601)
+        check_progress(script_prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Welcome EdTrac.The information you shall provide contributes to keeping children in school.')
 
     def testDoubleReg(self):
         self.fake_incoming('join')
@@ -263,9 +368,10 @@ class ModelTest(TestCase): #pragma: no cover
 
         self.fake_script_dialog(script_prog, self.connection, [\
             ('emis_role', 'teacher'), \
+            ('emis_class', 'P3'),\
             ('emis_district', 'kampala'), \
             ('emis_subcounty', 'kampala'), \
-            ('emis_one_school', 'st. marys'), \
+            ('emis_school', 'st. marys'), \
             ('emis_name', 'testy mctesterton'), \
         ])
 
@@ -289,9 +395,10 @@ class ModelTest(TestCase): #pragma: no cover
 
         self.fake_script_dialog(script_prog, self.connection, [\
             ('emis_role', 'teacher'), \
+            ('emis_class', 'P3'),\
             ('emis_district', 'kampala'), \
             ('emis_subcounty', 'kampala'), \
-            ('emis_one_school', 'st. marys'), \
+            ('emis_school', 'st. marys'), \
             ('emis_name', 'testy mctesterton'), \
         ])
         self.assertEquals(EmisReporter.objects.count(), 1)
@@ -307,101 +414,35 @@ class ModelTest(TestCase): #pragma: no cover
 
         self.fake_script_dialog(script_prog, self.connection, [\
             ('emis_role', 'teacher'), \
+            ('emis_class', 'P3'),\
             ('emis_district', 'kampala'), \
             ('emis_subcounty', 'kampala'), \
-            ('emis_one_school', 'st. marys'), \
+            ('emis_school', 'st. marys'), \
             ('emis_name', 'testy mctesterton'), \
         ])
         self.assertEquals(EmisReporter.objects.count(), 1)
-
-    def assertScriptSkips(self, connection, role, initial_question, final_question):
-        connection = Connection.objects.create(identity=connection, backend=self.backend)
-        script = Script.objects.get(slug='emis_autoreg')
-        script_prog = ScriptProgress.objects.create(script=script, connection=connection, step=script.steps.get(poll__name=initial_question), status='C', num_tries=1)
-        script_prog.set_time(datetime.datetime.now() - datetime.timedelta(1))
-        self.fake_script_dialog(script_prog, connection, [\
-            ('emis_role', role)
-        ], emit_signal=False)
-        check_progress(connection)
-        script_prog = ScriptProgress.objects.get(connection=connection)
-        self.assertEquals(script_prog.step.poll.name, final_question)
-
-
-    def testAutoRegTransitions(self):
-        self.assertScriptSkips('8675310', 'deo', 'emis_district', 'emis_name')
-        self.assertScriptSkips('8675311', 'cct', 'emis_district', 'emis_name')
-        self.assertScriptSkips('8675312', 'district officials', 'emis_district', 'emis_name')
-
-        self.assertScriptSkips('8675313', 'gem', 'emis_district', 'emis_subcounty')
-#        self.assertScriptSkips('8675313', 'gem', 'emis_district', 'emis_name')
-        self.assertScriptSkips('8675314', 'smc', 'emis_district', 'emis_subcounty')
-        self.assertScriptSkips('8675315', 'head teachers', 'emis_district', 'emis_subcounty')
-        self.assertScriptSkips('8675316', 'teachers', 'emis_district', 'emis_subcounty')
-
-        self.assertScriptSkips('8675317', 'gem', 'emis_subcounty', 'emis_many_school')
-
-        self.assertScriptSkips('8675318', 'teachers', 'emis_subcounty', 'emis_one_school')
-        self.assertScriptSkips('8675319', 'head teachers', 'emis_subcounty', 'emis_one_school')
-        self.assertScriptSkips('8675320', 'smc', 'emis_subcounty', 'emis_one_school')
-
-
-    def assertXFormAdvancedScript(self, message, completed_step, advance=True):
-        self.fake_incoming(message)
+        
+    def testTeacherPolls(self):
+        self.fake_incoming('join')
+        self.assertEquals(ScriptProgress.objects.count(), 1)
         script_prog = ScriptProgress.objects.all()[0]
-        self.assertEquals(script_prog.step.order, completed_step)
-        self.assertEquals(script_prog.status, 'C')
-        # advance to next step
-        if advance:
-            script_prog.step = script_prog.script.steps.get(order=completed_step + 1)
-            script_prog.status = 'P'
-            script_prog.save()
-
-    def testOtherScriptHandlers(self):
-        # fake that this connection has already gone through autoreg
-        contact = Contact.objects.create(name='Testy McTesterton')
-        self.connection.contact = contact
-        self.connection.save()
-
-        script = Script.objects.get(slug='emis_annual')
-        script_prog = ScriptProgress.objects.create(script=script, connection=self.connection, step=script.steps.get(order=0), status='P')
-
-        self.assertXFormAdvancedScript('classrooms 2 2 3 3 4 4 5', 0)
-        self.assertXFormAdvancedScript('classroomsused 2 2 3 3 4 4 5', 1)
-        self.assertXFormAdvancedScript('latrines g 20 b 26 f 7 m 9', 2)
-        self.assertXFormAdvancedScript('latrinesused g 20 b 26 f 7 m 9', 3)
-        self.assertXFormAdvancedScript('deploy f 2 m 4', 4)
-        self.assertXFormAdvancedScript('enrolledb 200 200 30 45 89 90 23', 5)
-        self.assertXFormAdvancedScript('enrolledg 300 120 80 67 43 12 5', 6, False)
-
-    def testBasicSubmission(self):
-        self.fake_incoming('gemabuse 20 school St Mary')
-        self.assertEquals(XFormSubmission.objects.count(), 1)
-
-    def testGemAbuse(self):
-        s = self.fake_incoming('gemabuse 20 school St Mary')
-        self.assertEquals(s.eav.gemabuse_cases, 20)
-        self.assertEquals(s.eav.gemabuse_school, 'St Mary')
-        self.assertEquals(Message.objects.all().order_by('-date')[0].text, "Thank you. Your data on gemabuse has been received")
-
-    def testAttendanceFeedback(self):
-        s = self.fake_incoming('boys 20, 30, 24, 11, 39, 61, 34')
-        self.assertEquals(s.eav.boys_p2, 30)
-        self.assertEquals(Message.objects.all().order_by('-date')[0].text, "Thank you. Your data on boys has been received")
-        week = 7 * 86400
-        self.elapseTime(XFormSubmission.objects.all().order_by('-created')[0], week)
-        s = self.fake_incoming('boys 25, 29, 27, 30, 15, 61, 34')
-        self.assertEquals(s.eav.boys_p2, 29)
-        perc = (float(sum([20, 30, 24, 11, 39, 61, 34])) / float(sum([25, 29, 27, 30, 15, 61, 34]))) * 100
-        self.assertEquals(Message.objects.all().order_by('-date')[0].text, "Thank you. Attendance for boys is %.1f percent higher than it was last week" % (100.0 - perc))
-
-    def testTeacherAttendance(self):
-        s = self.fake_incoming('teachers f 20, m 11')
-        self.assertEquals(Message.objects.all().order_by('-date')[0].text, "Thank you. Your data on teachers has been received")
-        week = 7 * 86400
-        self.elapseTime(XFormSubmission.objects.all().order_by('-created')[0], week)
-        s = self.fake_incoming('teachers f 5, m 10')
-        perc = (float(sum([5, 10])) / float(sum([20, 11]))) * 100
-        self.assertEquals(Message.objects.all().order_by('-date')[0].text, "Thank you. Attendance for teachers is %.1f percent lower than it was last week" % (100.0 - perc))
+         
+        self.fake_script_dialog(script_prog, self.connection, [\
+            ('emis_role', 'teacher'), \
+            ('emis_class', 'P3'),\
+            ('emis_district', 'kampala'), \
+            ('emis_subcounty', 'kampala'), \
+            ('emis_school', 'st. marys'), \
+            ('emis_name', 'testy mctesterton'), \
+        ])
+        Script.objects.filter(slug__in=['emis_teachers_weekly', 'emis_teachers_monthly']).update(enabled=True)
+        prog = ScriptProgress.objects.get(script__slug='emis_teachers_weekly', connection=self.connection)
+        seconds_to_thursday = (_next_thursday() - datetime.datetime.now()).total_seconds()
+        self.elapseTime2(prog, seconds_to_thursday+(1*60*60)) #seconds to thursday + one hour
+        prog = ScriptProgress.objects.get(script__slug='emis_teachers_weekly', connection=self.connection)
+        check_progress(prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_teachers_weekly').steps.all()[0].poll.question)
+        
 
     def testScriptReschedule(self):
         self.fake_incoming('join')
