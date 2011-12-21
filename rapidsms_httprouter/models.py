@@ -6,6 +6,7 @@ from django.db import connection as db_connection
 from rapidsms.models import Contact, Connection
 
 from .managers import ForUpdateManager
+from django.conf import settings
 
 mass_text_sent = django.dispatch.Signal(providing_args=["messages", "status"])
 
@@ -70,21 +71,49 @@ class Message(models.Model):
     @transaction.commit_on_success
     def mass_text(cls, text, connections, status='P'):
         batch = MessageBatch.objects.create(status='Q')
-        sql = 'insert into rapidsms_httprouter_message (text, date, direction, status, batch_id, connection_id) values '
         insert_list = []
         d = datetime.datetime.now()
         c = db_connection.cursor()
-        for connection in connections:
-            insert_list.append("('%s', '%s', 'O', '%s', %d, %d)" % \
-                (text, \
-                 d.strftime('%Y-%m-%d %H:%M:%S'), \
-                 status, \
-                 batch.pk, \
-                 connection.pk))
-
-        sql = "%s %s returning id" % (sql, ",".join(insert_list))
-        c.execute(sql)
-        pks = c.fetchall()
+        
+        for db_name in settings.DATABASES:
+            """
+            Databases other than PostGreSQL don't have the "RETURNING" keyword for their INSERT query (its a postgresql SQL extension).
+            Thus Sqlite, MySQL etal will run two queries, one to insert messages another to retrieve the pks of the inserted rows.
+            PostGreSQL only runs one INSERT query and uses "RETURNING" to return pks with the same query.
+            """
+            if not settings.DATABASES[db_name]['ENGINE'] == 'django.db.backends.postgresql_psycopg2':
+                sql = 'insert into rapidsms_httprouter_message (text, date, direction, status, batch_id, connection_id, priority) values '
+                
+                for connection in connections:
+                    insert_list.append("('%s', '%s', 'O', '%s', %d, %d, %d)" % \
+                    (text, \
+                     d.strftime('%Y-%m-%d %H:%M:%S'), \
+                     status, \
+                     batch.pk, \
+                     connection.pk,\
+                     10))
+                
+                sql = "%s %s" % (sql, ",".join(insert_list))
+                
+                c.execute(sql)
+                sql2 = 'select id from rapidsms_httprouter_message order by date desc limit %s' % len(connections)
+                pks = c.execute(sql2).fetchall()
+            else:
+                sql = 'insert into rapidsms_httprouter_message (text, date, direction, status, batch_id, connection_id) values '
+            
+                for connection in connections:
+                    insert_list.append("('%s', '%s', 'O', '%s', %d, %d)" % \
+                    (text, \
+                     d.strftime('%Y-%m-%d %H:%M:%S'), \
+                     status, \
+                     batch.pk, \
+                     connection.pk))
+                     
+                sql = "%s %s returning id" % (sql, ",".join(insert_list))
+                
+                c.execute(sql)
+                pks = c.fetchall()
+                
         toret = Message.objects.filter(pk__in=[pk[0] for pk in pks])
         mass_text_sent.send(sender=batch, messages=toret, status=status)
         return toret
