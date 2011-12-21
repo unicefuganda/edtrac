@@ -243,8 +243,19 @@ def list_poll_responses(poll):
     dependecies: Contact and Location must be in your module; this lists all Poll responses by district
     """
     to_ret = {}
+    """
+    To get all districts
+    """
+    #for location in Location.objects.filter(type__name="district"):
+    #    to_ret[location.__unicode__()] = compute_average_percentage([msg.text for msg in poll.responses.filter(contact__in=Contact.objects.filter(reporting_location=location))])
+    
+    """
+    narrowed down to 3 districts (and up to 14 districts)
+    """
+    DISTRICT = ['Kaabong', 'Kabarole', 'Kyegegwa']
     for location in Location.objects.filter(type__name="district"):
-        to_ret[location.__unicode__()] = compute_average_percentage([msg.text for msg in poll.responses.filter(contact__in=Contact.objects.filter(reporting_location=location))])
+        if location.name in DISTRICT:
+            to_ret[location.__unicode__()] = compute_average_percentage([msg.text for msg in poll.responses.filter(contact__in=Contact.objects.filter(reporting_location=location))])
     return to_ret
 
 
