@@ -38,15 +38,16 @@ def index(request, **kwargs):
     else:
         context_vars = kwargs['context_vars']        
         template_name = kwargs['template_name']
-        if template_name:
-            t = "education/%s"%template_name
-        else:
+        if not template_name:
+            #if no template name is given
             t = "education/index.html"
+        else:
+            t = "education/%s"%template_name            
         return render_to_response(t, context_vars, RequestContext(request))
 
 @login_required
 def testindex(request):
-    return index(request,template_name="testindex.html",context_vars={'abuse_poll':Poll.objects.get(name="emis_headteachers_abuse")})
+    return index(request, template_name="testindex.html", context_vars={'abuse_poll':Poll.objects.get(name="emis_headteachers_abuse")})
 
 @login_required
 def dashboard(request):
