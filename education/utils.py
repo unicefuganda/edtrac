@@ -253,7 +253,7 @@ def list_poll_responses(poll):
     narrowed down to 3 districts (and up to 14 districts)
     """
     DISTRICT = ['Kaabong', 'Kabarole', 'Kyegegwa', 'Kotido']
-    for location in Location.objects.filter(type__name="district"):
+    for location in Location.objects.filter(name__in=DISTRICT):
         if location.name in DISTRICT:
             to_ret[location.__unicode__()] = compute_average_percentage([msg.text for msg in poll.responses.filter(contact__in=Contact.objects.filter(reporting_location=location))])
     return to_ret
