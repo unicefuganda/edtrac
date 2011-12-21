@@ -18,6 +18,7 @@ from django.contrib.auth.views import login_required
 from django.contrib.auth.models import User
 
 urlpatterns = patterns('',
+   url(r'^emis/testindex/$', testindex),
    url(r'^emis/messagelog/$', login_required(generic), {
       'model':Message,
       'queryset':messages,

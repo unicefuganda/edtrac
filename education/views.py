@@ -1,13 +1,9 @@
-#from django.db import connection
 from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
-from django.views.generic import TemplateView
 from django.contrib.auth.decorators import user_passes_test
-from django.db.models import Sum
-from django import forms
 from .forms import *
 from .models import *
 from uganda_common.utils import *
@@ -40,8 +36,32 @@ def index(request, **kwargs):
     if not kwargs:
         return render_to_response("education/index.html", {}, RequestContext(request))
     else:
-        context_vars = kwargs['context_vars']
-        return render_to_response("education/index.html",context_vars, RequestContext(request))
+        #When choosing to use kwargs, don't forget to include template and context_var variables
+        # if you don't need a template or just need the original template, use template_name=None
+        context_vars = kwargs['context_vars']        
+        template_name = kwargs['template_name']
+        if not template_name:
+            #if no template name is given
+            t = "education/index.html"
+        else:
+            t = "education/%s"%template_name            
+        return render_to_response(t, context_vars, RequestContext(request))
+
+@login_required
+def testindex(request):
+    to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+    # this should be equal
+    districts = to_ret.keys()    
+    #uncomment to get the real values 
+    #district_abuses = to_ret.values()
+    
+    #TODO comment this out and read the above instruction
+    district_abuses = [23, 56, 23, 66]
+    return index(request, template_name="testindex.html", context_vars={
+        'districts':districts, 'abuse_values':district_abuses
+        #TODO; add more context variables depending on what you want rendered on the chart
+        #TODO: more generic highchart 
+    })
 
 @login_required
 def dashboard(request):
