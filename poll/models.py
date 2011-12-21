@@ -536,7 +536,11 @@ class Poll(models.Model):
         return categorized
 
     def __unicode__(self):
-        return self.question
+        if self.start_date:
+            sd=self.start_date.date()
+        else:
+            sd="Not Started"
+        return "%s %s (%s ...)"%(self.name,self.question[0:18],sd)
 
 class Category(models.Model):
     """
