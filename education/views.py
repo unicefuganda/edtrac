@@ -49,7 +49,14 @@ def index(request, **kwargs):
 
 @login_required
 def testindex(request):
-    return index(request, template_name="testindex.html", context_vars={'abuses': list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))})
+    to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+    # this should be equal
+    districts = to_ret.keys()
+    district_abuses = to_ret.values()
+    #resp = zip()    
+    return index(request, template_name="testindex.html", context_vars={
+        'districts':districts, 'abuse_values':district_abuses
+    })
 
 @login_required
 def dashboard(request):
