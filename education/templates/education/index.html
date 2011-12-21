@@ -10,8 +10,7 @@
 {% endblock %}
 {% block javascripts %}
     {{ block.super }}
-    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/highcharts.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/emis_dashboard_charts.js"></script>
+	{% include "education/partials/chart/javascripts.html" %}
 {% endblock javascripts %}
 {% block content %}
 <div class="module">
