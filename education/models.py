@@ -212,7 +212,7 @@ def emis_autoreg(**kwargs):
     group = Group.objects.get(name='Other Reporters')
     default_group = group
     if role:
-        group = find_closest_match(role, Group.objects)
+        group = find_closest_match(role, Group.objects) or find_closest_match(role, Group.objects, True)
         if not group:
             group = default_group
     contact.groups.add(group)
@@ -304,15 +304,15 @@ def emis_autoreg_transition(**kwargs):
         session = ScriptSession.objects.filter(script=progress.script, connection=connection, end_time=None).latest('start_time')
     except ScriptSession.DoesNotExist:
         return
-    role_poll = script.steps.get(order=1).poll
+    role_poll = script.steps.get(order=0).poll
     role = find_best_response(session, role_poll)
     group = None
     if role:
-        group = find_closest_match(role, Group.objects)
+        group = find_closest_match(role, Group.objects) or find_closest_match(role, Group.objects, True)
     skipsteps = {
         'emis_gender':['Head Teachers'],
         'emis_class':['Teachers'],
-        'emis_school':['GEM'],
+        'emis_school':['Teachers', 'Head Teachers', 'SMC'],
     }
     skipped = True
     while group and skipped:
@@ -324,66 +324,6 @@ def emis_autoreg_transition(**kwargs):
                 progress.step = progress.script.steps.get(order=progress.step.order + 1)
                 progress.save()
                 break
-
-def xform_received_handler(sender, **kwargs):
-    xform = kwargs['xform']
-    submission = kwargs['submission']
-
-    submission_day = getattr(settings, 'EMIS_SUBMISSION_WEEKDAY', 0)
-
-    keywords = ['classrooms', 'classroomsused', 'latrines', 'latrinesused', 'deploy', 'enrolledb', 'enrolledg']
-    attendance_keywords = ['boys', 'girls', 'teachers']
-    other_keywords = ['gemabuse', 'gemteachers']
-    if submission.has_errors:
-        return
-    
-    # If not in training mode, make sure the info comes in at the proper time
-    if not getattr(settings, 'TRAINING_MODE', True):
-        sp = ScriptProgress.objects.filter(connection=submission.connection, script__slug='emis_annual').order_by('-time')
-        if sp.count() and xform.keyword in keywords:
-            sp = sp[0]
-            if sp.step:
-                for i in range(0, len(keywords)):
-                    if xform.keyword == keywords[i] and sp.step.order == i:
-                        sp.status = 'C'
-                        sp.save()
-                        submission.response = "Thank you.  Your data on %s has been received" % xform.keyword
-                        submission.save()
-                        return
-            else:
-                submission.response = "Please wait to send your data on %s until the appropriate time." % xform.keyword
-                submission.save()
-                return
-        elif xform.keyword in keywords:
-            submission.response = "Please wait to send your data on %s until the appropriate time." % xform.keyword
-            submission.has_errors = True
-            submission.save()
-            pass
-        elif xform.keyword in attendance_keywords:
-            try:
-                prev_submission = XFormSubmission.objects.filter(xform=xform, connection=submission.connection).order_by('-created')[1]
-                prev_sum = prev_submission.eav_values.aggregate(Sum('value_int'))['value_int__sum']
-                cur_sum = submission.eav_values.aggregate(Sum('value_int'))['value_int__sum']
-                if cur_sum > prev_sum:
-                    perc = float(prev_sum) / float(cur_sum) * 100
-                    submission.response = "Thank you. Attendance for %s is %.1f percent higher than it was last week" % (xform.keyword, (100.0 - perc))
-                elif cur_sum < prev_sum:
-                    perc = float(cur_sum) / float(prev_sum) * 100
-                    submission.response = "Thank you. Attendance for %s is %.1f percent lower than it was last week" % (xform.keyword, (100.0 - perc))
-                else:
-                    submission.response = "Thank you. Your data on %s has been received" % xform.keyword
-            except IndexError:
-                submission.response = "Thank you. Your data on %s has been received" % xform.keyword
-        elif xform.keyword in other_keywords:
-            submission.response = "Thank you. Your data on %s has been received" % xform.keyword
-            submission.save()
-    else:
-        submission.response = "Thank you.  Your data on %s has been received" % xform.keyword
-        submission.save()
-        
-def eliminate_duplicates(sender, **kwargs):
-    messages = kwargs['messages']
-    messages.exclude(connection__backend__name='yo6200').update(status='C')
     
 #poll schedulers
 # a manual reschedule of all monthly polls
@@ -490,5 +430,3 @@ XFormField.register_field_type('fuzzynum', 'Fuzzy Numbers (o/0/none)', parse_fuz
 script_progress_was_completed.connect(emis_autoreg, weak=False)
 script_progress_was_completed.connect(emis_reschedule_script, weak=False)
 script_progress.connect(emis_autoreg_transition, weak=False)
-xform_received.connect(xform_received_handler, weak=False)
-#mass_text_sent.connect(eliminate_duplicates, weak=False)

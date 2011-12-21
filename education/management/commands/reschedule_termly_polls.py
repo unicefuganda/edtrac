@@ -5,7 +5,7 @@ Created on Nov 1, 2011
 '''
 
 from django.core.management.base import BaseCommand
-from education.utils import reschedule_termly_polls
+from education.models import reschedule_termly_polls
 from optparse import OptionParser, make_option
 
 class Command(BaseCommand):
