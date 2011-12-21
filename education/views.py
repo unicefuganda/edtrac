@@ -49,16 +49,22 @@ def index(request, **kwargs):
 
 @login_required
 def testindex(request):
-    to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+    abuses_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
     # this should be equal
-    districts = to_ret.keys()    
+    districts = abuses_to_ret.keys()    
     #uncomment to get the real values 
-    #district_abuses = to_ret.values()
-    
+    #district_abuses = to_ret.values()    
     #TODO comment this out and read the above instruction
     district_abuses = [23, 56, 23, 66]
+    
+    # get %age of pupils that didn't have a meal
+    #TODO uncomment and use a better value for computing
+    #lunches_to_ret = zip(districts, [val for val in list_poll_responses(Poll.objects.filter(name="emis_headteachers_meals")[0]).values()])
+    #TOOD remove test data
+    lunches_to_ret = zip(districts, [20, 30, 40, 10])
+    
     return index(request, template_name="testindex.html", context_vars={
-        'districts':districts, 'abuse_values':district_abuses
+        'districts':districts, 'abuse_values':district_abuses, 'lunches':lunches_to_ret
         #TODO; add more context variables depending on what you want rendered on the chart
         #TODO: more generic highchart 
     })
