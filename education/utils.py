@@ -254,8 +254,7 @@ def list_poll_responses(poll):
     """
     DISTRICT = ['Kaabong', 'Kabarole', 'Kyegegwa', 'Kotido']
     for location in Location.objects.filter(name__in=DISTRICT):
-        if location.name in DISTRICT:
-            to_ret[location.__unicode__()] = compute_average_percentage([msg.text for msg in poll.responses.filter(contact__in=Contact.objects.filter(reporting_location=location))])
+        to_ret[location.__unicode__()] = compute_average_percentage([msg.text for msg in poll.responses.filter(contact__in=Contact.objects.filter(reporting_location=location))])
     return to_ret
 
 
