@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block stylesheets %}
+    <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/layout.css" />
+    <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/splits.css" />
+    <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/modules.css" />
+    <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/icons.css" />
+    <link type="text/css" rel="stylesheet" href="{{MEDIA_URL}}education/stylesheets/emis.css"/>
+{% endblock %}
+{% block javascripts %}
+    {{ block.super }}
+	<!-- {% include "education/partials/chart/javascripts.html" %} -->
+	<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/highcharts.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/emis_dashboard_test_charts.js"></script>
+	
+{% endblock javascripts %}
+{% block content %}
+{% include "education/partials/chart/display_chart.html" %}
+{% endblock %}
