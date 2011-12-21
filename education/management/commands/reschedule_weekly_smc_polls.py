@@ -5,7 +5,7 @@ Created on Nov 1, 2011
 '''
 
 from django.core.management.base import BaseCommand
-from education.utils import reschedule_weekly_smc_polls
+from education.models import reschedule_weekly_smc_polls
 
 class Command(BaseCommand):
     def handle(self, **options):
