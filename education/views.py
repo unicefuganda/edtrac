@@ -51,9 +51,12 @@ def index(request, **kwargs):
 def testindex(request):
     to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
     # this should be equal
-    districts = to_ret.keys()
-    district_abuses = to_ret.values()
-    #resp = zip()    
+    districts = to_ret.keys()    
+    #uncomment to get the real values 
+    #district_abuses = to_ret.values()
+    
+    #TODO comment this out and read the above instruction
+    district_abuses = [23, 56, 23, 66]
     return index(request, template_name="testindex.html", context_vars={
         'districts':districts, 'abuse_values':district_abuses
     })
