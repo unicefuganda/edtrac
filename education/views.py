@@ -36,8 +36,17 @@ def index(request, **kwargs):
     if not kwargs:
         return render_to_response("education/index.html", {}, RequestContext(request))
     else:
-        context_vars = kwargs['context_vars']
-        return render_to_response("education/index.html",context_vars, RequestContext(request))
+        context_vars = kwargs['context_vars']        
+        template_name = kwargs['template_name']
+        if template_name:
+            t = "education/%s"%template_name
+        else:
+            t = "education/index.html"
+        return render_to_response(t, context_vars, RequestContext(request))
+
+@login_required
+def testindex(request):
+    return index(request,template_name="testindex.html",context_vars={'abuse_poll':Poll.objects.get(name="emis_headteachers_abuse")})
 
 @login_required
 def dashboard(request):

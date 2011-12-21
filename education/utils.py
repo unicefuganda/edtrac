@@ -55,7 +55,7 @@ def _next_thursday():
 def _schedule_weekly_scripts(group, connection, grps):
     if group.name in grps:
         d = _next_thursday()
-        script_slug = "emis_%s" % group.name.lower().replace(' ', '_') + '_weekly'       
+        script_slug = "emis_%s" % group.name.lower().replace(' ', '_') + '_weekly'            
         sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
         sp.set_time(d)
     
