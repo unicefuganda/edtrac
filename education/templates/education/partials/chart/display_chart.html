@@ -9,9 +9,9 @@
                 78% of Schools reported this Month
             </span>
         </div>
-        <script type="text/javascript">
-	        var abuse_chart;
-	        $(document).ready(function(){
+		<script type="text/javascript">
+		    var abuse_chart;
+		    $(document).ready(function(){
 				    abuse_chart = new Highcharts.Chart(
 				        {
 				            chart: {
@@ -71,8 +71,7 @@
 				        }
 				    );
 				});
-         </script>
-
+		</script>
         <div id="smc_meetings">
             <script type="text/javascript">
                 $(document).ready(smc_meetings());
@@ -83,6 +82,7 @@
         </div>
     </div>
     <div id="col-2">
+		
         <div id="lunch">
             <script type="text/javascript">
                 $(document).ready(lunches());
@@ -91,10 +91,48 @@
                 46% of Schools reported this Month
             </span>
         </div>
+		<script type="text/javascript">
+				// Lunch charts		
+				var lunch_chart;		
+				    lunch_chart = new Highcharts.Chart({
+				        chart: {
+				            renderTo: 'lunch',
+				            plotBackgroundColor: null,
+				            plotBorderWidth: null,
+				            plotShadow: false
+				        },
+				        title: {
+				            text: 'Lunch at School this Month'
+				        },
+				        tooltip: {
+				            formatter: function() {
+				                return this.percentage +' % \n didn\'t have meals';
+				            }
+				        },
+				        plotOptions: {
+				            pie: {
+				                allowPointSelect: true,
+				                cursor: 'pointer',
+				                dataLabels: {
+				                    enabled: true
+				                },
+				                showInLegend:false
+				            }
+				        },
+				        series: [{
+				            type: 'pie',
+				            name: 'Browser share',
+				            data: [		    
+		            		{% for lunch in lunches %}
+		                		['{{ lunch.0 }}', {{ lunch.1|safe }}],
+		            		{% endfor %}
+				            ]
+				        }]
+				    });		
+		 </script>
         <div id="capitation">
             <h3>UPE Capitation Progress this School Term</h3>
         </div>
     </div>
 
 </div>
-

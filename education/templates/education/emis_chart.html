@@ -43,7 +43,7 @@
                     },
                     tooltip:{
                         formatter:function(){
-                            return ''+this.series.name + ''+this.x + ': '+this.y;
+                            return ''+this.x + 'hey : '+this.y + ' didn\'t have meals';
                         }
                     },
 /*                    legend:{
@@ -56,10 +56,10 @@
                     },*/
                     series:[
                             {% for item in boy_attendance %}
-                                {
+                                [
                                     name:'{{ item.0 }}',
                                     data:{{ item.1|safe }}
-                                },
+                                ],
                             {% endfor %}
                     ]
                 });
