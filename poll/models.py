@@ -540,7 +540,7 @@ class Poll(models.Model):
             sd=self.start_date.date()
         else:
             sd="Not Started"
-        return "%s %s (%s ...)"%(self.name,self.question[0:18],sd)
+        return "%s %s ...(%s)"%(self.name,self.question[0:18],sd)
 
 class Category(models.Model):
     """
