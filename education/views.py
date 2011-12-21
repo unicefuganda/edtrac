@@ -59,6 +59,8 @@ def testindex(request):
     district_abuses = [23, 56, 23, 66]
     return index(request, template_name="testindex.html", context_vars={
         'districts':districts, 'abuse_values':district_abuses
+        #TODO; add more context variables depending on what you want rendered on the chart
+        #TODO: more generic highchart 
     })
 
 @login_required
