@@ -36,6 +36,8 @@ def index(request, **kwargs):
     if not kwargs:
         return render_to_response("education/index.html", {}, RequestContext(request))
     else:
+        #When choosing to use kwargs, don't forget to include template and context_var variables
+        # if you don't need a template or just need the original template, use template_name=None
         context_vars = kwargs['context_vars']        
         template_name = kwargs['template_name']
         if not template_name:
