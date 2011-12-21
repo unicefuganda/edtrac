@@ -232,12 +232,14 @@ def compute_average_percentage(list_of_percentages):
     except ValueError:
         print "non-numeric characters used"
         pass
+    if len(sanitize) <= 0:
+        return 0        
     return sum(sanitize) / float(len(sanitize))
 
 
 def list_poll_responses(poll):
     """
-    pass a poll object and you get yourself a dict with locations vs responses (quite handy for the charts)
+    pass a poll queryset and you get yourself a dict with locations vs responses (quite handy for the charts)
     dependecies: Contact and Location must be in your module; this lists all Poll responses by district
     """
     to_ret = {}
