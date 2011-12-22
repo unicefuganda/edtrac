@@ -320,8 +320,16 @@ div#smc_meetings{
 div.wrappit{
     width:inherit;
 }
-div.map, div.weekly_data{
+div.map{
     width: 50%;
+}
+
+div.weekly_data{
+    float:right;
+}
+div.weekly_data table th, td{
+    padding: 10px 10px 9px;
+    line-height: 18px;
 }
 div.img, div.img img, div.img h3{
     float: left;
@@ -335,11 +343,12 @@ div.indicator{
 div.map{
     float:left;
 }
-div.weekly_data{
-    float:right;
-}
 
 div.spanny{
+    text-align: center;
+}
+
+div.weekly_data td.figures{
     text-align: center;
 }
 
