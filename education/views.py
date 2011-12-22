@@ -59,9 +59,12 @@ def testindex(request):
     
     # get %age of pupils that didn't have a meal
     #TODO uncomment and use a better value for computing
+    #TODO get rid of duplicate emis_headteachers_meals poll --> reason filter() gets used here
     #lunches_to_ret = zip(districts, [val for val in list_poll_responses(Poll.objects.filter(name="emis_headteachers_meals")[0]).values()])
     #TOOD remove test data
     lunches_to_ret = zip(districts, [20, 30, 40, 10])
+
+    smc_meetings_to_ret = list_poll_responses(Poll.objects.filter(name="emis_meetings")[0])
     
     return index(request, template_name="testindex.html", context_vars={
         'districts':districts, 'abuse_values':district_abuses, 'lunches':lunches_to_ret
