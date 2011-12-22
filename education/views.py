@@ -73,6 +73,13 @@ def testindex(request):
     })
 
 @login_required
+def map(request):
+    return render_to_response('education/dashboard/map.html', {}, RequestContext(request))
+
+def attdance(request):
+    return render_to_response('education/dashboard/attdance.html', {}, RequestContext(request))
+
+@login_required
 def dashboard(request):
     profile = request.user.get_profile()
     if profile.is_member_of('DEO'):
