@@ -206,7 +206,7 @@ def compute_average_percentage(list_of_percentages):
     return sum(sanitize) / float(len(sanitize))
 
 
-def list_poll_responses(poll):
+def list_poll_responses(poll, **kwargs):
     """
     pass a poll queryset and you get yourself a dict with locations vs responses (quite handy for the charts)
     dependecies: Contact and Location must be in your module; this lists all Poll responses by district
@@ -222,7 +222,18 @@ def list_poll_responses(poll):
     narrowed down to 3 districts (and up to 14 districts)
     """
     DISTRICT = ['Kaabong', 'Kabarole', 'Kyegegwa', 'Kotido']
-    for location in Location.objects.filter(name__in=DISTRICT):
-        to_ret[location.__unicode__()] = compute_average_percentage([msg.message.text for msg in poll.responses.filter(contact__in=Contact.objects.filter(reporting_location=location))])
-    return to_ret
-
+    if not kwargs:
+        # if no other arguments are provided
+        for location in Location.objects.filter(name__in=DISTRICT):
+            to_ret[location.__unicode__()] = compute_average_percentage([msg.message.text for msg in poll.responses.filter(contact__in=Contact.objects.filter(reporting_location=location))])
+        return to_ret
+    else:
+        # filter by number of weeks
+        #TODO more elegant solution to coincide with actual school term weeks
+        date_filter = kwargs['weeks'] #give the date in weeks
+        date_now = datetime.datetime.now()
+        date_diff = date_now - datetime.timedelta(weeks=date_filter)
+        #all_emis_reports = EmisReporter.objects.filter(reporting_location__in=[loc for loc in Locations.objects.filter(name__in=DISTRICT)])
+        for location in Location.objects.filter(name__in=DISTRICT):
+            to_ret[location.__unicode__()] = compute_average_percentage([msg.message.text for msg in poll.responses.filter(date__gte=date_diff, contact__in=Contact.objects.filter(reporting_location=location))])
+        return to_ret
