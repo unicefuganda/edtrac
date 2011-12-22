@@ -334,7 +334,7 @@ div.weekly_data table{
     padding:0;
     font-size: 13px;
     border-collapse: collapse;
-    border:1px solid black;
+    border:1px solid #ddd;
 }
 
 
