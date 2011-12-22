@@ -222,12 +222,15 @@ def list_poll_responses(poll, **kwargs):
     narrowed down to 3 districts (and up to 14 districts)
     """
     DISTRICT = ['Kaabong', 'Kabarole', 'Kyegegwa', 'Kotido']
-    if not kwargs['date']:
+    if not kwargs:
+        # if no other arguments are provided
         for location in Location.objects.filter(name__in=DISTRICT):
             to_ret[location.__unicode__()] = compute_average_percentage([msg.message.text for msg in poll.responses.filter(contact__in=Contact.objects.filter(reporting_location=location))])
         return to_ret
     else:
-        date_filter = kwargs['date'] #give the date in weeks
+        # filter by number of weeks
+        #TODO more elegant solution to coincide with actual school term weeks
+        date_filter = kwargs['weeks'] #give the date in weeks
         date_now = datetime.datetime.now()
         date_diff = date_now - datetime.timedelta(weeks=date_filter)
         #all_emis_reports = EmisReporter.objects.filter(reporting_location__in=[loc for loc in Locations.objects.filter(name__in=DISTRICT)])
