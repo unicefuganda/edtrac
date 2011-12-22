@@ -70,7 +70,6 @@ INSTALLED_BACKENDS = {
 # to help you get started quickly, many django/rapidsms apps are enabled
 # by default. you may wish to remove some and/or add your own.
 INSTALLED_APPS = [
-    "education",
     "djtables",
     "mptt",
     "uni_form",
@@ -100,6 +99,7 @@ INSTALLED_APPS = [
     "contact",
     "unregister",
     "rapidsms",
+    "education",
 #    "geoserver",
 
     #leave south at the end of this list
@@ -164,6 +164,7 @@ ADMIN_MEDIA_PREFIX = "/static/media/"
 # see: http://docs.djangoproject.com/en/dev/ref/contrib/sites/
 SITE_ID = 1
 
+SOUTH_TESTS_MIGRATE = False
 # the default log settings are very noisy.
 LOG_LEVEL = "DEBUG"
 LOG_FILE = "rapidsms.log"
@@ -250,10 +251,10 @@ except ImportError:
 # virtual database for each thread, and syncdb is only called for the
 # first. this leads to confusing "no such table" errors. We create
 # a named temporary instance instead.
-if 'test' in sys.argv:
-    for db_name in DATABASES:
-        DATABASES[db_name]['ENGINE'] = 'django.db.backends.sqlite3'
-        DATABASES[db_name]['NAME'] = os.path.join(
-            tempfile.gettempdir(),
-            "%s.emis.test.sqlite3" % db_name)
+#if 'test' in sys.argv:
+#    for db_name in DATABASES:
+#        DATABASES[db_name]['ENGINE'] = 'django.db.backends.sqlite3'
+#        DATABASES[db_name]['NAME'] = os.path.join(
+#            tempfile.gettempdir(),
+#            "%s.emis.test.sqlite3" % db_name)
 
