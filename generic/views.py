@@ -37,7 +37,7 @@ def generic(request,
             paginated=True,
             selectable=True,
             objects_per_page=25,
-            columns=[('object', False, '')],
+            columns=[('object', False, '', None)],
             sort_column='',
             sort_ascending=True,
             filter_forms=[],
@@ -138,7 +138,7 @@ def generic(request,
             if action_instance.is_valid():
                 status_message, status_message_type = action_instance.perform(request, results)
             else:
-                status_message,status_message_type=action_instance.errors,'error'
+                status_message, status_message_type = action_instance.errors, 'error'
         else:
             # it's a new filter, re-start from the object list
             # and filter down on the new set of forms
@@ -147,7 +147,7 @@ def generic(request,
                 form_instance = form_class(request.POST, request=request)
                 if form_instance.is_valid():
                     filtered_list = form_instance.filter(request, filtered_list)
-               
+
             selected = True
             # store the request filters in the session
             request.session[FILTER_REQUEST_KEY] = request.POST
