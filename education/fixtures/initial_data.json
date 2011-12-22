@@ -48,22 +48,6 @@
         }
     }, 
     {
-        "pk": 96, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "The location associated with a particular contact", 
-            "created": "2011-03-21 10:25:34", 
-            "datatype": "object", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 3, 
-            "modified": "2011-03-21 10:25:34", 
-            "type": null, 
-            "slug": "contact_location", 
-            "name": "Location"
-        }
-    }, 
-    {
         "pk": 101, 
         "model": "eav.attribute", 
         "fields": {
@@ -78,23 +62,7 @@
             "slug": "contact_location", 
             "name": "Location"
         }
-    }, 
-    {
-        "pk": 97, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "The location associated with a particular contact", 
-            "created": "2011-04-28 18:45:42", 
-            "datatype": "object", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 2, 
-            "modified": "2011-04-28 18:45:42", 
-            "type": null, 
-            "slug": "contact_location", 
-            "name": "Location"
-        }
-    }, 
+    },  
     {
         "pk": 98, 
         "model": "eav.attribute", 
