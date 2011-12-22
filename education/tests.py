@@ -441,7 +441,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.elapseTime2(prog, seconds_to_thursday+(1*60*60)) #seconds to thursday + one hour
         prog = ScriptProgress.objects.get(script__slug='emis_teachers_weekly', connection=self.connection)
         check_progress(prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_teachers_weekly').steps.all()[0].poll.question)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_teachers_weekly').steps.get(order=0).poll.question)
         
 
     def testScriptReschedule(self):
