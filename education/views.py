@@ -114,7 +114,8 @@ def dashboard(request):
     #elif profile.is_member_of('SOME_ROLE'):
     #   return index(request, context_vars={'Abuses':Abuse.objects.all()})
     else:
-        return index(request)
+        return testindex(request)
+#        return index(request)
 #        return HttpResponseRedirect('/emis/stats/')
 
 @login_required
