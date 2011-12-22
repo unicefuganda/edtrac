@@ -73,11 +73,36 @@ def testindex(request):
     })
 
 @login_required
-def map(request):
+def dash_map(request):
     return render_to_response('education/dashboard/map.html', {}, RequestContext(request))
 
-def attdance(request):
+def dash_attdance(request):
     return render_to_response('education/dashboard/attdance.html', {}, RequestContext(request))
+
+def dash_abuse(request):
+    abuses_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+    # this should be equal
+    districts = abuses_to_ret.keys()
+    district_abuses = [23, 56, 23, 66]     
+    return render_to_response('education/dashboard/abuse.html',{\
+                                'districts':districts,\
+                                'abuse_values':district_abuses\
+                                }, RequestContext(request))
+
+def dash_meals(request):
+    abuses_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+    # this should be equal
+    districts = abuses_to_ret.keys()
+    lunches_to_ret = zip(districts, [20, 30, 40, 10])
+    return render_to_response('education/dashboard/meals.html', {\
+                                'lunches':lunches_to_ret,\
+                                }, RequestContext(request))
+
+def dash_meetings(request):
+    return render_to_response('education/dashboard/meetings.html', {}, RequestContext(request))
+
+def dash_capitation(request):
+    return render_to_response('education/dashboard/capitation.html', {}, RequestContext(request))
 
 @login_required
 def dashboard(request):
