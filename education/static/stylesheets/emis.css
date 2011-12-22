@@ -331,6 +331,50 @@ div.weekly_data table th, td{
     padding: 10px 10px 9px;
     line-height: 18px;
 }
+
+div.weekly_data table th{
+    padding-top:9px;
+    font-weight: bold;
+    vertical-align: middle;
+}
+
+div.weekly_data table td{
+    vertical-align: top;
+    border-top:1px solid #ddd;
+}
+div.weekly_data table{
+    border: 1px solid #ddd;
+    border-collapse: separate;
+    *border-collapse: collapse;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+}
+
+div.weekly_data table th + th, div.weekly_data td + td, div.weekly_data th + td {
+    border-left: 1px solid #ddd;
+}
+
+div.weekly_data table thead tr:first-child th:first-child, div.weekly_data table tbody tr:first-child td:first-child{
+    -webkit-border-radius: 0 4px 0 0;
+    -moz-border-radius: 0 4px 0 0;
+    border-radius: 0 4px 0 0;
+}
+
+div.weekly_data table tbody tr:last-child td:first-child{
+    -webkit-border-radius: 0 0 4px 0;
+    -moz-border-radius: 0 0 4px 0;
+    border-radius: 0 0 4px 0;
+}
+
+div.weekly_data table tbody tr:nth-child(odd) td, div.weekly_data table tbody tr:nth-child(odd) th{
+    background-color: #f9f9f9;
+}
+
+div.weekly_data table tbody tr:hover td, div.weekly_data table tbody tr:hover th{
+    background-color: #f5f5f5;
+}
+
 div.img, div.img img, div.img h3{
     float: left;
     width: 280px;
