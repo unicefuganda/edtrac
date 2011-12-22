@@ -239,7 +239,13 @@ def parse_gemvalues(obj):
         return 'No'
     else:
         return 'Yes'
-
+    
+def reorganize_lunch(obj):
+    lunches = []
+    print obj
+    for label, lunch in obj:
+        lunches.append("%s-%d"%(label,lunch))
+    return lunches
 register = template.Library()
 register.filter('section', get_section)
 register.filter('parent', get_parent)
@@ -252,6 +258,7 @@ register.filter('last_report', last_report)
 register.filter('submissions', submissions)
 register.filter('headteacher',headteacher)
 register.filter('parse_gemvalues', parse_gemvalues)
+register.filter('reorganize_lunch', reorganize_lunch)
 register.filter('headteacher_connection',headteacher_connection)
 register.filter('hash', hash)
 register.filter('get_district', get_district)

@@ -21,11 +21,28 @@
         <td id="attdance" width="100%" height="400" valign="top"></td>
     </tr>
     <tr>
-        <td colspan="2">{% include "education/partials/chart/display_chart.html" %}</td>
+        <td colspan="2">
+            <table width="100%" cellpadding="5" cellspacing="0">
+                <tr>
+                    <td id="abuse" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;"></td>
+                    <td id="meals" width="50%" height="400" valign="top" style="border-bottom:1px solid #efefef;"></td>
+                    
+                </tr>
+                <tr>
+                    <td id="meetings" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;"></td>
+                    <td id="capitation" width="50%" height="400" valign="top"></td>
+                    
+                </tr>
+             </table>
+        </td>
     </tr>
 </table>
 <script language="JavaScript">
-    $('#map').load('{% url emis-map %}');
-    $('#attdance').load('{% url emis-attdance %}');
+    $('#map').load('{% url emis-dash-map %}');
+    $('#attdance').load('{% url emis-dash-attdance %}');
+    $('#abuse').load('{% url emis-dash-abuse %}');
+    $('#meals').load('{% url emis-dash-meals %}');
+    $('#meetings').load('{% url emis-dash-meetings %}');
+    $('#capitation').load('{% url emis-dash-capitation %}');
 </script>
 {% endblock %}
