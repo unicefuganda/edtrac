@@ -101,6 +101,10 @@ class ArithmeticFunctionColumn(Column):
 
 class DifferenceColumn(ArithmeticFunctionColumn):
     def func(self, first, second):
+        if first is None:
+            first = 0
+        if second is None:
+            second = 0
         return first - second
 
 
@@ -108,7 +112,7 @@ class QuotientColumn(ArithmeticFunctionColumn):
     def func(self, first, second):
         if second > 0:
             return round(((float(first) / second) * 100), 1)
-        
+
 class InverseQuotientColumn(ArithmeticFunctionColumn):
     def func(self, first, second):
         if second > 0:
