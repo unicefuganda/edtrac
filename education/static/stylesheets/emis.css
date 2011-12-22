@@ -296,8 +296,15 @@ div.charts {
 }
 
 div#col-1, div#col-2{
-    width:50%;
+    width:49.8%;
 }
+div#col-1, div#col-2{
+    border:1px solid #ddd;
+}
+div#abuse_container{
+    border-bottom: 1px solid #ddd;
+}
+
 div#col-1 span{
     text-align: center;
 }
@@ -320,9 +327,64 @@ div#smc_meetings{
 div.wrappit{
     width:inherit;
 }
-div.map, div.weekly_data{
+div.map{
     width: 50%;
 }
+
+div.weekly_data{
+    float:right;
+}
+
+div.weekly_data table{
+    width: 100%;
+    margin-bottom: 18px;
+    padding:0;
+    font-size: 13px;
+    border-collapse: collapse;
+    border:1px solid #ddd;
+}
+
+
+div.weekly_data table th, td{
+    /*padding: 10px 10px 9px;
+    line-height: 18px;*/
+}
+
+div.weekly_data table th{
+    padding-top:9px;
+    font-weight: bold;
+    vertical-align: middle;
+}
+
+div.weekly_data table td{
+    vertical-align: top;
+    border-top:1px solid #ddd;
+}
+
+div.weekly_data table th + th, div.weekly_data td + td, div.weekly_data th + td {
+    border-left: 1px solid #ddd;
+}
+
+div.weekly_data table thead tr:first-child th:first-child, div.weekly_data table tbody tr:first-child td:first-child{
+    -webkit-border-radius: 0 4px 0 0;
+    -moz-border-radius: 0 4px 0 0;
+    border-radius: 0 4px 0 0;
+}
+
+div.weekly_data table tbody tr:last-child td:first-child{
+    -webkit-border-radius: 0 0 4px 0;
+    -moz-border-radius: 0 0 4px 0;
+    border-radius: 0 0 4px 0;
+}
+
+div.weekly_data table tbody tr:nth-child(odd) td, div.weekly_data table tbody tr:nth-child(odd) th{
+    background-color: #f9f9f9;
+}
+
+div.weekly_data table tbody tr:hover td, div.weekly_data table tbody tr:hover th{
+    background-color: #f5f5f5;
+}
+
 div.img, div.img img, div.img h3{
     float: left;
     width: 280px;
@@ -335,90 +397,33 @@ div.indicator{
 div.map{
     float:left;
 }
-div.weekly_data{
-    float:right;
-}
 
 div.spanny{
     text-align: center;
 }
 
+div.weekly_data td.figures{
+    text-align: center;
+}
+
 div.progress{
     width: inherit;
-    margin-top: 20px;
+    margin-top: 500px;
     clear: both;
 }
 div.progress span{
     font-size: 1.5em;
 }
+
+div.align_progress{
+    text-align: center;
+    margin-top:10px;
+}
 div.progress span.inner_span {
     font-size: 0.5em;
 }
 
-.ui-progress-bar{
-	margin-top:3em;
-	margin-bottom:3em;
+div#p3, div#p6{
+    float:inherit;
+    padding:20px;
 }
-
-.ui-progress span.ui-label{
-	font-size:1.2em;
-}
-
-@-webkit-keyframes animate-stripes {
-  from {
-    background-position: 0 0;
-  }
- 
-  to {
-   background-position: 44px 0;
-  }
-}     
-
-.ui-progress-bar {
-  position: relative;
-  height: 35px;
-  padding-right: 2px;
-  background-color: #abb2bc;
-  border-radius: 35px;
-  -moz-border-radius: 35px;
-  -webkit-border-radius: 35px;
-  background: -webkit-gradient(linear, left bottom, left top, color-stop(0, #b6bcc6), color-stop(1, #9da5b0));
-  background: -moz-linear-gradient(#9da5b0 0%, #b6bcc6 100%);
-  -webkit-box-shadow: inset 0px 1px 2px 0px rgba(0, 0, 0, 0.5), 0px 1px 0px 0px #FFF;
-  -moz-box-shadow: inset 0px 1px 2px 0px rgba(0, 0, 0, 0.5), 0px 1px 0px 0px #FFF;
-  box-shadow: inset 0px 1px 2px 0px rgba(0, 0, 0, 0.5), 0px 1px 0px 0px #FFF;
-}       
- 
-.ui-progress {
-  position: relative;
-  display: block;
-  overflow: hidden;
-  height: 33px;
-  -moz-border-radius: 35px;
-  -webkit-border-radius: 35px;
-  border-radius: 35px;
-  -webkit-background-size: 44px 44px;
-  background-color: #74d04c;
-  background: -webkit-gradient(linear, 0 0, 44 44,
-    color-stop(0.00, rgba(255,255,255,0.17)),
-    color-stop(0.25, rgba(255,255,255,0.17)),
-    color-stop(0.26, rgba(255,255,255,0)),
-    color-stop(0.50, rgba(255,255,255,0)),
-    color-stop(0.51, rgba(255,255,255,0.17)),
-    color-stop(0.75, rgba(255,255,255,0.17)),
-    color-stop(0.76, rgba(255,255,255,0)),
-    color-stop(1.00, rgba(255,255,255,0))
-  ), -webkit-gradient(linear, left bottom, left top, color-stop(0, #74d04c), color-stop(1, #9bdd62));
-  background: -moz-repeating-linear-gradient(top left -30deg,
-    rgba(255,255,255,0.17),
-    rgba(255,255,255,0.17) 15px,
-    rgba(255,255,255,0) 15px,
-    rgba(255,255,255,0) 30px
-  ), -moz-linear-gradient(#9bdd62 0%, #74d04c 100%);
-  -webkit-box-shadow: inset 0px 1px 0px 0px #dbf383, inset 0px -1px 1px #58c43a;
-  -moz-box-shadow: inset 0px 1px 0px 0px #dbf383, inset 0px -1px 1px #58c43a;
-  box-shadow: inset 0px 1px 0px 0px #dbf383, inset 0px -1px 1px #58c43a;
-  border: 1px solid #4c8932;
-  -webkit-animation: animate-stripes 2s linear infinite;
-}
-
