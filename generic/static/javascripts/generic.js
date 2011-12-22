@@ -32,7 +32,7 @@ function sort(elem, col, ascending) {
     filter(elem);
 }
 
-function action(elem, action) {
+function action(elem, action,page) {
    
     if (!($(elem).is('.delete')) ||
             (confirm("Are you sure?"))) {
@@ -40,6 +40,7 @@ function action(elem, action) {
         $('#input_action').val(action);
         form = $(elem).parents("form");
         form_data = form.serializeArray();
+        form_data.concat([{'page_num':page}]);
         $('#div_results_loading').show();
         overlay_loading_panel($('#actions'));
         $('#object_list').load("./", form_data, function() {
