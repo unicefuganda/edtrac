@@ -11,9 +11,11 @@
 	<!-- {% include "education/partials/chart/javascripts.html" %} -->
 	<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/highcharts.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/emis_dashboard_test_charts.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery.progressbar.js"></script>
 	
 {% endblock javascripts %}
 {% block content %}
 {% include "education/partials/chart/top.html" %}
+{% include "education/partials/chart/progress.html" %}
 {% include "education/partials/chart/display_chart.html" %}
 {% endblock %}
