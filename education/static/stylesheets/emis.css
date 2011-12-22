@@ -296,8 +296,15 @@ div.charts {
 }
 
 div#col-1, div#col-2{
-    width:50%;
+    width:49.8%;
 }
+div#col-1, div#col-2{
+    border:1px solid #ddd;
+}
+div#abuse_container{
+    border-bottom: 1px solid #ddd;
+}
+
 div#col-1 span{
     text-align: center;
 }
