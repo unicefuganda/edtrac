@@ -293,7 +293,6 @@ div#girl_container{
 div.charts {
     width:inherit;
     clear:both;
-    border: #000000 solid;
 }
 
 div#col-1, div#col-2{
@@ -320,7 +319,6 @@ div#smc_meetings{
 
 div.wrappit{
     width:inherit;
-    border: #000000 solid;
 }
 div.map, div.weekly_data{
     width: 50%;
@@ -339,6 +337,10 @@ div.map{
 }
 div.weekly_data{
     float:right;
+}
+
+div.spanny{
+    text-align: center;
 }
 
 div.progress{
@@ -371,7 +373,7 @@ div.progress span.inner_span {
    background-position: 44px 0;
   }
 }     
- 
+
 .ui-progress-bar {
   position: relative;
   height: 35px;
