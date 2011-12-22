@@ -233,4 +233,6 @@ urlpatterns = patterns('',
     }, name="emis-users"),
     url(r'^emis/alerts_detail/(?P<alert>\d+)/$', login_required(alerts_detail), {}, name="emis-alerts"),
     url(r'^emis/stats/', include(NewAttendanceReport().as_urlpatterns(name='emis-stats'))),
+    url(r'^emis/map/$', map, {}, name="emis-map"),
+    url(r'^emis/attdance/$', attdance, {}, name="emis-attdance"),
 )

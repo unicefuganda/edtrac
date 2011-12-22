@@ -4,6 +4,7 @@
     <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/splits.css" />
     <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/modules.css" />
     <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/icons.css" />
+    <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}generic/stylesheets/generic.css" />
     <link type="text/css" rel="stylesheet" href="{{MEDIA_URL}}education/stylesheets/emis.css"/>
 {% endblock %}
 {% block javascripts %}
@@ -14,6 +15,17 @@
 	
 {% endblock javascripts %}
 {% block content %}
-{% include "education/partials/chart/top.html" %}
-{% include "education/partials/chart/display_chart.html" %}
+<table width="100%" cellpadding="5" cellspacing="0">
+    <tr>
+        <td id="map" width="425" height="400" valign="top"></td>
+        <td id="attdance" width="100%" height="400" valign="top"></td>
+    </tr>
+    <tr>
+        <td colspan="2">{% include "education/partials/chart/display_chart.html" %}</td>
+    </tr>
+</table>
+<script language="JavaScript">
+    $('#map').load('{% url emis-map %}');
+    $('#attdance').load('{% url emis-attdance %}');
+</script>
 {% endblock %}
