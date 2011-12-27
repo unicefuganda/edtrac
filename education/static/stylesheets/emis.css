@@ -407,14 +407,20 @@ div.weekly_data td.figures{
 }
 
 div.progress{
-    width: inherit;
-    margin-top: 500px;
-    clear: both;
+    padding:20px;
 }
 div.progress span{
     font-size: 1.5em;
 }
-
+#progress_p6 > div, #progress_p3 > div{
+    height:20px;
+}
+#make span values a little pretty
+.pretify{
+    position:absolute;
+    margin-left:10px;
+    margin-top:2px;
+}
 div.align_progress{
     text-align: center;
     margin-top:10px;
