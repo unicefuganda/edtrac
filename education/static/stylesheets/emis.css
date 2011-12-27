@@ -412,6 +412,9 @@ div.progress{
 div.progress span{
     font-size: 1.5em;
 }
+#progress_p6 > div, #progress_p3 > div{
+    height:20px;
+}
 
 div.align_progress{
     text-align: center;
