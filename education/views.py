@@ -108,6 +108,15 @@ def dash_progress(request):
     return render_to_response('education/dashboard/progress.html', {'p3':p3, 'p6':p6}, RequestContext(request))
 
 def dash_meetings(request):
+    message_ids = [poll_response['message_id'] for poll_response in Poll.objects.get(name="emis_meetings").responses.values()]
+    all_messages =[msg.text for msg in Message.objects.filter(id__in=message_ids)]
+    try:
+        to_ret = {}
+        set_messages = set(all_messages)
+        for msg in set_messages:
+            to_ret[msg] = all_messages.count(int(msg))
+    except ValueError:
+        print "some non numeric values were provided"
     return render_to_response('education/dashboard/meetings.html', {}, RequestContext(request))
 
 def dash_capitation(request):
