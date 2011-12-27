@@ -190,7 +190,10 @@ def get_flagged_messages(**kwargs):
 
 
 def compute_average_percentage(list_of_percentages):
-    """Average percentage"""
+    """
+    Average percentage
+    -> this is also a handly tool to compute averages generally while sanitizing
+    """
     sanitize = []
     try:
         for i in list_of_percentages:
@@ -212,7 +215,6 @@ def list_poll_responses(poll, **kwargs):
     dependecies: Contact and Location must be in your module; this lists all Poll responses by district
     """
     #forceful import
-    from education.models import EmisReporter
     from poll.models import Poll
     to_ret = {}
     """
