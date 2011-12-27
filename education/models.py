@@ -70,10 +70,9 @@ class UserProfile(models.Model):
     def is_member_of(self, group):
         return group.lower() == self.role.name.lower()
     
-class PollSchedule(models.Model):
-    poll = models.ForeignKey(Poll)
+class ScriptSchedule(models.Model):
+    script = models.ForeignKey(Script)
     date = models.DateTimeField(auto_now=True)
-    group = models.ForeignKey(Group)
 
 def parse_date(command, value):
     return parse_date_value(value)
@@ -324,6 +323,54 @@ def emis_autoreg_transition(**kwargs):
                 progress.step = progress.script.steps.get(order=progress.step.order + 1)
                 progress.save()
                 break
+            
+def emis_attendance_script_transition(**kwargs):
+
+    connection = kwargs['connection']
+    progress = kwargs['sender']
+    if not progress.script.slug == 'emis_teachers_weekly':
+        return
+    script = progress.script
+    try:
+        session = ScriptSession.objects.filter(script=progress.script, connection=connection, end_time=None).latest('start_time')
+    except ScriptSession.DoesNotExist:
+        return
+    grade = connection.contact.emisreporter.grade
+    if not grade:
+        return
+    skipsteps = {
+        'emis_boysp3_attendance':['P3'],
+        'emis_boysp6_attendance':['P6'],
+        'emis_girlsp3_attendance':['P3'],
+        'emis_girlsp6_attendance':['P6'],
+    }
+    skipped = True
+    while grade and skipped:
+        skipped = False
+        for step_name, grades in skipsteps.items():
+            if  progress.step.poll and \
+                progress.step.poll.name == step_name and grade not in grades:
+                skipped = True
+                if progress.last_step():
+                    progress.giveup()
+                    return
+                progress.step = progress.script.steps.get(order=progress.step.order + 1)
+                progress.save()
+                break
+            
+def emis_scriptrun_schedule(**kwargs):
+
+    connection = kwargs['connection']
+    progress = kwargs['sender']
+    step = kwargs['step']
+    if progress.script.slug == 'emis_autoreg':
+        return
+    script = progress.script
+    connections = ScriptProgress.objects.filter(script=script)
+    date = datetime.datetime.now().date()
+    if step == 0:
+        s, c = ScriptSchedule.objects.get_or_create(script=script, date__contains=date)
+    
     
 #poll schedulers
 # a manual reschedule of all monthly polls
@@ -430,3 +477,5 @@ XFormField.register_field_type('fuzzynum', 'Fuzzy Numbers (o/0/none)', parse_fuz
 script_progress_was_completed.connect(emis_autoreg, weak=False)
 script_progress_was_completed.connect(emis_reschedule_script, weak=False)
 script_progress.connect(emis_autoreg_transition, weak=False)
+script_progress.connect(emis_attendance_script_transition, weak=False)
+#script_progress.connect(emis_scriptrun_schedule, weak=False)

@@ -1,5 +1,5 @@
 """
-Basic tests for CVS
+Basic tests for Edtrac
 """
 
 from django.test import TestCase
@@ -422,7 +422,7 @@ class ModelTest(TestCase): #pragma: no cover
         ])
         self.assertEquals(EmisReporter.objects.count(), 1)
         
-    def testTeacherPolls(self):
+    def testWeeklyTeacherPolls(self):
         self.fake_incoming('join')
         self.assertEquals(ScriptProgress.objects.count(), 1)
         script_prog = ScriptProgress.objects.all()[0]
@@ -442,6 +442,20 @@ class ModelTest(TestCase): #pragma: no cover
         prog = ScriptProgress.objects.get(script__slug='emis_teachers_weekly', connection=self.connection)
         check_progress(prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_teachers_weekly').steps.get(order=0).poll.question)
+        self.fake_incoming('40')
+        self.assertEquals(Message.objects.filter(direction='I').order_by('-date')[0].application, 'script')
+        self.assertEquals(Script.objects.get(slug='emis_teachers_weekly').steps.get(order=0).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 40)
+        self.elapseTime2(prog, 61)
+        prog = ScriptProgress.objects.get(script__slug='emis_teachers_weekly', connection=self.connection)
+        check_progress(prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_teachers_weekly').steps.get(order=2).poll.question)
+        self.fake_incoming('55girls')
+        self.assertEquals(Script.objects.get(slug='emis_teachers_weekly').steps.get(order=2).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 55)
+        self.elapseTime2(prog, 61)
+        prog = ScriptProgress.objects.get(script__slug='emis_teachers_weekly', connection=self.connection)
+        check_progress(prog.script)
+        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
+        
         
 
     def testScriptReschedule(self):
