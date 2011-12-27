@@ -407,9 +407,7 @@ div.weekly_data td.figures{
 }
 
 div.progress{
-    width: inherit;
-    margin-top: 500px;
-    clear: both;
+    padding:20px;
 }
 div.progress span{
     font-size: 1.5em;
