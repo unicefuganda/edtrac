@@ -102,7 +102,9 @@ def dash_progress(request):
     #curriculum progress for p6 and p3
     progress_to_ret = [65, 62]
     classes = ["p3", "p6"]
-    return render_to_response('education/dashboard/progress.html', {}, RequestContext(request))
+    p3 = 54
+    p6 = 63
+    return render_to_response('education/dashboard/progress.html', {'p3':p3, 'p6':p6}, RequestContext(request))
 
 def dash_meetings(request):
     return render_to_response('education/dashboard/meetings.html', {}, RequestContext(request))

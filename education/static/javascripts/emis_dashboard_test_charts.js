@@ -147,3 +147,11 @@ function lunch(data) {
         }]
     });
 }
+
+function load_progress_chart(val1, val2){
+    var val1, val2;
+    $("#progress_p3").progressbar({value: val1});
+    $("#progress_p6").progressbar({value:val2});
+    $("#progress_p3 > div").append(val1 + '%').addClass('pretify');
+    $("#progress_p6 > div").append(val2 + '%').addClass('pretify');
+}
