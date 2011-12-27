@@ -5,9 +5,7 @@
         </span></span>
     </div>
     <div id="progress_p3">
-        <span style="position:absolute; margin-left:10px; margin-top:2px">
-        35%
-        </span>
+
     </div>
 </div>
 <div id="progressbar-p6">
@@ -16,20 +14,12 @@
     </div>
     <div id="progress_p6">
         <span style="position:absolute; margin-left:10px; margin-top:2px">
-            52%
         </span>
     </div>
 </div>
 
 <script>
-    $(function(){
-        $("#progress_p3").progressbar({
-            value: 35
-        });
-        //TODO pass actual context vars here
-        $("#progress_p3").add("<span>35%</span>");
-        $("#progress_p6").progressbar({
-                    value:52
-                });
+    $(document).ready(function(){
+        load_progress_chart({{ p3 }}, {{ p6 }});
     });
 </script>
