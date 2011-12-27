@@ -150,8 +150,14 @@ function lunch(data) {
 
 function load_progress_chart(val1, val2){
     var val1, val2;
-    $("#progress_p3").progressbar({value: val1});
-    $("#progress_p6").progressbar({value:val2});
-    $("#progress_p3 > div").append(val1 + '%').addClass('pretify');
-    $("#progress_p6 > div").append(val2 + '%').addClass('pretify');
+    if (val1 > 100 || val2 > 100){
+        // pervasive checking...
+        alert("Progress chart can't load for values greater than 100 denied");
+    }
+    else{
+        $("#progress_p3").progressbar({value: val1});
+        $("#progress_p6").progressbar({value:val2});
+        $("#progress_p3 > div").append(val1 + '%').addClass('pretify');
+        $("#progress_p6 > div").append(val2 + '%').addClass('pretify');
+    }
 }
