@@ -114,7 +114,7 @@ def dash_meetings(request):
         to_ret = {}
         set_messages = set(all_messages)
         for msg in set_messages:
-            to_ret[msg] = all_messages.count(int(msg))
+            to_ret[int(msg)] = all_messages.count(int(msg))
     except ValueError:
         print "some non numeric values were provided"
     return render_to_response('education/dashboard/meetings.html', {}, RequestContext(request))
