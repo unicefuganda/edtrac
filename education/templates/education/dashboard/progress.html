@@ -4,13 +4,21 @@
             (week 8 of School Term)
         </span></span>
     </div>
-    <div id="progress_p3"></div>
+    <div id="progress_p3">
+        <span style="position:absolute; margin-left:10px; margin-top:2px">
+        35%
+        </span>
+    </div>
 </div>
 <div id="progressbar-p6">
     <div class="progress">
         <span>ENGLISH - Curriculum Progress for P6 <span class="inner_span">(week 8 of School Term)</span></span>
     </div>
-    <div id="progress_p6"></div>
+    <div id="progress_p6">
+        <span style="position:absolute; margin-left:10px; margin-top:2px">
+            52%
+        </span>
+    </div>
 </div>
 
 <script>
@@ -18,6 +26,8 @@
         $("#progress_p3").progressbar({
             value: 35
         });
+        //TODO pass actual context vars here
+        $("#progress_p3").add("<span>35%</span>");
         $("#progress_p6").progressbar({
                     value:52
                 });
