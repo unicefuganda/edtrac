@@ -8,6 +8,7 @@ from script.models import Script, ScriptSession, ScriptProgress
 from rapidsms.models import Connection
 from datetime import datetime,date
 import calendar
+import dateutils
 import xlwt
 from contact.models import MessageFlag
 from rapidsms.models import Contact
@@ -34,6 +35,27 @@ def previous_calendar_week(t=None):
     end_date = last_thursday + datetime.timedelta(days=7)
     return (last_thursday.date(), end_date)
 
+def is_weekend(date):
+    """
+    Find out if supplied date is a Saturday or Sunday, return True/False
+    """
+    return date.weekday() in [5, 6]
+
+def next_relativedate(day_offset, month_offset=0):
+    """
+    Find the date corresponding to day_offset of the month
+    """
+    d = datetime.datetime.now()
+    if month_offset:
+        d = d + datetime.timedelta(month_offset*31)
+        
+    day = calendar.mdays[d.month] if day_offset == 'last' else day_offset
+    if d.day >= day:
+        d = d + dateutils.relativedelta(day=31)
+    else:
+        d = datetime.datetime(d.year, d.month, 1, d.hour, d.minute, d.second, d.microsecond)
+    return d + datetime.timedelta(day)
+
 def _next_thursday(sp=None):
     """
     Next Thursday is the very next Thursday of the week which is not a school holiday
@@ -51,6 +73,65 @@ def _next_thursday(sp=None):
         if in_holiday:
             d = d + datetime.timedelta(7)
     return d
+    
+def _date_of_monthday(day_offset):
+    
+    holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
+    d = next_relativedate(day_offset)
+    if is_weekend(d):
+        #next monday
+        d = d + datetime.timedelta((0 - d.weekday()) % 7)
+        
+    in_holiday = True
+    while in_holiday:
+        in_holiday = False
+        for start, end in holidays:
+            if d >= start and d <= end:
+                in_holiday = True
+                break
+        if in_holiday:
+            d = next_relativedate(day_offset, 1)
+            if is_weekend(d):
+                d = d + datetime.timedelta((0 - d.weekday()) % 7)
+    return d
+
+def _next_midterm():
+    """
+    The middle of school term is either in mid April, July or Nov for Term 1, 2 and 3 respectively.
+    This function returns the approximate date of the next mid term depending on the current date.
+    """
+    holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
+    d = datetime.datetime.now()
+    start_of_year = datetime.datetime(d.year + 1, 1, 1, d.hour, d.minute, d.second, d.microsecond)
+#    if d <= start_of_year + datetime.timedelta(days=((3*30)+15)):
+#        d = datetime.datetime(d.year, 4, 15, d.hour, d.minute, d.second, d.microsecond)
+#    elif d > start_of_year + datetime.timedelta(days=((3*30)+15)) and d <= start_of_year + datetime.timedelta(days=((6*30)+15)):
+#        d = datetime.datetime(d.year, 7, 15, d.hour, d.minute, d.second, d.microsecond)
+#    elif d > start_of_year + datetime.timedelta(days=((6*30)+15)) and d <= start_of_year + datetime.timedelta(days=((10*30)+15)):
+#        d = datetime.datetime(d.year, 11, 15, d.hour, d.minute, d.second, d.microsecond)
+#    else:
+#        d = datetime.datetime(d.year, 4, 15, d.hour, d.minute, d.second, d.microsecond)
+
+    if d.month in [12, 1, 2, 3]:
+        d = start_of_year + datetime.timedelta(days=((3*31)+15))
+    elif d.month in [4, 5, 6]:
+        d = start_of_year + datetime.timedelta(days=((6*31)+15))
+    else:
+        d = start_of_year + datetime.timedelta(days=((10*31)+15))
+    
+    if is_weekend(d):
+        d = d + datetime.timedelta((0 - d.weekday()) % 7)
+    in_holiday = True
+    while in_holiday:
+        in_holiday = False
+        for start, end in holidays:
+            if d >= start and d <= end:
+                in_holiday = True
+                break
+        if in_holiday:
+            if is_weekend(d):
+                d = d + datetime.timedelta((0 - d.weekday()) % 7)
+    return d
 
 def _schedule_weekly_scripts(group, connection, grps):
     if group.name in grps:
@@ -60,67 +141,14 @@ def _schedule_weekly_scripts(group, connection, grps):
         sp.set_time(d)
     
 def _schedule_monthly_script(group, connection, script_slug, day_offset, role_names):
-    holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
     if group.name in role_names:
-        d = datetime.datetime.now()
-        day = calendar.mdays[d.month] if day_offset == 'last' else day_offset
-        d = datetime.datetime(d.year, d.month, day, d.hour, d.minute, d.second, d.microsecond)
-        #if d is weekend, set time to next monday
-        if d.weekday() == 5:
-            d = d + datetime.timedelta((0 - d.weekday()) % 7)
-        if d.weekday() == 6:
-            d = d + datetime.timedelta((0 - d.weekday()) % 7)
-        in_holiday = True
-        while in_holiday:
-            in_holiday = False
-            for start, end in holidays:
-                if d >= start and d <= end:
-                    in_holiday = True
-                    break
-            if in_holiday:
-                d = d + datetime.timedelta(31)
-                day = calendar.mdays[d.month] if day_offset == 'last' else day_offset
-                d = datetime.datetime(d.year, d.month, day, d.hour, d.minute, d.second, d.microsecond)
-                #if d is weekend, set time to next monday
-                if d.weekday() == 5:
-                    d = d + datetime.timedelta((0 - d.weekday()) % 7)
-                if d.weekday() == 6:
-                    d = d + datetime.timedelta((0 - d.weekday()) % 7)
+        d = _date_of_monthday(day_offset)
         sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
         sp.set_time(d)
 
 def _schedule_termly_script(group, connection, script_slug, role_names):
-    holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
     if group.name in role_names:
-        #termly messages are automatically scheduled for mid April, July and Nov
-        d = datetime.datetime.now()
-        start_of_year = datetime.datetime(d.year + 1, 1, 1, d.hour, d.minute, d.second, d.microsecond)
-        if d <= start_of_year + datetime.timedelta(days=((3*30)+15)):
-            d = datetime.datetime(d.year, 4, 15, d.hour, d.minute, d.second, d.microsecond)
-        elif d > start_of_year + datetime.timedelta(days=((3*30)+15)) and d <= start_of_year + datetime.timedelta(days=((6*30)+15)):
-            d = datetime.datetime(d.year, 7, 15, d.hour, d.minute, d.second, d.microsecond)
-        elif d > start_of_year + datetime.timedelta(days=((6*30)+15)) and d <= start_of_year + datetime.timedelta(days=((10*30)+15)):
-            d = datetime.datetime(d.year, 11, 15, d.hour, d.minute, d.second, d.microsecond)
-        else:
-            d = datetime.datetime(d.year, 4, 15, d.hour, d.minute, d.second, d.microsecond)
-        #if d is weekend, set time to next monday
-        if d.weekday() == 5:
-            d = d + datetime.timedelta((0 - d.weekday()) % 7)
-        if d.weekday() == 6:
-            d = d + datetime.timedelta((0 - d.weekday()) % 7)
-        in_holiday = True
-        while in_holiday:
-            in_holiday = False
-            for start, end in holidays:
-                if d >= start and d <= end:
-                    in_holiday = True
-                    break
-            if in_holiday:
-                #if d is weekend, set time to next monday
-                if d.weekday() == 5:
-                    d = d + datetime.timedelta((0 - d.weekday()) % 7)
-                if d.weekday() == 6:
-                    d = d + datetime.timedelta((0 - d.weekday()) % 7)
+        d = _next_midterm()
         sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
         sp.set_time(d)
 
