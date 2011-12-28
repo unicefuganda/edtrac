@@ -1041,6 +1041,7 @@ class XFormSubmission(models.Model):
     connection = models.ForeignKey(Connection, null=True, related_name='submissions')
     raw = models.TextField()
     has_errors = models.BooleanField(default=False)
+    approved = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     confirmation_id = models.IntegerField(default=0)
     message = models.ForeignKey(Message, null=True, related_name='submissions')
