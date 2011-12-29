@@ -870,9 +870,9 @@ def get_responses_to_polls(**kwargs):
             responses = {}
             for poll in poll_names:
                 values = []
+                s = 0
                 for resp in Poll.objects.get(name=poll).responses.filter():
                     values.append(resp.eav.poll_number_value)
-                    s = 0
                     try:
                         for val in values:
                             s += val
