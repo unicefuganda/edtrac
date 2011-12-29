@@ -25,6 +25,7 @@ from script.utils.outgoing import check_progress
 from django.core.management import call_command
 from unregister.models import Blacklist
 from education.utils import _next_thursday, _date_of_monthday, _next_midterm
+from poll.models import ResponseCategory
 
 
 class ModelTest(TestCase): #pragma: no cover
@@ -562,7 +563,6 @@ class ModelTest(TestCase): #pragma: no cover
         Script.objects.filter(slug__in=['emis_head_teachers_weekly', 'emis_head_teachers_monthly', 'emis_head_teachers_termly']).update(enabled=True)
         prog = ScriptProgress.objects.get(script__slug='emis_head_teachers_termly', connection=self.connection)
         d = _next_midterm()
-        print d
         seconds_to_midterm = (d - datetime.datetime.now()).total_seconds()
         self.elapseTime2(prog, seconds_to_midterm+(1*60*60)) #seconds to 25th + one hour
         prog = ScriptProgress.objects.get(script__slug='emis_head_teachers_termly', connection=self.connection)
@@ -609,106 +609,68 @@ class ModelTest(TestCase): #pragma: no cover
         poll = Script.objects.get(slug='emis_head_teachers_termly').steps.get(order=6).poll
         yes_category = poll.categories.filter(name='yes')
         response = poll.responses.all().order_by('-date')[0]
-        from poll.models import ResponseCategory
         self.assertEquals(ResponseCategory.objects.get(response__poll__name=poll.name,  category=yes_category).response, response)
         self.elapseTime2(prog, 61)
         prog = ScriptProgress.objects.get(script__slug='emis_head_teachers_termly', connection=self.connection)
         check_progress(prog.script)
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')     
-        
-
-    def testScriptReschedule(self):
+    
+    def testWeeklySMCPolls(self):
         self.fake_incoming('join')
+        self.assertEquals(ScriptProgress.objects.count(), 1)
         script_prog = ScriptProgress.objects.all()[0]
-
+         
         self.fake_script_dialog(script_prog, self.connection, [\
-            ('emis_role', 'teacher'), \
+            ('emis_role', 'smc'), \
             ('emis_district', 'kampala'), \
             ('emis_subcounty', 'kampala'), \
-            ('emis_one_school', 'st. marys'), \
+            ('emis_school', 'st. marys'), \
             ('emis_name', 'testy mctesterton'), \
         ])
-        self.assertEquals(EmisReporter.objects.count(), 1)
-        ScriptProgress.objects.exclude(script__slug='emis_abuse').delete()
-        prog = ScriptProgress.objects.get(script__slug='emis_abuse')
-        self.elapseTime2(prog, 50 * 86400)
-        call_command('check_script_progress', e=0, l=20)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_abuse').steps.all()[0].poll.question)
-        prog = ScriptProgress.objects.get(script__slug='emis_abuse')
-        self.elapseTime2(prog, 86400)
-        call_command('check_script_progress', e=0, l=20)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_abuse').steps.all()[0].poll.question)
-        prog = ScriptProgress.objects.get(script__slug='emis_abuse')
-        self.elapseTime2(prog, 2 * 86400)
-        call_command('check_script_progress', e=0, l=20)
-        self.assertEquals(Message.objects.filter(text='How many abuse cases were recorded in the record book this month?').count(), 2)
-        prog = ScriptProgress.objects.get(script__slug='emis_abuse')
-        self.elapseTime2(prog, 31 * 86400)
-        call_command('check_script_progress', e=0, l=20)
-        self.assertEquals(Message.objects.filter(text='How many abuse cases were recorded in the record book this month?').count(), 3)
-
-    def testAnnualScriptReschedule(self):
-        #TO DO: add setting for schedule of annual scripts
+        Script.objects.filter(slug__in=['emis_smc_weekly', 'emis_smc_monthly', 'emis_smc_termly']).update(enabled=True)
+        prog = ScriptProgress.objects.get(script__slug='emis_smc_weekly', connection=self.connection)
+        seconds_to_thursday = (_next_thursday() - datetime.datetime.now()).total_seconds()
+        self.elapseTime2(prog, seconds_to_thursday+(1*60*60)) #seconds to thursday + one hour
+        prog = ScriptProgress.objects.get(script__slug='emis_smc_weekly', connection=self.connection)
+        check_progress(prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_smc_weekly').steps.get(order=0).poll.question)
+        self.fake_incoming('y')
+        poll = Script.objects.get(slug='emis_smc_weekly').steps.get(order=0).poll
+        yes_category = poll.categories.filter(name='yes')
+        response = poll.responses.all().order_by('-date')[0]
+        self.assertEquals(ResponseCategory.objects.get(response__poll__name=poll.name,  category=yes_category).response, response)
+        prog = ScriptProgress.objects.get(script__slug='emis_smc_weekly', connection=self.connection)
+        self.elapseTime2(prog, 61)
+        prog = ScriptProgress.objects.get(script__slug='emis_smc_weekly', connection=self.connection)
+        check_progress(prog.script)
+        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
+#        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time, _next_thursday(prog))    
+    
+    def testMonthlySMCPolls(self):
         self.fake_incoming('join')
+        self.assertEquals(ScriptProgress.objects.count(), 1)
         script_prog = ScriptProgress.objects.all()[0]
-
+         
         self.fake_script_dialog(script_prog, self.connection, [\
-            ('emis_role', 'teacher'), \
+            ('emis_role', 'smc'), \
             ('emis_district', 'kampala'), \
             ('emis_subcounty', 'kampala'), \
-            ('emis_one_school', 'st. marys'), \
+            ('emis_school', 'st. marys'), \
             ('emis_name', 'testy mctesterton'), \
         ])
-        self.assertEquals(EmisReporter.objects.count(), 1)
-        ScriptProgress.objects.exclude(script__slug='emis_annual').delete()
-        prog = ScriptProgress.objects.get(script__slug='emis_annual')
-
-        #nothing going out after three weeks
-        self.elapseTime2(prog, 21 * 86400)
-        prog = ScriptProgress.objects.get(script__slug='emis_annual')
-        call_command('check_script_progress', e=0, l=20)
-        if Message.objects.filter(direction="O").count():
-            self.assertNotEqual(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_annual').steps.all()[0].poll.question)
-
-        #12 weeks after beginning of each year, annual messages are sent out
-        d = datetime.datetime.now()
-        start_of_year = datetime.datetime(d.year, 1, 1, d.hour, d.minute, d.second, d.microsecond)\
-         if d.month < 3 else datetime.datetime(d.year + 1, 1, 1, d.hour, d.minute, d.second, d.microsecond)
-        script_start = start_of_year + datetime.timedelta(weeks=(getattr(settings, 'SCHOOL_ANNUAL_MESSAGES_START', 12) + 3))
-        import time
-        self.elapseTime2(prog, time.mktime(script_start.timetuple()))
-        for x in range(Script.objects.get(slug='emis_annual').steps.count()):
-            prog = ScriptProgress.objects.get(script__slug='emis_annual')
-            self.elapseTime2(prog, 61)
-            for y in range(2):
-                call_command('check_script_progress', e=0, l=20)
-                self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_annual').steps.all()[x].poll.question)
-                self.elapseTime2(prog, 86400)
-                if y == 1:
-                    #Factor in giveup_offset=86400
-                    self.elapseTime2(prog, 86400)
-                    call_command('check_script_progress', e=0, l=20)
-        #emis_annual script marked as ended for this session
-        self.assertEquals(ScriptSession.objects.filter(script__slug='emis_annual', end_time=None).count(), 0)
-
-        #annual script for this user re-scheduled to 12 weeks after beginning of next year
-        d = ScriptSession.objects.filter(script__slug='emis_annual', connection=self.connection).order_by('-end_time')[0].end_time
-        start_of_year = datetime.datetime(d.year + 1, 1, 1, d.hour, d.minute, d.second, d.microsecond)
-        script_start = start_of_year + datetime.timedelta(weeks=getattr(settings, 'SCHOOL_ANNUAL_MESSAGES_START', 12))
-        self.assertEquals(ScriptProgress.objects.get(script__slug='emis_annual', connection=self.connection).time, script_start)
-
-    def testTermlyScriptReschedule(self):
-        self.fake_incoming('join')
-        script_prog = ScriptProgress.objects.all()[0]
-
-        self.fake_script_dialog(script_prog, self.connection, [\
-            ('emis_role', 'SMC'), \
-            ('emis_district', 'kampala'), \
-            ('emis_subcounty', 'kampala'), \
-            ('emis_one_school', 'st. marys'), \
-            ('emis_name', 'testy mctesterton'), \
-        ])
-        self.assertEquals(EmisReporter.objects.count(), 1)
-
-        prog = ScriptProgress.objects.get(script__slug='emis_smc_termly')
-        self.assertEqual(prog.time.month, 4, 'Termly smc polls are scheduled to go out on %s'%prog.time)
+        Script.objects.filter(slug__in=['emis_smc_weekly', 'emis_smc_monthly', 'emis_smc_termly']).update(enabled=True)
+        prog = ScriptProgress.objects.get(script__slug='emis_smc_monthly', connection=self.connection)
+        d = _date_of_monthday(5)
+        print d
+        seconds_to_5th = (d - datetime.datetime.now()).total_seconds()
+        self.elapseTime2(prog, seconds_to_5th+(1*60*60)) #seconds to 5th + one hour
+        prog = ScriptProgress.objects.get(script__slug='emis_smc_monthly', connection=self.connection)
+        check_progress(prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_smc_monthly').steps.get(order=0).poll.question)
+        self.fake_incoming('50%')
+        self.assertEquals(Script.objects.get(slug='emis_smc_monthly').steps.get(order=0).poll.responses.all().order_by('-date')[0].eav.poll_text_value, '50%')
+        prog = ScriptProgress.objects.get(script__slug='emis_smc_monthly', connection=self.connection)
+        self.elapseTime2(prog, 61)
+        prog = ScriptProgress.objects.get(script__slug='emis_smc_monthly', connection=self.connection)
+        check_progress(prog.script)
+        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
