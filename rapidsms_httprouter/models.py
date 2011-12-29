@@ -51,7 +51,7 @@ class Message(models.Model):
 
     batch = models.ForeignKey(MessageBatch, related_name='messages', null=True)
     # set our manager to our update manager
-    objectcs = ForUpdateManager()
+    objects = ForUpdateManager()
 
     def __unicode__(self):
         # crop the text (to avoid exploding the admin)
