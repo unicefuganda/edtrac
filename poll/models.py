@@ -22,7 +22,7 @@ from generic.sorters import SimpleSorter
 
 from rapidsms.contrib.locations.models import Location
 from rapidsms.contrib.locations.nested import models as nested_models
-from rapidsms_httprouter.models import Message
+from rapidsms_httprouter.models import Message, MessageBatch
 
 from django.conf import settings
 import re
@@ -227,7 +227,7 @@ class Poll(models.Model):
 
                 localized_contacts = contacts.filter(language=language)
             if localized_contacts.exists():
-                messages = Message.mass_text(gettext_db(field=question, language=language), Connection.objects.filter(contact__in=list(localized_contacts)).distinct(), status='L')
+                messages = Message.mass_text(gettext_db(field=question, language=language), Connection.objects.filter(contact__in=list(localized_contacts)).distinct(), status='L', batch_status='L')
                 localized_messages[language] = [messages, localized_contacts]
         poll = Poll.objects.create(name=name, type=type, question=question, default_response=default_response, user=user)
 
@@ -288,6 +288,8 @@ class Poll(models.Model):
         potentially a response to this poll.
         """
         self.messages.update(status='P')
+        batches = self.messages.values_list('batch', flat=True).distinct()
+        MessageBatch.objects.filter(pk__in=batches).update(status='Q')
         self.start_date = datetime.datetime.now()
         self.save()
         poll_started.send(sender=self)
@@ -305,7 +307,7 @@ class Poll(models.Model):
             resp.has_errors = False
             for category in self.categories.all():
                 for rule in category.rules.all():
-                    regex = re.compile(rule.regex)
+                    regex = re.compile(rule.regex, re.IGNORECASE)
                     if resp.eav.poll_text_value:
                         if regex.search(resp.eav.poll_text_value.lower()) and not resp.categories.filter(category=category).count():
                             if category.error_category:
@@ -326,7 +328,7 @@ class Poll(models.Model):
         outgoing_message = self.default_response
         if (self.type == Poll.TYPE_LOCATION):
             location_template = STARTSWITH_PATTERN_TEMPLATE % '[a-zA-Z]*'
-            regex = re.compile(location_template)
+            regex = re.compile(location_template, re.IGNORECASE)
             if regex.search(message.text):
                 spn = regex.search(message.text).span()
                 location_str = message.text[spn[0]:spn[1]]
@@ -362,7 +364,7 @@ class Poll(models.Model):
             if self.categories:
                 for category in self.categories.all():
                     for rule in category.rules.all():
-                        regex = re.compile(rule.regex)
+                        regex = re.compile(rule.regex, re.IGNORECASE)
                         if regex.search(message.text.lower()):
                             rc = ResponseCategory.objects.create(response=resp, category=category)
                             resp.categories.add(rc)
