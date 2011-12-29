@@ -26,6 +26,7 @@ from django.core.management import call_command
 from unregister.models import Blacklist
 from education.utils import _next_thursday, _date_of_monthday, _next_midterm
 from poll.models import ResponseCategory
+import difflib
 
 
 class ModelTest(TestCase): #pragma: no cover
@@ -136,21 +137,33 @@ class ModelTest(TestCase): #pragma: no cover
         if emit_signal:
             script_progress_was_completed.send(connection=connection, sender=script_prog)
         return ss
+    
+    def register_reporter(self, grp):
+        self.fake_incoming('join')
+        script_prog = ScriptProgress.objects.all()[0]
+        
+        params = [
+            ('emis_role', grp, ['all']), \
+            ('emis_gender', 'male', ['Head Teachers']),\
+            ('emis_class', 'P3', ['Teachers']),\
+            ('emis_district', 'kampala', ['all']), \
+            ('emis_subcounty', 'kampala', ['all']), \
+            ('emis_school', 'st. marys', ['Teachers', 'Head Teachers', 'SMC']), \
+            ('emis_name', 'testy mctesterton', ['all']), \
+            ]
+        param_list = []
+        for step_name, value, grps in params:
+            g = difflib.get_close_matches(grp, grps, 1, 0.8)
+            if grps[0] == 'all':
+                param_list.append((step_name, value))
+            elif len(g)>0:
+                param_list.append((step_name, value))
+            else:
+                pass    
+        self.fake_script_dialog(script_prog, self.connection, param_list)
 
     def testBasicAutoReg(self):
-        self.fake_incoming('join')
-        self.assertEquals(ScriptProgress.objects.count(), 1)
-        script_prog = ScriptProgress.objects.all()[0]
-        self.assertEquals(script_prog.script.slug, 'emis_autoreg')
-
-        self.fake_script_dialog(script_prog, self.connection, [\
-            ('emis_role', 'teacher'), \
-            ('emis_class', 'P3'),\
-            ('emis_district', 'kampala'), \
-            ('emis_subcounty', 'kampala'), \
-            ('emis_school', 'st. marys'), \
-            ('emis_name', 'testy mctesterton'), \
-        ])
+        self.register_reporter('teacher')
         self.assertEquals(EmisReporter.objects.count(), 1)
         contact = EmisReporter.objects.all()[0]
         self.assertEquals(contact.name, 'Testy Mctesterton')
@@ -362,20 +375,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Welcome EdTrac.The information you shall provide contributes to keeping children in school.')
 
     def testDoubleReg(self):
-        self.fake_incoming('join')
-        self.assertEquals(ScriptProgress.objects.count(), 1)
-        script_prog = ScriptProgress.objects.all()[0]
-        self.assertEquals(script_prog.script.slug, 'emis_autoreg')
-
-        self.fake_script_dialog(script_prog, self.connection, [\
-            ('emis_role', 'teacher'), \
-            ('emis_class', 'P3'),\
-            ('emis_district', 'kampala'), \
-            ('emis_subcounty', 'kampala'), \
-            ('emis_school', 'st. marys'), \
-            ('emis_name', 'testy mctesterton'), \
-        ])
-
+        self.register_reporter('teacher')
         self.assertEquals(EmisReporter.objects.count(), 1)
         contact = EmisReporter.objects.all()[0]
         self.assertEquals(contact.name, 'Testy Mctesterton')
@@ -389,19 +389,7 @@ class ModelTest(TestCase): #pragma: no cover
 
     def testQuitRejoin(self):
         #first join
-        self.fake_incoming('join')
-        self.assertEquals(ScriptProgress.objects.count(), 1)
-        script_prog = ScriptProgress.objects.all()[0]
-        self.assertEquals(script_prog.script.slug, 'emis_autoreg')
-
-        self.fake_script_dialog(script_prog, self.connection, [\
-            ('emis_role', 'teacher'), \
-            ('emis_class', 'P3'),\
-            ('emis_district', 'kampala'), \
-            ('emis_subcounty', 'kampala'), \
-            ('emis_school', 'st. marys'), \
-            ('emis_name', 'testy mctesterton'), \
-        ])
+        self.register_reporter('teacher')
         self.assertEquals(EmisReporter.objects.count(), 1)
 
         #then quit
@@ -413,29 +401,11 @@ class ModelTest(TestCase): #pragma: no cover
         self.fake_incoming('join')
         script_prog = ScriptProgress.objects.all()[0]
 
-        self.fake_script_dialog(script_prog, self.connection, [\
-            ('emis_role', 'teacher'), \
-            ('emis_class', 'P3'),\
-            ('emis_district', 'kampala'), \
-            ('emis_subcounty', 'kampala'), \
-            ('emis_school', 'st. marys'), \
-            ('emis_name', 'testy mctesterton'), \
-        ])
+        self.register_reporter('teacher')
         self.assertEquals(EmisReporter.objects.count(), 1)
         
     def testWeeklyTeacherPolls(self):
-        self.fake_incoming('join')
-        self.assertEquals(ScriptProgress.objects.count(), 1)
-        script_prog = ScriptProgress.objects.all()[0]
-         
-        self.fake_script_dialog(script_prog, self.connection, [\
-            ('emis_role', 'teacher'), \
-            ('emis_class', 'P3'),\
-            ('emis_district', 'kampala'), \
-            ('emis_subcounty', 'kampala'), \
-            ('emis_school', 'st. marys'), \
-            ('emis_name', 'testy mctesterton'), \
-        ])
+        self.register_reporter('teacher')
         Script.objects.filter(slug__in=['emis_teachers_weekly', 'emis_teachers_monthly']).update(enabled=True)
         prog = ScriptProgress.objects.get(script__slug='emis_teachers_weekly', connection=self.connection)
         seconds_to_thursday = (_next_thursday() - datetime.datetime.now()).total_seconds()
@@ -458,33 +428,11 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
         
     def testMonthlyTeacherPolls(self):
-        self.fake_incoming('join')
-        self.assertEquals(ScriptProgress.objects.count(), 1)
-        script_prog = ScriptProgress.objects.all()[0]
-         
-        self.fake_script_dialog(script_prog, self.connection, [\
-            ('emis_role', 'teacher'), \
-            ('emis_class', 'P3'),\
-            ('emis_district', 'kampala'), \
-            ('emis_subcounty', 'kampala'), \
-            ('emis_school', 'st. marys'), \
-            ('emis_name', 'testy mctesterton'), \
-        ])
+        self.register_reporter('teacher')
         Script.objects.filter(slug__in=['emis_teachers_weekly', 'emis_teachers_monthly']).update(enabled=True)
         
     def testWeeklyHeadTeacherPolls(self):
-        self.fake_incoming('join')
-        self.assertEquals(ScriptProgress.objects.count(), 1)
-        script_prog = ScriptProgress.objects.all()[0]
-         
-        self.fake_script_dialog(script_prog, self.connection, [\
-            ('emis_role', 'head teacher'), \
-            ('emis_gender', 'male'),\
-            ('emis_district', 'kampala'), \
-            ('emis_subcounty', 'kampala'), \
-            ('emis_school', 'st. marys'), \
-            ('emis_name', 'testy mctesterton'), \
-        ])
+        self.register_reporter('head teacher')
         Script.objects.filter(slug__in=['emis_head_teachers_weekly', 'emis_head_teachers_monthly', 'emis_head_teachers_termly']).update(enabled=True)
         prog = ScriptProgress.objects.get(script__slug='emis_head_teachers_weekly', connection=self.connection)
         seconds_to_thursday = (_next_thursday() - datetime.datetime.now()).total_seconds()
@@ -507,18 +455,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
         
     def testMonthlyHeadTeacherPolls(self):
-        self.fake_incoming('join')
-        self.assertEquals(ScriptProgress.objects.count(), 1)
-        script_prog = ScriptProgress.objects.all()[0]
-         
-        self.fake_script_dialog(script_prog, self.connection, [\
-            ('emis_role', 'head teacher'), \
-            ('emis_gender', 'male'),\
-            ('emis_district', 'kampala'), \
-            ('emis_subcounty', 'kampala'), \
-            ('emis_school', 'st. marys'), \
-            ('emis_name', 'testy mctesterton'), \
-        ])
+        self.register_reporter('head teacher')
         Script.objects.filter(slug__in=['emis_head_teachers_weekly', 'emis_head_teachers_monthly', 'emis_head_teachers_termly']).update(enabled=True)
         prog = ScriptProgress.objects.get(script__slug='emis_head_teachers_monthly', connection=self.connection)
         d = _date_of_monthday(25)
@@ -548,18 +485,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
         
     def testTermlyHeadTeacherPolls(self):
-        self.fake_incoming('join')
-        self.assertEquals(ScriptProgress.objects.count(), 1)
-        script_prog = ScriptProgress.objects.all()[0]
-         
-        self.fake_script_dialog(script_prog, self.connection, [\
-            ('emis_role', 'head teacher'), \
-            ('emis_gender', 'male'),\
-            ('emis_district', 'kampala'), \
-            ('emis_subcounty', 'kampala'), \
-            ('emis_school', 'st. marys'), \
-            ('emis_name', 'testy mctesterton'), \
-        ])
+        self.register_reporter('head teacher')
         Script.objects.filter(slug__in=['emis_head_teachers_weekly', 'emis_head_teachers_monthly', 'emis_head_teachers_termly']).update(enabled=True)
         prog = ScriptProgress.objects.get(script__slug='emis_head_teachers_termly', connection=self.connection)
         d = _next_midterm()
@@ -616,17 +542,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')     
     
     def testWeeklySMCPolls(self):
-        self.fake_incoming('join')
-        self.assertEquals(ScriptProgress.objects.count(), 1)
-        script_prog = ScriptProgress.objects.all()[0]
-         
-        self.fake_script_dialog(script_prog, self.connection, [\
-            ('emis_role', 'smc'), \
-            ('emis_district', 'kampala'), \
-            ('emis_subcounty', 'kampala'), \
-            ('emis_school', 'st. marys'), \
-            ('emis_name', 'testy mctesterton'), \
-        ])
+        self.register_reporter('smc')
         Script.objects.filter(slug__in=['emis_smc_weekly', 'emis_smc_monthly', 'emis_smc_termly']).update(enabled=True)
         prog = ScriptProgress.objects.get(script__slug='emis_smc_weekly', connection=self.connection)
         seconds_to_thursday = (_next_thursday() - datetime.datetime.now()).total_seconds()
@@ -647,17 +563,7 @@ class ModelTest(TestCase): #pragma: no cover
 #        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time, _next_thursday(prog))    
     
     def testMonthlySMCPolls(self):
-        self.fake_incoming('join')
-        self.assertEquals(ScriptProgress.objects.count(), 1)
-        script_prog = ScriptProgress.objects.all()[0]
-         
-        self.fake_script_dialog(script_prog, self.connection, [\
-            ('emis_role', 'smc'), \
-            ('emis_district', 'kampala'), \
-            ('emis_subcounty', 'kampala'), \
-            ('emis_school', 'st. marys'), \
-            ('emis_name', 'testy mctesterton'), \
-        ])
+        self.register_reporter('smc')
         Script.objects.filter(slug__in=['emis_smc_weekly', 'emis_smc_monthly', 'emis_smc_termly']).update(enabled=True)
         prog = ScriptProgress.objects.get(script__slug='emis_smc_monthly', connection=self.connection)
         d = _date_of_monthday(5)
