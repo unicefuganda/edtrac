@@ -201,6 +201,7 @@ class ReportView(View, TemplateResponseMixin):
             'needs_date':self.needs_date, \
             'has_chart':self.has_chart, \
             'chart_url':chart_url, \
+            'location':self.location, \
             'module':False})
         return super(ReportView, self).render_to_response(context)
 
