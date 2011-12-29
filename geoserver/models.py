@@ -26,4 +26,11 @@ class PollCategoryData(PollGeoData):
 class PollResponseData(PollGeoData):
     percentage = models.FloatField(blank=True, null=True, default=0)
 
+class BasicClassLayer(models.Model):
+    district = models.CharField(max_length=100, blank=True, null=True)
+    style_class = models.CharField(max_length=100, blank=True, null=True)
+    deployment_id = models.IntegerField(max_length=3)
+    layer_id = models.IntegerField(max_length=3)
 
+    class Meta:
+        unique_together = (('deployment_id', 'layer_id', 'district'),)
