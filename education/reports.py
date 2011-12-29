@@ -854,3 +854,17 @@ def create_excel_dataset(request, start_date, end_date, district_id):
     response['Content-Disposition'] = 'attachment; filename=attendance_data.xls'
     book.save(response)
     return response
+
+def get_responses_to_polls(**kwargs):
+    #TODO with filter() we can pass extra arguments
+    #TODO use eav
+    if not kwargs:
+        poll_name = kwargs['poll_name']
+        responses = sum([r.message.text for r in Poll.objects.get(name=poll_name).responses.filter()])
+        return responses
+    else:
+        poll_names = kwargs['poll_names']
+        responses = {}
+        for poll in poll_names:
+            responses[poll] = sum([r.message.text for r in Poll.objects.get(name=poll_names).responses.filter()])
+        return responses
