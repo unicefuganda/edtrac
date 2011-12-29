@@ -858,22 +858,20 @@ def create_excel_dataset(request, start_date, end_date, district_id):
 def get_responses_to_polls(**kwargs):
     #TODO with filter() we can pass extra arguments
     #TODO use eav
-    try:
-        
-        if kwargs:
-             if kwargs.has_key('poll_name'):
-                 poll_name = kwargs['poll_name']
-                 #TODO filter poll by district, school or county
-                 responses = sum([r.eav.poll_number_value for r in Poll.objects.get(name=poll_name).responses.filter()])
-                 return responses #provide a context var key first and use as value
-             #in cases where a list of poll names is passed, a dictionary is returned
-             if kwargs.has_key('poll_names'):
-                poll_names = kwargs['poll_names']
-                responses = {}
-                for poll in poll_names:
-                    values = []
-                    for resp in Poll.objects.get(name=poll).responses.filter():
-                        values.append(res.eav.poll_number_value)
+    if kwargs:
+        if kwargs.has_key('poll_name'):
+            poll_name = kwargs['poll_name']
+            #TODO filter poll by district, school or county
+            responses = sum([r.eav.poll_number_value for r in Poll.objects.get(name=poll_name).responses.filter()])
+            return responses #provide a context var key first and use as value
+        #in cases where a list of poll names is passed, a dictionary is returned
+        if kwargs.has_key('poll_names'):
+            poll_names = kwargs['poll_names']
+            responses = {}
+            for poll in poll_names:
+                values = []
+                for resp in Poll.objects.get(name=poll).responses.filter():
+                    values.append(resp.eav.poll_number_value)
                     s = 0
                     try:
                         for val in values:
@@ -882,4 +880,4 @@ def get_responses_to_polls(**kwargs):
                         print "none type encountered"
                         pass                   
                     responses[poll] = s
-                return responses #can use a context too
+            return responses #can be used a context too
