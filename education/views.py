@@ -77,7 +77,6 @@ def dash_map(request):
     return render_to_response('education/dashboard/map.html', {}, RequestContext(request))
 
 def dash_attdance(request):
-    import pdb; pdb.set_trace()
     cv = get_responses_to_polls(poll_names=[
         "emis_boysp3_attendance",
         "emis_boysp6_attendance",
@@ -88,7 +87,6 @@ def dash_attdance(request):
     ])
 
     #TODO choose emis_gem_headteachers_present or emis_head_teachers poll
-
 
 
     return render_to_response('education/dashboard/attdance.html', cv , RequestContext(request))
