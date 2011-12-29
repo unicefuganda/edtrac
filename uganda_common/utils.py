@@ -21,6 +21,9 @@ from rapidsms.models import Connection
 from rapidsms_httprouter.models import Message
 from django.db.models import Q
 from poll.models import Response
+import xlwt
+import zipfile
+import math
 
 
 def get_location_for_user(user):
@@ -91,7 +94,56 @@ def assign_backend(number):
             break
     return (number, backendobj)
 
+def create_workbook(data,encoding):
+    ##formatting of the cells
+    # Grey background for the header row
+    BkgPat = xlwt.Pattern()
+    BkgPat.pattern = xlwt.Pattern.SOLID_PATTERN
+    BkgPat.pattern_fore_colour = 22
 
+    # Bold Fonts for the header row
+    font = xlwt.Font()
+    font.name = 'Calibri'
+    font.bold = True
+
+    # Non-Bold fonts for the body
+    font0 = xlwt.Font()
+    font0.name = 'Calibri'
+    font0.bold = False
+
+    # style and write field labels
+    style = xlwt.XFStyle()
+    style.font = font
+    style.pattern = BkgPat
+
+    style0 = xlwt.XFStyle()
+    style0.font = font0
+    book = xlwt.Workbook(encoding=encoding)
+    sheet = book.add_sheet('Sheet 1')
+    styles = {'datetime': xlwt.easyxf(num_format_str='yyyy-mm-dd hh:mm:ss'),
+              'date': xlwt.easyxf(num_format_str='yyyy-mm-dd'),
+              'time': xlwt.easyxf(num_format_str='hh:mm:ss'),
+              'default': style0,
+              'header': style}
+
+    for rowx, row in enumerate(data):
+        for colx, value in enumerate(row):
+            if isinstance(value, datetime.datetime):
+                cell_style = styles['datetime']
+            elif isinstance(value, datetime.date):
+                cell_style = styles['date']
+            elif isinstance(value, datetime.time):
+                cell_style = styles['time']
+            elif rowx == 0:
+                cell_style = styles['header']
+            else:
+                cell_style = styles['default']
+
+            try:
+                sheet.write(rowx, colx, value, style=cell_style)
+            except:
+                sheet.write(rowx, colx, str(value), style=styles['default'])
+    return book
 class ExcelResponse(HttpResponse):
     """
     This class contains utilities that are used to produce Excel reports from datasets stored in a database or scraped
@@ -113,88 +165,41 @@ class ExcelResponse(HttpResponse):
         import StringIO
 
         output = StringIO.StringIO()
+        MAX_SHEET_LENGTH = 65500
         # Excel has a limit on number of rows; if we have more than that, make a csv
         use_xls = False
-        if len(data) <= 65536 and force_csv is not True:
-            try:
-                import xlwt
-            except ImportError:
-                # xlwt doesn't exist; fall back to csv
-                pass
-            else:
-                use_xls = True
-        if use_xls:
-            ##formatting of the cells
-            # Grey background for the header row
-            BkgPat = xlwt.Pattern()
-            BkgPat.pattern = xlwt.Pattern.SOLID_PATTERN
-            BkgPat.pattern_fore_colour = 22
-
-            # Bold Fonts for the header row
-            font = xlwt.Font()
-            font.name = 'Calibri'
-            font.bold = True
-
-            # Non-Bold fonts for the body
-            font0 = xlwt.Font()
-            font0.name = 'Calibri'
-            font0.bold = False
-
-            # style and write field labels
-            style = xlwt.XFStyle()
-            style.font = font
-            style.pattern = BkgPat
-
-            style0 = xlwt.XFStyle()
-            style0.font = font0
-            book = xlwt.Workbook(encoding=encoding)
-            sheet = book.add_sheet('Sheet 1')
-            styles = {'datetime': xlwt.easyxf(num_format_str='yyyy-mm-dd hh:mm:ss'),
-                      'date': xlwt.easyxf(num_format_str='yyyy-mm-dd'),
-                      'time': xlwt.easyxf(num_format_str='hh:mm:ss'),
-                      'default': style0,
-                      'header': style}
-
-            for rowx, row in enumerate(data):
-                for colx, value in enumerate(row):
-                    if isinstance(value, datetime.datetime):
-                        cell_style = styles['datetime']
-                    elif isinstance(value, datetime.date):
-                        cell_style = styles['date']
-                    elif isinstance(value, datetime.time):
-                        cell_style = styles['time']
-                    elif rowx == 0:
-                        cell_style = styles['header']
-                    else:
-                        cell_style = styles['default']
-
-                    try:
-                        sheet.write(rowx, colx, value, style=cell_style)
-                    except:
-                        sheet.write(rowx, colx, str(value), style=styles['default'])
+        mimetype = 'application/vnd.ms-excel'
+        file_ext = 'xls'
+        if len(data) <= MAX_SHEET_LENGTH :
+            book=create_workbook(data,encoding)
             if write_to_file:
                 book.save(output_name)
             book.save(output)
-            mimetype = 'application/vnd.ms-excel'
-            file_ext = 'xls'
-        else:
-            for row in data:
-                out_row = []
-                for value in row:
-                    if not isinstance(value, basestring):
-                        value = unicode(value)
-                    value = value.encode(encoding)
-                    out_row.append(value.replace('"', '""'))
-                output.write('"%s"\n' %
-                             '","'.join(out_row))
-            mimetype = 'text/csv'
-            file_ext = 'csv'
-        output.seek(0)
-        super(ExcelResponse, self).__init__(content=output.getvalue(),
+            output.seek(0)
+            super(ExcelResponse, self).__init__(content=output.getvalue(),
                                             mimetype=mimetype)
-
-        self['Content-Disposition'] = 'attachment;filename="%s.%s"' %\
+            self['Content-Disposition'] = 'attachment;filename="%s.%s"' %\
                                       (output_name.replace('"', '\"'), file_ext)
+
+        else:
+            #zip em all
+            zipped_file = zipfile.ZipFile(output_name, "w")
+            num_files=int(math.ceil(len(data)/float(MAX_SHEET_LENGTH)))
+            print len(data)
+            file_name=output_name.rsplit('.')[0]
+            start=0
+            end=MAX_SHEET_LENGTH
+            for file in range(num_files):
+                book=create_workbook(data[start:end],encoding)
+                handle=file_name+str(file)+".xls"
+                book.save(handle)
+                zipped_file.write(handle,handle.rsplit("/")[-1])
+                start= end
+                end=end+MAX_SHEET_LENGTH
+            
+
+
+
 
 
 def parse_district_value(value):
