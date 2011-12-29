@@ -50,7 +50,7 @@ class Message(models.Model):
 
     batch = models.ForeignKey(MessageBatch, related_name='messages', null=True)
     # set our manager to our update manager
-    objects = ForUpdateManager()
+    objectcs = ForUpdateManager()
 
     def __unicode__(self):
         # crop the text (to avoid exploding the admin)
@@ -68,8 +68,8 @@ class Message(models.Model):
 
     @classmethod
     @transaction.commit_on_success
-    def mass_text(cls, text, connections, status='P'):
-        batch = MessageBatch.objects.create(status='Q')
+    def mass_text(cls, text, connections, status='P', batch_status='Q'):
+        batch = MessageBatch.objects.create(status=batch_status)
         sql = 'insert into rapidsms_httprouter_message (text, date, direction, status, batch_id, connection_id) values '
         insert_list = []
         params_list = []
