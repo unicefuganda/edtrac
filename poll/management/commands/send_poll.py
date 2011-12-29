@@ -30,7 +30,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, **options):
-
+        print options
         name = options['n']
         poll_type = options['t']
         question = options['q']
@@ -40,8 +40,8 @@ class Command(BaseCommand):
 
             default_response = options['r']
         print default_response
-        contacts = Contact.objects.filter(Q(pk__in=eval(options['c']))
-                | Q(groups__pk__in=eval(options['g']))).distinct()
+        contacts = Contact.objects.filter(Q(pk__in=eval(options['c'][1:-1]))
+                | Q(groups__pk__in=eval(options['g'][1:-1]))).distinct()
         print contacts
         user = User.objects.get(pk=int(options['u']))
         start_immediately = eval(options['s'])

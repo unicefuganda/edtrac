@@ -26,6 +26,7 @@ from multiprocessing import Process, Queue
 
 from forms import *
 import os
+import subprocess
 
 # CSV Export
 
@@ -82,6 +83,8 @@ def demo(req, poll_id):
     router.handle_outgoing(outgoing)
     return HttpResponse(status=200)
 
+def quote(string):
+    return string.replace('"','\"').replace("'","\'")
 
 @permission_required('poll.can_poll')
 def new_poll(req):
@@ -95,20 +98,20 @@ def new_poll(req):
             question = form.cleaned_data['question']
             default_response = form.cleaned_data['default_response']
             contacts = form.cleaned_data['contacts']
-            groups = []
+            #groups = []
             if hasattr(Contact, 'groups'):
                 groups = form.cleaned_data['groups']
-                if len(groups):
-                    groups = [group.pk for group in groups]
+#                if len(groups):
+#                    groups = [group.pk for group in groups]
 
-            #    contacts = Contact.objects.filter(Q(pk__in=contacts) | Q(groups__in=groups)).distinct()
+            contacts = Contact.objects.filter(Q(pk__in=contacts) | Q(groups__in=groups)).distinct()
 
             name = form.cleaned_data['name']
             p_type = form.cleaned_data['type']
-            if len(contacts):
-                contacts = list(contacts.values_list('pk', flat=True))
-            else:
-                contacts = []
+#            if len(contacts):
+#                contacts = list(contacts.values_list('pk', flat=True))
+#            else:
+#                contacts = []
             response_type = form.cleaned_data['response_type']
             if not form.cleaned_data['default_response_luo'] == '' \
                 and not form.cleaned_data['default_response'] == '':
@@ -128,21 +131,39 @@ def new_poll(req):
 
             start_immediately = form.cleaned_data['start_immediately']
 
-            # run poll creation as a daemon process to avoid nginx timing out
+#            # run poll creation as a daemon process to avoid nginx timing out
+#
+#            args = "['nohup', 'python', 'manage.py' ,'send_poll', '-n', '%s', '-t', '%s', '-q' ,'%s','-r', '%s','-c', '\"%s\"', '-u', '%s','-s', '%s','-e', '%s','-g', '\"%s\"','&']"% (
+#                quote(name),
+#                poll_type,
+#                quote(question),
+#                quote(str(default_response)),
+#                str(contacts),
+#                req.user.pk,
+#                start_immediately,
+#                response_type,
+#                str(groups)
+#                )
+#            subprocess.Popen(eval(args))
+            
+            poll = Poll.create_with_bulk(\
+                                 name,
+                                 poll_type,
+                                 question,
+                                 default_response,
+                                 contacts,
+                                 req.user)
 
-            os.system('nohup python manage.py send_poll -n "%s" -t "%s" -q "%s" -r "%s" -c "%s" -u "%s" -s "%s" -e "%s" -g "%s"&'
-                       % (
-                name,
-                poll_type,
-                question,
-                str(default_response),
-                str(contacts),
-                req.user.pk,
-                start_immediately,
-                response_type,
-                str(groups),
-                ))
-            return redirect(reverse('poll.views.polls'))
+            if type == NewPollForm.TYPE_YES_NO:
+                poll.add_yesno_categories()
+
+            if settings.SITE_ID:
+                poll.sites.add(Site.objects.get_current())
+            if form.cleaned_data['start_immediately']:
+                poll.start()
+
+            return redirect(reverse('poll.views.view_poll', args=[poll.pk]))
+
     else:
         form = NewPollForm()
         form.updateTypes()
@@ -200,7 +221,7 @@ def view_report(
     else:
         locations = Location.tree.root_nodes().order_by('name'
                 ).distinct()
-        print locations
+
 
     results = []
     for location in locations:
