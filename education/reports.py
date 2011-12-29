@@ -879,5 +879,5 @@ def get_responses_to_polls(**kwargs):
                     except NoneType:
                         print "none type encountered"
                         pass                   
-                    responses[poll] = s
+                responses[poll] = s
             return responses #can be used a context too

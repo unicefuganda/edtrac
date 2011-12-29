@@ -77,38 +77,21 @@ def dash_map(request):
     return render_to_response('education/dashboard/map.html', {}, RequestContext(request))
 
 def dash_attdance(request):
-    def compute_response_average(responses):
-        resps = [resp.text for resp in responses]
-        avg = compute_average_percentage(resps)
-        return avg
-
-    #TODO date filtering
-    #getting attendance results of 2 classes
-    boys_p3_attendance = compute_response_average(Poll.objects.get(name="emis_boysp3_attendance").responses.filter())
-    boys_p6_attendnace = compute_response_average(Poll.objects.get(name="emis_boysp6_attendance").responses.filter())
-    girls_p3_attendance = compute_response_average(Poll.objects.get(name="emis_girlsp3_attendance").responses.filter())
-    girls_p6_attendance = compute_response_average(Poll.objects.get(name="emis_girlsp6_attendance").responses.filter())
-    female_teachers = compute_response_average(Poll.objects.get(name="emis_female_teachers_attendance").responses.filter())
-    male_teachers = compute_response_average(Poll.objects.get(name="emis_male_teachers_attendance").responses.filter())
+    import pdb; pdb.set_trace()
+    cv = get_responses_to_polls(poll_names=[
+        "emis_boysp3_attendance",
+        "emis_boysp6_attendance",
+        "emis_girlsp3_attendance",
+        "emis_girlsp6_attendance",
+        "emis_female_teachers_attendance",
+        "emis_male_teachers_attendance"
+    ])
 
     #TODO choose emis_gem_headteachers_present or emis_head_teachers poll
 
 
 
-    return render_to_response('education/dashboard/attdance.html', {
-        'boys_p3_present' : boys_p3_attendance,
-        'boys_p3_absent' : 100 - boys_p3_attendance,
-        'boys_p6_present' : boys_p6_attendnace,
-        'boys_p6_absent' : 100 - boys_p6_attendnace,
-        'girls_p3_present' : girls_p3_attendance,
-        'girls_p3_absent' : 100 - girls_p3_attendance,
-        'girls_p6_present' : girls_p6_attendance,
-        'girls_p6_absent': 100 - girls_p6_attendance,
-        'female_teachers_present' : female_teachers,
-        'female_teachers_absent' : 100 - female_teachers,
-        'male_teachers_present' : male_teachers,
-        'male_teachers_absent' : 100 - male_teachers
-    }, RequestContext(request))
+    return render_to_response('education/dashboard/attdance.html', cv , RequestContext(request))
 
 def dash_abuse(request):
     abuses_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
