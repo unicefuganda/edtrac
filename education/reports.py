@@ -854,3 +854,33 @@ def create_excel_dataset(request, start_date, end_date, district_id):
     response['Content-Disposition'] = 'attachment; filename=attendance_data.xls'
     book.save(response)
     return response
+
+
+def get_sum_of_poll_response(poll_queryset):
+    """
+    This computes the eav response value to a poll
+    """
+    #TODO: provide querying by date too
+    s = 0
+    try:
+        for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter()]:
+            s += val
+    except NoneType:
+        pass
+    # a zero or computed value is returned
+    return s
+
+def get_responses_to_polls(**kwargs):
+    #TODO with filter() we can pass extra arguments
+    if kwargs:
+        if kwargs.has_key('poll_name'):
+            poll_name = kwargs['poll_name']
+            #TODO filter poll by district, school or county (might wanna index this too)
+            return get_sum_of_poll_response(Poll.objects.get(name=poll_name))
+        #in cases where a list of poll names is passed, a dictionary is returned
+        if kwargs.has_key('poll_names'):
+            poll_names = kwargs['poll_names']
+            responses = {}
+            for poll in poll_names:
+                responses[poll] = get_sum_of_poll_response(Poll.objects.get(name=poll))
+            return responses #can be used as context variable too

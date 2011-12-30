@@ -77,38 +77,40 @@ def dash_map(request):
     return render_to_response('education/dashboard/map.html', {}, RequestContext(request))
 
 def dash_attdance(request):
-    def compute_response_average(responses):
-        resps = [resp.text for resp in responses]
-        avg = compute_average_percentage(resps)
-        return avg
+    boysp3_attendance = get_responses_to_polls(poll_name='emis_boysp3_attendance')
+    boysp3_enrolled = get_responses_to_polls(poll_name="emis_boysp3_enrollment")
+    boysp3_absent = boysp3_enrolled - boysp3_attendance
 
-    #TODO date filtering
-    #getting attendance results of 2 classes
-    boys_p3_attendance = compute_response_average(Poll.objects.get(name="emis_boysp3_attendance").responses.filter())
-    boys_p6_attendnace = compute_response_average(Poll.objects.get(name="emis_boysp6_attendance").responses.filter())
-    girls_p3_attendance = compute_response_average(Poll.objects.get(name="emis_girlsp3_attendance").responses.filter())
-    girls_p6_attendance = compute_response_average(Poll.objects.get(name="emis_girlsp6_attendance").responses.filter())
-    female_teachers = compute_response_average(Poll.objects.get(name="emis_female_teachers_attendance").responses.filter())
-    male_teachers = compute_response_average(Poll.objects.get(name="emis_male_teachers_attendance").responses.filter())
+    girlsp3_attendance = get_responses_to_polls(poll_name="emis_girlsp3_attendance")
+    girlsp3_enrolled = get_responses_to_polls(poll_name="emis_girlsp3_enrollment")
+    girlsp3_absent = girlsp3_enrolled - girlsp3_attendance
 
-    #TODO choose emis_gem_headteachers_present or emis_head_teachers poll
+    boysp6_attendance = get_responses_to_polls(poll_name="emis_boysp6_attendance")
+    boysp6_enrolled = get_responses_to_polls(poll_name="emis_boysp6_enrollment")
+    boysp6_absent = boysp6_enrolled - boysp6_attendance
+
+    girlsp6_attendance = get_responses_to_polls(poll_name="emis_girlsp6_attendance")
+    girlsp6_enrolled = get_responses_to_polls(poll_name="emis_girlsp6_enrollment")
+    girlsp6_absent = girlsp6_enrolled - girlsp6_attendance
 
 
+    total_male_teachers = get_responses_to_polls(poll_name="emis_male_teachers_deployment")
+    total_female_teachers = get_responses_to_polls(poll_name="emis_female_teachers_deployment")
+
+    male_teachers_present = get_responses_to_polls(poll_name="emis_male_teachers_attendance")
+    male_teachers_absent = total_male_teachers - male_teachers_present
+
+    female_teachers_present = get_responses_to_polls(poll_name="emis_female_teachers_attendance")
+    female_teachers_absent = total_female_teachers - female_teachers_present
 
     return render_to_response('education/dashboard/attdance.html', {
-        'boys_p3_present' : boys_p3_attendance,
-        'boys_p3_absent' : 100 - boys_p3_attendance,
-        'boys_p6_present' : boys_p6_attendnace,
-        'boys_p6_absent' : 100 - boys_p6_attendnace,
-        'girls_p3_present' : girls_p3_attendance,
-        'girls_p3_absent' : 100 - girls_p3_attendance,
-        'girls_p6_present' : girls_p6_attendance,
-        'girls_p6_absent': 100 - girls_p6_attendance,
-        'female_teachers_present' : female_teachers,
-        'female_teachers_absent' : 100 - female_teachers,
-        'male_teachers_present' : male_teachers,
-        'male_teachers_absent' : 100 - male_teachers
-    }, RequestContext(request))
+        'girlsp3_present' : girlsp3_attendance, 'girlsp3_absent' : girlsp3_absent,
+        'boysp3_present' : boysp3_attendance, 'boysp3_absent' : boysp3_absent,
+        'girlsp6_present' : girlsp6_attendance, 'girlsp6_absent' : girlsp6_absent,
+        'boysp6_present' : boysp6_attendance, 'boysp6_absent' : boysp6_absent,
+        'female_teachers_present' : female_teachers_present, 'female_teachers_absent' : female_teachers_absent,
+        'male_teachers_present' : male_teachers_present, 'male_teachers_absent' : male_teachers_absent
+    } , RequestContext(request))
 
 def dash_abuse(request):
     abuses_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
