@@ -103,15 +103,6 @@ def _next_midterm():
     holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
     d = datetime.datetime.now()
     start_of_year = datetime.datetime(d.year + 1, 1, 1, d.hour, d.minute, d.second, d.microsecond)
-#    if d <= start_of_year + datetime.timedelta(days=((3*30)+15)):
-#        d = datetime.datetime(d.year, 4, 15, d.hour, d.minute, d.second, d.microsecond)
-#    elif d > start_of_year + datetime.timedelta(days=((3*30)+15)) and d <= start_of_year + datetime.timedelta(days=((6*30)+15)):
-#        d = datetime.datetime(d.year, 7, 15, d.hour, d.minute, d.second, d.microsecond)
-#    elif d > start_of_year + datetime.timedelta(days=((6*30)+15)) and d <= start_of_year + datetime.timedelta(days=((10*30)+15)):
-#        d = datetime.datetime(d.year, 11, 15, d.hour, d.minute, d.second, d.microsecond)
-#    else:
-#        d = datetime.datetime(d.year, 4, 15, d.hour, d.minute, d.second, d.microsecond)
-
     if d.month in [12, 1, 2, 3]:
         d = start_of_year + datetime.timedelta(days=((3*31)+15))
     elif d.month in [4, 5, 6]:
@@ -146,9 +137,14 @@ def _schedule_monthly_script(group, connection, script_slug, day_offset, role_na
         sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
         sp.set_time(d)
 
-def _schedule_termly_script(group, connection, script_slug, role_names):
+def _schedule_termly_script(group, connection, script_slug, role_names, date=None):
+    d = None
+    if date:
+        now = datetime.datetime.now()
+        dl = date.split('-')
+        d = datetime.datetime(int(dl[0]), int(dl[1]), int(dl[2]), now.hour, now.minute, now.second, now.microsecond)
     if group.name in role_names:
-        d = _next_midterm()
+        d = d if d else _next_midterm()
         sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
         sp.set_time(d)
 
