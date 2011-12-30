@@ -16,6 +16,7 @@ from rapidsms_xforms.models import XFormSubmission
 from uganda_common.utils import get_xform_dates, get_messages
 from django.contrib.auth.views import login_required
 from django.contrib.auth.models import User
+from django.views.generic import ListView
 
 urlpatterns = patterns('',
    url(r'^emis/testindex/$', testindex),
@@ -240,4 +241,8 @@ urlpatterns = patterns('',
     url(r'^emis/dash_meals/$', dash_meals, {}, name="emis-dash-meals"),
     url(r'^emis/dash_meetings/$', dash_meetings, {}, name="emis-dash-meetings"),
     url(r'^emis/dash_capitation/$', dash_capitation, {}, name="emis-dash-capitation"),
+    url(r'^emis/reporters/page(?P<page>[0-9]+)/$', ListView.as_view(
+        model=EmisReporter,
+        paginate_by=25,
+    )),
 )
