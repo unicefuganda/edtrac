@@ -861,9 +861,16 @@ def get_responses_to_polls(**kwargs):
     if kwargs:
         if kwargs.has_key('poll_name'):
             poll_name = kwargs['poll_name']
-            #TODO filter poll by district, school or county
-            responses = sum([r.eav.poll_number_value for r in Poll.objects.get(name=poll_name).responses.filter()])
-            return responses #provide a context var key first and use as value
+            #TODO filter poll by district, school or county (might wanna index this too)
+            s = 0
+            try:
+                for val in [r.eav.poll_number_value for r in Poll.objects.get(name=poll_name).responses.filter()]:
+                    s += val
+            except NoneType:
+                print "None type encountered"
+                pass
+            # get the total value from the poll within a filtered date-range
+            return s
         #in cases where a list of poll names is passed, a dictionary is returned
         if kwargs.has_key('poll_names'):
             poll_names = kwargs['poll_names']
