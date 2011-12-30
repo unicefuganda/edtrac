@@ -66,7 +66,7 @@ def testindex(request):
 
     smc_meetings_to_ret = list_poll_responses(Poll.objects.filter(name="emis_meetings")[0])
     
-    return index(request, template_name="testindex.html", context_vars={
+    return index(request, template_name="base.html", context_vars={
         'districts':districts, 'abuse_values':district_abuses, 'lunches':lunches_to_ret
         #TODO; add more context variables depending on what you want rendered on the chart
         #TODO: more generic highchart 
@@ -629,5 +629,8 @@ def meals(request, district_id=None):
     selectable = False,
     dates = get_xform_dates,
     )
+    
+def EmisListView(ListView):
+    pass
     
 
