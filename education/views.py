@@ -85,8 +85,12 @@ def dash_attdance(request):
         "emis_female_teachers_attendance",
         "emis_male_teachers_attendance"
     ])
+    boysp3_attendance = get_responses_to_polls(poll_name='emis_boysp3_attendance')
+    boysp3_enrolled = get_responses_to_polls(poll_name="emis_boysp3_enrolled")
+    boysp3_absent = boysp3_enrolled - boysp3_attendance
 
-    #TODO choose emis_gem_headteachers_present or emis_head_teachers poll
+    girlsp3_attendance = get_responses_to_polls(poll_name="emis_girlsp3_attendance")
+    girlsp3_enrolled = get_responses_to_polls(poll_name="emis_girlsp3_enrolled")
 
 
     return render_to_response('education/dashboard/attdance.html', cv , RequestContext(request))
