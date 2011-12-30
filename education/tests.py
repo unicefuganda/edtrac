@@ -19,7 +19,7 @@ from education.management import *
 from rapidsms_httprouter.router import get_router
 from script.signals import script_progress_was_completed, script_progress
 from poll.management import create_attributes
-from .models import EmisReporter, School
+from .models import EmisReporter, School, reschedule_weekly_polls, reschedule_monthly_polls, reschedule_termly_polls
 from django.db import connection
 from script.utils.outgoing import check_progress
 from django.core.management import call_command
@@ -138,8 +138,9 @@ class ModelTest(TestCase): #pragma: no cover
             script_progress_was_completed.send(connection=connection, sender=script_prog)
         return ss
     
-    def register_reporter(self, grp):
-        self.fake_incoming('join')
+    def register_reporter(self, grp, phone=None):
+        connection = Connection.objects.create(identity=phone, backend=self.backend) if phone else self.connection
+        self.fake_incoming('join', connection)
         script_prog = ScriptProgress.objects.all()[0]
         
         params = [
@@ -160,7 +161,7 @@ class ModelTest(TestCase): #pragma: no cover
                 param_list.append((step_name, value))
             else:
                 pass    
-        self.fake_script_dialog(script_prog, self.connection, param_list)
+        self.fake_script_dialog(script_prog, connection, param_list)
 
     def testBasicAutoReg(self):
         self.register_reporter('teacher')
@@ -580,3 +581,77 @@ class ModelTest(TestCase): #pragma: no cover
         prog = ScriptProgress.objects.get(script__slug='emis_smc_monthly', connection=self.connection)
         check_progress(prog.script)
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
+        
+    def testRescheduleWeeklyPolls(self):
+        self.register_reporter('teacher', '8675349')
+        self.register_reporter('head teacher', '8675319')
+        self.register_reporter('smc', '8675329')
+        self.register_reporter('gem', '8675339')
+        weekly_scripts = Script.objects.filter(slug__endswith='_weekly')
+        Script.objects.filter(slug__in=weekly_scripts.values_list('slug', flat=True)).update(enabled=True)
+        for sp in ScriptProgress.objects.filter(script__slug__in=weekly_scripts.values_list('slug', flat=True)):
+            self.elapseTime2(sp, 13*31*24*60*60)   
+        self.assertEquals(ScriptProgress.objects.filter(script__slug__in=weekly_scripts.values_list('slug', flat=True))[0].time.year, datetime.datetime.now().year - 1)
+        reschedule_weekly_polls('teachers')
+        next_thursday = _next_thursday()
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675349', script__slug='emis_teachers_weekly').time.date(), next_thursday.date())
+        reschedule_weekly_polls('head teachers')
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='emis_head_teachers_weekly').time.date(), next_thursday.date())
+        reschedule_weekly_polls('smc')
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='emis_smc_weekly').time.date(), next_thursday.date())
+        for sp in ScriptProgress.objects.filter(script__slug__in=weekly_scripts.values_list('slug', flat=True)):
+            self.elapseTime2(sp, 13*31*24*60*60)
+        reschedule_weekly_polls()
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675349', script__slug='emis_teachers_weekly').time.date(), next_thursday.date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='emis_head_teachers_weekly').time.date(), next_thursday.date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='emis_smc_weekly').time.date(), next_thursday.date())
+        
+    def testRescheduleMonthlyPolls(self):
+        self.register_reporter('teacher', '8675349')
+        self.register_reporter('head teacher', '8675319')
+        self.register_reporter('smc', '8675329')
+        self.register_reporter('gem', '8675339')
+        monthly_scripts = Script.objects.filter(slug__endswith='_monthly')
+        Script.objects.filter(slug__in=monthly_scripts.values_list('slug', flat=True)).update(enabled=True)
+        for sp in ScriptProgress.objects.filter(script__slug__in=monthly_scripts.values_list('slug', flat=True)):
+            self.elapseTime2(sp, 13*31*24*60*60)   
+        self.assertEquals(ScriptProgress.objects.filter(script__slug__in=monthly_scripts.values_list('slug', flat=True))[0].time.year, datetime.datetime.now().year - 1)
+        reschedule_monthly_polls('head teachers')
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='emis_head_teachers_monthly').time.date(), _date_of_monthday('last').date())
+        reschedule_monthly_polls('smc')
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='emis_smc_monthly').time.date(), _date_of_monthday(5).date())
+        for sp in ScriptProgress.objects.filter(script__slug__in=monthly_scripts.values_list('slug', flat=True)):
+            self.elapseTime2(sp, 13*31*24*60*60)
+        reschedule_monthly_polls()
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675349', script__slug='emis_teachers_monthly').time.date(), _date_of_monthday('last').date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='emis_head_teachers_monthly').time.date(), _date_of_monthday('last').date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='emis_smc_monthly').time.date(), _date_of_monthday(5).date())
+        
+    def testRescheduleTermlyPolls(self):
+        self.register_reporter('teacher', '8675349')
+        self.register_reporter('head teacher', '8675319')
+        self.register_reporter('smc', '8675329')
+        self.register_reporter('gem', '8675339')
+        termly_scripts = Script.objects.filter(slug__endswith='_termly')
+        Script.objects.filter(slug__in=termly_scripts.values_list('slug', flat=True)).update(enabled=True)
+        for sp in ScriptProgress.objects.filter(script__slug__in=termly_scripts.values_list('slug', flat=True)):
+            self.elapseTime2(sp, 13*31*24*60*60)   
+        reschedule_termly_polls('head teachers')
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='emis_head_teachers_termly').time.date(), _next_midterm().date())
+        reschedule_termly_polls('smc')
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='emis_smc_termly').time.date(), _next_midterm().date())
+        for sp in ScriptProgress.objects.filter(script__slug__in=termly_scripts.values_list('slug', flat=True)):
+            self.elapseTime2(sp, 13*31*24*60*60)
+        reschedule_termly_polls()
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='emis_head_teachers_termly').time.date(), _next_midterm().date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='emis_smc_termly').time.date(), _next_midterm().date())
+        for sp in ScriptProgress.objects.filter(script__slug__in=termly_scripts.values_list('slug', flat=True)):
+            self.elapseTime2(sp, 13*31*24*60*60)
+        reschedule_termly_polls('smc', '2012-4-16')
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='emis_smc_termly').time.date(), datetime.datetime(2012, 4, 16).date())
+        for sp in ScriptProgress.objects.filter(script__slug__in=termly_scripts.values_list('slug', flat=True)):
+            self.elapseTime2(sp, 13*31*24*60*60)
+        reschedule_termly_polls('all', '2012-4-17')
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='emis_head_teachers_termly').time.date(), datetime.datetime(2012, 4, 17).date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='emis_smc_termly').time.date(), datetime.datetime(2012, 4, 17).date())
+        

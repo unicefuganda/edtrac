@@ -37,6 +37,12 @@ class EmisReporter(Contact):
     grade = models.CharField(max_length=2, choices=CLASS_CHOICES, null=True)
     schools = models.ManyToManyField(School, null=True)
     
+    class Meta:
+        ordering = ["name"]
+
+    def __unicode__(self):
+        return self.name
+    
     def is_member_of(self, group):
         return group.lower() in [grp.lower for grp in self.groups.objects.values_list('name', flat=True)]
     
@@ -371,96 +377,74 @@ def emis_scriptrun_schedule(**kwargs):
     if step == 0:
         s, c = ScriptSchedule.objects.get_or_create(script=script, date__contains=date)
     
-    
-#poll schedulers
-# a manual reschedule of all monthly polls
-def reschedule_monthly_polls():
-    slugs = ['emis_abuse', 'emis_meals', 'emis_smc_monthly']
-    #enable scripts in case they are disabled
-    Script.objects.filter(slug__in=slugs).update(enabled=True)
-    #first remove all existing script progress for the monthly scripts
-    ScriptProgress.objects.filter(script__slug__in=slugs).delete()
-    for slug in slugs:
-        reporters = EmisReporter.objects.all()
-        for reporter in reporters:
-            if reporter.default_connection and reporter.groups.count() > 0:
-                connection = reporter.default_connection
-                group = reporter.groups.all()[0]
-                if slug == 'emis_abuse':
-                    _schedule_monthly_script(group, connection, 'emis_abuse', 'last', ['Teachers', 'Head Teachers'])
-                elif slug == 'emis_meals':
-                    _schedule_monthly_script(group, connection, 'emis_meals', 20, ['Teachers', 'Head Teachers'])
-                else:
-                    _schedule_monthly_script(group, connection, 'emis_smc_monthly', 28, ['SMC'])
+               
+def reschedule_weekly_polls(grp=None):
+    """
+    manually reschedule all weekly polls or for a specified group
+    """
+    weekly_scripts = Script.objects.filter(slug__endswith='_weekly')
+    if grp:
+        slg_start = 'emis_%s'%grp.replace(' ','_').lower()
+        weekly_scripts.filter(slug__startswith=slg_start)
+        ScriptProgress.objects.filter(script__in=weekly_scripts)\
+                                .exclude(connection__contact__emisreporter__groups__name__iexact=grp).delete()
+    else:
+        ScriptProgress.objects.filter(script__in=weekly_scripts).delete()
+    Script.objects.filter(slug__in=weekly_scripts.values_list('slug', flat=True)).update(enabled=True)
+    grps = Group.objects.filter(name__iexact=grp) if grp else Group.objects.filter(name__in=['Teachers', 'Head Teachers', 'SMC'])
+    reps = EmisReporter.objects.filter(groups__in=grps)
+    for rep in reps:
+        if rep.default_connection and rep.groups.count() > 0:
+            _schedule_weekly_scripts(rep.groups.all()[0], rep.default_connection, ['Teachers', 'Head Teachers', 'SMC'])
+            
 
-#reschedule weekly SMS questions                
-def reschedule_weekly_smc_polls():
-    #enable script in case its disabled
-    Script.objects.filter(slug='emis_head_teacher_presence').update(enabled=True)
-    #first destroy all existing script progress for the SMCs
-    ScriptProgress.objects.filter(connection__contact__groups__name='SMC', script__slug='emis_head_teacher_presence').delete()
-    smcs = EmisReporter.objects.filter(groups__name='SMC')
-    import datetime
-    for smc in smcs:
-        connection = smc.default_connection
-        holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
-        d = datetime.datetime.now()
-        # get the date to a thursday
-        d = d + datetime.timedelta((3 - d.weekday()) % 7)
-        in_holiday = True
-        while in_holiday:
-            in_holiday = False
-            for start, end in holidays:
-                if d >= start and d <= end:
-                    in_holiday = True
-                    break
-            if in_holiday:
-                d = d + datetime.timedelta(7)
-        sp, created = ScriptProgress.objects.get_or_create(connection=connection, script=Script.objects.get(slug='emis_head_teacher_presence'))
-        sp.set_time(d)
+def reschedule_monthly_polls(grp=None):
+    """
+    manually reschedule all monthly polls or for a specified group
+    """
+    monthly_scripts = Script.objects.filter(slug__endswith='_monthly')
+    if grp:
+        slg_start = 'emis_%s'%grp.replace(' ','_').lower()
+        monthly_scripts.filter(slug__startswith=slg_start)
+        ScriptProgress.objects.filter(script__in=monthly_scripts)\
+                                .exclude(connection__contact__emisreporter__groups__name__iexact=grp).delete()
+    else:
+        ScriptProgress.objects.filter(script__in=monthly_scripts).delete()
+    Script.objects.filter(slug__in=monthly_scripts.values_list('slug', flat=True)).update(enabled=True)
+    for slug in monthly_scripts.values_list('slug', flat=True):
+        grps = Group.objects.filter(name__iexact=grp) if grp else Group.objects.filter(name__in=['Teachers', 'Head Teachers', 'SMC', 'GEM'])
+        reps = EmisReporter.objects.filter(groups__in=grps)
+        for rep in reps:
+            if rep.default_connection and rep.groups.count() > 0:
+                if slug == 'emis_teachers_monthly':
+                    _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'emis_teachers_monthly', 'last', ['Teachers'])
+                elif slug == 'emis_head_teachers_monthly':
+                    _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'emis_head_teachers_monthly', 'last', ['Head Teachers'])
+                elif slug == 'emis_smc_monthly':
+                    _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'emis_smc_monthly', 5, ['SMC'])
+                elif slug == 'emis_gem_monthly':
+                    _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'emis_gem_monthly', 20, ['GEM'])
         
-def reschedule_annual_polls():
-    #enable script in case its disabled
-    Script.objects.filter(slug='emis_annual').update(enabled=True)
-    #first destroy all existing script progress for head teachers in annual script
-    ScriptProgress.objects.filter(connection__contact__groups__name__iexact='head teachers', script__slug='emis_annual').delete()
-    headteachers = EmisReporter.objects.filter(groups__name__iexact='head teachers')
-    # Schedule annual messages
-    d = datetime.datetime.now()
-    start_of_year = datetime.datetime(d.year, 1, 1, d.hour, d.minute, d.second, d.microsecond)\
-        if d.month < 3 else datetime.datetime(d.year + 1, 1, 1, d.hour, d.minute, d.second, d.microsecond)
-    for headteacher in headteachers:
-        connection = headteacher.default_connection
-        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug='emis_annual'))
-        sp.set_time(start_of_year + datetime.timedelta(weeks=getattr(settings, 'SCHOOL_ANNUAL_MESSAGES_START', 12)))
-    
-    
-def reschedule_termly_polls(date):
-    #enable script in case its disabled
-    Script.objects.filter(slug='emis_school_administrative').update(enabled=True)
-    #first destroy all existing script progress for head teachers in annual script
-    ScriptProgress.objects.filter(connection__contact__groups__name__iexact='head teachers',\
-                                script__slug='emis_school_administrative').delete()
-    reporters = EmisReporter.objects.filter(groups__name__iexact='head teachers')
-    # Schedule annual messages
-    d = datetime.datetime.now()
-    dl = date.split('-')
-    new_time = datetime.datetime(int(dl[0]), int(dl[1]), int(dl[2]), d.hour, d.minute, d.second, d.microsecond)
-    for reporter in reporters:
-        connection = reporter.default_connection
-        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug='emis_school_administrative'))
-        sp.set_time(new_time)
-    
-    #now the smcs termly scripts
-    Script.objects.filter(slug='emis_smc_termly').update(enabled=True)
-    #first destroy all existing script progress for smcs in their termly script
-    ScriptProgress.objects.filter(connection__contact__groups__name__iexact='smc',\
-                                script__slug='emis_smc_termly').delete()
-    reporters = EmisReporter.objects.filter(groups__name__iexact='smc')
-    for reporter in reporters:
-        connection = reporter.default_connection
-        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug='emis_smc_termly'))
-        sp.set_time(new_time)
+def reschedule_termly_polls(grp = 'all', date=None):
+        
+    """
+    manually reschedule all termly polls or for a specified group
+    """
+    termly_scripts = Script.objects.filter(slug__endswith='_termly')
+    if not grp == 'all':
+        slg_start = 'emis_%s'%grp.replace(' ','_').lower()
+        termly_scripts.filter(slug__startswith=slg_start)
+        ScriptProgress.objects.filter(script__in=termly_scripts)\
+                                .exclude(connection__contact__emisreporter__groups__name__iexact=grp).delete()
+    else:
+        ScriptProgress.objects.filter(script__in=termly_scripts).delete()
+    Script.objects.filter(slug__in=termly_scripts.values_list('slug', flat=True)).update(enabled=True)
+    for slug in termly_scripts.values_list('slug', flat=True):
+        grps = Group.objects.filter(name__iexact=grp) if not grp == 'all' else Group.objects.filter(name__in=['Head Teachers', 'SMC'])
+        reps = EmisReporter.objects.filter(groups__in=grps)
+        for rep in reps:
+            if rep.default_connection and rep.groups.count() > 0:
+                _schedule_termly_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers', 'SMC'], date)
 
 
 Poll.register_poll_type('date', 'Date Response', parse_date_value, db_type=Attribute.TYPE_OBJECT)
