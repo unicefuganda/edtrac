@@ -1,12 +1,14 @@
 import datetime
 from django.db import models, transaction
-import django
-
+#import django
+import django.dispatch
+from django.db import connection as db_connection
 from rapidsms.models import Contact, Connection
 
-from .managers import ForUpdateManager, BulkInsertManager
+from .managers import ForUpdateManager
+from django.conf import settings
 
-mass_text_sent = django.dispatch.Signal(providing_args=["messages"])
+mass_text_sent = django.dispatch.Signal(providing_args=["messages", "status"])
 
 DIRECTION_CHOICES = (
     ("I", "Incoming"),
@@ -38,11 +40,11 @@ class MessageBatch(models.Model):
 
 class Message(models.Model):
     connection = models.ForeignKey(Connection, related_name='messages')
-    text = models.TextField()
-    direction = models.CharField(max_length=1, choices=DIRECTION_CHOICES)
-    status = models.CharField(max_length=1, choices=STATUS_CHOICES)
+    text = models.TextField(db_index=True)
+    direction = models.CharField(max_length=1, choices=DIRECTION_CHOICES, db_index=True)
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES, db_index=True)
     date = models.DateTimeField(auto_now_add=True)
-    priority = models.IntegerField(default=10)
+    priority = models.IntegerField(default=10, db_index=True)
 
     in_response_to = models.ForeignKey('self', related_name='responses', null=True)
     application = models.CharField(max_length=100, null=True)
@@ -50,7 +52,6 @@ class Message(models.Model):
     batch = models.ForeignKey(MessageBatch, related_name='messages', null=True)
     # set our manager to our update manager
     objects = ForUpdateManager()
-    bulk = BulkInsertManager()
 
     def __unicode__(self):
         # crop the text (to avoid exploding the admin)
@@ -68,18 +69,25 @@ class Message(models.Model):
 
     @classmethod
     @transaction.commit_on_success
-    def mass_text(cls, text, connections, status='P'):
-        batch = MessageBatch.objects.create(status='Q')
+    def mass_text(cls, text, connections, status='P', batch_status='Q'):
+        batch = MessageBatch.objects.create(status=batch_status)
+        sql = 'insert into rapidsms_httprouter_message (text, date, direction, status, batch_id, connection_id, priority) values '
+        insert_list = []
+        params_list = []
+        d = datetime.datetime.now()
+        c = db_connection.cursor()
+
         for connection in connections:
-            Message.bulk.bulk_insert(
-                send_pre_save=False,
-                text=text,
-                direction='O',
-                status=status,
-                batch=batch,
-                connection=connection)
-        toret = Message.bulk.bulk_insert_commit(send_post_save=False, autoclobber=True)
-        mass_text_sent.send(sender=batch, messages=toret)
+            insert_list.append("(%s, %s, 'O', %s, %s, %s, %s)")
+            params_list += [text, d, status, batch.pk, connection.pk, 10]
+
+        sql = "%s %s returning id" % (sql, ",".join(insert_list))
+        c.execute(sql, params_list)
+
+        pks = c.fetchall()
+        toret = Message.objects.filter(pk__in=[pk[0] for pk in pks])
+        mass_text_sent.send(sender=batch, messages=toret, status=status)
         return toret
+
 
 
