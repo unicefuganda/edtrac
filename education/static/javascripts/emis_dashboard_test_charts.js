@@ -106,7 +106,7 @@ function abuse_cases(districts, abuse_values){
     );
 }
 
-function lunch(data) {
+function lunch(data, chart_title) {
     var d = data.split(",");
     var lunch_data = [];
     for(i=0;i<d.length; i++){
@@ -122,7 +122,7 @@ function lunch(data) {
             plotShadow: false
         },
         title: {
-            text: 'Lunch at School this Month'
+            text: chart_title
         },
         tooltip: {
             formatter: function() {
