@@ -14,7 +14,8 @@ from education.utils import previous_calendar_week
 from education.models import EmisReporter, School
 from poll.models import Response, Poll
 import datetime
-
+from types import NoneType
+from rapidsms.models import Contact
 from generic.reporting.views import ReportView
 from generic.reporting.reports import Column
 from uganda_common.views import XFormReport
@@ -103,9 +104,9 @@ class AverageSubmissionBySchoolColumn(Col, SchoolMixin):
 
 class DateLessRatioColumn(Col, SchoolMixin):
     """
-    This divides the total number of an indicator (for instance, boys yearly enrollment)  
+    This divides the total number of an indicator (for instance, boys yearly enrollment)
     by the total of another indicator (for instance, total classrooms)].
-    
+
     This gives you the ratio between the two indicators, each of which
     are fixed yearly amounts (not dependent on date).
     """
@@ -163,15 +164,15 @@ class WeeklyAttributeBySchoolColumn(Col, SchoolMixin):
 
 class WeeklyPercentageColumn(Col, SchoolMixin):
     """
-    This divides the total number of an indicator for one week (such as, boys weekly attendance) 
+    This divides the total number of an indicator for one week (such as, boys weekly attendance)
     by the total of another indicator (for instance, boys yearly enrollment)].
-    
-    This gives you the % expected for two indicators, 
+
+    This gives you the % expected for two indicators,
     one that is reported on weekly (for the CURRENT WEEK)
     and the other which is a fixed total number.
-    
+
     If invert is True, this column will evaluate to 100% - the above value.
-    
+
     For example, if boys weekly attendance this week was 75%, setting invert to
     True would instead return 100 - 75 = 25%
     """
@@ -206,7 +207,7 @@ class AverageWeeklyTotalRatioColumn(Col, SchoolMixin):
     This divides the total number of an indicator (such as, boys weekly attendance) by:
     [the number of non-holiday weeks in the date range * the total of another indicator
     (for instance, boys yearly enrollment)].
-    
+
     This gives you the % expected for two indicators, one that is reported on weekly
     and the other which is a fixed total number.
     """
@@ -317,7 +318,7 @@ def attendance_stats(request, district_id=None):
     values = total_attribute_value(["teachers_f", "teachers_m"], start_date=start_date, end_date=end_date, location=location)
     attendance_ratio = location_values(user_location, values)
     stats.append(('total teachers', location_values(user_location, values)))
-    
+
     enrolled_total = ["deploy_f", "deploy_m"]
     values = total_attribute_value(enrolled_total, start_date=datetime.datetime(datetime.datetime.now().year, 1, 1), end_date=datetime.datetime.now(), location=location)
     if not type(location_values(user_location, values)) == str and not type(attendance_ratio) == str and location_values(user_location, values) > 0:
@@ -359,7 +360,7 @@ def enrollment_stats(request, district_id=None):
 
     values = total_attribute_value(["deploy_f", "deploy_m"], start_date=start_date, end_date=end_date, location=location)
     stats.append(('total teachers', location_values(user_location, values)))
-    
+
     headteachers = School.objects.filter(location__in=user_location.get_descendants(include_self=True)).count()
     stats.append(('total head teachers', headteachers))
     stats.append(('total schools', headteachers))
@@ -371,7 +372,7 @@ def enrollment_stats(request, district_id=None):
 
 def headteacher_attendance_stats(request, district_id=None):
     stats = []
-    user_location = get_location(request, district_id)    
+    user_location = get_location(request, district_id)
     start_date, end_date = previous_calendar_week()
     dates = {'start':start_date, 'end':end_date}
     htpresent_yes = Poll.objects.get(name='emis_absence').responses.exclude(has_errors=True)\
@@ -387,16 +388,16 @@ def headteacher_attendance_stats(request, district_id=None):
     tot = htpresent_yes + htpresent_no if (htpresent_yes + htpresent_no) else '-'
     stats.append(('total reports received', tot))
     num_schools = School.objects.filter(location__in=user_location.get_descendants(include_self=True)).count()
-    if num_schools > 0 and type(htpresent_yes) == int:        
+    if num_schools > 0 and type(htpresent_yes) == int:
         htpresent_yes /= float(num_schools)
         perc_present = '%0.1f%%'%(htpresent_yes * 100)
     perc_present = perc_present if htpresent_yes else '-'
-        
-    if num_schools > 0 and type(htpresent_no) == int:        
+
+    if num_schools > 0 and type(htpresent_no) == int:
         htpresent_no /= float(num_schools)
         perc_absent = '%0.1f%%'%(htpresent_no * 100)
     perc_absent = perc_absent if htpresent_no else '-'
-    
+
     stats.append(('% present', perc_present))
     stats.append(('% absent', perc_absent))
     res = {}
@@ -419,19 +420,19 @@ def gem_htpresent_stats(request, district_id=None):
     if type(gem_htpresent) == int and type(gem_htabsent) == int:
         tot = gem_htpresent + gem_htabsent
     else:
-        tot = gem_htpresent if type(gem_htpresent) == int else gem_htabsent  
+        tot = gem_htpresent if type(gem_htpresent) == int else gem_htabsent
     stats.append(('total reports received', tot))
     num_schools = School.objects.filter(location__in=user_location.get_descendants(include_self=True)).count()
-    if num_schools > 0 and type(gem_htpresent) == int:        
+    if num_schools > 0 and type(gem_htpresent) == int:
         gem_htpresent /= float(num_schools)
         perc_present = '%0.1f%%'%(gem_htpresent * 100)
     perc_present = '-' if type(gem_htpresent) == str else perc_present
-        
-    if num_schools > 0 and type(gem_htabsent) == int:        
+
+    if num_schools > 0 and type(gem_htabsent) == int:
         gem_htabsent /= float(num_schools)
         perc_absent = '%0.1f%%'%(gem_htabsent * 100)
     perc_absent = '-' if type(gem_htabsent) == str else perc_absent
-    
+
     stats.append(('% present', perc_present))
     stats.append(('% absent', perc_absent))
     res = {}
@@ -447,7 +448,7 @@ def abuse_stats(request, district_id=None):
     dates = {'start':start_date, 'end':end_date}
     values = total_attribute_value("gemabuse_cases", start_date=start_date, end_date=end_date, location=location)
     stats.append(('GEM reported abuse cases', location_values(user_location, values)))
-    
+
     htabuse = Poll.objects.get(name='emis_abuse').responses.exclude(has_errors=True)\
                             .filter(date__range=(start_date, end_date))\
                             .filter(message__connection__contact__emisreporter__reporting_location__in=user_location.get_descendants(include_self=True).all())\
@@ -465,7 +466,7 @@ def meals_stats(request, district_id=None):
     start_date, end_date = previous_calendar_month()
     dates = {'start':start_date, 'end':end_date}
     expected_strs = ['none', 'very few', 'few', 'less than half', 'more than half', 'very many']
-    
+
     meals = Poll.objects.get(name='emis_meals').responses.exclude(has_errors=True)\
                             .filter(date__range=(start_date, end_date))\
                             .filter(message__connection__contact__emisreporter__reporting_location__in=user_location.get_descendants(include_self=True).all())\
@@ -497,7 +498,7 @@ def keyratios_stats(request, district_id=None):
         stats['Teacher to Pupil Ratio'] = '1:%s'%pupil_to_teacher_ratio
     else:
         stats['Teacher to Pupil Ratio'] = 'Not Available'
-    #pupil to latrine ratio    
+    #pupil to latrine ratio
     top_attrib = ["enrolledb_%s" % g for g in GRADES] + ["enrolledg_%s" % g for g in GRADES]
     bottom_attrib = ["latrinesused_b", "latrinesused_g"]
     latrinesused_ratio = attrib_ratios(top_attrib, bottom_attrib, dates, user_location)
@@ -505,7 +506,7 @@ def keyratios_stats(request, district_id=None):
         stats['Latrine to Pupil Ratio'] = '1:%s'%latrinesused_ratio
     else:
         stats['Latrine to Pupil Ratio'] = 'Not Available'
-    #pupil to classroom ratio    
+    #pupil to classroom ratio
     top_attrib = ["enrolledb_%s" % g for g in GRADES] + ["enrolledg_%s" % g for g in GRADES]
     bottom_attrib = ["classroomsused_%s" % g for g in GRADES]
     pupil_to_classroom_ratio = attrib_ratios(top_attrib, bottom_attrib, dates, user_location)
@@ -518,8 +519,8 @@ def keyratios_stats(request, district_id=None):
                                         .filter(date__range=(start_date, end_date))\
                                         .filter(message__connection__contact__emisreporter__schools__location__in=user_location.get_descendants(include_self=True).all())\
                                         .values_list('eav_values__value_float', flat=True)
-                                        
-    smc_meetings_ratio = sum(smc_meetings)                                    
+
+    smc_meetings_ratio = sum(smc_meetings)
     total_schools = School.objects.filter(location__in=user_location.get_descendants(include_self=True).all()).count()
     if total_schools:
         smc_meetings_ratio /= total_schools
@@ -540,14 +541,14 @@ def school_last_xformsubmission(request, school_id):
                 .order_by('-created')\
                 .annotate(Sum('value_int'))[:1] #.values_list('submission__xform__name', 'value_int__sum', 'submission__connection__contact__name', 'submission__created')
         xforms.append((xform, xform_values))
-        
+
     for script in Script.objects.exclude(slug='emis_autoreg'):
         for step in script.steps.all():
             resp = Response.objects.filter(poll=step.poll)\
                 .filter(message__connection__contact__emisreporter__schools__pk=school_id)\
                 .order_by('-date')[:1]
             scripted_polls.append((step.poll,resp))
-        
+
     return {'xforms':xforms, 'scripted_polls':scripted_polls}
 
 def messages(request, district_id=None):
@@ -582,7 +583,7 @@ def schools(request, district_id=None):
 def deo_alerts(request, district_id=None):
     alerts = []
     user_location = get_location(request, district_id)
-    
+
     #schools that have not sent in pupil attendance data this week
     start_date, end_date = previous_calendar_week()
     responsive_schools = XFormSubmissionValue.objects.all()\
@@ -596,7 +597,7 @@ def deo_alerts(request, district_id=None):
         total_schools_ratio /= float(schools.count())
         perc = '%0.1f%%'%(total_schools_ratio*100)
     alerts.append((schools.exclude(name__in=responsive_schools).count(), perc, 'did not submit pupil attendance reports this week'))
-    
+
     #schools that have not sent in pupil enrollment data this year
     start_date = datetime.datetime(datetime.datetime.now().year, 1, 1)
     end_date = datetime.datetime.now()
@@ -611,7 +612,7 @@ def deo_alerts(request, district_id=None):
         total_schools_ratio /= float(schools.count())
         perc = '%0.1f%%'%(total_schools_ratio*100)
     alerts.append((schools.exclude(name__in=responsive_schools).count(), perc, 'have not submitted pupil enrollment data this year'))
-    
+
     #schools that have not sent in teacher deployment data
     responsive_schools = XFormSubmissionValue.objects.all()\
                         .filter(submission__xform__keyword__icontains='deploy')\
@@ -645,7 +646,7 @@ class AttendanceReport(SchoolReport):
 
 class AbuseReport(SchoolReport):
     cases = TotalAttributeBySchoolColumn("gemabuse_cases")
-    
+
 class EnrollmentReport(SchoolReport):
     start_date = datetime.datetime(datetime.datetime.now().year, 1, 1)
     end_date = datetime.datetime.now()
@@ -656,14 +657,14 @@ class EnrollmentReport(SchoolReport):
     female_teachers = TotalAttributeBySchoolColumn(["teachers_f"])
     male_teachers = TotalAttributeBySchoolColumn(["teachers_m"])
     total_teachers = TotalAttributeBySchoolColumn(["teachers_f", "teachers_m"])
-    
+
 class KeyRatiosReport(SchoolReport):
     pupils_to_teacher = DateLessRatioColumn(["girls_%s" % g for g in GRADES] + ["boys_%s" % g for g in GRADES] , ["enrolledb_%s" % g for g in GRADES] + ["enrolledg_%s" % g for g in GRADES])
     pupils_to_latrine = DateLessRatioColumn(["girls_%s" % g for g in GRADES] + ["boys_%s" % g for g in GRADES] , ["latrinesused_b", "latrinesused_g"])
     pupils_to_classroom = DateLessRatioColumn(["girls_%s" % g for g in GRADES] + ["boys_%s" % g for g in GRADES] , ["classroomsused_%s" % g for g in GRADES])
-    
+
 COLUMN_TITLE_DICT = {
-    
+
 }
 
 class EmisSubmissionColumn(XFormSubmissionColumn):
@@ -677,14 +678,14 @@ class EmisAttributeColumn(XFormAttributeColumn):
         if type(self.keyword) == list:
             tolookup = self.keyword[0]
         return self.title or (COLUMN_TITLE_DICT[tolookup] if tolookup in COLUMN_TITLE_DICT else '')
-    
+
 class TotalEnrollmentColumn(EmisAttributeColumn):
     start_date = datetime.datetime(datetime.datetime.now().year, 1, 1)
-    end_date = datetime.datetime.now()  
+    end_date = datetime.datetime.now()
     def add_to_report(self, report, key, dictionary):
         val = total_attribute_value(self.keyword, self.start_date, self.end_date, report.location, self.extra_filters)
         reorganize_location(key, val, dictionary)
-    
+
 class NewAttendanceReport(XFormReport):
     template_name = "education/partials/stats_base.html"
 
@@ -707,10 +708,10 @@ class NewAttendanceReport(XFormReport):
 
     def get_default_column(self):
         return ('girls', self.girls)
-    
+
     def get_total_enrolled(self):
         return EmisSubmissionColumn(["enrolledb_%s" % g for g in GRADES] + ["enrolledg_%s" % g for g in GRADES])
-    
+
 #excel reports
 
 def raw_data(request, district_id, dates, slugs, teachers=False):
@@ -809,7 +810,7 @@ def create_excel_dataset(request, start_date, end_date, district_id):
                 except:
                     pass
                 sheet.write(rowx, colx, value)
-            
+
     GRADES = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'Total', 'Date']
     boy_attendance_slugs = ['boys_%s'% g for g in GRADES]
     girl_attendance_slugs = ['girls_%s'%g for g in GRADES]
@@ -828,7 +829,7 @@ def create_excel_dataset(request, start_date, end_date, district_id):
     headings = ["School"] + GRADES
     data_set = raw_data(request, district_id, dates,  girl_attendance_slugs)
     write_xls("Attendance data for Girls",headings,data_set)
-    
+
     #Teacher attendance
     headings = TEACHER_HEADERS
     data_set = raw_data(request, district_id, dates,  teacher_attendance_slugs, teachers=True)
@@ -844,7 +845,7 @@ def create_excel_dataset(request, start_date, end_date, district_id):
     headings = ["School"] + GRADES
     data_set = raw_data(request, district_id, dates,  girl_enrolled_slugs)
     write_xls("Enrollment data for Girls",headings,data_set)
-    
+
     #Teacher deployment
     headings = TEACHER_HEADERS
     data_set = raw_data(request, district_id, dates,  teacher_deploy_slugs, teachers=True)
@@ -856,19 +857,38 @@ def create_excel_dataset(request, start_date, end_date, district_id):
     return response
 
 
-def get_sum_of_poll_response(poll_queryset):
+def get_sum_of_poll_response(poll_queryset, **kwargs):
     """
     This computes the eav response value to a poll
+    can also be used to filter by district and create a dict with
+    district vs value
     """
     #TODO: provide querying by date too
     s = 0
-    try:
-        for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter()]:
-            s += val
-    except NoneType:
-        pass
-    # a zero or computed value is returned
-    return s
+    if kwargs:
+        #district filter
+        if kwargs.has_key('filter'):
+            filter = kwargs['filter']
+            #filter takes boolean values
+            if filter:
+                DISTRICT = ['Kaabong', 'Kabarole', 'Kyegegwa', 'Kotido']
+                to_ret = {}
+                for location in Location.objects.filter(name__in=DISTRICT):
+                    try:
+                        for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(contact__in=\
+                            Contact.objects.filter(reporting_location=location))]:
+                            s += val
+                    except NoneType:
+                        pass
+                    to_ret[location.__unicode__()] = s
+                return to_ret
+    else:
+        try:
+            for val in [r.eav.poll_number_value for r in poll_queryset.responses.all()]:
+                s += val
+        except NoneType:
+            pass
+        return s
 
 def get_responses_to_polls(**kwargs):
     #TODO with filter() we can pass extra arguments
@@ -878,6 +898,7 @@ def get_responses_to_polls(**kwargs):
             #TODO filter poll by district, school or county (might wanna index this too)
             return get_sum_of_poll_response(Poll.objects.get(name=poll_name))
         #in cases where a list of poll names is passed, a dictionary is returned
+
         if kwargs.has_key('poll_names'):
             poll_names = kwargs['poll_names']
             responses = {}
