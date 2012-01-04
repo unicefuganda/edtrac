@@ -12,13 +12,11 @@
     </td>
     <td>
         <ul>
-            {% with connections=object|distinct_connections %}
-                {% for c in connections %}
-                    <li>
-                        {{ c.identity }}
-                    </li>
-                {% endfor %}
-             {% endwith %}
+            {% for c in object.connection_set.all %}
+                <li>
+                    {{ c.identity }}
+                </li>
+            {% endfor %}
         </ul>
     </td>
     <td>
