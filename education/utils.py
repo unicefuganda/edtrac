@@ -266,3 +266,10 @@ def list_poll_responses(poll, **kwargs):
         for location in Location.objects.filter(name__in=DISTRICT):
             to_ret[location.__unicode__()] = compute_average_percentage([msg.message.text for msg in poll.responses.filter(date__gte=date_diff, contact__in=Contact.objects.filter(reporting_location=location))])
         return to_ret
+    
+def get_script_grp(script_slug):
+    sl = script_slug.split('_')
+    if sl[1] == 'head':
+        return '%s %s' % (sl[1], sl[2])
+    else:
+        return sl[1]

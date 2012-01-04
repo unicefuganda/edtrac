@@ -246,6 +246,10 @@ def reorganize_lunch(obj):
     for label, lunch in obj:
         lunches.append("%s-%d"%(label,lunch))
     return lunches
+
+def termly(obj):
+    return obj.slug.endswith('_termly')
+
 register = template.Library()
 register.filter('section', get_section)
 register.filter('parent', get_parent)
@@ -259,6 +263,7 @@ register.filter('submissions', submissions)
 register.filter('headteacher',headteacher)
 register.filter('parse_gemvalues', parse_gemvalues)
 register.filter('reorganize_lunch', reorganize_lunch)
+register.filter('termly', termly)
 register.filter('headteacher_connection',headteacher_connection)
 register.filter('hash', hash)
 register.filter('get_district', get_district)

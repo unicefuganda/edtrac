@@ -1,4 +1,5 @@
 from django import forms
+from django.forms import extras
 import datetime
 from mptt.forms import TreeNodeChoiceField
 from rapidsms.contrib.locations.models import Location
@@ -15,6 +16,7 @@ from rapidsms_httprouter.models import Message
 from django.contrib.sites.models import Site
 from contact.models import MassText
 from rapidsms.models import Connection
+from script.models import Script
 
 date_range_choices = (('w', 'Previous Calendar Week'), ('m', 'Previous Calendar Month'), ('q', 'Previous calendar quarter'),)
 
@@ -348,3 +350,13 @@ class SchoolMassTextForm(ActionForm):
         else:
             return ("You don't have permission to send messages!", 'error',)
 
+class ScriptsForm(forms.ModelForm):
+    date = forms.DateField(label="Schedule Date: ", widget=extras.widgets.SelectDateWidget(), required=False)
+    class Meta:
+        model = Script
+        fields = ("slug", "name","enabled")
+        widgets = {
+            'slug': forms.HiddenInput(),
+            'name': forms.TextInput(attrs={'size': 60}),
+            'enabled':forms.CheckboxInput(attrs={'onclick':'check_clicked(this);'})
+        }

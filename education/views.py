@@ -1,4 +1,4 @@
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
@@ -652,8 +652,30 @@ def meals(request, district_id=None):
     selectable = False,
     dates = get_xform_dates,
     )
+
+@super_user_required
+def edit_scripts(request):
+    forms = []
+    for script in Script.objects.all().order_by('slug'):
+        forms.append((script, ScriptsForm(instance=script)))
+        
+    if request.method == 'POST':
+        script_form = ScriptsForm(request.POST,instance=Script.objects.get(slug=request.POST.get('slug')))
+        if script_form.is_valid():
+            script_form.save()
     
-def EmisListView(ListView):
-    pass
+    return render_to_response('education/partials/edit_script.html', {'forms': forms},
+                              context_instance=RequestContext(request))
     
+def reschedule_scripts(request, script_slug):
+    grp = get_script_grp(script_slug)
+    if script_slug.endswith('_weekly'):
+        reschedule_weekly_polls(grp)
+    elif script_slug.endswith('_monthly'):
+        reschedule_monthly_polls(grp)
+    else:
+        reschedule_termly_polls(grp)
+    new_script_date = ScriptProgress.objects.filter(script__slug=script_slug)[0].time
+    response = HttpResponse("This Script has been rescheduled to: %s " % new_script_date.strftime("%d-%m-%Y %H:%M"))
+    return response     
 
