@@ -125,9 +125,9 @@ def dash_deo_abuse(request):
     )
 
 def dash_meals(request):
-    abuses_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))
+    meal_poll_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))
     # this should be equal
-    districts = abuses_to_ret.keys()
+    districts = meal_poll_to_ret.keys()
     lunches_to_ret = zip(districts, [20, 30, 40, 10])
     return render_to_response('education/dashboard/meals.html', {\
                                 'lunches':lunches_to_ret,\
