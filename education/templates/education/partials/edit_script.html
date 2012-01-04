@@ -1,0 +1,53 @@
+{% extends "education/base.html" %}
+{% load stats_extras %}
+{% block  javascripts%}
+    {{ block.super }}
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/emis_schools.js"></script>
+{% endblock %}
+{% block content %}
+    <div>
+        <div class="module">
+            <h2>{{ title }}</h2>
+        </div>
+        {% for script, script_form in forms %}
+            <form action="" method="Post">
+                {{ script_form.slug }}
+                <table width="100%" cellpadding="5" cellspacing="0" border=1 style="border-collapse:collapse;border-color:#ddd;">
+                    <tr>
+                        <td width="10%"><label for="name">Script Name:</label></td>
+                        <td>{{ script_form.name }}</td>
+                        <td><label for="enabled">Enabled:</label></td>
+                        <td>{{ script_form.enabled }}</td>
+                    </tr>
+                    <tr>
+                        <td><h4>Questions</h4></td>
+                        <td colspan="3">
+                            <ol>
+                            {% for step in script.steps.all %}
+                                {% if step.message %}
+                                    <li>{{ step.message }}</li>
+                                {% else %}
+                                    <li>{{ step.poll.question }}</li>
+                                {% endif %}
+                            {% endfor %}
+                            </ol>    
+                        </td>
+                    </tr>
+                    {% ifnotequal script.slug "emis_autoreg" %}
+                        <tr>
+                            <td colspan="4">
+                                {% if script|termly %}
+                                    <label for="date">Schedule Date:</label> {{ script_form.date }} |
+                                {% endif %}
+                                    <a href="#" onclick="reschedule_polls('{% url emis-reschedule-scripts script.slug %}', '{{ script.pk }}');">Reschedule Questions</a>
+                                    <span id="{{ script.pk }}_results"></span>
+                            </td>
+                        </tr>
+                    {%endifnotequal %}
+                </table>
+            </form>
+        {% endfor %}
+    </div>
+{% endblock %}
+<script type="text/javascript">$("id_scriptname").focus();</script>
+

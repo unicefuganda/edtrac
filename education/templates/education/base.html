@@ -43,6 +43,20 @@
         </td>
     </tr>
 </table>
+{% if user.is_authenticated %}
+    {% if user.is_superuser or user.get_profile.role == "Admins" %}
+        <p>
+            <table width="100%" cellpadding="5" cellspacing="0">
+                <tr>
+                    <th align="left">Administrative Tasks</th>  
+                </tr>
+                <tr>
+                    <td><a href="{% url emis-users %}">Manage Users</a> | <a href="{% url emis-scripts %}">Manage Poll Schedules</a></td>
+                </tr>
+            </table>
+        </p>
+     {% endif %}
+{% endif %}
 <script language="JavaScript">
     $('#map').load('{% url emis-dash-map %}');
     $('#attdance').load('{% url emis-dash-attdance %}');
