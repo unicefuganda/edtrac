@@ -45,6 +45,11 @@ def index(request, **kwargs):
 def dash_map(request):
     return render_to_response('education/dashboard/map.html', {}, RequestContext(request))
 
+
+def dash_ministry_map(request):
+    return render_to_response('education/dashboard/map.html', {}, RequestContext(request))
+
+
 def dash_attdance(request):
     boysp3_attendance = get_responses_to_polls(poll_name='emis_boysp3_attendance')
     boysp3_enrolled = get_responses_to_polls(poll_name="emis_boysp3_enrollment")
@@ -81,6 +86,8 @@ def dash_attdance(request):
         'male_teachers_present' : male_teachers_present, 'male_teachers_absent' : male_teachers_absent
     } , RequestContext(request))
 
+#TODO provide an attendance view for ministry officials
+
 def dash_abuse(request):
     abuses_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
     # this should be equal
@@ -91,6 +98,29 @@ def dash_abuse(request):
                                 'y_vals':district_abuses\
                                 }, RequestContext(request))
 
+def dash_ministry_abuse(request):
+    abuses = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+    districts = abuses.keys()
+    #assumption is still 4 districts
+    district_abuses = [23,56, 23, 66]
+    return render_to_response('education/dashboard/abuse.html',
+            {'x_vals':districts, 'y_vals' : abuses},
+        RequestContext(request)
+    )
+
+def dash_deo_abuse(request):
+    #TODO: use months for the x-values
+    #filter only values in the district
+    user = request.user
+
+    abuse = list_poll_responses(Poll.objects.filter().get(name="emis_headteachers_abuse"))
+    districts = abuse.keys()
+    abuses_in_districts = [23,343,234,64]
+    return render_to_response('education/dashboard/abuse.html',
+            {'x_vals' : districts, 'y_vals' : abuses_in_districts},
+        RequestContext(request)
+    )
+
 def dash_meals(request):
     abuses_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
     # this should be equal
@@ -100,7 +130,9 @@ def dash_meals(request):
                                 'lunches':lunches_to_ret,\
                                 }, RequestContext(request))
 
-@login_required
+def dash_ministry_meals(req):
+
+
 def dash_progress(request):
     #curriculum progress for p6 and p3
     progress_to_ret = [65, 62]
@@ -123,6 +155,9 @@ def dash_meetings(request):
 
 def dash_capitation(request):
     return render_to_response('education/dashboard/capitation.html', {}, RequestContext(request))
+
+
+
 
 @login_required
 def dashboard(request):

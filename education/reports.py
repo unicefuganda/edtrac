@@ -12,7 +12,7 @@ from rapidsms_xforms.models import XFormSubmissionValue, XForm, XFormSubmission
 from uganda_common.reports import PollNumericResultsColumn, PollCategoryResultsColumn, LocationReport, QuotientColumn, InverseQuotientColumn
 from uganda_common.utils import total_submissions, reorganize_location, total_attribute_value, previous_calendar_month
 from uganda_common.utils import reorganize_dictionary
-from uganda_common.views import PollReport
+#from uganda_common.views import PollReport
 from education.utils import previous_calendar_week
 from education.models import EmisReporter, School
 from poll.models import Response, Poll
@@ -547,22 +547,20 @@ def get_responses_to_polls(**kwargs):
             for poll in poll_names:
                 responses[poll] = get_sum_of_poll_response(Poll.objects.get(name=poll))
             return responses #can be used as context variable too
-        
-class AttendanceReport(PollReport):
-    
-#    def get_top_columns(self):
-#        return [
-#            ('Group', '#', 1),
-#            ('% Absent', '#', 1),
-#            ('% Present', '#', 1),
-#            ('Change', '#', 1),
-#        ]
-
-    has_chart = False
-    
-    group = PollsColumn(['emis_boysp3_attendance','emis_boysp6_attendance', 'emis_girlsp3_attendance', 'emis_girlsp6_attendance'], title='Group', order=0)
-    absent = WeeklyPollSchoolColumn('emis_boysp6_attendance', title='% Absent', order=1)
-    present = WeeklyPollSchoolColumn('emis_girlsp3_attendance', title='% Present', order=2)
-    change = WeeklyPollSchoolColumn('emis_girlsp6_attendance', title='Change', order=3)
-    
-        
+#
+#class AttendanceReport(PollReport):
+#
+##    def get_top_columns(self):
+##        return [
+##            ('Group', '#', 1),
+##            ('% Absent', '#', 1),
+##            ('% Present', '#', 1),
+##            ('Change', '#', 1),
+##        ]
+#
+#    has_chart = False
+#
+#    group = PollsColumn(['emis_boysp3_attendance','emis_boysp6_attendance', 'emis_girlsp3_attendance', 'emis_girlsp6_attendance'], title='Group', order=0)
+#    absent = WeeklyPollSchoolColumn('emis_boysp6_attendance', title='% Absent', order=1)
+#    present = WeeklyPollSchoolColumn('emis_girlsp3_attendance', title='% Present', order=2)
+#    change = WeeklyPollSchoolColumn('emis_girlsp6_attendance', title='Change', order=3)
