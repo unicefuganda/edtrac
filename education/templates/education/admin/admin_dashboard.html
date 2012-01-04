@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+{% load humanize %}
+{% block stylesheets %}
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/layout.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/splits.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/modules.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/icons.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}generic/stylesheets/generic.css" />
+<link type="text/css" rel="stylesheet" href="{{MEDIA_URL}}education/stylesheets/emis.css"/>
+<link type="text/css" rel="stylesheet" href="{{MEDIA_URL}}education/stylesheets/jquery-ui-1.7.3.custom.css"/>
+{% endblock %}
+{% block javascripts %}
+{{ block.super }}
+<!-- {% include "education/partials/chart/javascripts.html" %} -->
+<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/highcharts.js"></script>
+<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/emis_dashboard_charts.js"></script>
+<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-ui-1.7.3.custom.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
+{% endblock javascripts %}
+{% block content %}
+<table width="100%" cellpadding="5" cellspacing="0">
+    <tr>
+        <td id="map" width="425" height="400" valign="top"></td>
+        <td id="attdance" width="100%" height="400" valign="top"></td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <table width="100%" cellpadding="5" cellspacing="0">
+                <!-- TODO: scope out curriculum progress -->
+                <tr>
+                    <td id="abuse" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;"></td>
+                    <td id="meals" width="50%" height="400" valign="top" style="border-bottom:1px solid #efefef;"></td>
+                </tr>
+
+                <tr>
+                    <td id="meetings" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;"></td>
+                    <td id="capitation" width="50%" height="400" valign="top"></td>
+
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+<script language="JavaScript">
+    $('#map').load('{% url emis-dash-map %}');
+    $('#attdance').load('{% url emis-dash-attdance %}');
+    $('#abuse').load('{% url emis-dash-abuse %}');
+    $('#meals').load('{% url emis-dash-meals %}');
+    $('#meetings').load('{% url emis-dash-meetings %}');
+    $('#capitation').load('{% url emis-dash-capitation %}');
+</script>
+{% endblock %}

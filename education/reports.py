@@ -596,7 +596,7 @@ def deo_alerts(request, district_id=None):
         total_schools_ratio = schools.exclude(name__in=responsive_schools).count()
         total_schools_ratio /= float(schools.count())
         perc = '%0.1f%%'%(total_schools_ratio*100)
-    alerts.append((schools.exclude(name__in=responsive_schools).count(), perc, 'did not submit pupil attendance reports this week'))
+        alerts.append((schools.exclude(name__in=responsive_schools).count(), perc, 'did not submit pupil attendance reports this week'))
 
     #schools that have not sent in pupil enrollment data this year
     start_date = datetime.datetime(datetime.datetime.now().year, 1, 1)
@@ -611,7 +611,7 @@ def deo_alerts(request, district_id=None):
         total_schools_ratio = schools.exclude(name__in=responsive_schools).count()
         total_schools_ratio /= float(schools.count())
         perc = '%0.1f%%'%(total_schools_ratio*100)
-    alerts.append((schools.exclude(name__in=responsive_schools).count(), perc, 'have not submitted pupil enrollment data this year'))
+        alerts.append((schools.exclude(name__in=responsive_schools).count(), perc, 'have not submitted pupil enrollment data this year'))
 
     #schools that have not sent in teacher deployment data
     responsive_schools = XFormSubmissionValue.objects.all()\
@@ -624,7 +624,7 @@ def deo_alerts(request, district_id=None):
         total_schools_ratio = schools.exclude(name__in=responsive_schools).count()
         total_schools_ratio /= float(schools.count())
         perc = '%0.1f%%'%(total_schools_ratio*100)
-    alerts.append((schools.exclude(name__in=responsive_schools).count(), perc, 'have not submitted teacher deployment data this year'))
+        alerts.append((schools.exclude(name__in=responsive_schools).count(), perc, 'have not submitted teacher deployment data this year'))
     return alerts
 
 class AttendanceReport(SchoolReport):
