@@ -98,20 +98,20 @@ def new_poll(req):
             question = form.cleaned_data['question']
             default_response = form.cleaned_data['default_response']
             contacts = form.cleaned_data['contacts']
-            #groups = []
+            groups = []
             if hasattr(Contact, 'groups'):
                 groups = form.cleaned_data['groups']
-#                if len(groups):
-#                    groups = [group.pk for group in groups]
+                if len(groups):
+                    groups = [group.pk for group in groups]
 
-            contacts = Contact.objects.filter(Q(pk__in=contacts) | Q(groups__in=groups)).distinct()
+            #    contacts = Contact.objects.filter(Q(pk__in=contacts) | Q(groups__in=groups)).distinct()
 
             name = form.cleaned_data['name']
             p_type = form.cleaned_data['type']
-#            if len(contacts):
-#                contacts = list(contacts.values_list('pk', flat=True))
-#            else:
-#                contacts = []
+            if len(contacts):
+                contacts = list(contacts.values_list('pk', flat=True))
+            else:
+                contacts = []
             response_type = form.cleaned_data['response_type']
             if not form.cleaned_data['default_response_luo'] == '' \
                 and not form.cleaned_data['default_response'] == '':
@@ -131,39 +131,21 @@ def new_poll(req):
 
             start_immediately = form.cleaned_data['start_immediately']
 
-#            # run poll creation as a daemon process to avoid nginx timing out
-#
-#            args = "['nohup', 'python', 'manage.py' ,'send_poll', '-n', '%s', '-t', '%s', '-q' ,'%s','-r', '%s','-c', '\"%s\"', '-u', '%s','-s', '%s','-e', '%s','-g', '\"%s\"','&']"% (
-#                quote(name),
-#                poll_type,
-#                quote(question),
-#                quote(str(default_response)),
-#                str(contacts),
-#                req.user.pk,
-#                start_immediately,
-#                response_type,
-#                str(groups)
-#                )
-#            subprocess.Popen(eval(args))
-            
-            poll = Poll.create_with_bulk(\
-                                 name,
-                                 poll_type,
-                                 question,
-                                 default_response,
-                                 contacts,
-                                 req.user)
+            # run poll creation as a daemon process to avoid nginx timing out
 
-            if type == NewPollForm.TYPE_YES_NO:
-                poll.add_yesno_categories()
-
-            if settings.SITE_ID:
-                poll.sites.add(Site.objects.get_current())
-            if form.cleaned_data['start_immediately']:
-                poll.start()
-
-            return redirect(reverse('poll.views.view_poll', args=[poll.pk]))
-
+            args = "['nohup', 'python', 'manage.py' ,'send_poll', '-n', '%s', '-t', '%s', '-q' ,'%s','-r', '%s','-c', '\"%s\"', '-u', '%s','-s', '%s','-e', '%s','-g', '\"%s\"']"% (
+                quote(name),
+                poll_type,
+                quote(question),
+                quote(str(default_response)),
+                str(contacts),
+                req.user.pk,
+                start_immediately,
+                response_type,
+                str(groups)
+                )
+            subprocess.Popen(eval(args))
+            return redirect(reverse('poll.views.polls'))
     else:
         form = NewPollForm()
         form.updateTypes()
@@ -221,7 +203,6 @@ def view_report(
     else:
         locations = Location.tree.root_nodes().order_by('name'
                 ).distinct()
-
 
     results = []
     for location in locations:
@@ -625,7 +606,8 @@ def delete_poll(req, poll_id):
 def start_poll(req, poll_id):
     poll = Poll.objects.get(pk=poll_id)
     if req.method == 'POST':
-        poll.start()
+        subprocess.Popen(['nohup', 'python', 'manage.py' ,'start_poll', '-p', poll_id])
+        #poll.start()
 
     return render_to_response('polls/poll_details.html', {'poll'
                               : poll},
@@ -789,5 +771,4 @@ def create_translation(request):
     return render_to_response('polls/translation.html',
                               dict(translation_form=translation_form),
                               context_instance=RequestContext(request))
-
 
