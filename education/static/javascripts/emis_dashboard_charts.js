@@ -113,7 +113,7 @@ function lunch(data, chart_title) {
     var lunch_data = [];
     for(i=0;i<d.length; i++){
         x = d[i].split('-');
-        lunch_data.push([x[0],parseFloat(x[1])]);
+        lunch_data.push([x[0], parseInt(x[1])]);
     }
     var lunch_chart;
     lunch_chart = new Highcharts.Chart({
