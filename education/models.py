@@ -75,6 +75,9 @@ class UserProfile(models.Model):
     
     def is_member_of(self, group):
         return group.lower() == self.role.name.lower()
+
+    def __unicode__(self):
+        return self.name
     
 class ScriptSchedule(models.Model):
     script = models.ForeignKey(Script)
