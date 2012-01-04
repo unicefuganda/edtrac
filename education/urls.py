@@ -19,7 +19,6 @@ from django.contrib.auth.models import User
 from django.views.generic import ListView
 
 urlpatterns = patterns('',
-   url(r'^emis/testindex/$', testindex),
    url(r'^emis/messagelog/$', login_required(generic), {
       'model':Message,
       'queryset':messages,

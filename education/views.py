@@ -31,7 +31,7 @@ def index(request, **kwargs):
     else:
         #When choosing to use kwargs, don't forget to include template and context_var variables
         # if you don't need a template or just need the original template, use template_name=None
-        context_vars = kwargs['context_vars']        
+        context_vars = kwargs['context_vars']
         template_name = kwargs['template_name']
         if not template_name:
             #if no template name is given
@@ -40,30 +40,6 @@ def index(request, **kwargs):
             t = "education/%s"%template_name            
         return render_to_response(t, context_vars, RequestContext(request))
 
-@login_required
-def testindex(request):
-    abuses_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
-    # this should be equal
-    districts = abuses_to_ret.keys()    
-    #uncomment to get the real values 
-    #district_abuses = to_ret.values()    
-    #TODO comment this out and read the above instruction
-    district_abuses = [23, 56, 23, 66]
-    
-    # get %age of pupils that didn't have a meal
-    #TODO uncomment and use a better value for computing
-    #TODO get rid of duplicate emis_headteachers_meals poll --> reason filter() gets used here
-    #lunches_to_ret = zip(districts, [val for val in list_poll_responses(Poll.objects.filter(name="emis_headteachers_meals")[0]).values()])
-    #TOOD remove test data
-    lunches_to_ret = zip(districts, [20, 30, 40, 10])
-
-    smc_meetings_to_ret = list_poll_responses(Poll.objects.filter(name="emis_meetings")[0])
-    
-    return index(request, template_name="base.html", context_vars={
-        'districts':districts, 'abuse_values':district_abuses, 'lunches':lunches_to_ret
-        #TODO; add more context variables depending on what you want rendered on the chart
-        #TODO: more generic highchart 
-    })
 
 @login_required
 def dash_map(request):
@@ -111,8 +87,8 @@ def dash_abuse(request):
     districts = abuses_to_ret.keys()
     district_abuses = [23, 56, 23, 66]     
     return render_to_response('education/dashboard/abuse.html',{\
-                                'districts':districts,\
-                                'abuse_values':district_abuses\
+                                'x_vals':districts,\
+                                'y_vals':district_abuses\
                                 }, RequestContext(request))
 
 def dash_meals(request):
@@ -170,30 +146,6 @@ def dashboard(request):
 
 @login_required
 def deo_dashboard(request):
-    form = DistrictFilterForm()
-    district_id = None
-    if request.method == 'POST':
-        form = DistrictFilterForm(request.POST)
-        if form.is_valid():
-            district_id = form.cleaned_data['district']
-    user_location = Location.objects.get(pk=district_id) if district_id else get_location_for_user(request.user)
-    top_node = Location.tree.root_nodes()[0]
-    return render_to_response("education/deo/deo_dashboard.html", {\
-                                'location':user_location,\
-                                'top_node':top_node,\
-                                'form':form, \
-                                'alerts':deo_alerts(request, district_id),\
-                                'keyratios':keyratios_stats(request, district_id),\
-                                'attendance_stats':attendance_stats(request, district_id), \
-                                'enrollment_stats':enrollment_stats(request, district_id), \
-                                'headteacher_attendance_stats':headteacher_attendance_stats(request, district_id), \
-                                'gem_htpresent_stats':gem_htpresent_stats(request, district_id), \
-                                'abuse_stats':abuse_stats(request, district_id), \
-                                'meals_stats':meals_stats(request, district_id), \
-                                }, RequestContext(request))
-
-@login_required
-def ministry_dashboard(request):
     abuses_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
     # this should be equal
     districts = abuses_to_ret.keys()
@@ -210,9 +162,36 @@ def ministry_dashboard(request):
     lunches_to_ret = zip(districts, [20, 30, 40, 10])
 
     smc_meetings_to_ret = list_poll_responses(Poll.objects.filter(name="emis_meetings")[0])
+    user_role = request.user.get_profile().role.name
 
+    #is_deo = user.
     return index(request, template_name="ministry/ministry_dashboard.html", context_vars={
-        'districts':districts, 'abuse_values':district_abuses, 'lunches':lunches_to_ret})
+        'x_vals' : districts, 'y_vals' : district_abuses, 'lunches':lunches_to_ret, 'user_role':user_role})
+
+@login_required
+def ministry_dashboard(request):
+    import pdb; pdb.set_trace()
+    abuses_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+    # this should be equal
+    districts = abuses_to_ret.keys()
+    #uncomment to get the real values
+    #district_abuses = to_ret.values()
+    #TODO comment this out and read the above instruction
+    district_abuses = [23, 56, 23, 66]
+
+    # get %age of pupils that didn't have a meal
+    #TODO uncomment and use a better value for computing
+    #TODO get rid of duplicate emis_headteachers_meals poll --> reason filter() gets used here
+    #lunches_to_ret = zip(districts, [val for val in list_poll_responses(Poll.objects.filter(name="emis_headteachers_meals")[0]).values()])
+    #TOOD remove test data
+    lunches_to_ret = zip(districts, [20, 30, 40, 10])
+
+    smc_meetings_to_ret = list_poll_responses(Poll.objects.filter(name="emis_meetings")[0])
+    user_role = request.user.get_profile().role.name
+
+    #is_deo = user.
+    return index(request, template_name="ministry/ministry_dashboard.html", context_vars={
+        'districts' : districts, 'abuses' : district_abuses, 'lunches':lunches_to_ret, 'user_role':user_role})
 
 @login_required
 def admin_dashboard(request):
@@ -234,7 +213,7 @@ def admin_dashboard(request):
     smc_meetings_to_ret = list_poll_responses(Poll.objects.filter(name="emis_meetings")[0])
 
     return index(request, template_name="admin/admin_dashboard.html", context_vars={
-        'districts':districts, 'abuse_values':district_abuses, 'lunches':lunches_to_ret})
+        'x_vals':districts, 'y_vals':district_abuses, 'lunches':lunches_to_ret})
 
 def whitelist(request):
     numbers = []
