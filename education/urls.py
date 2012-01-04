@@ -2,7 +2,7 @@ from .forms import SchoolFilterForm, LimitedDistictFilterForm, \
  RolesFilterForm, ReporterFreeSearchForm, SchoolDistictFilterForm, FreeSearchSchoolsForm, MassTextForm
 
 from .models import EmisReporter, School
-from .reports import AttendanceReport, messages, othermessages, reporters, schools
+#from .reports import AttendanceReport, messages, othermessages, reporters, schools
 from .sorters import LatestSubmissionSorter
 from .views import *
 #from education.views import ChartView
@@ -150,11 +150,21 @@ urlpatterns = patterns('',
     url(r'^emis/dash_meals/$', dash_meals, {}, name="emis-dash-meals"),
     url(r'^emis/dash_meetings/$', dash_meetings, {}, name="emis-dash-meetings"),
     url(r'^emis/dash_capitation/$', dash_capitation, {}, name="emis-dash-capitation"),
+
+    url(r'^emis/dash_map/$', dash_ministry_map, {}, name="emis-ministry-dash-map"),
+    url(r'^emis/progress/$', dash_ministry_progress, {}, name="emis-ministry-curriculum-progress"),
+#    url(r'^emis/dash_attdance/$', dash_ministry_attdance, {}, name="emis-ministry-dash-attdance"),
+    url(r'^emis/dash_attdance/$', dash_attdance, {}, name="emis-ministry-dash-attdance"),
+    url(r'^emis/dash_abuse/$', dash_ministry_abuse, {}, name="emis-ministry-dash-abuse"),
+    url(r'^emis/dash_meals/$', dash_ministry_meals, {}, name="emis-ministry-dash-meals"),
+    url(r'^emis/dash_meetings/$', dash_ministry_meetings, {}, name="emis-ministry-dash-meetings"),
+    url(r'^emis/dash_capitation/$', dash_ministry_capitation, {}, name="emis-ministry-dash-capitation"),
+
     url(r'^emis/reporters/page(?P<page>[0-9]+)/$', ListView.as_view(
         model=EmisReporter,
         paginate_by=25,
     )),
-    url(r'^emis/attendance/$', include(AttendanceReport().as_urlpatterns(name='emis-attendance'))),
+#    url(r'^emis/attendance/$', include(AttendanceReport().as_urlpatterns(name='emis-attendance'))),
     url(r'^emis/scripts/', edit_scripts, name='emis-scripts'),
     url(r'^emis/reshedule_scripts/(?P<script_slug>[a-z_]+)/$', reschedule_scripts, name='emis-reschedule-scripts'),
 )
