@@ -223,6 +223,29 @@ def ministry_dashboard(request):
         'meals_stats':meals_stats(request, district_id),\
         }, RequestContext(request))
 
+@login_required
+def admin_dashboard(request):
+    form = DistrictFilterForm()
+    district_id = None
+    if request.method == 'POST':
+        form = DistrictFilterForm(request.POST)
+        if form.is_valid():
+            district_id = form.cleaned_data['district']
+    user_location = Location.objects.get(pk=district_id) if district_id else get_location_for_user(request.user)
+    top_node = Location.tree.root_nodes()[0]
+    return render_to_response("education/admin/admin_dashboard.html", {\
+        'location':user_location,\
+        'top_node':top_node,\
+        'form':form,\
+        'alerts':deo_alerts(request, district_id),\
+        'keyratios':keyratios_stats(request, district_id),\
+        'attendance_stats':attendance_stats(request, district_id),\
+        'enrollment_stats':enrollment_stats(request, district_id),\
+        'headteacher_attendance_stats':headteacher_attendance_stats(request, district_id),\
+        'gem_htpresent_stats':gem_htpresent_stats(request, district_id),\
+        'abuse_stats':abuse_stats(request, district_id),\
+        'meals_stats':meals_stats(request, district_id),\
+        }, RequestContext(request))
 
 
 
