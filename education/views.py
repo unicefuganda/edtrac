@@ -136,7 +136,7 @@ def dash_meals(request):
 def dash_ministry_meals(req):
     meal_poll_responses = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))
     districts = meal_poll_responses.keys()
-    lunches_to_ret = zip(districts, [23,23,53,23])
+    lunches_to_ret = zip(districts, [10, 20, 30, 40])
     return render_to_response('education/dashboard/meals.html', {
         'lunches':lunches_to_ret}, RequestContext(req))
 
