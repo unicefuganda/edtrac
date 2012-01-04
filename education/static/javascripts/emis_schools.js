@@ -54,3 +54,14 @@ function getStats(url){
     url = url+start_str+'/'+end_str;
     window.location.href=url;
 }
+
+function reschedule_polls(url, x){
+    $('#'+x+'_results').html('Loading...')
+    $('#'+x+'_results').load(url)
+}
+
+function check_clicked(clicked){
+    // alert($(clicked).parents('form').attr('id'))
+    $(clicked).parents('form').submit()
+    
+}

@@ -385,7 +385,7 @@ def reschedule_weekly_polls(grp=None):
     weekly_scripts = Script.objects.filter(slug__endswith='_weekly')
     if grp:
         slg_start = 'emis_%s'%grp.replace(' ','_').lower()
-        weekly_scripts.filter(slug__startswith=slg_start)
+        weekly_scripts = weekly_scripts.filter(slug__startswith=slg_start)
         ScriptProgress.objects.filter(script__in=weekly_scripts)\
                                 .exclude(connection__contact__emisreporter__groups__name__iexact=grp).delete()
     else:
@@ -405,7 +405,7 @@ def reschedule_monthly_polls(grp=None):
     monthly_scripts = Script.objects.filter(slug__endswith='_monthly')
     if grp:
         slg_start = 'emis_%s'%grp.replace(' ','_').lower()
-        monthly_scripts.filter(slug__startswith=slg_start)
+        monthly_scripts = monthly_scripts.filter(slug__startswith=slg_start)
         ScriptProgress.objects.filter(script__in=monthly_scripts)\
                                 .exclude(connection__contact__emisreporter__groups__name__iexact=grp).delete()
     else:
@@ -433,7 +433,7 @@ def reschedule_termly_polls(grp = 'all', date=None):
     termly_scripts = Script.objects.filter(slug__endswith='_termly')
     if not grp == 'all':
         slg_start = 'emis_%s'%grp.replace(' ','_').lower()
-        termly_scripts.filter(slug__startswith=slg_start)
+        termly_scripts = termly_scripts.filter(slug__startswith=slg_start)
         ScriptProgress.objects.filter(script__in=termly_scripts)\
                                 .exclude(connection__contact__emisreporter__groups__name__iexact=grp).delete()
     else:
