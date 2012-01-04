@@ -31,7 +31,10 @@ def index(request, **kwargs):
     else:
         #When choosing to use kwargs, don't forget to include template and context_var variables
         # if you don't need a template or just need the original template, use template_name=None
-        context_vars = kwargs['context_vars']
+        if kwargs.has_key('context_vars'):
+            context_vars = kwargs['context_vars']
+        else:
+            context_vars = None
         template_name = kwargs['template_name']
         if not template_name:
             #if no template name is given
@@ -122,7 +125,7 @@ def dash_deo_abuse(request):
     )
 
 def dash_meals(request):
-    abuses_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+    abuses_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))
     # this should be equal
     districts = abuses_to_ret.keys()
     lunches_to_ret = zip(districts, [20, 30, 40, 10])
@@ -131,6 +134,7 @@ def dash_meals(request):
                                 }, RequestContext(request))
 
 def dash_ministry_meals(req):
+    pass
 
 
 def dash_progress(request):
@@ -140,6 +144,9 @@ def dash_progress(request):
     p3 = 65
     p6 = 100
     return render_to_response('education/dashboard/progress.html', {'p3':p3, 'p6':p6}, RequestContext(request))
+
+def dash_ministry_progress(request):
+    pass
 
 def dash_meetings(request):
     message_ids = [poll_response['message_id'] for poll_response in Poll.objects.get(name="emis_meetings").responses.values()]
@@ -153,10 +160,20 @@ def dash_meetings(request):
         print "some non numeric values were provided"
     return render_to_response('education/dashboard/meetings.html', {}, RequestContext(request))
 
+def dash_ministry_meetings(req):
+    pass
+
+def dash_deo_meetings(req):
+    pass
+
 def dash_capitation(request):
     return render_to_response('education/dashboard/capitation.html', {}, RequestContext(request))
 
+def dash_ministry_capitation(req):
+    pass
 
+def dash_deo_capitation(req):
+    pass
 
 
 @login_required
@@ -205,28 +222,7 @@ def deo_dashboard(request):
 
 @login_required
 def ministry_dashboard(request):
-    import pdb; pdb.set_trace()
-    abuses_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
-    # this should be equal
-    districts = abuses_to_ret.keys()
-    #uncomment to get the real values
-    #district_abuses = to_ret.values()
-    #TODO comment this out and read the above instruction
-    district_abuses = [23, 56, 23, 66]
-
-    # get %age of pupils that didn't have a meal
-    #TODO uncomment and use a better value for computing
-    #TODO get rid of duplicate emis_headteachers_meals poll --> reason filter() gets used here
-    #lunches_to_ret = zip(districts, [val for val in list_poll_responses(Poll.objects.filter(name="emis_headteachers_meals")[0]).values()])
-    #TOOD remove test data
-    lunches_to_ret = zip(districts, [20, 30, 40, 10])
-
-    smc_meetings_to_ret = list_poll_responses(Poll.objects.filter(name="emis_meetings")[0])
-    user_role = request.user.get_profile().role.name
-
-    #is_deo = user.
-    return index(request, template_name="ministry/ministry_dashboard.html", context_vars={
-        'districts' : districts, 'abuses' : district_abuses, 'lunches':lunches_to_ret, 'user_role':user_role})
+    return index(request, template_name="ministry/ministry_dashboard.html")
 
 @login_required
 def admin_dashboard(request):
