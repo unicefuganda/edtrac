@@ -134,7 +134,11 @@ def dash_meals(request):
                                 }, RequestContext(request))
 
 def dash_ministry_meals(req):
-    pass
+    meal_poll_responses = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))
+    districts = meal_poll_responses.keys()
+    lunches_to_ret = zip(districts, [23,23,53,23])
+    return render_to_response('education/dashboard/meals.html', {
+        'lunches':lunches_to_ret}, RequestContext(req))
 
 
 def dash_progress(request):
@@ -161,7 +165,18 @@ def dash_meetings(request):
     return render_to_response('education/dashboard/meetings.html', {}, RequestContext(request))
 
 def dash_ministry_meetings(req):
-    pass
+    #this is what gets rendered to viewers on the ministry level
+    #TODO: use utility functions and compute this figure from other total EMIS reporters
+    message_ids = [poll_response['message_id'] for poll_response in Poll.objects.get(name="emis_meetings").responses.values()]
+    all_messages =[msg.text for msg in Message.objects.filter(id__in=message_ids)]
+    try:
+        to_ret = {}
+        set_messages = set(all_messages)
+        for msg in set_messages:
+            to_ret[int(msg)] = all_messages.count(int(msg))
+    except ValueError:
+        print "some non numeric values were provided"
+    return render_to_response('education/dashboard/meetings.html', {}, RequestContext(req))
 
 def dash_deo_meetings(req):
     pass
