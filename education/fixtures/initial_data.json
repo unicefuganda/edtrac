@@ -1709,7 +1709,7 @@
             "start_date": null, 
             "response_type": "a"
         }
-    }, 
+    },
     {
         "pk": 133, 
         "model": "poll.poll", 

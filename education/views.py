@@ -160,6 +160,8 @@ def dashboard(request):
     profile = request.user.get_profile()
     if profile.is_member_of('DEO'):
         return deo_dashboard(request)
+    if profile.is_member_of('MINISTRY'):
+        return ministry_dashboard(request)
     #TODO provide views with specific contexts to other ROLEs in edTrac
     # use index() as follows for other roles.
     #elif profile.is_member_of('SOME_ROLE'):
@@ -192,6 +194,33 @@ def deo_dashboard(request):
                                 'abuse_stats':abuse_stats(request, district_id), \
                                 'meals_stats':meals_stats(request, district_id), \
                                 }, RequestContext(request))
+
+@login_required
+def ministry_dashboard(request):
+    form = DistrictFilterForm()
+    district_id = None
+    if request.method == 'POST':
+        form = DistrictFilterForm(request.POST)
+        if form.is_valid():
+            district_id = form.cleaned_data['district']
+    user_location = Location.objects.get(pk=district_id) if district_id else get_location_for_user(request.user)
+    top_node = Location.tree.root_nodes()[0]
+    return render_to_response("education/ministry/ministry_dashboard.html", {\
+        'location':user_location,\
+        'top_node':top_node,\
+        'form':form,\
+        'alerts':deo_alerts(request, district_id),\
+        'keyratios':keyratios_stats(request, district_id),\
+        'attendance_stats':attendance_stats(request, district_id),\
+        'enrollment_stats':enrollment_stats(request, district_id),\
+        'headteacher_attendance_stats':headteacher_attendance_stats(request, district_id),\
+        'gem_htpresent_stats':gem_htpresent_stats(request, district_id),\
+        'abuse_stats':abuse_stats(request, district_id),\
+        'meals_stats':meals_stats(request, district_id),\
+        }, RequestContext(request))
+
+
+
 
 def whitelist(request):
     numbers = []
