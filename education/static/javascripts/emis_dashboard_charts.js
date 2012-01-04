@@ -39,14 +39,14 @@ function smc_meetings(schools, meetings) {
 }
 
 
-function abuse_cases(districts, abuse_values){
-    var abuse_chart;
-    var dist = districts.split("','");
-    var b = abuse_values.split(",");
+function abuse_cases(xVals, yVals){
+    var x_vals = xVals.split("','");
+    var b = yVals.split(",");
     var abuse = [];
     for(i=0; i<b.length; i++){
         abuse.push(parseFloat(b[i]));
     }
+    var abuse_chart;
     abuse_chart = new Highcharts.Chart(
         {
             chart: {
@@ -58,7 +58,7 @@ function abuse_cases(districts, abuse_values){
                 text:'Abuse Cases Reported this Month'
             },
             xAxis:{
-                categories: dist
+                categories: x_vals
 
             },
             labels:{
@@ -106,6 +106,8 @@ function abuse_cases(districts, abuse_values){
     );
 }
 
+
+//pie chart
 function lunch(data, chart_title) {
     var d = data.split(",");
     var lunch_data = [];
