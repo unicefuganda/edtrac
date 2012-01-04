@@ -3,7 +3,7 @@
     <div id="lunch">
         <script type="text/javascript">
             $(document).ready( function() {
-                lunch("{{ lunches|reorganize_lunch|join:"," }}");
+                lunch("{{ lunches|reorganize_lunch|join:"," }}", "Pupils that didn't have meals/lunch this month.");
             });
         </script>
     </div>

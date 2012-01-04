@@ -5,6 +5,9 @@
     colorize different percentages (i.e. red for critical, yellow for something, etc.
     -->
     <div id="abuse">
+        {% if user.is_authenticated and user.is_deo %}
+
+        {% endif %}
         <script type="text/javascript">
             $(document).ready( function() {
                 abuse_cases("{{ districts|join:"','" }}", "{{ abuse_values|join:"," }}");

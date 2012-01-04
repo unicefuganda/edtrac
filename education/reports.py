@@ -17,7 +17,8 @@ from education.utils import previous_calendar_week
 from education.models import EmisReporter, School
 from poll.models import Response, Poll
 import datetime
-
+from types import NoneType
+from rapidsms.models import Contact
 from generic.reporting.views import ReportView
 from generic.reporting.reports import Column
 from uganda_common.views import XFormReport
@@ -105,9 +106,9 @@ class AverageSubmissionBySchoolColumn(Column, SchoolMixin):
 
 class DateLessRatioColumn(Column, SchoolMixin):
     """
-    This divides the total number of an indicator (for instance, boys yearly enrollment)  
+    This divides the total number of an indicator (for instance, boys yearly enrollment)
     by the total of another indicator (for instance, total classrooms)].
-    
+
     This gives you the ratio between the two indicators, each of which
     are fixed yearly amounts (not dependent on date).
     """
@@ -165,15 +166,15 @@ class WeeklyAttributeBySchoolColumn(Column, SchoolMixin):
 
 class WeeklyPercentageColumn(Column, SchoolMixin):
     """
-    This divides the total number of an indicator for one week (such as, boys weekly attendance) 
+    This divides the total number of an indicator for one week (such as, boys weekly attendance)
     by the total of another indicator (for instance, boys yearly enrollment)].
-    
-    This gives you the % expected for two indicators, 
+
+    This gives you the % expected for two indicators,
     one that is reported on weekly (for the CURRENT WEEK)
     and the other which is a fixed total number.
-    
+
     If invert is True, this column will evaluate to 100% - the above value.
-    
+
     For example, if boys weekly attendance this week was 75%, setting invert to
     True would instead return 100 - 75 = 25%
     """
@@ -208,7 +209,7 @@ class AverageWeeklyTotalRatioColumn(Column, SchoolMixin):
     This divides the total number of an indicator (such as, boys weekly attendance) by:
     [the number of non-holiday weeks in the date range * the total of another indicator
     (for instance, boys yearly enrollment)].
-    
+
     This gives you the % expected for two indicators, one that is reported on weekly
     and the other which is a fixed total number.
     """
@@ -303,13 +304,35 @@ class DatelessSchoolReport(Report):
 
         self.report = flatten_list(self.report)
 
+
+def school_last_xformsubmission(request, school_id):
+    xforms = []
+    scripted_polls = []
+    for xform in XForm.objects.all():
+        xform_values = XFormSubmissionValue.objects.exclude(submission__has_errors=True)\
+                .exclude(submission__connection__contact=None)\
+                .filter(submission__connection__contact__emisreporter__schools__pk=school_id)\
+                .filter(submission__xform=xform)\
+                .order_by('-created')\
+                .annotate(Sum('value_int'))[:1] #.values_list('submission__xform__name', 'value_int__sum', 'submission__connection__contact__name', 'submission__created')
+        xforms.append((xform, xform_values))
+
+    for script in Script.objects.exclude(slug='emis_autoreg'):
+        for step in script.steps.all():
+            resp = Response.objects.filter(poll=step.poll)\
+                .filter(message__connection__contact__emisreporter__schools__pk=school_id)\
+                .order_by('-date')[:1]
+            scripted_polls.append((step.poll,resp))
+
+    return {'xforms':xforms, 'scripted_polls':scripted_polls}
+
 def messages(request, district_id=None):
-    user_location = get_location(request, district_id)
+    user_location = get_location(request)
     return Message.objects.filter(connection__contact__emisreporter__reporting_location__in=user_location.get_descendants(include_self=True).all())
 
 
 def othermessages(request, district_id=None):
-    user_location = get_location(request, district_id)
+    user_location = get_location(request)
     #First we get all incoming messages
     messages = Message.objects.filter(direction='I', connection__contact__emisreporter__reporting_location__in=user_location.get_descendants(include_self=True).all())
 
@@ -325,15 +348,14 @@ def othermessages(request, district_id=None):
     return messages
 
 def reporters(request, district_id=None):
-    user_location = get_location(request, district_id)
+    user_location = get_location(request)
     return EmisReporter.objects.filter(reporting_location__in=user_location.get_descendants(include_self=True).all())
 
 def schools(request, district_id=None):
-    user_location = get_location(request, district_id)
+    user_location = get_location(request)
     return School.objects.filter(location__in=user_location.get_descendants(include_self=True).all())
-    
-#excel reports
 
+#excel reports
 def raw_data(request, district_id, dates, slugs, teachers=False):
     """
     function to produce data once an XForm slug is provided
@@ -430,7 +452,7 @@ def create_excel_dataset(request, start_date, end_date, district_id):
                 except:
                     pass
                 sheet.write(rowx, colx, value)
-            
+
     GRADES = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'Total', 'Date']
     boy_attendance_slugs = ['boys_%s'% g for g in GRADES]
     girl_attendance_slugs = ['girls_%s'%g for g in GRADES]
@@ -449,7 +471,7 @@ def create_excel_dataset(request, start_date, end_date, district_id):
     headings = ["School"] + GRADES
     data_set = raw_data(request, district_id, dates,  girl_attendance_slugs)
     write_xls("Attendance data for Girls",headings,data_set)
-    
+
     #Teacher attendance
     headings = TEACHER_HEADERS
     data_set = raw_data(request, district_id, dates,  teacher_attendance_slugs, teachers=True)
@@ -465,7 +487,7 @@ def create_excel_dataset(request, start_date, end_date, district_id):
     headings = ["School"] + GRADES
     data_set = raw_data(request, district_id, dates,  girl_enrolled_slugs)
     write_xls("Enrollment data for Girls",headings,data_set)
-    
+
     #Teacher deployment
     headings = TEACHER_HEADERS
     data_set = raw_data(request, district_id, dates,  teacher_deploy_slugs, teachers=True)
@@ -477,19 +499,38 @@ def create_excel_dataset(request, start_date, end_date, district_id):
     return response
 
 
-def get_sum_of_poll_response(poll_queryset):
+def get_sum_of_poll_response(poll_queryset, **kwargs):
     """
     This computes the eav response value to a poll
+    can also be used to filter by district and create a dict with
+    district vs value
     """
     #TODO: provide querying by date too
     s = 0
-    try:
-        for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter()]:
-            s += val
-    except NoneType:
-        pass
-    # a zero or computed value is returned
-    return s
+    if kwargs:
+        #district filter
+        if kwargs.has_key('filter'):
+            filter = kwargs['filter']
+            #filter takes boolean values
+            if filter:
+                DISTRICT = ['Kaabong', 'Kabarole', 'Kyegegwa', 'Kotido']
+                to_ret = {}
+                for location in Location.objects.filter(name__in=DISTRICT):
+                    try:
+                        for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(contact__in=\
+                            Contact.objects.filter(reporting_location=location))]:
+                            s += val
+                    except NoneType:
+                        pass
+                    to_ret[location.__unicode__()] = s
+                return to_ret
+    else:
+        try:
+            for val in [r.eav.poll_number_value for r in poll_queryset.responses.all()]:
+                s += val
+        except NoneType:
+            pass
+        return s
 
 def get_responses_to_polls(**kwargs):
     #TODO with filter() we can pass extra arguments
@@ -499,6 +540,7 @@ def get_responses_to_polls(**kwargs):
             #TODO filter poll by district, school or county (might wanna index this too)
             return get_sum_of_poll_response(Poll.objects.get(name=poll_name))
         #in cases where a list of poll names is passed, a dictionary is returned
+
         if kwargs.has_key('poll_names'):
             poll_names = kwargs['poll_names']
             responses = {}

@@ -153,10 +153,16 @@ def dashboard(request):
     profile = request.user.get_profile()
     if profile.is_member_of('DEO'):
         return deo_dashboard(request)
+    elif profile.is_member_of('Ministry Officials'):
+        return ministry_dashboard(request)
+    elif profile.is_member_of('Admins'):
+        return admin_dashboard(request)
     #TODO provide views with specific contexts to other ROLEs in edTrac
     # use index() as follows for other roles.
     #elif profile.is_member_of('SOME_ROLE'):
     #   return index(request, context_vars={'Abuses':Abuse.objects.all()})
+    # what other roles will see.
+    #TODO identification and implementation of key roles and views
     else:
         return testindex(request)
 #        return index(request)
@@ -185,6 +191,50 @@ def deo_dashboard(request):
                                 'abuse_stats':abuse_stats(request, district_id), \
                                 'meals_stats':meals_stats(request, district_id), \
                                 }, RequestContext(request))
+
+@login_required
+def ministry_dashboard(request):
+    abuses_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+    # this should be equal
+    districts = abuses_to_ret.keys()
+    #uncomment to get the real values
+    #district_abuses = to_ret.values()
+    #TODO comment this out and read the above instruction
+    district_abuses = [23, 56, 23, 66]
+
+    # get %age of pupils that didn't have a meal
+    #TODO uncomment and use a better value for computing
+    #TODO get rid of duplicate emis_headteachers_meals poll --> reason filter() gets used here
+    #lunches_to_ret = zip(districts, [val for val in list_poll_responses(Poll.objects.filter(name="emis_headteachers_meals")[0]).values()])
+    #TOOD remove test data
+    lunches_to_ret = zip(districts, [20, 30, 40, 10])
+
+    smc_meetings_to_ret = list_poll_responses(Poll.objects.filter(name="emis_meetings")[0])
+
+    return index(request, template_name="ministry/ministry_dashboard.html", context_vars={
+        'districts':districts, 'abuse_values':district_abuses, 'lunches':lunches_to_ret})
+
+@login_required
+def admin_dashboard(request):
+    abuses_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+    # this should be equal
+    districts = abuses_to_ret.keys()
+    #uncomment to get the real values
+    #district_abuses = to_ret.values()
+    #TODO comment this out and read the above instruction
+    district_abuses = [23, 56, 23, 66]
+
+    # get %age of pupils that didn't have a meal
+    #TODO uncomment and use a better value for computing
+    #TODO get rid of duplicate emis_headteachers_meals poll --> reason filter() gets used here
+    #lunches_to_ret = zip(districts, [val for val in list_poll_responses(Poll.objects.filter(name="emis_headteachers_meals")[0]).values()])
+    #TOOD remove test data
+    lunches_to_ret = zip(districts, [20, 30, 40, 10])
+
+    smc_meetings_to_ret = list_poll_responses(Poll.objects.filter(name="emis_meetings")[0])
+
+    return index(request, template_name="admin/admin_dashboard.html", context_vars={
+        'districts':districts, 'abuse_values':district_abuses, 'lunches':lunches_to_ret})
 
 def whitelist(request):
     numbers = []
@@ -475,7 +525,6 @@ def edit_user(request, user_pk=None):
         user = get_object_or_404(User, pk=user_pk)
         user_form = UserForm(instance=user,edit=True)
         title="Editing "+user.username
-
     else:
         user_form = UserForm(instance=user)
     
