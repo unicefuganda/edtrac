@@ -498,7 +498,6 @@ def create_excel_dataset(request, start_date, end_date, district_id):
     book.save(response)
     return response
 
-
 def get_month_day_range(date, **kwargs):
     """
     handy function to give as a date range
@@ -506,8 +505,8 @@ def get_month_day_range(date, **kwargs):
     import datetime
     from dateutil.relativedelta import relativedelta
     if not kwargs:
-        last_day = date + relativedelta(day=1, months+1, days=1)
-        first_day = date + relativedelta(day=1)
+        last_day = date + relativedelta(day = 1, months =+ 1, days =- 1)
+        first_day = date + relativedelta(day = 1)
         return first_day, last_day
     else:
         """
@@ -519,15 +518,12 @@ def get_month_day_range(date, **kwargs):
         """
         depth = int(kwargs.get('depth'))
         to_ret = []
-        i = 1
-        while i <= depth:
-            last_day = date + relativedelta(day=1, months+1, days=1)
-            first_day = date + relativedelta(day=1)
+        for i in range(depth+1):
+            date -= relativedelta(months=i)
+            last_day = date + relativedelta(day = 1, months =+ 1, days =- 1)
+            first_day = date + relativedelta(day = 1)
             to_ret.append((first_day, last_day))
-            date -= datetime.timedelta(i)
-            i += 1
-
-
+        return to_ret
 
 
 def get_sum_of_poll_response(poll_queryset, **kwargs):
