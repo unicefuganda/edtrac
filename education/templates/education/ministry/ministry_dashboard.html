@@ -29,10 +29,20 @@
                 <!-- TODO: scope out curriculum progress -->
                 <tr>
                     <td id="abuse_holder" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;">
-                        <div>
+                        <div style="padding:20px; margin:40px;">
                         <span class="title">
                             Abuse cases
                         </span>
+                            <table>
+                                <tr>
+                                    <th>District</th><th>Number of cases</th>
+                                </tr>
+                                {% for key, value in dicty.items %}
+                                <tr>
+                                    <td>{{ key }}</td><td>{{ value }}</td>
+                                </tr>
+                                {% endfor %}
+                            </table>
                         </div>
                         <a style="text-align:right; cursor: pointer;" id="abuses_click">click to show graph</a>
                     </td>

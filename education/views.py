@@ -106,8 +106,9 @@ def dash_ministry_abuse(request):
     districts = abuses.keys()
     #assumption is still 4 districts
     district_abuses = [23,56, 23, 66]
+    dicty = dict(zip(districts, district_abuses))
     return render_to_response('education/dashboard/abuse.html',
-            {'x_vals':districts, 'y_vals' : abuses},
+            {'x_vals':districts, 'y_vals' : abuses, 'dicty' : dicty},
         RequestContext(request)
     )
 
@@ -237,7 +238,14 @@ def deo_dashboard(request):
 
 @login_required
 def ministry_dashboard(request):
-    return index(request, template_name="ministry/ministry_dashboard.html")
+    abuses = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+    districts = abuses.keys()
+    #assumption is still 4 districts
+    district_abuses = [23,56, 23, 66]
+    dicty = dict(zip(districts, district_abuses))
+    return index(request, template_name="ministry/ministry_dashboard.html", context_vars={'dicty':dicty,
+                                                                                          'x_vals':districts,
+                                                                                          'y_vals':district_abuses})
 
 @login_required
 def admin_dashboard(request):
