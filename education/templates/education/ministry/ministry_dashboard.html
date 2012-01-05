@@ -28,12 +28,28 @@
             <table width="100%" cellpadding="5" cellspacing="0">
                 <!-- TODO: scope out curriculum progress -->
                 <tr>
-                    <td id="abuse" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;"></td>
+                    <td id="abuse_holder" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;">
+                        <a style="float:right; cursor: pointer;" id="abuses_click">click to show graph</a>
+                    </td>
+                    <td id="abuse" width="50%" height="400" valign="top" style="border-bottom:1px solid #efefef;"></td>
+
+
+                    <td id="meals_holder" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;">
+                        <a style="float:right; cursor: pointer;" id="meals_click">click to show graph</a>
+                    </td>
                     <td id="meals" width="50%" height="400" valign="top" style="border-bottom:1px solid #efefef;"></td>
                 </tr>
 
                 <tr>
+                    <td id="meetings_holder" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;">
+                        <a style="float:right; cursor: pointer;" id="meetings_click">click to show graph</a>
+                    </td>
                     <td id="meetings" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;"></td>
+
+                    <td id="capitation_holder" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;">
+                        <p><b>Still being scoped</b></p>
+                        <a style="float:right; cursor: pointer;" id="capitation_click">click to show graph</a>
+                    </td>
                     <td id="capitation" width="50%" height="400" valign="top"></td>
 
                 </tr>
@@ -41,12 +57,33 @@
         </td>
     </tr>
 </table>
-<script language="JavaScript">
+<script type="text/javascript">
+    $(document).ready(function(){
     $('#map').load('{% url emis-ministry-dash-map %}');
     $('#attdance').load('{% url emis-ministry-dash-attdance %}');
-    $('#abuse').load('{% url emis-ministry-dash-abuse %}');
-    $('#meals').load('{% url emis-ministry-dash-meals %}');
-    $('#meetings').load('{% url emis-ministry-dash-meetings %}');
+
+    $("#abuse").hide();
+    $("#meals").hide();
+    $("#meetings").hide();
+
+    $('#abuses_click').click(function(){
+        $('#abuse_holder').hide();
+        $("#abuse").show();
+        $('#abuse').load('{% url emis-ministry-dash-abuse %}');
+    });
+
+    $('#meals_click').click(function(){
+        $('#meals_holder').hide();
+        $("#meals").show();
+        $('#meals').load('{% url emis-ministry-dash-meals %}');
+    });
+
+    $('#meetings_click').click(function(){
+        $('#meetings_holder').hide();
+        $("#meetings").show();
+        $('#meetings').load('{% url emis-ministry-dash-meetings %}');
+    });
+});
     //TODO activate capitation
     //$('#capitation').load('{% url emis-ministry-dash-capitation %}');
 </script>
