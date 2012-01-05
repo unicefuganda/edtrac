@@ -125,33 +125,36 @@
 </table>
 <script type="text/javascript">
     $(document).ready(function(){
-    $('#map').load('{% url emis-ministry-dash-map %}');
-    $('#attdance').load('{% url emis-ministry-dash-attdance %}');
+        $('#map').load('{% url emis-ministry-dash-map %}');
+        $('#attdance').load('{% url emis-ministry-dash-attdance %}');
+        // hide existing rows
+        $("#violence").hide();
+        $("#meals").hide();
+        $("#meetings").hide();
+        // click handles
+        $('#violence_click').click(function(){
+            // hide the statistics that get shown
+            $('#violence_holder').hide();
+            // show the violence chart
+            $("#violence").show();
+            $('#violence').load('{% url emis-ministry-dash-violence %}');
+            // append an element
+        });
 
-    $("#violence").hide();
-    $("#meals").hide();
-    $("#meetings").hide();
 
-    $('#violence_click').click(function(){
-        $('#violence_holder').hide();
-        $("#violence").show();
-        $('#violence').load('{% url emis-ministry-dash-violence %}');
-        //$('#violence').append('<a>hello</a>');
+        $('#meals_click').click(function(){
+            $('#meals_holder').hide();
+            $("#meals").show();
+            $('#meals').load('{% url emis-ministry-dash-meals %}');
+        });
+
+        $('#meetings_click').click(function(){
+            $('#meetings_holder').hide();
+            $("#meetings").show();
+            $('#meetings').load('{% url emis-ministry-dash-meetings %}');
+        });
+        //TODO activate capitation
+        //$('#capitation').load('{% url emis-ministry-dash-capitation %}');
     });
-
-    $('#meals_click').click(function(){
-        $('#meals_holder').hide();
-        $("#meals").show();
-        $('#meals').load('{% url emis-ministry-dash-meals %}');
-    });
-
-    $('#meetings_click').click(function(){
-        $('#meetings_holder').hide();
-        $("#meetings").show();
-        $('#meetings').load('{% url emis-ministry-dash-meetings %}');
-    });
-});
-    //TODO activate capitation
-    //$('#capitation').load('{% url emis-ministry-dash-capitation %}');
 </script>
 {% endblock %}
