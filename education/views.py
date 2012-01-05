@@ -91,24 +91,26 @@ def dash_attdance(request):
 
 #TODO provide an attendance view for ministry officials
 
-def dash_abuse(request):
-    abuses_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+def dash_violence(request):
+    violence_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
     # this should be equal
-    districts = abuses_to_ret.keys()
-    district_abuses = [23, 56, 23, 66]     
-    return render_to_response('education/dashboard/abuse.html',{\
+    districts = violence_to_ret.keys()
+    district_violence_cases = [23, 56, 23, 66]
+    return render_to_response('education/dashboard/violence.html',{\
                                 'x_vals':districts,\
-                                'y_vals':district_abuses\
+                                'y_vals':district_violence_cases\
                                 }, RequestContext(request))
 
-def dash_ministry_abuse(request):
-    abuses = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
-    districts = abuses.keys()
+def dash_ministry_violence(request):
+    #NOTE: violence and abuse almost similar
+    violence = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+    districts = violence.keys()
     #assumption is still 4 districts
-    district_abuses = [23,56, 23, 66]
-    dicty = dict(zip(districts, district_abuses))
-    return render_to_response('education/dashboard/abuse.html',
-            {'x_vals':districts, 'y_vals' : abuses, 'dicty' : dicty},
+    #dummy data
+    district_violence_cases = [23,56, 23, 66]
+    dicty = dict(zip(districts, district_violence_cases))
+    return render_to_response('education/dashboard/violence.html',
+            {'x_vals':districts, 'y_vals' : district_violence_cases, 'dicty' : dicty},
         RequestContext(request)
     )
 
@@ -230,11 +232,11 @@ def deo_dashboard(request):
 
 @login_required
 def ministry_dashboard(request):
-    abuses = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
-    districts = abuses.keys()
+    violence = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+    districts = violence.keys()
     #assumption is still 4 districts
-    district_abuses = [23,56, 23, 66]
-    dicty = dict(zip(districts, district_abuses))
+    district_violence = [23,56, 23, 66]
+    dicty = dict(zip(districts, district_violence))
 
     meal_poll_responses = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))
     districts = meal_poll_responses.keys()
@@ -243,7 +245,7 @@ def ministry_dashboard(request):
     return index(request, template_name="ministry/ministry_dashboard.html",
         context_vars={'dicty':dicty,
                       'x_vals':districts,
-                      'y_vals':district_abuses,
+                      'y_vals':district_violence,
                       'lunches':lunches_to_ret})
 
 @login_required

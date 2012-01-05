@@ -496,13 +496,22 @@ div#p3, div#p6{
     padding:20px;
 }
 
-div.abused, div.meal, div.meeting, div.capitation{
+div.violence, div.meal, div.meeting, div.capitation{
     margin:50px;
 }
 h1.title{
     font-size: 16px;
     color: #3E576F;
 }
-div.abused table{
+div.violence table{
 
+}
+
+span.links{
+    padding:10px;
+    margin-top:50px;
+    float: right;
+}
+span.links a{
+    cursor: pointer;
 }

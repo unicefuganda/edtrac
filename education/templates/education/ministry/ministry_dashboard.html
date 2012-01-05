@@ -28,10 +28,10 @@
             <table width="100%" cellpadding="5" cellspacing="0">
                 <!-- TODO: scope out curriculum progress -->
                 <tr>
-                    <td id="abuse_holder" width="50%" height="200" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;">
-                        <div class="abused">
+                    <td id="violence_holder" width="50%" height="200" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;">
+                        <div class="violence">
                             <h1 class="title">
-                                Abuse cases
+                                Violence cases recorded this month
                             </h1>
                             <table>
                                 <tr>
@@ -43,10 +43,13 @@
                                 </tr>
                                 {% endfor %}
                             </table>
-                            <a style="margin-top:50px; cursor: pointer;" id="abuses_click">click to show graph</a>
+                            <span class="links">
+                                <a id="violence_click">Click to show graph</a> |
+                                <a>Click for Details</a>
+                            </span>
                         </div>
                     </td>
-                    <td id="abuse" width="50%" height="400" valign="top" style="border-bottom:1px solid #efefef;"></td>
+                    <td id="violence" width="50%" height="400" valign="top" style="border-bottom:1px solid #efefef;"></td>
 
 
                     <td id="meals_holder" width="50%" height="200" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;">
@@ -67,7 +70,10 @@
                                 </tr>
                                 {% endfor %}
                             </table>
-                            <a style="text-align:right; cursor: pointer;" id="meals_click">click to show graph</a>
+                            <span class="links">
+                                <a id="meals_click">Click to show graph</a> |
+                                <a>Click for Details</a>
+                            </span>
                         </div>
                     </td>
                     <td id="meals" width="50%" height="400" valign="top" style="border-bottom:1px solid #efefef;"></td>
@@ -90,7 +96,10 @@
                                 <tr><td>2</td><td>9%</td></tr>
                                 <tr><td>3</td><td>13%</td></tr>
                             </table>
-                            <a style="text-align:right; cursor: pointer;" id="meetings_click">click to show graph</a>
+                            <span class="links">
+                                <a id="meetings_click">Click to show graph</a> |
+                                <a>Click for Details</a>
+                            </span>
                         </div>
 
                     </td>
@@ -102,11 +111,13 @@
                                 UPE Capitation Progress this School Term
                             </h1>
                             <p><b>Capitation: Still being scoped (WIP)</b></p>
-                            <a style="text-align:right; cursor: pointer;" id="capitation_click">click to show graph</a>
+                            <span class="links">
+                                <a id="capitation_click">Click to show graph</a> |
+                                <a>Click for Details</a>
+                            </span>
                         </div>
                     </td>
                     <td id="capitation" width="50%" height="400" valign="top"></td>
-
                 </tr>
             </table>
         </td>
@@ -117,14 +128,15 @@
     $('#map').load('{% url emis-ministry-dash-map %}');
     $('#attdance').load('{% url emis-ministry-dash-attdance %}');
 
-    $("#abuse").hide();
+    $("#violence").hide();
     $("#meals").hide();
     $("#meetings").hide();
 
-    $('#abuses_click').click(function(){
-        $('#abuse_holder').hide();
-        $("#abuse").show();
-        $('#abuse').load('{% url emis-ministry-dash-abuse %}');
+    $('#violence_click').click(function(){
+        $('#violence_holder').hide();
+        $("#violence").show();
+        $('#violence').load('{% url emis-ministry-dash-violence %}');
+        //$('#violence').append('<a>hello</a>');
     });
 
     $('#meals_click').click(function(){

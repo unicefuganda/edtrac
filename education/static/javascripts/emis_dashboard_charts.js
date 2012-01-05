@@ -39,23 +39,23 @@ function smc_meetings(schools, meetings) {
 }
 
 
-function abuse_cases(xVals, yVals){
+function violence_cases(xVals, yVals){
     var x_vals = xVals.split("','");
     var b = yVals.split(",");
-    var abuse = [];
+    var violence = [];
     for(i=0; i<b.length; i++){
-        abuse.push(parseFloat(b[i]));
+        violence.push(parseFloat(b[i]));
     }
-    var abuse_chart;
-    abuse_chart = new Highcharts.Chart(
+    var violence_chart;
+    violence_chart = new Highcharts.Chart(
         {
             chart: {
-                renderTo:'abuse',
+                renderTo:'violence',
                 defaultSeriesType:'column',
                 margin:[50,50,100,80]
             },
             title :{
-                text:'Abuse Cases Reported this Month'
+                text:'Violence Cases Reported this Month'
             },
             xAxis:{
                 categories: x_vals
@@ -79,13 +79,13 @@ function abuse_cases(xVals, yVals){
             },
             tooltip:{
                 formatter:function(){
-                    return '<b>'+ this.x+'</b><br/>'+ 'Abuse cases: '+Highcharts.numberFormat(this.y, 1) + ' cases';
+                    return '<b>'+ this.x+'</b><br/>'+ 'Violence cases: '+Highcharts.numberFormat(this.y, 1) + ' cases';
                 }
             },
             series:[
                 {
                     name: 'Numbers',
-                    data : abuse,
+                    data : violence,
                     dataLabels:{
                         enabled:true,
                         rotation:-90,
