@@ -160,6 +160,19 @@ urlpatterns = patterns('',
     url(r'^emis/dash_ministry_meetings/$', dash_ministry_meetings, {}, name="emis-ministry-dash-meetings"),
     url(r'^emis/dash_ministry_capitation/$', dash_ministry_capitation, {}, name="emis-ministry-dash-capitation"),
 
+    #DEO dashboard
+    url(r'^emis/dash_deo_map/$', dash_ministry_map, {}, name="emis-deo-dash-map"),
+    url(r'^emis/deo_progress/$', dash_ministry_progress, {}, name="emis-deo-curriculum-progress"),
+    #    url(r'^emis/dash_attdance/$', dash_ministry_attdance, {}, name="emis-ministry-dash-attdance"),
+    url(r'^emis/dash_deo_attdance/$', dash_attdance, {}, name="emis-deo-dash-attdance"),
+    url(r'^emis/dash_deo_violence/$', dash_deo_violence, {}, name="emis-deo-dash-violence"),
+    url(r'^emis/dash_deo_meals/$', dash_deo_meals, {}, name="emis-deo-dash-meals"),
+    url(r'^emis/dash_deo_meetings/$', dash_deo_meetings, {}, name="emis-deo-dash-meetings"),
+    url(r'^emis/dash_deo_capitation/$', dash_deo_capitation, {}, name="emis-deo-dash-capitation"),
+
+    #TODO: what to show other users; OTHER dashboard
+
+
     url(r'^emis/reporters/page(?P<page>[0-9]+)/$', ListView.as_view(
         model=EmisReporter,
         paginate_by=25,

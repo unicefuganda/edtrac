@@ -16,7 +16,7 @@ from uganda_common.utils import reorganize_dictionary
 from education.utils import previous_calendar_week
 from education.models import EmisReporter, School
 from poll.models import Response, Poll
-import datetime
+import datetime, dateutils
 from types import NoneType
 from rapidsms.models import Contact
 from generic.reporting.views import ReportView
@@ -499,6 +499,37 @@ def create_excel_dataset(request, start_date, end_date, district_id):
     return response
 
 
+def get_month_day_range(date, **kwargs):
+    """
+    handy function to give as a date range
+    """
+    import datetime
+    from dateutil.relativedelta import relativedelta
+    if not kwargs:
+        last_day = date + relativedelta(day=1, months+1, days=1)
+        first_day = date + relativedelta(day=1)
+        return first_day, last_day
+    else:
+        """
+        There are times we want to get a set of date ranges to work with
+
+        attributes that this function takes include
+            -> date (a datetime object)
+            -> depth (how many months back this list should generate)
+        """
+        depth = int(kwargs.get('depth'))
+        to_ret = []
+        i = 1
+        while i <= depth:
+            last_day = date + relativedelta(day=1, months+1, days=1)
+            first_day = date + relativedelta(day=1)
+            to_ret.append((first_day, last_day))
+            date -= datetime.timedelta(i)
+            i += 1
+
+
+
+
 def get_sum_of_poll_response(poll_queryset, **kwargs):
     """
     This computes the eav response value to a poll
@@ -509,21 +540,33 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
     s = 0
     if kwargs:
         #district filter
-        if kwargs.has_key('filter'):
-            filter = kwargs['filter']
+        if kwargs.has_key('month_filter'):
             #filter takes boolean values
-            if filter:
+            if kwargs.get('month_filter'):
                 DISTRICT = ['Kaabong', 'Kabarole', 'Kyegegwa', 'Kotido']
                 to_ret = {}
                 for location in Location.objects.filter(name__in=DISTRICT):
                     try:
                         for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(contact__in=\
-                            Contact.objects.filter(reporting_location=location))]:
+                            Contact.objects.filter(reporting_location=location,\
+                            date__range=(dateutils.month_start(datetime.datetime.now()),
+                                         dateutils.month_end(datetime.datetime.now())
+                                )
+                            ))]:
                             s += val
                     except NoneType:
                         pass
                     to_ret[location.__unicode__()] = s
                 return to_ret
+            elif kwargs.get('month_filter') and kwargs.has_key('location'):
+                import pdb; pdb.set_trace()
+                try:
+                    for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(contact__in=\
+                    Contact.objects.filter(reporting_location=kwargs.get('location')))]:
+                        s += val
+                except NoneType:
+                    pass
+                return s
     else:
         try:
             for val in [r.eav.poll_number_value for r in poll_queryset.responses.all()]:
@@ -540,7 +583,6 @@ def get_responses_to_polls(**kwargs):
             #TODO filter poll by district, school or county (might wanna index this too)
             return get_sum_of_poll_response(Poll.objects.get(name=poll_name))
         #in cases where a list of poll names is passed, a dictionary is returned
-
         if kwargs.has_key('poll_names'):
             poll_names = kwargs['poll_names']
             responses = {}
