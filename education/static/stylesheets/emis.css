@@ -523,7 +523,8 @@ table.classy{
 }
 
 table.classy th{
-    padding-top:9px;
+    padding:5px;
+    line-height: 1.2em;
     font-weight: bold;
     vertical-align: middle;
     text-align: left;
