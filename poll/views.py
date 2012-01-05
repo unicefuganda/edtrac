@@ -22,7 +22,7 @@ from eav.models import Attribute
 from django.core.urlresolvers import reverse
 from django.views.decorators.cache import cache_control
 from django.conf import settings
-from multiprocessing import Process, Queue
+from django.contrib import messages
 
 from forms import *
 import os
@@ -145,6 +145,7 @@ def new_poll(req):
                 str(groups)
                 )
             subprocess.Popen(eval(args))
+            messages.success(req, 'The Poll Is being created. This may take a while.')   
             return redirect(reverse('poll.views.polls'))
     else:
         form = NewPollForm()

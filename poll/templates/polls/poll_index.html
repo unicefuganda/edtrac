@@ -5,7 +5,11 @@
     <script src="{{MEDIA_URL}}poll/javascripts/polls.js" type="text/javascript"></script>
 {% endblock %}
 {% block content %}
-
+    <div class="msg">
+{% for message in messages %}
+        {{ message }}<br />
+{% endfor %}
+    </div>
 <table width="100%" class="poll_table"> 
   <thead> 
     <tr>
