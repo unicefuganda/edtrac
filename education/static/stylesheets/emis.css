@@ -495,3 +495,14 @@ div#p3, div#p6{
     float:inherit;
     padding:20px;
 }
+
+div.abused, div.meal{
+    margin:50px;
+}
+h1.title{
+    font-size: 1.5em;
+    color: #29c5d1;
+}
+div.abused table{
+
+}

@@ -29,10 +29,10 @@
                 <!-- TODO: scope out curriculum progress -->
                 <tr>
                     <td id="abuse_holder" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;">
-                        <div style="padding:20px; margin:40px;">
-                        <span class="title">
-                            Abuse cases
-                        </span>
+                        <div class="abused">
+                            <h1 class="title">
+                                Abuse cases
+                            </h1>
                             <table>
                                 <tr>
                                     <th>District</th><th>Number of cases</th>
@@ -43,14 +43,33 @@
                                 </tr>
                                 {% endfor %}
                             </table>
+                            <a style="margin-top:50px; cursor: pointer;" id="abuses_click">click to show graph</a>
                         </div>
-                        <a style="text-align:right; cursor: pointer;" id="abuses_click">click to show graph</a>
                     </td>
                     <td id="abuse" width="50%" height="400" valign="top" style="border-bottom:1px solid #efefef;"></td>
 
 
                     <td id="meals_holder" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;">
-                        <a style="text-align:right; cursor: pointer;" id="meals_click">click to show graph</a>
+                        <div class="meal">
+                            <h1 class="title">Pupils that didn't have meals this month</h1>
+                            <table>
+                                <tr>
+                                    <th>
+                                        District
+                                    </th>
+                                    <th>
+                                        Percentage
+                                    </th>
+                                </tr>
+                                {% for key, value in lunches.items %}
+                                <tr>
+                                    <td>{{ key }}</td><td>{{ value }}%</td>
+                                </tr>
+                                {% endfor %}
+
+                            </table>
+                            <a style="text-align:right; cursor: pointer;" id="meals_click">click to show graph</a>
+                        </div>
                     </td>
                     <td id="meals" width="50%" height="400" valign="top" style="border-bottom:1px solid #efefef;"></td>
                 </tr>
@@ -62,7 +81,7 @@
                     <td id="meetings" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;"></td>
 
                     <td id="capitation_holder" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;">
-                        <p><b>Still being scoped</b></p>
+                        <p><b>Capitation: Still being scoped (WIP)</b></p>
                         <a style="text-align:right; cursor: pointer;" id="capitation_click">click to show graph</a>
                     </td>
                     <td id="capitation" width="50%" height="400" valign="top"></td>
