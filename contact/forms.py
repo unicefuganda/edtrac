@@ -124,7 +124,9 @@ class FreeSearchTextForm(FilterForm):
 
     """ concrete implementation of filter form """
 
-    search = forms.CharField(max_length=100, required=True, label="Free-form search", help_text="Use 'or' to search for multiple names")
+    search = forms.CharField(max_length=100, required=True, label="Free-form search",
+                             help_text="Use 'or' to search for multiple names",
+                             widget=forms.TextInput(attrs={'class':'itext', 'size':14}))
 
     def filter(self, request, queryset):
         search = self.cleaned_data['search']
