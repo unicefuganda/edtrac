@@ -32,6 +32,7 @@ class BasicClassLayer(models.Model):
     style_class = models.CharField(max_length=100, blank=True, null=True)
     deployment_id = models.IntegerField(max_length=3)
     layer_id = models.IntegerField(max_length=3)
+    description = models.TextField(default='')
 
     class Meta:
         unique_together = (('deployment_id', 'layer_id', 'district'),)
