@@ -249,25 +249,21 @@ def ministry_dashboard(request):
 
 @login_required
 def admin_dashboard(request):
-    abuses_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
-    # this should be equal
-    districts = abuses_to_ret.keys()
-    #uncomment to get the real values
-    #district_abuses = to_ret.values()
-    #TODO comment this out and read the above instruction
-    district_abuses = [23, 56, 23, 66]
+    violence = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+    districts = violence.keys()
+    #assumption is still 4 districts
+    district_violence = [23,56, 23, 66]
+    dicty = dict(zip(districts, district_violence))
 
-    # get %age of pupils that didn't have a meal
-    #TODO uncomment and use a better value for computing
-    #TODO get rid of duplicate emis_headteachers_meals poll --> reason filter() gets used here
-    #lunches_to_ret = zip(districts, [val for val in list_poll_responses(Poll.objects.filter(name="emis_headteachers_meals")[0]).values()])
-    #TOOD remove test data
-    lunches_to_ret = zip(districts, [20, 30, 40, 10])
+    meal_poll_responses = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))
+    districts = meal_poll_responses.keys()
+    lunches_to_ret = dict(zip(districts, [10, 20, 30, 40]))
 
-    smc_meetings_to_ret = list_poll_responses(Poll.objects.filter(name="emis_meetings")[0])
-
-    return index(request, template_name="admin/admin_dashboard.html", context_vars={
-        'x_vals':districts, 'y_vals':district_abuses, 'lunches':lunches_to_ret})
+    return index(request, template_name="ministry/ministry_dashboard.html",
+        context_vars={'dicty':dicty,
+                      'x_vals':districts,
+                      'y_vals':district_violence,
+                      'lunches':lunches_to_ret})
 
 def whitelist(request):
     numbers = []
