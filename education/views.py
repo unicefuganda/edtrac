@@ -201,16 +201,8 @@ def dashboard(request):
         return ministry_dashboard(request)
     elif profile.is_member_of('Admins'):
         return admin_dashboard(request)
-    #TODO provide views with specific contexts to other ROLEs in edTrac
-    # use index() as follows for other roles.
-    #elif profile.is_member_of('SOME_ROLE'):
-    #   return index(request, context_vars={'Abuses':Abuse.objects.all()})
-    # what other roles will see.
-    #TODO identification and implementation of key roles and views
     else:
         return testindex(request)
-#        return index(request)
-#        return HttpResponseRedirect('/emis/stats/')
 
 @login_required
 def deo_dashboard(request):
@@ -243,9 +235,16 @@ def ministry_dashboard(request):
     #assumption is still 4 districts
     district_abuses = [23,56, 23, 66]
     dicty = dict(zip(districts, district_abuses))
-    return index(request, template_name="ministry/ministry_dashboard.html", context_vars={'dicty':dicty,
-                                                                                          'x_vals':districts,
-                                                                                          'y_vals':district_abuses})
+
+    meal_poll_responses = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))
+    districts = meal_poll_responses.keys()
+    lunches_to_ret = dict(zip(districts, [10, 20, 30, 40]))
+
+    return index(request, template_name="ministry/ministry_dashboard.html",
+        context_vars={'dicty':dicty,
+                      'x_vals':districts,
+                      'y_vals':district_abuses,
+                      'lunches':lunches_to_ret})
 
 @login_required
 def admin_dashboard(request):
