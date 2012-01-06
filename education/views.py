@@ -127,14 +127,14 @@ def dash_deo_violence(request):
     location = request.user.get_profile().location
     violence = get_sum_of_poll_response(Poll.objects.get(name="emis_headteachers_abuse"),
         location=location)
-    districts = violence.keys()
 
     months = ["Jan", "Feb", "March"]
-    distict_violence = [343,234,64]
-    return render_to_response('education/dashboard/abuse.html',
-            {'x_vals' : months, 'y_vals' : distict_violence},
+    district_violence = [343,234,64]
+    return render_to_response('education/dashboard/violence.html',
+            {'x_vals' : months, 'y_vals' : district_violence},
         RequestContext(request)
     )
+
 #MEALS
 """
 We want to easily populate graphs for deo, admin and ministry roles
@@ -206,7 +206,6 @@ def dash_ministry_meetings(req):
 def dash_deo_meetings(req):
     pass
 
-
 #BEGIN Capitation
 
 def dash_capitation(request):
@@ -237,21 +236,17 @@ def dashboard(request):
 
 @login_required
 def deo_dashboard(request):
-    violence = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
-    districts = violence.keys()
-    #assumption is still 4 districts
-    district_violence = [23,56, 23, 66]
-    dicty = dict(zip(districts, district_violence))
+    location = request.user.get_profile().location
+    violence = get_sum_of_poll_response(Poll.objects.get(name="emis_headteachers_abuse"),
+        location=location)
+    months = ["Jan", "Feb", "March"]
+    district_violence = [343,234,64]
+    dicty = dict(zip(months, district_violence))
 
-    meal_poll_responses = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))
-    districts = meal_poll_responses.keys()
-    lunches_to_ret = dict(zip(districts, [10, 20, 30, 40]))
-
-    return index(request, template_name="ministry/ministry_dashboard.html",
+    return index(request, template_name="deo/deo_dashboard.html",
         context_vars={'dicty':dicty,
-                      'x_vals':districts,
-                      'y_vals':district_violence,
-                      'lunches':lunches_to_ret})
+                      'x_vals':months,
+                      'y_vals':district_violence})
 
 @login_required
 def ministry_dashboard(request):
