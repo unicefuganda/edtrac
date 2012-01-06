@@ -507,7 +507,8 @@ def get_month_day_range(date, **kwargs):
     if not kwargs:
         last_day = date + relativedelta(day = 1, months =+ 1, days =- 1)
         first_day = date + relativedelta(day = 1)
-        return first_day, last_day
+        #return a tuple in the list
+        return [first_day, last_day]
     else:
         """
         There are times we want to get a set of date ranges to work with
@@ -524,7 +525,6 @@ def get_month_day_range(date, **kwargs):
             first_day = date + relativedelta(day = 1)
             to_ret.append((first_day, last_day))
         return to_ret
-
 
 def get_sum_of_poll_response(poll_queryset, **kwargs):
     """
@@ -545,9 +545,7 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                     try:
                         for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(contact__in=\
                             Contact.objects.filter(reporting_location=location,\
-                            date__range=(dateutils.month_start(datetime.datetime.now()),
-                                         dateutils.month_end(datetime.datetime.now())
-                                )
+                            date__range = get_month_day_range(datetime.datetime.now())
                             ))]:
                             s += val
                     except NoneType:
@@ -555,10 +553,14 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                     to_ret[location.__unicode__()] = s
                 return to_ret
             elif kwargs.get('month_filter') and kwargs.has_key('location'):
-                import pdb; pdb.set_trace()
                 try:
+                    now = datetime.datetime.now()
+                    to_ret = []
+
                     for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(contact__in=\
-                    Contact.objects.filter(reporting_location=kwargs.get('location')))]:
+                        Contact.objects.filter(reporting_location=kwargs.get('location')),
+                        date__range = get_month_day_range(now)
+                    )]:
                         s += val
                 except NoneType:
                     pass

@@ -1,8 +1,13 @@
 <div id="smc_meetings_container">
-    <div id="smc_meetings">
+    <div id="smc_meetings"></div>
         <script type="text/javascript">
             $(document).ready(function(){
                 smc_meetings();
+                $("#smc_meetings").append("<div>&lt;&lt;<a id='meetings_back_click' style='cursor: pointer; padding:10px;'>Back to Statistics</a></div>");
+                });
+                $("#meetings_back_click").click(function(){
+                    $("#meetings").hide();
+                    $("#meetings_holder").fadeIn(1000);
                 });
         </script>
         <div class="spanny">
@@ -10,5 +15,4 @@
             22% of Schools reported this Month
         </span>
         </div>
-    </div>
 </div>

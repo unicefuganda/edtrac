@@ -102,6 +102,7 @@ def dash_violence(request):
     # this should be equal
     districts = violence_to_ret.keys()
     district_violence_cases = [23, 56, 23, 66]
+
     return render_to_response('education/dashboard/violence.html',{\
                                 'x_vals':districts,\
                                 'y_vals':district_violence_cases\
@@ -127,9 +128,11 @@ def dash_deo_violence(request):
     violence = get_sum_of_poll_response(Poll.objects.get(name="emis_headteachers_abuse"),
         location=location)
     districts = violence.keys()
-    abuses_in_districts = [23,343,234,64]
+
+    months = ["Jan", "Feb", "March"]
+    distict_violence = [343,234,64]
     return render_to_response('education/dashboard/abuse.html',
-            {'x_vals' : districts, 'y_vals' : abuses_in_districts},
+            {'x_vals' : months, 'y_vals' : distict_violence},
         RequestContext(request)
     )
 #MEALS
