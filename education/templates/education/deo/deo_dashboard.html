@@ -132,7 +132,8 @@
 <script type="text/javascript">
     $(document).ready(function(){
         $('#map').load('{% url emis-dash-map %}');
-        $('#attdance').load('{% url emis-dash-deo-attdance %}');
+        //TODO: populate attendance specific to the district
+        $('#attdance').load('{% url emis-dash-attdance %}');
         // hide existing rows
         $("#violence").hide();
         $("#meals").hide();
