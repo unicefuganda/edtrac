@@ -49,8 +49,13 @@
                             </span>
                         </div>
                     </td>
-                    <td id="violence" width="50%" height="400" valign="top" style="border-bottom:1px solid #efefef;"></td>
-
+                    <td>
+                    <table>
+                        <tr>
+                            <td id="violence" width="50%" height="400" valign="top" style="border-bottom:1px solid #efefef;"></td>
+                        </tr>
+                    </table>
+                    </td>
 
                     <td id="meals_holder" width="50%" height="200" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;">
                         <div class="meal">
@@ -76,7 +81,9 @@
                             </span>
                         </div>
                     </td>
-                    <td id="meals" width="50%" height="400" valign="top" style="border-bottom:1px solid #efefef;"></td>
+                    <td id="meals" width="50%" height="400" valign="top" style="border-bottom:1px solid #efefef;">
+                        <div id="meals_back"></div>
+                    </td>
                 </tr>
 
                 <tr>
@@ -101,7 +108,6 @@
                                 <a>Click for Details</a>
                             </span>
                         </div>
-
                     </td>
                     <td id="meetings" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;"></td>
 
@@ -141,11 +147,11 @@
             // append an element
         });
 
-
         $('#meals_click').click(function(){
             $('#meals_holder').hide();
             $("#meals").show();
             $('#meals').load('{% url emis-dash-deo-meals %}');
+            $("#meals").show();
         });
 
         $('#meetings_click').click(function(){
