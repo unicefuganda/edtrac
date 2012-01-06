@@ -105,7 +105,7 @@ def dash_violence(request):
 
     return render_to_response('education/dashboard/violence.html',{\
                                 'x_vals':districts,\
-                                'y_vals':district_violence_cases\
+                                'y_vals':district_violence_cases
                                 }, RequestContext(request))
 
 def dash_ministry_violence(request):
@@ -117,7 +117,7 @@ def dash_ministry_violence(request):
     district_violence_cases = [23,56, 23, 66]
     dicty = dict(zip(districts, district_violence_cases))
     return render_to_response('education/dashboard/violence.html',
-            {'x_vals':districts, 'y_vals' : district_violence_cases, 'dicty' : dicty},
+            {'x_vals':districts, 'y_vals' : district_violence_cases, 'dicty' : dicty, 'chart_title':'Violence Cases Recorded'},
         RequestContext(request)
     )
 
@@ -131,7 +131,7 @@ def dash_deo_violence(request):
     months = ["Jan", "Feb", "March"]
     district_violence = [343,234,64]
     return render_to_response('education/dashboard/violence.html',
-            {'x_vals' : months, 'y_vals' : district_violence},
+            {'x_vals' : months, 'y_vals' : district_violence, 'chart_title':'Violence Cases Recorded'},
         RequestContext(request)
     )
 
@@ -204,7 +204,16 @@ def dash_ministry_meetings(req):
     return render_to_response('education/dashboard/meetings.html', {}, RequestContext(req))
 
 def dash_deo_meetings(req):
-    pass
+    message_ids = [poll_response['message_id'] for poll_response in Poll.objects.get(name="emis_meetings").responses.values()]
+    all_messages =[msg.text for msg in Message.objects.filter(id__in=message_ids)]
+    try:
+        to_ret = {}
+        set_messages = set(all_messages)
+        for msg in set_messages:
+            to_ret[int(msg)] = all_messages.count(int(msg))
+    except ValueError:
+        print "some non numeric values were provided"
+    return render_to_response('education/dashboard/meetings.html', {}, RequestContext(req))
 
 #BEGIN Capitation
 
