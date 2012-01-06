@@ -11,7 +11,7 @@
     </div>
     <script type="text/javascript">
         $(document).ready( function() {
-            violence_cases("{{ x_vals|join:"','" }}", "{{ y_vals|join:"," }}");
+            violence_cases("{{ x_vals|join:"','" }}", "{{ y_vals|join:"," }}", "{{ chart_title }}");
             $('#violence').append("<div>&lt;&lt;<a id='violence_back_click' style='cursor: pointer;'>Back to Statistics</a></div>");
             $("#violence_back_click").click(function(){
                 $("#violence").hide();
