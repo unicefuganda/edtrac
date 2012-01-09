@@ -153,16 +153,14 @@ function pie(data, chart_title, series_title, selector_id, tooltip_text) {
     });
 }
 
-function load_progress_chart(val1, val2){
-    var val1, val2;
-    if (val1 > 100 || val2 > 100){
+function load_progress_chart(value){
+    var value;
+    if (value > 100){
         // pervasive checking...
         alert("Progress chart can't load for values greater than 100 denied");
     }
     else{
-        $("#progress_p3").progressbar({value: val1});
-        $("#progress_p6").progressbar({value:val2});
-        $("#progress_p3 > div").append(val1 + '%').addClass('pretify');
-        $("#progress_p6 > div").append(val2 + '%').addClass('pretify');
+        $("#progress_p3").progressbar({value: value});
+        $("#progress_p3 > div").append(value + '%').addClass('pretify');
     }
 }
