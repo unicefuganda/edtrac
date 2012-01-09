@@ -108,17 +108,19 @@ function violence_cases(xVals, yVals, title){
 
 
 //pie chart
-function lunch(data, chart_title) {
+function pie(data, chart_title, series_title, selector_id, tooltip_text) {
+
     var d = data.split(",");
-    var lunch_data = [];
+    var data_array = [];
     for(i=0;i<d.length; i++){
         x = d[i].split('-');
-        lunch_data.push([x[0], parseInt(x[1])]);
+        data_array.push([x[0], parseInt(x[1])]);
     }
-    var lunch_chart;
-    lunch_chart = new Highcharts.Chart({
+    var chart;
+    chart = new Highcharts.Chart({
         chart: {
-            renderTo: 'lunch',
+            //renderTo: 'lunch',
+            renderTo: selector_id,
             plotBackgroundColor: null,
             plotBorderWidth: null,
             plotShadow: false
@@ -128,7 +130,8 @@ function lunch(data, chart_title) {
         },
         tooltip: {
             formatter: function() {
-                return this.percentage +' % \n didn\'t have meals';
+                //return this.percentage +' % \n didn\'t have meals';
+                return this.percentage + ' %' + tooltip_text;
             }
         },
         plotOptions: {
@@ -143,7 +146,8 @@ function lunch(data, chart_title) {
         },
         series: [{
             type: 'pie',
-            name: 'Lunch at School',
+            //name: 'Lunch at School',
+            name: series_title,
             data: lunch_data
 
         }]

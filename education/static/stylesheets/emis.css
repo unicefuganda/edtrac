@@ -497,7 +497,7 @@ div#p3, div#p6{
 }
 
 div.violence, div.meal, div.meeting, div.capitation{
-    margin:50px;
+    margin:15px;
 }
 h1.title{
     font-size: 16px;
@@ -561,11 +561,11 @@ table.classy tbody tr:hover td, table.classy tbody tr:hover th{
 
 .label {
     padding: 1px 3px 2px;
-    font-size:0.9em;
+    font-size:1em;
     /*font-size: 9.75px;*/
     font-weight: bold;
     color: #ffffff;
-    text-transform: uppercase;
+    /*text-transform: uppercase;*/
     white-space: nowrap;
     background-color: #bfbfbf;
     -webkit-border-radius: 3px;

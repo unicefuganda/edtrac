@@ -221,10 +221,10 @@ def dash_capitation(request):
     return render_to_response('education/dashboard/capitation.html', {}, RequestContext(request))
 
 def dash_ministry_capitation(req):
-    pass
+    return render_to_response('education/dashboard/capitation.html', {}, RequestContext(request))
 
 def dash_deo_capitation(req):
-    pass
+    return render_to_response('education/dashboard/capitation.html', {}, RequestContext(request))
 
 
 
