@@ -131,7 +131,7 @@ function pie(data, chart_title, series_title, selector_id, tooltip_text) {
         tooltip: {
             formatter: function() {
                 //return this.percentage +' % \n didn\'t have meals';
-                return this.percentage + ' %' + tooltip_text;
+                return this.percentage + ' % \n' + tooltip_text;
             }
         },
         plotOptions: {
@@ -148,8 +148,7 @@ function pie(data, chart_title, series_title, selector_id, tooltip_text) {
             type: 'pie',
             //name: 'Lunch at School',
             name: series_title,
-            data: lunch_data
-
+            data: data_array
         }]
     });
 }
