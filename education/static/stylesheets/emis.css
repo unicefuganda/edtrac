@@ -558,3 +558,30 @@ table.classy tbody tr:nth-child(odd) td, table.classy tbody tr:nth-child(odd) th
 table.classy tbody tr:hover td, table.classy tbody tr:hover th{
     background-color: #f5f5f5;
 }
+
+.label {
+    padding: 1px 3px 2px;
+    font-size:1.5em;
+    /*font-size: 9.75px;*/
+    font-weight: bold;
+    color: #ffffff;
+    text-transform: uppercase;
+    white-space: nowrap;
+    background-color: #bfbfbf;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    text-shadow: none;
+}
+.label.important {
+    background-color: #c43c35;
+}
+.label.warning {
+    background-color: #f89406;
+}
+.label.success {
+    background-color: #46a546;
+}
+.label.notice {
+    background-color: #62cffc;
+}
