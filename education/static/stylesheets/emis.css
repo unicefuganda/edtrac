@@ -561,7 +561,7 @@ table.classy tbody tr:hover td, table.classy tbody tr:hover th{
 
 .label {
     padding: 1px 3px 2px;
-    font-size:1.5em;
+    font-size:0.9em;
     /*font-size: 9.75px;*/
     font-weight: bold;
     color: #ffffff;
