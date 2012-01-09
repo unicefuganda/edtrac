@@ -3,11 +3,6 @@
     <div id="capitation">
         <h3>UPE Capitation Progress this School Term</h3>
     </div>
-    <div class="spanny" style="text-align: center;">
-    <span>
-        65% of Total Reporters Reported
-    </span>
-    </div>
     <script type="text/javascript">
         $(document).ready(function(){
             pie("{{ responses|reorganize_data|join:"," }}",
@@ -15,7 +10,8 @@
                     "Capitation Grants Received",
                     "capitation",
                     " responses");
-            $("#capitation").append("<span class='alert-message' style='float: right; clear: both;'>65% of Total Reporters Reported</span>");
+            $("#capitation").append("<span class='alert-message' style='float: right; clear: both;'>65% of Total Reporters Reported</span>" +
+                    "</br><a style='cursor:pointer; padding: 10px; margin-top: 10px;'>Click for Details</a>");
         });
     </script>
 </div>
