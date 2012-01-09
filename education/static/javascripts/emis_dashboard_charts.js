@@ -9,7 +9,7 @@ function smc_meetings(schools, meetings) {
             plotShadow: false
         },
         title: {
-            text: 'SMC Meetings this School Term'
+            text: 'SMC Meetings Held this School Term'
         },
         tooltip: {
             formatter: function() {
