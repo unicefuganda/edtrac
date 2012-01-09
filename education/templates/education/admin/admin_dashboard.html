@@ -38,13 +38,6 @@
                                     <li><a class="tooltip">Kotido (15%)</a></li>
                                     <li><a class="tooltip">Kyegegwa (12%)</a></li>
                                 </ul>
-                                <script type="text/javascript">
-                                    $(document).ready(function(){
-                                        var x;
-                                        x = $('a > .tooltip');
-                                    });
-                                </script>
-
                                 <h2 class="label notice">Other Cases</h2>
                                 <a style="cursor:pointer; text-align: center;">click</a>
 
@@ -72,8 +65,21 @@
 
                     <td id="meals_holder" width="50%" height="200" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;">
                         <div class="meal">
+
+
                             <h1 class="title">Pupils that didn't have meals this month</h1>
-                            <table class="classy">
+                            <div>
+                                <h2 class="label warning">Highest Number recorded</h2>
+                                <ul>
+                                    <li><a class="tooltip">Kaabong (25%)</a></li>
+                                    <li><a class="tooltip">Kyegegwa (12%)</a></li>
+                                </ul>
+                                <h2 class="label notice">Other Cases</h2>
+                                <a style="cursor:pointer; text-align: center;">click</a>
+
+                            </div>
+
+                            <!-- <table class="classy">
                                 <tr>
                                     <th>
                                         District
@@ -88,6 +94,10 @@
                                 </tr>
                                 {% endfor %}
                             </table>
+
+                            -->
+
+
                             <span class="links">
                                 <a id="meals_click">Click to show graph</a> |
                                 <a>Click for Details</a>
