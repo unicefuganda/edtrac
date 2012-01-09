@@ -239,13 +239,13 @@ def parse_gemvalues(obj):
         return 'No'
     else:
         return 'Yes'
-    
-def reorganize_lunch(obj):
-    lunches = []
+
+def reorganize_data(obj):
+    to_ret = []
     print obj
-    for label, lunch in obj:
-        lunches.append("%s-%d"%(label,lunch))
-    return lunches
+    for label, val in obj:
+        to_ret.append("%s-%d"%(label,val))
+    return to_ret
 
 def termly(obj):
     return obj.slug.endswith('_termly')
@@ -262,7 +262,7 @@ register.filter('last_report', last_report)
 register.filter('submissions', submissions)
 register.filter('headteacher',headteacher)
 register.filter('parse_gemvalues', parse_gemvalues)
-register.filter('reorganize_lunch', reorganize_lunch)
+register.filter('reorganize_data', reorganize_data)
 register.filter('termly', termly)
 register.filter('headteacher_connection',headteacher_connection)
 register.filter('hash', hash)

@@ -218,13 +218,17 @@ def dash_deo_meetings(req):
 #BEGIN Capitation
 
 def dash_capitation(request):
-    return render_to_response('education/dashboard/capitation.html', {}, RequestContext(request))
+    #to_ret = YES, NO, I don't know
+    to_ret = zip(['Yes','No', "Other"],[30, 30, 40])
+    return render_to_response('education/dashboard/capitation.html', {'responses':to_ret}, RequestContext(request))
 
 def dash_ministry_capitation(req):
-    return render_to_response('education/dashboard/capitation.html', {}, RequestContext(request))
+    to_ret = zip(['Yes','No', "Other"],[30, 30, 40])
+    return render_to_response('education/dashboard/capitation.html', {'responses':to_ret}, RequestContext(req))
 
 def dash_deo_capitation(req):
-    return render_to_response('education/dashboard/capitation.html', {}, RequestContext(request))
+    to_ret = zip(['Yes','No', "Other"],[30, 30, 40])
+    return render_to_response('education/dashboard/capitation.html', {'responses':to_ret}, RequestContext(req))
 
 
 
