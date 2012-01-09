@@ -11,12 +11,12 @@
             <h3>Select an indicator to view it on Map</h3>
             <form>
                 <!-- TODO: using django forms a more dynamic form will be created. This is demo code!!! -->
-                <input type="checkbox" name="boys_attendance" value="pupil">Pupil Attendance<br/>
-                <input type="checkbox" name="teachers_attendance" value="teachers">Teachers Attendance<br/>
-                <input type="checkbox" name="headteacher_attendance" value="headteachers">Head Teachers<br/>
-                <input type="checkbox" name="meals_consumption" value="meals">Meals Consumption<br/>
-                <input type="checkbox" name="violence_incidences" value="violence">Violence Incidences<br/>
-                <input type="checkbox" name="curriculum_progress" value="progress">Curriculum Progress<br/>
+                <input type="radio" value="boys_attendance" name="indicator">Pupil Attendance<br/>
+                <input type="radio" value="teachers_attendance" name="indicator">Teachers Attendance<br/>
+                <input type="radio" value="headteacher_attendance" name="indicator">Head Teachers<br/>
+                <input type="radio" value="meals_consumption" name="indicator">Meals Consumption<br/>
+                <input type="radio" value="violence_incidences" name="indicator">Violence Incidences<br/>
+                <input type="radio" value="curriculum_progress" name="indicator">Curriculum Progress<br/>
             </form>
         </div>
         <div class="indicator" style="float:right;top:0px">
