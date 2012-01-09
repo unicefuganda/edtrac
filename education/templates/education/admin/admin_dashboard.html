@@ -30,10 +30,9 @@
                 <tr>
                     <td id="violence_holder" width="50%" height="200" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;">
                         <div class="violence">
-
-                            <h1 class="title">Violence Cases Recorded</h1>
+<!--                            <h1 class="title">Violence Cases Recorded</h1> -->
                             <div>
-                                <span class="label important">Districts with the highest cases recorded this month</span>
+                                <span class="label important">Districts with the Highest Cases of Violence Recorded this Month</span>
                                 <ul>
                                     <li><a class="tooltip">Kotido (15%)</a></li>
                                     <li><a class="tooltip">Kyegegwa (12%)</a></li>
@@ -66,9 +65,9 @@
                         <div class="meal">
 
 
-                            <h1 class="title">Pupils that didn't have meals this month</h1>
+                            <!-- <h1 class="title">Pupils that didn't have meals this month</h1> -->
                             <div>
-                                <span class="label warning">Highest Number recorded</span>
+                                <span class="label warning">Districts with the Highest Number of Pupils that didn't have Meals</span>
                                 <ul>
                                     <li><a class="tooltip">Kaabong (25%)</a></li>
                                     <li><a class="tooltip">Kyegegwa (12%)</a></li>
@@ -131,18 +130,6 @@
                     </td>
                     <td id="meetings" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;"></td>
 
-                    <td id="capitation_holder" width="50%" height="200" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;">
-                        <div class="capitation">
-                            <h1 class="title">
-                                UPE Capitation Progress this School Term
-                            </h1>
-                            <p><b>Capitation: Still being scoped (WIP)</b></p>
-                            <span class="links">
-                                <a id="capitation_click">Click to show graph</a> |
-                                <a>Click for Details</a>
-                            </span>
-                        </div>
-                    </td>
                     <td id="capitation" width="50%" height="400" valign="top"></td>
                 </tr>
             </table>
@@ -179,8 +166,9 @@
             $("#meetings").show();
             $('#meetings').load('{% url emis-dash-meetings %}');
         });
-        //TODO activate capitation
-        //$('#capitation').load('{% url emis-ministry-dash-capitation %}');
+
+
+        $('#capitation').load('{% url emis-ministry-dash-capitation %}');
     });
 </script>
 {% endblock %}
