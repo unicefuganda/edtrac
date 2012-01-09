@@ -163,11 +163,8 @@ def dash_deo_meals(req):
 
 def dash_progress(request):
     #curriculum progress for p6 and p3
-    progress_to_ret = [65, 62]
-    classes = ["p3", "p6"]
-    p3 = 65
-    p6 = 100
-    return render_to_response('education/dashboard/progress.html', {'p3':p3, 'p6':p6}, RequestContext(request))
+    p3_response = 34
+    return render_to_response('education/dashboard/progress.html', {'p3':p3_response}, RequestContext(request))
 
 def dash_ministry_progress(request):
     pass

@@ -23,6 +23,10 @@
         <td id="map" width="350" height="400" valign="top" style="width:350px;"></td>
         <td id="attdance" width="100%" height="400" valign="top"></td>
     </tr>
+
+    <tr>
+        <td colspan="2" id="progress"></td>
+    </tr>
     <tr>
         <td colspan="2">
             <table width="100%" cellpadding="5" cellspacing="0">
@@ -149,6 +153,9 @@
     $(document).ready(function(){
         $('#map').load('{% url emis-dash-map %}');
         $('#attdance').load('{% url emis-dash-attdance %}');
+
+        $("#progress").load('{% url emis-dash-progress %}');
+
         // hide existing rows
         $("#violence").hide();
         $("#meals").hide();
