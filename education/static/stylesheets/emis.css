@@ -522,8 +522,8 @@ table.classy{
 }
 
 table.classy th{
-    /*padding:5px;
-    line-height: 1.2em;*/
+    padding:5px;
+    line-height: 1em;
 
     font-weight: bold;
     vertical-align: middle;
