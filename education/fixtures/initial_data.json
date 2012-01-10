@@ -1928,7 +1928,7 @@
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
-            "question": "What subtheme number are you at?",
+            "question": "What was the sub theme number you were teaching this week?",
             "sites": [
                 5
             ], 
@@ -2705,7 +2705,7 @@
             "order": 0, 
             "giveup_offset": 86400
         }
-    }, 
+    },
     {
         "pk": 80, 
         "model": "script.scriptstep", 
