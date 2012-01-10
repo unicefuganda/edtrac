@@ -1937,7 +1937,7 @@
             "start_date": null, 
             "response_type": "a"
         }
-    }, 
+    },
     {
         "pk": 116, 
         "model": "poll.poll", 
@@ -2703,22 +2703,6 @@
             "message": "", 
             "poll": 114, 
             "order": 0, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 79, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "emis_teachers_monthly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 115, 
-            "order": 1, 
             "giveup_offset": 86400
         }
     }, 
