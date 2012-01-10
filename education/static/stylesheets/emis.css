@@ -517,25 +517,25 @@ table.classy{
     width: 100%;
     margin-bottom: 18px;
     padding:0;
-    font-size: 13px;
     border-collapse: collapse;
     border:1px solid #ddd;
 }
 
 table.classy th{
-    padding:5px;
-    line-height: 1.2em;
+    /*padding:5px;
+    line-height: 1.2em;*/
+
     font-weight: bold;
     vertical-align: middle;
     text-align: left;
-    font-size: 1.5em;
+    font-size: 1em;
 }
 
 table.classy td{
     vertical-align: top;
     border: solid 1px #f8f8f8;
     border-top:1px solid #ddd;
-    font-size: 1.3em;
+    font-size: 0.9em;
     padding:5px;
 }
 
