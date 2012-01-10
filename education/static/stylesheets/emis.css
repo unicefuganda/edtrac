@@ -461,6 +461,10 @@ div.img, div.img img, div.img h3{
 div.indicator{
     width:150px;
     float:right;
+    font-size: 0.9em;
+}
+div.indicator h3{
+    font-size: 1.2em;
 }
 div.map{
     float:left;
