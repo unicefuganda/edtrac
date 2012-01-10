@@ -1928,7 +1928,26 @@
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
-            "question": "What subtheme number are you at?",
+            "question": "What subtheme number are you at?is the progress of the P3 school curriculum this week?",
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 115, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_p6curriculum_progress", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "What is the progress of the P6 school curriculum this week?", 
             "sites": [
                 5
             ], 
