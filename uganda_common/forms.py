@@ -34,7 +34,7 @@ class SMSInput(forms.Textarea):
             //<![CDATA[
             function count_characters(elem,counter_container,submit_btn)
         {
-
+        // alert(submit_btn);
         var elem= $(elem);
         var value = elem.val();
         var count = value.length;
@@ -68,7 +68,7 @@ class SMSInput(forms.Textarea):
           }
         }
         var ok = (count > 0 && count < 161) && (value.replace(regex,"") != elem._value);
-        $(submit_btn).disabled = !ok;
+        /*$(submit_btn).disabled = !ok;*/
         $(counter_container).html(str);
         }
         $('.smsinput').change(setInterval(function() {count_characters('.smsinput','.counter','foo');},500));
