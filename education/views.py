@@ -4,12 +4,15 @@ from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import user_passes_test
+from django.utils.decorators import method_decorator
+from django.views.generic import DetailView
 from .forms import *
 from .models import *
 from uganda_common.utils import *
 from rapidsms.contrib.locations.models import Location
 from generic.views import generic
 from generic.sorters import SimpleSorter
+from poll.models import Poll
 from .reports import *
 from .utils import *
 from urllib2 import urlopen
@@ -293,6 +296,57 @@ def admin_dashboard(request):
                       'x_vals':districts,
                       'y_vals':district_violence,
                       'lunches':lunches_to_ret})
+
+#
+## Details views... specified by ROLES
+#class ViolenceMinistryDetails(DetailView):
+#    queryset = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+#    template_name = "education/ministry/ministry_violence_details.html"
+#
+##    #TODO open this up with more data variables
+##    def get_context_data(self, **kwargs):
+##        context = super(ViolenceMinistryDetails, self).get_context_data(**kwargs)
+##        ##context['some_key'] = <some_list_of_response>
+#    @method_decorator(login_required)
+#    def dispatch(self, *args, **kwargs):
+#        return super(ViolenceMinistryDetails, self).dispatch(*args, **kwargs)
+#
+#
+#class MealsMinistryDetails(DetailView):
+#    queryset = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))
+#    template_name = "education/ministry/ministry_meals_details.html"
+##    #TODO open this up with more data variables
+##    def get_context_data(self, **kwargs):
+##        context = super(MealsMinistryDetails, self).get_context_data(**kwargs)
+##        ##context['some_key'] = <some_list_of_response>
+#    @method_decorator(login_required)
+#    def dispatch(self, *args, **kwargs):
+#        return super(MealsMinistryDetails, super).dispatch(*args, **kwargs)
+#
+#class SMCMeetingsMinistryDetails(DetailView):
+#    queryset = list_poll_responses(Poll.objects.get(name="emis_headteachers_meetings"))
+#    template_name = "education/ministry/ministry_meetings_details.html"
+##    #TODO open this up with more data variables
+##    def get_context_data(self, **kwargs):
+##        context = super(SMCMeetingsMinistryDetails, self).get_context_data(**kwargs)
+##        ##context['some_key'] = <some_list_of_response>
+#    @method_decorator(login_required)
+#    def dispatch(self, *args, **kwargs):
+#        return super(SMCMeetingsMinistryDetails, self).dispatch(*args, **kwargs)
+#
+#class CapitationMinistryDetails(DetailView):
+#    context_object_name = 'capitation'
+#    model = Poll
+#    #queryset = list_poll_responses(Poll.objects.get(name="emis_headteachers_grants"))
+#    template_name = "education/ministry/ministry_capitation_details.html"
+##    #TODO open this up with more data variables
+##    def get_context_data(self, **kwargs):
+##        context = super(CapitationMinistryDetails, self).get_context_data(**kwargs)
+##        ##context['some_key'] = <some_list_of_response>
+#    @method_decorator(login_required)
+#    def dispatch(self, *args, **kwargs):
+#        return super(CapitationMinistryDetails, self).dispatch(*args, **kwargs)
+
 
 def whitelist(request):
     numbers = []
