@@ -2523,17 +2523,6 @@
         }
     }, 
     {
-        "pk": "emis_smc_termly", 
-        "model": "script.script", 
-        "fields": {
-            "enabled": false, 
-            "name": "Education monitoring smc termly script", 
-            "sites": [
-                5
-            ]
-        }
-    }, 
-    {
         "pk": "emis_teachers_monthly", 
         "model": "script.script", 
         "fields": {
@@ -2576,18 +2565,7 @@
                 5
             ]
         }
-    }, 
-    {
-        "pk": "emis_smc_weekly", 
-        "model": "script.script", 
-        "fields": {
-            "enabled": false, 
-            "name": "Education monitoring smc weekly script", 
-            "sites": [
-                5
-            ]
-        }
-    }, 
+    },
     {
         "pk": "emis_head_teachers_monthly", 
         "model": "script.script", 
