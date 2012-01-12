@@ -2521,7 +2521,7 @@
                 5
             ]
         }
-    }, 
+    },
     {
         "pk": "emis_teachers_monthly", 
         "model": "script.script", 
