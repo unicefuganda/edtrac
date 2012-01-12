@@ -125,15 +125,19 @@ def init_scripts():
                            (Poll.TYPE_NUMERIC, 'emis_boysp6_attendance', 'How many P6 boys are at school today?',),
                            (Poll.TYPE_NUMERIC, 'emis_girlsp3_attendance', 'How many P3 girls are at school today?',),
                            (Poll.TYPE_NUMERIC, 'emis_girlsp6_attendance', 'How many P6 girls are at school today?',),
+                           (Poll.TYPE_NUMBERIC, 'emis_p3curriculum_progress', 'What sub theme number you were teaching this week? (P3) ',)
                            ],
         'head teachers weekly':[(Poll.TYPE_NUMERIC, 'emis_female_teachers_attendance', 'How many female teachers are at school today?',),
                                 (Poll.TYPE_NUMERIC, 'emis_male_teachers_attendance', 'How many male teachers are at school today?',),
                            ],
         'smc weekly':[(Poll.TYPE_TEXT, 'emis_head_teachers_attendance', 'Has the head teacher been at school for at least 3 days? Answer YES or NO', True),
                            ],
-        'teachers monthly':[(Poll.TYPE_TEXT, 'emis_p3curriculum_progress', 'What is the progress of the P3 English curriculum this week?',),
-                            (Poll.TYPE_TEXT, 'emis_p6curriculum_progress', 'What is the progress of the P6 English curriculum this week?',),
-                           ],
+        """
+        #TODO
+        teachers monthly needs to be rescoped!
+        """
+        #'teachers monthly':[(Poll.TYPE_TEXT, 'emis_p3curriculum_progress', 'What sub theme number of the P3 Literacy curricul are you teaching this week? ',)
+        #                   ],
         'head teachers monthly':[(Poll.TYPE_NUMERIC, 'emis_headteachers_abuse', 'How many abuse cases were recorded in the record book this month?',),
                                 (Poll.TYPE_TEXT, 'emis_headteachers_meals', 'How many children do you think had lunch today? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%',),
                            ],
