@@ -217,7 +217,7 @@ class Poll(models.Model):
 
     @classmethod
     @transaction.commit_on_success
-    def create_with_bulk(cls, name, type, question, default_response, contacts, user):
+    def create_with_bulk(cls, name, type, question, default_response, contacts, user,start_immediately=False):
         localized_messages = {}
         for language in dict(settings.LANGUAGES).keys():
             if language == "en":
@@ -227,7 +227,10 @@ class Poll(models.Model):
 
                 localized_contacts = contacts.filter(language=language)
             if localized_contacts.exists():
-                messages = Message.mass_text(gettext_db(field=question, language=language), Connection.objects.filter(contact__in=list(localized_contacts)).distinct(), status='L', batch_status='L')
+                if start_immediately:
+                    messages = Message.mass_text(gettext_db(field=question, language=language), Connection.objects.filter(contact__in=list(localized_contacts)).distinct(), status='L', batch_status='L')
+                else:
+                    messages = Message.mass_text(gettext_db(field=question, language=language), Connection.objects.filter(contact__in=list(localized_contacts)).distinct(), status='Q', batch_status='Q')
                 localized_messages[language] = [messages, localized_contacts]
         poll = Poll.objects.create(name=name, type=type, question=question, default_response=default_response, user=user)
 
@@ -245,6 +248,10 @@ class Poll(models.Model):
 
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
             poll.sites.add(Site.objects.get_current())
+        if start_immediately:
+            poll.start_date = datetime.datetime.now()
+            poll.save()
+            poll_started.send(sender=poll)
         return poll
 
     def add_yesno_categories(self):
