@@ -98,20 +98,13 @@ def new_poll(req):
             question = form.cleaned_data['question']
             default_response = form.cleaned_data['default_response']
             contacts = form.cleaned_data['contacts']
-            #groups = []
             if hasattr(Contact, 'groups'):
                 groups = form.cleaned_data['groups']
-#                if len(groups):
-#                    groups = [group.pk for group in groups]
 
             contacts = Contact.objects.filter(Q(pk__in=contacts) | Q(groups__in=groups)).distinct()
 
             name = form.cleaned_data['name']
             p_type = form.cleaned_data['type']
-#            if len(contacts):
-#                contacts = list(contacts.values_list('pk', flat=True))
-#            else:
-#                contacts = []
             response_type = form.cleaned_data['response_type']
             if not form.cleaned_data['default_response_luo'] == '' \
                 and not form.cleaned_data['default_response'] == '':
@@ -131,21 +124,6 @@ def new_poll(req):
 
             start_immediately = form.cleaned_data['start_immediately']
 
-#            # run poll creation as a daemon process to avoid nginx timing out
-#
-#            args = "['nohup', 'python', 'manage.py' ,'send_poll', '-n', '%s', '-t', '%s', '-q' ,'%s','-r', '%s','-c', '\"%s\"', '-u', '%s','-s', '%s','-e', '%s','-g', '\"%s\"','&']"% (
-#                quote(name),
-#                poll_type,
-#                quote(question),
-#                quote(str(default_response)),
-#                str(contacts),
-#                req.user.pk,
-#                start_immediately,
-#                response_type,
-#                str(groups)
-#                )
-#            subprocess.Popen(eval(args))
-            
             poll = Poll.create_with_bulk(\
                                  name,
                                  poll_type,
