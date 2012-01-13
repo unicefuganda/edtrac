@@ -1,9 +1,12 @@
+{% extends "education/dashboard.html" %}
+
+{% block content %}
 <div id="smc_meetings_container">
     <div id="smc_meetings"></div>
         <script type="text/javascript">
             $(document).ready(function(){
                 smc_meetings();
-                $("#smc_meetings").append("<div>&lt;&lt;<a id='meetings_back_click' style='cursor: pointer; padding:10px;'>Back to Statistics</a></div>");
+                $("#smc_meetings").append("<div>&lt;&lt;<a id='meetings_back_click' style='cursor: pointer; padding:10px;'>Back to Dashboard</a></div>");
                 });
                 $("#meetings_back_click").click(function(){
                     $("#meetings").hide();
@@ -16,3 +19,4 @@
         </span>
         </div>
 </div>
+{% endblock %}

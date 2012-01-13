@@ -204,17 +204,8 @@ def dash_ministry_meetings(req):
         print "some non numeric values were provided"
     return render_to_response('education/dashboard/meetings.html', {}, RequestContext(req))
 
-def dash_deo_meetings(req):
-    message_ids = [poll_response['message_id'] for poll_response in Poll.objects.get(name="emis_meetings").responses.values()]
-    all_messages =[msg.text for msg in Message.objects.filter(id__in=message_ids)]
-    try:
-        to_ret = {}
-        set_messages = set(all_messages)
-        for msg in set_messages:
-            to_ret[int(msg)] = all_messages.count(int(msg))
-    except ValueError:
-        print "some non numeric values were provided"
-    return render_to_response('education/dashboard/meetings.html', {}, RequestContext(req))
+def dash_deo_meetings(req):    
+    return render_to_response('education/deo/meetings.html', {}, RequestContext(req))
 
 #BEGIN Capitation
 

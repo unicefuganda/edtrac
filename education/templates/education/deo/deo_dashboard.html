@@ -71,20 +71,6 @@
                                     </span><a style="padding-left: 0.4em; cursor:pointer;" href="{% url violence-deo-details %}">Click for Details</a>
                                 </div>
                             </div>
-
-                            <!-- <table class="classy">
-                                <tr>
-                                    <th>District</th><th>Number of cases</th>
-                                </tr>
-                                {% for key, value in dicty.items %}
-                                <tr>
-                                    <td>{{ key }}</td><td>{{ value }}</td>
-                                </tr>
-                                {% endfor %}
-                            </table>
-
-                            -->
-
                         </div>
                     </td>
                     <td id="violence" width="50%" height="400" valign="top" style="border-bottom:1px solid #efefef;"></td>
@@ -150,12 +136,12 @@
                             </table>
                         </div>
                         <div class="alert-message">
-                            <p>Report based on 35% of Total Reporters</p>
-                        </div>
+                            <p>Report based on 35% of Total Reporters
                               <span class="links">
-                                <a id="meetings_click">Click to show graph</a> |
-                                <a>Click for Details</a>
+                                <a style="color:#33A7D2;" href="{% url emis-deo-dash-meetings %}">Click for Details</a>
                             </span>
+							</p>
+                        </div>
 
                     </td>
                     <td id="meetings" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;"></td>
