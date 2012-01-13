@@ -700,3 +700,27 @@ table.classy tbody tr:hover td, table.classy tbody tr:hover th{
     color: #404040;
 }
 
+div#violence{
+    width: 50%;
+    float:left;
+}
+div#selectors{
+    width: 50%;
+    float:right;
+}
+div#table_row{
+    clear: both;
+}
+
+div.table_container{
+    padding:10px;
+}
+div.table{
+    width: 70%;
+    float:left;
+}
+div.exporter{
+    width: 30%;
+    margin-top: 70px;
+    float:right;
+}

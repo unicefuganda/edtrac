@@ -5,7 +5,7 @@ from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import user_passes_test
 from django.utils.decorators import method_decorator
-from django.views.generic import DetailView
+from django.views.generic import DetailView, TemplateView
 from .forms import *
 from .models import *
 from uganda_common.utils import *
@@ -297,20 +297,24 @@ def admin_dashboard(request):
                       'y_vals':district_violence,
                       'lunches':lunches_to_ret})
 
-#
-## Details views... specified by ROLES
-#class ViolenceMinistryDetails(DetailView):
-#    queryset = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
-#    template_name = "education/ministry/ministry_violence_details.html"
-#
-##    #TODO open this up with more data variables
-##    def get_context_data(self, **kwargs):
-##        context = super(ViolenceMinistryDetails, self).get_context_data(**kwargs)
-##        ##context['some_key'] = <some_list_of_response>
+
+# Details views... specified by ROLES
+class ViolenceAdminDetails(TemplateView):
+    template_name = "education/admin/admin_violence_details.html"
+
+    #TODO open this up with more data variables
+    def get_context_data(self, **kwargs):
+        context = super(ViolenceAdminDetails, self).get_context_data(**kwargs)
+        ##context['some_key'] = <some_list_of_response>
+        # we get all violence cases ever reported
+        #TODO: filtering by ajax and time
+        context['violence_cases'] = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+        return context
+
 #    @method_decorator(login_required)
 #    def dispatch(self, *args, **kwargs):
-#        return super(ViolenceMinistryDetails, self).dispatch(*args, **kwargs)
-#
+#        return super(ViolenceAdminDetails, self).dispatch(*args, **kwargs)
+
 #
 #class MealsMinistryDetails(DetailView):
 #    queryset = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))

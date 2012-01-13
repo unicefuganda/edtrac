@@ -143,6 +143,9 @@ urlpatterns = patterns('',
       'sort_ascending':False,
     }, name="emis-users"),
     url(r'^emis/alerts_detail/(?P<alert>\d+)/$', login_required(alerts_detail), {}, name="emis-alerts"),
+
+    #Admin Dashboard
+
     url(r'^emis/dash_map/$', dash_map, {}, name="emis-dash-map"),
     url(r'^emis/progress/$', dash_progress, {}, name="emis-dash-progress"),
     url(r'^emis/dash_attdance/$', dash_attdance, {}, name="emis-dash-attdance"),
@@ -153,6 +156,8 @@ urlpatterns = patterns('',
 
     url(r'^emis/dash_ministry_map/$', dash_ministry_map, {}, name="emis-ministry-dash-map"),
     url(r'^emis/ministry_progress/$', dash_ministry_progress, {}, name="emis-ministry-curriculum-progress"),
+
+    url(r'^emis/violence_admin_details/$', ViolenceAdminDetails.as_view(), name="violence_admin_details"),
 #    url(r'^emis/dash_attdance/$', dash_ministry_attdance, {}, name="emis-ministry-dash-attdance"),
     url(r'^emis/dash_ministry_attdance/$', dash_attdance, {}, name="emis-ministry-dash-attdance"),
     url(r'^emis/dash_ministry_violence/$', dash_ministry_violence, {}, name="emis-ministry-dash-violence"),
