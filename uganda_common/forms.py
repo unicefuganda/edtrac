@@ -71,7 +71,8 @@ class SMSInput(forms.Textarea):
         /*$(submit_btn).disabled = !ok;*/
         $(counter_container).html(str);
         }
-        $('.smsinput').change(setInterval(function() {count_characters('.smsinput','.counter','foo');},500));
+        // $('.smsinput').change(setInterval(function() {count_characters('.smsinput','.counter','foo');},500));
+        $('.smsinput').keyup(function() {count_characters('.smsinput','.counter','foo');});
              //]]>
         </script>
 
