@@ -1,0 +1,82 @@
+{% extends "education/deo/deo_dashboard.html" %}
+{% block content %}
+<div class="top_row">
+        <!-- violence chart detail goes over here -->
+    <div id="violence"></div>
+    <div id="selectors">
+		Choose:<br/>
+		School: <br/>
+		Time: <br/>
+		Reporters
+    </div>
+</div>
+<div id="table_row">
+    <div class="school_report">
+        <div class="table_container">
+            <div class="table">
+                <h2>Violence Cases reported by Schools</h2>
+                <table class="classy">
+                <tr>
+                    <thead>
+                    <th>Schools</th>
+                    <th>Violence Cases recorded Jan 2012</th>
+                    <th>Violence Cases recorded Feb 2012</th>
+                    <th>Change</th>
+                    </thead>
+                </tr>
+				<tr>
+					<td>Kotido Army PS</td><td>23</td><td>21</td><td></td>
+				</tr>
+				<tr>
+					<td>Kotido Welfare PS</td><td>13</td><td>21</td><td></td>
+				</tr>
+				<tr>
+					<td>Kotido Dayschool PS</td><td>12</td><td>21</td><td></td>
+				</tr>								
+                </table>
+            </div>
+            <div class="exporter">
+                <a style="padding:5px;">Export results to SpreadSheet</a>
+            </div>
+        </div>
+        <div class="table_container">
+            <div class="table">
+                <h2>Violence Cases reported by Community Members</h2>
+                <table class="classy">
+                    <tr>
+                        <thead>
+                            <th>Schools</th>
+                            <th>Violence Cases recorded Jan 2012</th>
+                            <th>Violence Cases recorded Feb 2012</th>
+                            <th>Change</th>
+                        </thead>
+                    </tr>
+
+					<tr>
+						<td>Kotido Army PS</td><td>23</td><td>21</td><td></td>
+					</tr>
+					<tr>
+						<td>Kotido Welfare PS</td><td>13</td><td>21</td><td></td>
+					</tr>
+					<tr>
+						<td>Kotido Dayschool PS</td><td>12</td><td>21</td><td></td>
+					</tr>								
+	                </table>
+                </table>
+            </div>
+            <div class="exporter">
+                <a style="padding:5px;">Export results to SpreadSheet</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+		var line_chart;
+        $('#violence').load('{% url emis-deo-dash-violence %}');
+    });
+</script>
+        
+        
+{% endblock %}
