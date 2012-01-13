@@ -122,7 +122,8 @@ def dash_ministry_violence(request):
     return render_to_response('education/dashboard/violence.html',
             {'x_vals':districts, 'y_vals' : district_violence_cases, 'dicty' : dicty, 'chart_title':'Violence Cases Recorded'},
         RequestContext(request)
-    )
+    )    
+
 
 def dash_deo_violence(request):
     #TODO: use months for the x-values
@@ -311,9 +312,17 @@ class ViolenceAdminDetails(TemplateView):
         context['violence_cases'] = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
         return context
 
-#    @method_decorator(login_required)
-#    def dispatch(self, *args, **kwargs):
-#        return super(ViolenceAdminDetails, self).dispatch(*args, **kwargs)
+class ViolenceDeoDetails(TemplateView):
+    template_name = "education/deo/deo_violence_details.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(ViolenceDeoDetails, self).get_context_data(**kwargs)
+        context['violence_cases'] = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+        return context
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(ViolenceDeoDetails, self).dispatch(*args, **kwargs)
 
 #
 #class MealsMinistryDetails(DetailView):
