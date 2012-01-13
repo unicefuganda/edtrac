@@ -724,3 +724,9 @@ div.exporter{
     margin-top: 70px;
     float:right;
 }
+table.smc_meetings td{
+    font-size:0.6em;
+}
+table.smc_meetings th{
+    font-size: 0.8em;
+}
