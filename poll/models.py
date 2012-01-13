@@ -239,11 +239,11 @@ class Poll(models.Model):
         cursor = connection.cursor()
         for language in localized_messages.keys():
             raw_sql = "insert into poll_poll_contacts (poll_id, contact_id) values %s" % ','.join(\
-                ["(%d, %d)" % (poll.pk, c.pk) for c in localized_messages.get(language)[1]])
+                ["(%d, %d)" % (poll.pk, c.pk) for c in localized_messages.get(language)[1].iterator()])
             cursor.execute(raw_sql)
 
             raw_sql = "insert into poll_poll_messages (poll_id, message_id) values %s" % ','.join(\
-                ["(%d, %d)" % (poll.pk, m.pk) for m in localized_messages.get(language)[0]])
+                ["(%d, %d)" % (poll.pk, m.pk) for m in localized_messages.get(language)[0].iterator()])
             cursor.execute(raw_sql)
 
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
