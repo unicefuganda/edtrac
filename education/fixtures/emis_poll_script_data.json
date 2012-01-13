@@ -1,0 +1,1533 @@
+[
+    {
+        "pk": 94, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_grant", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How much of your annual capitation grant have you received this term? Reply with ONE of the following 0%, 25%, 50%, 75% or 100%", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 96, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_cct", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "What date was your last CCT visit?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "date", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 97, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_classroom", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many classrooms does your school have for each class?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 98, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_classroom_use", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many classrooms are in usen at your school for each class?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 99, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_latrines", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many latrine stances does your school have for boys, girls and teachers?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 100, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_latrines_use", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many latrine stances are used by boys, girls and teachers?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 101, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_teachers", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many male and female teachers are deployed at your school?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 102, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_boys_enrolled", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many boys are enrolled in classes p1-p7 at your school?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 103, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_girls_enrolled", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many girls are enrolled in classes p1-p7 at your school?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 105, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_grant_notice", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Has UPE capitation grant been display on school notice board? Answer YES or NO", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 133, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_gender", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Are you female or male?", 
+            "sites": [
+                5, 
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 136, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_female_teachers_attendance", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many female teachers are at school today?", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 137, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_male_teachers_attendance", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many male teachers are at school today?", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 138, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_smc_upe_grant", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Has UPE capitation grant been displayed on the school notice board? Answer YES or NO", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 139, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_p3curriculum_progress", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "What is the progress of the P3 English curriculum this week?", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 140, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_p6curriculum_progress", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "What is the progress of the P6 English curriculum this week?", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 141, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_boysp3_attendance", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many P3 boys are at school today?", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 142, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_boysp6_attendance", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many P6 boys are at school today?", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 143, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_girlsp3_attendance", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many P3 girls are at school today?", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 144, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_girlsp6_attendance", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many P6 girls are at school today?", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 145, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_boysp3_enrollment", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many boys are enrolled in P3 this term?", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 146, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_boysp6_enrollment", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many boys are enrolled in P6 this term?", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 147, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_girlsp3_enrollment", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many girls are enrolled in P3 this term?", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 148, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_girlsp6_enrollment", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many girls are enrolled in P6 this term?", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 149, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_female_teachers_deployment", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many female teachers are deployed in your school this term?", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 150, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_male_teachers_deployment", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many male teachers are deployed in your school this term?", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 151, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_upe_grant", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Has the UPE grant been displayed on the school notice board? Answer YES or NO", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 126, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_upe_grant", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Has the UPE grant been displayed on the school notice board? Answer YES or NO", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 127, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_gem_headteacher_present", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Name the schools where the Head teacher was present at your last visit? Separate schools with a comma e.g St Peters PS, St John PS", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 128, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_gem_headteacher_absent", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Name the schools where the Head teacher was absent at your last visit? Separate schools with a comma e.g St Peters PS, St John PS", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 129, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_head_teachers_attendance", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Has the head teacher been at school for at least 3 days? Answer YES or NO", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 130, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_headteachers_abuse", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many abuse cases were recorded in the record book this month?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 131, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_headteachers_meals", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many children do you think had lunch today? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 134, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_class", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Which class do you teach? P3 or P6", 
+            "sites": [
+                5, 
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 135, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_school", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "What is the name of your school?", 
+            "sites": [
+                5, 
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 90, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_subcounty", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "What is the name of your sub county?", 
+            "sites": [
+                5, 
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 91, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_one_school", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "What is the name of your school?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 92, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_many_school", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Name the schools you are resonsible for.Separate each school name with a comma, for example \"St. Mary Secondary,Pader Primary\"", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 93, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_name", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "What is your name?", 
+            "sites": [
+                5, 
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 88, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_role", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM", 
+            "sites": [
+                5, 
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 113, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_smc_upe_grant", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Has UPE capitation grant been displayed on the school notice board? Answer YES or NO", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 114, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_p3curriculum_progress", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "What was the sub theme number you were teaching this week?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 157, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_smc_meals", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many children do you think had lunch today? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 160, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_smc_upe_grant", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Has UPE capitation grant been displayed on the school notice board? Answer YES or NO", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 161, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_p3curriculum_progress", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "What is the progress of the P3 English curriculum this week?", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 162, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_p6curriculum_progress", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "What is the progress of the P6 English curriculum this week?", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 173, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_upe_grant", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Has the UPE grant been displayed on the school notice board? Answer YES or NO", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 174, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_gem_headteacher_present", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Name the schools where the Head teacher was present at your last visit? Separate schools with a comma e.g St Peters PS, St John PS", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 175, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_gem_headteacher_absent", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Name the schools where the Head teacher was absent at your last visit? Separate schools with a comma e.g St Peters PS, St John PS", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 176, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_head_teachers_attendance", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Has the head teacher been at school for at least 3 days? Answer YES or NO", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 152, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_gem_headteacher_present", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Name the schools where the Head teacher was present at your last visit? Separate schools with a comma e.g St Peters PS, St John PS", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 153, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_gem_headteacher_absent", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Name the schools where the Head teacher was absent at your last visit? Separate schools with a comma e.g St Peters PS, St John PS", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 154, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_head_teachers_attendance", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Has the head teacher been at school for at least 3 days? Answer YES or NO", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    },
+    {
+        "pk": 95, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_inspection", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "What date was your last school inspection?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "date", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 180, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_smc_upe_grant", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Has UPE capitation grant been displayed on the school notice board? Answer YES or NO", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 181, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_p3curriculum_progress", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "What is the progress of the P3 English curriculum this week?", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 182, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_p6curriculum_progress", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "What is the progress of the P6 English curriculum this week?", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    },
+    {
+        "pk": 193, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_upe_grant", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Has the UPE grant been displayed on the school notice board? Answer YES or NO", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 194, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_gem_headteacher_present", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Name the schools where the Head teacher was present at your last visit? Separate schools with a comma e.g St Peters PS, St John PS", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 195, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_gem_headteacher_absent", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Name the schools where the Head teacher was absent at your last visit? Separate schools with a comma e.g St Peters PS, St John PS", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 196, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_head_teachers_attendance", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Has the head teacher been at school for at least 3 days? Answer YES or NO", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 199, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_smc_upe_grant", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Has UPE capitation grant been displayed on the school notice board? Answer YES or NO", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 104, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_smc_meals", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many children do you think had lunch today? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 106, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_inspection_yesno", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Do you know if your school was inspected this term? Answer YES if there was inspection and NO if there was no inspection", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 107, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_meetings", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many SMC meetings have you held this term?Give number of meetings held, if none, reply 0.", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 108, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_absence", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "Do you know if the head teacher was present at school today? Answer YES or NO", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 109, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_abuse", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many abuse cases were recorded in the record book this month?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 110, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_meals", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many children had meals at lunch today? Reply with ONE of the following - none, very few, less than half, more than half, very many", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 89, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_district", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "What is the name of your district?", 
+            "sites": [
+                5, 
+                1
+            ], 
+            "user": 1, 
+            "type": "district", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": 179, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "emis_smc_meals", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many children do you think had lunch today? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%", 
+            "sites": [
+                1
+            ], 
+            "user": 1, 
+            "type": "t", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
+        "pk": "emis_autoreg", 
+        "model": "script.script", 
+        "fields": {
+            "enabled": true, 
+            "name": "Education monitoring autoregistration script", 
+            "sites": [
+                1
+            ]
+        }
+    }, 
+    {
+        "pk": "emis_head_teachers_weekly", 
+        "model": "script.script", 
+        "fields": {
+            "enabled": true, 
+            "name": "Education monitoring head teachers weekly script", 
+            "sites": [
+                1
+            ]
+        }
+    }, 
+    {
+        "pk": 191, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 0, 
+            "message": "", 
+            "poll": 88, 
+            "order": 0, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 192, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 0, 
+            "message": "", 
+            "poll": 133, 
+            "order": 1, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 193, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 0, 
+            "message": "", 
+            "poll": 134, 
+            "order": 2, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 194, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "M", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 0, 
+            "message": "", 
+            "poll": 89, 
+            "order": 3, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 195, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 0, 
+            "message": "", 
+            "poll": 90, 
+            "order": 4, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 196, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 0, 
+            "message": "", 
+            "poll": 135, 
+            "order": 5, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 197, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 93, 
+            "order": 6, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 198, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_autoreg", 
+            "retry_offset": null, 
+            "rule": "w", 
+            "email": null, 
+            "num_tries": null, 
+            "start_offset": 60, 
+            "message": "Welcome EdTrac.The information you shall provide contributes to keeping children in school.", 
+            "poll": null, 
+            "order": 7, 
+            "giveup_offset": 0
+        }
+    }, 
+    {
+        "pk": 199, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_head_teachers_weekly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 136,
+            "order": 0, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 200, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "emis_head_teachers_weekly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 137,
+            "order": 1, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "script.email", 
+        "fields": {
+            "message": "{% load message_content %}{{ connection|excel_reminder_msg }}{{ connection|outstanding_deliveries_msg }}", 
+            "sender": "no-reply@uganda.rapidsms.org", 
+            "recipients": [
+                1
+            ], 
+            "subject": "{% load message_content %}SupplyTracking: {{ connection|email_subject }}"
+        }
+    }
+]
