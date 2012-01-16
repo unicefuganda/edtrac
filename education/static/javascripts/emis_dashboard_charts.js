@@ -234,7 +234,7 @@ function load_column(title, selector, yLabel){
             align:'left',
             verticalAlign:'top',
             x:100,
-            y:70,
+            y:20,
             floating:true,
             shadow:true
         },
