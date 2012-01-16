@@ -333,25 +333,24 @@ class ProgressMinistryDetails(TemplateView):
 class ProgressDeoDetails(TemplateView):
     template_name = "education/deo/deo_progress_details.html"
 
-#class ProgressAdminDetails(TemplateView):
-#    """Similar view as ministry"""
-#    template_name = "education/admin/progress.html"
-#
-#    def get_context_data(self, **kwargs):
-#        context = super(ProgressAdminDetails, self).get_context_data(**kwargs)
-#        context['number_of_responses'] = list_poll_responses(Poll.objects.get(name="emis_p3curriculum_progress"))
-#        return context
+    @method_decorator(login_required)
+    def get_context_data(self, **kwargs):
+        context = super(ProgressDeoDetails, self).get_context_data(**kwargs)
+        #TODO mixins and filters
+        context['progress'] = list_poll_responses(Poll.objects.get(name="emis_p3curriculum_progress"))
+        return context
+
 
 class ProgressAdminDetails(TemplateView):
     template_name = "education/admin/admin_progress_details.html"
 
-    #TODO open this up with more data variables
+    @method_decorator(login_required)
     def get_context_data(self, **kwargs):
         context = super(ProgressAdminDetails, self).get_context_data(**kwargs)
         ##context['some_key'] = <some_list_of_response>
         # we get all violence cases ever reported
         #TODO: filtering by ajax and time
-        context['violence_cases'] = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+        context['progress'] = list_poll_responses(Poll.objects.get(name="emis_p3curriculum_progress"))
         return context
 
 class MealsMinistryDetails(TemplateView):
