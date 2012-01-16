@@ -179,6 +179,7 @@ urlpatterns = patterns('',
 
     url(r'^emis/dash_ministry_progress_details/$', ProgressMinistryDetails.as_view(), name="ministry-progress-details"),
     url(r'^emis/dash_admin_progress_details/$', ProgressAdminDetails.as_view(), name="admin-progress-details"),
+    url(r'^emis/dash_admin_meals_details/$', MealsAdminDetails.as_view(), name="admin-meals-details"),
 
     url(r'^emis/reporters/page(?P<page>[0-9]+)/$', ListView.as_view(
         model=EmisReporter,

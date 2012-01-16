@@ -333,7 +333,6 @@ class ProgressMinistryDetails(TemplateView):
 class ProgressDeoDetails(TemplateView):
     template_name = "education/deo/deo_progress_details.html"
 
-    @method_decorator(login_required)
     def get_context_data(self, **kwargs):
         context = super(ProgressDeoDetails, self).get_context_data(**kwargs)
         #TODO mixins and filters
@@ -344,7 +343,6 @@ class ProgressDeoDetails(TemplateView):
 class ProgressAdminDetails(TemplateView):
     template_name = "education/admin/admin_progress_details.html"
 
-    @method_decorator(login_required)
     def get_context_data(self, **kwargs):
         context = super(ProgressAdminDetails, self).get_context_data(**kwargs)
         ##context['some_key'] = <some_list_of_response>
@@ -363,14 +361,10 @@ class MealsMinistryDetails(TemplateView):
 
 class MealsAdminDetails(TemplateView):
     template_name = "education/admin/admin_meals_details.html"
-    #TODO open this up with more data variables
     def get_context_data(self, **kwargs):
-        context = super(MealsMinistryDetails, self).get_context_data(**kwargs)
-        ##context['some_key'] = <some_list_of_response>
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(MealsMinistryDetails, super).dispatch(*args, **kwargs)
+        context = super(MealsAdminDetails, self).get_context_data(**kwargs)
 
+        return context
 
 
 #
