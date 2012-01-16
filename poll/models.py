@@ -228,9 +228,9 @@ class Poll(models.Model):
                 localized_contacts = contacts.filter(language=language)
             if localized_contacts.exists():
                 if start_immediately:
-                    messages = Message.mass_text(gettext_db(field=question, language=language), Connection.objects.filter(contact__in=localized_contacts).distinct(), status='L', batch_status='L')
-                else:
                     messages = Message.mass_text(gettext_db(field=question, language=language), Connection.objects.filter(contact__in=localized_contacts).distinct(), status='Q', batch_status='Q')
+                else:
+                    messages = Message.mass_text(gettext_db(field=question, language=language), Connection.objects.filter(contact__in=localized_contacts).distinct(), status='L', batch_status='L')
                 localized_messages[language] = [messages, localized_contacts]
         poll = Poll.objects.create(name=name, type=type, question=question, default_response=default_response, user=user)
 
