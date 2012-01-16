@@ -26,11 +26,15 @@
 
     <tr>
         <td colspan="2" id="progress"></td>
+        <script type="text/javascript">
+            $(document).ready(function(){
+                $("#progressbar-p3").append("hello");
+            });
+        </script>
     </tr>
     <tr>
         <td colspan="2">
             <table width="100%" cellpadding="5" cellspacing="0">
-                <!-- TODO: scope out curriculum progress -->
                 <tr>
                     <td id="violence_holder" width="50%" height="200" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;">
                         <div class="violence">
@@ -157,6 +161,7 @@
         $('#attdance').load('{% url emis-dash-attdance %}');
 
         $("#progress").load('{% url emis-dash-progress %}');
+        $("#progressbar-p3").append("hello");
 
         // hide existing rows
         $("#violence").hide();

@@ -176,6 +176,8 @@ urlpatterns = patterns('',
     url(r'^emis/dash_deo_meetings/$', dash_deo_meetings, {}, name="emis-deo-dash-meetings"),
     url(r'^emis/dash_deo_capitation/$', dash_deo_capitation, {}, name="emis-deo-dash-capitation"),
 
+    url(r'^emis/dash_ministry_progress_details/$', ProgressMinistryDetails.as_view(), name="ministry-progress-details"),
+    url(r'^emis/dash_admin_progress_details/$', ProgressAdminDetails.as_view(), name="admin-progress-details"),
     #TODO: what to show other users; OTHER dashboard
 
 

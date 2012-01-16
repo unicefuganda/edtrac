@@ -315,6 +315,21 @@ class ViolenceDeoDetails(TemplateView):
     def dispatch(self, *args, **kwargs):
         return super(ViolenceDeoDetails, self).dispatch(*args, **kwargs)
 
+class ProgressMinistryDetails(TemplateView):
+    template_name = "education/ministry/ministry_progress_details.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(ProgressMinistryDetails, self).get_context_data(**kwargs)
+
+
+class ProgressDeoDetails(TemplateView):
+    template_name = "education/deo/deo_progress_details.html"
+    pass
+
+class ProgressAdminDetails(ProgressMinistryDetails):
+    """Similar view as ministry"""
+    pass
+
 #
 #class MealsMinistryDetails(DetailView):
 #    queryset = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))
