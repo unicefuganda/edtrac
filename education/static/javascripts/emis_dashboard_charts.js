@@ -218,8 +218,11 @@ function load_column(title, selector, yLabel){
             text: title
         },
         xAxis:{
+            title:{
+                text : 'Theme'
+            },
             categories:[
-                'Jan', 'Feb', 'Mar'
+                '1.1', '1.2', '1.3'
             ]
         },
         yAxis: {
@@ -252,20 +255,8 @@ function load_column(title, selector, yLabel){
 
         series:[
             {
-            name:'1 meeting',
-            data: [49.9, 23, 23]
-            },
-            {
-                name:'2 meetings',
-                data:[23,23,6]
-            },
-            {
-                name: '3 meetings',
-                data:[2,5,2]
-            },
-            {
-                name:'No meeting',
-                data: [49.9, 23, 23]
+                name:'Theme',
+            data: [49, 23, 23]
             }
         ]
     });
