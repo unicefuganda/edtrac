@@ -173,6 +173,9 @@ def dash_progress(request):
 def dash_ministry_progress(request):
     pass
 
+def dash_admin_progress(req):
+    p3_response = 34
+    return render_to_response('education/admin/progress.html', {'p3':p3_response}, RequestContext(req))
 
 # Meetings
 """
@@ -189,6 +192,10 @@ def dash_meetings(request):
     except ValueError:
         print "some non numeric values were provided"
     return render_to_response('education/dashboard/meetings.html', {}, RequestContext(request))
+
+def dash_admin_meetings(req):
+    return render_to_response("education/admin/admin_meetings.html",{}, RequestContext(req))
+
 
 def dash_ministry_meetings(req):
     #this is what gets rendered to viewers on the ministry level
@@ -318,17 +325,34 @@ class ViolenceDeoDetails(TemplateView):
 class ProgressMinistryDetails(TemplateView):
     template_name = "education/ministry/ministry_progress_details.html"
 
+    @method_decorator(login_required)
     def get_context_data(self, **kwargs):
         context = super(ProgressMinistryDetails, self).get_context_data(**kwargs)
-
+        return context
 
 class ProgressDeoDetails(TemplateView):
     template_name = "education/deo/deo_progress_details.html"
-    pass
 
-class ProgressAdminDetails(ProgressMinistryDetails):
-    """Similar view as ministry"""
-    pass
+#class ProgressAdminDetails(TemplateView):
+#    """Similar view as ministry"""
+#    template_name = "education/admin/progress.html"
+#
+#    def get_context_data(self, **kwargs):
+#        context = super(ProgressAdminDetails, self).get_context_data(**kwargs)
+#        context['number_of_responses'] = list_poll_responses(Poll.objects.get(name="emis_p3curriculum_progress"))
+#        return context
+
+class ProgressAdminDetails(TemplateView):
+    template_name = "education/admin/admin_progress_details.html"
+
+    #TODO open this up with more data variables
+    def get_context_data(self, **kwargs):
+        context = super(ProgressAdminDetails, self).get_context_data(**kwargs)
+        ##context['some_key'] = <some_list_of_response>
+        # we get all violence cases ever reported
+        #TODO: filtering by ajax and time
+        context['violence_cases'] = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+        return context
 
 #
 #class MealsMinistryDetails(DetailView):

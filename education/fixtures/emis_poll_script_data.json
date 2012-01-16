@@ -265,26 +265,7 @@
             "start_date": null, 
             "response_type": "a"
         }
-    }, 
-    {
-        "pk": 139, 
-        "model": "poll.poll", 
-        "fields": {
-            "default_response": "", 
-            "name": "emis_p3curriculum_progress", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "What is the progress of the P3 English curriculum this week?", 
-            "sites": [
-                1
-            ], 
-            "user": 1, 
-            "type": "t", 
-            "start_date": null, 
-            "response_type": "a"
-        }
-    }, 
+    },
     {
         "pk": 140, 
         "model": "poll.poll", 
@@ -840,26 +821,7 @@
             "start_date": null, 
             "response_type": "a"
         }
-    }, 
-    {
-        "pk": 161, 
-        "model": "poll.poll", 
-        "fields": {
-            "default_response": "", 
-            "name": "emis_p3curriculum_progress", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "What is the progress of the P3 English curriculum this week?", 
-            "sites": [
-                1
-            ], 
-            "user": 1, 
-            "type": "t", 
-            "start_date": null, 
-            "response_type": "a"
-        }
-    }, 
+    },
     {
         "pk": 162, 
         "model": "poll.poll", 
@@ -1049,26 +1011,7 @@
             "start_date": null, 
             "response_type": "a"
         }
-    }, 
-    {
-        "pk": 181, 
-        "model": "poll.poll", 
-        "fields": {
-            "default_response": "", 
-            "name": "emis_p3curriculum_progress", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "What is the progress of the P3 English curriculum this week?", 
-            "sites": [
-                1
-            ], 
-            "user": 1, 
-            "type": "t", 
-            "start_date": null, 
-            "response_type": "a"
-        }
-    }, 
+    },
     {
         "pk": 182, 
         "model": "poll.poll", 

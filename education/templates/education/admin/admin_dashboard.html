@@ -26,11 +26,6 @@
 
     <tr>
         <td colspan="2" id="progress"></td>
-        <script type="text/javascript">
-            $(document).ready(function(){
-                $("#progressbar-p3").append("hello");
-            });
-        </script>
     </tr>
     <tr>
         <td colspan="2">
@@ -143,7 +138,7 @@
                             <p>Report based on 35% of Total Reporters</p>
                         </div>
                               <span class="links">                                
-                                <a href="{% url emis-dash-meetings %}">Click for Details</a>
+                                <a href="{% url emis-dash-admin-meetings %}">Click for Details</a>
                             </span>
 
                     </td>
@@ -159,38 +154,7 @@
     $(document).ready(function(){
         $('#map').load('{% url emis-dash-map %}');
         $('#attdance').load('{% url emis-dash-attdance %}');
-
-        $("#progress").load('{% url emis-dash-progress %}');
-        $("#progressbar-p3").append("hello");
-
-        // hide existing rows
-        $("#violence").hide();
-        $("#meals").hide();
-        $("#meetings").hide();
-        // click handles
-        $('#violence_click').click(function(){
-            // hide the statistics that get shown
-            $('#violence_holder').hide();
-            // show the violence chart
-            $("#violence").show();
-            $('#violence').load('{% url emis-dash-violence %}');
-            // append an element
-        });
-
-
-        $('#meals_click').click(function(){
-            $('#meals_holder').hide();
-            $("#meals").show();
-            $('#meals').load('{% url emis-dash-meals %}');
-        });
-
-        $('#meetings_click').click(function(){
-            $('#meetings_holder').hide();
-            $("#meetings").show();
-            $('#meetings').load('{% url emis-dash-meetings %}');
-        });
-
-
+        $("#progress").load('{% url emis-admin-curriculum-progress %}');
         $('#capitation').load('{% url emis-ministry-dash-capitation %}');
     });
 </script>

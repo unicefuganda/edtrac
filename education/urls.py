@@ -154,8 +154,10 @@ urlpatterns = patterns('',
     url(r'^emis/dash_meetings/$', dash_meetings, {}, name="emis-dash-meetings"),
     url(r'^emis/dash_capitation/$', dash_capitation, {}, name="emis-dash-capitation"),
 
+    url(r'^emis/dash_admin_meetings/$', dash_admin_meetings, {}, name="emis-dash-admin-meetings"),
     url(r'^emis/dash_ministry_map/$', dash_ministry_map, {}, name="emis-ministry-dash-map"),
-    url(r'^emis/ministry_progress/$', dash_ministry_progress, {}, name="emis-ministry-curriculum-progress"),
+    url(r'^emis/dash_ministry_progress/$', dash_ministry_progress, {}, name="emis-ministry-curriculum-progress"),
+    url(r'^emis/dash_admin_progress/$', dash_admin_progress, {}, name="emis-admin-curriculum-progress"),
 
     url(r'^emis/violence_admin_details/$', ViolenceAdminDetails.as_view(), name="violence-admin-details"),
     url(r'^emis/violence_deo_details/$', ViolenceDeoDetails.as_view(), name="violence-deo-details"),
