@@ -208,7 +208,12 @@ function load_line_graph(title, subtitle, selector, y_label){
        });
 }
 
-function load_column(title, selector, yLabel){
+function load_column(title, selector, yLabel, category){
+    var category_list = [];
+    for (i=0; i<category.length; i++){
+        x = parseFloat(category[i])
+        category_list.push(x.toString());
+    }
     bar_chart = new Highcharts.Chart({
         chart : {
             renderTo: selector,
@@ -221,9 +226,7 @@ function load_column(title, selector, yLabel){
             title:{
                 text : 'Theme'
             },
-            categories:[
-                '1.1', '1.2', '1.3'
-            ]
+            categories:category_list
         },
         yAxis: {
             min: 0,

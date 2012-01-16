@@ -353,17 +353,27 @@ class ProgressAdminDetails(TemplateView):
         #TODO: filtering by ajax and time
         context['violence_cases'] = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
         return context
-#
-#class MealsMinistryDetails(DetailView):
-#    queryset = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))
-#    template_name = "education/ministry/ministry_meals_details.html"
-##    #TODO open this up with more data variables
-##    def get_context_data(self, **kwargs):
-##        context = super(MealsMinistryDetails, self).get_context_data(**kwargs)
-##        ##context['some_key'] = <some_list_of_response>
-#    @method_decorator(login_required)
-#    def dispatch(self, *args, **kwargs):
-#        return super(MealsMinistryDetails, super).dispatch(*args, **kwargs)
+
+class MealsMinistryDetails(TemplateView):
+    template_name = "education/ministry/ministry_meals_details.html"
+    #TODO open this up with more data variables
+    def get_context_data(self, **kwargs):
+        context = super(MealsMinistryDetails, self).get_context_data(**kwargs)
+        ##context['some_key'] = <some_list_of_response>
+        return context
+
+class MealsAdminDetails(TemplateView):
+    template_name = "education/admin/admin_meals_details.html"
+    #TODO open this up with more data variables
+    def get_context_data(self, **kwargs):
+        context = super(MealsMinistryDetails, self).get_context_data(**kwargs)
+        ##context['some_key'] = <some_list_of_response>
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(MealsMinistryDetails, super).dispatch(*args, **kwargs)
+
+
+
 #
 #class SMCMeetingsMinistryDetails(DetailView):
 #    queryset = list_poll_responses(Poll.objects.get(name="emis_headteachers_meetings"))
