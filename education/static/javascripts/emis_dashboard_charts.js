@@ -252,16 +252,20 @@ function load_column(title, selector, yLabel){
 
         series:[
             {
-            name:'kaboong',
+            name:'1 meeting',
             data: [49.9, 23, 23]
             },
             {
-                name:'Kotido',
+                name:'2 meetings',
                 data:[23,23,6]
             },
             {
-                name: 'Kyegegwa',
+                name: '3 meetings',
                 data:[2,5,2]
+            },
+            {
+                name:'No meeting',
+                data: [49.9, 23, 23]
             }
         ]
     });
