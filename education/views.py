@@ -353,7 +353,6 @@ class ProgressAdminDetails(TemplateView):
         #TODO: filtering by ajax and time
         context['violence_cases'] = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
         return context
-
 #
 #class MealsMinistryDetails(DetailView):
 #    queryset = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))

@@ -3,12 +3,6 @@
 <div class="top_row">
     <!-- violence chart detail goes over here -->
     <div id="progress"></div>
-    <div id="selectors">
-        Choose:<br/>
-        District: <br/>
-        Time: <br/>
-        Reporters
-    </div>
 </div>
 <div id="table_row">
     <div class="school_report">
@@ -45,9 +39,9 @@
 <script type="text/javascript">
     $(document).ready(function(){
         var bar_chart;
-        $('#progress').load('{% url emis-dash-violence %}');
+        //TODO generalize function.
+        load_column('Curriculum Progress', 'progress', 'Number of districts');
     });
 </script>
-
 
 {% endblock %}

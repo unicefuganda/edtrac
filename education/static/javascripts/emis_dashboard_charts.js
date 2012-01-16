@@ -207,3 +207,62 @@ function load_line_graph(title, subtitle, selector, y_label){
           }]
        });
 }
+
+function load_column(title, selector, yLabel){
+    bar_chart = new Highcharts.Chart({
+        chart : {
+            renderTo: selector,
+            defaultSeriesType:'column'
+        },
+        title : {
+            text: title
+        },
+        xAxis:{
+            categories:[
+                'Jan', 'Feb', 'Mar'
+            ]
+        },
+        yAxis: {
+            min: 0,
+            title: {
+                text: yLabel
+            }
+        },
+        legend: {
+            layout:'vertical',
+            backgroundColor:'#FFFFFF',
+            align:'left',
+            verticalAlign:'top',
+            x:100,
+            y:70,
+            floating:true,
+            shadow:true
+        },
+        tooltip:{
+            formatter:function(){
+                return ''+this.x+': '+this.y
+            }
+        },
+        plotOptions:{
+            column:{
+                pointPadding:0.2,
+                borderWidth:0
+            }
+        },
+
+        series:[
+            {
+            name:'kaboong',
+            data: [49.9, 23, 23]
+            },
+            {
+                name:'Kotido',
+                data:[23,23,6]
+            },
+            {
+                name: 'Kyegegwa',
+                data:[2,5,2]
+            }
+        ]
+    });
+}

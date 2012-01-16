@@ -171,7 +171,6 @@ urlpatterns = patterns('',
     #DEO dashboard
     url(r'^emis/dash_deo_map/$', dash_ministry_map, {}, name="emis-deo-dash-map"),
     url(r'^emis/deo_progress/$', dash_ministry_progress, {}, name="emis-deo-curriculum-progress"),
-    #    url(r'^emis/dash_attdance/$', dash_ministry_attdance, {}, name="emis-ministry-dash-attdance"),
     url(r'^emis/dash_deo_attdance/$', dash_attdance, {}, name="emis-deo-dash-attdance"),
     url(r'^emis/dash_deo_violence/$', dash_deo_violence, {}, name="emis-deo-dash-violence"),
     url(r'^emis/dash_deo_meals/$', dash_deo_meals, {}, name="emis-deo-dash-meals"),
@@ -180,8 +179,6 @@ urlpatterns = patterns('',
 
     url(r'^emis/dash_ministry_progress_details/$', ProgressMinistryDetails.as_view(), name="ministry-progress-details"),
     url(r'^emis/dash_admin_progress_details/$', ProgressAdminDetails.as_view(), name="admin-progress-details"),
-    #TODO: what to show other users; OTHER dashboard
-
 
     url(r'^emis/reporters/page(?P<page>[0-9]+)/$', ListView.as_view(
         model=EmisReporter,
