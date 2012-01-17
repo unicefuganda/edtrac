@@ -300,14 +300,14 @@ def admin_dashboard(request):
 # Details views... specified by ROLES
 class ViolenceAdminDetails(TemplateView):
     template_name = "education/admin/admin_violence_details.html"
+    from .utils import themes
 
     #TODO open this up with more data variables
     def get_context_data(self, **kwargs):
         context = super(ViolenceAdminDetails, self).get_context_data(**kwargs)
-        ##context['some_key'] = <some_list_of_response>
-        # we get all violence cases ever reported
         #TODO: filtering by ajax and time
         context['violence_cases'] = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+
         return context
 
 class ViolenceDeoDetails(TemplateView):
