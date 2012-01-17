@@ -535,7 +535,6 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
     """
     #TODO: provide querying by date too
     s = 0
-    import pdb; pdb.set_trace()
     if kwargs:
         #district filter
         if kwargs.has_key('month_filter'):
