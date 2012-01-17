@@ -310,8 +310,10 @@ class ViolenceAdminDetails(TemplateView):
 class ViolenceDeoDetails(TemplateView):
     template_name = "education/deo/deo_violence_details.html"
     def get_context_data(self, **kwargs):
+        #location = self.request.get_user
         context = super(ViolenceDeoDetails, self).get_context_data(**kwargs)
-        context['violence_cases'] = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+        #context['violence_cases'] = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+        context['violence_cases'] = get_responses_to_polls(Poll.objects.get(name="emis_headteachers_abuse"), location=self.request.user.get_profile().location)
         return context
 
     @method_decorator(login_required)
