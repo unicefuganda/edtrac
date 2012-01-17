@@ -250,7 +250,7 @@ function load_column(title, selector, yLabel, xLabel, category, data_list){
         },
         tooltip:{
             formatter:function(){
-                return ''+this.x+': '+this.y
+                return ''+this.x+': '+this.y + ' districts'
             }
         },
         plotOptions:{

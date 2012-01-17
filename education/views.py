@@ -300,19 +300,15 @@ def admin_dashboard(request):
 # Details views... specified by ROLES
 class ViolenceAdminDetails(TemplateView):
     template_name = "education/admin/admin_violence_details.html"
-    from .utils import themes
-
     #TODO open this up with more data variables
     def get_context_data(self, **kwargs):
         context = super(ViolenceAdminDetails, self).get_context_data(**kwargs)
         #TODO: filtering by ajax and time
         context['violence_cases'] = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
-
         return context
 
 class ViolenceDeoDetails(TemplateView):
     template_name = "education/deo/deo_violence_details.html"
-
     def get_context_data(self, **kwargs):
         context = super(ViolenceDeoDetails, self).get_context_data(**kwargs)
         context['violence_cases'] = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
@@ -324,7 +320,6 @@ class ViolenceDeoDetails(TemplateView):
 
 class ProgressMinistryDetails(TemplateView):
     template_name = "education/ministry/ministry_progress_details.html"
-
     @method_decorator(login_required)
     def get_context_data(self, **kwargs):
         context = super(ProgressMinistryDetails, self).get_context_data(**kwargs)
@@ -339,11 +334,11 @@ class ProgressDeoDetails(TemplateView):
         context['progress'] = list_poll_responses(Poll.objects.get(name="emis_p3curriculum_progress"))
         return context
 
-
 class ProgressAdminDetails(TemplateView):
     template_name = "education/admin/admin_progress_details.html"
-
     def get_context_data(self, **kwargs):
+        import random
+        from .utils import themes
         context = super(ProgressAdminDetails, self).get_context_data(**kwargs)
         ##context['some_key'] = <some_list_of_response>
         # we get all violence cases ever reported
@@ -365,33 +360,6 @@ class MealsAdminDetails(TemplateView):
         context = super(MealsAdminDetails, self).get_context_data(**kwargs)
 
         return context
-
-
-#
-#class SMCMeetingsMinistryDetails(DetailView):
-#    queryset = list_poll_responses(Poll.objects.get(name="emis_headteachers_meetings"))
-#    template_name = "education/ministry/ministry_meetings_details.html"
-##    #TODO open this up with more data variables
-##    def get_context_data(self, **kwargs):
-##        context = super(SMCMeetingsMinistryDetails, self).get_context_data(**kwargs)
-##        ##context['some_key'] = <some_list_of_response>
-#    @method_decorator(login_required)
-#    def dispatch(self, *args, **kwargs):
-#        return super(SMCMeetingsMinistryDetails, self).dispatch(*args, **kwargs)
-#
-#class CapitationMinistryDetails(DetailView):
-#    context_object_name = 'capitation'
-#    model = Poll
-#    #queryset = list_poll_responses(Poll.objects.get(name="emis_headteachers_grants"))
-#    template_name = "education/ministry/ministry_capitation_details.html"
-##    #TODO open this up with more data variables
-##    def get_context_data(self, **kwargs):
-##        context = super(CapitationMinistryDetails, self).get_context_data(**kwargs)
-##        ##context['some_key'] = <some_list_of_response>
-#    @method_decorator(login_required)
-#    def dispatch(self, *args, **kwargs):
-#        return super(CapitationMinistryDetails, self).dispatch(*args, **kwargs)
-
 
 def whitelist(request):
     numbers = []
