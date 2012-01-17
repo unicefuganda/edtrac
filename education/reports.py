@@ -537,46 +537,32 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
     s = 0
     if kwargs:
         #district filter
-        if kwargs.has_key('month_filter'):
             #filter takes boolean values
-            if kwargs.get('month_filter'):
-                DISTRICT = ['Kaabong', 'Kabarole', 'Kyegegwa', 'Kotido']
-                to_ret = {}
-                for location in Location.objects.filter(name__in=DISTRICT):
-                    try:
-                        for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(contact__in=\
-                            Contact.objects.filter(reporting_location=location),
-                            date__range = get_month_day_range(datetime.datetime.now())
-                            )]:
-                            s += val
-                    except NoneType:
-                        pass
-                    to_ret[location.__unicode__()] = s
-                return to_ret
-            elif kwargs.get('month_filter') and kwargs.has_key('location'):
+        if kwargs.has_key('month_filter') and kwargs.get('month_filter'):
+            DISTRICT = ['Kaabong', 'Kabarole', 'Kyegegwa', 'Kotido']
+            to_ret = {}
+            for location in Location.objects.filter(name__in=DISTRICT):
                 try:
-                    now = datetime.datetime.now()
-                    for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(
-                        contact__in = Contact.objects.filter(reporting_location=kwargs.get('location')),
-                        date__range = get_month_day_range(now)
-                    )]:
-                        s += val
-                except NoneType:
-                    pass
-                return s
-
-            elif kwargs.get('month_filter') and kwargs.has_key('location') and kwargs.has_key('ret_type'):
-                #ret_type -> whether a dictionary or list type should be returned with locations...
-                try:
-                    now = datetime.datetime.now()
                     for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(contact__in=\
-                    Contact.objects.filter(reporting_location=kwargs.get('location')),
-                        date__range = get_month_day_range(now)
-                    )]:
+                        Contact.objects.filter(reporting_location=location),
+                        date__range = get_month_day_range(datetime.datetime.now())
+                        )]:
                         s += val
                 except NoneType:
                     pass
-                return s
+                to_ret[location.__unicode__()] = s
+            return to_ret
+        elif kwargs.has_key('month_filter') and kwargs.get('month_filter') and kwargs.has_key('location'):
+            try:
+                now = datetime.datetime.now()
+                for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(
+                    contact__in = Contact.objects.filter(reporting_location=kwargs.get('location')),
+                    date__range = get_month_day_range(now)
+                    )]:
+                    s += val
+            except NoneType:
+                pass
+            return s
     else:
         try:
             for val in [r.eav.poll_number_value for r in poll_queryset.responses.all()]:
