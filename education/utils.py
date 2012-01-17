@@ -26,7 +26,7 @@ def previous_calendar_week(t=None):
     Thursday marks the beginning of a new week of data submission
     Data for a new week is accepted until Wednesday evenning of the following week
     """
-    d = datetime.datetime.now()
+    d = t if t else datetime.datetime.now()
     if not d.weekday() == 3:
         # last Thursday == next Thursday minus 7 days.
         last_thursday = d + (datetime.timedelta((3-d.weekday())%7) - (datetime.timedelta(days=7)))
@@ -43,7 +43,8 @@ def is_weekend(date):
 
 def next_relativedate(day_offset, month_offset=0):
     """
-    Find the date corresponding to day_offset of the month
+    Find the date corresponding to day_offset of the month for example 25th day of of month
+    you can also give month offsets, ie date of the 25th day of the next month
     """
     d = datetime.datetime.now()
     if month_offset:
@@ -75,6 +76,12 @@ def _next_thursday(sp=None):
     return d
     
 def _date_of_monthday(day_offset):
+    
+    """
+    Find the date corresponding to day_offset of the month for example 25th day of of month
+    If the 'day_offset' day of the month is falls in holiday period, 'day_offset' day of
+    the following month is returned
+    """
     
     holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
     d = next_relativedate(day_offset)
