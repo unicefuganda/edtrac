@@ -527,6 +527,7 @@ def get_month_day_range(date, **kwargs):
         return to_ret
 
 def get_sum_of_poll_response(poll_queryset, **kwargs):
+    #TODO refactor name of method
     """
     This computes the eav response value to a poll
     can also be used to filter by district and create a dict with
@@ -534,6 +535,7 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
     """
     #TODO: provide querying by date too
     s = 0
+    import pdb; pdb.set_trace()
     if kwargs:
         #district filter
         if kwargs.has_key('month_filter'):
@@ -544,9 +546,9 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                 for location in Location.objects.filter(name__in=DISTRICT):
                     try:
                         for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(contact__in=\
-                            Contact.objects.filter(reporting_location=location,\
+                            Contact.objects.filter(reporting_location=location),
                             date__range = get_month_day_range(datetime.datetime.now())
-                            ))]:
+                            )]:
                             s += val
                     except NoneType:
                         pass
@@ -555,8 +557,21 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
             elif kwargs.get('month_filter') and kwargs.has_key('location'):
                 try:
                     now = datetime.datetime.now()
+                    for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(
+                        contact__in = Contact.objects.filter(reporting_location=kwargs.get('location')),
+                        date__range = get_month_day_range(now)
+                    )]:
+                        s += val
+                except NoneType:
+                    pass
+                return s
+
+            elif kwargs.get('month_filter') and kwargs.has_key('location') and kwargs.has_key('ret_type'):
+                #ret_type -> whether a dictionary or list type should be returned with locations...
+                try:
+                    now = datetime.datetime.now()
                     for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(contact__in=\
-                        Contact.objects.filter(reporting_location=kwargs.get('location')),
+                    Contact.objects.filter(reporting_location=kwargs.get('location')),
                         date__range = get_month_day_range(now)
                     )]:
                         s += val
