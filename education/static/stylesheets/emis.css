@@ -339,11 +339,17 @@ div.weekly_data table{
     width: 100%;
     margin-bottom: 18px;
     padding:0;
-    font-size: 13px;
     border-collapse: collapse;
     border:1px solid #ddd;
 }
 
+div.weekly_data table th{
+    font-size: 1em;
+    line-height: 1em;
+}
+div.weekly_data table td{
+    font-size: 0.9em;
+}
 
 div.weekly_data table th, td{
     /*padding: 10px 10px 9px;
@@ -455,6 +461,10 @@ div.img, div.img img, div.img h3{
 div.indicator{
     width:150px;
     float:right;
+    font-size: 0.9em;
+}
+div.indicator h3{
+    font-size: 1.2em;
 }
 div.map{
     float:left;
@@ -494,4 +504,229 @@ div.progress span.inner_span {
 div#p3, div#p6{
     float:inherit;
     padding:20px;
+}
+
+div.violence, div.meal, div.meeting, div.capitation{
+    margin:15px;
+}
+h1.title{
+    font-size: 16px;
+    color: #3E576F;
+}
+
+span.links{
+    padding:10px;
+    margin-top:50px;
+    float: right;
+}
+span.links a{
+    cursor: pointer;
+}
+
+table.classy{
+    width: 100%;
+    margin-bottom: 18px;
+    padding:0;
+    border-collapse: collapse;
+    border:1px solid #ddd;
+}
+
+table.classy th{
+    padding:5px;
+    line-height: 1em;
+
+    font-weight: bold;
+    vertical-align: middle;
+    text-align: left;
+    font-size: 1em;
+}
+
+table.classy td{
+    vertical-align: top;
+    border: solid 1px #f8f8f8;
+    border-top:1px solid #ddd;
+    font-size: 0.9em;
+    padding:5px;
+}
+
+table.classy thead tr:first-child th:first-child, table.classy tbody tr:first-child td:first-child{
+    -webkit-border-radius: 0 4px 0 0;
+    -moz-border-radius: 0 4px 0 0;
+    border-radius: 0 4px 0 0;
+}
+
+table.classy tbody tr:last-child td:first-child{
+    -webkit-border-radius: 0 0 4px 0;
+    -moz-border-radius: 0 0 4px 0;
+    border-radius: 0 0 4px 0;
+}
+
+table.classy tbody tr:nth-child(odd) td, table.classy tbody tr:nth-child(odd) th{
+    background-color: #f9f9f9;
+}
+
+table.classy tbody tr:hover td, table.classy tbody tr:hover th{
+    background-color: #f5f5f5;
+}
+
+.label {
+    padding: 1px 3px 2px;
+    font-size:1em;
+    /*font-size: 9.75px;*/
+    font-weight: bold;
+    color: #ffffff;
+    /*text-transform: uppercase;*/
+    white-space: nowrap;
+    background-color: #bfbfbf;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    text-shadow: none;
+}
+.label.important {
+    background-color: #c43c35;
+}
+.label.warning {
+    background-color: #f89406;
+}
+.label.success {
+    background-color: #46a546;
+}
+.label.notice {
+    background-color: #62cffc;
+}
+
+.alert-message {
+    position: relative;
+    padding: 7px 15px;
+    margin-bottom: 18px;
+    color: #404040;
+    background-color: #eedc94;
+    background-repeat: repeat-x;
+    background-image: -khtml-gradient(linear, left top, left bottom, from(#fceec1), to(#eedc94));
+    background-image: -moz-linear-gradient(top, #fceec1, #eedc94);
+    background-image: -ms-linear-gradient(top, #fceec1, #eedc94);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #fceec1), color-stop(100%, #eedc94));
+    background-image: -webkit-linear-gradient(top, #fceec1, #eedc94);
+    background-image: -o-linear-gradient(top, #fceec1, #eedc94);
+    background-image: linear-gradient(top, #fceec1, #eedc94);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fceec1', endColorstr='#eedc94', GradientType=0);
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+    border-color: #eedc94 #eedc94 #e4c652;
+    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+    border-width: 1px;
+    border-style: solid;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    -moz-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+.alert-message .close {
+    margin-top: 1px;
+    *margin-top: 0;
+}
+.alert-message a {
+    font-weight: bold;
+    color: #404040;
+}
+.alert-message.danger p a,
+.alert-message.error p a,
+.alert-message.success p a,
+.alert-message.info p a {
+    color: #ffffff;
+}
+.alert-message h5 {
+    line-height: 18px;
+}
+.alert-message p {
+    margin-bottom: 0;
+}
+.alert-message div {
+    margin-top: 5px;
+    margin-bottom: 2px;
+    line-height: 28px;
+}
+.alert-message .btn {
+    -webkit-box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+    -moz-box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.alert-message.block-message {
+    background-image: none;
+    background-color: #fdf5d9;
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+    padding: 14px;
+    border-color: #fceec1;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+}
+.alert-message.block-message ul, .alert-message.block-message p {
+    margin-right: 30px;
+}
+.alert-message.block-message ul {
+    margin-bottom: 0;
+}
+.alert-message.block-message li {
+    color: #404040;
+}
+.alert-message.block-message .alert-actions {
+    margin-top: 5px;
+}
+.alert-message.block-message.error, .alert-message.block-message.success, .alert-message.block-message.info {
+    color: #404040;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+.alert-message.block-message.error {
+    background-color: #fddfde;
+    border-color: #fbc7c6;
+}
+.alert-message.block-message.success {
+    background-color: #d1eed1;
+    border-color: #bfe7bf;
+}
+.alert-message.block-message.info {
+    background-color: #ddf4fb;
+    border-color: #c6edf9;
+}
+.alert-message.block-message.danger p a,
+.alert-message.block-message.error p a,
+.alert-message.block-message.success p a,
+.alert-message.block-message.info p a {
+    color: #404040;
+}
+
+div#violence{
+    width: 50%;
+    float:left;
+}
+div#selectors{
+    width: 50%;
+    float:right;
+}
+div#table_row{
+    clear: both;
+}
+
+div.table_container{
+    padding:10px;
+}
+div.table{
+    width: 70%;
+    float:left;
+}
+div.exporter{
+    width: 30%;
+    margin-top: 70px;
+    float:right;
+}
+table.smc_meetings td{
+    font-size:0.6em;
+}
+table.smc_meetings th{
+    font-size: 0.8em;
 }

@@ -4,16 +4,19 @@ from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import user_passes_test
+from django.utils.decorators import method_decorator
+from django.views.generic import DetailView, TemplateView
 from .forms import *
 from .models import *
 from uganda_common.utils import *
 from rapidsms.contrib.locations.models import Location
 from generic.views import generic
 from generic.sorters import SimpleSorter
+from poll.models import Poll
 from .reports import *
 from .utils import *
 from urllib2 import urlopen
-import  re
+import  re, datetime
 
 
 Num_REG = re.compile('\d+')
@@ -31,7 +34,10 @@ def index(request, **kwargs):
     else:
         #When choosing to use kwargs, don't forget to include template and context_var variables
         # if you don't need a template or just need the original template, use template_name=None
-        context_vars = kwargs['context_vars']        
+        if kwargs.has_key('context_vars'):
+            context_vars = kwargs['context_vars']
+        else:
+            context_vars = None
         template_name = kwargs['template_name']
         if not template_name:
             #if no template name is given
@@ -40,34 +46,15 @@ def index(request, **kwargs):
             t = "education/%s"%template_name            
         return render_to_response(t, context_vars, RequestContext(request))
 
-@login_required
-def testindex(request):
-    abuses_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
-    # this should be equal
-    districts = abuses_to_ret.keys()    
-    #uncomment to get the real values 
-    #district_abuses = to_ret.values()    
-    #TODO comment this out and read the above instruction
-    district_abuses = [23, 56, 23, 66]
-    
-    # get %age of pupils that didn't have a meal
-    #TODO uncomment and use a better value for computing
-    #TODO get rid of duplicate emis_headteachers_meals poll --> reason filter() gets used here
-    #lunches_to_ret = zip(districts, [val for val in list_poll_responses(Poll.objects.filter(name="emis_headteachers_meals")[0]).values()])
-    #TOOD remove test data
-    lunches_to_ret = zip(districts, [20, 30, 40, 10])
-
-    smc_meetings_to_ret = list_poll_responses(Poll.objects.filter(name="emis_meetings")[0])
-    
-    return index(request, template_name="base.html", context_vars={
-        'districts':districts, 'abuse_values':district_abuses, 'lunches':lunches_to_ret
-        #TODO; add more context variables depending on what you want rendered on the chart
-        #TODO: more generic highchart 
-    })
-
+#MAPS
 @login_required
 def dash_map(request):
     return render_to_response('education/dashboard/map.html', {}, RequestContext(request))
+
+
+def dash_ministry_map(request):
+    return render_to_response('education/dashboard/map.html', {}, RequestContext(request))
+
 
 def dash_attdance(request):
     boysp3_attendance = get_responses_to_polls(poll_name='emis_boysp3_attendance')
@@ -105,34 +92,95 @@ def dash_attdance(request):
         'male_teachers_present' : male_teachers_present, 'male_teachers_absent' : male_teachers_absent
     } , RequestContext(request))
 
-def dash_abuse(request):
-    abuses_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+#TODO provide an attendance view for ministry officials
+
+
+#VIOLENCE
+"""
+functions to generate violence specific data to different roles (deo, admin, ministry and others)
+"""
+
+def dash_violence(request):
+    violence_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
     # this should be equal
-    districts = abuses_to_ret.keys()
-    district_abuses = [23, 56, 23, 66]     
-    return render_to_response('education/dashboard/abuse.html',{\
-                                'districts':districts,\
-                                'abuse_values':district_abuses\
+    districts = violence_to_ret.keys()
+    district_violence_cases = [23, 56, 23, 66]
+
+    return render_to_response('education/dashboard/violence.html',{\
+                                'x_vals':districts,\
+                                'y_vals':district_violence_cases
                                 }, RequestContext(request))
 
+def dash_ministry_violence(request):
+    #NOTE: violence and abuse almost similar
+    violence = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+    districts = violence.keys()
+    #assumption is still 4 districts
+    #dummy data
+    district_violence_cases = [23,56, 23, 66]
+    dicty = dict(zip(districts, district_violence_cases))
+    return render_to_response('education/dashboard/violence.html',
+            {'x_vals':districts, 'y_vals' : district_violence_cases, 'dicty' : dicty, 'chart_title':'Violence Cases Recorded'},
+        RequestContext(request)
+    )    
+
+
+def dash_deo_violence(request):
+    #TODO: use months for the x-values
+    #filter only values in the district
+    location = request.user.get_profile().location
+    violence = get_sum_of_poll_response(Poll.objects.get(name="emis_headteachers_abuse"),
+        location=location)
+
+    months = ["Jan", "Feb", "March"]
+    district_violence = [343,234,64]
+    return render_to_response('education/dashboard/violence.html',
+            {'x_vals' : months, 'y_vals' : district_violence, 'chart_title':'Violence Cases Recorded'},
+        RequestContext(request)
+    )
+
+#MEALS
+"""
+We want to easily populate graphs for deo, admin and ministry roles
+"""
+
 def dash_meals(request):
-    abuses_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+    meal_poll_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))
     # this should be equal
-    districts = abuses_to_ret.keys()
+    districts = meal_poll_to_ret.keys()
     lunches_to_ret = zip(districts, [20, 30, 40, 10])
     return render_to_response('education/dashboard/meals.html', {\
                                 'lunches':lunches_to_ret,\
                                 }, RequestContext(request))
 
-@login_required
+def dash_ministry_meals(req):
+    meal_poll_responses = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))
+    districts = meal_poll_responses.keys()
+    lunches_to_ret = zip(districts, [10, 20, 30, 40])
+    return render_to_response('education/dashboard/meals.html', {
+        'lunches':lunches_to_ret}, RequestContext(req))
+
+def dash_deo_meals(req):
+    return render_to_response('education/dashboard/meals.html', {}, RequestContext(req))
+
+# Progress code
+
 def dash_progress(request):
     #curriculum progress for p6 and p3
-    progress_to_ret = [65, 62]
-    classes = ["p3", "p6"]
-    p3 = 65
-    p6 = 100
-    return render_to_response('education/dashboard/progress.html', {'p3':p3, 'p6':p6}, RequestContext(request))
+    p3_response = 34
+    return render_to_response('education/dashboard/progress.html', {'p3':p3_response}, RequestContext(request))
 
+def dash_ministry_progress(request):
+    pass
+
+def dash_admin_progress(req):
+    p3_response = 34
+    return render_to_response('education/admin/progress.html', {'p3':p3_response}, RequestContext(req))
+
+# Meetings
+"""
+code to implement meetings
+"""
 def dash_meetings(request):
     message_ids = [poll_response['message_id'] for poll_response in Poll.objects.get(name="emis_meetings").responses.values()]
     all_messages =[msg.text for msg in Message.objects.filter(id__in=message_ids)]
@@ -145,8 +193,46 @@ def dash_meetings(request):
         print "some non numeric values were provided"
     return render_to_response('education/dashboard/meetings.html', {}, RequestContext(request))
 
+def dash_admin_meetings(req):
+    return render_to_response("education/admin/admin_meetings.html",{}, RequestContext(req))
+
+
+def dash_ministry_meetings(req):
+    #this is what gets rendered to viewers on the ministry level
+    #TODO: use utility functions and compute this figure from other total EMIS reporters
+    message_ids = [poll_response['message_id'] for poll_response in Poll.objects.get(name="emis_meetings").responses.values()]
+    all_messages =[msg.text for msg in Message.objects.filter(id__in=message_ids)]
+    try:
+        to_ret = {}
+        set_messages = set(all_messages)
+        for msg in set_messages:
+            to_ret[int(msg)] = all_messages.count(int(msg))
+    except ValueError:
+        print "some non numeric values were provided"
+    return render_to_response('education/dashboard/meetings.html', {}, RequestContext(req))
+
+def dash_deo_meetings(req):    
+    return render_to_response('education/deo/meetings.html', {}, RequestContext(req))
+
+#BEGIN Capitation
+
 def dash_capitation(request):
-    return render_to_response('education/dashboard/capitation.html', {}, RequestContext(request))
+    #to_ret = YES, NO, I don't know
+    to_ret = zip(['Yes','No', "Other"],[30, 30, 40])
+    return render_to_response('education/dashboard/capitation.html', {'responses':to_ret}, RequestContext(request))
+
+def dash_ministry_capitation(req):
+    to_ret = zip(['Yes','No', "Other"],[30, 30, 40])
+    return render_to_response('education/dashboard/capitation.html', {'responses':to_ret}, RequestContext(req))
+
+def dash_deo_capitation(req):
+    to_ret = zip(['Yes','No', "Other"],[30, 30, 40])
+    return render_to_response('education/dashboard/capitation.html', {'responses':to_ret}, RequestContext(req))
+
+
+
+
+# Dashboard specific view functions
 
 @login_required
 def dashboard(request):
@@ -157,84 +243,132 @@ def dashboard(request):
         return ministry_dashboard(request)
     elif profile.is_member_of('Admins'):
         return admin_dashboard(request)
-    #TODO provide views with specific contexts to other ROLEs in edTrac
-    # use index() as follows for other roles.
-    #elif profile.is_member_of('SOME_ROLE'):
-    #   return index(request, context_vars={'Abuses':Abuse.objects.all()})
-    # what other roles will see.
-    #TODO identification and implementation of key roles and views
     else:
         return testindex(request)
-#        return index(request)
-#        return HttpResponseRedirect('/emis/stats/')
 
 @login_required
 def deo_dashboard(request):
-    form = DistrictFilterForm()
-    district_id = None
-    if request.method == 'POST':
-        form = DistrictFilterForm(request.POST)
-        if form.is_valid():
-            district_id = form.cleaned_data['district']
-    user_location = Location.objects.get(pk=district_id) if district_id else get_location_for_user(request.user)
-    top_node = Location.tree.root_nodes()[0]
-    return render_to_response("education/deo/deo_dashboard.html", {\
-                                'location':user_location,\
-                                'top_node':top_node,\
-                                'form':form, \
-                                'alerts':deo_alerts(request, district_id),\
-                                'keyratios':keyratios_stats(request, district_id),\
-                                'attendance_stats':attendance_stats(request, district_id), \
-                                'enrollment_stats':enrollment_stats(request, district_id), \
-                                'headteacher_attendance_stats':headteacher_attendance_stats(request, district_id), \
-                                'gem_htpresent_stats':gem_htpresent_stats(request, district_id), \
-                                'abuse_stats':abuse_stats(request, district_id), \
-                                'meals_stats':meals_stats(request, district_id), \
-                                }, RequestContext(request))
+    location = request.user.get_profile().location
+    violence = get_sum_of_poll_response(Poll.objects.get(name="emis_headteachers_abuse"),
+        location=location)
+    months = ["Jan", "Feb", "March"]
+    district_violence = [343,234,64]
+    dicty = dict(zip(months, district_violence))
+
+    return index(request, template_name="deo/deo_dashboard.html",
+        context_vars={'dicty':dicty,
+                      'x_vals':months,
+                      'y_vals':district_violence})
 
 @login_required
 def ministry_dashboard(request):
-    abuses_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
-    # this should be equal
-    districts = abuses_to_ret.keys()
-    #uncomment to get the real values
-    #district_abuses = to_ret.values()
-    #TODO comment this out and read the above instruction
-    district_abuses = [23, 56, 23, 66]
+    violence = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+    districts = violence.keys()
+    #assumption is still 4 districts
+    district_violence = [23,56, 23, 66]
+    dicty = dict(zip(districts, district_violence))
 
-    # get %age of pupils that didn't have a meal
-    #TODO uncomment and use a better value for computing
-    #TODO get rid of duplicate emis_headteachers_meals poll --> reason filter() gets used here
-    #lunches_to_ret = zip(districts, [val for val in list_poll_responses(Poll.objects.filter(name="emis_headteachers_meals")[0]).values()])
-    #TOOD remove test data
-    lunches_to_ret = zip(districts, [20, 30, 40, 10])
+    meal_poll_responses = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))
+    districts = meal_poll_responses.keys()
+    lunches_to_ret = dict(zip(districts, [10, 20, 30, 40]))
 
-    smc_meetings_to_ret = list_poll_responses(Poll.objects.filter(name="emis_meetings")[0])
-
-    return index(request, template_name="ministry/ministry_dashboard.html", context_vars={
-        'districts':districts, 'abuse_values':district_abuses, 'lunches':lunches_to_ret})
+    return index(request, template_name="ministry/ministry_dashboard.html",
+        context_vars={'dicty':dicty,
+                      'x_vals':districts,
+                      'y_vals':district_violence,
+                      'lunches':lunches_to_ret})
 
 @login_required
 def admin_dashboard(request):
-    abuses_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
-    # this should be equal
-    districts = abuses_to_ret.keys()
-    #uncomment to get the real values
-    #district_abuses = to_ret.values()
-    #TODO comment this out and read the above instruction
-    district_abuses = [23, 56, 23, 66]
+    violence = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+    districts = violence.keys()
+    #assumption is still 4 districts
+    district_violence = [23,56, 23, 66]
+    dicty = dict(zip(districts, district_violence))
 
-    # get %age of pupils that didn't have a meal
-    #TODO uncomment and use a better value for computing
-    #TODO get rid of duplicate emis_headteachers_meals poll --> reason filter() gets used here
-    #lunches_to_ret = zip(districts, [val for val in list_poll_responses(Poll.objects.filter(name="emis_headteachers_meals")[0]).values()])
-    #TOOD remove test data
-    lunches_to_ret = zip(districts, [20, 30, 40, 10])
+    meal_poll_responses = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))
+    districts = meal_poll_responses.keys()
+    lunches_to_ret = dict(zip(districts, [10, 20, 30, 40]))
 
-    smc_meetings_to_ret = list_poll_responses(Poll.objects.filter(name="emis_meetings")[0])
+    return index(request, template_name="admin/admin_dashboard.html",
+        context_vars={'dicty':dicty,
+                      'x_vals':districts,
+                      'y_vals':district_violence,
+                      'lunches':lunches_to_ret})
 
-    return index(request, template_name="admin/admin_dashboard.html", context_vars={
-        'districts':districts, 'abuse_values':district_abuses, 'lunches':lunches_to_ret})
+
+# Details views... specified by ROLES
+class ViolenceAdminDetails(TemplateView):
+    template_name = "education/admin/admin_violence_details.html"
+    #TODO open this up with more data variables
+    def get_context_data(self, **kwargs):
+        context = super(ViolenceAdminDetails, self).get_context_data(**kwargs)
+        #TODO: filtering by ajax and time
+        context['violence_cases'] = get_responses_to_polls(Poll.objects.get(name="emis_headteachers_abuse"),
+            location=self.request.user.get_profile().location,
+            month_filter=True
+        )
+        #context[]
+
+
+        return context
+
+class ViolenceDeoDetails(TemplateView):
+    template_name = "education/deo/deo_violence_details.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(ViolenceDeoDetails, self).get_context_data(**kwargs)
+        #context['violence_cases'] = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+        context['violence_cases'] = get_responses_to_polls(Poll.objects.get(name="emis_headteachers_abuse"),
+            location=self.request.user.get_profile().location, month_filter=True)
+        return context
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(ViolenceDeoDetails, self).dispatch(*args, **kwargs)
+
+class ProgressMinistryDetails(TemplateView):
+    template_name = "education/ministry/ministry_progress_details.html"
+    @method_decorator(login_required)
+    def get_context_data(self, **kwargs):
+        context = super(ProgressMinistryDetails, self).get_context_data(**kwargs)
+        return context
+
+class ProgressDeoDetails(TemplateView):
+    template_name = "education/deo/deo_progress_details.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(ProgressDeoDetails, self).get_context_data(**kwargs)
+        #TODO mixins and filters
+        context['progress'] = list_poll_responses(Poll.objects.get(name="emis_p3curriculum_progress"))
+        return context
+
+class ProgressAdminDetails(TemplateView):
+    template_name = "education/admin/admin_progress_details.html"
+    def get_context_data(self, **kwargs):
+        import random
+        from .utils import themes
+        context = super(ProgressAdminDetails, self).get_context_data(**kwargs)
+        ##context['some_key'] = <some_list_of_response>
+        # we get all violence cases ever reported
+        #TODO: filtering by ajax and time
+        context['progress'] = list_poll_responses(Poll.objects.get(name="emis_p3curriculum_progress"))
+        return context
+
+class MealsMinistryDetails(TemplateView):
+    template_name = "education/ministry/ministry_meals_details.html"
+    #TODO open this up with more data variables
+    def get_context_data(self, **kwargs):
+        context = super(MealsMinistryDetails, self).get_context_data(**kwargs)
+        ##context['some_key'] = <some_list_of_response>
+        return context
+
+class MealsAdminDetails(TemplateView):
+    template_name = "education/admin/admin_meals_details.html"
+    def get_context_data(self, **kwargs):
+        context = super(MealsAdminDetails, self).get_context_data(**kwargs)
+
+        return context
 
 def whitelist(request):
     numbers = []

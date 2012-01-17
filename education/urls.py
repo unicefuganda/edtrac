@@ -3,6 +3,7 @@ from .forms import SchoolFilterForm, LimitedDistictFilterForm, \
 
 from .models import EmisReporter, School
 from .reports import messages, othermessages, reporters, schools
+#from .reports import AttendanceReport, messages, othermessages, reporters, schools
 from .sorters import LatestSubmissionSorter
 from .views import *
 #from education.views import ChartView
@@ -19,7 +20,6 @@ from django.contrib.auth.models import User
 from django.views.generic import ListView
 
 urlpatterns = patterns('',
-   url(r'^emis/testindex/$', testindex),
    url(r'^emis/messagelog/$', login_required(generic), {
       'model':Message,
       'queryset':messages,
@@ -161,13 +161,44 @@ urlpatterns = patterns('',
       'sort_ascending':False,
     }, name="emis-users"),
     url(r'^emis/alerts_detail/(?P<alert>\d+)/$', login_required(alerts_detail), {}, name="emis-alerts"),
+
+    #Admin Dashboard
+
     url(r'^emis/dash_map/$', dash_map, {}, name="emis-dash-map"),
-    url(r'^emis/progress/$', dash_progress, {}, name="emis-curriculum-progress"),
+    url(r'^emis/progress/$', dash_progress, {}, name="emis-dash-progress"),
     url(r'^emis/dash_attdance/$', dash_attdance, {}, name="emis-dash-attdance"),
-    url(r'^emis/dash_abuse/$', dash_abuse, {}, name="emis-dash-abuse"),
+    url(r'^emis/dash_violence/$', dash_violence, {}, name="emis-dash-violence"),
     url(r'^emis/dash_meals/$', dash_meals, {}, name="emis-dash-meals"),
     url(r'^emis/dash_meetings/$', dash_meetings, {}, name="emis-dash-meetings"),
     url(r'^emis/dash_capitation/$', dash_capitation, {}, name="emis-dash-capitation"),
+
+    url(r'^emis/dash_admin_meetings/$', dash_admin_meetings, {}, name="emis-dash-admin-meetings"),
+    url(r'^emis/dash_ministry_map/$', dash_ministry_map, {}, name="emis-ministry-dash-map"),
+    url(r'^emis/dash_ministry_progress/$', dash_ministry_progress, {}, name="emis-ministry-curriculum-progress"),
+    url(r'^emis/dash_admin_progress/$', dash_admin_progress, {}, name="emis-admin-curriculum-progress"),
+
+    url(r'^emis/violence_admin_details/$', ViolenceAdminDetails.as_view(), name="violence-admin-details"),
+    url(r'^emis/violence_deo_details/$', ViolenceDeoDetails.as_view(), name="violence-deo-details"),
+#    url(r'^emis/dash_attdance/$', dash_ministry_attdance, {}, name="emis-ministry-dash-attdance"),
+    url(r'^emis/dash_ministry_attdance/$', dash_attdance, {}, name="emis-ministry-dash-attdance"),
+    url(r'^emis/dash_ministry_violence/$', dash_ministry_violence, {}, name="emis-ministry-dash-violence"),
+    url(r'^emis/dash_ministry_meals/$', dash_ministry_meals, {}, name="emis-ministry-dash-meals"),
+    url(r'^emis/dash_ministry_meetings/$', dash_ministry_meetings, {}, name="emis-ministry-dash-meetings"),
+    url(r'^emis/dash_ministry_capitation/$', dash_ministry_capitation, {}, name="emis-ministry-dash-capitation"),
+
+    #DEO dashboard
+    url(r'^emis/dash_deo_map/$', dash_ministry_map, {}, name="emis-deo-dash-map"),
+    url(r'^emis/deo_progress/$', dash_ministry_progress, {}, name="emis-deo-curriculum-progress"),
+    url(r'^emis/dash_deo_attdance/$', dash_attdance, {}, name="emis-deo-dash-attdance"),
+    url(r'^emis/dash_deo_violence/$', dash_deo_violence, {}, name="emis-deo-dash-violence"),
+    url(r'^emis/dash_deo_meals/$', dash_deo_meals, {}, name="emis-deo-dash-meals"),
+    url(r'^emis/dash_deo_meetings/$', dash_deo_meetings, {}, name="emis-deo-dash-meetings"),
+    url(r'^emis/dash_deo_capitation/$', dash_deo_capitation, {}, name="emis-deo-dash-capitation"),
+
+    url(r'^emis/dash_ministry_progress_details/$', ProgressMinistryDetails.as_view(), name="ministry-progress-details"),
+    url(r'^emis/dash_admin_progress_details/$', ProgressAdminDetails.as_view(), name="admin-progress-details"),
+    url(r'^emis/dash_admin_meals_details/$', MealsAdminDetails.as_view(), name="admin-meals-details"),
+
     url(r'^emis/reporters/page(?P<page>[0-9]+)/$', ListView.as_view(
         model=EmisReporter,
         paginate_by=25,

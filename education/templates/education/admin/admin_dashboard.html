@@ -20,33 +20,143 @@
 {% block content %}
 <table width="100%" cellpadding="5" cellspacing="0">
     <tr>
-        <td id="map" width="425" height="400" valign="top"></td>
+        <td id="map" width="350" height="400" valign="top" style="width:350px;"></td>
         <td id="attdance" width="100%" height="400" valign="top"></td>
+    </tr>
+
+    <tr>
+        <td colspan="2" id="progress"></td>
     </tr>
     <tr>
         <td colspan="2">
             <table width="100%" cellpadding="5" cellspacing="0">
-                <!-- TODO: scope out curriculum progress -->
                 <tr>
-                    <td id="abuse" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;"></td>
+                    <td id="violence_holder" width="50%" height="200" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;">
+                        <div class="violence">
+<!--                            <h1 class="title">Violence Cases Recorded</h1> -->
+                            <div>
+                                <span class="label important">Districts with the Highest Cases of Violence Recorded this Month</span>
+                                <div style="padding: 10px;">
+                                    <table class="classy">
+                                        <thead>
+                                        <tr>
+                                            <th>District</th>
+                                            <th>Number</th>
+                                        </tr>
+                                        </thead>
+
+                                        <tr>
+                                            <td><a class="tooltip">Kotido</a></td><td>15</td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <a class="tooltip">Kyegegwa</a>
+                                            </td>
+                                            <td>
+                                                13
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><a class="tooltip">Kaabong</a></td><td>11</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div style="margin-bottom:10px; padding: 10px;">
+                                    <span class="label notice"><a style="cursor:pointer; color:white;">Other Cases</a></span>
+                                </div>
+                                <div>
+                                    <span class="alert-message">
+                                    <!-- in js parse for int or float and append value in a <strong> element -->
+                                       <strong>45%</strong> increase in violence this month
+                                    </span><a style="padding-left: 0.4em; cursor:pointer;" href="{% url violence-admin-details %}">Click for Details</a>
+                                </div>
+                            </div>                      
+                        </div>
+                    </td>
+                    <td id="violence" width="50%" height="400" valign="top" style="border-bottom:1px solid #efefef;"></td>
+
+
+                    <td id="meals_holder" width="50%" height="200" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;">
+                        <div class="meal">
+
+
+                            <!-- <h1 class="title">Pupils that didn't have meals this month</h1> -->
+                            <div style="margin-bottom: 20px;">
+                                <span class="label warning">Districts with the Highest Percentage of Pupils that didn't have Meals</span>
+                                <div style="padding: 10px;">
+                                    <table class="classy">
+                                        <thead>
+                                        <tr>
+                                            <th>District</th>
+                                            <th>Percentage</th>
+                                        </tr>
+                                        </thead>
+                                        <tr>
+                                            <td><a class="tooltip">Kotido</a></td><td>75%</td>
+                                        </tr>
+                                        <tr>
+                                            <td><a class="tooltip">Kyegegwa</a></td><td>65%</td>
+                                        </tr>
+                                        <tr>
+                                            <td><a class="tooltip">Kaabong</a></td><td>56%</td>
+                                        </tr>
+
+                                    </table>
+                                </div>
+                                <span class="label notice"><a style="cursor:pointer; color:white;">Other Cases</a></span>
+
+                            </div>
+                            <div>
+                                <span class='alert-message'>Report based on 45% of Total Reporters</span>
+                                <a style='cursor:pointer; padding-left:0.4em;' href="{% url admin-meals-details %}">Click for Details</a>
+                            </div>
+                        </div>
+                    </td>
                     <td id="meals" width="50%" height="400" valign="top" style="border-bottom:1px solid #efefef;"></td>
                 </tr>
 
                 <tr>
-                    <td id="meetings" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;"></td>
-                    <td id="capitation" width="50%" height="400" valign="top"></td>
+                    <td id="meetings_holder" width="50%" height="200" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;">
+                        <div class="meeting" style="margin-bottom: 10px;">
+                            <h1 class="title">SMC Meetings Held This School Term</h1>
+                            <table class="classy">
+                                <thead>
+                                <tr>
+                                    <th>
+                                        Number of Meetings
+                                    </th>
+                                    <th>
+                                        Percentage
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tr><td>1</td><td>78%</td></tr>
+                                <tr><td>3</td><td>13%</td></tr>
+                                <tr><td>2</td><td>9%</td></tr>
+                            </table>
+                        </div>
+                        <div class="alert-message">
+                            <p>Report based on 35% of Total Reporters</p>
+                        </div>
+                              <span class="links">                                
+                                <a href="{% url emis-dash-admin-meetings %}">Click for Details</a>
+                            </span>
 
+                    </td>
+                    <td id="meetings" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;"></td>
+
+                    <td id="capitation" width="50%" height="400" valign="top"></td>
                 </tr>
             </table>
         </td>
     </tr>
 </table>
-<script language="JavaScript">
-    $('#map').load('{% url emis-dash-map %}');
-    $('#attdance').load('{% url emis-dash-attdance %}');
-    $('#abuse').load('{% url emis-dash-abuse %}');
-    $('#meals').load('{% url emis-dash-meals %}');
-    $('#meetings').load('{% url emis-dash-meetings %}');
-    $('#capitation').load('{% url emis-dash-capitation %}');
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('#map').load('{% url emis-dash-map %}');
+        $('#attdance').load('{% url emis-dash-attdance %}');
+        $("#progress").load('{% url emis-admin-curriculum-progress %}');
+        $('#capitation').load('{% url emis-ministry-dash-capitation %}');
+    });
 </script>
 {% endblock %}

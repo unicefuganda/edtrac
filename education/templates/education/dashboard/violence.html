@@ -1,0 +1,24 @@
+<div id="abuse_container">
+    <!--
+    TODO remove this: compute and get number of reports or schools that reported
+    colorize different percentages (i.e. red for critical, yellow for something, etc.
+    -->
+    <div id="violence"></div>
+    <div class="spanny">
+        <span id="abuse_verdict" style="width:30px; color:red;">
+            78% of Schools reported this Month
+        </span>
+    </div>
+    <script type="text/javascript">
+        $(document).ready( function() {
+            //violence_cases("{{ x_vals|join:"','" }}", "{{ y_vals|join:"," }}", "{{ chart_title }}");
+			load_line_graph('Violence Cases - Details', null, 'violence', 'Number of Cases');
+			/*load_line_graph("{{ x_vals|join:"','"}}", 
+					"{{ y_vals|join:","}}", 
+					{{ title }}, 
+					{{ subtitle }},);
+			*/
+        });
+    </script>
+
+</div>

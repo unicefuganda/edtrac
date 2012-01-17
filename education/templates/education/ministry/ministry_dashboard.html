@@ -28,25 +28,133 @@
             <table width="100%" cellpadding="5" cellspacing="0">
                 <!-- TODO: scope out curriculum progress -->
                 <tr>
-                    <td id="abuse" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;"></td>
+                    <td id="violence_holder" width="50%" height="200" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;">
+                        <div class="violence">
+                            <h1 class="title">
+                                Violence cases recorded this month
+                            </h1>
+                            <table class="classy">
+                                <tr>
+                                    <th>District</th><th>Number of cases</th>
+                                </tr>
+                                {% for key, value in dicty.items %}
+                                <tr>
+                                    <td>{{ key }}</td><td>{{ value }}</td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                            <span class="links">
+                                <a id="violence_click">Click to show graph</a> |
+                                <a>Click for Details</a>
+                            </span>
+                        </div>
+                    </td>
+                    <td id="violence" width="50%" height="400" valign="top" style="border-bottom:1px solid #efefef;"></td>
+
+
+                    <td id="meals_holder" width="50%" height="200" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;">
+                        <div class="meal">
+                            <h1 class="title">Pupils that didn't have meals this month</h1>
+                            <table class="classy">
+                                <tr>
+                                    <th>
+                                        District
+                                    </th>
+                                    <th>
+                                        Percentage
+                                    </th>
+                                </tr>
+                                {% for key, value in lunches.items %}
+                                <tr>
+                                    <td>{{ key }}</td><td>{{ value }}%</td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                            <span class="links">
+                                <a id="meals_click">Click to show graph</a> |
+                                <a>Click for Details</a>
+                            </span>
+                        </div>
+                    </td>
                     <td id="meals" width="50%" height="400" valign="top" style="border-bottom:1px solid #efefef;"></td>
                 </tr>
 
                 <tr>
-                    <td id="meetings" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;"></td>
-                    <td id="capitation" width="50%" height="400" valign="top"></td>
+                    <td id="meetings_holder" width="50%" height="200" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;">
+                        <div class="meeting">
+                            <h1 class="title">SMC Meetings This School Term</h1>
+                            <table class="classy">
+                                <tr>
+                                    <th>
+                                        Number of Meetings
+                                    </th>
+                                    <th>
+                                        Percentage
+                                    </th>
+                                </tr>
+                                <tr><td>1</td><td>78%</td></tr>
+                                <tr><td>2</td><td>9%</td></tr>
+                                <tr><td>3</td><td>13%</td></tr>
+                            </table>
+                            <span class="links">
+                                <a id="meetings_click">Click to show graph</a> |
+                                <a>Click for Details</a>
+                            </span>
+                        </div>
 
+                    </td>
+                    <td id="meetings" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;"></td>
+
+                    <td id="capitation_holder" width="50%" height="200" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;">
+                        <div class="capitation">
+                            <h1 class="title">
+                                UPE Capitation Progress this School Term
+                            </h1>
+                            <p><b>Capitation: Still being scoped (WIP)</b></p>
+                            <span class="links">
+                                <a id="capitation_click">Click to show graph</a> |
+                                <a>Click for Details</a>
+                            </span>
+                        </div>
+                    </td>
+                    <td id="capitation" width="50%" height="400" valign="top"></td>
                 </tr>
             </table>
         </td>
     </tr>
 </table>
-<script language="JavaScript">
-    $('#map').load('{% url emis-dash-map %}');
-    $('#attdance').load('{% url emis-dash-attdance %}');
-    $('#abuse').load('{% url emis-dash-abuse %}');
-    $('#meals').load('{% url emis-dash-meals %}');
-    $('#meetings').load('{% url emis-dash-meetings %}');
-    $('#capitation').load('{% url emis-dash-capitation %}');
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('#map').load('{% url emis-ministry-dash-map %}');
+        $('#attdance').load('{% url emis-ministry-dash-attdance %}');
+        // hide existing rows
+        $("#violence").hide();
+        $("#meals").hide();
+        $("#meetings").hide();
+        // click handles
+        $('#violence_click').click(function(){
+            // hide the statistics that get shown
+            $('#violence_holder').hide();
+            // show the violence chart
+            $("#violence").show();
+            $('#violence').load('{% url emis-ministry-dash-violence %}');
+            // append an element
+        });
+
+
+        $('#meals_click').click(function(){
+            $('#meals_holder').hide();
+            $("#meals").show();
+            $('#meals').load('{% url emis-ministry-dash-meals %}');
+        });
+
+        $('#meetings_click').click(function(){
+            $('#meetings_holder').hide();
+            $("#meetings").show();
+            $('#meetings').load('{% url emis-ministry-dash-meetings %}');
+        });
+        //TODO activate capitation
+        //$('#capitation').load('{% url emis-ministry-dash-capitation %}');
+    });
 </script>
 {% endblock %}

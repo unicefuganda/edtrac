@@ -1,8 +1,18 @@
+{% load stats_extras %}
 <div id="capitation_container">
     <div id="capitation">
         <h3>UPE Capitation Progress this School Term</h3>
     </div>
-    <div class="spanny" style="text-align: center;">
-    <span></span>
-    </div>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            pie("{{ responses|reorganize_data|join:"," }}",
+                    "UPE Grants Received on Time",
+                    "Capitation Grants Received",
+                    "capitation",
+                    " responses");
+
+            $("#capitation").append("<span class='alert-message'>Report based on 65% of Total Reporters</span>" +
+                    "<a style='cursor:pointer; padding-left:0.4em;'>Click for Details</a>");
+        });
+    </script>
 </div>

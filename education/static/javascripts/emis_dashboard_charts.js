@@ -9,7 +9,7 @@ function smc_meetings(schools, meetings) {
             plotShadow: false
         },
         title: {
-            text: 'SMC Meetings this School Term'
+            text: 'SMC Meetings Held this School Term'
         },
         tooltip: {
             formatter: function() {
@@ -39,39 +39,39 @@ function smc_meetings(schools, meetings) {
 }
 
 
-function abuse_cases(districts, abuse_values){
-    var abuse_chart;
-    var dist = districts.split("','");
-    var b = abuse_values.split(",");
-    var abuse = [];
+function violence_cases(xVals, yVals, title){
+    var x_vals = xVals.split("','");
+    var b = yVals.split(",");
+    var violence = [];
     for(i=0; i<b.length; i++){
-        abuse.push(parseFloat(b[i]));
+        violence.push(parseFloat(b[i]));
     }
-    abuse_chart = new Highcharts.Chart(
+    var violence_chart;
+    violence_chart = new Highcharts.Chart(
         {
             chart: {
-                renderTo:'abuse',
+                renderTo:'violence',
                 defaultSeriesType:'column',
                 margin:[50,50,100,80]
             },
             title :{
-                text:'Abuse Cases Reported this Month'
+                text : title
             },
             xAxis:{
-                categories: dist
+                categories : x_vals
 
             },
-            labels:{
-                rotation:-45,
-                align:'right',
-                style:{
+            labels : {
+                rotation : -45,
+                align : 'right',
+                style : {
                     font:'normal 13px Verdana, sans-serif'
                 }
             },
             yAxis:{
-                min:0,
-                title:{
-                    text: 'Number of Cases'
+                min: 0,
+                title : {
+                    text : 'Number of Cases'
                 }
             },
             legend:{
@@ -79,13 +79,13 @@ function abuse_cases(districts, abuse_values){
             },
             tooltip:{
                 formatter:function(){
-                    return '<b>'+ this.x+'</b><br/>'+ 'Abuse cases: '+Highcharts.numberFormat(this.y, 1) + ' cases';
+                    return '<b>'+ this.x+'</b><br/>'+ 'Violence cases: '+Highcharts.numberFormat(this.y, 1) + ' cases';
                 }
             },
             series:[
                 {
                     name: 'Numbers',
-                    data : abuse,
+                    data : violence,
                     dataLabels:{
                         enabled:true,
                         rotation:-90,
@@ -106,17 +106,21 @@ function abuse_cases(districts, abuse_values){
     );
 }
 
-function lunch(data, chart_title) {
+
+//pie chart
+function pie(data, chart_title, series_title, selector_id, tooltip_text) {
+
     var d = data.split(",");
-    var lunch_data = [];
+    var data_array = [];
     for(i=0;i<d.length; i++){
         x = d[i].split('-');
-        lunch_data.push([x[0],parseFloat(x[1])]);
+        data_array.push([x[0], parseInt(x[1])]);
     }
-    var lunch_chart;
-    lunch_chart = new Highcharts.Chart({
+    var chart;
+    chart = new Highcharts.Chart({
         chart: {
-            renderTo: 'lunch',
+            //renderTo: 'lunch',
+            renderTo: selector_id,
             plotBackgroundColor: null,
             plotBorderWidth: null,
             plotShadow: false
@@ -126,7 +130,8 @@ function lunch(data, chart_title) {
         },
         tooltip: {
             formatter: function() {
-                return this.percentage +' % \n didn\'t have meals';
+                //return this.percentage +' % \n didn\'t have meals';
+                return this.percentage + ' % \n' + tooltip_text;
             }
         },
         plotOptions: {
@@ -141,23 +146,125 @@ function lunch(data, chart_title) {
         },
         series: [{
             type: 'pie',
-            name: 'Lunch at School',
-            data: lunch_data
-
+            //name: 'Lunch at School',
+            name: series_title,
+            data: data_array
         }]
     });
 }
 
-function load_progress_chart(val1, val2){
-    var val1, val2;
-    if (val1 > 100 || val2 > 100){
+function load_progress_chart(value){
+    var value;
+    if (value > 100){
         // pervasive checking...
         alert("Progress chart can't load for values greater than 100 denied");
     }
     else{
-        $("#progress_p3").progressbar({value: val1});
-        $("#progress_p6").progressbar({value:val2});
-        $("#progress_p3 > div").append(val1 + '%').addClass('pretify');
-        $("#progress_p6 > div").append(val2 + '%').addClass('pretify');
+        $("#progress_p3").progressbar({value: value});
+        $("#progress_p3 > div").append(value + '%').addClass('pretify');
     }
+}
+
+
+function load_line_graph(title, subtitle, selector, y_label){
+    line_chart = new Highcharts.Chart({
+          chart: {
+             renderTo: selector,
+             defaultSeriesType: 'line'
+          },
+          title: {
+             text: title
+          },
+          subtitle: {
+             text: subtitle
+          },
+          xAxis: {
+             categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+          },
+          yAxis: {
+             title: {
+                text: y_label
+             }
+          },
+          tooltip: {
+             enabled: true,
+             formatter: function() {
+                return '<b>'+ this.series.name +'</b><br/>'+
+                   this.x +': '+ this.y +' cases';
+             }
+          },
+          plotOptions: {
+             line: {
+                dataLabels: {
+                   enabled: true
+                },
+                enableMouseTracking: true
+             }
+          },
+          series: [{
+             name: 'Kaboong',
+             data: [7.0, 6.9, 9.5, 14.5, 18.4, 21.5, 25.2, 26.5, 23.3, 18.3, 13.9, 9.6]
+          }]
+       });
+}
+
+function load_column(title, selector, yLabel, xLabel, category, data_list){
+    var category_array =  [];
+    var data_array = [];
+    for (i=0; i<category.length; i++){
+        x = parseFloat(category[i])
+        category_array.push(x.toString());
+    }
+    for (i=0; i<data_list.length; i++){
+        data_array.push(parseFloat(data_list[i]));
+    }
+    bar_chart = new Highcharts.Chart({
+        chart : {
+            renderTo: selector,
+            defaultSeriesType:'column'
+        },
+        title : {
+            text: title
+        },
+        xAxis:{
+            title:{
+                text : xLabel
+            },
+            categories:category_array
+        },
+        yAxis: {
+            min: 0,
+            title: {
+                text: yLabel
+            }
+        },
+        legend: {
+            layout:'vertical',
+            backgroundColor:'#FFFFFF',
+            align:'left',
+            verticalAlign:'top',
+            x:100,
+            y:20,
+            floating:true,
+            shadow:true
+        },
+        tooltip:{
+            formatter:function(){
+                return ''+this.x+': '+this.y + ' districts'
+            }
+        },
+        plotOptions:{
+            column:{
+                pointPadding:0.2,
+                borderWidth:0
+            }
+        },
+
+        series:[
+            {
+            name:'Sub theme',
+            data: data_array
+            }
+        ]
+    });
 }

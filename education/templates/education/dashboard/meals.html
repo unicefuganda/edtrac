@@ -3,10 +3,24 @@
     <div id="lunch">
         <script type="text/javascript">
             $(document).ready( function() {
-                lunch("{{ lunches|reorganize_lunch|join:"," }}", "Pupils that didn't have meals/lunch this month.");
+                pie("{{ lunches|reorganize_data|join:"," }}",
+                        "Pupils that didn't have meals/lunch this month.",
+                        "lunch",
+                        "Lunch at School",
+                        "didn't have meals"
+                );
             });
         </script>
     </div>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $("#lunch").append('<a id="meals_back_click" style="cursor: pointer;">Back to Statistics</a>');
+            $("#meals_back_click").click(function(){
+                $("#meals").hide();
+                $("#meals_holder").fadeIn(1000);
+            });
+        });
+    </script>
     <div class="spanny">
         <span id="lunch_verdict" style="width:30px; color:green;">
             46% of Schools reported this Month

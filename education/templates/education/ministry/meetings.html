@@ -1,0 +1,26 @@
+{% extends "education/ministry/ministry_dashboard.html" %}
+
+{% block content %}
+<div id="smc_meetings_container">
+    <div id="smc_meetings"></div>
+        <script type="text/javascript">
+            $(document).ready(function(){smc_meetings();});
+        </script>
+		<div class="alert-message" style="width:150px;">
+			<p>Report based on 22% of Total Reporters (Schools)</p>
+		</div>
+</div>
+
+<div>
+	<h1>SMC Meetings
+	<table class="classy">
+		<tr>
+		<thead>
+			<td>District</td>
+			<td>Number of meetings that were held</td>
+		</thead>
+		</tr>
+	</table>
+</div>
+
+{% endblock %}

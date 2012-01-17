@@ -15,7 +15,7 @@ from uganda_common.utils import reorganize_dictionary
 from education.utils import previous_calendar_week
 from education.models import EmisReporter, School
 from poll.models import Response, Poll
-import datetime
+import datetime, dateutils
 from types import NoneType
 from rapidsms.models import Contact
 from generic.reporting.views import ReportView
@@ -509,6 +509,33 @@ def create_excel_dataset(request, start_date, end_date, district_id):
     book.save(response)
     return response
 
+def get_month_day_range(date, **kwargs):
+    """
+    handy function to give as a date range
+    """
+    import datetime
+    from dateutil.relativedelta import relativedelta
+    if not kwargs:
+        last_day = date + relativedelta(day = 1, months =+ 1, days =- 1)
+        first_day = date + relativedelta(day = 1)
+        #return a tuple in the list
+        return [first_day, last_day]
+    else:
+        """
+        There are times we want to get a set of date ranges to work with
+
+        attributes that this function takes include
+            -> date (a datetime object)
+            -> depth (how many months back this list should generate)
+        """
+        depth = int(kwargs.get('depth'))
+        to_ret = []
+        for i in range(depth+1):
+            date -= relativedelta(months=i)
+            last_day = date + relativedelta(day = 1, months =+ 1, days =- 1)
+            first_day = date + relativedelta(day = 1)
+            to_ret.append((first_day, last_day))
+        return to_ret
 
 def get_sum_of_poll_response(poll_queryset, **kwargs):
     """
@@ -520,21 +547,33 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
     s = 0
     if kwargs:
         #district filter
-        if kwargs.has_key('filter'):
-            filter = kwargs['filter']
+        if kwargs.has_key('month_filter'):
             #filter takes boolean values
-            if filter:
+            if kwargs.get('month_filter'):
                 DISTRICT = ['Kaabong', 'Kabarole', 'Kyegegwa', 'Kotido']
                 to_ret = {}
                 for location in Location.objects.filter(name__in=DISTRICT):
                     try:
                         for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(contact__in=\
-                            Contact.objects.filter(reporting_location=location))]:
+                            Contact.objects.filter(reporting_location=location,\
+                            date__range = get_month_day_range(datetime.datetime.now())
+                            ))]:
                             s += val
                     except NoneType:
                         pass
                     to_ret[location.__unicode__()] = s
                 return to_ret
+            elif kwargs.get('month_filter') and kwargs.has_key('location'):
+                try:
+                    now = datetime.datetime.now()
+                    for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(contact__in=\
+                        Contact.objects.filter(reporting_location=kwargs.get('location')),
+                        date__range = get_month_day_range(now)
+                    )]:
+                        s += val
+                except NoneType:
+                    pass
+                return s
     else:
         try:
             for val in [r.eav.poll_number_value for r in poll_queryset.responses.all()]:
@@ -551,29 +590,10 @@ def get_responses_to_polls(**kwargs):
             #TODO filter poll by district, school or county (might wanna index this too)
             return get_sum_of_poll_response(Poll.objects.get(name=poll_name))
         #in cases where a list of poll names is passed, a dictionary is returned
-
         if kwargs.has_key('poll_names'):
             poll_names = kwargs['poll_names']
             responses = {}
             for poll in poll_names:
                 responses[poll] = get_sum_of_poll_response(Poll.objects.get(name=poll))
             return responses #can be used as context variable too
-        
-#class AttendanceReport(PollReport):
-#    
-##    def get_top_columns(self):
-##        return [
-##            ('Group', '#', 1),
-##            ('% Absent', '#', 1),
-##            ('% Present', '#', 1),
-##            ('Change', '#', 1),
-##        ]
-#
-#    has_chart = False
-#    
-#    group = PollsColumn(['emis_boysp3_attendance','emis_boysp6_attendance', 'emis_girlsp3_attendance', 'emis_girlsp6_attendance'], title='Group', order=0)
-#    absent = WeeklyPollSchoolColumn('emis_boysp6_attendance', title='% Absent', order=1)
-#    present = WeeklyPollSchoolColumn('emis_girlsp3_attendance', title='% Present', order=2)
-#    change = WeeklyPollSchoolColumn('emis_girlsp6_attendance', title='Change', order=3)
-    
-        
+
