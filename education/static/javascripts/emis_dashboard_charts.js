@@ -208,11 +208,15 @@ function load_line_graph(title, subtitle, selector, y_label){
        });
 }
 
-function load_column(title, selector, yLabel, category){
-    var category_list = [];
+function load_column(title, selector, yLabel, xLabel, category, data_list){
+    var category_array =  [];
+    var data_array = [];
     for (i=0; i<category.length; i++){
         x = parseFloat(category[i])
-        category_list.push(x.toString());
+        category_array.push(x.toString());
+    }
+    for (i=0; i<data_list.length; i++){
+        data_array.push(parseFloat(data_list[i]));
     }
     bar_chart = new Highcharts.Chart({
         chart : {
@@ -224,9 +228,9 @@ function load_column(title, selector, yLabel, category){
         },
         xAxis:{
             title:{
-                text : 'Theme'
+                text : xLabel
             },
-            categories:category_list
+            categories:category_array
         },
         yAxis: {
             min: 0,
@@ -258,8 +262,8 @@ function load_column(title, selector, yLabel, category){
 
         series:[
             {
-                name:'Theme',
-            data: [49, 23, 23]
+            name:'Sub theme',
+            data: data_array
             }
         ]
     });
