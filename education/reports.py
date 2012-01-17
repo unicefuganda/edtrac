@@ -555,8 +555,6 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
             elif kwargs.get('month_filter') and kwargs.has_key('location'):
                 try:
                     now = datetime.datetime.now()
-                    to_ret = []
-
                     for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(contact__in=\
                         Contact.objects.filter(reporting_location=kwargs.get('location')),
                         date__range = get_month_day_range(now)

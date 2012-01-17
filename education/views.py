@@ -304,16 +304,23 @@ class ViolenceAdminDetails(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ViolenceAdminDetails, self).get_context_data(**kwargs)
         #TODO: filtering by ajax and time
-        context['violence_cases'] = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+        context['violence_cases'] = get_responses_to_polls(Poll.objects.get(name="emis_headteachers_abuse"),
+            location=self.request.user.get_profile().location,
+            month_filter=True
+        )
+        #context[]
+
+
         return context
 
 class ViolenceDeoDetails(TemplateView):
     template_name = "education/deo/deo_violence_details.html"
+
     def get_context_data(self, **kwargs):
-        #location = self.request.get_user
         context = super(ViolenceDeoDetails, self).get_context_data(**kwargs)
         #context['violence_cases'] = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
-        context['violence_cases'] = get_responses_to_polls(Poll.objects.get(name="emis_headteachers_abuse"), location=self.request.user.get_profile().location)
+        context['violence_cases'] = get_responses_to_polls(Poll.objects.get(name="emis_headteachers_abuse"),
+            location=self.request.user.get_profile().location, month_filter=True)
         return context
 
     @method_decorator(login_required)
