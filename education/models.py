@@ -22,7 +22,7 @@ from rapidsms_httprouter.models import mass_text_sent
 
 class School(models.Model):
     name = models.CharField(max_length=160)
-    edtrac_id = models.CharField(max_length=10)
+    emis_id = models.CharField(max_length=10)
     location = models.ForeignKey(Location, related_name='schools')
 
     def __unicode__(self):
