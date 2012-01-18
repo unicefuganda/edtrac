@@ -102,23 +102,23 @@ class FreeSearchForm(FilterForm):
         TO DO: add ability to search for multiple search terms separated by 'or'
     """
 
-    search = forms.CharField(max_length=100, required=False, label="Free-form search",
+    searchx = forms.CharField(max_length=100, required=False, label="Free-form search",
                              help_text="Use 'or' to search for multiple names")
 
     def filter(self, request, queryset):
-        search = self.cleaned_data['search'].strip()
-        if search == "":
+        searchx = self.cleaned_data['searchx'].strip()
+        if searchx == "":
             return queryset
-        elif search[0] in ["'",'"'] and search[-1] in ["'",'"']:
-            search=search[1:-1]
-            return queryset.filter(Q(name__iregex=".*\m(%s)\y.*"%search)
-                                   | Q(reporting_location__name__iregex=".*\m(%s)\y.*"%search)
-                                   | Q(connection__identity__iregex=".*\m(%s)\y.*"%search))
+        elif searchx[0] in ["'", '"'] and searchx[-1] in ["'", '"']:
+            searchx = searchx[1:-1]
+            return queryset.filter(Q(name__iregex=".*\m(%s)\y.*" % searchx)
+                                   | Q(reporting_location__name__iregex=".*\m(%s)\y.*" % searchx)
+                                   | Q(connection__identity__iregex=".*\m(%s)\y.*" % searchx))
 
         else:
-            return queryset.filter(Q(name__icontains=search)
-                                   | Q(reporting_location__name__icontains=search)
-                                   | Q(connection__identity__icontains=search))
+            return queryset.filter(Q(name__icontains=searchx)
+                                   | Q(reporting_location__name__icontains=searchx)
+                                   | Q(connection__identity__icontains=searchx))
 
 class FreeSearchTextForm(FilterForm):
 
