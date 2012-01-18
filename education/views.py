@@ -74,14 +74,16 @@ def dash_attdance(request):
     girlsp6_absent = girlsp6_enrolled - girlsp6_attendance
 
 
-    total_male_teachers = get_responses_to_polls(poll_name="edtrac_male_teachers_deployment")
-    total_female_teachers = get_responses_to_polls(poll_name="edtrac_female_teachers_deployment")
+    total_male_teachers = get_responses_to_polls(poll_name="edtrac_m_teachers_deployment")
+    total_female_teachers = get_responses_to_polls(poll_name="edtrac_f_teachers_deployment")
 
-    male_teachers_present = get_responses_to_polls(poll_name="edtrac_male_teachers_attendance")
+    male_teachers_present = get_responses_to_polls(poll_name="edtrac_m_teachers_attendance")
     male_teachers_absent = total_male_teachers - male_teachers_present
 
-    female_teachers_present = get_responses_to_polls(poll_name="edtrac_female_teachers_attendance")
+    female_teachers_present = get_responses_to_polls(poll_name="edtrac_f_teachers_attendance")
     female_teachers_absent = total_female_teachers - female_teachers_present
+
+    head_teachers_attendance = get_responses_to_polls(poll_name="edtrac_head_teachers_attendance")
 
     return render_to_response('education/dashboard/attdance.html', {
         'girlsp3_present' : girlsp3_attendance, 'girlsp3_absent' : girlsp3_absent,
