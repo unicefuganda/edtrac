@@ -36,6 +36,14 @@
 <!--                            <h1 class="title">Violence Cases Recorded</h1> -->
                             <div>
                                 <span class="label important">Districts with the Highest Cases of Violence Recorded this Month</span>
+                                <p>
+                                    <ul>
+                                    {% for x, y in violence_dict %}
+                                    <li>{{ y.0 }} | {{ y.1 }}</li>
+                                    {% endfor %}
+                                    </ul>
+                                    {{ top_three }}
+                                </p>
                                 <div style="padding: 10px;">
                                     <table class="classy">
                                         <thead>
@@ -44,6 +52,12 @@
                                             <th>Number</th>
                                         </tr>
                                         </thead>
+                                        <!-- get context vars working -->
+                                        {% if top_three %}
+                                            {% for district, value in top_three_districts %}
+                                            <tr><td><a>{{ district }}</a></td><td>{{ value }}</td></tr>
+                                            {% endfor %}
+                                        {% endif %}
 
                                         <tr>
                                             <td><a class="tooltip">Kotido</a></td><td>15</td>
@@ -62,13 +76,13 @@
                                     </table>
                                 </div>
                                 <div>
-                                    <span class="alert-message">
-                                    <!-- in js parse for int or float and append value in a <strong> element -->
-                                       <strong>45%</strong> increase in violence this month
-                                    </span><a style="padding-left: 0.4em; cursor:pointer;" >Click for Details</a>
+                                        <span class="alert-message">
+                                        <!-- in js parse for int or float and append value in a <strong> element -->
+                                            <strong>45%</strong> increase in violence this month
+                                        </span>
                                 </div>
-                                <div style="margin-bottom:10px; padding: 10px;">
-                                    <span class="label notice"><a style="cursor:pointer; color:white;" href="{% url violence-admin-details %}">Other Cases</a></span>
+                                <div style="margin-top:20px;">
+                                    <span class="label notice"><a style="cursor:pointer; color:white;" href="{% url violence-admin-details %}">Other Cases >></a></span>
                                 </div>
 
                             </div>                      

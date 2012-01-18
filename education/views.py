@@ -16,7 +16,7 @@ from poll.models import Poll
 from .reports import *
 from .utils import *
 from urllib2 import urlopen
-import  re, datetime
+import  re, datetime, operator
 
 
 Num_REG = re.compile('\d+')
@@ -282,19 +282,40 @@ def ministry_dashboard(request):
 def admin_dashboard(request):
     violence = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
     districts = violence.keys()
-    #assumption is still 4 districts
-    district_violence = [23,56, 23, 66]
-    dicty = dict(zip(districts, district_violence))
+    location = request.user.get_profile().location
+    #This returns a a dictionary of districts and total values (in a month's span)
+    #TODO uncomment below
+    #responses_to_violence = get_sum_of_poll_response(Poll.objects.get(name = "emis_headteachers_abuse"),
+    #                           month_filter = True,
+    #                           location = location
+    #                           ret_type = dict
+    # )
+    #responses_to_meals = get_sum_of_poll_response(Poll.objects.get(name = "emis_headteachers_meals"),
+    #                   month_filter=True,
+    #                   location=location, ret_type = dict)
+    #
+    #dicty = responses_to_violence
+    #dicty = {'Kampala' : (Location.objects.filter(type="district", name__icontains="kampala")[0], 23)}
+    import pdb; pdb.set_trace()
+    dicty = {}
+    import random
+    for l in districts:
+        dicty[l] = random.choice(range(1,50))
+    import operator
+    to_ret = dict(sorted(dicty.iteritems(), key=operator.itemgetter(1)))
+    stuff = {}
+    for x, y in to_ret.items():
+        stuff[x] = (Location.objects.get(name__icontains=x), y)
+    sorted_violence_dict = stuff
+    #sort dictionary by value
 
+    top_three = sorted_violence_dict.items()[:3]
+    top_three = dict(top_three)
     meal_poll_responses = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))
     districts = meal_poll_responses.keys()
-    lunches_to_ret = dict(zip(districts, [10, 20, 30, 40]))
 
     return index(request, template_name="admin/admin_dashboard.html",
-        context_vars={'dicty':dicty,
-                      'x_vals':districts,
-                      'y_vals':district_violence,
-                      'lunches':lunches_to_ret})
+        context_vars={'violence_dict':sorted_violence_dict.items(), 'top_three':top_three})
 
 
 # Details views... specified by ROLES
@@ -453,9 +474,9 @@ def edit_reporter(request, reporter_pk):
         if reporter_form.is_valid():
             reporter_form.save()
         else:
-            return render_to_response('education/partials/edit_reporter.html'
-                    , {'reporter_form': reporter_form, 'reporter'
-                    : reporter},
+            return render_to_response('education/partials/edit_reporter.html',
+                    {'reporter_form': reporter_form,
+                     'reporter': reporter},
                     context_instance=RequestContext(request))
         return render_to_response('/education/partials/reporter_row.html',
                                   {'object':EmisReporter.objects.get(pk=reporter_pk),

@@ -552,7 +552,7 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                 to_ret[location.__unicode__()] = s
             return to_ret
 
-        if kwargs.has_key('month_filter') and kwargs.get('month_filter') and kwargs.has_key('location') and kwargs.has_key('to_ret'):
+        if kwargs.has_key('month_filter') and kwargs.get('month_filter') and kwargs.has_key('location') and kwargs.has_key('ret_type'):
             #TODO support drilldowns
 
             now = datetime.datetime.now()
@@ -571,10 +571,19 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                 except NoneType:
                     pass
                 to_ret[location.__unicode__()] = s
-            if kwargs.get('to_ret') == dict:
-            #return a dictionary of values
-                return to_ret
-            if kwargs.get('to_ret') == list:
+
+            if kwargs.get('ret_type') == dict:
+                import operator
+                #return a dictionary of values e.g. {'kampala': (<Location Kampala>, 34)}
+                #pre-emptive sorting -> by largest
+                to_ret = dict(sorted(to_ret.iteritems(), key=operator.itemgetter(1)))
+                #initial structure is {'name':val}
+                ret = {}
+                for name, val in to_ret.items():
+                    ret[name] = (Location.objects.get(name__icontains=name), val)
+                return ret
+
+            if kwargs.get('ret_type') == list:
                 #return a list of tuples
                 # [ ('district', some_value)]
                 pass
