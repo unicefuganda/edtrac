@@ -179,8 +179,8 @@ urlpatterns = patterns('',
     url(r'^edtrac/dash_admin_progress/$', dash_admin_progress, {}, name="emis-admin-curriculum-progress"),
 
     url(r'^edtrac/violence_admin_details/$', ViolenceAdminDetails.as_view(), name="violence-admin-details"),
-    url(r'^edtrac/violence_admin_details/district/(?P<pk>\d+)/$', DistrictViolenceDetails.as_view(template_name =\
-                    "education/admin/district_violence_detail.html"), name="district-violence"),
+    url(r'^edtrac/violence/district/(?P<pk>\d+)/$', DistrictViolenceDetails.as_view(template_name =\
+                    "education/dashboard/district_violence_detail.html"), name="district-violence"),
     url(r'^edtrac/violence_deo_details/$', ViolenceDeoDetails.as_view(), name="violence-deo-details"),
 #    url(r'^emis/dash_attdance/$', dash_ministry_attdance, {}, name="emis-ministry-dash-attdance"),
     url(r'^edtrac/dash_ministry_attdance/$', dash_attdance, {}, name="emis-ministry-dash-attdance"),
@@ -198,6 +198,10 @@ urlpatterns = patterns('',
     url(r'^edtrac/dash_deo_meetings/$', dash_deo_meetings, {}, name="emis-deo-dash-meetings"),
     url(r'^edtrac/dash_deo_capitation/$', dash_deo_capitation, {}, name="emis-deo-dash-capitation"),
 
+
+    #PROGRESS views
+    url('^edtrac/progress/district/(?P<pk>\d+)/$', DistrictProgressDetails.as_view(template_name=\
+            "education/dashboard/district_progress_detail.html"), name="district-progress"),
     url(r'^edtrac/dash_ministry_progress_details/$', ProgressMinistryDetails.as_view(), name="ministry-progress-details"),
     url(r'^edtrac/dash_admin_progress_details/$', ProgressAdminDetails.as_view(), name="admin-progress-details"),
     url(r'^edtrac/dash_admin_meals_details/$', MealsAdminDetails.as_view(), name="admin-meals-details"),
