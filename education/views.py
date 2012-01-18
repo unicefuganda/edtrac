@@ -337,6 +337,22 @@ class ViolenceAdminDetails(TemplateView):
         )
         return context
 
+
+#District violence details (TODO: permission/rolebased viewing)
+class DistrictViolenceDetails(DetailView):
+    context_object_name = "district_violence"
+    model = Location
+
+    def get_context_data(self, **kwargs):
+        context = super(DistrictViolenceDetails, self).get_context_data(**kwargs)
+        location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk')))
+        context['location'] = location
+
+
+        return context
+
+
+
 class ViolenceDeoDetails(TemplateView):
     template_name = "education/deo/deo_violence_details.html"
 
