@@ -1,4 +1,5 @@
-[   
+[
+
     {
         "pk": 1,
         "model": "sites.site",
@@ -16,130 +17,716 @@
         }
     },
     {
-        "pk": 113, 
-        "model": "auth.group", 
+        "pk": 113,
+        "model": "auth.group",
         "fields": {
-            "name": "Admins", 
+            "name": "Admins",
             "permissions": []
+        }
+    },
+    {
+        "pk": 49,
+        "model": "auth.group",
+        "fields": {
+            "name": "Services Providers",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 104,
+        "model": "auth.group",
+        "fields": {
+            "name": "Teachers",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 105,
+        "model": "auth.group",
+        "fields": {
+            "name": "Head Teachers",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 106,
+        "model": "auth.group",
+        "fields": {
+            "name": "SMC",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 107,
+        "model": "auth.group",
+        "fields": {
+            "name": "GEM",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 108,
+        "model": "auth.group",
+        "fields": {
+            "name": "CCT",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 109,
+        "model": "auth.group",
+        "fields": {
+            "name": "DEO",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 110,
+        "model": "auth.group",
+        "fields": {
+            "name": "District Officials",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 111,
+        "model": "auth.group",
+        "fields": {
+            "name": "Other Reporters",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 112,
+        "model": "auth.group",
+        "fields": {
+            "name": "DFO",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 114,
+        "model": "auth.group",
+        "fields": {
+            "name": "Ministry Officials",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 115,
+        "model": "auth.group",
+        "fields": {
+            "name": "UNICEF Officials",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 1,
+        "model": "auth.user",
+        "fields": {
+            "username": "admin",
+            "first_name": "",
+            "last_name": "",
+            "is_active": true,
+            "is_superuser": true,
+            "is_staff": true,
+            "last_login": "2011-12-16 13:42:54",
+            "groups": [
+                106,
+                107
+            ],
+            "user_permissions": [],
+            "password": "sha1$2ff0e$30ad33c5ea22eae40d3ca759567c7e9d49d7ca41",
+            "email": "david.a.mccann@gmail.com",
+            "date_joined": "2010-10-25 00:17:35"
+        }
+    },                        
+    {
+        "pk": "edtrac_autoreg", 
+        "model": "script.script", 
+        "fields": {
+            "enabled": true, 
+            "name": "Education monitoring autoregistration script", 
+            "sites": [
+                5
+            ]
         }
     }, 
     {
-        "pk": 49, 
-        "model": "auth.group", 
+        "pk": "edtrac_head_teachers_weekly", 
+        "model": "script.script", 
         "fields": {
-            "name": "Services Providers", 
-            "permissions": []
+            "enabled": true, 
+            "name": "Education monitoring head teachers weekly script", 
+            "sites": [
+                5
+            ]
         }
     }, 
     {
-        "pk": 104, 
-        "model": "auth.group", 
+        "pk": "edtrac_smc_termly", 
+        "model": "script.script", 
         "fields": {
-            "name": "Teachers", 
-            "permissions": []
+            "enabled": true, 
+            "name": "Education monitoring smc termly script", 
+            "sites": [
+                5
+            ]
         }
     }, 
     {
-        "pk": 105, 
-        "model": "auth.group", 
+        "pk": "edtrac_teachers_monthly", 
+        "model": "script.script", 
         "fields": {
-            "name": "Head Teachers", 
-            "permissions": []
+            "enabled": true, 
+            "name": "Education monitoring teachers monthly script", 
+            "sites": [
+                5
+            ]
         }
     }, 
     {
-        "pk": 106, 
-        "model": "auth.group", 
+        "pk": "edtrac_teachers_weekly", 
+        "model": "script.script", 
         "fields": {
-            "name": "SMC", 
-            "permissions": []
+            "enabled": true, 
+            "name": "Education monitoring teachers weekly script", 
+            "sites": [
+                5
+            ]
         }
     }, 
     {
-        "pk": 107, 
-        "model": "auth.group", 
+        "pk": "edtrac_head_teachers_termly", 
+        "model": "script.script", 
         "fields": {
-            "name": "GEM", 
-            "permissions": []
+            "enabled": true, 
+            "name": "Education monitoring head teachers termly script", 
+            "sites": [
+                5
+            ]
         }
     }, 
     {
-        "pk": 108, 
-        "model": "auth.group", 
+        "pk": "edtrac_gem_monthly", 
+        "model": "script.script", 
         "fields": {
-            "name": "CCT", 
-            "permissions": []
+            "enabled": true, 
+            "name": "Education monitoring gem monthly script", 
+            "sites": [
+                5
+            ]
         }
     }, 
     {
-        "pk": 109, 
-        "model": "auth.group", 
+        "pk": "edtrac_smc_weekly", 
+        "model": "script.script", 
         "fields": {
-            "name": "DEO", 
-            "permissions": []
+            "enabled": true, 
+            "name": "Education monitoring smc weekly script", 
+            "sites": [
+                5
+            ]
         }
     }, 
     {
-        "pk": 110, 
-        "model": "auth.group", 
+        "pk": "edtrac_head_teachers_monthly", 
+        "model": "script.script", 
         "fields": {
-            "name": "District Officials", 
-            "permissions": []
+            "enabled": true, 
+            "name": "Education monitoring head teachers monthly script", 
+            "sites": [
+                5
+            ]
         }
     }, 
     {
-        "pk": 111, 
-        "model": "auth.group", 
+        "pk": "edtrac_smc_monthly", 
+        "model": "script.script", 
         "fields": {
-            "name": "Other Reporters", 
-            "permissions": []
+            "enabled": true, 
+            "name": "Education monitoring smc monthly script", 
+            "sites": [
+                5
+            ]
         }
     }, 
     {
-        "pk": 112, 
-        "model": "auth.group", 
+        "pk": 306, 
+        "model": "script.scriptstep", 
         "fields": {
-            "name": "DFO", 
-            "permissions": []
+            "script": "edtrac_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 0, 
+            "message": "", 
+            "poll": 305, 
+            "order": 0, 
+            "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 114, 
-        "model": "auth.group", 
+        "pk": 307, 
+        "model": "script.scriptstep", 
         "fields": {
-            "name": "Ministry Officials", 
-            "permissions": []
+            "script": "edtrac_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 0, 
+            "message": "", 
+            "poll": 306, 
+            "order": 1, 
+            "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 115, 
-        "model": "auth.group", 
+        "pk": 308, 
+        "model": "script.scriptstep", 
         "fields": {
-            "name": "UNICEF Officials", 
-            "permissions": []
+            "script": "edtrac_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 0, 
+            "message": "", 
+            "poll": 307, 
+            "order": 2, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 309, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "M", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 0, 
+            "message": "", 
+            "poll": 308, 
+            "order": 3, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 310, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 0, 
+            "message": "", 
+            "poll": 309, 
+            "order": 4, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 311, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 0, 
+            "message": "", 
+            "poll": 310, 
+            "order": 5, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 312, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 311, 
+            "order": 6, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 313, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_autoreg", 
+            "retry_offset": null, 
+            "rule": "w", 
+            "email": null, 
+            "num_tries": null, 
+            "start_offset": 60, 
+            "message": "Welcome EdTrac.The information you shall provide contributes to keeping children in school.", 
+            "poll": null, 
+            "order": 7, 
+            "giveup_offset": 0
+        }
+    }, 
+    {
+        "pk": 314, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_head_teachers_weekly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 312, 
+            "order": 0, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 315, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_head_teachers_weekly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 313, 
+            "order": 1, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 316, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_smc_termly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 314, 
+            "order": 0, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 317, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_smc_termly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 315, 
+            "order": 1, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 318, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_teachers_monthly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 316, 
+            "order": 0, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 319, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_teachers_weekly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 317, 
+            "order": 0, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 320, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_teachers_weekly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 318, 
+            "order": 1, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 322, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_teachers_weekly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 320, 
+            "order": 3, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 324, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_head_teachers_termly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 322, 
+            "order": 0, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 325, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_head_teachers_termly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 323, 
+            "order": 1, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 326, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_head_teachers_termly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 324, 
+            "order": 2, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 327, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_head_teachers_termly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 325, 
+            "order": 3, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 328, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_head_teachers_termly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 326, 
+            "order": 4, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 329, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_head_teachers_termly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 327, 
+            "order": 5, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 330, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_head_teachers_termly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 328, 
+            "order": 6, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 331, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_gem_monthly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 329, 
+            "order": 0, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 332, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_gem_monthly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 330, 
+            "order": 1, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 333, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_smc_weekly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 331, 
+            "order": 0, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 334, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_head_teachers_monthly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 332, 
+            "order": 0, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 335, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_head_teachers_monthly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 333, 
+            "order": 1, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 336, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_smc_monthly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 334, 
+            "order": 0, 
+            "giveup_offset": 86400
         }
     }, 
     {
         "pk": 1, 
-        "model": "auth.user", 
+        "model": "script.email", 
         "fields": {
-            "username": "admin", 
-            "first_name": "", 
-            "last_name": "", 
-            "is_active": true, 
-            "is_superuser": true, 
-            "is_staff": true, 
-            "last_login": "2011-12-16 13:42:54", 
-            "groups": [
-                106, 
-                107
+            "message": "{% load message_content %}{{ connection|excel_reminder_msg }}{{ connection|outstanding_deliveries_msg }}", 
+            "sender": "no-reply@uganda.rapidsms.org", 
+            "recipients": [
+                1
             ], 
-            "user_permissions": [], 
-            "password": "sha1$2ff0e$30ad33c5ea22eae40d3ca759567c7e9d49d7ca41", 
-            "email": "david.a.mccann@gmail.com", 
-            "date_joined": "2010-10-25 00:17:35"
+            "subject": "{% load message_content %}SupplyTracking: {{ connection|email_subject }}"
         }
-    },
+    }, 
     {
         "pk": 305, 
         "model": "poll.poll", 
@@ -435,25 +1022,6 @@
             "contacts": [], 
             "messages": [], 
             "question": "How many P6 girls are at school today?", 
-            "sites": [
-                5
-            ], 
-            "user": 1, 
-            "type": "n", 
-            "start_date": null, 
-            "response_type": "a"
-        }
-    }, 
-    {
-        "pk": 321, 
-        "model": "poll.poll", 
-        "fields": {
-            "default_response": "", 
-            "name": "edtrac_p3curriculum_progress", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "What sub theme number you were teaching this week? (P3) ", 
             "sites": [
                 5
             ], 
@@ -885,624 +1453,6 @@
             "category": 204, 
             "rule_string": "^\\s*(no|nope|nah|nay|n)(\\s|[^a-zA-Z]|$)", 
             "rule_type": "r"
-        }
-    },
-    {
-        "pk": "edtrac_autoreg", 
-        "model": "script.script", 
-        "fields": {
-            "enabled": true, 
-            "name": "Education monitoring autoregistration script", 
-            "sites": [
-                5
-            ]
-        }
-    }, 
-    {
-        "pk": "edtrac_head_teachers_weekly", 
-        "model": "script.script", 
-        "fields": {
-            "enabled": true, 
-            "name": "Education monitoring head teachers weekly script", 
-            "sites": [
-                5
-            ]
-        }
-    }, 
-    {
-        "pk": "edtrac_smc_termly", 
-        "model": "script.script", 
-        "fields": {
-            "enabled": true, 
-            "name": "Education monitoring smc termly script", 
-            "sites": [
-                5
-            ]
-        }
-    }, 
-    {
-        "pk": "edtrac_teachers_monthly", 
-        "model": "script.script", 
-        "fields": {
-            "enabled": true, 
-            "name": "Education monitoring teachers monthly script", 
-            "sites": [
-                5
-            ]
-        }
-    }, 
-    {
-        "pk": "edtrac_teachers_weekly", 
-        "model": "script.script", 
-        "fields": {
-            "enabled": true, 
-            "name": "Education monitoring teachers weekly script", 
-            "sites": [
-                5
-            ]
-        }
-    }, 
-    {
-        "pk": "edtrac_head_teachers_termly", 
-        "model": "script.script", 
-        "fields": {
-            "enabled": true, 
-            "name": "Education monitoring head teachers termly script", 
-            "sites": [
-                5
-            ]
-        }
-    }, 
-    {
-        "pk": "edtrac_gem_monthly", 
-        "model": "script.script", 
-        "fields": {
-            "enabled": true, 
-            "name": "Education monitoring gem monthly script", 
-            "sites": [
-                5
-            ]
-        }
-    }, 
-    {
-        "pk": "edtrac_smc_weekly", 
-        "model": "script.script", 
-        "fields": {
-            "enabled": true, 
-            "name": "Education monitoring smc weekly script", 
-            "sites": [
-                5
-            ]
-        }
-    }, 
-    {
-        "pk": "edtrac_head_teachers_monthly", 
-        "model": "script.script", 
-        "fields": {
-            "enabled": true, 
-            "name": "Education monitoring head teachers monthly script", 
-            "sites": [
-                5
-            ]
-        }
-    }, 
-    {
-        "pk": "edtrac_smc_monthly", 
-        "model": "script.script", 
-        "fields": {
-            "enabled": true, 
-            "name": "Education monitoring smc monthly script", 
-            "sites": [
-                5
-            ]
-        }
-    }, 
-    {
-        "pk": 306, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_autoreg", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 0, 
-            "message": "", 
-            "poll": 305, 
-            "order": 0, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 307, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_autoreg", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 0, 
-            "message": "", 
-            "poll": 306, 
-            "order": 1, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 308, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_autoreg", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 0, 
-            "message": "", 
-            "poll": 307, 
-            "order": 2, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 309, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_autoreg", 
-            "retry_offset": 86400, 
-            "rule": "M", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 0, 
-            "message": "", 
-            "poll": 308, 
-            "order": 3, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 310, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_autoreg", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 0, 
-            "message": "", 
-            "poll": 309, 
-            "order": 4, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 311, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_autoreg", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 0, 
-            "message": "", 
-            "poll": 310, 
-            "order": 5, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 312, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_autoreg", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 311, 
-            "order": 6, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 313, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_autoreg", 
-            "retry_offset": null, 
-            "rule": "w", 
-            "email": null, 
-            "num_tries": null, 
-            "start_offset": 60, 
-            "message": "Welcome EdTrac.The information you shall provide contributes to keeping children in school.", 
-            "poll": null, 
-            "order": 7, 
-            "giveup_offset": 0
-        }
-    }, 
-    {
-        "pk": 314, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_head_teachers_weekly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 312, 
-            "order": 0, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 315, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_head_teachers_weekly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 313, 
-            "order": 1, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 316, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_smc_termly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 314, 
-            "order": 0, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 317, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_smc_termly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 315, 
-            "order": 1, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 318, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_teachers_monthly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 316, 
-            "order": 0, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 319, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_teachers_weekly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 317, 
-            "order": 0, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 320, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_teachers_weekly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 318, 
-            "order": 1, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 321, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_teachers_weekly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 319, 
-            "order": 2, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 322, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_teachers_weekly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 320, 
-            "order": 3, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 323, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_teachers_weekly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 321, 
-            "order": 4, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 324, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_head_teachers_termly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 322, 
-            "order": 0, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 325, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_head_teachers_termly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 323, 
-            "order": 1, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 326, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_head_teachers_termly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 324, 
-            "order": 2, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 327, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_head_teachers_termly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 325, 
-            "order": 3, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 328, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_head_teachers_termly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 326, 
-            "order": 4, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 329, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_head_teachers_termly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 327, 
-            "order": 5, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 330, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_head_teachers_termly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 328, 
-            "order": 6, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 331, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_gem_monthly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 329, 
-            "order": 0, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 332, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_gem_monthly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 330, 
-            "order": 1, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 333, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_smc_weekly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 331, 
-            "order": 0, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 334, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_head_teachers_monthly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 332, 
-            "order": 0, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 335, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_head_teachers_monthly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 333, 
-            "order": 1, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 336, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_smc_monthly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 334, 
-            "order": 0, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 1, 
-        "model": "script.email", 
-        "fields": {
-            "message": "{% load message_content %}{{ connection|excel_reminder_msg }}{{ connection|outstanding_deliveries_msg }}", 
-            "sender": "no-reply@uganda.rapidsms.org", 
-            "recipients": [
-                1
-            ], 
-            "subject": "{% load message_content %}SupplyTracking: {{ connection|email_subject }}"
         }
     }
 ]
