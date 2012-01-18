@@ -19,12 +19,12 @@ class App (AppBase):
             return True
         elif message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', ['join'])]:
             if not message.connection.contact:
-                ScriptProgress.objects.create(script=Script.objects.get(slug="emis_autoreg"), \
+                ScriptProgress.objects.create(script=Script.objects.get(slug="edtrac_autoreg"), \
                                           connection=message.connection)
             elif Blacklist.objects.filter(connection=message.connection).count():
                 Blacklist.objects.filter(connection=message.connection).delete()
-                if not ScriptProgress.objects.filter(script__slug='emis_autoreg', connection=message.connection).count():
-                    ScriptProgress.objects.create(script=Script.objects.get(slug="emis_autoreg"), \
+                if not ScriptProgress.objects.filter(script__slug='edtrac_autoreg', connection=message.connection).count():
+                    ScriptProgress.objects.create(script=Script.objects.get(slug="edtrac_autoreg"), \
                                           connection=message.connection)
             else:
                 message.respond("You are already in the system and do not need to 'Join' again.")

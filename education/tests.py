@@ -144,13 +144,13 @@ class ModelTest(TestCase): #pragma: no cover
         script_prog = ScriptProgress.objects.all()[0]
         
         params = [
-            ('emis_role', grp, ['all']), \
-            ('emis_gender', 'male', ['Head Teachers']),\
-            ('emis_class', 'P3', ['Teachers']),\
-            ('emis_district', 'kampala', ['all']), \
-            ('emis_subcounty', 'kampala', ['all']), \
-            ('emis_school', 'st. marys', ['Teachers', 'Head Teachers', 'SMC']), \
-            ('emis_name', 'testy mctesterton', ['all']), \
+            ('edtrac_role', grp, ['all']), \
+            ('edtrac_gender', 'male', ['Head Teachers']),\
+            ('edtrac_class', 'P3', ['Teachers']),\
+            ('edtrac_district', 'kampala', ['all']), \
+            ('edtrac_subcounty', 'kampala', ['all']), \
+            ('edtrac_school', 'st. marys', ['Teachers', 'Head Teachers', 'SMC']), \
+            ('edtrac_name', 'testy mctesterton', ['all']), \
             ]
         param_list = []
         for step_name, value, grps in params:
@@ -175,7 +175,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(contact.gender, None)
         self.assertEquals(contact.default_connection, self.connection)
         self.assertEquals(ScriptProgress.objects.filter(connection=self.connection).count(), 3)
-        self.assertListEqual(list(ScriptProgress.objects.filter(connection=self.connection).values_list('script__slug', flat=True)), ['emis_autoreg', 'emis_teachers_weekly', 'emis_teachers_monthly'])
+        self.assertListEqual(list(ScriptProgress.objects.filter(connection=self.connection).values_list('script__slug', flat=True)), ['edtrac_autoreg', 'edtrac_teachers_weekly', 'edtrac_teachers_monthly'])
     
     def testBadAutoReg(self):
         """
@@ -184,10 +184,10 @@ class ModelTest(TestCase): #pragma: no cover
         self.fake_incoming('join')
         script_prog = ScriptProgress.objects.all()[0]
         self.fake_script_dialog(script_prog, self.connection, [\
-            ('emis_role', 'bodaboda'), \
-            ('emis_district', 'kampala'), \
-            ('emis_subcounty', 'amudat'), \
-            ('emis_name', 'bad tester'), \
+            ('edtrac_role', 'bodaboda'), \
+            ('edtrac_district', 'kampala'), \
+            ('edtrac_subcounty', 'amudat'), \
+            ('edtrac_name', 'bad tester'), \
         ])
         self.assertEquals(EmisReporter.objects.count(), 1)
         contact = EmisReporter.objects.all()[0]
@@ -199,8 +199,8 @@ class ModelTest(TestCase): #pragma: no cover
         self.fake_incoming('join')
         script_prog = ScriptProgress.objects.all()[0]
         self.fake_script_dialog(script_prog, self.connection, [\
-            ('emis_role', 'teacher'), \
-            ('emis_name', 'no location data tester'), \
+            ('edtrac_role', 'teacher'), \
+            ('edtrac_name', 'no location data tester'), \
         ])
         self.assertEquals(EmisReporter.objects.count(), 1)
         contact = EmisReporter.objects.all()[0]
@@ -210,9 +210,9 @@ class ModelTest(TestCase): #pragma: no cover
         self.fake_incoming('join')
         script_prog = ScriptProgress.objects.all()[0]
         self.fake_script_dialog(script_prog, self.connection, [\
-            ('emis_district', 'kampala'), \
-            ('emis_subcounty', 'Gul'), \
-            ('emis_school', 'St Marys'), \
+            ('edtrac_district', 'kampala'), \
+            ('edtrac_subcounty', 'Gul'), \
+            ('edtrac_school', 'St Marys'), \
         ])
         contact = EmisReporter.objects.all()[0]
         self.assertEquals(contact.groups.all()[0].name, 'Other Reporters')
@@ -223,12 +223,12 @@ class ModelTest(TestCase): #pragma: no cover
         self.fake_incoming('join')
         self.assertEquals(ScriptProgress.objects.count(), 1)
         script_prog = ScriptProgress.objects.all()[0]
-        self.assertEquals(script_prog.script.slug, 'emis_autoreg')
+        self.assertEquals(script_prog.script.slug, 'edtrac_autoreg')
 
         self.fake_script_dialog(script_prog, self.connection, [\
-            ('emis_role', 'gem'), \
-            ('emis_district', 'kampala'), \
-            ('emis_name', 'testy mctesterton'), \
+            ('edtrac_role', 'gem'), \
+            ('edtrac_district', 'kampala'), \
+            ('edtrac_name', 'testy mctesterton'), \
         ])
         self.assertEquals(EmisReporter.objects.count(), 1)
         contact = EmisReporter.objects.all()[0]
@@ -236,141 +236,141 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(contact.reporting_location, self.kampala_district)
         self.assertEquals(contact.groups.all()[0].name, 'GEM')
         self.assertEquals(ScriptProgress.objects.filter(connection=self.connection).count(), 2)
-        self.assertListEqual(list(ScriptProgress.objects.filter(connection=self.connection).values_list('script__slug', flat=True)), ['emis_autoreg', 'emis_gem_monthly'])
+        self.assertListEqual(list(ScriptProgress.objects.filter(connection=self.connection).values_list('script__slug', flat=True)), ['edtrac_autoreg', 'edtrac_gem_monthly'])
 
     def testTeacherAutoregProgression(self):
-        Script.objects.filter(slug='emis_autoreg').update(enabled=True) 
+        Script.objects.filter(slug='edtrac_autoreg').update(enabled=True) 
         self.fake_incoming('join')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM')
         self.fake_incoming('Teacher')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Which class do you teach? P3 or P6')
         self.fake_incoming('P3')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is the name of your district?')
         self.fake_incoming('Kampala')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is the name of your sub county?')
         self.fake_incoming('Kampala')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is the name of your school?')
         self.fake_incoming('St. Marys')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is your name?')
         self.fake_incoming('test mctester')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Welcome EdTrac.The information you shall provide contributes to keeping children in school.')
     
     def testHeadTeacherAutoregProgression(self):
-        Script.objects.filter(slug='emis_autoreg').update(enabled=True) 
+        Script.objects.filter(slug='edtrac_autoreg').update(enabled=True) 
         self.fake_incoming('join')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM')
         self.fake_incoming('Head Teacher')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Are you female or male?')
         self.fake_incoming('Male')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is the name of your district?')
         self.fake_incoming('Kampala')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is the name of your sub county?')
         self.fake_incoming('Kampala')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is the name of your school?')
         self.fake_incoming('St. Marys')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is your name?')
         self.fake_incoming('test mctester')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Welcome EdTrac.The information you shall provide contributes to keeping children in school.')
         
     def testSMCAutoregProgression(self):
-        Script.objects.filter(slug='emis_autoreg').update(enabled=True) 
+        Script.objects.filter(slug='edtrac_autoreg').update(enabled=True) 
         self.fake_incoming('join')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM')
         self.fake_incoming('SMC')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is the name of your district?')
         self.fake_incoming('Kampala')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is the name of your sub county?')
         self.fake_incoming('Kampala')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is the name of your school?')
         self.fake_incoming('St. Marys')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is your name?')
         self.fake_incoming('test mctester')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Welcome EdTrac.The information you shall provide contributes to keeping children in school.')
     
     def testGEMAutoregProgression(self):
-        Script.objects.filter(slug='emis_autoreg').update(enabled=True) 
+        Script.objects.filter(slug='edtrac_autoreg').update(enabled=True) 
         self.fake_incoming('join')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM')
         self.fake_incoming('GEM')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is the name of your district?')
         self.fake_incoming('Kampala')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is the name of your sub county?')
         self.fake_incoming('Kampala')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'What is your name?')
         self.fake_incoming('test mctester')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='emis_autoreg')
+        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Welcome EdTrac.The information you shall provide contributes to keeping children in school.')
@@ -386,7 +386,7 @@ class ModelTest(TestCase): #pragma: no cover
 
         self.fake_incoming('join')
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, "You are already in the system and do not need to 'Join' again.")
-        self.assertEquals(ScriptProgress.objects.filter(script__slug='emis_autoreg').count(), 1)
+        self.assertEquals(ScriptProgress.objects.filter(script__slug='edtrac_autoreg').count(), 1)
 
     def testQuitRejoin(self):
         #first join
@@ -407,178 +407,178 @@ class ModelTest(TestCase): #pragma: no cover
         
     def testWeeklyTeacherPolls(self):
         self.register_reporter('teacher')
-        Script.objects.filter(slug__in=['emis_teachers_weekly', 'emis_teachers_monthly']).update(enabled=True)
-        prog = ScriptProgress.objects.get(script__slug='emis_teachers_weekly', connection=self.connection)
+        Script.objects.filter(slug__in=['edtrac_teachers_weekly', 'edtrac_teachers_monthly']).update(enabled=True)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly', connection=self.connection)
         seconds_to_thursday = (_next_thursday() - datetime.datetime.now()).total_seconds()
         self.elapseTime2(prog, seconds_to_thursday+(1*60*60)) #seconds to thursday + one hour
-        prog = ScriptProgress.objects.get(script__slug='emis_teachers_weekly', connection=self.connection)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly', connection=self.connection)
         check_progress(prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_teachers_weekly').steps.get(order=0).poll.question)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_teachers_weekly').steps.get(order=0).poll.question)
         self.fake_incoming('40')
         self.assertEquals(Message.objects.filter(direction='I').order_by('-date')[0].application, 'script')
-        self.assertEquals(Script.objects.get(slug='emis_teachers_weekly').steps.get(order=0).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 40)
+        self.assertEquals(Script.objects.get(slug='edtrac_teachers_weekly').steps.get(order=0).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 40)
         self.elapseTime2(prog, 61)
-        prog = ScriptProgress.objects.get(script__slug='emis_teachers_weekly', connection=self.connection)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly', connection=self.connection)
         check_progress(prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_teachers_weekly').steps.get(order=2).poll.question)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_teachers_weekly').steps.get(order=2).poll.question)
         self.fake_incoming('55girls')
-        self.assertEquals(Script.objects.get(slug='emis_teachers_weekly').steps.get(order=2).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 55)
+        self.assertEquals(Script.objects.get(slug='edtrac_teachers_weekly').steps.get(order=2).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 55)
         self.elapseTime2(prog, 61)
-        prog = ScriptProgress.objects.get(script__slug='emis_teachers_weekly', connection=self.connection)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly', connection=self.connection)
         check_progress(prog.script)
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
         
     def testMonthlyTeacherPolls(self):
         self.register_reporter('teacher')
-        Script.objects.filter(slug__in=['emis_teachers_weekly', 'emis_teachers_monthly']).update(enabled=True)
+        Script.objects.filter(slug__in=['edtrac_teachers_weekly', 'edtrac_teachers_monthly']).update(enabled=True)
         
     def testWeeklyHeadTeacherPolls(self):
         self.register_reporter('head teacher')
-        Script.objects.filter(slug__in=['emis_head_teachers_weekly', 'emis_head_teachers_monthly', 'emis_head_teachers_termly']).update(enabled=True)
-        prog = ScriptProgress.objects.get(script__slug='emis_head_teachers_weekly', connection=self.connection)
+        Script.objects.filter(slug__in=['edtrac_head_teachers_weekly', 'edtrac_head_teachers_monthly', 'edtrac_head_teachers_termly']).update(enabled=True)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_weekly', connection=self.connection)
         seconds_to_thursday = (_next_thursday() - datetime.datetime.now()).total_seconds()
         self.elapseTime2(prog, seconds_to_thursday+(1*60*60)) #seconds to thursday + one hour
-        prog = ScriptProgress.objects.get(script__slug='emis_head_teachers_weekly', connection=self.connection)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_weekly', connection=self.connection)
         check_progress(prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_head_teachers_weekly').steps.get(order=0).poll.question)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_head_teachers_weekly').steps.get(order=0).poll.question)
         self.fake_incoming('6')
         self.assertEquals(Message.objects.filter(direction='I').order_by('-date')[0].application, 'script')
-        self.assertEquals(Script.objects.get(slug='emis_head_teachers_weekly').steps.get(order=0).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 6)
+        self.assertEquals(Script.objects.get(slug='edtrac_head_teachers_weekly').steps.get(order=0).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 6)
         self.elapseTime2(prog, 61)
-        prog = ScriptProgress.objects.get(script__slug='emis_head_teachers_weekly', connection=self.connection)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_weekly', connection=self.connection)
         check_progress(prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_head_teachers_weekly').steps.get(order=1).poll.question)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_head_teachers_weekly').steps.get(order=1).poll.question)
         self.fake_incoming('5 male teachers')
-        self.assertEquals(Script.objects.get(slug='emis_head_teachers_weekly').steps.get(order=1).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 5)
+        self.assertEquals(Script.objects.get(slug='edtrac_head_teachers_weekly').steps.get(order=1).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 5)
         self.elapseTime2(prog, 61)
-        prog = ScriptProgress.objects.get(script__slug='emis_head_teachers_weekly', connection=self.connection)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_weekly', connection=self.connection)
         check_progress(prog.script)
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
         
     def testMonthlyHeadTeacherPolls(self):
         self.register_reporter('head teacher')
-        Script.objects.filter(slug__in=['emis_head_teachers_weekly', 'emis_head_teachers_monthly', 'emis_head_teachers_termly']).update(enabled=True)
-        prog = ScriptProgress.objects.get(script__slug='emis_head_teachers_monthly', connection=self.connection)
+        Script.objects.filter(slug__in=['edtrac_head_teachers_weekly', 'edtrac_head_teachers_monthly', 'edtrac_head_teachers_termly']).update(enabled=True)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
         d = _date_of_monthday(25)
         seconds_to_25th = (d - datetime.datetime.now()).total_seconds()
         self.elapseTime2(prog, seconds_to_25th+(1*60*60)) #seconds to 25th + one hour
-        prog = ScriptProgress.objects.get(script__slug='emis_head_teachers_monthly', connection=self.connection)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
         check_progress(prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_head_teachers_monthly').steps.get(order=0).poll.question)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_head_teachers_monthly').steps.get(order=0).poll.question)
         self.fake_incoming('5')
         self.assertEquals(Message.objects.filter(direction='I').order_by('-date')[0].application, 'script')
-        self.assertEquals(Script.objects.get(slug='emis_head_teachers_monthly').steps.get(order=0).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 5)
+        self.assertEquals(Script.objects.get(slug='edtrac_head_teachers_monthly').steps.get(order=0).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 5)
         self.elapseTime2(prog, 61)
-        prog = ScriptProgress.objects.get(script__slug='emis_head_teachers_monthly', connection=self.connection)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
         check_progress(prog.script)
-        self.assertNotEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_head_teachers_monthly').steps.get(order=1).poll.question)
+        self.assertNotEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_head_teachers_monthly').steps.get(order=1).poll.question)
         d = _date_of_monthday('last')
         seconds_to_month_end = (d - prog.time).total_seconds()
         self.elapseTime2(prog, seconds_to_month_end+(1*60*60)) #seconds to month end + one hour
-        prog = ScriptProgress.objects.get(script__slug='emis_head_teachers_monthly', connection=self.connection)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
         check_progress(prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_head_teachers_monthly').steps.get(order=1).poll.question)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_head_teachers_monthly').steps.get(order=1).poll.question)
         self.fake_incoming('25%')
-        self.assertEquals(Script.objects.get(slug='emis_head_teachers_monthly').steps.get(order=1).poll.responses.all().order_by('-date')[0].eav.poll_text_value, '25%')
+        self.assertEquals(Script.objects.get(slug='edtrac_head_teachers_monthly').steps.get(order=1).poll.responses.all().order_by('-date')[0].eav.poll_text_value, '25%')
         self.elapseTime2(prog, 61)
-        prog = ScriptProgress.objects.get(script__slug='emis_head_teachers_monthly', connection=self.connection)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
         check_progress(prog.script)
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
         
     def testTermlyHeadTeacherPolls(self):
         self.register_reporter('head teacher')
-        Script.objects.filter(slug__in=['emis_head_teachers_weekly', 'emis_head_teachers_monthly', 'emis_head_teachers_termly']).update(enabled=True)
-        prog = ScriptProgress.objects.get(script__slug='emis_head_teachers_termly', connection=self.connection)
+        Script.objects.filter(slug__in=['edtrac_head_teachers_weekly', 'edtrac_head_teachers_monthly', 'edtrac_head_teachers_termly']).update(enabled=True)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_termly', connection=self.connection)
         d = _next_midterm()
         seconds_to_midterm = (d - datetime.datetime.now()).total_seconds()
         self.elapseTime2(prog, seconds_to_midterm+(1*60*60)) #seconds to 25th + one hour
-        prog = ScriptProgress.objects.get(script__slug='emis_head_teachers_termly', connection=self.connection)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_termly', connection=self.connection)
         check_progress(prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_head_teachers_termly').steps.get(order=0).poll.question)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_head_teachers_termly').steps.get(order=0).poll.question)
         self.fake_incoming('85')
         self.assertEquals(Message.objects.filter(direction='I').order_by('-date')[0].application, 'script')
         print Message.objects.all()
-        self.assertEquals(Script.objects.get(slug='emis_head_teachers_termly').steps.get(order=0).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 85)
+        self.assertEquals(Script.objects.get(slug='edtrac_head_teachers_termly').steps.get(order=0).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 85)
         self.elapseTime2(prog, 61)
-        prog = ScriptProgress.objects.get(script__slug='emis_head_teachers_termly', connection=self.connection)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_termly', connection=self.connection)
         check_progress(prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_head_teachers_termly').steps.get(order=1).poll.question)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_head_teachers_termly').steps.get(order=1).poll.question)
         self.fake_incoming('25')
-        self.assertEquals(Script.objects.get(slug='emis_head_teachers_termly').steps.get(order=1).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 25)
+        self.assertEquals(Script.objects.get(slug='edtrac_head_teachers_termly').steps.get(order=1).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 25)
         self.elapseTime2(prog, 61)
-        prog = ScriptProgress.objects.get(script__slug='emis_head_teachers_termly', connection=self.connection)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_termly', connection=self.connection)
         check_progress(prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_head_teachers_termly').steps.get(order=2).poll.question)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_head_teachers_termly').steps.get(order=2).poll.question)
         self.fake_incoming('25')
-        self.assertEquals(Script.objects.get(slug='emis_head_teachers_termly').steps.get(order=2).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 25)
+        self.assertEquals(Script.objects.get(slug='edtrac_head_teachers_termly').steps.get(order=2).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 25)
         self.elapseTime2(prog, 61)
-        prog = ScriptProgress.objects.get(script__slug='emis_head_teachers_termly', connection=self.connection)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_termly', connection=self.connection)
         check_progress(prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_head_teachers_termly').steps.get(order=3).poll.question)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_head_teachers_termly').steps.get(order=3).poll.question)
         self.fake_incoming('25')
-        self.assertEquals(Script.objects.get(slug='emis_head_teachers_termly').steps.get(order=3).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 25)
+        self.assertEquals(Script.objects.get(slug='edtrac_head_teachers_termly').steps.get(order=3).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 25)
         self.elapseTime2(prog, 61)
-        prog = ScriptProgress.objects.get(script__slug='emis_head_teachers_termly', connection=self.connection)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_termly', connection=self.connection)
         check_progress(prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_head_teachers_termly').steps.get(order=4).poll.question)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_head_teachers_termly').steps.get(order=4).poll.question)
         self.fake_incoming('25')
         self.elapseTime2(prog, 61)
-        prog = ScriptProgress.objects.get(script__slug='emis_head_teachers_termly', connection=self.connection)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_termly', connection=self.connection)
         check_progress(prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_head_teachers_termly').steps.get(order=5).poll.question)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_head_teachers_termly').steps.get(order=5).poll.question)
         self.fake_incoming('25')
-        self.assertEquals(Script.objects.get(slug='emis_head_teachers_termly').steps.get(order=5).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 25)
+        self.assertEquals(Script.objects.get(slug='edtrac_head_teachers_termly').steps.get(order=5).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 25)
         self.elapseTime2(prog, 61)
-        prog = ScriptProgress.objects.get(script__slug='emis_head_teachers_termly', connection=self.connection)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_termly', connection=self.connection)
         check_progress(prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_head_teachers_termly').steps.get(order=6).poll.question)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_head_teachers_termly').steps.get(order=6).poll.question)
         self.fake_incoming('yeah')
-        poll = Script.objects.get(slug='emis_head_teachers_termly').steps.get(order=6).poll
+        poll = Script.objects.get(slug='edtrac_head_teachers_termly').steps.get(order=6).poll
         yes_category = poll.categories.filter(name='yes')
         response = poll.responses.all().order_by('-date')[0]
         self.assertEquals(ResponseCategory.objects.get(response__poll__name=poll.name,  category=yes_category).response, response)
         self.elapseTime2(prog, 61)
-        prog = ScriptProgress.objects.get(script__slug='emis_head_teachers_termly', connection=self.connection)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_termly', connection=self.connection)
         check_progress(prog.script)
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')     
     
     def testWeeklySMCPolls(self):
         self.register_reporter('smc')
-        Script.objects.filter(slug__in=['emis_smc_weekly', 'emis_smc_monthly', 'emis_smc_termly']).update(enabled=True)
-        prog = ScriptProgress.objects.get(script__slug='emis_smc_weekly', connection=self.connection)
+        Script.objects.filter(slug__in=['edtrac_smc_weekly', 'edtrac_smc_monthly', 'edtrac_smc_termly']).update(enabled=True)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_smc_weekly', connection=self.connection)
         seconds_to_thursday = (_next_thursday() - datetime.datetime.now()).total_seconds()
         self.elapseTime2(prog, seconds_to_thursday+(1*60*60)) #seconds to thursday + one hour
-        prog = ScriptProgress.objects.get(script__slug='emis_smc_weekly', connection=self.connection)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_smc_weekly', connection=self.connection)
         check_progress(prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_smc_weekly').steps.get(order=0).poll.question)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_smc_weekly').steps.get(order=0).poll.question)
         self.fake_incoming('y')
-        poll = Script.objects.get(slug='emis_smc_weekly').steps.get(order=0).poll
+        poll = Script.objects.get(slug='edtrac_smc_weekly').steps.get(order=0).poll
         yes_category = poll.categories.filter(name='yes')
         response = poll.responses.all().order_by('-date')[0]
         self.assertEquals(ResponseCategory.objects.get(response__poll__name=poll.name,  category=yes_category).response, response)
-        prog = ScriptProgress.objects.get(script__slug='emis_smc_weekly', connection=self.connection)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_smc_weekly', connection=self.connection)
         self.elapseTime2(prog, 61)
-        prog = ScriptProgress.objects.get(script__slug='emis_smc_weekly', connection=self.connection)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_smc_weekly', connection=self.connection)
         check_progress(prog.script)
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
 #        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time, _next_thursday(prog))    
     
     def testMonthlySMCPolls(self):
         self.register_reporter('smc')
-        Script.objects.filter(slug__in=['emis_smc_weekly', 'emis_smc_monthly', 'emis_smc_termly']).update(enabled=True)
-        prog = ScriptProgress.objects.get(script__slug='emis_smc_monthly', connection=self.connection)
+        Script.objects.filter(slug__in=['edtrac_smc_weekly', 'edtrac_smc_monthly', 'edtrac_smc_termly']).update(enabled=True)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_smc_monthly', connection=self.connection)
         d = _date_of_monthday(5)
         print d
         seconds_to_5th = (d - datetime.datetime.now()).total_seconds()
         self.elapseTime2(prog, seconds_to_5th+(1*60*60)) #seconds to 5th + one hour
-        prog = ScriptProgress.objects.get(script__slug='emis_smc_monthly', connection=self.connection)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_smc_monthly', connection=self.connection)
         check_progress(prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='emis_smc_monthly').steps.get(order=0).poll.question)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_smc_monthly').steps.get(order=0).poll.question)
         self.fake_incoming('50%')
-        self.assertEquals(Script.objects.get(slug='emis_smc_monthly').steps.get(order=0).poll.responses.all().order_by('-date')[0].eav.poll_text_value, '50%')
-        prog = ScriptProgress.objects.get(script__slug='emis_smc_monthly', connection=self.connection)
+        self.assertEquals(Script.objects.get(slug='edtrac_smc_monthly').steps.get(order=0).poll.responses.all().order_by('-date')[0].eav.poll_text_value, '50%')
+        prog = ScriptProgress.objects.get(script__slug='edtrac_smc_monthly', connection=self.connection)
         self.elapseTime2(prog, 61)
-        prog = ScriptProgress.objects.get(script__slug='emis_smc_monthly', connection=self.connection)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_smc_monthly', connection=self.connection)
         check_progress(prog.script)
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
         
@@ -594,17 +594,17 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptProgress.objects.filter(script__slug__in=weekly_scripts.values_list('slug', flat=True))[0].time.year, datetime.datetime.now().year - 1)
         reschedule_weekly_polls('teachers')
         next_thursday = _next_thursday()
-        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675349', script__slug='emis_teachers_weekly').time.date(), next_thursday.date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675349', script__slug='edtrac_teachers_weekly').time.date(), next_thursday.date())
         reschedule_weekly_polls('head teachers')
-        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='emis_head_teachers_weekly').time.date(), next_thursday.date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_weekly').time.date(), next_thursday.date())
         reschedule_weekly_polls('smc')
-        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='emis_smc_weekly').time.date(), next_thursday.date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='edtrac_smc_weekly').time.date(), next_thursday.date())
         for sp in ScriptProgress.objects.filter(script__slug__in=weekly_scripts.values_list('slug', flat=True)):
             self.elapseTime2(sp, 13*31*24*60*60)
         reschedule_weekly_polls()
-        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675349', script__slug='emis_teachers_weekly').time.date(), next_thursday.date())
-        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='emis_head_teachers_weekly').time.date(), next_thursday.date())
-        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='emis_smc_weekly').time.date(), next_thursday.date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675349', script__slug='edtrac_teachers_weekly').time.date(), next_thursday.date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_weekly').time.date(), next_thursday.date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='edtrac_smc_weekly').time.date(), next_thursday.date())
         
     def testRescheduleMonthlyPolls(self):
         self.register_reporter('teacher', '8675349')
@@ -617,15 +617,15 @@ class ModelTest(TestCase): #pragma: no cover
             self.elapseTime2(sp, 13*31*24*60*60)   
         self.assertEquals(ScriptProgress.objects.filter(script__slug__in=monthly_scripts.values_list('slug', flat=True))[0].time.year, datetime.datetime.now().year - 1)
         reschedule_monthly_polls('head teachers')
-        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='emis_head_teachers_monthly').time.date(), _date_of_monthday('last').date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_monthly').time.date(), _date_of_monthday('last').date())
         reschedule_monthly_polls('smc')
-        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='emis_smc_monthly').time.date(), _date_of_monthday(5).date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='edtrac_smc_monthly').time.date(), _date_of_monthday(5).date())
         for sp in ScriptProgress.objects.filter(script__slug__in=monthly_scripts.values_list('slug', flat=True)):
             self.elapseTime2(sp, 13*31*24*60*60)
         reschedule_monthly_polls()
-        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675349', script__slug='emis_teachers_monthly').time.date(), _date_of_monthday('last').date())
-        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='emis_head_teachers_monthly').time.date(), _date_of_monthday('last').date())
-        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='emis_smc_monthly').time.date(), _date_of_monthday(5).date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675349', script__slug='edtrac_teachers_monthly').time.date(), _date_of_monthday('last').date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_monthly').time.date(), _date_of_monthday('last').date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='edtrac_smc_monthly').time.date(), _date_of_monthday(5).date())
         
     def testRescheduleTermlyPolls(self):
         self.register_reporter('teacher', '8675349')
@@ -637,21 +637,21 @@ class ModelTest(TestCase): #pragma: no cover
         for sp in ScriptProgress.objects.filter(script__slug__in=termly_scripts.values_list('slug', flat=True)):
             self.elapseTime2(sp, 13*31*24*60*60)   
         reschedule_termly_polls('head teachers')
-        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='emis_head_teachers_termly').time.date(), _next_midterm().date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_termly').time.date(), _next_midterm().date())
         reschedule_termly_polls('smc')
-        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='emis_smc_termly').time.date(), _next_midterm().date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='edtrac_smc_termly').time.date(), _next_midterm().date())
         for sp in ScriptProgress.objects.filter(script__slug__in=termly_scripts.values_list('slug', flat=True)):
             self.elapseTime2(sp, 13*31*24*60*60)
         reschedule_termly_polls()
-        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='emis_head_teachers_termly').time.date(), _next_midterm().date())
-        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='emis_smc_termly').time.date(), _next_midterm().date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_termly').time.date(), _next_midterm().date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='edtrac_smc_termly').time.date(), _next_midterm().date())
         for sp in ScriptProgress.objects.filter(script__slug__in=termly_scripts.values_list('slug', flat=True)):
             self.elapseTime2(sp, 13*31*24*60*60)
         reschedule_termly_polls('smc', '2012-4-16')
-        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='emis_smc_termly').time.date(), datetime.datetime(2012, 4, 16).date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='edtrac_smc_termly').time.date(), datetime.datetime(2012, 4, 16).date())
         for sp in ScriptProgress.objects.filter(script__slug__in=termly_scripts.values_list('slug', flat=True)):
             self.elapseTime2(sp, 13*31*24*60*60)
         reschedule_termly_polls('all', '2012-4-17')
-        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='emis_head_teachers_termly').time.date(), datetime.datetime(2012, 4, 17).date())
-        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='emis_smc_termly').time.date(), datetime.datetime(2012, 4, 17).date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_termly').time.date(), datetime.datetime(2012, 4, 17).date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='qsmc_termly').time.date(), datetime.datetime(2012, 4, 17).date())
         

@@ -2,6 +2,7 @@ from .forms import SchoolFilterForm, LimitedDistictFilterForm, \
  RolesFilterForm, ReporterFreeSearchForm, SchoolDistictFilterForm, FreeSearchSchoolsForm, MassTextForm
 
 from .models import EmisReporter, School
+from .reports import messages, othermessages, reporters, schools
 #from .reports import AttendanceReport, messages, othermessages, reporters, schools
 from .sorters import LatestSubmissionSorter
 from .views import *
@@ -20,6 +21,23 @@ from django.views.generic import ListView
 
 urlpatterns = patterns('',
    url(r'^emis/messagelog/$', login_required(generic), {
+      'model':Message,
+      'queryset':messages,
+      'filter_forms':[FreeSearchTextForm, DistictFilterMessageForm, HandledByForm],
+      'action_forms':[ReplyTextForm],
+      'objects_per_page':25,
+      'partial_row':'education/partials/message_row.html',
+      'base_template':'education/messages_base.html',
+      'columns':[('Text', True, 'text', SimpleSorter()),
+                 ('Contact Information', True, 'connection__contact__name', SimpleSorter(),),
+                 ('Date', True, 'date', SimpleSorter(),),
+                 ('Type', True, 'application', SimpleSorter(),),
+                 ('Response', False, 'response', None,),
+                 ],
+      'sort_column':'date',
+      'sort_ascending':False,
+    }, name="emis-messagelog"),
+   url(r'^emis/messagelog/(?P<error_msgs>\d+)/', login_required(generic), {
       'model':Message,
       'queryset':messages,
       'filter_forms':[FreeSearchTextForm, DistictFilterMessageForm, HandledByForm],

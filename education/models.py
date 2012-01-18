@@ -164,24 +164,24 @@ def parse_fuzzy_number(command, value):
             return int(num)
 
 
-def emis_autoreg(**kwargs):
+def edtrac_autoreg(**kwargs):
 
     connection = kwargs['connection']
     progress = kwargs['sender']
-    if not progress.script.slug == 'emis_autoreg':
+    if not progress.script.slug == 'edtrac_autoreg':
         return
 
     session = ScriptSession.objects.filter(script=progress.script, connection=connection).order_by('-end_time')[0]
     script = progress.script
 
-    role_poll = script.steps.get(order=0).poll
-    gender_poll = script.steps.get(order=1).poll
-    class_poll = script.steps.get(order=2).poll
-    district_poll = script.steps.get(order=3).poll
-    subcounty_poll = script.steps.get(order=4).poll
-    school_poll = script.steps.get(order=5).poll
-    name_poll = script.steps.get(order=6).poll
-
+    role_poll = script.steps.get(poll__name='edtrac_role').poll
+    gender_poll = script.steps.get(poll__name='edtrac_gender').poll
+    class_poll = script.steps.get(poll__name='edtrac_class').poll
+    district_poll = script.steps.get(poll__name='edtrac_district').poll
+    subcounty_poll = script.steps.get(poll__name='edtrac_subcounty').poll
+    school_poll = script.steps.get(poll__name='edtrac_school').poll
+    name_poll = script.steps.get(poll__name='edtrac_name').poll
+    
     name = find_best_response(session, name_poll)
     role = find_best_response(session, role_poll)
     gender = find_best_response(session, gender_poll)
@@ -268,45 +268,45 @@ def emis_autoreg(**kwargs):
     if not getattr(settings, 'TRAINING_MODE', False):
         # Now that you have their roll, they should be signed up for the periodic polling
         _schedule_weekly_scripts(group, connection, ['Teachers', 'Head Teachers', 'SMC'])
-        _schedule_monthly_script(group, connection, 'emis_teachers_monthly', 'last', ['Teachers'])
-        _schedule_monthly_script(group, connection, 'emis_head_teachers_monthly', 'last', ['Head Teachers'])
-        _schedule_monthly_script(group, connection, 'emis_smc_monthly', 5, ['SMC'])
-        _schedule_monthly_script(group, connection, 'emis_gem_monthly', 20, ['GEM'])
+        _schedule_monthly_script(group, connection, 'edtrac_teachers_monthly', 'last', ['Teachers'])
+        _schedule_monthly_script(group, connection, 'edtrac_head_teachers_monthly', 'last', ['Head Teachers'])
+        _schedule_monthly_script(group, connection, 'edtrac_smc_monthly', 5, ['SMC'])
+        _schedule_monthly_script(group, connection, 'edtrac_gem_monthly', 20, ['GEM'])
         #termly messages go out mid April, July or November by default, this can be overwridden by manual process
-        _schedule_termly_script(group, connection, 'emis_head_teachers_termly', ['Head Teachers'])
-        _schedule_termly_script(group, connection, 'emis_smc_termly', ['SMC'])
+        _schedule_termly_script(group, connection, 'edtrac_head_teachers_termly', ['Head Teachers'])
+        _schedule_termly_script(group, connection, 'edtrac_smc_termly', ['SMC'])
 
-def emis_reschedule_script(**kwargs):
+def edtrac_reschedule_script(**kwargs):
     connection = kwargs['connection']
     progress = kwargs['sender']
     slug = progress.script.slug
-    if not progress.script.slug.startswith('emis_') or progress.script.slug == 'emis_autoreg':
+    if not progress.script.slug.startswith('edtrac_') or progress.script.slug == 'edtrac_autoreg':
         return
     if not connection.contact:
         return
     if not connection.contact.groups.count():
         return
     group = connection.contact.groups.all()[0]
-    if slug in ["emis_%s" % g.lower().replace(' ', '_') + '_weekly' for g in ['Teachers', 'Head Teachers', 'SMC']]:
+    if slug in ["edtrac_%s" % g.lower().replace(' ', '_') + '_weekly' for g in ['Teachers', 'Head Teachers', 'SMC']]:
         _schedule_weekly_scripts(group, connection, ['Teachers', 'Head Teachers', 'SMC'])
-    elif slug == 'emis_teachers_monthly':
-        _schedule_monthly_script(group, connection, 'emis_teachers_monthly', 'last', ['Teachers'])
-    elif slug == 'emis_head_teachers_monthly':
-        _schedule_monthly_script(group, connection, 'emis_head_teachers_monthly', 'last', ['Head Teachers'])
-    elif slug == 'emis_smc_monthly':
-        _schedule_monthly_script(group, connection, 'emis_smc_monthly', 5, ['SMC'])
-    elif slug == 'emis_gem_monthly':
-        _schedule_monthly_script(group, connection, 'emis_gem_monthly', 20, ['GEM'])
-    elif slug == 'emis_head_teachers_termly':
-        _schedule_termly_script(group, connection, 'emis_head_teachers_termly', ['Head Teachers'])
+    elif slug == 'edtrac_teachers_monthly':
+        _schedule_monthly_script(group, connection, 'edtrac_teachers_monthly', 'last', ['Teachers'])
+    elif slug == 'edtrac_head_teachers_monthly':
+        _schedule_monthly_script(group, connection, 'edtrac_head_teachers_monthly', 'last', ['Head Teachers'])
+    elif slug == 'edtrac_smc_monthly':
+        _schedule_monthly_script(group, connection, 'edtrac_smc_monthly', 5, ['SMC'])
+    elif slug == 'edtrac_gem_monthly':
+        _schedule_monthly_script(group, connection, 'edtrac_gem_monthly', 20, ['GEM'])
+    elif slug == 'edtrac_head_teachers_termly':
+        _schedule_termly_script(group, connection, 'edtrac_head_teachers_termly', ['Head Teachers'])
     else:
-        _schedule_termly_script(group, connection, 'emis_smc_termly', ['SMC'])
+        _schedule_termly_script(group, connection, 'edtrac_smc_termly', ['SMC'])
 
-def emis_autoreg_transition(**kwargs):
+def edtrac_autoreg_transition(**kwargs):
 
     connection = kwargs['connection']
     progress = kwargs['sender']
-    if not progress.script.slug == 'emis_autoreg':
+    if not progress.script.slug == 'edtrac_autoreg':
         return
     script = progress.script
     try:
@@ -319,9 +319,9 @@ def emis_autoreg_transition(**kwargs):
     if role:
         group = find_closest_match(role, Group.objects) or find_closest_match(role, Group.objects, True)
     skipsteps = {
-        'emis_gender':['Head Teachers'],
-        'emis_class':['Teachers'],
-        'emis_school':['Teachers', 'Head Teachers', 'SMC'],
+        'edtrac_gender':['Head Teachers'],
+        'edtrac_class':['Teachers'],
+        'edtrac_school':['Teachers', 'Head Teachers', 'SMC'],
     }
     skipped = True
     while group and skipped:
@@ -334,11 +334,11 @@ def emis_autoreg_transition(**kwargs):
                 progress.save()
                 break
             
-def emis_attendance_script_transition(**kwargs):
+def edtrac_attendance_script_transition(**kwargs):
 
     connection = kwargs['connection']
     progress = kwargs['sender']
-    if not progress.script.slug == 'emis_teachers_weekly':
+    if not progress.script.slug == 'edtrac_teachers_weekly':
         return
     script = progress.script
     try:
@@ -349,10 +349,10 @@ def emis_attendance_script_transition(**kwargs):
     if not grade:
         return
     skipsteps = {
-        'emis_boysp3_attendance':['P3'],
-        'emis_boysp6_attendance':['P6'],
-        'emis_girlsp3_attendance':['P3'],
-        'emis_girlsp6_attendance':['P6'],
+        'edtrac_boysp3_attendance':['P3'],
+        'edtrac_boysp6_attendance':['P6'],
+        'edtrac_girlsp3_attendance':['P3'],
+        'edtrac_girlsp6_attendance':['P6'],
     }
     skipped = True
     while grade and skipped:
@@ -368,12 +368,12 @@ def emis_attendance_script_transition(**kwargs):
                 progress.save()
                 break
             
-def emis_scriptrun_schedule(**kwargs):
+def edtrac_scriptrun_schedule(**kwargs):
 
     connection = kwargs['connection']
     progress = kwargs['sender']
     step = kwargs['step']
-    if progress.script.slug == 'emis_autoreg':
+    if progress.script.slug == 'edtrac_autoreg':
         return
     script = progress.script
     connections = ScriptProgress.objects.filter(script=script)
@@ -388,7 +388,7 @@ def reschedule_weekly_polls(grp=None):
     """
     weekly_scripts = Script.objects.filter(slug__endswith='_weekly')
     if grp:
-        slg_start = 'emis_%s'%grp.replace(' ','_').lower()
+        slg_start = 'edtrac_%s'%grp.replace(' ','_').lower()
         weekly_scripts = weekly_scripts.filter(slug__startswith=slg_start)
         ScriptProgress.objects.filter(script__in=weekly_scripts)\
                                 .exclude(connection__contact__emisreporter__groups__name__iexact=grp).delete()
@@ -408,7 +408,7 @@ def reschedule_monthly_polls(grp=None):
     """
     monthly_scripts = Script.objects.filter(slug__endswith='_monthly')
     if grp:
-        slg_start = 'emis_%s'%grp.replace(' ','_').lower()
+        slg_start = 'edtrac_%s'%grp.replace(' ','_').lower()
         monthly_scripts = monthly_scripts.filter(slug__startswith=slg_start)
         ScriptProgress.objects.filter(script__in=monthly_scripts)\
                                 .exclude(connection__contact__emisreporter__groups__name__iexact=grp).delete()
@@ -420,14 +420,14 @@ def reschedule_monthly_polls(grp=None):
         reps = EmisReporter.objects.filter(groups__in=grps)
         for rep in reps:
             if rep.default_connection and rep.groups.count() > 0:
-                if slug == 'emis_teachers_monthly':
-                    _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'emis_teachers_monthly', 'last', ['Teachers'])
-                elif slug == 'emis_head_teachers_monthly':
-                    _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'emis_head_teachers_monthly', 'last', ['Head Teachers'])
-                elif slug == 'emis_smc_monthly':
-                    _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'emis_smc_monthly', 5, ['SMC'])
-                elif slug == 'emis_gem_monthly':
-                    _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'emis_gem_monthly', 20, ['GEM'])
+                if slug == 'edtrac_teachers_monthly':
+                    _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'edtrac_teachers_monthly', 'last', ['Teachers'])
+                elif slug == 'edtrac_head_teachers_monthly':
+                    _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'edtrac_head_teachers_monthly', 'last', ['Head Teachers'])
+                elif slug == 'edtrac_smc_monthly':
+                    _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'edtrac_smc_monthly', 5, ['SMC'])
+                elif slug == 'edtrac_gem_monthly':
+                    _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'edtrac_gem_monthly', 20, ['GEM'])
         
 def reschedule_termly_polls(grp = 'all', date=None):
         
@@ -436,7 +436,7 @@ def reschedule_termly_polls(grp = 'all', date=None):
     """
     termly_scripts = Script.objects.filter(slug__endswith='_termly')
     if not grp == 'all':
-        slg_start = 'emis_%s'%grp.replace(' ','_').lower()
+        slg_start = 'edtrac_%s'%grp.replace(' ','_').lower()
         termly_scripts = termly_scripts.filter(slug__startswith=slg_start)
         ScriptProgress.objects.filter(script__in=termly_scripts)\
                                 .exclude(connection__contact__emisreporter__groups__name__iexact=grp).delete()
@@ -462,8 +462,8 @@ XFormField.register_field_type('emisbool', 'YesNo', parse_yesno,
 XFormField.register_field_type('fuzzynum', 'Fuzzy Numbers (o/0/none)', parse_fuzzy_number,
                                db_type=XFormField.TYPE_INT, xforms_type='integer')
 
-script_progress_was_completed.connect(emis_autoreg, weak=False)
-script_progress_was_completed.connect(emis_reschedule_script, weak=False)
-script_progress.connect(emis_autoreg_transition, weak=False)
-script_progress.connect(emis_attendance_script_transition, weak=False)
-#script_progress.connect(emis_scriptrun_schedule, weak=False)
+script_progress_was_completed.connect(edtrac_autoreg, weak=False)
+script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)
+script_progress.connect(edtrac_autoreg_transition, weak=False)
+script_progress.connect(edtrac_attendance_script_transition, weak=False)
+#script_progress.connect(edtrac_scriptrun_schedule, weak=False)
