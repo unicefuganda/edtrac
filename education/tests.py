@@ -131,7 +131,7 @@ class ModelTest(TestCase): #pragma: no cover
         ss = ScriptSession.objects.create(script=script, connection=connection, start_time=datetime.datetime.now())
         for poll_name, resp in responses:
             poll = script.steps.get(poll__name=poll_name).poll
-            poll.process_response(self.spoof_incoming_obj(resp))
+            poll.process_response(self.spoof_incoming_obj(resp, connection))
             resp = poll.responses.all()[0]
             ScriptResponse.objects.create(session=ss, response=resp)
         if emit_signal:
@@ -160,7 +160,7 @@ class ModelTest(TestCase): #pragma: no cover
             elif len(g)>0:
                 param_list.append((step_name, value))
             else:
-                pass    
+                pass  
         self.fake_script_dialog(script_prog, connection, param_list)
 
     def testBasicAutoReg(self):
