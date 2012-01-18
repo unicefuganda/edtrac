@@ -280,23 +280,22 @@ def ministry_dashboard(request):
 
 @login_required
 def admin_dashboard(request):
-    violence = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+    violence = list_poll_responses(Poll.objects.get(name="edtrac_headteachers_abuse"))
     districts = violence.keys()
     location = request.user.get_profile().location
     #This returns a a dictionary of districts and total values (in a month's span)
     #TODO uncomment below
-    #responses_to_violence = get_sum_of_poll_response(Poll.objects.get(name = "emis_headteachers_abuse"),
+    #responses_to_violence = get_sum_of_poll_response(Poll.objects.get(name = "edtrac_headteachers_abuse"),
     #                           month_filter = True,
     #                           location = location
     #                           ret_type = dict
     # )
-    #responses_to_meals = get_sum_of_poll_response(Poll.objects.get(name = "emis_headteachers_meals"),
+    #responses_to_meals = get_sum_of_poll_response(Poll.objects.get(name = "edtrac_headteachers_meals"),
     #                   month_filter=True,
     #                   location=location, ret_type = dict)
     #
     #dicty = responses_to_violence
     #dicty = {'Kampala' : (Location.objects.filter(type="district", name__icontains="kampala")[0], 23)}
-    import pdb; pdb.set_trace()
     dicty = {}
     import random
     for l in districts:
@@ -311,7 +310,7 @@ def admin_dashboard(request):
 
     top_three = sorted_violence_dict.items()[:3]
     top_three = dict(top_three)
-    meal_poll_responses = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))
+    meal_poll_responses = list_poll_responses(Poll.objects.get(name="edtrac_headteachers_meals"))
     districts = meal_poll_responses.keys()
 
     return index(request, template_name="admin/admin_dashboard.html",
