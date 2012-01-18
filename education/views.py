@@ -57,30 +57,30 @@ def dash_ministry_map(request):
 
 
 def dash_attdance(request):
-    boysp3_attendance = get_responses_to_polls(poll_name='emis_boysp3_attendance')
-    boysp3_enrolled = get_responses_to_polls(poll_name="emis_boysp3_enrollment")
+    boysp3_attendance = get_responses_to_polls(poll_name='edtrac_boysp3_attendance')
+    boysp3_enrolled = get_responses_to_polls(poll_name="edtrac_boysp3_enrollment")
     boysp3_absent = boysp3_enrolled - boysp3_attendance
 
-    girlsp3_attendance = get_responses_to_polls(poll_name="emis_girlsp3_attendance")
-    girlsp3_enrolled = get_responses_to_polls(poll_name="emis_girlsp3_enrollment")
+    girlsp3_attendance = get_responses_to_polls(poll_name="edtrac_girlsp3_attendance")
+    girlsp3_enrolled = get_responses_to_polls(poll_name="edtrac_girlsp3_enrollment")
     girlsp3_absent = girlsp3_enrolled - girlsp3_attendance
 
-    boysp6_attendance = get_responses_to_polls(poll_name="emis_boysp6_attendance")
-    boysp6_enrolled = get_responses_to_polls(poll_name="emis_boysp6_enrollment")
+    boysp6_attendance = get_responses_to_polls(poll_name="edtrac_boysp6_attendance")
+    boysp6_enrolled = get_responses_to_polls(poll_name="edtrac_boysp6_enrollment")
     boysp6_absent = boysp6_enrolled - boysp6_attendance
 
-    girlsp6_attendance = get_responses_to_polls(poll_name="emis_girlsp6_attendance")
-    girlsp6_enrolled = get_responses_to_polls(poll_name="emis_girlsp6_enrollment")
+    girlsp6_attendance = get_responses_to_polls(poll_name="edtrac_girlsp6_attendance")
+    girlsp6_enrolled = get_responses_to_polls(poll_name="edtrac_girlsp6_enrollment")
     girlsp6_absent = girlsp6_enrolled - girlsp6_attendance
 
 
-    total_male_teachers = get_responses_to_polls(poll_name="emis_male_teachers_deployment")
-    total_female_teachers = get_responses_to_polls(poll_name="emis_female_teachers_deployment")
+    total_male_teachers = get_responses_to_polls(poll_name="edtrac_male_teachers_deployment")
+    total_female_teachers = get_responses_to_polls(poll_name="edtrac_female_teachers_deployment")
 
-    male_teachers_present = get_responses_to_polls(poll_name="emis_male_teachers_attendance")
+    male_teachers_present = get_responses_to_polls(poll_name="edtrac_male_teachers_attendance")
     male_teachers_absent = total_male_teachers - male_teachers_present
 
-    female_teachers_present = get_responses_to_polls(poll_name="emis_female_teachers_attendance")
+    female_teachers_present = get_responses_to_polls(poll_name="edtrac_female_teachers_attendance")
     female_teachers_absent = total_female_teachers - female_teachers_present
 
     return render_to_response('education/dashboard/attdance.html', {
