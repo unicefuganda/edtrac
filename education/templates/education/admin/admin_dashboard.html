@@ -45,8 +45,8 @@
                                         </tr>
                                         </thead>
                                         <!-- get context vars working -->
-                                        {% if top_three_districts %}
-                                            {% for district, list in top_three_districts %}
+                                        {% if top_three_violent_districts %}
+                                            {% for district, list in top_three_violent_districts %}
                                             <tr><td><a>{{ district }}</a></td><td>{{ list.0 }}</td></tr>
                                             {% endfor %}
                                         {% endif %}
@@ -83,16 +83,11 @@
                                             <th>Percentage</th>
                                         </tr>
                                         </thead>
-                                        <tr>
-                                            <td><a class="tooltip">Kotido</a></td><td>75%</td>
-                                        </tr>
-                                        <tr>
-                                            <td><a class="tooltip">Kyegegwa</a></td><td>65%</td>
-                                        </tr>
-                                        <tr>
-                                            <td><a class="tooltip">Kaabong</a></td><td>56%</td>
-                                        </tr>
-
+                                        {% if top_three_violent_districts %}
+                                            {% for district, list in top_three_violent_districts %}
+                                                <tr><td><a>{{ district }}</a></td><td>{{ list.0 }}</td></tr>
+                                            {% endfor %}
+                                        {% endif %}
                                     </table>
                                 </div>
                                 <span class="label notice"><a style="cursor:pointer; color:white;">Other Cases</a></span>

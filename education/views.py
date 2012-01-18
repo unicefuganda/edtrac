@@ -285,23 +285,24 @@ def admin_dashboard(request):
     violence = list_poll_responses(Poll.objects.get(name="edtrac_headteachers_abuse"))
     districts = violence.keys()
     location = request.user.get_profile().location
-    #This returns a a dictionary of districts and total values (in a month's span)
-    #TODO uncomment below
-    #responses_to_violence = get_sum_of_poll_response(Poll.objects.get(name = "edtrac_headteachers_abuse"),
-    #                           month_filter = True,
-    #                           location = location
-    #                           ret_type = list
-    # )
-    #responses_to_meals = get_sum_of_poll_response(Poll.objects.get(name = "edtrac_headteachers_meals"),
-    #                   month_filter=True,
-    #                   location=location, ret_type = list)
-    #
-    #dicty = responses_to_violence
+
+    responses_to_violence = get_sum_of_poll_response(Poll.objects.get(name = "edtrac_headteachers_abuse"),
+        month_filter = True,
+        location = location,
+        ret_type = list)
+
+    responses_to_meals = get_sum_of_poll_response(Poll.objects.get(name = "edtrac_headteachers_meals"),
+                       month_filter=True,
+                       location=location, ret_type = list)
 
     responses_to_smc_meetings_poll = get_sum_of_poll_response(Poll.objects.get(name="edtrac_smc_meetings"),
         month_filter = True, location=location, ret_type=list
     )
+    responses_to_grants_received = get_sum_of_poll_response(Poll.objects.get(name="edtrac_upe_grant"),
+        month_filter=True, location=location, ret_type=list
+    )
 
+    #For Demo Purposes
     dicty = {}
     import random
     for l in districts:
@@ -315,10 +316,13 @@ def admin_dashboard(request):
     #sorted list...
     top_three_violent_districts = sorted_violence_list[:3]
     #can make a dictionary
+    top_three_hungry_districts = sorted_violence_list[:3]
 
     return index(request, template_name="admin/admin_dashboard.html",
-        context_vars={'top_three_violent_districts':top_three_violent_districts})
-
+        context_vars={
+            'top_three_violent_districts':top_three_violent_districts,
+            'top_three_hungry_districts':top_three_hungry_districts
+            })
 
 # Details views... specified by ROLES
 class ViolenceAdminDetails(TemplateView):

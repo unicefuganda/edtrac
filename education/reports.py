@@ -569,7 +569,7 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
             now = datetime.datetime.now()
             #if location is Admin/Ministry/UNICEF then all districts will be returned
             # if location is DEO, then just the district will be returned
-            locations = Location.objects.filter(name=kwargs.get('location')).get_descendants().filter(type="districts")
+            locations = Location.objects.get(name=kwargs.get('location')).get_descendants().filter(type="district")
             to_ret = {}
             for location in locations:
                 s = 0
@@ -589,8 +589,8 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                 #pre-emptive sorting -> by largest -> returns a sorted list of tuples
                 to_ret = sorted(to_ret.iteritems(), key=operator.itemgetter(1))
                 #initial structure is [('name', val) ]
-                for name, val in to_ret.items():
-                    val.append(Location.objects.get(name__icontains=name))
+                for name, val in to_ret:
+                    val.append(Location.objects.filter(type="district").get(name__icontains=name))
                 return to_ret
             #TODO Other data type returns.
     else:
