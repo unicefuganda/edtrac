@@ -538,6 +538,7 @@ def get_month_day_range(date, **kwargs):
         return to_ret
 
 def get_sum_of_poll_response(poll_queryset, **kwargs):
+    #TODO refactor name of method
     """
     This computes the eav response value to a poll
     can also be used to filter by district and create a dict with
@@ -546,34 +547,48 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
     #TODO: provide querying by date too
     s = 0
     if kwargs:
-        #district filter
-        if kwargs.has_key('month_filter'):
-            #filter takes boolean values
-            if kwargs.get('month_filter'):
-                DISTRICT = ['Kaabong', 'Kabarole', 'Kyegegwa', 'Kotido']
-                to_ret = {}
-                for location in Location.objects.filter(name__in=DISTRICT):
-                    try:
-                        for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(contact__in=\
-                            Contact.objects.filter(reporting_location=location,\
-                            date__range = get_month_day_range(datetime.datetime.now())
-                            ))]:
-                            s += val
-                    except NoneType:
-                        pass
-                    to_ret[location.__unicode__()] = s
-                return to_ret
-            elif kwargs.get('month_filter') and kwargs.has_key('location'):
+        if kwargs.has_key('month_filter') and kwargs.get('month_filter') and not kwargs.has_key('location'):
+            # when no location is provided { worst case scenario }
+            DISTRICT = ['Kaabong', 'Kabarole', 'Kyegegwa', 'Kotido']
+            to_ret = {}
+            for location in Location.objects.filter(name__in=DISTRICT):
                 try:
-                    now = datetime.datetime.now()
                     for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(contact__in=\
-                        Contact.objects.filter(reporting_location=kwargs.get('location')),
-                        date__range = get_month_day_range(now)
-                    )]:
+                        Contact.objects.filter(reporting_location=location),
+                        date__range = get_month_day_range(datetime.datetime.now())
+                        )]:
                         s += val
                 except NoneType:
                     pass
-                return s
+                to_ret[location.__unicode__()] = s
+            return to_ret
+
+        if kwargs.has_key('month_filter') and kwargs.get('month_filter') and kwargs.has_key('location') and kwargs.has_key('to_ret'):
+            #TODO support drilldowns
+
+            now = datetime.datetime.now()
+            #if location is Admin/Ministry/UNICEF then all districts will be returned
+            # if location is DEO, then just the district will be returned
+            locations = Location.objects.filter(name=kwargs.get('location')).get_descendants().filter(type="districts")
+            to_ret = {}
+            for location in locations:
+                s = 0
+                try:
+                    for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(
+                        contact__in = Contact.objects.filter(reporting_location=kwargs.get('location')),
+                        date__range = get_month_day_range(now)
+                        )]:
+                        s += val
+                except NoneType:
+                    pass
+                to_ret[location.__unicode__()] = s
+            if kwargs.get('to_ret') == dict:
+            #return a dictionary of values
+                return to_ret
+            if kwargs.get('to_ret') == list:
+                #return a list of tuples
+                # [ ('district', some_value)]
+                pass
     else:
         try:
             for val in [r.eav.poll_number_value for r in poll_queryset.responses.all()]:
