@@ -220,15 +220,15 @@ def dash_deo_meetings(req):
 
 def dash_capitation(request):
     #to_ret = YES, NO, I don't know
-    to_ret = zip(['Yes','No', "Other"],[30, 30, 40])
+    to_ret = zip(['Yes','No', "Unknown"],[30, 30, 40])
     return render_to_response('education/dashboard/capitation.html', {'responses':to_ret}, RequestContext(request))
 
 def dash_ministry_capitation(req):
-    to_ret = zip(['Yes','No', "Other"],[30, 30, 40])
+    to_ret = zip(['Yes','No', "Unknown"],[30, 30, 40])
     return render_to_response('education/dashboard/capitation.html', {'responses':to_ret}, RequestContext(req))
 
 def dash_deo_capitation(req):
-    to_ret = zip(['Yes','No', "Other"],[30, 30, 40])
+    to_ret = zip(['Yes','No', "Unknown"],[30, 30, 40])
     return render_to_response('education/dashboard/capitation.html', {'responses':to_ret}, RequestContext(req))
 
 
@@ -290,33 +290,34 @@ def admin_dashboard(request):
     #responses_to_violence = get_sum_of_poll_response(Poll.objects.get(name = "edtrac_headteachers_abuse"),
     #                           month_filter = True,
     #                           location = location
-    #                           ret_type = dict
+    #                           ret_type = list
     # )
     #responses_to_meals = get_sum_of_poll_response(Poll.objects.get(name = "edtrac_headteachers_meals"),
     #                   month_filter=True,
-    #                   location=location, ret_type = dict)
+    #                   location=location, ret_type = list)
     #
     #dicty = responses_to_violence
-    #dicty = {'Kampala' : (Location.objects.filter(type="district", name__icontains="kampala")[0], 23)}
+
+    responses_to_smc_meetings_poll = get_sum_of_poll_response(Poll.objects.get(name="edtrac_smc_meetings"),
+        month_filter = True, location=location, ret_type=list
+    )
+
     dicty = {}
     import random
     for l in districts:
-        dicty[l] = random.choice(range(1,50))
+        dicty[l] = [random.choice(range(1,50))]
     import operator
-    to_ret = dict(sorted(dicty.iteritems(), key=operator.itemgetter(1)))
-    stuff = {}
-    for x, y in to_ret.items():
-        stuff[x] = (Location.objects.get(name__icontains=x), y)
-    sorted_violence_dict = stuff
-    #sort dictionary by value
+    to_ret = sorted(dicty.iteritems(), key=operator.itemgetter(1))
+    for x, y in to_ret:
+        y.append(Location.objects.get(name__icontains=x))
 
-    top_three = sorted_violence_dict.items()[:3]
-    top_three = dict(top_three)
-    meal_poll_responses = list_poll_responses(Poll.objects.get(name="edtrac_headteachers_meals"))
-    districts = meal_poll_responses.keys()
+    sorted_violence_list = to_ret
+    #sorted list...
+    top_three_violent_districts = sorted_violence_list[:3]
+    #can make a dictionary
 
     return index(request, template_name="admin/admin_dashboard.html",
-        context_vars={'violence_dict':sorted_violence_dict.items(), 'top_three':top_three})
+        context_vars={'top_three_violent_districts':top_three_violent_districts})
 
 
 # Details views... specified by ROLES

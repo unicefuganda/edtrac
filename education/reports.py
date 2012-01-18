@@ -581,23 +581,18 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                         s += val
                 except NoneType:
                     pass
-                to_ret[location.__unicode__()] = s
-
-            if kwargs.get('ret_type') == dict:
-                import operator
-                #return a dictionary of values e.g. {'kampala': (<Location Kampala>, 34)}
-                #pre-emptive sorting -> by largest
-                to_ret = dict(sorted(to_ret.iteritems(), key=operator.itemgetter(1)))
-                #initial structure is {'name':val}
-                ret = {}
-                for name, val in to_ret.items():
-                    ret[name] = (Location.objects.get(name__icontains=name), val)
-                return ret
+                to_ret[location.__unicode__()] = [s]
 
             if kwargs.get('ret_type') == list:
-                #return a list of tuples
-                # [ ('district', some_value)]
-                pass
+                import operator
+                #return a dictionary of values e.g. {'kampala': (<Location Kampala>, 34)}
+                #pre-emptive sorting -> by largest -> returns a sorted list of tuples
+                to_ret = sorted(to_ret.iteritems(), key=operator.itemgetter(1))
+                #initial structure is [('name', val) ]
+                for name, val in to_ret.items():
+                    val.append(Location.objects.get(name__icontains=name))
+                return to_ret
+            #TODO Other data type returns.
     else:
         try:
             for val in [r.eav.poll_number_value for r in poll_queryset.responses.all()]:
