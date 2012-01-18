@@ -20,7 +20,7 @@ from django.contrib.auth.models import User
 from django.views.generic import ListView
 
 urlpatterns = patterns('',
-   url(r'^emis/messagelog/$', login_required(generic), {
+   url(r'^edtrac/messagelog/$', login_required(generic), {
       'model':Message,
       'queryset':messages,
       'filter_forms':[FreeSearchTextForm, DistictFilterMessageForm, HandledByForm],
@@ -37,7 +37,7 @@ urlpatterns = patterns('',
       'sort_column':'date',
       'sort_ascending':False,
     }, name="emis-messagelog"),
-   url(r'^emis/messagelog/(?P<error_msgs>\d+)/', login_required(generic), {
+   url(r'^edtrac/messagelog/(?P<error_msgs>\d+)/', login_required(generic), {
       'model':Message,
       'queryset':messages,
       'filter_forms':[FreeSearchTextForm, DistictFilterMessageForm, HandledByForm],
@@ -55,7 +55,7 @@ urlpatterns = patterns('',
       'sort_ascending':False,
     }, name="emis-messagelog"),
    #reporters
-    url(r'^emis/reporter/$', login_required(generic), {
+    url(r'^edtrac/reporter/$', login_required(generic), {
       'model':EmisReporter,
       'queryset':reporters,
       'filter_forms':[ReporterFreeSearchForm, RolesFilterForm, LimitedDistictFilterForm, SchoolFilterForm],
@@ -76,22 +76,22 @@ urlpatterns = patterns('',
 #                 ('Location', True, 'reporting_location__name', SimpleSorter(),),
                  ('', False, '', None,)],
     }, name="emis-contact"),
-    url(r'^emis/reporter/(\d+)/edit/', edit_reporter, name='edit-reporter'),
-    url(r'^emis/reporter/(\d+)/delete/', delete_reporter, name='delete-reporter'),
-    url(r'^emis/reporter/(?P<pk>\d+)/show', generic_row, {'model':EmisReporter, 'partial_row':'education/partials/reporter_row.html'}),
-    url(r'^emis/ht_attendance/$', htattendance, {}, name='ht-attendance-stats'),
-    url(r'^emis/ht_attendance/(?P<start_date>[0-9\-]+)/(?P<end_date>[0-9\-]+)$', htattendance, {}, name='ht-attendance-stats'),
-    url(r'^emis/gemht_attendance/$', gem_htattendance, {}, name='gemht-attendance-stats'),
-    url(r'^emis/gemht_attendance/(?P<start_date>[0-9\-]+)/(?P<end_date>[0-9\-]+)$', gem_htattendance, {}, name='gemht-attendance-stats'),                 
-    url(r'^emis/meals/$', meals, {}, name='meals-stats'),
+    url(r'^edtrac/reporter/(\d+)/edit/', edit_reporter, name='edit-reporter'),
+    url(r'^edtrac/reporter/(\d+)/delete/', delete_reporter, name='delete-reporter'),
+    url(r'^edtrac/reporter/(?P<pk>\d+)/show', generic_row, {'model':EmisReporter, 'partial_row':'education/partials/reporter_row.html'}),
+    url(r'^edtrac/ht_attendance/$', htattendance, {}, name='ht-attendance-stats'),
+    url(r'^edtrac/ht_attendance/(?P<start_date>[0-9\-]+)/(?P<end_date>[0-9\-]+)$', htattendance, {}, name='ht-attendance-stats'),
+    url(r'^edtrac/gemht_attendance/$', gem_htattendance, {}, name='gemht-attendance-stats'),
+    url(r'^edtrac/gemht_attendance/(?P<start_date>[0-9\-]+)/(?P<end_date>[0-9\-]+)$', gem_htattendance, {}, name='gemht-attendance-stats'),
+    url(r'^edtrac/meals/$', meals, {}, name='meals-stats'),
 
     url(r'^$', dashboard, name='rapidsms-dashboard'),
     url(r'^emis/whitelist/', whitelist),
     url(r'^connections/add/', add_connection),
     url(r'^connections/(\d+)/delete/', delete_connection),
 
-    url(r'^emis/deo_dashboard/', login_required(deo_dashboard), {}, name='deo-dashboard'),
-    url(r'^emis/school/$', login_required(generic), {
+    url(r'^edtrac/deo_dashboard/', login_required(deo_dashboard), {}, name='deo-dashboard'),
+    url(r'^edtrac/school/$', login_required(generic), {
       'model':School,
       'queryset':schools,
       'filter_forms':[FreeSearchSchoolsForm, SchoolDistictFilterForm],
@@ -108,13 +108,13 @@ urlpatterns = patterns('',
       'sort_column':'date',
       'sort_ascending':False,
     }, name="emis-schools"),
-    url(r'^emis/(\d+)/school_detail/', school_detail, {}, name='school-detail'),
-    url(r'^emis/add_schools/', login_required(add_schools), {}, name='add-schools'),
-    url(r'^emis/school/(\d+)/edit/', edit_school, name='edit-school'),
-    url(r'^emis/school/(\d+)/delete/', delete_school, name='delete-school'),
-    url(r'^emis/school/(?P<pk>\d+)/show', generic_row, {'model':School, 'partial_row':'education/partials/school_row.html'}, name='show-school'),
+    url(r'^edtrac/(\d+)/school_detail/', school_detail, {}, name='school-detail'),
+    url(r'^edtrac/add_schools/', login_required(add_schools), {}, name='add-schools'),
+    url(r'^edtrac/school/(\d+)/edit/', edit_school, name='edit-school'),
+    url(r'^edtrac/school/(\d+)/delete/', delete_school, name='delete-school'),
+    url(r'^edtrac/school/(?P<pk>\d+)/show', generic_row, {'model':School, 'partial_row':'education/partials/school_row.html'}, name='show-school'),
 
-    url(r'^emis/othermessages/$', login_required(generic), {
+    url(r'^edtrac/othermessages/$', login_required(generic), {
       'model':Message,
       'queryset':othermessages,
       'filter_forms':[FreeSearchTextForm, DistictFilterMessageForm, HandledByForm],
@@ -136,16 +136,16 @@ urlpatterns = patterns('',
 #    url(r'^emis/attendance/$',include(AttendanceReportr().as_urlpatterns(name='attendance-report'))),
 
     # Excel Reports
-    url(r'^emis/excelreports/$',excel_reports),
+    url(r'^edtrac/excelreports/$',excel_reports),
     #url(r'^emis/charts/$',ChartView.as_view()),#for demo purposes
-	url(r'^emis/charts/$',attendance_chart),#for demo purposes
+	url(r'^edtrac/charts/$',attendance_chart),#for demo purposes
     #users and permissions
-    url(r'^emis/toexcel/$',to_excel, name="to-excel"),
-    url(r'^emis/toexcel/(?P<start_date>[0-9\-]+)/(?P<end_date>[0-9\-]+)$',to_excel, name="to-excel"),
-    url(r'^emis/users/(\d+)/edit/', edit_user, name='edit_user'),
-    url(r'^emis/users/add/', edit_user, name='add_user'),
+    url(r'^edtrac/toexcel/$',to_excel, name="to-excel"),
+    url(r'^edtrac/toexcel/(?P<start_date>[0-9\-]+)/(?P<end_date>[0-9\-]+)$',to_excel, name="to-excel"),
+    url(r'^edtrac/users/(\d+)/edit/', edit_user, name='edit_user'),
+    url(r'^edtac/users/add/', edit_user, name='add_user'),
 
-    url(r'^emis/user/$', super_user_required(generic), {
+    url(r'^edtrac/user/$', super_user_required(generic), {
       'model':User,
       'objects_per_page':25,
       'partial_row':'education/partials/user_row.html',
@@ -161,50 +161,50 @@ urlpatterns = patterns('',
       'sort_column':'date',
       'sort_ascending':False,
     }, name="emis-users"),
-    url(r'^emis/alerts_detail/(?P<alert>\d+)/$', login_required(alerts_detail), {}, name="emis-alerts"),
+    url(r'^edtrac/alerts_detail/(?P<alert>\d+)/$', login_required(alerts_detail), {}, name="emis-alerts"),
 
     #Admin Dashboard
 
-    url(r'^emis/dash_map/$', dash_map, {}, name="emis-dash-map"),
-    url(r'^emis/progress/$', dash_progress, {}, name="emis-dash-progress"),
-    url(r'^emis/dash_attdance/$', dash_attdance, {}, name="emis-dash-attdance"),
-    url(r'^emis/dash_violence/$', dash_violence, {}, name="emis-dash-violence"),
-    url(r'^emis/dash_meals/$', dash_meals, {}, name="emis-dash-meals"),
-    url(r'^emis/dash_meetings/$', dash_meetings, {}, name="emis-dash-meetings"),
-    url(r'^emis/dash_capitation/$', dash_capitation, {}, name="emis-dash-capitation"),
+    url(r'^edtrac/dash_map/$', dash_map, {}, name="emis-dash-map"),
+    url(r'^edtrac/progress/$', dash_progress, {}, name="emis-dash-progress"),
+    url(r'^edtrac/dash_attdance/$', dash_attdance, {}, name="emis-dash-attdance"),
+    url(r'^edtrac/dash_violence/$', dash_violence, {}, name="emis-dash-violence"),
+    url(r'^edtrac/dash_meals/$', dash_meals, {}, name="emis-dash-meals"),
+    url(r'^edtrac/dash_meetings/$', dash_meetings, {}, name="emis-dash-meetings"),
+    url(r'^edtrac/dash_capitation/$', dash_capitation, {}, name="emis-dash-capitation"),
 
-    url(r'^emis/dash_admin_meetings/$', dash_admin_meetings, {}, name="emis-dash-admin-meetings"),
-    url(r'^emis/dash_ministry_map/$', dash_ministry_map, {}, name="emis-ministry-dash-map"),
-    url(r'^emis/dash_ministry_progress/$', dash_ministry_progress, {}, name="emis-ministry-curriculum-progress"),
-    url(r'^emis/dash_admin_progress/$', dash_admin_progress, {}, name="emis-admin-curriculum-progress"),
+    url(r'^edtrac/dash_admin_meetings/$', dash_admin_meetings, {}, name="emis-dash-admin-meetings"),
+    url(r'^edtrac/dash_ministry_map/$', dash_ministry_map, {}, name="emis-ministry-dash-map"),
+    url(r'^edtrac/dash_ministry_progress/$', dash_ministry_progress, {}, name="emis-ministry-curriculum-progress"),
+    url(r'^edtrac/dash_admin_progress/$', dash_admin_progress, {}, name="emis-admin-curriculum-progress"),
 
-    url(r'^emis/violence_admin_details/$', ViolenceAdminDetails.as_view(), name="violence-admin-details"),
-    url(r'^emis/violence_deo_details/$', ViolenceDeoDetails.as_view(), name="violence-deo-details"),
+    url(r'^edtrac/violence_admin_details/$', ViolenceAdminDetails.as_view(), name="violence-admin-details"),
+    url(r'^edtrac/violence_deo_details/$', ViolenceDeoDetails.as_view(), name="violence-deo-details"),
 #    url(r'^emis/dash_attdance/$', dash_ministry_attdance, {}, name="emis-ministry-dash-attdance"),
-    url(r'^emis/dash_ministry_attdance/$', dash_attdance, {}, name="emis-ministry-dash-attdance"),
-    url(r'^emis/dash_ministry_violence/$', dash_ministry_violence, {}, name="emis-ministry-dash-violence"),
-    url(r'^emis/dash_ministry_meals/$', dash_ministry_meals, {}, name="emis-ministry-dash-meals"),
-    url(r'^emis/dash_ministry_meetings/$', dash_ministry_meetings, {}, name="emis-ministry-dash-meetings"),
-    url(r'^emis/dash_ministry_capitation/$', dash_ministry_capitation, {}, name="emis-ministry-dash-capitation"),
+    url(r'^edtrac/dash_ministry_attdance/$', dash_attdance, {}, name="emis-ministry-dash-attdance"),
+    url(r'^edtrac/dash_ministry_violence/$', dash_ministry_violence, {}, name="emis-ministry-dash-violence"),
+    url(r'^edtrac/dash_ministry_meals/$', dash_ministry_meals, {}, name="emis-ministry-dash-meals"),
+    url(r'^edtrac/dash_ministry_meetings/$', dash_ministry_meetings, {}, name="emis-ministry-dash-meetings"),
+    url(r'^edtrac/dash_ministry_capitation/$', dash_ministry_capitation, {}, name="emis-ministry-dash-capitation"),
 
     #DEO dashboard
-    url(r'^emis/dash_deo_map/$', dash_ministry_map, {}, name="emis-deo-dash-map"),
-    url(r'^emis/deo_progress/$', dash_ministry_progress, {}, name="emis-deo-curriculum-progress"),
-    url(r'^emis/dash_deo_attdance/$', dash_attdance, {}, name="emis-deo-dash-attdance"),
-    url(r'^emis/dash_deo_violence/$', dash_deo_violence, {}, name="emis-deo-dash-violence"),
-    url(r'^emis/dash_deo_meals/$', dash_deo_meals, {}, name="emis-deo-dash-meals"),
-    url(r'^emis/dash_deo_meetings/$', dash_deo_meetings, {}, name="emis-deo-dash-meetings"),
-    url(r'^emis/dash_deo_capitation/$', dash_deo_capitation, {}, name="emis-deo-dash-capitation"),
+    url(r'^edtrac/dash_deo_map/$', dash_ministry_map, {}, name="emis-deo-dash-map"),
+    url(r'^edtrac/deo_progress/$', dash_ministry_progress, {}, name="emis-deo-curriculum-progress"),
+    url(r'^edtrac/dash_deo_attdance/$', dash_attdance, {}, name="emis-deo-dash-attdance"),
+    url(r'^edtrac/dash_deo_violence/$', dash_deo_violence, {}, name="emis-deo-dash-violence"),
+    url(r'^edtrac/dash_deo_meals/$', dash_deo_meals, {}, name="emis-deo-dash-meals"),
+    url(r'^edtrac/dash_deo_meetings/$', dash_deo_meetings, {}, name="emis-deo-dash-meetings"),
+    url(r'^edtrac/dash_deo_capitation/$', dash_deo_capitation, {}, name="emis-deo-dash-capitation"),
 
-    url(r'^emis/dash_ministry_progress_details/$', ProgressMinistryDetails.as_view(), name="ministry-progress-details"),
-    url(r'^emis/dash_admin_progress_details/$', ProgressAdminDetails.as_view(), name="admin-progress-details"),
-    url(r'^emis/dash_admin_meals_details/$', MealsAdminDetails.as_view(), name="admin-meals-details"),
+    url(r'^edtrac/dash_ministry_progress_details/$', ProgressMinistryDetails.as_view(), name="ministry-progress-details"),
+    url(r'^edtrac/dash_admin_progress_details/$', ProgressAdminDetails.as_view(), name="admin-progress-details"),
+    url(r'^edtrac/dash_admin_meals_details/$', MealsAdminDetails.as_view(), name="admin-meals-details"),
 
-    url(r'^emis/reporters/page(?P<page>[0-9]+)/$', ListView.as_view(
+    url(r'^edtrac/reporters/page(?P<page>[0-9]+)/$', ListView.as_view(
         model=EmisReporter,
         paginate_by=25,
     )),
 #    url(r'^emis/attendance/$', include(AttendanceReport().as_urlpatterns(name='emis-attendance'))),
-    url(r'^emis/scripts/', edit_scripts, name='emis-scripts'),
-    url(r'^emis/reshedule_scripts/(?P<script_slug>[a-z_]+)/$', reschedule_scripts, name='emis-reschedule-scripts'),
+    url(r'^edtrac/scripts/', edit_scripts, name='emis-scripts'),
+    url(r'^edtrac/reshedule_scripts/(?P<script_slug>[a-z_]+)/$', reschedule_scripts, name='emis-reschedule-scripts'),
 )

@@ -331,13 +331,10 @@ class ViolenceAdminDetails(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ViolenceAdminDetails, self).get_context_data(**kwargs)
         #TODO: filtering by ajax and time
-        context['violence_cases'] = get_sum_of_poll_response(Poll.objects.get(name="emis_headteachers_abuse"),
+        context['violence_cases'] = get_sum_of_poll_response(Poll.objects.get(name="edtrac_headteachers_abuse"),
             location=self.request.user.get_profile().location,
             month_filter=True
         )
-        #context[]
-
-
         return context
 
 class ViolenceDeoDetails(TemplateView):
@@ -346,7 +343,7 @@ class ViolenceDeoDetails(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ViolenceDeoDetails, self).get_context_data(**kwargs)
         #context['violence_cases'] = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
-        context['violence_cases'] = get_sum_of_poll_response(Poll.objects.get(name="emis_headteachers_abuse"),
+        context['violence_cases'] = get_sum_of_poll_response(Poll.objects.get(name="edtrac_headteachers_abuse"),
             location=self.request.user.get_profile().location, month_filter=True)
         return context
 
@@ -367,7 +364,7 @@ class ProgressDeoDetails(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ProgressDeoDetails, self).get_context_data(**kwargs)
         #TODO mixins and filters
-        context['progress'] = list_poll_responses(Poll.objects.get(name="emis_p3curriculum_progress"))
+        context['progress'] = list_poll_responses(Poll.objects.get(name="edtrac_p3curriculum_progress"))
         return context
 
 class ProgressAdminDetails(TemplateView):
@@ -379,7 +376,7 @@ class ProgressAdminDetails(TemplateView):
         ##context['some_key'] = <some_list_of_response>
         # we get all violence cases ever reported
         #TODO: filtering by ajax and time
-        context['progress'] = list_poll_responses(Poll.objects.get(name="emis_p3curriculum_progress"))
+        context['progress'] = list_poll_responses(Poll.objects.get(name="edtrac_p3curriculum_progress"))
         return context
 
 class MealsMinistryDetails(TemplateView):

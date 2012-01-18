@@ -53,26 +53,14 @@
                                     </table>
                                 </div>
                                 <div>
-                                        <span class="alert-message">
-                                        <!-- in js parse for int or float and append value in a <strong> element -->
-                                            <strong>45%</strong> increase in violence this month
-                                        </span>
-                                </div>
-                                <div style="margin-top:20px;">
+                                    <span class="alert-message">45% increase in violence this month</span>
                                     <span class="label notice"><a style="cursor:pointer; color:white;" href="{% url violence-admin-details %}">Other Cases >></a></span>
                                 </div>
-
                             </div>                      
                         </div>
                     </td>
-                    <td id="violence" width="50%" height="400" valign="top" style="border-bottom:1px solid #efefef;"></td>
-
-
                     <td id="meals_holder" width="50%" height="200" valign="top" style="border-right:1px solid #efefef;border-bottom:1px solid #efefef;">
                         <div class="meal">
-
-
-                            <!-- <h1 class="title">Pupils that didn't have meals this month</h1> -->
                             <div style="margin-bottom: 20px;">
                                 <span class="label warning">Districts with the Highest Percentage of Pupils that didn't have Meals</span>
                                 <div style="padding: 10px;">
@@ -83,23 +71,23 @@
                                             <th>Percentage</th>
                                         </tr>
                                         </thead>
-                                        {% if top_three_violent_districts %}
-                                            {% for district, list in top_three_violent_districts %}
-                                                <tr><td><a>{{ district }}</a></td><td>{{ list.0 }}</td></tr>
+                                        {% if top_three_hungry_districts %}
+                                            {% for district, list in top_three_hungry_districts %}
+                                                <tr><td><a>{{ district }}</a></td><td>{{ list.0 }}%</td></tr>
                                             {% endfor %}
                                         {% endif %}
                                     </table>
                                 </div>
-                                <span class="label notice"><a style="cursor:pointer; color:white;">Other Cases</a></span>
+
 
                             </div>
                             <div>
+                                <!--TODO generate the alert-message based on poll responses -->
                                 <span class='alert-message'>Report based on 45% of Total Reporters</span>
-                                <a style='cursor:pointer; padding-left:0.4em;' href="{% url admin-meals-details %}">Click for Details</a>
+                                <span class="label notice"><a style="cursor:pointer; color:white; margin-top: 20px;" href="{% url admin-meals-details %}">Other Cases >></a></span>
                             </div>
                         </div>
                     </td>
-                    <td id="meals" width="50%" height="400" valign="top" style="border-bottom:1px solid #efefef;"></td>
                 </tr>
 
                 <tr>
@@ -125,12 +113,7 @@
                         <div class="alert-message">
                             <p>Report based on 35% of Total Reporters</p>
                         </div>
-                              <span class="links">                                
-                                <a href="{% url emis-dash-admin-meetings %}">Click for Details</a>
-                            </span>
-
                     </td>
-                    <td id="meetings" width="50%" height="400" valign="top" style="border-right:1px solid #efefef;"></td>
 
                     <td id="capitation" width="50%" height="400" valign="top"></td>
                 </tr>
