@@ -34,9 +34,10 @@ class EmisReporter(Contact):
         ('P3', 'Primary Three'),
         ('P6', 'Primary Six'),
     )
+
     grade = models.CharField(max_length=2, choices=CLASS_CHOICES, null=True)
     schools = models.ManyToManyField(School, null=True)
-    
+
     class Meta:
         ordering = ["name"]
 

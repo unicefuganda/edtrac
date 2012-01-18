@@ -7,6 +7,9 @@
     {% endif %}
 </td>
 <td>{{ reporter.default_connection.identity }}</td>
+<td>{{ reporter_form.gender }}
+    {% if reporter_form.gender.errors %}<br clear="left"/>{{ reporter_form.gender.errors }}{% endif %}
+</td>
 <td>{{ reporter_form.groups }}
     {% if reporter_form.groups.errors %}
         <br clear="left"/>

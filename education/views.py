@@ -16,7 +16,7 @@ from poll.models import Poll
 from .reports import *
 from .utils import *
 from urllib2 import urlopen
-import  re, datetime
+import  re, datetime, operator
 
 
 Num_REG = re.compile('\d+')
@@ -57,31 +57,33 @@ def dash_ministry_map(request):
 
 
 def dash_attdance(request):
-    boysp3_attendance = get_responses_to_polls(poll_name='emis_boysp3_attendance')
-    boysp3_enrolled = get_responses_to_polls(poll_name="emis_boysp3_enrollment")
+    boysp3_attendance = get_responses_to_polls(poll_name='edtrac_boysp3_attendance')
+    boysp3_enrolled = get_responses_to_polls(poll_name="edtrac_boysp3_enrollment")
     boysp3_absent = boysp3_enrolled - boysp3_attendance
 
-    girlsp3_attendance = get_responses_to_polls(poll_name="emis_girlsp3_attendance")
-    girlsp3_enrolled = get_responses_to_polls(poll_name="emis_girlsp3_enrollment")
+    girlsp3_attendance = get_responses_to_polls(poll_name="edtrac_girlsp3_attendance")
+    girlsp3_enrolled = get_responses_to_polls(poll_name="edtrac_girlsp3_enrollment")
     girlsp3_absent = girlsp3_enrolled - girlsp3_attendance
 
-    boysp6_attendance = get_responses_to_polls(poll_name="emis_boysp6_attendance")
-    boysp6_enrolled = get_responses_to_polls(poll_name="emis_boysp6_enrollment")
+    boysp6_attendance = get_responses_to_polls(poll_name="edtrac_boysp6_attendance")
+    boysp6_enrolled = get_responses_to_polls(poll_name="edtrac_boysp6_enrollment")
     boysp6_absent = boysp6_enrolled - boysp6_attendance
 
-    girlsp6_attendance = get_responses_to_polls(poll_name="emis_girlsp6_attendance")
-    girlsp6_enrolled = get_responses_to_polls(poll_name="emis_girlsp6_enrollment")
+    girlsp6_attendance = get_responses_to_polls(poll_name="edtrac_girlsp6_attendance")
+    girlsp6_enrolled = get_responses_to_polls(poll_name="edtrac_girlsp6_enrollment")
     girlsp6_absent = girlsp6_enrolled - girlsp6_attendance
 
 
-    total_male_teachers = get_responses_to_polls(poll_name="emis_male_teachers_deployment")
-    total_female_teachers = get_responses_to_polls(poll_name="emis_female_teachers_deployment")
+    total_male_teachers = get_responses_to_polls(poll_name="edtrac_m_teachers_deployment")
+    total_female_teachers = get_responses_to_polls(poll_name="edtrac_f_teachers_deployment")
 
-    male_teachers_present = get_responses_to_polls(poll_name="emis_male_teachers_attendance")
+    male_teachers_present = get_responses_to_polls(poll_name="edtrac_m_teachers_attendance")
     male_teachers_absent = total_male_teachers - male_teachers_present
 
-    female_teachers_present = get_responses_to_polls(poll_name="emis_female_teachers_attendance")
+    female_teachers_present = get_responses_to_polls(poll_name="edtrac_f_teachers_attendance")
     female_teachers_absent = total_female_teachers - female_teachers_present
+
+    head_teachers_attendance = get_responses_to_polls(poll_name="edtrac_head_teachers_attendance")
 
     return render_to_response('education/dashboard/attdance.html', {
         'girlsp3_present' : girlsp3_attendance, 'girlsp3_absent' : girlsp3_absent,
@@ -218,15 +220,15 @@ def dash_deo_meetings(req):
 
 def dash_capitation(request):
     #to_ret = YES, NO, I don't know
-    to_ret = zip(['Yes','No', "Other"],[30, 30, 40])
+    to_ret = zip(['Yes','No', "Unknown"],[30, 30, 40])
     return render_to_response('education/dashboard/capitation.html', {'responses':to_ret}, RequestContext(request))
 
 def dash_ministry_capitation(req):
-    to_ret = zip(['Yes','No', "Other"],[30, 30, 40])
+    to_ret = zip(['Yes','No', "Unknown"],[30, 30, 40])
     return render_to_response('education/dashboard/capitation.html', {'responses':to_ret}, RequestContext(req))
 
 def dash_deo_capitation(req):
-    to_ret = zip(['Yes','No', "Other"],[30, 30, 40])
+    to_ret = zip(['Yes','No', "Unknown"],[30, 30, 40])
     return render_to_response('education/dashboard/capitation.html', {'responses':to_ret}, RequestContext(req))
 
 
@@ -280,22 +282,47 @@ def ministry_dashboard(request):
 
 @login_required
 def admin_dashboard(request):
-    violence = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
+    violence = list_poll_responses(Poll.objects.get(name="edtrac_headteachers_abuse"))
     districts = violence.keys()
-    #assumption is still 4 districts
-    district_violence = [23,56, 23, 66]
-    dicty = dict(zip(districts, district_violence))
+    location = request.user.get_profile().location
 
-    meal_poll_responses = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))
-    districts = meal_poll_responses.keys()
-    lunches_to_ret = dict(zip(districts, [10, 20, 30, 40]))
+    responses_to_violence = get_sum_of_poll_response(Poll.objects.get(name = "edtrac_headteachers_abuse"),
+        month_filter = True,
+        location = location,
+        ret_type = list)
+
+    responses_to_meals = get_sum_of_poll_response(Poll.objects.get(name = "edtrac_headteachers_meals"),
+                       month_filter=True,
+                       location=location, ret_type = list)
+
+    responses_to_smc_meetings_poll = get_sum_of_poll_response(Poll.objects.get(name="edtrac_smc_meetings"),
+        month_filter = True, location=location, ret_type=list
+    )
+    responses_to_grants_received = get_sum_of_poll_response(Poll.objects.get(name="edtrac_upe_grant"),
+        month_filter=True, location=location, ret_type=list
+    )
+
+    #For Demo Purposes
+    dicty = {}
+    import random
+    for l in districts:
+        dicty[l] = [random.choice(range(1,50))]
+    import operator
+    to_ret = sorted(dicty.iteritems(), key=operator.itemgetter(1))
+    for x, y in to_ret:
+        y.append(Location.objects.get(name__icontains=x))
+
+    sorted_violence_list = to_ret
+    #sorted list...
+    top_three_violent_districts = sorted_violence_list[:3]
+    #can make a dictionary
+    top_three_hungry_districts = sorted_violence_list[:3]
 
     return index(request, template_name="admin/admin_dashboard.html",
-        context_vars={'dicty':dicty,
-                      'x_vals':districts,
-                      'y_vals':district_violence,
-                      'lunches':lunches_to_ret})
-
+        context_vars={
+            'top_three_violent_districts':top_three_violent_districts,
+            'top_three_hungry_districts':top_three_hungry_districts
+            })
 
 # Details views... specified by ROLES
 class ViolenceAdminDetails(TemplateView):
@@ -304,13 +331,10 @@ class ViolenceAdminDetails(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ViolenceAdminDetails, self).get_context_data(**kwargs)
         #TODO: filtering by ajax and time
-        context['violence_cases'] = get_sum_of_poll_response(Poll.objects.get(name="emis_headteachers_abuse"),
+        context['violence_cases'] = get_sum_of_poll_response(Poll.objects.get(name="edtrac_headteachers_abuse"),
             location=self.request.user.get_profile().location,
             month_filter=True
         )
-        #context[]
-
-
         return context
 
 class ViolenceDeoDetails(TemplateView):
@@ -319,7 +343,7 @@ class ViolenceDeoDetails(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ViolenceDeoDetails, self).get_context_data(**kwargs)
         #context['violence_cases'] = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
-        context['violence_cases'] = get_sum_of_poll_response(Poll.objects.get(name="emis_headteachers_abuse"),
+        context['violence_cases'] = get_sum_of_poll_response(Poll.objects.get(name="edtrac_headteachers_abuse"),
             location=self.request.user.get_profile().location, month_filter=True)
         return context
 
@@ -340,7 +364,7 @@ class ProgressDeoDetails(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ProgressDeoDetails, self).get_context_data(**kwargs)
         #TODO mixins and filters
-        context['progress'] = list_poll_responses(Poll.objects.get(name="emis_p3curriculum_progress"))
+        context['progress'] = list_poll_responses(Poll.objects.get(name="edtrac_p3curriculum_progress"))
         return context
 
 class ProgressAdminDetails(TemplateView):
@@ -352,7 +376,7 @@ class ProgressAdminDetails(TemplateView):
         ##context['some_key'] = <some_list_of_response>
         # we get all violence cases ever reported
         #TODO: filtering by ajax and time
-        context['progress'] = list_poll_responses(Poll.objects.get(name="emis_p3curriculum_progress"))
+        context['progress'] = list_poll_responses(Poll.objects.get(name="edtrac_p3curriculum_progress"))
         return context
 
 class MealsMinistryDetails(TemplateView):
@@ -453,9 +477,9 @@ def edit_reporter(request, reporter_pk):
         if reporter_form.is_valid():
             reporter_form.save()
         else:
-            return render_to_response('education/partials/edit_reporter.html'
-                    , {'reporter_form': reporter_form, 'reporter'
-                    : reporter},
+            return render_to_response('education/partials/edit_reporter.html',
+                    {'reporter_form': reporter_form,
+                     'reporter': reporter},
                     context_instance=RequestContext(request))
         return render_to_response('/education/partials/reporter_row.html',
                                   {'object':EmisReporter.objects.get(pk=reporter_pk),

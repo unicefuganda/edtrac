@@ -19,6 +19,9 @@
             {% endfor %}
         </ul>
     </td>
+        <td>
+            {{ object.get_gender_display }}
+        </td>
     <td>
         <ul>
             {% for g in object.groups.all %}

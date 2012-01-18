@@ -563,13 +563,13 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                 to_ret[location.__unicode__()] = s
             return to_ret
 
-        if kwargs.has_key('month_filter') and kwargs.get('month_filter') and kwargs.has_key('location') and kwargs.has_key('to_ret'):
+        if kwargs.has_key('month_filter') and kwargs.get('month_filter') and kwargs.has_key('location') and kwargs.has_key('ret_type'):
             #TODO support drilldowns
 
             now = datetime.datetime.now()
             #if location is Admin/Ministry/UNICEF then all districts will be returned
             # if location is DEO, then just the district will be returned
-            locations = Location.objects.filter(name=kwargs.get('location')).get_descendants().filter(type="districts")
+            locations = Location.objects.get(name=kwargs.get('location')).get_descendants().filter(type="district")
             to_ret = {}
             for location in locations:
                 s = 0
@@ -581,14 +581,18 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                         s += val
                 except NoneType:
                     pass
-                to_ret[location.__unicode__()] = s
-            if kwargs.get('to_ret') == dict:
-            #return a dictionary of values
+                to_ret[location.__unicode__()] = [s]
+
+            if kwargs.get('ret_type') == list:
+                import operator
+                #return a dictionary of values e.g. {'kampala': (<Location Kampala>, 34)}
+                #pre-emptive sorting -> by largest -> returns a sorted list of tuples
+                to_ret = sorted(to_ret.iteritems(), key=operator.itemgetter(1))
+                #initial structure is [('name', val) ]
+                for name, val in to_ret:
+                    val.append(Location.objects.filter(type="district").get(name__icontains=name))
                 return to_ret
-            if kwargs.get('to_ret') == list:
-                #return a list of tuples
-                # [ ('district', some_value)]
-                pass
+            #TODO Other data type returns.
     else:
         try:
             for val in [r.eav.poll_number_value for r in poll_queryset.responses.all()]:
