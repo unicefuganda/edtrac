@@ -313,7 +313,7 @@ def edtrac_autoreg_transition(**kwargs):
         session = ScriptSession.objects.filter(script=progress.script, connection=connection, end_time=None).latest('start_time')
     except ScriptSession.DoesNotExist:
         return
-    role_poll = script.steps.get(order=0).poll
+    role_poll = script.steps.get(poll__name="edtrac_role").poll
     role = find_best_response(session, role_poll)
     group = None
     if role:

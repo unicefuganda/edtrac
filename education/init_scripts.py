@@ -18,7 +18,8 @@ def init_groups():
 def init_autoreg():
     script, created = Script.objects.get_or_create(
             slug="edtrac_autoreg", defaults={
-            'name':"Education monitoring autoregistration script"})
+            'name':"Education monitoring auto registration script",
+            'enabled':False})
     if created:
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
             script.sites.add(Site.objects.get_current())
@@ -57,7 +58,7 @@ def init_autoreg():
             retry_offset=86400,
             giveup_offset=86400,
         ))
-        district_poll = Poll.objects.create(name='edtrac_district', user=user, type='district', question='What is the name of your district?', default_response='')
+        district_poll = Poll.objects.create(name='edtrac_district', user=user, type=Poll.TYPE_LOCATION, question='What is the name of your district?', default_response='')
         script.steps.add(ScriptStep.objects.create(
             script=script,
             poll=district_poll,
@@ -153,7 +154,8 @@ def init_scripts():
     for script_name, polls in simple_scripts.items():
         script, created = Script.objects.get_or_create(
             slug="edtrac_%s" % script_name.lower().replace(' ', '_'), defaults={
-            'name':"Education monitoring %s script" % script_name})
+            'name':"Education monitoring %s script" % script_name,
+            'enabled':False})
         if created:
             script.sites.add(Site.objects.get_current())
             step = 0
