@@ -1,116 +1,108 @@
 [
     {
-        "pk": 5,
-        "model": "sites.site",
+        "pk": 113, 
+        "model": "auth.group", 
         "fields": {
-            "domain": "edtrac.unicefuganda.org",
-            "name": ""
-        }
-    },
-    {
-        "pk": 113,
-        "model": "auth.group",
-        "fields": {
-            "name": "Admins",
+            "name": "Admins", 
             "permissions": []
         }
-    },
+    }, 
     {
-        "pk": 49,
-        "model": "auth.group",
+        "pk": 49, 
+        "model": "auth.group", 
         "fields": {
-            "name": "Services Providers",
+            "name": "Services Providers", 
             "permissions": []
         }
-    },
+    }, 
     {
-        "pk": 104,
-        "model": "auth.group",
+        "pk": 104, 
+        "model": "auth.group", 
         "fields": {
-            "name": "Teachers",
+            "name": "Teachers", 
             "permissions": []
         }
-    },
+    }, 
     {
-        "pk": 105,
-        "model": "auth.group",
+        "pk": 105, 
+        "model": "auth.group", 
         "fields": {
-            "name": "Head Teachers",
+            "name": "Head Teachers", 
             "permissions": []
         }
-    },
+    }, 
     {
-        "pk": 106,
-        "model": "auth.group",
+        "pk": 106, 
+        "model": "auth.group", 
         "fields": {
-            "name": "SMC",
+            "name": "SMC", 
             "permissions": []
         }
-    },
+    }, 
     {
-        "pk": 107,
-        "model": "auth.group",
+        "pk": 107, 
+        "model": "auth.group", 
         "fields": {
-            "name": "GEM",
+            "name": "GEM", 
             "permissions": []
         }
-    },
+    }, 
     {
-        "pk": 108,
-        "model": "auth.group",
+        "pk": 108, 
+        "model": "auth.group", 
         "fields": {
-            "name": "CCT",
+            "name": "CCT", 
             "permissions": []
         }
-    },
+    }, 
     {
-        "pk": 109,
-        "model": "auth.group",
+        "pk": 109, 
+        "model": "auth.group", 
         "fields": {
-            "name": "DEO",
+            "name": "DEO", 
             "permissions": []
         }
-    },
+    }, 
     {
-        "pk": 110,
-        "model": "auth.group",
+        "pk": 110, 
+        "model": "auth.group", 
         "fields": {
-            "name": "District Officials",
+            "name": "District Officials", 
             "permissions": []
         }
-    },
+    }, 
     {
-        "pk": 111,
-        "model": "auth.group",
+        "pk": 111, 
+        "model": "auth.group", 
         "fields": {
-            "name": "Other Reporters",
+            "name": "Other Reporters", 
             "permissions": []
         }
-    },
+    }, 
     {
-        "pk": 112,
-        "model": "auth.group",
+        "pk": 112, 
+        "model": "auth.group", 
         "fields": {
-            "name": "DFO",
+            "name": "DFO", 
             "permissions": []
         }
-    },
+    }, 
     {
-        "pk": 114,
-        "model": "auth.group",
+        "pk": 114, 
+        "model": "auth.group", 
         "fields": {
-            "name": "Ministry Officials",
+            "name": "Ministry Officials", 
             "permissions": []
         }
-    },
+    }, 
     {
-        "pk": 115,
-        "model": "auth.group",
+        "pk": 115, 
+        "model": "auth.group", 
         "fields": {
-            "name": "UNICEF Officials",
+            "name": "UNICEF Officials", 
             "permissions": []
         }
-    },
+    }, 
     {
         "pk": 335, 
         "model": "poll.poll", 
@@ -682,6 +674,25 @@
         }
     }, 
     {
+        "pk": 365, 
+        "model": "poll.poll", 
+        "fields": {
+            "default_response": "", 
+            "name": "edtrac_gem_abuse", 
+            "end_date": null, 
+            "contacts": [], 
+            "messages": [], 
+            "question": "How many abuse cases were recored this month?", 
+            "sites": [
+                5
+            ], 
+            "user": 1, 
+            "type": "n", 
+            "start_date": null, 
+            "response_type": "a"
+        }
+    }, 
+    {
         "pk": 213, 
         "model": "poll.category", 
         "fields": {
@@ -799,6 +810,127 @@
         }
     }, 
     {
+        "pk": 70439, 
+        "model": "poll.response", 
+        "fields": {
+            "date": "2012-01-19 11:01:57", 
+            "has_errors": false, 
+            "message": 647444, 
+            "poll": 335, 
+            "contact": null
+        }
+    }, 
+    {
+        "pk": 70440, 
+        "model": "poll.response", 
+        "fields": {
+            "date": "2012-01-19 11:02:06", 
+            "has_errors": false, 
+            "message": 647446, 
+            "poll": 335, 
+            "contact": null
+        }
+    }, 
+    {
+        "pk": 70441, 
+        "model": "poll.response", 
+        "fields": {
+            "date": "2012-01-19 11:02:44", 
+            "has_errors": false, 
+            "message": 647447, 
+            "poll": 338, 
+            "contact": null
+        }
+    }, 
+    {
+        "pk": 70442, 
+        "model": "poll.response", 
+        "fields": {
+            "date": "2012-01-19 11:03:51", 
+            "has_errors": false, 
+            "message": 647450, 
+            "poll": 339, 
+            "contact": null
+        }
+    }, 
+    {
+        "pk": 70443, 
+        "model": "poll.response", 
+        "fields": {
+            "date": "2012-01-19 11:04:33", 
+            "has_errors": false, 
+            "message": 647452, 
+            "poll": 337, 
+            "contact": null
+        }
+    }, 
+    {
+        "pk": 70444, 
+        "model": "poll.response", 
+        "fields": {
+            "date": "2012-01-19 11:05:26", 
+            "has_errors": false, 
+            "message": 647454, 
+            "poll": 340, 
+            "contact": null
+        }
+    }, 
+    {
+        "pk": 70445, 
+        "model": "poll.response", 
+        "fields": {
+            "date": "2012-01-19 11:06:30", 
+            "has_errors": false, 
+            "message": 647455, 
+            "poll": 338, 
+            "contact": null
+        }
+    }, 
+    {
+        "pk": 70446, 
+        "model": "poll.response", 
+        "fields": {
+            "date": "2012-01-19 11:07:49", 
+            "has_errors": false, 
+            "message": 647458, 
+            "poll": 341, 
+            "contact": null
+        }
+    }, 
+    {
+        "pk": 70447, 
+        "model": "poll.response", 
+        "fields": {
+            "date": "2012-01-19 11:12:23", 
+            "has_errors": false, 
+            "message": 647461, 
+            "poll": 339, 
+            "contact": null
+        }
+    }, 
+    {
+        "pk": 70448, 
+        "model": "poll.response", 
+        "fields": {
+            "date": "2012-01-19 11:14:11", 
+            "has_errors": false, 
+            "message": 647463, 
+            "poll": 340, 
+            "contact": null
+        }
+    }, 
+    {
+        "pk": 70449, 
+        "model": "poll.response", 
+        "fields": {
+            "date": "2012-01-19 11:16:54", 
+            "has_errors": false, 
+            "message": 647467, 
+            "poll": 341, 
+            "contact": null
+        }
+    }, 
+    {
         "pk": 124, 
         "model": "poll.rule", 
         "fields": {
@@ -856,38 +988,6 @@
             "category": 213, 
             "rule_string": "^\\s*(no|nope|nah|nay|n)(\\s|[^a-zA-Z]|$)", 
             "rule_type": "r"
-        }
-    },
-    {
-        "pk": 1,
-        "model": "auth.user",
-        "fields": {
-            "username": "admin",
-            "first_name": "",
-            "last_name": "",
-            "is_active": true,
-            "is_superuser": true,
-            "is_staff": true,
-            "last_login": "2011-12-16 13:42:54",
-            "groups": [
-                106,
-                107
-            ],
-            "user_permissions": [],
-            "password": "sha1$2ff0e$30ad33c5ea22eae40d3ca759567c7e9d49d7ca41",
-            "email": "david.a.mccann@gmail.com",
-            "date_joined": "2010-10-25 00:17:35"
-        }
-    },                        
-    {
-        "pk": "edtrac_autoreg", 
-        "model": "script.script", 
-        "fields": {
-            "enabled": false, 
-            "name": "Education monitoring auto registration script", 
-            "sites": [
-                5
-            ]
         }
     }, 
     {
@@ -973,6 +1073,17 @@
         "fields": {
             "enabled": false, 
             "name": "Education monitoring head teachers monthly script", 
+            "sites": [
+                5
+            ]
+        }
+    }, 
+    {
+        "pk": "edtrac_autoreg", 
+        "model": "script.script", 
+        "fields": {
+            "enabled": true, 
+            "name": "Education monitoring auto registration script", 
             "sites": [
                 5
             ]
@@ -1486,6 +1597,202 @@
         }
     }, 
     {
+        "pk": 368, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_smc_monthly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 365, 
+            "order": 1, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 21042, 
+        "model": "script.scriptprogress", 
+        "fields": {
+            "status": "P", 
+            "language": "en", 
+            "script": "edtrac_autoreg", 
+            "step": 337, 
+            "connection": 30027, 
+            "num_tries": null, 
+            "time": "2012-01-19 11:17:04"
+        }
+    }, 
+    {
+        "pk": 21043, 
+        "model": "script.scriptprogress", 
+        "fields": {
+            "status": "", 
+            "language": null, 
+            "script": "edtrac_teachers_weekly", 
+            "step": null, 
+            "connection": 29963, 
+            "num_tries": null, 
+            "time": "2012-01-19 11:19:03"
+        }
+    }, 
+    {
+        "pk": 21044, 
+        "model": "script.scriptprogress", 
+        "fields": {
+            "status": "", 
+            "language": null, 
+            "script": "edtrac_teachers_monthly", 
+            "step": null, 
+            "connection": 29963, 
+            "num_tries": null, 
+            "time": "2012-02-01 11:19:03"
+        }
+    }, 
+    {
+        "pk": 21041, 
+        "model": "script.scriptprogress", 
+        "fields": {
+            "status": "P", 
+            "language": "en", 
+            "script": "edtrac_autoreg", 
+            "step": 337, 
+            "connection": 30025, 
+            "num_tries": null, 
+            "time": "2012-01-19 09:58:03"
+        }
+    }, 
+    {
+        "pk": 20284, 
+        "model": "script.scriptsession", 
+        "fields": {
+            "connection": 30025, 
+            "end_time": null, 
+            "start_time": "2012-01-19 09:58:03", 
+            "script": "edtrac_autoreg"
+        }
+    }, 
+    {
+        "pk": 20285, 
+        "model": "script.scriptsession", 
+        "fields": {
+            "connection": 30025, 
+            "end_time": "2012-01-19 11:10:03", 
+            "start_time": "2012-01-19 09:58:03", 
+            "script": "edtrac_autoreg"
+        }
+    }, 
+    {
+        "pk": 20287, 
+        "model": "script.scriptsession", 
+        "fields": {
+            "connection": 30027, 
+            "end_time": null, 
+            "start_time": "2012-01-19 11:17:04", 
+            "script": "edtrac_autoreg"
+        }
+    }, 
+    {
+        "pk": 20286, 
+        "model": "script.scriptsession", 
+        "fields": {
+            "connection": 29963, 
+            "end_time": "2012-01-19 11:19:02", 
+            "start_time": "2012-01-19 09:58:03", 
+            "script": "edtrac_autoreg"
+        }
+    }, 
+    {
+        "pk": 51592, 
+        "model": "script.scriptresponse", 
+        "fields": {
+            "session": 20285, 
+            "response": 70439
+        }
+    }, 
+    {
+        "pk": 51593, 
+        "model": "script.scriptresponse", 
+        "fields": {
+            "session": 20286, 
+            "response": 70440
+        }
+    }, 
+    {
+        "pk": 51594, 
+        "model": "script.scriptresponse", 
+        "fields": {
+            "session": 20285, 
+            "response": 70441
+        }
+    }, 
+    {
+        "pk": 51596, 
+        "model": "script.scriptresponse", 
+        "fields": {
+            "session": 20286, 
+            "response": 70443
+        }
+    }, 
+    {
+        "pk": 51600, 
+        "model": "script.scriptresponse", 
+        "fields": {
+            "session": 20286, 
+            "response": 70447
+        }
+    }, 
+    {
+        "pk": 51601, 
+        "model": "script.scriptresponse", 
+        "fields": {
+            "session": 20286, 
+            "response": 70448
+        }
+    }, 
+    {
+        "pk": 51602, 
+        "model": "script.scriptresponse", 
+        "fields": {
+            "session": 20286, 
+            "response": 70449
+        }
+    }, 
+    {
+        "pk": 51595, 
+        "model": "script.scriptresponse", 
+        "fields": {
+            "session": 20285, 
+            "response": 70442
+        }
+    }, 
+    {
+        "pk": 51597, 
+        "model": "script.scriptresponse", 
+        "fields": {
+            "session": 20285, 
+            "response": 70444
+        }
+    }, 
+    {
+        "pk": 51598, 
+        "model": "script.scriptresponse", 
+        "fields": {
+            "session": 20286, 
+            "response": 70445
+        }
+    }, 
+    {
+        "pk": 51599, 
+        "model": "script.scriptresponse", 
+        "fields": {
+            "session": 20285, 
+            "response": 70446
+        }
+    }, 
+    {
         "pk": 1, 
         "model": "script.email", 
         "fields": {
@@ -1495,6 +1802,46 @@
                 1
             ], 
             "subject": "{% load message_content %}SupplyTracking: {{ connection|email_subject }}"
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "sites.site", 
+        "fields": {
+            "domain": "cvs.rapidsms.org", 
+            "name": "CVS (Community Vulnerability Surveillance)"
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "sites.site", 
+        "fields": {
+            "domain": "edtrac.unicefuganda.org", 
+            "name": ""
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "sites.site", 
+        "fields": {
+            "domain": "example.com", 
+            "name": "example.com"
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "sites.site", 
+        "fields": {
+            "domain": "status160.rapidsms.org", 
+            "name": "status160"
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "sites.site", 
+        "fields": {
+            "domain": "ureport.rapidsms.org", 
+            "name": "uReport"
         }
     }
 ]
