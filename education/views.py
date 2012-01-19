@@ -395,10 +395,13 @@ class ProgressAdminDetails(TemplateView):
 class DistrictProgressDetails(DetailView):
     context_object_name = "district_progress"
     model = Location
+    #TODO provide filters
     def get_context_data(self, **kwargs):
         context = super(DistrictProgressDetails, self).get_context_data(**kwargs)
         location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk')))
         context['location'] = location
+
+
         return context
 
 class MealsMinistryDetails(TemplateView):
@@ -415,6 +418,17 @@ class MealsAdminDetails(TemplateView):
         context = super(MealsAdminDetails, self).get_context_data(**kwargs)
 
         return context
+        
+class DistrictMealsDetails(DetailView):
+    context_object_name = "district_meals"
+    model = Location
+    
+    def get_context_data(self, **kwargs):
+        context = super(DistrictMealsDetails, self).get_context_data(**kwargs)
+        location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk')))
+        context['location'] = location        
+        return context        
+
 
 def whitelist(request):
     numbers = []

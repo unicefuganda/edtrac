@@ -164,6 +164,7 @@ urlpatterns = patterns('',
     url(r'^edtrac/alerts_detail/(?P<alert>\d+)/$', login_required(alerts_detail), {}, name="emis-alerts"),
 
     #Admin Dashboard
+    #TODO protect views here...
 
     url(r'^edtrac/dash_map/$', dash_map, {}, name="emis-dash-map"),
     url(r'^edtrac/progress/$', dash_progress, {}, name="emis-dash-progress"),
@@ -188,6 +189,8 @@ urlpatterns = patterns('',
     url(r'^edtrac/dash_ministry_meals/$', dash_ministry_meals, {}, name="emis-ministry-dash-meals"),
     url(r'^edtrac/dash_ministry_meetings/$', dash_ministry_meetings, {}, name="emis-ministry-dash-meetings"),
     url(r'^edtrac/dash_ministry_capitation/$', dash_ministry_capitation, {}, name="emis-ministry-dash-capitation"),
+    url(r'^edtrac/meals/district/(?P<pk>\d+)/$', DistrictMealsDetails.as_view(template_name =\
+                    "education/dashboard/district_meal_detail.html"), name="district-meal"),
 
     #DEO dashboard
     url(r'^edtrac/dash_deo_map/$', dash_ministry_map, {}, name="emis-deo-dash-map"),
