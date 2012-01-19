@@ -360,6 +360,12 @@ class DistrictViolenceDetails(DetailView):
         context = super(DistrictViolenceDetails, self).get_context_data(**kwargs)
         location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk')))
         context['location'] = location
+
+
+
+
+        context['school_vals'] = [('kaio', 23), ('ksdf',34)]
+
         return context
 
 
@@ -377,6 +383,7 @@ class ProgressDeoDetails(TemplateView):
         context = super(ProgressDeoDetails, self).get_context_data(**kwargs)
         #TODO mixins and filters
         context['progress'] = list_poll_responses(Poll.objects.get(name="edtrac_p3curriculum_progress"))
+
         return context
 
 class ProgressAdminDetails(TemplateView):

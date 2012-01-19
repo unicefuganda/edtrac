@@ -1,2 +1,27 @@
+{% extends "layout.html" %}
+{% load humanize %}
+{% block stylesheets %}
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/layout.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/splits.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/modules.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/icons.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}generic/stylesheets/generic.css" />
+<link type="text/css" rel="stylesheet" href="{{MEDIA_URL}}education/stylesheets/emis.css"/>
+<link type="text/css" rel="stylesheet" href="{{MEDIA_URL}}education/stylesheets/jquery-ui-1.7.3.custom.css"/>
+{% endblock %}
+{% block javascripts %}
+{{ block.super }}
+<!-- {% include "education/partials/chart/javascripts.html" %} -->
+<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/highcharts.js"></script>
+<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/emis_dashboard_charts.js"></script>
+<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-ui-1.7.3.custom.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
+{% endblock javascripts %}
+
+
+        {% block content %}
+
+
 <h1>welcome to {{ location }}</h1>
 <p>this view is being built.. go <a href="{% url rapidsms-dashboard %}">back</a> </p>
+        {% endblock %}

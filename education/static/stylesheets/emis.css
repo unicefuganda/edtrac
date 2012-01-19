@@ -730,3 +730,6 @@ table.smc_meetings td{
 table.smc_meetings th{
     font-size: 0.8em;
 }
+div.table_data{
+    padding:10px;
+}
