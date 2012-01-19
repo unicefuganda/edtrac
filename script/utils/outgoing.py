@@ -35,7 +35,7 @@ def check_progress(script):
         to_transition = ScriptProgress.objects.need_to_transition(script, step)
         to_trans_list = list(to_transition.values_list('pk', flat=True))
         if to_transition.exists():
-
+            
             to_transition.moveon(script, step)
             ScriptProgress.objects.filter(pk__in=to_trans_list).mass_text()
 
