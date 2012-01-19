@@ -351,6 +351,18 @@ class ViolenceDeoDetails(TemplateView):
     def dispatch(self, *args, **kwargs):
         return super(ViolenceDeoDetails, self).dispatch(*args, **kwargs)
 
+#District violence details (TODO: permission/rolebased viewing)
+class DistrictViolenceDetails(DetailView):
+    context_object_name = "district_violence"
+    model = Location
+
+    def get_context_data(self, **kwargs):
+        context = super(DistrictViolenceDetails, self).get_context_data(**kwargs)
+        location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk')))
+        context['location'] = location
+        return context
+
+
 class ProgressMinistryDetails(TemplateView):
     template_name = "education/ministry/ministry_progress_details.html"
     @method_decorator(login_required)
@@ -377,6 +389,16 @@ class ProgressAdminDetails(TemplateView):
         # we get all violence cases ever reported
         #TODO: filtering by ajax and time
         context['progress'] = list_poll_responses(Poll.objects.get(name="edtrac_p3curriculum_progress"))
+        return context
+
+
+class DistrictProgressDetails(DetailView):
+    context_object_name = "district_progress"
+    model = Location
+    def get_context_data(self, **kwargs):
+        context = super(DistrictProgressDetails, self).get_context_data(**kwargs)
+        location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk')))
+        context['location'] = location
         return context
 
 class MealsMinistryDetails(TemplateView):

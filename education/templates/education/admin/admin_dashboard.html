@@ -47,7 +47,7 @@
                                         <!-- get context vars working -->
                                         {% if top_three_violent_districts %}
                                             {% for district, list in top_three_violent_districts %}
-                                            <tr><td><a>{{ district }}</a></td><td>{{ list.0 }}</td></tr>
+                                            <tr><td><a href="{% url district-violence list.1.pk %}">{{ district }}</a></td><td>{{ list.0 }}</td></tr>
                                             {% endfor %}
                                         {% endif %}
                                     </table>
@@ -73,7 +73,7 @@
                                         </thead>
                                         {% if top_three_hungry_districts %}
                                             {% for district, list in top_three_hungry_districts %}
-                                                <tr><td><a>{{ district }}</a></td><td>{{ list.0 }}%</td></tr>
+                                                <tr><td><a href="{% url district-progress list.1.pk %}">{{ district }}</a></td><td>{{ list.0 }}%</td></tr>
                                             {% endfor %}
                                         {% endif %}
                                     </table>
