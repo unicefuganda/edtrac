@@ -391,7 +391,7 @@ class ProgressAdminDetails(TemplateView):
         context['progress'] = list_poll_responses(Poll.objects.get(name="edtrac_p3curriculum_progress"))
         return context
 
-
+# Progress happening in a district
 class DistrictProgressDetails(DetailView):
     context_object_name = "district_progress"
     model = Location
@@ -400,8 +400,6 @@ class DistrictProgressDetails(DetailView):
         context = super(DistrictProgressDetails, self).get_context_data(**kwargs)
         location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk')))
         context['location'] = location
-
-
         return context
 
 class MealsMinistryDetails(TemplateView):
@@ -419,6 +417,7 @@ class MealsAdminDetails(TemplateView):
 
         return context
         
+# Meals being had at a district        
 class DistrictMealsDetails(DetailView):
     context_object_name = "district_meals"
     model = Location
