@@ -374,6 +374,23 @@ class DistrictViolenceDetails(DetailView):
         context['school_vals'] = [('kaio', 23), ('ksdf',34)]
         return context
 
+class ProgressAdminDetails(TemplateView):
+    template_name = "education/admin/admin_progress_details.html"
+
+    def get_context_data(self, **kwargs):
+        import random
+        from .utils import themes
+        context = super(ProgressAdminDetails, self).get_context_data(**kwargs)
+        ##context['some_key'] = <some_list_of_response>
+        # we get all violence cases ever reported
+        #TODO: filtering by ajax and time
+        context['progress'] = list_poll_responses(Poll.objects.get(name="edtrac_p3curriculum_progress"))
+
+        context['progress_figures'] = get_count_response_to_polls(Poll.objects.get(name="edtrac_p3curriculum_progress"),\
+            location=self.request.user.get_profile().location,
+            choices = [round(key, 2) for key in themes.keys()]
+        )
+        return context
 
 class ProgressMinistryDetails(TemplateView):
     template_name = "education/ministry/ministry_progress_details.html"
@@ -392,18 +409,6 @@ class ProgressDeoDetails(TemplateView):
 
         return context
 
-class ProgressAdminDetails(TemplateView):
-    template_name = "education/admin/admin_progress_details.html"
-
-    def get_context_data(self, **kwargs):
-        import random
-        from .utils import themes
-        context = super(ProgressAdminDetails, self).get_context_data(**kwargs)
-        ##context['some_key'] = <some_list_of_response>
-        # we get all violence cases ever reported
-        #TODO: filtering by ajax and time
-        context['progress'] = list_poll_responses(Poll.objects.get(name="edtrac_p3curriculum_progress"))
-        return context
 
 # Progress happening in a district
 class DistrictProgressDetails(DetailView):
