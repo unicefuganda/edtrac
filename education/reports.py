@@ -628,6 +628,14 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
             pass
         return s
 
+def get_count_response_to_polls(poll_queryset, **kwargs):
+    if kwargs.has_key('poll_type') and kwargs.get('poll_type')=='text':
+        pass
+    if kwargs.has_key('poll_type') and kwargs.get('poll_type')=='numeric' and kwargs.has_key('location'):
+        location = kwargs.get('location')
+        
+        pass
+
 def get_responses_to_polls(**kwargs):
     #TODO with filter() we can pass extra arguments
     if kwargs:
