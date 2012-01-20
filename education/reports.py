@@ -635,7 +635,7 @@ def get_count_response_to_polls(poll_queryset, **kwargs):
         #choices is a list against which a count is made
         # default filter is by month
         locations = Location.objects.get(name=kwargs.get('location')).get_descendants().filter(type="district")
-        choices = kwargs.get('choices')
+        choices = [Decimal(str(c)) for c in kwargs.get('choices')]
         container = {}
         temp = [{location.name:[r.eav.poll_number_value for r in poll_queryset.responses.filter(\
             contact__in=Contact.objects.filter(reporting_location=location),

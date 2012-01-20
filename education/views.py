@@ -378,17 +378,19 @@ class ProgressAdminDetails(TemplateView):
     template_name = "education/admin/admin_progress_details.html"
 
     def get_context_data(self, **kwargs):
-        import random
         from .utils import themes
         context = super(ProgressAdminDetails, self).get_context_data(**kwargs)
         ##context['some_key'] = <some_list_of_response>
         # we get all violence cases ever reported
         #TODO: filtering by ajax and time
         context['progress'] = list_poll_responses(Poll.objects.get(name="edtrac_p3curriculum_progress"))
-
+        # decimal module used to work with really floats with more than 2 decimal places
+        from decimal import getcontext, Decimal
+        getcontext().prec = 1
         context['progress_figures'] = get_count_response_to_polls(Poll.objects.get(name="edtrac_p3curriculum_progress"),\
             location=self.request.user.get_profile().location,
-            choices = [round(key, 2) for key in themes.keys()]
+            choices = [Decimal(str(key)) for key in themes.keys()],
+            poll_type="numeric"
         )
         return context
 
