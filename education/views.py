@@ -335,7 +335,7 @@ class ViolenceAdminDetails(TemplateView):
             location=self.request.user.get_profile().location,
             month_filter=True
         )
-        context['violence_cases_reported_by_community'] = get_sum_of_poll_response(Poll.objects.get(name="edtrac"))
+        context['violence_cases_reported_by_community'] = get_sum_of_poll_response(Poll.objects.get(name="edtrac_gem_abuse"))
         return context
 
 class ViolenceDeoDetails(TemplateView):
