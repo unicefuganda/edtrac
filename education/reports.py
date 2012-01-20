@@ -602,7 +602,7 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                         try:
                             for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(
                                 contact__in = Contact.objects.filter(reporting_location=kwargs.get('location')),
-                                date_range = get_month_day_range(month_range)
+                                date__range = month_range
                             )]:
                                 s += val
                         except NoneType:
