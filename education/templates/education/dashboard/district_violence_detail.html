@@ -1,2 +1,42 @@
-<h1>welcome to {{ location }}</h1>
-        <p>this view is being built.. go <a href="{% url rapidsms-dashboard %}">back</a> </p>
+{% extends "layout.html" %}
+{% load humanize %}
+{% block stylesheets %}
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/layout.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/splits.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/modules.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/icons.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}generic/stylesheets/generic.css" />
+<link type="text/css" rel="stylesheet" href="{{MEDIA_URL}}education/stylesheets/emis.css"/>
+<link type="text/css" rel="stylesheet" href="{{MEDIA_URL}}education/stylesheets/jquery-ui-1.7.3.custom.css"/>
+{% endblock %}
+{% block javascripts %}
+{{ block.super }}
+<!-- {% include "education/partials/chart/javascripts.html" %} -->
+<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/highcharts.js"></script>
+<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/emis_dashboard_charts.js"></script>
+<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-ui-1.7.3.custom.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
+{% endblock javascripts %}
+{% block content %}
+<p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; line-height: inherit;">← Back to EdTrac Home Page</a></p
+<div class="top-welcome">
+    <h1>{{ location }}</h1>
+</div>
+<div class="table_data">
+    <table class="classy">
+        <thead>
+        <tr>
+            <th>
+                School
+            </th>
+            <th>
+                Numbers of Cases this Month
+            </th>
+        </tr>
+        {% for school, value in school_vals %}
+        <tr><td>{{ school }}</td><td>{{ value }}</td></tr>
+        {% endfor %}
+        </thead>
+    </table>
+</div>
+{% endblock %}

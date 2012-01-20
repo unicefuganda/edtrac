@@ -1,4 +1,96 @@
 {% extends "education/admin/admin_dashboard.html" %}
 {% block content %}
 <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; line-height: inherit;">← Back to EdTrac Home Page</a></p>
+        <div>
+        <div id="meals" style="float:left;"></div>
+        <script type="text/javascript">
+            $(document).ready(function(){
+                var line_chart;
+                load_line_graph('Meals', null, 'meals', 'Schools that have reporterd in terms of percentages', 'Months of the year');
+            });
+        </script>
+            <div class="choose" style="float:right;">
+                <span style="font-size: 1em;">Choose level of meals had at school</span>
+                <form action="" method="post">
+                    <p>
+                        <label for="meal_0percent">0% of children had meals</label>
+                    </p>
+                    <p>
+                        <label for="meal_25percent">25% of children had meals</label>
+                    </p>
+                    <p>
+                        <label for="meal_50percent">50% of children had meals</label>
+                    </p>
+                    <p>
+                        <label for="meal_75percent">75% of children had meals</label>
+                    </p>
+                    <p>
+                        <label for="meal_100percent">100% of children had meals</label>
+                    </p>
+                </form>
+            </div>
+        </div>
+        <div class="school_reports" style="clear: both;">
+            <table class="classy">
+                <thead>
+                <tr>
+                    <th>Districts</th>
+                    <th>0% had meals</th>
+                    <th>25% had meals</th>
+                    <th>50% had measl</th>
+                    <th>75% had meals</th>
+                    <th>100% had meals</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                {% if national_reports %}
+                {% for name, list in national_reports %}
+                <tr>
+                    <td>{{ name }}</td>
+                    <td>{{ list.0 }}</td>
+                    <td>{{ list.1 }}</td>
+                    <td>{{ list.2 }}</td>
+                    <td>{{ list.3 }}</td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr><td colspan="6" style="text-align: center;">No data</td> </tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="community_reports">
+            <h3>Reports by community reporters</h3>
+            <table class="classy">
+                <thead>
+                <tr>
+                    <th>Districts</th>
+                    <th>0% had meals</th>
+                    <th>25% had meals</th>
+                    <th>50% had measl</th>
+                    <th>75% had meals</th>
+                    <th>100% had meals</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                {% if community_reports %}
+                {% for name, list in community_reports %}
+                <tr>
+                    <td>{{ name }}</td>
+                    <td>{{ list.0 }}</td>
+                    <td>{{ list.1 }}</td>
+                    <td>{{ list.2 }}</td>
+                    <td>{{ list.3 }}</td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr><td colspan="6" style="text-align: center;">No data</td> </tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+
 {% endblock %}

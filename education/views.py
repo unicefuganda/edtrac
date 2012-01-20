@@ -331,10 +331,21 @@ class ViolenceAdminDetails(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ViolenceAdminDetails, self).get_context_data(**kwargs)
         #TODO: filtering by ajax and time
-        context['violence_cases'] = get_sum_of_poll_response(Poll.objects.get(name="edtrac_headteachers_abuse"),
-            location=self.request.user.get_profile().location,
-            month_filter=True
-        )
+        #TODO: uncomment to see actual poll repsonses
+#        context['violence_cases_reported_by_schools'] = get_sum_of_poll_response(Poll.objects.get(name="edtrac_headteachers_abuse"),
+#            location=self.request.user.get_profile().location,
+#            month_filter=True, months=2
+#        )
+#        context['violence_cases_reported_by_community'] = get_sum_of_poll_response(Poll.objects.get(name="edtrac_gem_abuse"),
+#            location=self.request.user.get_profile().location,
+#            month_filter=True,  months = 2
+#        )
+#
+        #For demo purpooses
+        districts = ['kyegegwa', 'kotido', 'kaboong']
+        context['violence_cases_reported_by_schools'] = [(loc.__unicode__(), [23,34, loc]) for loc in Location.objects.filter(type="district", name__in=[d.title() for d in districts])]
+        context['violence_cases_reported_by_community'] = [(loc.__unicode__(), [23,18, loc]) for loc in Location.objects.filter(type="district", name__in=[d.title() for d in districts])]
+
         return context
 
 class ViolenceDeoDetails(TemplateView):
@@ -360,6 +371,7 @@ class DistrictViolenceDetails(DetailView):
         context = super(DistrictViolenceDetails, self).get_context_data(**kwargs)
         location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk')))
         context['location'] = location
+        context['school_vals'] = [('kaio', 23), ('ksdf',34)]
         return context
 
 
@@ -377,10 +389,12 @@ class ProgressDeoDetails(TemplateView):
         context = super(ProgressDeoDetails, self).get_context_data(**kwargs)
         #TODO mixins and filters
         context['progress'] = list_poll_responses(Poll.objects.get(name="edtrac_p3curriculum_progress"))
+
         return context
 
 class ProgressAdminDetails(TemplateView):
     template_name = "education/admin/admin_progress_details.html"
+
     def get_context_data(self, **kwargs):
         import random
         from .utils import themes
@@ -391,10 +405,11 @@ class ProgressAdminDetails(TemplateView):
         context['progress'] = list_poll_responses(Poll.objects.get(name="edtrac_p3curriculum_progress"))
         return context
 
-
+# Progress happening in a district
 class DistrictProgressDetails(DetailView):
     context_object_name = "district_progress"
     model = Location
+    #TODO provide filters
     def get_context_data(self, **kwargs):
         context = super(DistrictProgressDetails, self).get_context_data(**kwargs)
         location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk')))
@@ -415,6 +430,18 @@ class MealsAdminDetails(TemplateView):
         context = super(MealsAdminDetails, self).get_context_data(**kwargs)
 
         return context
+        
+# Meals being had at a district        
+class DistrictMealsDetails(DetailView):
+    context_object_name = "district_meals"
+    model = Location
+    
+    def get_context_data(self, **kwargs):
+        context = super(DistrictMealsDetails, self).get_context_data(**kwargs)
+        location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk')))
+        context['location'] = location        
+        return context        
+
 
 def whitelist(request):
     numbers = []
@@ -867,7 +894,13 @@ def edit_scripts(request):
     
     return render_to_response('education/partials/edit_script.html', {'forms': forms},
                               context_instance=RequestContext(request))
-    
+
+#TODO work on forms
+def choose_level(request):
+    forms = []
+    pass
+
+
 def reschedule_scripts(request, script_slug):
     grp = get_script_grp(script_slug)
     if script_slug.endswith('_weekly'):

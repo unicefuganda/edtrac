@@ -539,6 +539,7 @@ def get_month_day_range(date, **kwargs):
 
 def get_sum_of_poll_response(poll_queryset, **kwargs):
     #TODO refactor name of method
+    #TODO add poll_type to compute count of repsonses (i.e. how many YES' and Nos do exist)
     """
     This computes the eav response value to a poll
     can also be used to filter by district and create a dict with
@@ -563,32 +564,58 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                 to_ret[location.__unicode__()] = s
             return to_ret
 
-        if kwargs.has_key('month_filter') and kwargs.get('month_filter') and kwargs.has_key('location') and kwargs.has_key('ret_type'):
+        if kwargs.has_key('month_filter') and kwargs.get('month_filter') and kwargs.has_key('location') and\
+           kwargs.has_key('ret_type') or kwargs.has_key('months'):
             #TODO support drilldowns
-
             now = datetime.datetime.now()
             #if location is Admin/Ministry/UNICEF then all districts will be returned
             # if location is DEO, then just the district will be returned
             locations = Location.objects.get(name=kwargs.get('location')).get_descendants().filter(type="district")
             to_ret = {}
-            for location in locations:
-                s = 0
-                try:
-                    for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(
-                        contact__in = Contact.objects.filter(reporting_location=kwargs.get('location')),
-                        date__range = get_month_day_range(now)
-                        )]:
-                        s += val
-                except NoneType:
-                    pass
-                to_ret[location.__unicode__()] = [s]
+            if not kwargs.has_key('months'):
+                for location in locations:
+                    s = 0
+                    try:
+                        for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(
+                            contact__in = Contact.objects.filter(reporting_location=kwargs.get('location')),
+                            date__range = get_month_day_range(now)
+                            )]:
+                            s += val
+                    except NoneType:
+                        pass
+                    to_ret[location.__unicode__()] = [s]
+            else:
+                # only use this in views that expect date ranges great than one month
+                from dateutil.parser import parse
+                import commands, dateutils
+                today = parse(commands.getoutput('date')).date()
+                month_ranges = [
+                    get_month_day_range(dateutils.increment(today, months=-i))
+                    for i in range(int(kwargs.get('months')))
+                ]
+
+                for location in locations:
+                    to_ret[location.__unicode__()] = [] #empty list we populate in a moment
+                    for month_range in month_ranges:
+                        s = 0
+                        try:
+                            for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(
+                                contact__in = Contact.objects.filter(reporting_location=kwargs.get('location')),
+                                date__range = month_range
+                            )]:
+                                s += val
+                        except NoneType:
+                            pass
+                        #to_ret is something like { 'Kampala' : [23, 34] } => ['current_month', 'previoius month']
+                        to_ret[location.__unicode__()].append(s)
 
             if kwargs.get('ret_type') == list:
                 import operator
                 #return a dictionary of values e.g. {'kampala': (<Location Kampala>, 34)}
                 #pre-emptive sorting -> by largest -> returns a sorted list of tuples
+                #TODO improve sorting
                 to_ret = sorted(to_ret.iteritems(), key=operator.itemgetter(1))
-                #initial structure is [('name', val) ]
+                #initial structure is [('name', val1, val2) ]
                 for name, val in to_ret:
                     val.append(Location.objects.filter(type="district").get(name__icontains=name))
                 return to_ret
@@ -600,6 +627,28 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
         except NoneType:
             pass
         return s
+
+def get_count_response_to_polls(poll_queryset, **kwargs):
+    if kwargs.has_key('poll_type') and kwargs.get('poll_type')=='text':
+        pass
+    if kwargs.has_key('poll_type') and kwargs.get('poll_type')=='numeric' and kwargs.has_key('location') and kwargs.has_key('choices'):
+        #choices is a list against which a count is made
+        # default filter is by month
+        locations = Location.objects.get(name=kwargs.get('location')).get_descendants().filter(type="district")
+        choices = kwargs.get('choices')
+        container = {}
+        temp = [{location.name:[r.eav.poll_number_value for r in poll_queryset.responses.filter(\
+            contact__in=Contact.objects.filter(reporting_location=location),
+            date__range = get_month_day_range(datetime.datetime.now()) #filter by past month to-date
+        )]}\
+                for location in locations]
+        #temp --> [ { 'kampala': [1.3, 2.3, 1.5]} ] a list of dictionaries
+        for district in temp:
+            for choice in choices:
+                container[district.keys()[0]] = {
+                    choice : district.values()[0].count(choice)
+                }
+        return container
 
 def get_responses_to_polls(**kwargs):
     #TODO with filter() we can pass extra arguments

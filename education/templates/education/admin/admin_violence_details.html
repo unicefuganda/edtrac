@@ -1,83 +1,90 @@
-{% extends "education/admin/admin_dashboard.html" %}
+{% extends "layout.html" %}
+{% load humanize %}
+{% block stylesheets %}
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/layout.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/splits.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/modules.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/icons.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}generic/stylesheets/generic.css" />
+<link type="text/css" rel="stylesheet" href="{{MEDIA_URL}}education/stylesheets/emis.css"/>
+<link type="text/css" rel="stylesheet" href="{{MEDIA_URL}}education/stylesheets/jquery-ui-1.7.3.custom.css"/>
+{% endblock %}
+{% block javascripts %}
+{{ block.super }}
+<!-- {% include "education/partials/chart/javascripts.html" %} -->
+<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/highcharts.js"></script>
+<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/emis_dashboard_charts.js"></script>
+<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-ui-1.7.3.custom.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
+{% endblock javascripts %}
 {% block content %}
-<p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; line-height: inherit;">← Back to EdTrac Home Page</a></p
-<div class="top_row">
-        <!-- violence chart detail goes over here -->
+<p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; line-height: inherit;">← Back to EdTrac Home Page</a></p>
+<div class="top_part">
     <div id="violence"></div>
-    <div id="selectors">
-		Choose:<br/>
-		District: <br/>
-		Time: <br/>
-		Reporters
+    <script type="text/javascript">
+        $(document).ready(function(){
+            var line_chart;
+            load_line_graph('Violence Cases - Details', null, 'violence', 'Number of Cases');
+        });
+    </script>
+
+
+    <div id="violence_form">
+        Choose:<br/>
+        District:<br/>
+        Time: <br/>
+        Reporters
     </div>
 </div>
-<div id="table_row">
-    <div class="school_report">
-        <div class="table_container">
-            <div class="table">
-                <h2>Violence Cases reported by Districts</h2>
-                <table class="classy">
-                <tr>
-                    <thead>
-                    <th>District</th>
-                    <th>Violence Cases recorded Jan 2012</th>
-                    <th>Violence Cases recorded Feb 2012</th>
-                    <th>Change</th>
-                    </thead>
-                </tr>
-				<tr>
-					<td>Kaabong</td><td>23</td><td>21</td><td></td>
-				</tr>
-				<tr>
-					<td>Kyegegwa</td><td>13</td><td>21</td><td></td>
-				</tr>
-				<tr>
-					<td>Kotido</td><td>12</td><td>21</td><td></td>
-				</tr>
-                </table>
-            </div>
-            <div class="exporter">
-                <a style="padding:5px;">Export results to SpreadSheet</a>
-            </div>
-        </div>
-        <div class="table_container">
-            <div class="table">
-                <h2>Violence Cases reported by Community Members</h2>
-                <table class="classy">
-                    <tr>
-                        <thead>
-                            <th>District</th>
-                            <th>Violence Cases recorded Jan 2012</th>
-                            <th>Violence Cases recorded Feb 2012</th>
-                            <th>Change</th>
-                        </thead>
-                    </tr>
-
-					<tr>
-						<td>Kaabong</td><td>23</td><td>21</td><td></td>
-					</tr>
-					<tr>
-						<td>Kyegegwa</td><td>13</td><td>21</td><td></td>
-					</tr>
-					<tr>
-						<td>Kotido</td><td>12</td><td>21</td><td></td>
-					</tr>
-	                </table>
-                </table>
-            </div>
-            <div class="exporter">
-                <a style="padding:5px;">Export results to SpreadSheet</a>
-            </div>
-        </div>
-    </div>
+<div class="bottom_part">
+    <table class="classy">
+        <tr>
+            <th>District</th>
+            <th>Violence cases recorded in Feb 2012</th>
+            <th>Violence cases recorded in Jan 2012</th>
+            <th>Percentage change</th>
+        </tr>
+        {% if violence_cases_reported_by_schools %}
+        {% for name, list in violence_cases_reported_by_schools %}
+            <tr>
+                <td><a href="{% url district-violence list.2.pk %}">{{ name }}</a></td>
+                <td>{{ list.0 }}</td>
+                <td>{{ list.1 }}</td>
+                <td></td>
+            </tr>
+        {% endfor %}
+        <tr>
+            <td>Total</td><td></td><td></td><td></td>
+        </tr>
+        {% else %}
+            <tr><td colspan="4" style="text-align: center;">No cases</td> </tr>
+        {% endif %}
+    </table>
+    <p>Results based on 30% of Total Reporters</p>
+<br/><br/>
+    <table class="classy">
+        <tr>
+            <th>District</th>
+            <th>Violence cases recorded in Feb 2012</th>
+            <th>Violence cases recorded in Jan 2012</th>
+            <th>Percentage change</th>
+        </tr>
+        {% if violence_cases_reported_by_community %}
+        {% for name, list in violence_cases_reported_by_community %}
+        <tr>
+            <td><a href="{% url district-violence list.2.pk %}">{{ name }}</a></td>
+            <td>{{ list.0 }}</td>
+            <td>{{ list.1 }}</td>
+            <td></td>
+        </tr>
+        {% endfor %}
+        <tr>
+            <td>Total</td><td></td><td></td><td></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" style="text-align: center;">No cases</td> </tr>
+        {% endif %}
+    </table>
+    <p>Results based on 35% of Total Reporters</p>
 </div>
-
-<script type="text/javascript">
-    $(document).ready(function(){
-		var line_chart;
-        $('#violence').load('{% url emis-dash-violence %}');
-    });
-</script>
-
-        
 {% endblock %}
