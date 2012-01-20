@@ -45,7 +45,7 @@ CONTAINS_PATTERN_TEMPLATE = '^.*\s*(%s)(\s|[^a-zA-Z]|$)'
 
 YES_WORDS = {
     'en':['yes', 'yeah', 'yep', 'yay', 'y'],
-    'ach':['ada', 'da']
+    'ach':['ada', 'da','eyo']
 }
 
 # This can be configurable from settings, but here's a default list of
