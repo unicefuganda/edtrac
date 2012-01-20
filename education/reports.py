@@ -638,7 +638,7 @@ def get_count_response_to_polls(poll_queryset, **kwargs):
         choices = kwargs.get('choices')
         container = {}
         temp = [{location.name:[r.eav.poll_number_value for r in poll_queryset.responses.filter(\
-            contact__in=Contact.objects.filter(reporting__location=location),
+            contact__in=Contact.objects.filter(reporting_location=location),
             date__range = get_month_day_range(datetime.datetime.now()) #filter by past month to-date
         )]}\
                 for location in locations]
