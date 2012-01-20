@@ -47,9 +47,9 @@
         {% if violence_cases_reported_by_schools %}
         {% for name, list in violence_cases_reported_by_schools %}
             <tr>
-                <td><a href="{% url district-violence list.1.pk %}">{{ name }}</a></td>
+                <td><a href="{% url district-violence list.2.pk %}">{{ name }}</a></td>
                 <td>{{ list.0 }}</td>
-                <td></td>
+                <td>{{ list.1 }}</td>
                 <td></td>
             </tr>
         {% endfor %}
@@ -72,9 +72,9 @@
         {% if violence_cases %}
         {% for name, list in violence_cases_reported_by_community_members %}
         <tr>
-            <td><a href="{% url district-violence list.1.pk %}">{{ name }}</a></td>
+            <td><a href="{% url district-violence list.2.pk %}">{{ name }}</a></td>
             <td>{{ list.0 }}</td>
-            <td></td>
+            <td>{{ list.1 }}</td>
             <td></td>
         </tr>
         {% endfor %}

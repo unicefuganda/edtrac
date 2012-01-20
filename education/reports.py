@@ -589,10 +589,9 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                 from dateutil.parser import parse
                 import commands, dateutils
                 today = parse(commands.getoutput('date')).date()
-                months = range(int(kwargs.get('months')))
                 month_ranges = [
                     get_month_day_range(dateutils.increment(today, months=-i))
-                    for i in months
+                    for i in range(int(kwargs.get('months')))
                 ]
 
                 for location in locations:
@@ -614,8 +613,9 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                 import operator
                 #return a dictionary of values e.g. {'kampala': (<Location Kampala>, 34)}
                 #pre-emptive sorting -> by largest -> returns a sorted list of tuples
+                #TODO improve sorting
                 to_ret = sorted(to_ret.iteritems(), key=operator.itemgetter(1))
-                #initial structure is [('name', val) ]
+                #initial structure is [('name', val1, val2) ]
                 for name, val in to_ret:
                     val.append(Location.objects.filter(type="district").get(name__icontains=name))
                 return to_ret
