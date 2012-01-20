@@ -4,13 +4,12 @@ Basic tests for Edtrac
 
 from django.test import TestCase
 from django.contrib.auth.models import User, Group
-from rapidsms.messages.incoming import IncomingMessage
+from rapidsms.messages.incoming import IncomingMessage, OutgoingMessage
 from rapidsms_xforms.models import *
 from rapidsms_httprouter.models import Message
 from rapidsms.contrib.locations.models import Location, LocationType
 import datetime
 from rapidsms.models import Connection, Backend, Contact
-from rapidsms.messages.incoming import IncomingMessage
 from rapidsms_xforms.models import XForm, XFormSubmission
 from django.conf import settings
 from script.utils.outgoing import check_progress

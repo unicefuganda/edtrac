@@ -321,3 +321,26 @@ themes = {
     12.2: 'Ways of saving energy',
     12.3: 'Dangers of energy and ways of avoiding them'
 }
+
+def fake_incoming_message(message, connection):
+    from rapidsms.messages.incoming import IncomingMessage
+    incomingmessage = IncomingMessage(connection, message)
+    incomingmessage.db_message = Message.objects.create(direction='I', connection=connection, text=message)
+    return incomingmessage
+    
+def fake_poll_responses(poll_tuple, grp):
+    from education.models import EmisReporter
+    import random
+    yesno_resp = ['yes', 'no']
+    text_resp = ['text response', 'text response2', 'text response3']
+    poll = Poll.objects.get(name=poll_tuple[1])
+    rep_count = EmisReporter.objects.filter(groups__name=grp).count()
+    for rep in EmisReporter.objects.filter(groups__name=grp)[:random.randint(0, rep_count)]:
+        if poll_tuple[0] == Poll.TYPE_NUMERIC:
+            poll.process_response(fake_incoming_message(random.randint(0,90), rep.default_connection))
+        else:
+            if poll.categories.values_list('name', flat=True)[0] in ['yes', 'no', 'unknown']:
+                resp = random.choice(yesno_resp)
+            else:
+                resp = random.choice(text_resp)
+            poll.process_response(fake_incoming_message(resp, rep.default_connection))
