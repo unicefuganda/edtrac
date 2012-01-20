@@ -69,8 +69,8 @@
             <th>Violence cases recorded in Jan 2012</th>
             <th>Percentage change</th>
         </tr>
-        {% if violence_cases %}
-        {% for name, list in violence_cases_reported_by_community_members %}
+        {% if violence_cases_reported_by_community %}
+        {% for name, list in violence_cases_reported_by_community %}
         <tr>
             <td><a href="{% url district-violence list.2.pk %}">{{ name }}</a></td>
             <td>{{ list.0 }}</td>

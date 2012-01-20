@@ -331,11 +331,21 @@ class ViolenceAdminDetails(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ViolenceAdminDetails, self).get_context_data(**kwargs)
         #TODO: filtering by ajax and time
-        context['violence_cases_reported_by_schools'] = get_sum_of_poll_response(Poll.objects.get(name="edtrac_headteachers_abuse"),
-            location=self.request.user.get_profile().location,
-            month_filter=True, months=2
-        )
-        context['violence_cases_reported_by_community'] = get_sum_of_poll_response(Poll.objects.get(name="edtrac_gem_abuse"))
+        #TODO: uncomment to see actual poll repsonses
+#        context['violence_cases_reported_by_schools'] = get_sum_of_poll_response(Poll.objects.get(name="edtrac_headteachers_abuse"),
+#            location=self.request.user.get_profile().location,
+#            month_filter=True, months=2
+#        )
+#        context['violence_cases_reported_by_community'] = get_sum_of_poll_response(Poll.objects.get(name="edtrac_gem_abuse"),
+#            location=self.request.user.get_profile().location,
+#            month_filter=True,  months = 2
+#        )
+#
+        #For demo purpooses
+        districts = ['kyegegwa', 'kotido', 'kaboong']
+        context['violence_cases_reported_by_schools'] = [(loc.__unicode__(), [23,34, loc]) for loc in Location.objects.filter(type="district", name__in=[d.title() for d in districts])]
+        context['violence_cases_reported_by_community'] = [(loc.__unicode__(), [23,18, loc]) for loc in Location.objects.filter(type="district", name__in=[d.title() for d in districts])]
+
         return context
 
 class ViolenceDeoDetails(TemplateView):
@@ -361,12 +371,7 @@ class DistrictViolenceDetails(DetailView):
         context = super(DistrictViolenceDetails, self).get_context_data(**kwargs)
         location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk')))
         context['location'] = location
-
-
-
-
         context['school_vals'] = [('kaio', 23), ('ksdf',34)]
-
         return context
 
 
