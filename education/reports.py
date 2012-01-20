@@ -646,7 +646,7 @@ def get_count_response_to_polls(poll_queryset, **kwargs):
         for district in temp:
             for choice in choices:
                 container[district.keys()[0]] = {
-                    choice : district.values().count(choice)
+                    choice : district.values()[0].count(choice)
                 }
         return container
 
