@@ -135,9 +135,7 @@ class ScriptProgressQuerySet(QuerySet):
         if next_step:
             for sp in self:
                 script_progress_pre_change.send(sender=sp, connection=sp.connection, step=step)
-            mod = self.model
             self.update(step=next_step, status=self.model.PENDING, time=datetime.datetime.now())
-            self = mod._default_manager.filter(step=next_step, status=mod.PENDING, script=script)
             for sp in self.model._default_manager.filter(pk__in=script_progress_list):
                 script_progress.send(sender=sp, connection=sp.connection, step=next_step)
             return True
