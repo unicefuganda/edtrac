@@ -333,7 +333,7 @@ class ViolenceAdminDetails(TemplateView):
         #TODO: filtering by ajax and time
         context['violence_cases_reported_by_schools'] = get_sum_of_poll_response(Poll.objects.get(name="edtrac_headteachers_abuse"),
             location=self.request.user.get_profile().location,
-            month_filter=True
+            month_filter=True, months=2
         )
         context['violence_cases_reported_by_community'] = get_sum_of_poll_response(Poll.objects.get(name="edtrac_gem_abuse"))
         return context
