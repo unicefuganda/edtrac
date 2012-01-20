@@ -631,10 +631,24 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
 def get_count_response_to_polls(poll_queryset, **kwargs):
     if kwargs.has_key('poll_type') and kwargs.get('poll_type')=='text':
         pass
-    if kwargs.has_key('poll_type') and kwargs.get('poll_type')=='numeric' and kwargs.has_key('location'):
-        location = kwargs.get('location')
-        
-        pass
+    if kwargs.has_key('poll_type') and kwargs.get('poll_type')=='numeric' and kwargs.has_key('location') and kwargs.has_key('choices'):
+        #choices is a list against which a count is made
+        # default filter is by month
+        locations = Location.objects.get(name=kwargs.get('location')).get_descendants().filter(type="district")
+        choices = kwargs.get('choices')
+        container = {}
+        temp = [{location.name:[r.eav.poll_number_value for r in poll_queryset.responses.filter(\
+            contact__in=Contact.objects.filter(reporting__location=location),
+            date__range = get_month_day_range(datetime.datetime.now()) #filter by past month to-date
+        )]}\
+                for location in locations]
+        #temp --> [ { 'kampala': [1.3, 2.3, 1.5]} ] a list of dictionaries
+        for district in temp:
+            for choice in choices:
+                container[district.keys()[0]] = {
+                    choice : district.values().count(choice)
+                }
+        return container
 
 def get_responses_to_polls(**kwargs):
     #TODO with filter() we can pass extra arguments
