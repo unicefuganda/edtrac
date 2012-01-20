@@ -408,25 +408,6 @@
         }
     }, 
     {
-        "pk": 351, 
-        "model": "poll.poll", 
-        "fields": {
-            "default_response": "", 
-            "name": "edtrac_p3curriculum_progress", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "What sub theme number you were teaching this week? (P3) ", 
-            "sites": [
-                5
-            ], 
-            "user": 1, 
-            "type": "n", 
-            "start_date": null, 
-            "response_type": "a"
-        }
-    }, 
-    {
         "pk": 352, 
         "model": "poll.poll", 
         "fields": {
@@ -1101,166 +1082,6 @@
         }
     }, 
     {
-        "pk": 337, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_autoreg", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 0, 
-            "message": "", 
-            "poll": 335, 
-            "order": 0, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 338, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_autoreg", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 0, 
-            "message": "", 
-            "poll": 336, 
-            "order": 1, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 339, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_autoreg", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 0, 
-            "message": "", 
-            "poll": 337, 
-            "order": 2, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 340, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_autoreg", 
-            "retry_offset": 86400, 
-            "rule": "M", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 0, 
-            "message": "", 
-            "poll": 338, 
-            "order": 3, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 341, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_autoreg", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 0, 
-            "message": "", 
-            "poll": 339, 
-            "order": 4, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 342, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_autoreg", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 0, 
-            "message": "", 
-            "poll": 340, 
-            "order": 5, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 343, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_autoreg", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 341, 
-            "order": 6, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 344, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_autoreg", 
-            "retry_offset": null, 
-            "rule": "w", 
-            "email": null, 
-            "num_tries": null, 
-            "start_offset": 60, 
-            "message": "Welcome EdTrac.The information you shall provide contributes to keeping children in school.", 
-            "poll": null, 
-            "order": 7, 
-            "giveup_offset": 0
-        }
-    }, 
-    {
-        "pk": 345, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_head_teachers_weekly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 342, 
-            "order": 0, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 346, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_head_teachers_weekly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 343, 
-            "order": 1, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
         "pk": 347, 
         "model": "script.scriptstep", 
         "fields": {
@@ -1369,22 +1190,6 @@
             "message": "", 
             "poll": 350, 
             "order": 3, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 354, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_teachers_weekly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 351, 
-            "order": 4, 
             "giveup_offset": 86400
         }
     }, 
@@ -1608,6 +1413,166 @@
             "start_offset": 60, 
             "message": "", 
             "poll": 365, 
+            "order": 1, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 337, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 0, 
+            "message": "", 
+            "poll": 335, 
+            "order": 0, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 338, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 0, 
+            "message": "", 
+            "poll": 336, 
+            "order": 1, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 339, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 0, 
+            "message": "", 
+            "poll": 337, 
+            "order": 2, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 340, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "M", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 0, 
+            "message": "", 
+            "poll": 338, 
+            "order": 3, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 341, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 0, 
+            "message": "", 
+            "poll": 339, 
+            "order": 4, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 342, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 0, 
+            "message": "", 
+            "poll": 340, 
+            "order": 5, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 343, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_autoreg", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 341, 
+            "order": 6, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 344, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_autoreg", 
+            "retry_offset": null, 
+            "rule": "w", 
+            "email": null, 
+            "num_tries": null, 
+            "start_offset": 60, 
+            "message": "Welcome EdTrac.The information you shall provide contributes to keeping children in school.", 
+            "poll": null, 
+            "order": 7, 
+            "giveup_offset": 0
+        }
+    }, 
+    {
+        "pk": 345, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_head_teachers_weekly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 342, 
+            "order": 0, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 346, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_head_teachers_weekly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 343, 
             "order": 1, 
             "giveup_offset": 86400
         }

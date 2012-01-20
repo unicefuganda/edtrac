@@ -389,6 +389,7 @@ class ProgressDeoDetails(TemplateView):
 
 class ProgressAdminDetails(TemplateView):
     template_name = "education/admin/admin_progress_details.html"
+    
     def get_context_data(self, **kwargs):
         import random
         from .utils import themes
