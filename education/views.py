@@ -894,7 +894,13 @@ def edit_scripts(request):
     
     return render_to_response('education/partials/edit_script.html', {'forms': forms},
                               context_instance=RequestContext(request))
-    
+
+#TODO work on forms
+def choose_level(request):
+    forms = []
+    pass
+
+
 def reschedule_scripts(request, script_slug):
     grp = get_script_grp(script_slug)
     if script_slug.endswith('_weekly'):

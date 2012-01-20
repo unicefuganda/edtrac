@@ -166,7 +166,7 @@ function load_progress_chart(value){
 }
 
 
-function load_line_graph(title, subtitle, selector, y_label){
+function load_line_graph(title, subtitle, selector, yLabel, xLabel){
     line_chart = new Highcharts.Chart({
           chart: {
              renderTo: selector,
@@ -179,11 +179,14 @@ function load_line_graph(title, subtitle, selector, y_label){
              text: subtitle
           },
           xAxis: {
+              title : {
+                text: xLabel
+              },
              categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
           },
           yAxis: {
              title: {
-                text: y_label
+                text: yLabel
              }
           },
           tooltip: {
