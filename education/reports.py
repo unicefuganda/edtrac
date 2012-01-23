@@ -638,9 +638,6 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                             pass
                         #to_ret is something like { 'Kampala' : [23, 34] } => ['current_month', 'previoius month']
                         to_ret[location.__unicode__()].append(s)
-
-
-
             if kwargs.get('ret_type') == list:
                 #returning a sorted list of values
                 import operator

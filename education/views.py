@@ -302,9 +302,7 @@ def admin_dashboard(request):
     )
 
     sorted_violence_list = responses_to_violence
-    sorted_violence_list.reverse()
     sorted_hungry_list = responses_to_meals
-    sorted_hungry_list.reverse()
     #sorted list...
 
     top_three_violent_districts = sorted_violence_list[:3]
