@@ -283,7 +283,6 @@ def ministry_dashboard(request):
 @login_required
 def admin_dashboard(request):
     violence = list_poll_responses(Poll.objects.get(name="edtrac_headteachers_abuse"))
-    districts = violence.keys()
     location = request.user.get_profile().location
 
     responses_to_violence = get_sum_of_poll_response(Poll.objects.get(name = "edtrac_headteachers_abuse"),
@@ -302,21 +301,15 @@ def admin_dashboard(request):
         month_filter=True, location=location, ret_type=list
     )
 
-    #For Demo Purposes
-    dicty = {}
-    import random
-    for l in districts:
-        dicty[l] = [random.choice(range(1,50))]
-    import operator
-    to_ret = sorted(dicty.iteritems(), key=operator.itemgetter(1))
-    for x, y in to_ret:
-        y.append(Location.objects.get(name__icontains=x))
-
-    sorted_violence_list = to_ret
+    sorted_violence_list = responses_to_violence
+    sorted_violence_list.reverse()
+    sorted_hungry_list = responses_to_meals
+    sorted_hungry_list.reverse()
     #sorted list...
+
     top_three_violent_districts = sorted_violence_list[:3]
     #can make a dictionary
-    top_three_hungry_districts = sorted_violence_list[:3]
+    top_three_hungry_districts = sorted_hungry_list[:3]
 
     return index(request, template_name="admin/admin_dashboard.html",
         context_vars={

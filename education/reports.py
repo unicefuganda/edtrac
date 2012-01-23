@@ -639,6 +639,8 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                         #to_ret is something like { 'Kampala' : [23, 34] } => ['current_month', 'previoius month']
                         to_ret[location.__unicode__()].append(s)
 
+
+
             if kwargs.get('ret_type') == list:
                 #returning a sorted list of values
                 import operator
@@ -649,6 +651,8 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                 #initial structure is [('name', val1, val2) ]
                 for name, val in to_ret:
                     val.append(Location.objects.filter(type="district").get(name__icontains=name))
+                # the last elements appear to be the largest
+                to_ret.reverse()
                 return to_ret
             #TODO Other data type returns.
     else:
