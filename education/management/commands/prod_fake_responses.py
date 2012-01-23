@@ -9,6 +9,7 @@ import random
 def fake_incoming_message(message, connection):
     incomingmessage = IncomingMessage(connection, message)
     incomingmessage.db_message = Message.objects.create(direction='I', connection=connection, text=message)
+    incomingmessage.db_message.handled_by = 'poll'
     return incomingmessage
 
 def fake_poll_responses(poll_tuple, grp):

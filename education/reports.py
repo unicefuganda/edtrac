@@ -547,6 +547,8 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
     """
     #TODO: provide querying by date too
     s = 0
+    regex_pattern = r'\d+\.\d+|\d+'
+    import re
     if kwargs:
         if kwargs.has_key('month_filter') and kwargs.get('month_filter') and not kwargs.has_key('location'):
             # when no location is provided { worst case scenario }
@@ -559,9 +561,16 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                                 date__range = get_month_day_range(datetime.datetime.now())
                             )
                     #TODO --> get response object EAV values
-                    resp_values = [r.eav.poll_number_value for r in resps]
-
+                    #TODO --> find out why poll response objects don't have EAV values
+                    #for Demo purposes compute total from messages
+                    #resp_values = [r.eav.poll_number_value for r in resps]
+                    # pick numeric values that occur in the string
+                    resp_values = [re.findall(regex_pattern, r.message.text)[0] for r in resps]
                     for val in resp_values:
+                        if isinstance(int(val), int):
+                            val = int(val)
+                        else:
+                            val = float(val)
                         s += val
                 except NoneType:
                     pass
@@ -584,8 +593,14 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                             contact__in = Contact.objects.filter(reporting_location=kwargs.get('location')),
                             date__range = get_month_day_range(now)
                         )
-                        resp_values = [r.eav.poll_number_value for r in resps]
+                        #for Demo purposes compute total from messages
+                        #resp_values = [r.eav.poll_number_value for r in resps]
+                        resp_values = [re.findall(regex_pattern, r.message.text)[0] for r in resps]
                         for val in resp_values:
+                            if isinstance(int(val), int):
+                                val = int(val)
+                            else:
+                                val = float(val)
                             s += val
                     except NoneType:
                         pass
@@ -609,10 +624,15 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                                 contact__in = Contact.objects.filter(reporting_location=kwargs.get('location')),
                                 date__range = month_range
                             )
-                            resp_values = [r.eav.poll_number_value for r in resps]
-
+                            #for Demo purposes compute total from messages
+                            #resp_values = [r.eav.poll_number_value for r in resps]
+                            resp_values = [re.findall(regex_pattern, r.message.text)[0] for r in resps]
                             for val in resp_values:
-                                s += val
+                                if isinstance(int(val), int):
+                                    val = int(val)
+                                else:
+                                    val = float(val)
+                                s += val                                                                
                         except NoneType:
                             pass
                         #to_ret is something like { 'Kampala' : [23, 34] } => ['current_month', 'previoius month']
