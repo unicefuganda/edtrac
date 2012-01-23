@@ -334,7 +334,7 @@ class ViolenceAdminDetails(TemplateView):
         #TODO: uncomment to see actual poll repsonses
 #        context['violence_cases_reported_by_schools'] = get_sum_of_poll_response(Poll.objects.get(name="edtrac_headteachers_abuse"),
 #            location=self.request.user.get_profile().location,
-#            month_filter=True, months=2
+#            month_filter=True, months=2, ret_type = list
 #        )
 #        context['violence_cases_reported_by_community'] = get_sum_of_poll_response(Poll.objects.get(name="edtrac_gem_abuse"),
 #            location=self.request.user.get_profile().location,
@@ -345,7 +345,8 @@ class ViolenceAdminDetails(TemplateView):
         districts = ['kyegegwa', 'kotido', 'kaboong']
         context['violence_cases_reported_by_schools'] = [(loc.__unicode__(), [23,34, loc]) for loc in Location.objects.filter(type="district", name__in=[d.title() for d in districts])]
         context['violence_cases_reported_by_community'] = [(loc.__unicode__(), [23,18, loc]) for loc in Location.objects.filter(type="district", name__in=[d.title() for d in districts])]
-
+        context['test_data1'] = get_sum_of_poll_response(Poll.objects.get(name="edtrac_gem_abuse"),location=self.request.user.get_profile().location, month_filter=True, months=2, ret_type=list)
+        context['test_data2'] = get_sum_of_poll_response(Poll.objects.get(name="edtrac_headteachers_abuse"),location=self.request.user.get_profile().location, month_filter=True, months=2, ret_type=list)
         return context
 
 class ViolenceDeoDetails(TemplateView):

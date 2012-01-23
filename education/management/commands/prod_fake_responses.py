@@ -17,7 +17,6 @@ def fake_poll_responses(poll_tuple, grp):
     text_resp = ['0%', '25%', '50%', '75%', '100%']
     poll = Poll.objects.get(name=poll_tuple[1])
     rep_count = EmisReporter.objects.filter(groups__name=grp).count()
-
     for rep in EmisReporter.objects.filter(groups__name=grp):
         if rep.default_connection:
             if poll_tuple[0] == Poll.TYPE_NUMERIC:

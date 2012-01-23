@@ -546,6 +546,7 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
     district vs value
     """
     #TODO: provide querying by date too
+
     s = 0
     regex_pattern = r'\d+\.\d+|\d+'
     import re
@@ -590,7 +591,7 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                     s = 0
                     try:
                         resps = poll_queryset.responses.filter(
-                            contact__in = Contact.objects.filter(reporting_location=kwargs.get('location')),
+                            contact__in = Contact.objects.filter(reporting_location=location),
                             date__range = get_month_day_range(now)
                         )
                         #for Demo purposes compute total from messages
@@ -621,7 +622,7 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                         s = 0
                         try:
                             resps = poll_queryset.responses.filter(
-                                contact__in = Contact.objects.filter(reporting_location=kwargs.get('location')),
+                                contact__in = Contact.objects.filter(reporting_location=location),
                                 date__range = month_range
                             )
                             #for Demo purposes compute total from messages
@@ -632,7 +633,7 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                                     val = int(val)
                                 else:
                                     val = float(val)
-                                s += val                                                                
+                                s += val
                         except NoneType:
                             pass
                         #to_ret is something like { 'Kampala' : [23, 34] } => ['current_month', 'previoius month']

@@ -44,8 +44,8 @@
             <th>Violence cases recorded in Jan 2012</th>
             <th>Percentage change</th>
         </tr>
-        {% if violence_cases_reported_by_schools %}
-        {% for name, list in violence_cases_reported_by_schools %}
+        {% if test_data2 %}
+        {% for name, list in test_data2 %}
             <tr>
                 <td><a href="{% url district-violence list.2.pk %}">{{ name }}</a></td>
                 <td>{{ list.0 }}</td>
@@ -69,8 +69,8 @@
             <th>Violence cases recorded in Jan 2012</th>
             <th>Percentage change</th>
         </tr>
-        {% if violence_cases_reported_by_community %}
-        {% for name, list in violence_cases_reported_by_community %}
+        {% if test_data1 %}
+        {% for name, list in test_data1 %}
         <tr>
             <td><a href="{% url district-violence list.2.pk %}">{{ name }}</a></td>
             <td>{{ list.0 }}</td>
@@ -87,4 +87,10 @@
     </table>
     <p>Results based on 35% of Total Reporters</p>
 </div>
+
+
+
+        <div>
+            {{ test_data }}
+        </div>
 {% endblock %}
