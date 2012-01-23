@@ -282,17 +282,15 @@ def ministry_dashboard(request):
 
 @login_required
 def admin_dashboard(request):
-    violence = list_poll_responses(Poll.objects.get(name="edtrac_headteachers_abuse"))
     location = request.user.get_profile().location
-
     responses_to_violence = get_sum_of_poll_response(Poll.objects.get(name = "edtrac_headteachers_abuse"),
         month_filter = True,
         location = location,
-        ret_type = list)
+        ret_type = list, months=2)
 
     responses_to_meals = get_sum_of_poll_response(Poll.objects.get(name = "edtrac_headteachers_meals"),
                        month_filter=True,
-                       location=location, ret_type = list)
+                       location=location, ret_type = list, action='avg', months=2)
 
     responses_to_smc_meetings_poll = get_sum_of_poll_response(Poll.objects.get(name="edtrac_smc_meetings"),
         month_filter = True, location=location, ret_type=list

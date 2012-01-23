@@ -607,7 +607,7 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                         pass
                     to_ret[location.__unicode__()] = [s]
             else:
-                # only use this in views that expect date ranges great than one month
+                # only use this in views that expect date ranges greater than one month
                 from dateutil.parser import parse
                 import commands, dateutils
                 today = parse(commands.getoutput('date')).date()
@@ -636,8 +636,18 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                                 s += val
                         except NoneType:
                             pass
-                        #to_ret is something like { 'Kampala' : [23, 34] } => ['current_month', 'previoius month']
-                        to_ret[location.__unicode__()].append(s)
+
+                        if kwargs.get('action') == 'avg' and kwargs.has_key('action'):
+                            # for some cases, we need to compute an average of the response values
+                            count = resps.count()
+                            try:
+                                to_ret[location.__unicode__()].append(float(s)/count)
+                            except ZeroDivisionError:
+                                # dividing by zero means we have no values
+                                to_ret[location.__unicode__()].append(0)
+                        else:
+                            #to_ret is something like { 'Kampala' : [23, 34] } => ['current_month', 'previoius month']
+                            to_ret[location.__unicode__()].append(s)
             if kwargs.get('ret_type') == list:
                 #returning a sorted list of values
                 import operator
