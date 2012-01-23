@@ -554,10 +554,14 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
             to_ret = {}
             for location in Location.objects.filter(name__in=DISTRICT):
                 try:
-                    for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(contact__in=\
-                        Contact.objects.filter(reporting_location=location),
-                        date__range = get_month_day_range(datetime.datetime.now())
-                        )]:
+                    resps = poll_queryset.responses.filter(contact__in=\
+                                Contact.objects.filter(reporting_location=location),
+                                date__range = get_month_day_range(datetime.datetime.now())
+                            )
+                    #TODO --> get response object EAV values
+                    resp_values = [r.eav.poll_number_value for r in resps]
+
+                    for val in resp_values:
                         s += val
                 except NoneType:
                     pass
@@ -576,10 +580,12 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                 for location in locations:
                     s = 0
                     try:
-                        for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(
+                        resps = poll_queryset.responses.filter(
                             contact__in = Contact.objects.filter(reporting_location=kwargs.get('location')),
                             date__range = get_month_day_range(now)
-                            )]:
+                        )
+                        resp_values = [r.eav.poll_number_value for r in resps]
+                        for val in resp_values:
                             s += val
                     except NoneType:
                         pass
@@ -599,10 +605,13 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                     for month_range in month_ranges:
                         s = 0
                         try:
-                            for val in [r.eav.poll_number_value for r in poll_queryset.responses.filter(
+                            resps = poll_queryset.responses.filter(
                                 contact__in = Contact.objects.filter(reporting_location=kwargs.get('location')),
                                 date__range = month_range
-                            )]:
+                            )
+                            resp_values = [r.eav.poll_number_value for r in resps]
+
+                            for val in resp_values:
                                 s += val
                         except NoneType:
                             pass
@@ -610,6 +619,7 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                         to_ret[location.__unicode__()].append(s)
 
             if kwargs.get('ret_type') == list:
+                #returning a sorted list of values
                 import operator
                 #return a dictionary of values e.g. {'kampala': (<Location Kampala>, 34)}
                 #pre-emptive sorting -> by largest -> returns a sorted list of tuples

@@ -282,6 +282,7 @@ def ministry_dashboard(request):
 
 @login_required
 def admin_dashboard(request):
+    import pdb; pdb.set_trace()
     violence = list_poll_responses(Poll.objects.get(name="edtrac_headteachers_abuse"))
     districts = violence.keys()
     location = request.user.get_profile().location
