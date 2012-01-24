@@ -8,7 +8,6 @@ class App (AppBase):
 
     def handle (self, message):
         if message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_OUT_WORDS', ['quit'])]:
-            Blacklist.objects.create(connection=message.connection)
             if (message.connection.contact):
                 reporter = EmisReporter.objects.get(connection=message.connection)
                 message.connection.contact.active = False
@@ -16,6 +15,7 @@ class App (AppBase):
                 reporter.active = False
                 reporter.save()
             message.respond(getattr(settings, 'OPT_OUT_CONFIRMATION', 'Thank you for your contribution as a education monitoring reporter, to rejoin the system send JOIN to 6200'))
+            Blacklist.objects.create(connection=message.connection)
             return True
         elif message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', ['join'])]:
             if not message.connection.contact:
