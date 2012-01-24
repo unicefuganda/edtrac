@@ -358,7 +358,6 @@ class DistrictViolenceDetails(DetailView):
     model = Location
 
     def get_context_data(self, **kwargs):
-        import pdb; pdb.set_trace()
         context = super(DistrictViolenceDetails, self).get_context_data(**kwargs)
         location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk')))
         context['location'] = location
