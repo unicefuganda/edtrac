@@ -109,7 +109,7 @@ def _next_midterm():
     """
     holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
     d = datetime.datetime.now()
-    start_of_year = datetime.datetime(d.year + 1, 1, 1, d.hour, d.minute, d.second, d.microsecond)
+    start_of_year = datetime.datetime(d.year, 1, 1, d.hour, d.minute, d.second, d.microsecond)
     if d.month in [12, 1, 2, 3]:
         d = start_of_year + datetime.timedelta(days=((3*31)+15))
     elif d.month in [4, 5, 6]:

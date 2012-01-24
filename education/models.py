@@ -266,7 +266,7 @@ def edtrac_autoreg(**kwargs):
     if not getattr(settings, 'TRAINING_MODE', False):
         # Now that you have their roll, they should be signed up for the periodic polling
         _schedule_weekly_scripts(group, connection, ['Teachers', 'Head Teachers', 'SMC'])
-        _schedule_monthly_script(group, connection, 'edtrac_teachers_monthly', 'last', ['Teachers'])
+        #_schedule_monthly_script(group, connection, 'edtrac_teachers_monthly', 'last', ['Teachers'])
         _schedule_monthly_script(group, connection, 'edtrac_head_teachers_monthly', 'last', ['Head Teachers'])
         _schedule_monthly_script(group, connection, 'edtrac_smc_monthly', 5, ['SMC'])
         _schedule_monthly_script(group, connection, 'edtrac_gem_monthly', 20, ['GEM'])
@@ -340,7 +340,7 @@ def edtrac_attendance_script_transition(**kwargs):
         return
     script = progress.script
     try:
-        session = ScriptSession.objects.filter(script=progress.script, connection=connection, end_time=None).latest('start_time')
+        session = ScriptSession.objects.filter(script=script, connection=connection, end_time=None).latest('start_time')
     except ScriptSession.DoesNotExist:
         return
     grade = connection.contact.emisreporter.grade
