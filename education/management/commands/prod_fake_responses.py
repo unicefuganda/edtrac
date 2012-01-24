@@ -9,8 +9,8 @@ import random
 
 def fake_incoming_message(message, connection):
     incomingmessage = IncomingMessage(connection, message)
-    router = get_router()
-    router.handle_incoming(connection.backend.name, connection.identity, message)
+    #router = get_router()
+    #router.handle_incoming(connection.backend.name, connection.identity, message)
     
     incomingmessage.db_message = Message.objects.create(direction='I', connection=connection, text=message)
     incomingmessage.db_message.handled_by = 'poll'
