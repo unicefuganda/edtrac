@@ -22,6 +22,7 @@
 <div class="top-welcome">
     <h1>{{ location }}</h1>
 </div>
+        <ul>
 <div class="table_data">
     <table class="classy">
         <thead>
@@ -33,10 +34,13 @@
                 Numbers of Cases this Month
             </th>
         </tr>
-        {% for school, value in school_vals %}
-        <tr><td>{{ school }}</td><td>{{ value }}</td></tr>
-        {% endfor %}
         </thead>
+        <tbody>
+        {% for school in schools %}
+        <tr><td><a href="{% url school-detail school.pk %}">{{ school }}</a></td><td></td></tr>
+        {% endfor %}
+        </tbody>
     </table>
 </div>
+
 {% endblock %}

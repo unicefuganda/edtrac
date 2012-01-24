@@ -358,9 +358,16 @@ class DistrictViolenceDetails(DetailView):
     model = Location
 
     def get_context_data(self, **kwargs):
+        import pdb; pdb.set_trace()
         context = super(DistrictViolenceDetails, self).get_context_data(**kwargs)
         location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk')))
         context['location'] = location
+
+        #schools and reports from a district
+        schools = School.objects.filter(location=location)
+        reports = get_sum_of_poll_response(Poll.objects.get(name="edtrac_headteachers_abuse"), month_filter=True, months=1)
+        context['schools'] = School.objects.filter(location=location)
+
         context['school_vals'] = [('kaio', 23), ('ksdf',34)]
         return context
 
