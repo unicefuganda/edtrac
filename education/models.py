@@ -165,12 +165,10 @@ def parse_fuzzy_number(command, value):
 
 
 def edtrac_autoreg(**kwargs):
-
     connection = kwargs['connection']
     progress = kwargs['sender']
     if not progress.script.slug == 'edtrac_autoreg':
         return
-
     session = ScriptSession.objects.filter(script=progress.script, connection=connection).order_by('-end_time')[0]
     script = progress.script
 
