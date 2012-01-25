@@ -295,7 +295,7 @@ def admin_dashboard(request):
     responses_to_smc_meetings_poll = get_sum_of_poll_response(Poll.objects.get(name="edtrac_smc_meetings"),
         month_filter = True, location=location, ret_type=list
     )
-    responses_to_grants_received = get_sum_of_poll_response(Poll.objects.get(name="edtrac_upe_grant"),
+    responses_to_grants_received = get_sum_of_poll_response(Poll.objects.get(name="edtrac_smc_upe_grant"),
         month_filter=True, location=location, ret_type=list
     )
 
