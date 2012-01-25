@@ -341,10 +341,11 @@ class ViolenceAdminDetails(TemplateView):
                         date__range = dr).count()
 
             report_count += resp_count
-        context['reporting_percentage'] = 100 * ( report_count / (float(len(get_month_day_range(datetime.datetime.now(),
-            depth=2))) * report_count))
-
-
+        try:            
+            context['reporting_percentage'] = 100 * ( report_count / (float(len(get_month_day_range(datetime.datetime.now(),
+                depth=2))) * report_count))
+        except ZeroDivisionError:
+            context['reporting_percentage'] = 0
         return context
 
 class ViolenceDeoDetails(TemplateView):
