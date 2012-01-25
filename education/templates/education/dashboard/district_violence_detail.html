@@ -20,7 +20,8 @@
 {% block content %}
 <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; line-height: inherit;">← Back to EdTrac Home Page</a></p
 <div class="top-welcome">
-    <h1>{{ location }}</h1>
+    <span style="font-size:1.2em;">{{ location }}</span>
+<span>There are a total of {{ school_count }} schools in this district</span>
 </div>
         <ul>
 <div class="table_data">

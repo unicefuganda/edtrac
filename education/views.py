@@ -393,6 +393,7 @@ class DistrictViolenceDetails(DetailView):
 
         context['location'] = location
         context['school_vals'] = school_case
+        context['school_count'] = School.objects.filter(location=location).count()
         context['month'] = datetime.datetime.now()
         return context
 
