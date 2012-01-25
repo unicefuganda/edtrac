@@ -326,6 +326,21 @@ class ViolenceAdminDetails(TemplateView):
 #        context['violence_cases_reported_by_community'] = [(loc.__unicode__(), [23,18, loc]) for loc in Location.objects.filter(type="district", name__in=[d.title() for d in districts])]
         context['violence_cases_reported_by_schools'] = get_sum_of_poll_response(Poll.objects.get(name="edtrac_headteachers_abuse"),
             location=self.request.user.get_profile().location, month_filter=True, months=2, ret_type=list)
+
+        # depth of 2 months
+        context['report_dates'] = [start for start, end in get_month_day_range(datetime.datetime.now(), depth=2)]
+        report_count = 0
+        for dr in get_month_day_range(datetime.datetime.now(), depth=2):
+            resp_count = Poll.objects.get(name="edtrac_headteachers_abuse").responses.filter(
+                contact__in = Contact.objects.filter(reporting_location__in=self.request.user.get_profile().\
+                        location.get_descendants().filter(type="district")),
+                        date__range = dr).count()
+
+            report_count += resp_count
+        context['reporting_percentage'] = 100 * ( report_count / (float(len(get_month_day_range(datetime.datetime.now(),
+            depth=2))) * report_count))
+
+
         return context
 
 class ViolenceDeoDetails(TemplateView):

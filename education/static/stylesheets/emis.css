@@ -733,3 +733,7 @@ table.smc_meetings th{
 div.table_data{
     padding:10px;
 }
+div.bottom_part{
+    clear: both;
+    padding:10px;
+}

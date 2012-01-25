@@ -41,26 +41,30 @@
     <table class="classy">
         <tr>
             <th>District</th>
-            <th>Violence cases recorded in Feb 2012</th>
-            <th>Violence cases recorded in Jan 2012</th>
+            <th>Violence cases recorded in {{ report_dates.0|date:"M Y"}}</th>
+            <th>Violence cases recorded in {{ report_dates.1|date:"M Y"}}</th>
             <th>Percentage change</th>
         </tr>
         {% if violence_cases_reported_by_schools %}
-        {% for name, list in violence_cases_reported_by_schools %}
+            {% for name, list in violence_cases_reported_by_schools %}
+                {% if list.0.0 == 0 and list.1.0 == 0 %}
+                    <!-- nothing goes in -->
+                {% else %}
+                    <tr>
+                        <td><a href="{% url district-violence list.2.pk %}">{{ name }}</a></td>
+                        <td>{{ list.0.0 }}</td> <!-- current month -->
+                        <td>{{ list.1.0 }}</td>
+                        <td></td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
             <tr>
-                <td><a href="{% url district-violence list.2.pk %}">{{ name }}</a></td>
-                <td>{{ list.0 }}</td>
-                <td>{{ list.1 }}</td>
-                <td></td>
+                <td>Total</td><td></td><td></td><td></td>
             </tr>
-        {% endfor %}
-        <tr>
-            <td>Total</td><td></td><td></td><td></td>
-        </tr>
-        {% else %}
-            <tr><td colspan="4" style="text-align: center;">No cases</td> </tr>
-        {% endif %}
+            {% else %}
+                <tr><td colspan="4" style="text-align: center;">No cases</td> </tr>
+            {% endif %}
     </table>
-    <p>Results based on 30% of Total Reporters</p>
+    <p>Results based on {{ reporting_percentage }}% of Total Reporters</p>
 </div>
 {% endblock %}

@@ -29,6 +29,7 @@ function smc_meetings(schools, meetings) {
         series: [{
             type: 'pie',
             name: 'Browser share',
+            // iteration
             data: [
                 ['one meeting',  78],
                 ['two meetings',       9],

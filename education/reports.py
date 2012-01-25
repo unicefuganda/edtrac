@@ -530,7 +530,7 @@ def get_month_day_range(date, **kwargs):
         """
         depth = int(kwargs.get('depth'))
         to_ret = []
-        for i in range(depth+1):
+        for i in range(depth):
             date -= relativedelta(months=i)
             last_day = date + relativedelta(day = 1, months =+ 1, days =- 1)
             first_day = date + relativedelta(day = 1)
@@ -637,17 +637,20 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                         except NoneType:
                             pass
 
+
+                        # Averaging function
                         if kwargs.get('action') == 'avg' and kwargs.has_key('action'):
                             # for some cases, we need to compute an average of the response values
                             count = resps.count()
                             try:
-                                to_ret[location.__unicode__()].append(float(s)/count)
+                                to_ret[location.__unicode__()].append((float(s)/count, month_range[0]))
                             except ZeroDivisionError:
                                 # dividing by zero means we have no values
-                                to_ret[location.__unicode__()].append(0)
+                                to_ret[location.__unicode__()].append((0, month_range[0]))
                         else:
                             #to_ret is something like { 'Kampala' : [23, 34] } => ['current_month', 'previoius month']
-                            to_ret[location.__unicode__()].append(s)
+                            to_ret[location.__unicode__()].append((s, month_range[0]))
+
             if kwargs.get('ret_type') == list:
                 #returning a sorted list of values
                 import operator
