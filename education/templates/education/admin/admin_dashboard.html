@@ -35,7 +35,7 @@
                         <div class="violence">
 <!--                            <h1 class="title">Violence Cases Recorded</h1> -->
                             <div>
-                                <span class="label important">Districts with the Highest Cases of Violence Recorded this Month</span>
+                                <span class="label important">Districts with the Highest Cases of Violence Recorded this {{ month|date:"M" }}</span>
                                 <div style="padding: 10px;">
                                     <table class="classy">
                                         <thead>
@@ -47,7 +47,7 @@
                                         <!-- get context vars working -->
                                         {% if top_three_violent_districts %}
                                             {% for district, list in top_three_violent_districts %}
-                                            <tr><td><a href="{% url district-violence list.2.pk %}">{{ district }}</a></td><td>{{ list.0 }}</td></tr>
+                                            <tr><td><a href="{% url district-violence list.2.pk %}">{{ district }}</a></td><td>{{ list.0.0 }}</td></tr>
                                             {% endfor %}
                                         {% endif %}
                                     </table>
@@ -73,7 +73,7 @@
                                         </thead>
                                         {% if top_three_hungry_districts %}
                                             {% for district, list in top_three_hungry_districts %}
-                                                <tr><td><a href="{% url district-meal list.2.pk %}">{{ district }}</a></td><td>{{ list.0|floatformat }}%</td></tr>
+                                                <tr><td><a href="{% url district-meal list.2.pk %}">{{ district }}</a></td><td>{{ list.0.0|floatformat }}%</td></tr>
                                             {% endfor %}
                                         {% endif %}
                                     </table>

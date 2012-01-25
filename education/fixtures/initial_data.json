@@ -104,7 +104,7 @@
         }
     }, 
     {
-        "pk": 428, 
+        "pk": 488, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -114,7 +114,7 @@
             "messages": [], 
             "question": "Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "t", 
@@ -123,7 +123,7 @@
         }
     }, 
     {
-        "pk": 429, 
+        "pk": 489, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -133,7 +133,7 @@
             "messages": [], 
             "question": "Are you female or male?", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "t", 
@@ -142,7 +142,7 @@
         }
     }, 
     {
-        "pk": 430, 
+        "pk": 490, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -152,7 +152,7 @@
             "messages": [], 
             "question": "Which class do you teach? P3 or P6", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "t", 
@@ -161,7 +161,7 @@
         }
     }, 
     {
-        "pk": 431, 
+        "pk": 491, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -171,7 +171,7 @@
             "messages": [], 
             "question": "What is the name of your district?", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "l", 
@@ -180,7 +180,7 @@
         }
     }, 
     {
-        "pk": 432, 
+        "pk": 492, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -190,7 +190,7 @@
             "messages": [], 
             "question": "What is the name of your sub county?", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "t", 
@@ -199,7 +199,7 @@
         }
     }, 
     {
-        "pk": 433, 
+        "pk": 493, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -209,7 +209,7 @@
             "messages": [], 
             "question": "What is the name of your school?", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "t", 
@@ -218,7 +218,7 @@
         }
     }, 
     {
-        "pk": 434, 
+        "pk": 494, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -228,7 +228,7 @@
             "messages": [], 
             "question": "What is your name?", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "t", 
@@ -237,7 +237,7 @@
         }
     }, 
     {
-        "pk": 435, 
+        "pk": 495, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -247,7 +247,7 @@
             "messages": [], 
             "question": "How many female teachers are at school today?", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "n", 
@@ -256,7 +256,7 @@
         }
     }, 
     {
-        "pk": 436, 
+        "pk": 496, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -266,7 +266,7 @@
             "messages": [], 
             "question": "How many male teachers are at school today?", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "n", 
@@ -275,7 +275,7 @@
         }
     }, 
     {
-        "pk": 437, 
+        "pk": 497, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -285,7 +285,7 @@
             "messages": [], 
             "question": "Has UPE capitation grant been displayed on the school notice board? Answer YES or NO", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "t", 
@@ -294,7 +294,7 @@
         }
     }, 
     {
-        "pk": 438, 
+        "pk": 498, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -304,7 +304,7 @@
             "messages": [], 
             "question": "How many SMC meetings have you held this term? Give number of meetings held, if none, reploy 0.", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "n", 
@@ -313,7 +313,7 @@
         }
     }, 
     {
-        "pk": 439, 
+        "pk": 499, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -323,7 +323,7 @@
             "messages": [], 
             "question": "How many P3 boys are at school today?", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "n", 
@@ -332,7 +332,7 @@
         }
     }, 
     {
-        "pk": 440, 
+        "pk": 500, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -342,7 +342,7 @@
             "messages": [], 
             "question": "How many P6 boys are at school today?", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "n", 
@@ -351,7 +351,7 @@
         }
     }, 
     {
-        "pk": 441, 
+        "pk": 501, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -361,7 +361,7 @@
             "messages": [], 
             "question": "How many P3 girls are at school today?", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "n", 
@@ -370,7 +370,7 @@
         }
     }, 
     {
-        "pk": 442, 
+        "pk": 502, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -380,7 +380,7 @@
             "messages": [], 
             "question": "How many P6 girls are at school today?", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "n", 
@@ -389,7 +389,7 @@
         }
     }, 
     {
-        "pk": 443, 
+        "pk": 503, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -399,7 +399,7 @@
             "messages": [], 
             "question": "What sub theme number you were teaching this week? (P3) ", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "n", 
@@ -408,7 +408,7 @@
         }
     }, 
     {
-        "pk": 444, 
+        "pk": 504, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -418,7 +418,7 @@
             "messages": [], 
             "question": "What sub theme number of the P3 Literacy curriculum are you teaching this week? ", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "t", 
@@ -427,7 +427,7 @@
         }
     }, 
     {
-        "pk": 445, 
+        "pk": 505, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -437,7 +437,7 @@
             "messages": [], 
             "question": "How many boys are enrolled in P3 this term?", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "n", 
@@ -446,7 +446,7 @@
         }
     }, 
     {
-        "pk": 446, 
+        "pk": 506, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -456,7 +456,7 @@
             "messages": [], 
             "question": "How many boys are enrolled in P6 this term?", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "n", 
@@ -465,7 +465,7 @@
         }
     }, 
     {
-        "pk": 447, 
+        "pk": 507, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -475,7 +475,7 @@
             "messages": [], 
             "question": "How many girls are enrolled in P3 this term?", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "n", 
@@ -484,83 +484,7 @@
         }
     }, 
     {
-        "pk": 448, 
-        "model": "poll.poll", 
-        "fields": {
-            "default_response": "", 
-            "name": "edtrac_girlsp6_enrollment", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "How many girls are enrolled in P6 this term?", 
-            "sites": [
-                1
-            ], 
-            "user": 1, 
-            "type": "n", 
-            "start_date": null, 
-            "response_type": "a"
-        }
-    }, 
-    {
-        "pk": 449, 
-        "model": "poll.poll", 
-        "fields": {
-            "default_response": "", 
-            "name": "edtrac_f_teachers_deployment", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "How many female teachers are deployed in your school this term?", 
-            "sites": [
-                1
-            ], 
-            "user": 1, 
-            "type": "n", 
-            "start_date": null, 
-            "response_type": "a"
-        }
-    }, 
-    {
-        "pk": 450, 
-        "model": "poll.poll", 
-        "fields": {
-            "default_response": "", 
-            "name": "edtrac_m_teachers_deployment", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "How many male teachers are deployed in your school this term?", 
-            "sites": [
-                1
-            ], 
-            "user": 1, 
-            "type": "n", 
-            "start_date": null, 
-            "response_type": "a"
-        }
-    }, 
-    {
-        "pk": 451, 
-        "model": "poll.poll", 
-        "fields": {
-            "default_response": "", 
-            "name": "edtrac_upe_grant", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "Has the UPE grant been displayed on the school notice board? Answer YES or NO", 
-            "sites": [
-                1
-            ], 
-            "user": 1, 
-            "type": "t", 
-            "start_date": null, 
-            "response_type": "a"
-        }
-    }, 
-    {
-        "pk": 452, 
+        "pk": 508, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -570,7 +494,7 @@
             "messages": [], 
             "question": "Name the schools where the Head teacher was present at your last visit? Separate schools with a comma e.g St Peters PS, St John PS", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "t", 
@@ -579,7 +503,7 @@
         }
     }, 
     {
-        "pk": 453, 
+        "pk": 509, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -589,7 +513,7 @@
             "messages": [], 
             "question": "Name the schools where the Head teacher was absent at your last visit? Separate schools with a comma e.g St Peters PS, St John PS", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "t", 
@@ -598,7 +522,7 @@
         }
     }, 
     {
-        "pk": 454, 
+        "pk": 510, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -608,7 +532,7 @@
             "messages": [], 
             "question": "Has the head teacher been at school for at least 3 days? Answer YES or NO", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "t", 
@@ -617,7 +541,7 @@
         }
     }, 
     {
-        "pk": 455, 
+        "pk": 511, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -627,7 +551,7 @@
             "messages": [], 
             "question": "How many abuse cases were recorded in the record book this month?", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "n", 
@@ -636,7 +560,7 @@
         }
     }, 
     {
-        "pk": 456, 
+        "pk": 512, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -646,7 +570,7 @@
             "messages": [], 
             "question": "How many children do you think had lunch today? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "t", 
@@ -655,7 +579,7 @@
         }
     }, 
     {
-        "pk": 457, 
+        "pk": 513, 
         "model": "poll.poll", 
         "fields": {
             "default_response": "", 
@@ -665,7 +589,7 @@
             "messages": [], 
             "question": "How many children do you think had lunch today? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%", 
             "sites": [
-                1
+                5
             ], 
             "user": 1, 
             "type": "t", 
@@ -674,7 +598,7 @@
         }
     }, 
     {
-        "pk": 291, 
+        "pk": 303, 
         "model": "poll.category", 
         "fields": {
             "error_category": false, 
@@ -682,12 +606,12 @@
             "color": "", 
             "priority": null, 
             "default": false, 
-            "poll": 454, 
+            "poll": 497, 
             "response": null
         }
     }, 
     {
-        "pk": 288, 
+        "pk": 306, 
         "model": "poll.category", 
         "fields": {
             "error_category": false, 
@@ -695,25 +619,12 @@
             "color": "", 
             "priority": null, 
             "default": false, 
-            "poll": 451, 
+            "poll": 510, 
             "response": null
         }
     }, 
     {
-        "pk": 285, 
-        "model": "poll.category", 
-        "fields": {
-            "error_category": false, 
-            "name": "no", 
-            "color": "", 
-            "priority": null, 
-            "default": false, 
-            "poll": 437, 
-            "response": null
-        }
-    }, 
-    {
-        "pk": 292, 
+        "pk": 304, 
         "model": "poll.category", 
         "fields": {
             "error_category": true, 
@@ -721,12 +632,12 @@
             "color": "", 
             "priority": null, 
             "default": true, 
-            "poll": 454, 
+            "poll": 497, 
             "response": null
         }
     }, 
     {
-        "pk": 286, 
+        "pk": 307, 
         "model": "poll.category", 
         "fields": {
             "error_category": true, 
@@ -734,25 +645,12 @@
             "color": "", 
             "priority": null, 
             "default": true, 
-            "poll": 437, 
+            "poll": 510, 
             "response": null
         }
     }, 
     {
-        "pk": 289, 
-        "model": "poll.category", 
-        "fields": {
-            "error_category": true, 
-            "name": "unknown", 
-            "color": "", 
-            "priority": null, 
-            "default": true, 
-            "poll": 451, 
-            "response": null
-        }
-    }, 
-    {
-        "pk": 290, 
+        "pk": 302, 
         "model": "poll.category", 
         "fields": {
             "error_category": false, 
@@ -760,12 +658,12 @@
             "color": "", 
             "priority": null, 
             "default": false, 
-            "poll": 454, 
+            "poll": 497, 
             "response": null
         }
     }, 
     {
-        "pk": 287, 
+        "pk": 305, 
         "model": "poll.category", 
         "fields": {
             "error_category": false, 
@@ -773,79 +671,46 @@
             "color": "", 
             "priority": null, 
             "default": false, 
-            "poll": 451, 
+            "poll": 510, 
             "response": null
         }
     }, 
     {
-        "pk": 284, 
-        "model": "poll.category", 
-        "fields": {
-            "error_category": false, 
-            "name": "yes", 
-            "color": "", 
-            "priority": null, 
-            "default": false, 
-            "poll": 437, 
-            "response": null
-        }
-    }, 
-    {
-        "pk": 132, 
+        "pk": 144, 
         "model": "poll.rule", 
         "fields": {
             "regex": "^\\s*(yes|yeah|yep|yay|y)(\\s|[^a-zA-Z]|$)", 
-            "category": 284, 
+            "category": 302, 
             "rule_string": "^\\s*(yes|yeah|yep|yay|y)(\\s|[^a-zA-Z]|$)", 
             "rule_type": "r"
         }
     }, 
     {
-        "pk": 133, 
+        "pk": 145, 
         "model": "poll.rule", 
         "fields": {
             "regex": "^\\s*(no|nope|nah|nay|n)(\\s|[^a-zA-Z]|$)", 
-            "category": 285, 
+            "category": 303, 
             "rule_string": "^\\s*(no|nope|nah|nay|n)(\\s|[^a-zA-Z]|$)", 
             "rule_type": "r"
         }
     }, 
     {
-        "pk": 134, 
+        "pk": 146, 
         "model": "poll.rule", 
         "fields": {
             "regex": "^\\s*(yes|yeah|yep|yay|y)(\\s|[^a-zA-Z]|$)", 
-            "category": 287, 
+            "category": 305, 
             "rule_string": "^\\s*(yes|yeah|yep|yay|y)(\\s|[^a-zA-Z]|$)", 
             "rule_type": "r"
         }
     }, 
     {
-        "pk": 135, 
+        "pk": 147, 
         "model": "poll.rule", 
         "fields": {
             "regex": "^\\s*(no|nope|nah|nay|n)(\\s|[^a-zA-Z]|$)", 
-            "category": 288, 
-            "rule_string": "^\\s*(no|nope|nah|nay|n)(\\s|[^a-zA-Z]|$)", 
-            "rule_type": "r"
-        }
-    }, 
-    {
-        "pk": 136, 
-        "model": "poll.rule", 
-        "fields": {
-            "regex": "^\\s*(yes|yeah|yep|yay|y)(\\s|[^a-zA-Z]|$)", 
-            "category": 290, 
-            "rule_string": "^\\s*(yes|yeah|yep|yay|y)(\\s|[^a-zA-Z]|$)", 
-            "rule_type": "r"
-        }
-    }, 
-    {
-        "pk": 137, 
-        "model": "poll.rule", 
-        "fields": {
-            "regex": "^\\s*(no|nope|nah|nay|n)(\\s|[^a-zA-Z]|$)", 
-            "category": 291, 
+            "category": 306, 
             "rule_string": "^\\s*(no|nope|nah|nay|n)(\\s|[^a-zA-Z]|$)", 
             "rule_type": "r"
         }
@@ -857,7 +722,7 @@
             "enabled": false, 
             "name": "Education monitoring auto registration script", 
             "sites": [
-                1
+                5
             ]
         }
     }, 
@@ -868,7 +733,7 @@
             "enabled": false, 
             "name": "Education monitoring head teachers weekly script", 
             "sites": [
-                1
+                5
             ]
         }
     }, 
@@ -879,7 +744,7 @@
             "enabled": false, 
             "name": "Education monitoring smc termly script", 
             "sites": [
-                1
+                5
             ]
         }
     }, 
@@ -890,7 +755,7 @@
             "enabled": false, 
             "name": "Education monitoring teachers weekly script", 
             "sites": [
-                1
+                5
             ]
         }
     }, 
@@ -901,7 +766,7 @@
             "enabled": false, 
             "name": "Education monitoring head teachers termly script", 
             "sites": [
-                1
+                5
             ]
         }
     }, 
@@ -912,7 +777,7 @@
             "enabled": false, 
             "name": "Education monitoring gem monthly script", 
             "sites": [
-                1
+                5
             ]
         }
     }, 
@@ -923,7 +788,7 @@
             "enabled": false, 
             "name": "Education monitoring smc weekly script", 
             "sites": [
-                1
+                5
             ]
         }
     }, 
@@ -934,7 +799,7 @@
             "enabled": false, 
             "name": "Education monitoring head teachers monthly script", 
             "sites": [
-                1
+                5
             ]
         }
     }, 
@@ -945,140 +810,28 @@
             "enabled": false, 
             "name": "Education monitoring smc monthly script", 
             "sites": [
-                1
+                5
             ]
         }
     }, 
     {
-        "pk": 445, 
+        "pk": 513, 
         "model": "script.scriptstep", 
         "fields": {
-            "script": "edtrac_teachers_weekly", 
+            "script": "edtrac_gem_monthly", 
             "retry_offset": 86400, 
             "rule": "R", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
             "message": "", 
-            "poll": 442, 
-            "order": 3, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 446, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_teachers_weekly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 443, 
-            "order": 4, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 447, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_teachers_weekly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 444, 
-            "order": 5, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 448, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_head_teachers_termly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 445, 
-            "order": 0, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 449, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_head_teachers_termly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 446, 
+            "poll": 509, 
             "order": 1, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 450, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_head_teachers_termly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 447, 
-            "order": 2, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 451, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_head_teachers_termly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 448, 
-            "order": 3, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 452, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_head_teachers_termly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 449, 
-            "order": 4, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 430, 
+        "pk": 492, 
         "model": "script.scriptstep", 
         "fields": {
             "script": "edtrac_autoreg", 
@@ -1088,13 +841,13 @@
             "num_tries": 1, 
             "start_offset": 0, 
             "message": "", 
-            "poll": 428, 
+            "poll": 488, 
             "order": 0, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 431, 
+        "pk": 493, 
         "model": "script.scriptstep", 
         "fields": {
             "script": "edtrac_autoreg", 
@@ -1104,13 +857,13 @@
             "num_tries": 1, 
             "start_offset": 0, 
             "message": "", 
-            "poll": 429, 
+            "poll": 489, 
             "order": 1, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 432, 
+        "pk": 494, 
         "model": "script.scriptstep", 
         "fields": {
             "script": "edtrac_autoreg", 
@@ -1120,13 +873,13 @@
             "num_tries": 1, 
             "start_offset": 0, 
             "message": "", 
-            "poll": 430, 
+            "poll": 490, 
             "order": 2, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 433, 
+        "pk": 495, 
         "model": "script.scriptstep", 
         "fields": {
             "script": "edtrac_autoreg", 
@@ -1136,13 +889,13 @@
             "num_tries": 1, 
             "start_offset": 0, 
             "message": "", 
-            "poll": 431, 
+            "poll": 491, 
             "order": 3, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 434, 
+        "pk": 496, 
         "model": "script.scriptstep", 
         "fields": {
             "script": "edtrac_autoreg", 
@@ -1152,13 +905,13 @@
             "num_tries": 1, 
             "start_offset": 0, 
             "message": "", 
-            "poll": 432, 
+            "poll": 492, 
             "order": 4, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 435, 
+        "pk": 497, 
         "model": "script.scriptstep", 
         "fields": {
             "script": "edtrac_autoreg", 
@@ -1168,45 +921,29 @@
             "num_tries": 1, 
             "start_offset": 0, 
             "message": "", 
-            "poll": 433, 
+            "poll": 493, 
             "order": 5, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 453, 
+        "pk": 514, 
         "model": "script.scriptstep", 
         "fields": {
-            "script": "edtrac_head_teachers_termly", 
+            "script": "edtrac_smc_weekly", 
             "retry_offset": 86400, 
             "rule": "R", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
             "message": "", 
-            "poll": 450, 
-            "order": 5, 
+            "poll": 510, 
+            "order": 0, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 454, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_head_teachers_termly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 451, 
-            "order": 6, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 436, 
+        "pk": 498, 
         "model": "script.scriptstep", 
         "fields": {
             "script": "edtrac_autoreg", 
@@ -1216,45 +953,13 @@
             "num_tries": 1, 
             "start_offset": 60, 
             "message": "", 
-            "poll": 434, 
+            "poll": 494, 
             "order": 6, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 455, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_gem_monthly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 452, 
-            "order": 0, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 456, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_gem_monthly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 453, 
-            "order": 1, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 437, 
+        "pk": 499, 
         "model": "script.scriptstep", 
         "fields": {
             "script": "edtrac_autoreg", 
@@ -1270,23 +975,7 @@
         }
     }, 
     {
-        "pk": 457, 
-        "model": "script.scriptstep", 
-        "fields": {
-            "script": "edtrac_smc_weekly", 
-            "retry_offset": 86400, 
-            "rule": "R", 
-            "email": null, 
-            "num_tries": 1, 
-            "start_offset": 60, 
-            "message": "", 
-            "poll": 454, 
-            "order": 0, 
-            "giveup_offset": 86400
-        }
-    }, 
-    {
-        "pk": 438, 
+        "pk": 500, 
         "model": "script.scriptstep", 
         "fields": {
             "script": "edtrac_head_teachers_weekly", 
@@ -1296,13 +985,13 @@
             "num_tries": 1, 
             "start_offset": 60, 
             "message": "", 
-            "poll": 435, 
+            "poll": 495, 
             "order": 0, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 439, 
+        "pk": 501, 
         "model": "script.scriptstep", 
         "fields": {
             "script": "edtrac_head_teachers_weekly", 
@@ -1312,13 +1001,13 @@
             "num_tries": 1, 
             "start_offset": 60, 
             "message": "", 
-            "poll": 436, 
+            "poll": 496, 
             "order": 1, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 440, 
+        "pk": 502, 
         "model": "script.scriptstep", 
         "fields": {
             "script": "edtrac_smc_termly", 
@@ -1328,13 +1017,13 @@
             "num_tries": 1, 
             "start_offset": 60, 
             "message": "", 
-            "poll": 437, 
+            "poll": 497, 
             "order": 0, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 441, 
+        "pk": 503, 
         "model": "script.scriptstep", 
         "fields": {
             "script": "edtrac_smc_termly", 
@@ -1344,29 +1033,29 @@
             "num_tries": 1, 
             "start_offset": 60, 
             "message": "", 
-            "poll": 438, 
+            "poll": 498, 
             "order": 1, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 442, 
+        "pk": 515, 
         "model": "script.scriptstep", 
         "fields": {
-            "script": "edtrac_teachers_weekly", 
+            "script": "edtrac_head_teachers_monthly", 
             "retry_offset": 86400, 
             "rule": "R", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
             "message": "", 
-            "poll": 439, 
+            "poll": 511, 
             "order": 0, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 443, 
+        "pk": 504, 
         "model": "script.scriptstep", 
         "fields": {
             "script": "edtrac_teachers_weekly", 
@@ -1376,13 +1065,45 @@
             "num_tries": 1, 
             "start_offset": 60, 
             "message": "", 
-            "poll": 440, 
+            "poll": 499, 
+            "order": 0, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 505, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_teachers_weekly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 500, 
             "order": 1, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 444, 
+        "pk": 516, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_head_teachers_monthly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 512, 
+            "order": 1, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 506, 
         "model": "script.scriptstep", 
         "fields": {
             "script": "edtrac_teachers_weekly", 
@@ -1392,45 +1113,61 @@
             "num_tries": 1, 
             "start_offset": 60, 
             "message": "", 
-            "poll": 441, 
+            "poll": 501, 
             "order": 2, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 458, 
+        "pk": 507, 
         "model": "script.scriptstep", 
         "fields": {
-            "script": "edtrac_head_teachers_monthly", 
+            "script": "edtrac_teachers_weekly", 
             "retry_offset": 86400, 
             "rule": "R", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
             "message": "", 
-            "poll": 455, 
-            "order": 0, 
+            "poll": 502, 
+            "order": 3, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 459, 
+        "pk": 508, 
         "model": "script.scriptstep", 
         "fields": {
-            "script": "edtrac_head_teachers_monthly", 
+            "script": "edtrac_teachers_weekly", 
             "retry_offset": 86400, 
             "rule": "R", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
             "message": "", 
-            "poll": 456, 
-            "order": 1, 
+            "poll": 503, 
+            "order": 4, 
             "giveup_offset": 86400
         }
     }, 
     {
-        "pk": 460, 
+        "pk": 509, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_teachers_weekly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 504, 
+            "order": 5, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 517, 
         "model": "script.scriptstep", 
         "fields": {
             "script": "edtrac_smc_monthly", 
@@ -1440,7 +1177,55 @@
             "num_tries": 1, 
             "start_offset": 60, 
             "message": "", 
-            "poll": 457, 
+            "poll": 513, 
+            "order": 0, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 510, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_head_teachers_termly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 505, 
+            "order": 0, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 511, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_head_teachers_termly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 506, 
+            "order": 1, 
+            "giveup_offset": 86400
+        }
+    }, 
+    {
+        "pk": 512, 
+        "model": "script.scriptstep", 
+        "fields": {
+            "script": "edtrac_gem_monthly", 
+            "retry_offset": 86400, 
+            "rule": "R", 
+            "email": null, 
+            "num_tries": 1, 
+            "start_offset": 60, 
+            "message": "", 
+            "poll": 508, 
             "order": 0, 
             "giveup_offset": 86400
         }

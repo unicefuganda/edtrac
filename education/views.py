@@ -310,7 +310,8 @@ def admin_dashboard(request):
     return index(request, template_name="admin/admin_dashboard.html",
         context_vars={
             'top_three_violent_districts':top_three_violent_districts,
-            'top_three_hungry_districts':top_three_hungry_districts
+            'top_three_hungry_districts':top_three_hungry_districts,
+            'month':datetime.datetime.now()
             })
 
 # Details views... specified by ROLES
@@ -330,6 +331,9 @@ class ViolenceAdminDetails(TemplateView):
         # depth of 2 months
         context['report_dates'] = [start for start, end in get_month_day_range(datetime.datetime.now(), depth=2)]
         report_count = 0
+        #TODO
+        # -> 100 * (reports-that-are-sent-to-edtrac / reports-that-should-have-come-edtrac a.k.a. all schools)
+        #
         for dr in get_month_day_range(datetime.datetime.now(), depth=2):
             resp_count = Poll.objects.get(name="edtrac_headteachers_abuse").responses.filter(
                 contact__in = Contact.objects.filter(reporting_location__in=self.request.user.get_profile().\
