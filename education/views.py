@@ -365,15 +365,35 @@ class DistrictViolenceDetails(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(DistrictViolenceDetails, self).get_context_data(**kwargs)
+        
         location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk')))
-        context['location'] = location
+        schools = School.objects.filter(location=location)
+        school_case = []
+        for school in schools:
+            regex_pattern = r'\d+\.\d+|\d+'                    
+            resps = Poll.objects.get(name="edtrac_headteachers_abuse").responses.filter(contact__in=\
+                    EmisReporter.objects.filter(schools__in=[school]),
+                    date__range = get_month_day_range(datetime.datetime.now())
+                )
+            #TODO replace with poll_number_value in the response
+            resp_values = [re.findall(regex_pattern, r.message.text)[0] for r in resps]
+            sum_of_values = 0
+            for val in resp_values:
+                if isinstance(int(val),int):
+                    val = int(val)
+                if isinstance(float(val), float):
+                    val = float(val)
+                sum_of_values += val            
+            school_case.append((school, int(sum_of_values)))
 
         #schools and reports from a district
-        schools = School.objects.filter(location=location)
-        reports = get_sum_of_poll_response(Poll.objects.get(name="edtrac_headteachers_abuse"), month_filter=True, months=1)
-        context['schools'] = School.objects.filter(location=location)
 
-        context['school_vals'] = [('kaio', 23), ('ksdf',34)]
+        reports = get_sum_of_poll_response(Poll.objects.get(name="edtrac_headteachers_abuse"), month_filter=True, months=1)
+        emis_reporters = EmisReporter.objects.filter(schools__in=schools)
+
+        context['location'] = location
+        context['school_vals'] = school_case
+        context['month'] = datetime.datetime.now()
         return context
 
 class ProgressAdminDetails(TemplateView):

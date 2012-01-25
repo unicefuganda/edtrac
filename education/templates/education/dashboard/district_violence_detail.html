@@ -31,13 +31,13 @@
                 School
             </th>
             <th>
-                Numbers of Cases this Month
+                Numbers of Cases this {{ month|date:"M Y" }}
             </th>
         </tr>
         </thead>
         <tbody>
-        {% for school in schools %}
-        <tr><td><a href="{% url school-detail school.pk %}">{{ school }}</a></td><td></td></tr>
+        {% for school,val in school_vals %}
+        <tr><td><a href="{% url school-detail school.pk %}">{{ school }}</a></td><td>{{ val }}</td></tr>
         {% endfor %}
         </tbody>
     </table>
