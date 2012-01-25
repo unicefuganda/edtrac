@@ -34,7 +34,7 @@ function smc_meetings(schools, meetings) {
                 ['one meeting',  78],
                 ['two meetings',       9],
                 ['Three meetings', 13]
-            ],
+            ]
         }]
     });
 }
