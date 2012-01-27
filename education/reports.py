@@ -556,26 +556,13 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
             DISTRICT = ['Kaabong', 'Kabarole', 'Kyegegwa', 'Kotido']
             to_ret = {}
             for location in Location.objects.filter(name__in=DISTRICT):
-                try:
-                    resps = poll_queryset.responses.filter(contact__in=\
-                                Contact.objects.filter(reporting_location=location),
-                                date__range = get_month_day_range(datetime.datetime.now())
+                resps = poll_queryset.responses.filter(contact__in=\
+                            Contact.objects.filter(reporting_location=location),
+                            date__range = get_month_day_range(datetime.datetime.now())
                             )
-                    #TODO --> get response object EAV values
-                    #TODO --> find out why poll response objects don't have EAV values
-                    #for Demo purposes compute total from messages
-                    #resp_values = [r.eav.poll_number_value for r in resps]
-                    # pick numeric values that occur in the string
-                    resp_values = [re.findall(regex_pattern, r.message.text)[0] for r in resps]
-                    for val in resp_values:
-                        if isinstance(int(val), int):
-                            val = int(val)
-                        else:
-                            val = float(val)
-                        s += val
-                except NoneType:
-                    pass
-                to_ret[location.__unicode__()] = s
+                resp_values = [r.eav.poll_number_value for r in resps]
+                s = sum(resp_values)
+                to_ret[location.__unicode__()] = s                
             return to_ret
 
         if kwargs.has_key('month_filter') and kwargs.get('month_filter') and kwargs.has_key('location') and\
@@ -588,24 +575,13 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
             to_ret = {}
             if not kwargs.has_key('months'):
                 for location in locations:
-                    s = 0
-                    try:
-                        resps = poll_queryset.responses.filter(
+                    resps = poll_queryset.responses.filter(
                             contact__in = Contact.objects.filter(reporting_location=location),
                             date__range = get_month_day_range(now)
                         )
                         #for Demo purposes compute total from messages
-                        #resp_values = [r.eav.poll_number_value for r in resps]
-                        resp_values = [re.findall(regex_pattern, r.message.text)[0] for r in resps]
-                        for val in resp_values:
-                            if isinstance(int(val), int):
-                                val = int(val)
-                            else:
-                                val = float(val)
-                            s += val
-                    except NoneType:
-                        pass
-                    to_ret[location.__unicode__()] = [s]
+                    resp_values = [r.eav.poll_number_value for r in resps]
+                    to_ret[location.__unicode__()] = [sum(resp_values)]
             else:
                 # only use this in views that expect date ranges greater than one month
                 from dateutil.parser import parse
@@ -619,37 +595,23 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                 for location in locations:
                     to_ret[location.__unicode__()] = [] #empty list we populate in a moment
                     for month_range in month_ranges:
-                        s = 0
-                        try:
-                            resps = poll_queryset.responses.filter(
-                                contact__in = Contact.objects.filter(reporting_location=location),
-                                date__range = month_range
-                            )
-                            #for Demo purposes compute total from messages
-                            #resp_values = [r.eav.poll_number_value for r in resps]
-                            resp_values = [re.findall(regex_pattern, r.message.text)[0] for r in resps]
-                            for val in resp_values:
-                                if isinstance(int(val), int):
-                                    val = int(val)
-                                else:
-                                    val = float(val)
-                                s += val
-                        except NoneType:
-                            pass
-
-
+                        resps = poll_queryset.responses.filter(
+                            contact__in = Contact.objects.filter(reporting_location=location),
+                            date__range = month_range)                        
+                        resp_values = [r.eav.poll_number_value for r in resps]                            
+                        sum_of_values = sum(resp_values)
                         # Averaging function
                         if kwargs.get('action') == 'avg' and kwargs.has_key('action'):
                             # for some cases, we need to compute an average of the response values
                             count = resps.count()
                             try:
-                                to_ret[location.__unicode__()].append((float(s)/count, month_range[0]))
+                                to_ret[location.__unicode__()].append((float(sum_of_values)/count, month_range[0]))
                             except ZeroDivisionError:
-                                # dividing by zero means we have no values
+                                # dividing by zero means we have no values/reports on that month from the EMIS reporter
                                 to_ret[location.__unicode__()].append((0, month_range[0]))
                         else:
                             #to_ret is something like { 'Kampala' : [23, 34] } => ['current_month', 'previoius month']
-                            to_ret[location.__unicode__()].append((s, month_range[0]))
+                            to_ret[location.__unicode__()].append((sum_of_values, month_range[0]))
 
             if kwargs.get('ret_type') == list:
                 #returning a sorted list of values

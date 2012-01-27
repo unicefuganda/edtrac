@@ -25,7 +25,8 @@ def fake_poll_responses(poll_tuple, grp):
     for rep in EmisReporter.objects.filter(groups__name=grp)[:rep_count/4]:
         if not rep.default_connection == None:
             if poll_tuple[0] == Poll.TYPE_NUMERIC:
-                poll.process_response(fake_incoming_message('%s' % random.randint(0,90), rep.default_connection))
+                #poll.process_response(fake_incoming_message('%s' % random.randint(0,90), rep.default_connection))
+                poll.process_response(fake_incoming_message('%s' % random.choice(text_resp), rep.default_connection))
             elif poll_tuple[0] == Poll.TYPE_TEXT:
             #            if poll.categories.values_list('name', flat=True)[0] in ['yes', 'no', 'unknown']:
             #                resp = random.choice(yesno_resp)
