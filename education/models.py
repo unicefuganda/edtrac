@@ -297,11 +297,6 @@ def edtrac_reschedule_script(**kwargs):
         _schedule_monthly_script(group, connection, 'edtrac_gem_monthly', 20, ['GEM'])
     elif slug == 'edtrac_head_teachers_termly':
         _schedule_termly_script(group, connection, 'edtrac_head_teachers_termly', ['Head Teachers'])
-    #DEO scheduled script
-    elif slug == 'edtrac_deo_weekly':
-        _schedule_weekly_scripts(group, connection, ['DEOS'])
-    elif slug == 'edtrac_deo_monthly':
-        _schedule_monthly_script(group, connection, 'edtrac_deo_monthly', 'last', ['DEOS'])
     else:
         _schedule_termly_script(group, connection, 'edtrac_smc_termly', ['SMC'])
 
