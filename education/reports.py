@@ -548,14 +548,12 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
     #TODO: provide querying by date too
 
     s = 0
-    regex_pattern = r'\d+\.\d+|\d+'
-    import re
     if kwargs:
         if kwargs.has_key('month_filter') and kwargs.get('month_filter') and not kwargs.has_key('location'):
             # when no location is provided { worst case scenario }
             DISTRICT = ['Kaabong', 'Kabarole', 'Kyegegwa', 'Kotido']
             to_ret = {}
-            for location in Location.objects.filter(name__in=DISTRICT):
+            for location in Location.objects.filter(type="district", name__in=DISTRICT):
                 resps = poll_queryset.responses.filter(contact__in=\
                             Contact.objects.filter(reporting_location=location),
                             date__range = get_month_day_range(datetime.datetime.now())
@@ -636,26 +634,25 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
         return s
 
 def get_count_response_to_polls(poll_queryset, **kwargs):
-    if kwargs.has_key('poll_type') and kwargs.get('poll_type')=='text':
-        pass
-    if kwargs.has_key('poll_type') and kwargs.get('poll_type')=='numeric' and kwargs.has_key('location') and kwargs.has_key('choices'):
-        #choices is a list against which a count is made
-        # default filter is by month
-        locations = Location.objects.get(name=kwargs.get('location')).get_descendants().filter(type="district")
-        choices = [Decimal(str(c)) for c in kwargs.get('choices')]
-        container = {}
-        temp = [{location.name:[r.eav.poll_number_value for r in poll_queryset.responses.filter(\
-            contact__in=Contact.objects.filter(reporting_location=location),
-            date__range = get_month_day_range(datetime.datetime.now()) #filter by past month to-date
-        )]}\
-                for location in locations]
-        #temp --> [ { 'kampala': [1.3, 2.3, 1.5]} ] a list of dictionaries
-        for district in temp:
+    if kwargs.has_key('month_filter') and kwargs.get('month_filter') and not kwargs.has_key('location') and kwargs.has_key('choices'):
+        # when no location is provided { worst case scenario }
+        DISTRICT = ['Kaabong', 'Kabarole', 'Kyegegwa', 'Kotido']
+        #choices = [0, 25, 50, 75, 100 ] <-- percentage
+        choices = kwargs.get('choices')
+        #initialize to_ret dict with empty lists
+        to_ret = {}
+        for location in Location.objects.filter(type="district", name__in=DISTRICT):
+            to_ret[location.__unicode__()] = []
+
+        for key in to_ret.keys():
+            resps = poll_queryset.responses.filter(contact__in=\
+                Contact.objects.filter(reporting_location=Location.objects.filter(type="district").get(name=key)),
+                date__range = get_month_day_range(datetime.datetime.now())
+            )
+            resp_values = [r.eav.poll_number_value for r in resps]
             for choice in choices:
-                container[district.keys()[0]] = {
-                    choice : district.values()[0].count(choice)
-                }
-        return container
+                to_ret[key].append((choice, resp_values.count(choice)))
+        return to_ret
 
 def get_responses_to_polls(**kwargs):
     #TODO with filter() we can pass extra arguments
