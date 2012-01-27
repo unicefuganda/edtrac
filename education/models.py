@@ -165,6 +165,7 @@ def parse_fuzzy_number(command, value):
 
 
 def edtrac_autoreg(**kwargs):
+    import pdb; pdb.set_trace()
     connection = kwargs['connection']
     progress = kwargs['sender']
     if not progress.script.slug == 'edtrac_autoreg':
