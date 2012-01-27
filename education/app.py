@@ -18,8 +18,8 @@ class App (AppBase):
             message.respond(getattr(settings, 'OPT_OUT_CONFIRMATION', 'Thank you for your contribution as a education monitoring reporter, to rejoin the system send JOIN to 6200'))
             return True
         elif message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', ['join'])]:
-            if not message.connection.contact and not ScriptProgress.objects.filter(connection=message.connection).exists():
-                ScriptProgress.objects.create(script=Script.objects.get(slug="edtrac_autoreg"), \
+            if not message.connection.contact:
+                ScriptProgress.objects.get_or_create(script=Script.objects.get(slug="edtrac_autoreg"), \
                                           connection=message.connection, language="en")
             elif Blacklist.objects.filter(connection=message.connection).count():
                 Blacklist.objects.filter(connection=message.connection).delete()
