@@ -50,7 +50,7 @@ class Command(BaseCommand):
             recipients = [email for name, email in recipients]
         if current.hour in range(int(options['e']), int(options['l'])):
             try:
-                for script in Script.objects.filter(enabled=True):
+                for script in Script.objects.all():
                     check_progress(script)
                 transaction.commit()
             except Exception, exc:
@@ -59,5 +59,3 @@ class Command(BaseCommand):
                 logger.debug(str(exc))
                 if recipients:
                     send_mail('[Django] Error: check_script_progress cron', str(traceback.format_exc(exc)), 'root@uganda.rapidsms.org', recipients, fail_silently=True)
-
-
