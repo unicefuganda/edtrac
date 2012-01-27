@@ -44,13 +44,14 @@ class Command(BaseCommand):
 
     @transaction.commit_manually
     def handle(self, **options):
+
         current = datetime.datetime.now()
         recipients = getattr(settings, 'ADMINS', None)
         if recipients:
             recipients = [email for name, email in recipients]
         if current.hour in range(int(options['e']), int(options['l'])):
             try:
-                for script in Script.objects.all():
+                for script in Script.objects.filter(enabled=True):
                     check_progress(script)
                 transaction.commit()
             except Exception, exc:
