@@ -559,8 +559,8 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                             date__range = get_month_day_range(datetime.datetime.now())
                             )
                 resp_values = [r.eav.poll_number_value for r in resps]
-                s = sum(resp_values)
-                to_ret[location.__unicode__()] = s                
+                s = sum(filter(None, resp_values))
+                to_ret[location.__unicode__()] = s
             return to_ret
 
         if kwargs.has_key('month_filter') and kwargs.get('month_filter') and kwargs.has_key('location') and\
@@ -579,7 +579,7 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                         )
                         #for Demo purposes compute total from messages
                     resp_values = [r.eav.poll_number_value for r in resps]
-                    to_ret[location.__unicode__()] = [sum(resp_values)]
+                    to_ret[location.__unicode__()] = [sum(filter(None, resp_values))]
             else:
                 # only use this in views that expect date ranges greater than one month
                 from dateutil.parser import parse
@@ -597,7 +597,7 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                             contact__in = Contact.objects.filter(reporting_location=location),
                             date__range = month_range)                        
                         resp_values = [r.eav.poll_number_value for r in resps]                            
-                        sum_of_values = sum(resp_values)
+                        sum_of_values = sum(filter(None, resp_values))
                         # Averaging function
                         if kwargs.get('action') == 'avg' and kwargs.has_key('action'):
                             # for some cases, we need to compute an average of the response values
@@ -626,12 +626,7 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                 return to_ret
             #TODO Other data type returns.
     else:
-        try:
-            for val in [r.eav.poll_number_value for r in poll_queryset.responses.all()]:
-                s += val
-        except NoneType:
-            pass
-        return s
+        return sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.all()]))
 
 def get_count_response_to_polls(poll_queryset, **kwargs):
     if kwargs.has_key('month_filter') and kwargs.get('month_filter') and not kwargs.has_key('location') and kwargs.has_key('choices'):
@@ -668,4 +663,3 @@ def get_responses_to_polls(**kwargs):
             for poll in poll_names:
                 responses[poll] = get_sum_of_poll_response(Poll.objects.get(name=poll))
             return responses #can be used as context variable too
-
