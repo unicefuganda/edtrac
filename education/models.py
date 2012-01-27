@@ -320,8 +320,7 @@ def edtrac_autoreg_transition(**kwargs):
         group = find_closest_match(role, Group.objects) or find_closest_match(role, Group.objects, True)
     skipsteps = {
         'edtrac_gender':['Head Teachers'],
-        'edtrac_district' : ['DEO'],
-        'edtrac_name' : ['DEO'],
+        'edtrac_subcounty' : ['Teachers', 'Head Teachers', 'SMC', 'GEM'],
         'edtrac_class':['Teachers'],
         'edtrac_school':['Teachers', 'Head Teachers', 'SMC']
     }
