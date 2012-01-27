@@ -44,14 +44,13 @@
                 </thead>
                 <tbody>
 
-                {% if national_reports %}
-                {% for name, list in national_reports %}
+                {% if school_meals_reports %}
+                {% for name, list in school_meals_reports.items %}
                 <tr>
                     <td>{{ name }}</td>
-                    <td>{{ list.0 }}</td>
-                    <td>{{ list.1 }}</td>
-                    <td>{{ list.2 }}</td>
-                    <td>{{ list.3 }}</td>
+                    {% for tupple_item in list %}
+                    <td>{{ tupple_item.1 }}</td>
+                    {% endfor %}
                 </tr>
                 {% endfor %}
                 {% else %}
@@ -67,23 +66,23 @@
                 <thead>
                 <tr>
                     <th>Districts</th>
-                    <th>0% had meals</th>
-                    <th>25% had meals</th>
-                    <th>50% had measl</th>
-                    <th>75% had meals</th>
-                    <th>100% had meals</th>
+                    <th>No pupils had meals</th>
+                    <th>A quarter of pupils had a meal</th>
+                    <th>Half the pupils had a meal</th>
+                    <th>Three quarters of pupils had a meal</th>
+                    <th>All pupils had meals</th>
                 </tr>
                 </thead>
                 <tbody>
 
-                {% if community_reports %}
-                {% for name, list in community_reports %}
+                {% if community_meals_reports %}
+                {% for name, list in community_meals_reports.items %}
+                    {%
                 <tr>
                     <td>{{ name }}</td>
-                    <td>{{ list.0 }}</td>
-                    <td>{{ list.1 }}</td>
-                    <td>{{ list.2 }}</td>
-                    <td>{{ list.3 }}</td>
+                    {% for tupple_item in list %}
+                    <td>{{ tupple_item.1 }}</td>
+                    {% endfor %}
                 </tr>
                 {% endfor %}
                 {% else %}
@@ -91,6 +90,7 @@
                 {% endif %}
                 </tbody>
             </table>
+
         </div>
 
 {% endblock %}

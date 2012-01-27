@@ -248,20 +248,11 @@ def dashboard(request):
     else:
         return testindex(request)
 
-@login_required
-def deo_dashboard(request):
-    location = request.user.get_profile().location
-    violence = get_sum_of_poll_response(Poll.objects.get(name="emis_headteachers_abuse"),
-        location=location)
-    months = ["Jan", "Feb", "March"]
-    district_violence = [343,234,64]
-    dicty = dict(zip(months, district_violence))
-
-    return index(request, template_name="deo/deo_dashboard.html",
-        context_vars={'dicty':dicty,
-                      'x_vals':months,
-                      'y_vals':district_violence})
-
+##########################################################################################################
+##########################################################################################################
+############################ Ministry Dashboard #############################################################
+##########################################################################################################
+##########################################################################################################
 @login_required
 def ministry_dashboard(request):
     violence = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
@@ -280,6 +271,28 @@ def ministry_dashboard(request):
                       'y_vals':district_violence,
                       'lunches':lunches_to_ret})
 
+
+class ProgressMinistryDetails(TemplateView):
+    template_name = "education/ministry/ministry_progress_details.html"
+    @method_decorator(login_required)
+    def get_context_data(self, **kwargs):
+        context = super(ProgressMinistryDetails, self).get_context_data(**kwargs)
+        return context
+
+class MealsMinistryDetails(TemplateView):
+    template_name = "education/ministry/ministry_meals_details.html"
+    #TODO open this up with more data variables
+    def get_context_data(self, **kwargs):
+        context = super(MealsMinistryDetails, self).get_context_data(**kwargs)
+        ##context['some_key'] = <some_list_of_response>
+        return context
+
+
+##########################################################################################################
+##########################################################################################################
+############################ Admin Dashboard #############################################################
+##########################################################################################################
+##########################################################################################################
 @login_required
 def admin_dashboard(request):
     location = request.user.get_profile().location
@@ -344,6 +357,63 @@ class ViolenceAdminDetails(TemplateView):
             context['reporting_percentage'] = 0
         return context
 
+
+class ProgressAdminDetails(TemplateView):
+    template_name = "education/admin/admin_progress_details.html"
+
+    def get_context_data(self, **kwargs):
+        from .utils import themes
+        context = super(ProgressAdminDetails, self).get_context_data(**kwargs)
+        ##context['some_key'] = <some_list_of_response>
+        # we get all violence cases ever reported
+        #TODO: filtering by ajax and time
+        context['progress'] = list_poll_responses(Poll.objects.get(name="edtrac_p3curriculum_progress"))
+        # decimal module used to work with really floats with more than 2 decimal places
+        from decimal import getcontext, Decimal
+        getcontext().prec = 1
+        context['progress_figures'] = get_count_response_to_polls(Poll.objects.get(name="edtrac_p3curriculum_progress"),\
+            location=self.request.user.get_profile().location,
+            choices = [Decimal(str(key)) for key in themes.keys()],
+            poll_type="numeric"
+        )
+        return context
+
+
+class MealsAdminDetails(TemplateView):
+    template_name = "education/admin/admin_meals_details.html"
+    def get_context_data(self, **kwargs):
+        choices=[0, 25, 50, 75, 100]
+        context = super(MealsAdminDetails, self).get_context_data(**kwargs)
+        context['school_meals_reports'] = get_count_response_to_polls(Poll.objects.get(name="edtrac_headteachers_meals"),\
+            month_filter=True, choices=choices)
+
+        context['community_meals_reports'] = get_count_response_to_polls(Poll.objects.get(name="edtrac_smc_meals"),
+            month_filter=True, choices=choices)
+        return context
+
+
+##########################################################################################################
+##########################################################################################################
+############################ DEO Dashboard #############################################################
+##########################################################################################################
+##########################################################################################################
+@login_required
+def deo_dashboard(request):
+    location = request.user.get_profile().location
+    violence = get_sum_of_poll_response(Poll.objects.get(name="emis_headteachers_abuse"),
+        location=location)
+    months = ["Jan", "Feb", "March"]
+    district_violence = [343,234,64]
+    dicty = dict(zip(months, district_violence))
+
+    return index(request, template_name="deo/deo_dashboard.html",
+        context_vars={'dicty':dicty,
+                      'x_vals':months,
+                      'y_vals':district_violence})
+
+
+
+
 class ViolenceDeoDetails(TemplateView):
     template_name = "education/deo/deo_violence_details.html"
 
@@ -357,6 +427,26 @@ class ViolenceDeoDetails(TemplateView):
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super(ViolenceDeoDetails, self).dispatch(*args, **kwargs)
+
+
+class ProgressDeoDetails(TemplateView):
+    template_name = "education/deo/deo_progress_details.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(ProgressDeoDetails, self).get_context_data(**kwargs)
+        #TODO mixins and filters
+        context['progress'] = list_poll_responses(Poll.objects.get(name="edtrac_p3curriculum_progress"))
+
+        return context
+
+
+
+##########################################################################################################
+##########################################################################################################
+############################ More Generic Views ##########################################################
+##########################################################################################################
+##########################################################################################################
+
 
 #District violence details (TODO: permission/rolebased viewing)
 class DistrictViolenceDetails(DetailView):
@@ -397,42 +487,7 @@ class DistrictViolenceDetails(DetailView):
         context['month'] = datetime.datetime.now()
         return context
 
-class ProgressAdminDetails(TemplateView):
-    template_name = "education/admin/admin_progress_details.html"
 
-    def get_context_data(self, **kwargs):
-        from .utils import themes
-        context = super(ProgressAdminDetails, self).get_context_data(**kwargs)
-        ##context['some_key'] = <some_list_of_response>
-        # we get all violence cases ever reported
-        #TODO: filtering by ajax and time
-        context['progress'] = list_poll_responses(Poll.objects.get(name="edtrac_p3curriculum_progress"))
-        # decimal module used to work with really floats with more than 2 decimal places
-        from decimal import getcontext, Decimal
-        getcontext().prec = 1
-        context['progress_figures'] = get_count_response_to_polls(Poll.objects.get(name="edtrac_p3curriculum_progress"),\
-            location=self.request.user.get_profile().location,
-            choices = [Decimal(str(key)) for key in themes.keys()],
-            poll_type="numeric"
-        )
-        return context
-
-class ProgressMinistryDetails(TemplateView):
-    template_name = "education/ministry/ministry_progress_details.html"
-    @method_decorator(login_required)
-    def get_context_data(self, **kwargs):
-        context = super(ProgressMinistryDetails, self).get_context_data(**kwargs)
-        return context
-
-class ProgressDeoDetails(TemplateView):
-    template_name = "education/deo/deo_progress_details.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(ProgressDeoDetails, self).get_context_data(**kwargs)
-        #TODO mixins and filters
-        context['progress'] = list_poll_responses(Poll.objects.get(name="edtrac_p3curriculum_progress"))
-
-        return context
 
 
 # Progress happening in a district
@@ -446,21 +501,6 @@ class DistrictProgressDetails(DetailView):
         context['location'] = location
         return context
 
-class MealsMinistryDetails(TemplateView):
-    template_name = "education/ministry/ministry_meals_details.html"
-    #TODO open this up with more data variables
-    def get_context_data(self, **kwargs):
-        context = super(MealsMinistryDetails, self).get_context_data(**kwargs)
-        ##context['some_key'] = <some_list_of_response>
-        return context
-
-class MealsAdminDetails(TemplateView):
-    template_name = "education/admin/admin_meals_details.html"
-    def get_context_data(self, **kwargs):
-        context = super(MealsAdminDetails, self).get_context_data(**kwargs)
-
-        return context
-        
 # Meals being had at a district        
 class DistrictMealsDetails(DetailView):
     context_object_name = "district_meals"
@@ -470,8 +510,14 @@ class DistrictMealsDetails(DetailView):
         context = super(DistrictMealsDetails, self).get_context_data(**kwargs)
         location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk')))
         context['location'] = location        
-        return context        
+        return context
 
+
+##########################################################################################################
+##########################################################################################################
+################################ Other handy views for EdTrac ############################################
+##########################################################################################################
+##########################################################################################################
 
 def whitelist(request):
     numbers = []

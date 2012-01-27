@@ -122,7 +122,7 @@ def init_scripts():
                            (Poll.TYPE_NUMERIC, 'edtrac_girlsp3_attendance', 'How many P3 girls are at school today?',),
                            (Poll.TYPE_NUMERIC, 'edtrac_girlsp6_attendance', 'How many P6 girls are at school today?',),
                            (Poll.TYPE_NUMERIC, 'edtrac_p3curriculum_progress', 'What sub theme number you were teaching this week? (P3) ',),
-                           (Poll.TYPE_TEXT, 'edtrac_p3curriculum_progress', 'What sub theme number of the P3 Literacy curriculum are you teaching this week? ',),
+                           (Poll.TYPE_NUMERIC, 'edtrac_p3curriculum_progress', 'What sub theme number of the P3 Literacy curriculum are you teaching this week? ',),
                            ],
         'head teachers weekly':[(Poll.TYPE_NUMERIC, 'edtrac_f_teachers_attendance', 'How many female teachers are at school today?',),
                                 (Poll.TYPE_NUMERIC, 'edtrac_m_teachers_attendance', 'How many male teachers are at school today?',),
