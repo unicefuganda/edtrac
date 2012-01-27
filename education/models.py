@@ -165,6 +165,7 @@ def parse_fuzzy_number(command, value):
 
 
 def edtrac_autoreg(**kwargs):
+
     connection = kwargs['connection']
     progress = kwargs['sender']
     if not progress.script.slug == 'edtrac_autoreg':
@@ -314,12 +315,15 @@ def edtrac_autoreg_transition(**kwargs):
     role_poll = script.steps.get(poll__name="edtrac_role").poll
     role = find_best_response(session, role_poll)
     group = None
+
     if role:
         group = find_closest_match(role, Group.objects) or find_closest_match(role, Group.objects, True)
     skipsteps = {
         'edtrac_gender':['Head Teachers'],
+        'edtrac_district' : ['DEO'],
+        'edtrac_name' : ['DEO'],
         'edtrac_class':['Teachers'],
-        'edtrac_school':['Teachers', 'Head Teachers', 'SMC'],
+        'edtrac_school':['Teachers', 'Head Teachers', 'SMC']
     }
     skipped = True
     while group and skipped:
@@ -331,7 +335,10 @@ def edtrac_autoreg_transition(**kwargs):
                 progress.step = progress.script.steps.get(order=progress.step.order + 1)
                 progress.save()
                 break
-            
+
+
+
+
 def edtrac_attendance_script_transition(**kwargs):
 
     connection = kwargs['connection']
