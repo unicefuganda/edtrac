@@ -573,7 +573,7 @@
                 5
             ], 
             "user": 1, 
-            "type": "t", 
+            "type": "n",
             "start_date": null, 
             "response_type": "a"
         }
@@ -592,7 +592,7 @@
                 5
             ], 
             "user": 1, 
-            "type": "t", 
+            "type": "n",
             "start_date": null, 
             "response_type": "a"
         }
