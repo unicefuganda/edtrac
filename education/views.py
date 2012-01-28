@@ -16,7 +16,7 @@ from poll.models import Poll
 from .reports import *
 from .utils import *
 from urllib2 import urlopen
-import  re, datetime, operator
+import  re, datetime, operator, xlwt
 
 
 Num_REG = re.compile('\d+')
@@ -686,6 +686,28 @@ def to_excel(request, start_date=None, end_date=None, district_id=None):
     return create_excel_dataset(request, start_date, end_date, district_id)
 
 @login_required
+def school_reporters_to_excel(req):
+    book = xlwt.Workbook()
+    all_schools = School.objects.all()
+    sheet = book.add_sheet('School Reporters')
+    headings = ['School', 'Reporters']
+    rowx = 0
+    for colx, value in enumerate(headings):
+        sheet.write(rowx, colx, value)
+    sheet.set_panes_frozen(True)
+    sheet.set_horz_split_pos(rowx+1)
+    sheet.set_remove_splits(True)
+    for row in all_schools:
+        rowx += 1
+        for colx, value in enumerate([row.name, ', '.join([reporter.name for reporter in row.emisreporter_set.all()])]):
+            sheet.write(rowx, colx, value)
+
+    response = HttpResponse(mimetype="application/vnd.ms-excel")
+    response['Content-Disposition'] = 'attachment; filename=school_reporters_data.xls'
+    book.save(response)
+    return response
+
+@login_required
 def excel_reports(req):
     return render_to_response('education/excelreports/excel_dashboard.html',{},RequestContext(req))
 
@@ -987,5 +1009,4 @@ def reschedule_scripts(request, script_slug):
         reschedule_termly_polls(grp)
     new_script_date = ScriptProgress.objects.filter(script__slug=script_slug)[0].time
     response = HttpResponse("This Script has been rescheduled to: %s " % new_script_date.strftime("%d-%m-%Y %H:%M"))
-    return response     
-
+    return response

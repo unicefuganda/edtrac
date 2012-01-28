@@ -141,6 +141,7 @@ urlpatterns = patterns('',
 	url(r'^edtrac/charts/$',attendance_chart),#for demo purposes
     #users and permissions
     url(r'^edtrac/toexcel/$',to_excel, name="to-excel"),
+    url(r'^edtrac/schoolexcel/$', school_reporters_to_excel, name="school_report_excel"),
     url(r'^edtrac/toexcel/(?P<start_date>[0-9\-]+)/(?P<end_date>[0-9\-]+)$',to_excel, name="to-excel"),
     url(r'^edtrac/users/(\d+)/edit/', edit_user, name='edit_user'),
     url(r'^edtac/users/add/', edit_user, name='add_user'),

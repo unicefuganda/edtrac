@@ -663,3 +663,20 @@ def get_responses_to_polls(**kwargs):
             for poll in poll_names:
                 responses[poll] = get_sum_of_poll_response(Poll.objects.get(name=poll))
             return responses #can be used as context variable too
+            
+def write_to_xls(sheet_name, headings, data):
+    sheet = book.add_sheet(sheet_name)
+    rowx = 0
+    for colx, value in enumerate(headings):
+        sheet.write(rowx, colx, value)
+        sheet.set_panes_frozen(True) # frozen headings instead of split panes
+        sheet.set_horz_split_pos(rowx+1) # in general, freeze after last heading row
+        sheet.set_remove_splits(True) # if user does unfreeze, don't leave a split there
+        for row in data:
+            rowx += 1
+            for colx, value in enumerate(row):
+                try:
+                    value = value.strftime("%d/%m/%Y")
+                except:
+                    pass
+                sheet.write(rowx, colx, value)
