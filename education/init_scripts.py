@@ -25,7 +25,7 @@ def init_autoreg():
             script.sites.add(Site.objects.get_current())
         user, created = User.objects.get_or_create(username="admin")
         
-        role_poll = Poll.objects.create(name='edtrac_role', user=user, type=Poll.TYPE_TEXT, question='Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM', default_response='')
+        role_poll = Poll.objects.create(name='edtrac_role', user=user, type=Poll.TYPE_TEXT, question='Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM, DEO', default_response='')
         script.steps.add(ScriptStep.objects.create(
             script=script,
             poll=role_poll,
