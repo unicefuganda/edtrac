@@ -11,12 +11,13 @@ class App (AppBase):
         if message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_OUT_WORDS', ['quit'])]:
             Blacklist.objects.create(connection=message.connection)
             if (message.connection.contact):
-                message.respond(getattr(settings, 'OPT_OUT_CONFIRMATION', 'Thank you for your contribution as a education monitoring reporter, to rejoin the system send JOIN to 6200'))
                 reporter = EmisReporter.objects.get(connection=message.connection)
                 message.connection.contact.active = False
                 message.connection.contact.save()
+                message.db_message.status = "Q" #more priority till you keep sending argh!!
                 reporter.active = False
                 reporter.save()
+            message.respond(getattr(settings, 'OPT_OUT_CONFIRMATION', 'Thank you for your contribution as a education monitoring reporter, to rejoin the system send JOIN to 6200'))
             return True
         elif message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', ['join'])]:
             # check if incoming connection is Blacklisted (previously quit)
