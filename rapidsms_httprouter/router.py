@@ -24,57 +24,6 @@ def stop_sending_mass_messages():
     "Deprecated"
     pass
 
-class HttpRouterThread(Thread, LoggerMixin):
-    """
-    This thread is just a worker thread for messages.  The run() method pops off a message to work on
-    and continues appropriately.
-    """
-
-    def __init__(self, **kwargs):
-        Thread.__init__(self, **kwargs)
-        self._isbusy = False
-
-    def is_busy(self):
-        return self._isbusy
-
-    def run(self):
-        while self.is_alive():
-            transaction.enter_transaction_management()
-
-            try:
-                # without this, our to_process list gets cached
-                transaction.commit()
-
-                # this gets any outgoing messages which are either pending or queued
-                to_process = list(Message.objects.filter(direction='O',
-                                                         status__in=['P']).order_by('priority', 'status').for_single_update())
-
-                if len(to_process):
-                    self._isbusy = True
-                    outgoing_message = to_process[0]
-                    print "processing %s" % outgoing_message.pk
-                    outgoing_message.status = 'L'
-                    outgoing_message.save()
-
-                    # frees our update lock
-                    transaction.commit()
-
-                    # process the outgoing phases for this message
-                    if get_router().process_outgoing_phases(outgoing_message):
-                        print "queueing %s" % outgoing_message.pk
-                        outgoing_message.status = 'Q'
-                        outgoing_message.save()
-
-                else:
-                    # if there weren't any messages queued, back off
-                    # from polling the DB
-                    self._isbusy = False
-                    time.sleep(getattr(settings, 'WORKER_SLEEP_LONG', 1))
-
-            except:
-                import traceback
-                traceback.print_exc()
-
 
 class HttpRouter(object, LoggerMixin):
     """
@@ -238,28 +187,8 @@ class HttpRouter(object, LoggerMixin):
                 db_message.status = 'Q'
                 db_message.save()
 
-        # otherwise, fire up any threads we need to send the message out
-        else:
-            # check for available worker threads in the pool, add one if necessary
-            self.check_workers()
-
         return db_message
 
-    def check_workers(self):
-        global outgoing_worker_threads
-        # check for available worker threads in the pool, add one if necessary
-        num_workers = getattr(settings, 'ROUTER_WORKERS', 5)
-        all_busy = True
-        for worker in outgoing_worker_threads:
-            if not worker.is_busy():
-                all_busy = False
-                break
-
-        if all_busy and len(outgoing_worker_threads) < num_workers:
-            worker = HttpRouterThread()
-            worker.daemon = True # they don't need to quit gracefully
-            worker.start()
-            outgoing_worker_threads.append(worker)
 
     def handle_outgoing(self, msg, source=None, application=None):
         """
