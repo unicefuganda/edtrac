@@ -7,9 +7,13 @@ from .models import EmisReporter
 class App (AppBase):
 
     def handle (self, message):
-
+        
         if message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_OUT_WORDS', ['quit'])]:
+            # Delete existing Blacklist in case of profusely sending in 'Quit'
+            Blacklist.objects.filter(connection=message.connection).delete()
+            # create a Blacklist object
             Blacklist.objects.create(connection=message.connection)
+
             if (message.connection.contact):
                 reporter = EmisReporter.objects.get(connection=message.connection)
                 message.connection.contact.active = False
@@ -19,6 +23,7 @@ class App (AppBase):
                 reporter.save()
             message.respond(getattr(settings, 'OPT_OUT_CONFIRMATION', 'Thank you for your contribution as a education monitoring reporter, to rejoin the system send JOIN to 6200'))
             return True
+
         elif message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', ['join'])]:
             # check if incoming connection is Blacklisted (previously quit)
             if Blacklist.objects.filter(connection=message.connection).exists():
@@ -31,9 +36,9 @@ class App (AppBase):
                 else:
                     # what if we deleted existing progresses and recreated them?
                     ScriptProgress.objects.filter(script=Script.objects.get(slug="edtrac_autoreg"),\
-                        connection = message.connection, language="en")
-                    # recreating
-                    ScriptProgress.objects.create(script=Script.objects.get(slug="edtrac_autoreg"),\
+                        connection = message.connection, language="en").delete()
+                    # recreating or getting an existing in case it creeps in
+                    ScriptProgress.objects.get_or_create(script=Script.objects.get(slug="edtrac_autoreg"),\
                         connection=message.connection, language="en")
             # For users joining edtrac the first time
             else:
