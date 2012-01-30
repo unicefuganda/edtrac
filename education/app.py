@@ -7,7 +7,7 @@ from .models import EmisReporter
 class App (AppBase):
 
     def handle (self, message):
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         if message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_OUT_WORDS', ['quit'])]:
             Blacklist.objects.create(connection=message.connection)
             if (message.connection.contact):
