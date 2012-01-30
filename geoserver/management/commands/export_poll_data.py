@@ -23,8 +23,8 @@ class Command(BaseCommand):
                 insert_data = {}
                 for d in data:
                     l = Location.objects.get(pk=d['location_id'])
-                    insert_data.setdefault(l.code, {})
-                    insert_data[l.code][d['category__name']] = d['value']
+                    insert_data.setdefault(l.alias, {})
+                    insert_data[l.alias][d['category__name']] = d['value']
                 for district_code, values in insert_data.items():
                     total = 0
                     for c in category_names:

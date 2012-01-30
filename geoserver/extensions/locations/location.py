@@ -24,8 +24,8 @@ class UUIDLocation(models.Model):
            a non-generic relation to their parents.
     The MetaOverride attribute makes the base Location model concrete.
     """
-    code = models.CharField(max_length=100, null=True, blank=True)
-    is_active = models.BooleanField(default=True)
+    alias = models.CharField(max_length=100, null=True, blank=True)
+    status = models.BooleanField(default=True)
 
     class Meta:
         abstract = True
