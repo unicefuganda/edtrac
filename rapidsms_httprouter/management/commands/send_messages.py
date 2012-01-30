@@ -1,11 +1,12 @@
 import traceback
+import time
 from django.core.management.base import BaseCommand
 from rapidsms.models import Backend, Connection, Contact
 from rapidsms_httprouter.models import Message, MessageBatch
 from rapidsms_httprouter.router import get_router
 from django.conf import settings
 from django.core.mail import send_mail
-from django.db import transaction
+from django.db import transaction, close_connection
 from urllib import quote_plus
 from urllib2 import urlopen
 from rapidsms.log.mixin import LoggerMixin
@@ -45,7 +46,7 @@ class Command(BaseCommand, LoggerMixin):
         # is this actually a dict?  if so, we want to look up the appropriate backend
         if type(router_url) is dict:
             router_dict = router_url
-            backend_name = backend.name
+            backend_name = backend
 
             # is there an entry for this backend?
             if backend_name in router_dict:
@@ -150,6 +151,11 @@ class Command(BaseCommand, LoggerMixin):
                     if recipients:
                         send_mail('[Django] Error: messenger command', str(traceback.format_exc(exc)), 'root@uganda.rapidsms.org', recipients, fail_silently=True)
                     continue
+
+            # yield from the messages table, messenger can cause
+            # deadlocks if it's contanstly polling the messages table
+            close_connection()
+            time.sleep(0.5)
 
 
 

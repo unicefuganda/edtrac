@@ -20,7 +20,6 @@ from django.core.management import call_command
 from qos_messages import gen_qos_msg, get_alarms, get_backends_by_type, gen_qos_msg
 from datetime import datetime
 
-
 class BackendTest(TransactionTestCase):
 
     def setUp(self):
@@ -479,3 +478,8 @@ class QOSTest(TestCase):
         call_command('monitor_qos_messages')
         alarms = get_alarms(mode="test")
         self.assertEquals(len(alarms), 2)
+
+
+
+
+

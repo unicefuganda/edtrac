@@ -283,10 +283,6 @@ class HttpRouter(object, LoggerMixin):
         # upon first starting up
         self.outgoing = [message for message in Message.objects.filter(status='Q')]
 
-        # kick start one worker
-        if start_workers:
-            self.check_workers()
-
         # mark ourselves as started
         self.started = True
 

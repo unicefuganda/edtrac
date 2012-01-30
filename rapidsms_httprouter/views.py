@@ -136,6 +136,7 @@ class ReplyForm(forms.Form):
 class SearchForm(forms.Form):
     search = forms.CharField(label="Keywords", max_length=100, widget=forms.TextInput(attrs={'size':'60'}), required=False)
 
+
 def console(request):
     """
     Our web console, lets you see recent messages as well as send out new ones for
@@ -144,7 +145,6 @@ def console(request):
     form = SendForm()
     reply_form = ReplyForm()
     search_form = SearchForm()
-
     queryset = Message.objects.all()
 
     if request.method == 'POST' and 'this_is_the_login_form' not in request.POST:
@@ -180,8 +180,8 @@ def console(request):
                     query = (Q(text__icontains=term) | Q(in_response_to__text__icontains=term) | Q(connection__identity__icontains=term))
                     for term in terms[1:]:
                         query &= (Q(text__icontains=term) | Q(in_response_to__text__icontains=term) | Q(connection__identity__icontains=term))
-
                     queryset = queryset.filter(query)
+
 
     paginator = Paginator(queryset.order_by('-id'), 20)
     page = request.GET.get('page')
