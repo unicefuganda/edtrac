@@ -131,9 +131,9 @@ def init_scripts():
                            ],
         #'teachers monthly':[(Poll.TYPE_TEXT, 'edtrac_p3curriculum_progress', 'What sub theme number of the P3 Literacy curriculum are you teaching this week? ',),                 ],
         'head teachers monthly':[(Poll.TYPE_NUMERIC, 'edtrac_headteachers_abuse', 'How many abuse cases were recorded in the record book this month?',),
-                                (Poll.TYPE_NUMERIC, 'edtrac_headteachers_meals', 'How many children do you think had lunch today? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%',),
+                                (Poll.TYPE_NUMERIC, 'edtrac_headteachers_meals', 'What percentage of children do you think had lunch month? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%',),
                            ],
-        'smc monthly':[(Poll.TYPE_NUMERIC, 'edtrac_smc_meals', 'How many children do you think had lunch today? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%',),
+        'smc monthly':[(Poll.TYPE_NUMERIC, 'edtrac_smc_meals', 'What percentage of children do you think had lunch today? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%',),
                            ],
         'gem monthly':[(Poll.TYPE_TEXT, 'edtrac_gem_headteacher_present', 'Name the schools where the Head teacher was present at your last visit? Separate schools with a comma e.g St Peters PS, St John PS',),
                        (Poll.TYPE_TEXT, 'edtrac_gem_headteacher_absent', 'Name the schools where the Head teacher was absent at your last visit? Separate schools with a comma e.g St Peters PS, St John PS',),
@@ -144,10 +144,12 @@ def init_scripts():
                                 (Poll.TYPE_NUMERIC, 'edtrac_girlsp6_enrollment', 'How many girls are enrolled in P6 this term?',),
                                 (Poll.TYPE_NUMERIC, 'edtrac_f_teachers_deployment', 'How many female teachers are deployed in your school this term?',),
                                 (Poll.TYPE_NUMERIC, 'edtrac_m_teachers_deployment', 'How many male teachers are deployed in your school this term?',),
-                                (Poll.TYPE_TEXT, 'edtrac_upe_grant', 'Has the UPE grant been displayed on the school notice board? Answer YES or NO',True),
+				#TODO categorize UPE grant
+                                (Poll.TYPE_TEXT, 'edtrac_upe_grant', 'Have you received your UPE grant this term? Answer  YES or NO or I don\'t know',True),
                            ],
-        'smc termly':[(Poll.TYPE_TEXT, 'edtrac_smc_upe_grant', 'Has UPE capitation grant been displayed on the school notice board? Answer YES or NO',True),
-                      (Poll.TYPE_NUMERIC, 'edtrac_smc_meetings', 'How many SMC meetings have you held this term? Give number of meetings held, if none, reploy 0.',),
+	#TODO categorize temrly UPE grant question
+        'smc termly':[(Poll.TYPE_TEXT, 'edtrac_smc_upe_grant', 'Has UPE capitation grant been displayed on the school notice board? Answer YES or NO or I dont\'t know',True),
+                      (Poll.TYPE_NUMERIC, 'edtrac_smc_meetings', 'How many SMC meetings have you held this term? Give number of meetings held, if none, reply 0.',),
                            ],
    }
 

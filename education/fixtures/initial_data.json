@@ -644,7 +644,7 @@
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
-            "question": "How many children do you think had lunch today? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%", 
+            "question": "What percentage of children do you think had lunch this month? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%", 
             "sites": [
                 5
             ], 
@@ -663,7 +663,7 @@
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
-            "question": "How many children do you think had lunch today? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%", 
+            "question": "What percentage of children do you think had lunch this month? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%", 
             "sites": [
                 5
             ], 

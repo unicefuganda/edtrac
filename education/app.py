@@ -18,7 +18,6 @@ class App (AppBase):
                 reporter = EmisReporter.objects.get(connection=message.connection)
                 message.connection.contact.active = False
                 message.connection.contact.save()
-                message.db_message.status = "Q" #more priority till you keep sending argh!!
                 reporter.active = False
                 reporter.save()
             message.respond(getattr(settings, 'OPT_OUT_CONFIRMATION', 'Thank you for your contribution as a education monitoring reporter, to rejoin the system send JOIN to 6200'))
