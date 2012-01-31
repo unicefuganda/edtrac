@@ -112,7 +112,7 @@
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
-            "question": "Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM, DEO",
+            "question": "Thank you for participating in EduTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM, DEO",
             "sites": [
                 5
             ], 
@@ -1071,7 +1071,7 @@
             "email": null, 
             "num_tries": null, 
             "start_offset": 60, 
-            "message": "Welcome EdTrac.The information you shall provide contributes to keeping children in school.", 
+            "message": "Welcome EduTrac.The information you shall provide contributes to keeping children in school.", 
             "poll": null, 
             "order": 7, 
             "giveup_offset": 0
