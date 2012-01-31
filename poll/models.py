@@ -266,23 +266,19 @@ class Poll(models.Model):
 
           # add one rule to yes category per language
         for l in langs:
-            if l in NO_WORDS.keys() and l in YES_WORDS.keys():
-                no_rule_string = '|'.join(NO_WORDS[l])
-                yes_rule_string = '|'.join(YES_WORDS[l])
+            no_rule_string = '|'.join(NO_WORDS[l])
+            yes_rule_string = '|'.join(YES_WORDS[l])
 
-                self.categories.get(name='yes').rules.create(
-                    regex=(STARTSWITH_PATTERN_TEMPLATE % yes_rule_string),
-                    rule_type=Rule.TYPE_REGEX,
-                    rule_string=(STARTSWITH_PATTERN_TEMPLATE % yes_rule_string))
+            self.categories.get(name='yes').rules.create(
+                regex=(STARTSWITH_PATTERN_TEMPLATE % yes_rule_string),
+                rule_type=Rule.TYPE_REGEX,
+                rule_string=(STARTSWITH_PATTERN_TEMPLATE % yes_rule_string))
 
-                self.categories.get(name='no').rules.create(
-                    regex=(STARTSWITH_PATTERN_TEMPLATE % no_rule_string),
-                    rule_type=Rule.TYPE_REGEX,
-                    rule_string=(STARTSWITH_PATTERN_TEMPLATE % no_rule_string))
-            else:
-                #skip iteration when language is not present
-                pass
-
+            self.categories.get(name='no').rules.create(
+                regex=(STARTSWITH_PATTERN_TEMPLATE % no_rule_string),
+                rule_type=Rule.TYPE_REGEX,
+                rule_string=(STARTSWITH_PATTERN_TEMPLATE % no_rule_string))
+            
     def is_yesno_poll(self):
         return self.categories.count() == 3 and \
             self.categories.filter(name='yes').count() and \
