@@ -7,7 +7,7 @@ from .models import EmisReporter
 class App (AppBase):
 
     def handle (self, message):
-        
+
         if message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_OUT_WORDS', ['quit'])]:
             # Delete existing Blacklist in case of profusely sending in 'Quit'
             Blacklist.objects.filter(connection=message.connection).delete()
