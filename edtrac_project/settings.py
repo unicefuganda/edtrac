@@ -122,6 +122,9 @@ RAPIDSMS_TABS = [
     ("rapidsms-dashboard", 'Home')
 ]
 
+gettext  = lambda s:s
+LANGUAGES = (('en', gettext('English')))
+
 """
 AUTHENTICATED_TABS = [
     ('deo-dashboard', 'District Summaries'),
