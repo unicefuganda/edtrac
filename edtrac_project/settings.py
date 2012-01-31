@@ -123,7 +123,7 @@ RAPIDSMS_TABS = [
 ]
 
 gettext  = lambda s:s
-LANGUAGES = (('en', gettext('English')))
+LANGUAGES = (('en', gettext('English')),)
 
 """
 AUTHENTICATED_TABS = [
