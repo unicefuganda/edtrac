@@ -45,13 +45,13 @@ CONTAINS_PATTERN_TEMPLATE = '^.*\s*(%s)(\s|[^a-zA-Z]|$)'
 
 YES_WORDS = {
     'en':['yes', 'yeah', 'yep', 'yay', 'y'],
-    'ach':['ada', 'da','eyo']
+    'ach':['ada', 'da','eyo','yee','eee']
 }
 
 # This can be configurable from settings, but here's a default list of
 # accepted no keywords
 NO_WORDS = {'en':['no', 'nope', 'nah', 'nay', 'n'],
-            'ach':['ku', 'k']
+            'ach':['ku', 'k','pe']
 }
 
 class ResponseForm(forms.Form):
