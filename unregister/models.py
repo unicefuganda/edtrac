@@ -35,4 +35,4 @@ def blacklist(sender, **kwargs):
 
 mass_text_sent.connect(bulk_process, weak=False)
 poll_started.connect(bulk_process_poll, weak=False)
-pre_save.connect(blacklist, sender=Message, weak=False)
+#pre_save.connect(blacklist, sender=Message, weak=False)
