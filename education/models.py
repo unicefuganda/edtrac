@@ -46,7 +46,7 @@ class EmisReporter(Contact):
     
     def is_member_of(self, group):
         return group.lower() in [grp.lower for grp in self.groups.objects.values_list('name', flat=True)]
-    
+
     def schools_list(self):
         return self.schools.values_list('name', flat=True)
 
