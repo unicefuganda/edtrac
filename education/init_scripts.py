@@ -16,17 +16,26 @@ def init_groups():
         Group.objects.get_or_create(name=g)
 
 def init_autoreg():
-    script, created = Script.objects.get_or_create(
-            slug="edtrac_autoreg", defaults={
-            'name':"Education monitoring auto registration script",
-            'enabled':False})
+
+    # delete existing autoreg (safe)
+    Script.objects.filter(slug="edtrac_autoreg").delete()
+    # create autoreg script
+    script = Script.objects.create(slug="edtrac_autoreg")
+    script.name = _("Education monitoring auto registration script")
+    script.enabled = False
+    script.save()
+    created = True
+#            slug="edtrac_autoreg", defaults={
+#            'name':"Education monitoring auto registration script",
+#            'enabled':False})
+    # Use existing Polls without having to bump up ids on the polls.
     if created:
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
             script.sites.add(Site.objects.get_current())
         user, created = User.objects.get_or_create(username="admin")
         
-        role_poll = Poll.objects.create(name='edtrac_role', user=user, type=Poll.TYPE_TEXT, question='Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM, DEO', default_response='')
-        script.steps.add(ScriptStep.objects.create(
+        role_poll, role_poll_created = Poll.objects.get_or_create(name='edtrac_role', user=user, type=Poll.TYPE_TEXT, question='Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM, DEO', default_response='')
+        script.steps.add(ScriptStep.objects.get_or_create(
             script=script,
             poll=role_poll,
             order=0,
@@ -35,9 +44,9 @@ def init_autoreg():
             start_offset=0,
             retry_offset=86400,
             giveup_offset=86400,
-        ))
-        gender_poll = Poll.objects.create(name='edtrac_gender', user=user, type=Poll.TYPE_TEXT, question='Are you female or male?', default_response='')
-        script.steps.add(ScriptStep.objects.create(
+        )[0])
+        gender_poll, gender_poll_created = Poll.objects.get_or_create(name='edtrac_gender', user=user, type=Poll.TYPE_TEXT, question='Are you female or male?', default_response='')
+        script.steps.add(ScriptStep.objects.get_or_create(
             script=script,
             poll=gender_poll,
             order=1,
@@ -46,9 +55,9 @@ def init_autoreg():
             start_offset=0,
             retry_offset=86400,
             giveup_offset=86400,
-        ))
-        class_poll = Poll.objects.create(name='edtrac_class', user=user, type=Poll.TYPE_TEXT, question='Which class do you teach? P3 or P6', default_response='')
-        script.steps.add(ScriptStep.objects.create(
+        )[0])
+        class_poll, class_poll_created = Poll.objects.get_or_create(name='edtrac_class', user=user, type=Poll.TYPE_TEXT, question='Which class do you teach? P3 or P6', default_response='')
+        script.steps.add(ScriptStep.objects.get_or_create(
             script=script,
             poll=class_poll,
             order=2,
@@ -57,9 +66,9 @@ def init_autoreg():
             start_offset=0,
             retry_offset=86400,
             giveup_offset=86400,
-        ))
-        district_poll = Poll.objects.create(name='edtrac_district', user=user, type=Poll.TYPE_LOCATION, question='What is the name of your district?', default_response='')
-        script.steps.add(ScriptStep.objects.create(
+        )[0])
+        district_poll, district_poll_created = Poll.objects.get_or_create(name='edtrac_district', user=user, type=Poll.TYPE_LOCATION, question='What is the name of your district?', default_response='')
+        script.steps.add(ScriptStep.objects.get_or_create(
             script=script,
             poll=district_poll,
             order=3,
@@ -68,9 +77,9 @@ def init_autoreg():
             retry_offset=86400,
             num_tries=1,
             giveup_offset=86400,
-        ))
-        subcounty_poll = Poll.objects.create(name='edtrac_subcounty',user=user,type=Poll.TYPE_TEXT, question='What is the name of your sub county?', default_response='')
-        script.steps.add(ScriptStep.objects.create(
+        )[0])
+        subcounty_poll, sub_county_poll_created = Poll.objects.get_or_create(name='edtrac_subcounty',user=user,type=Poll.TYPE_TEXT, question='What is the name of your sub county?', default_response='')
+        script.steps.add(ScriptStep.objects.get_or_create(
             script=script,
             poll=subcounty_poll,
             order=4,
@@ -79,9 +88,9 @@ def init_autoreg():
             retry_offset=86400,
             num_tries=1,
             giveup_offset=86400,
-        ))
-        school_poll = Poll.objects.create(name='edtrac_school', user=user, type=Poll.TYPE_TEXT, question='What is the name of your school?', default_response='')
-        script.steps.add(ScriptStep.objects.create(
+        )[0])
+        school_poll, school_poll_created = Poll.objects.get_or_create(name='edtrac_school', user=user, type=Poll.TYPE_TEXT, question='What is the name of your school?', default_response='')
+        script.steps.add(ScriptStep.objects.get_or_create(
             script=script,
             poll=school_poll,
             order=5,
@@ -90,9 +99,9 @@ def init_autoreg():
             retry_offset=86400,
             num_tries=1,
             giveup_offset=86400,
-        ))
-        name_poll = Poll.objects.create(name='edtrac_name', user=user, type=Poll.TYPE_TEXT, question='What is your name?', default_response='')
-        script.steps.add(ScriptStep.objects.create(
+        )[0])
+        name_poll, name_poll_created = Poll.objects.get_or_create(name='edtrac_name', user=user, type=Poll.TYPE_TEXT, question='What is your name?', default_response='')
+        script.steps.add(ScriptStep.objects.get_or_create(
             script=script,
             poll=name_poll,
             order=6,
@@ -101,21 +110,23 @@ def init_autoreg():
             start_offset=60,
             retry_offset=86400,
             giveup_offset=86400,
-        ))
-        script.steps.add(ScriptStep.objects.create(
+        )[0])
+        script.steps.add(ScriptStep.objects.get_or_create(
             script=script,
-            message="Welcome EdTrac.The information you shall provide contributes to keeping children in school.",
+            message="Welcome EduTrac.The information you shall provide contributes to keeping children in school.",
             order=7,
             rule=ScriptStep.WAIT_MOVEON,
             start_offset=60,
             giveup_offset=0,
-        ))
+        )[0])
+
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
             polls = Poll.objects.filter(name__in=['edtrac_role', 'edtrac_gender', 'edtrac_class', 'edtrac_district', 'edtrac_subcounty', 'edtrac_school', 'edtrac_name'])
             for poll in polls:
                 poll.sites.add(Site.objects.get_current())
                 
 def init_scripts():
+
     simple_scripts = {
 	    'teachers weekly':[(Poll.TYPE_NUMERIC, 'edtrac_boysp3_attendance', 'How many P3 boys are at school today?',),
                            (Poll.TYPE_NUMERIC, 'edtrac_boysp6_attendance', 'How many P6 boys are at school today?',),
@@ -151,30 +162,30 @@ def init_scripts():
         'smc termly':[(Poll.TYPE_TEXT, 'edtrac_smc_upe_grant', 'Has UPE capitation grant been displayed on the school notice board? Answer YES or NO or I dont\'t know',True),
                       (Poll.TYPE_NUMERIC, 'edtrac_smc_meetings', 'How many SMC meetings have you held this term? Give number of meetings held, if none, reply 0.',),
                            ],
-   }
+    }
 
-    user, created = User.objects.get_or_create(username='admin')
+    user = User.objects.get_or_create(username='admin')[0]
+
     for script_name, polls in simple_scripts.items():
-        script, created = Script.objects.get_or_create(
-            slug="edtrac_%s" % script_name.lower().replace(' ', '_'), defaults={
-            'name':"Education monitoring %s script" % script_name,
-            'enabled':False})
+        Script.objects.filter(slug="edtrac_%s"%script_name.lower().replace(' ', '_')).delete()
+        script = Script.objects.create(slug="edtrac_%s" % script_name.lower().replace(' ', '_'))
+        script.name = "Education monitoring %s script" % script_name
+        script.enabled = False
+        script.save()
+        created = True
         if created:
             script.sites.add(Site.objects.get_current())
             step = 0
             for poll_info in polls:
-                poll = Poll.objects.create(
-                    user=user, \
-                    type=poll_info[0], \
-                    name=poll_info[1],
-                    question=poll_info[2], \
-                    default_response='', \
-                )
+                Poll.objects.filter(name=poll_info[1]).delete()
+                poll = Poll.objects.create(user=user, type=poll_info[0], name=poll_info[1], default_response='', question=poll_info[2])
                 poll.sites.add(Site.objects.get_current())
+                poll.save()
 
                 if len(poll_info) > 3 and poll_info[3]:
                     poll.add_yesno_categories()
-                script.steps.add(ScriptStep.objects.create(
+                script.steps.add(\
+                    ScriptStep.objects.get_or_create(
                     script=script,
                     poll=poll,
                     order=step,
@@ -183,5 +194,5 @@ def init_scripts():
                     start_offset=60,
                     retry_offset=86400,
                     giveup_offset=86400,
-                ))
+                )[0])
                 step = step + 1
