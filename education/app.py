@@ -20,7 +20,7 @@ class App (AppBase):
                 message.connection.contact.save()
                 reporter.active = False
                 reporter.save()
-            message.respond(getattr(settings, 'OPT_OUT_CONFIRMATION', 'Thank you for your contribution as a education monitoring reporter, to rejoin the system send JOIN to 6200'))
+            message.respond(getattr(settings, 'OPT_OUT_CONFIRMATION', 'Thank you for your contribution to eduTrac. To rejoin the system, send join to 6200'))
             return True
 
         elif message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', ['join'])]:
