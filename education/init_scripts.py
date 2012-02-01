@@ -107,7 +107,7 @@ def init_autoreg():
         )[0])
         script.steps.add(ScriptStep.objects.get_or_create(
             script=script,
-            message="Welcome EduTrac.The information you shall provide contributes to keeping children in school.",
+            message="Welcome to EduTrac.The information you shall provide contributes to keeping children in school.",
             order=7,
             rule=ScriptStep.WAIT_MOVEON,
             start_offset=60,
