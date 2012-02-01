@@ -20,14 +20,8 @@ def init_autoreg():
     # delete existing autoreg (safe)
     Script.objects.filter(slug="edtrac_autoreg").delete()
     # create autoreg script
-    script = Script.objects.create(slug="edtrac_autoreg")
-    script.name = _("Education monitoring auto registration script")
-    script.enabled = False
-    script.save()
+    script = Script.objects.create(slug="edtrac_autoreg", name = "Education monitoring auto registration script", enabled = False)
     created = True
-#            slug="edtrac_autoreg", defaults={
-#            'name':"Education monitoring auto registration script",
-#            'enabled':False})
     # Use existing Polls without having to bump up ids on the polls.
     if created:
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
