@@ -41,18 +41,13 @@ CONTAINS_PATTERN_TEMPLATE = '^.*\s*(%s)(\s|[^a-zA-Z]|$)'
 
 # This can be configurable from settings, but here's a default list of 
 # accepted yes keywords
-#YES_WORDS = ['yes', 'yeah', 'yep', 'yay', 'y']
-
-YES_WORDS = {
-    'en':['yes', 'yeah', 'yep', 'yay', 'y'],
-    'ach':['ada', 'da','eyo','yee','eee']
-}
+YES_WORDS = ['yes', 'yeah', 'yep', 'yay', 'y']
 
 # This can be configurable from settings, but here's a default list of
 # accepted no keywords
-NO_WORDS = {'en':['no', 'nope', 'nah', 'nay', 'n'],
-            'ach':['ku', 'k','pe']
-}
+
+NO_WORDS = ['no', 'nope', 'nah', 'nay', 'n']
+
 
 class ResponseForm(forms.Form):
     def __init__(self, data=None, **kwargs):
@@ -266,8 +261,15 @@ class Poll(models.Model):
 
           # add one rule to yes category per language
         for l in langs:
-            no_rule_string = '|'.join(NO_WORDS[l])
-            yes_rule_string = '|'.join(YES_WORDS[l])
+            try:
+                no_words=settings.NO_WORDS.get(l,NO_WORDS)
+                yes_words=settings.YES_WORDS.get(l,YES_WORDS)
+            except AttributeError:
+                no_words=NO_WORDS
+                yes_words=YES_WORDS
+
+            no_rule_string = '|'.join(no_words)
+            yes_rule_string = '|'.join(yes_words)
 
             self.categories.get(name='yes').rules.create(
                 regex=(STARTSWITH_PATTERN_TEMPLATE % yes_rule_string),
