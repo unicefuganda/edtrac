@@ -212,41 +212,20 @@ class Poll(models.Model):
 
     @classmethod
     @transaction.commit_on_success
-    def create_with_bulk(cls, name, type, question, default_response, contacts, user,start_immediately=False):
-        localized_messages = {}
-        for language in dict(settings.LANGUAGES).keys():
-            if language == "en":
-                """default to English for contacts with no language preference"""
-                localized_contacts = contacts.filter(language__in=["en", ''])
-            else:
 
-                localized_contacts = contacts.filter(language=language)
-            if localized_contacts.exists():
-                if start_immediately:
-                    messages = Message.mass_text(gettext_db(field=question, language=language), Connection.objects.filter(contact__in=localized_contacts).distinct(), status='Q', batch_status='Q')
-                else:
-                    messages = Message.mass_text(gettext_db(field=question, language=language), Connection.objects.filter(contact__in=localized_contacts).distinct(), status='L', batch_status='L')
-                localized_messages[language] = [messages, localized_contacts]
+    def create_with_bulk(cls, name, type, question, default_response, contacts, user):
         poll = Poll.objects.create(name=name, type=type, question=question, default_response=default_response, user=user)
 
         # This is the fastest (pretty much only) was to get contacts and messages M2M into the
         # DB fast enough at scale
         cursor = connection.cursor()
-        for language in localized_messages.keys():
-            raw_sql = "insert into poll_poll_contacts (poll_id, contact_id) values %s" % ','.join(\
-                ["(%d, %d)" % (poll.pk, c.pk) for c in localized_messages.get(language)[1].iterator()])
-            cursor.execute(raw_sql)
-
-            raw_sql = "insert into poll_poll_messages (poll_id, message_id) values %s" % ','.join(\
-                ["(%d, %d)" % (poll.pk, m.pk) for m in localized_messages.get(language)[0].iterator()])
-            cursor.execute(raw_sql)
+        raw_sql = "insert into poll_poll_contacts (poll_id, contact_id) values %s" % ','.join(\
+            ["(%d, %d)" % (poll.pk, c.pk) for c in contacts])
+        cursor.execute(raw_sql)
 
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
             poll.sites.add(Site.objects.get_current())
-        if start_immediately:
-            poll.start_date = datetime.datetime.now()
-            poll.save()
-            poll_started.send(sender=poll)
+
         return poll
 
     def add_yesno_categories(self):
@@ -295,13 +274,31 @@ class Poll(models.Model):
         All incoming messages from these users will be considered as
         potentially a response to this poll.
         """
-        self.messages.update(status='P')
-        batches = self.messages.values_list('batch', flat=True).distinct()
-        MessageBatch.objects.filter(pk__in=batches).update(status='Q')
+        contacts = self.contacts
+        localized_messages = {}
+        for language in dict(settings.LANGUAGES).keys():
+            if language == "en":
+                """default to English for contacts with no language preference"""
+                localized_contacts = contacts.filter(language__in=["en", ''])
+            else:
+
+                localized_contacts = contacts.filter(language=language)
+            if localized_contacts.exists():
+                messages = Message.mass_text(gettext_db(field=self.question, language=language), Connection.objects.filter(contact__in=localized_contacts).distinct(), status='P', batch_status='Q')
+                localized_messages[language] = [messages, localized_contacts]
+
+        # This is the fastest (pretty much only) was to get messages M2M into the
+        # DB fast enough at scale
+        cursor = connection.cursor()
+        for language in localized_messages.keys():
+
+            raw_sql = "insert into poll_poll_messages (poll_id, message_id) values %s" % ','.join(\
+                ["(%d, %d)" % (self.pk, m.pk) for m in localized_messages.get(language)[0].iterator()])
+            cursor.execute(raw_sql)
+
         self.start_date = datetime.datetime.now()
         self.save()
         poll_started.send(sender=self)
-
 
     def end(self):
         self.end_date = datetime.datetime.now()
