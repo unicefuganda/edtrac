@@ -9,10 +9,15 @@ class App (AppBase):
     def handle (self, message):
 
         if message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_OUT_WORDS', ['quit'])]:
+
             # Delete existing Blacklist in case of profusely sending in 'Quit'
             Blacklist.objects.filter(connection=message.connection).delete()
+
             # create a Blacklist object
             Blacklist.objects.create(connection=message.connection)
+
+            # make sure that user is not in any existing progresses.
+            ScriptProgress.objects.filter(connection=message.connection).delete()
 
             if (message.connection.contact):
                 reporter = EmisReporter.objects.get(connection=message.connection)
