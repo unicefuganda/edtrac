@@ -163,6 +163,26 @@ def parse_fuzzy_number(command, value):
         else:
             return int(num)
 
+# rewrite of parse_fuzzy_number
+def parse_fuzzy_number_2(value):
+    fuzzy_number = re.compile('([0-9oOI]+)|(None)', re.IGNORECASE)
+    m = fuzzy_number.match(value)
+    if m:
+        num = value[m.start():m.end()]
+        try:
+            inder_lower = num.lower().index('None'.lower())
+            num[:inder_lower] + '0' + num[inder_lower + len('None'):]
+        except ValueError:
+            num = num.replace('o', 'O')
+            num = num.replace('O', '0')
+            num = num.replace('I', '1')
+        remaining = value[m.end():].strip()
+        if remaining:
+            if len(remaining) > 50:
+                remaining= "%s..." % remaining[:47]
+            raise ValidationError('You need to send a number. You sent %s. Please resend' % (remaining))
+        else:
+            return int(num)
 
 def edtrac_autoreg(**kwargs):
 

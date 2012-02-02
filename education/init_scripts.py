@@ -12,7 +12,7 @@ def init_structures():
     init_scripts()
 
 def init_groups():
-    for g in ['Teachers', 'Head Teachers', 'SMC', 'GEM', 'CCT', 'DEO', 'District Officials', 'Ministry Officials', 'UNICEF Officials', 'Other Reporters']:
+    for g in ['P3 Teachers', 'P6 Teachers', 'Teachers', 'Head Teachers', 'SMC', 'GEM', 'CCT', 'DEO', 'District Officials', 'Ministry Officials', 'UNICEF Officials', 'Other Reporters']:
         Group.objects.get_or_create(name=g)
 
 def init_autoreg():
