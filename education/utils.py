@@ -163,6 +163,7 @@ def _schedule_termly_script(group, connection, script_slug, role_names, date=Non
         connections = Connection.objects.filter(contact__in=Group.objects.get(name=group.name).contact_set.all())
         if connection in connections and ScriptProgress.objects.filter(connection__in=connections).exists():
             return
+        
         else:
             d = d if d else _next_midterm()
             sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
