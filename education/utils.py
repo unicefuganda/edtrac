@@ -133,16 +133,25 @@ def _next_midterm():
 
 def _schedule_weekly_scripts(group, connection, grps):
     if group.name in grps:
-        script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'   
-        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-        d = _next_thursday(sp)    
-        sp.set_time(d)
+        script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
+        connections = Connection.objects.filter(contact__in=Group.objects.get(name=group.name).contact_set.all())
+        if connection in connnections and ScriptProgress.objects.filter(connection__in=connections).exists():
+            return
+        else:
+            sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
+            d = _next_thursday(sp)
+            sp.set_time(d)
     
 def _schedule_monthly_script(group, connection, script_slug, day_offset, role_names):
     if group.name in role_names:
-        d = _date_of_monthday(day_offset)
-        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-        sp.set_time(d)
+        connections = Connection.objects.filter(contact__in=Group.objects.get(name=group.name).contact_set.all())
+        if connection in connections and ScriptProgress.objects.filter(connection__in=connections).exists():
+            # leave the user in this group (progress will continue)
+            return
+        else:
+            d = _date_of_monthday(day_offset)
+            sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
+            sp.set_time(d)
 
 def _schedule_termly_script(group, connection, script_slug, role_names, date=None):
     d = None
@@ -151,9 +160,13 @@ def _schedule_termly_script(group, connection, script_slug, role_names, date=Non
         dl = date.split('-')
         d = datetime.datetime(int(dl[0]), int(dl[1]), int(dl[2]), now.hour, now.minute, now.second, now.microsecond)
     if group.name in role_names:
-        d = d if d else _next_midterm()
-        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-        sp.set_time(d)
+        connections = Connection.objects.filter(contact__in=Group.objects.get(name=group.name).contact_set.all())
+        if connection in connections and ScriptProgress.objects.filter(connection__in=connections).exists():
+            return
+        else:
+            d = d if d else _next_midterm()
+            sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
+            sp.set_time(d)
 
 def compute_total(chunkit):
     # function takes in a list of tuples (school_name,value) ---> all grades p1 to p7

@@ -16,19 +16,17 @@ class App (AppBase):
             # create a Blacklist object
             Blacklist.objects.create(connection=message.connection)
 
-            # make sure that user is not in any existing progresses.
-            ScriptProgress.objects.filter(connection=message.connection).delete()
-
             if (message.connection.contact):
                 reporter = EmisReporter.objects.get(connection=message.connection)
                 message.connection.contact.active = False
                 message.connection.contact.save()
                 reporter.active = False
                 reporter.save()
-            message.respond(getattr(settings, 'OPT_OUT_CONFIRMATION', 'Thank you for your contribution to eduTrac. To rejoin the system, send join to 6200'))
+            message.respond(getattr(settings, 'OPT_OUT_CONFIRMATION', 'Thank you for your contribution to EduTrac. To rejoin the system, send join to 6200'))
             return True
 
         elif message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', ['join'])]:
+
             # check if incoming connection is Blacklisted (previously quit)
             if Blacklist.objects.filter(connection=message.connection).exists():
                 Blacklist.objects.filter(connection=message.connection).delete()
