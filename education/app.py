@@ -9,21 +9,21 @@ class App (AppBase):
     def handle (self, message):
 
         if message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_OUT_WORDS', ['quit'])]:
+            if Blacklist.objects.filter(connection=message.connection).exists():
+                message.respond('You cannot send Quit to 6200 (EduTrac) more than once.')
+                return
+            else:
+                # create a Blacklist object
+                Blacklist.objects.create(connection=message.connection)
 
-            # Delete existing Blacklist in case of profusely sending in 'Quit'
-            Blacklist.objects.filter(connection=message.connection).delete()
-
-            # create a Blacklist object
-            Blacklist.objects.create(connection=message.connection)
-
-            if (message.connection.contact):
-                reporter = EmisReporter.objects.get(connection=message.connection)
-                message.connection.contact.active = False
-                message.connection.contact.save()
-                reporter.active = False
-                reporter.save()
-            message.respond(getattr(settings, 'OPT_OUT_CONFIRMATION', 'Thank you for your contribution to EduTrac. To rejoin the system, send join to 6200'))
-            return True
+                if (message.connection.contact):
+                    reporter = EmisReporter.objects.get(connection=message.connection)
+                    message.connection.contact.active = False
+                    message.connection.contact.save()
+                    reporter.active = False
+                    reporter.save()
+                message.respond(getattr(settings, 'OPT_OUT_CONFIRMATION', 'Thank you for your contribution to EduTrac. To rejoin the system, send join to 6200'))
+                return True
 
         elif message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', ['join'])]:
 

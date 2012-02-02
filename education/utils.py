@@ -135,7 +135,7 @@ def _schedule_weekly_scripts(group, connection, grps):
     if group.name in grps:
         script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
         connections = Connection.objects.filter(contact__in=Group.objects.get(name=group.name).contact_set.all())
-        if connection in connnections and ScriptProgress.objects.filter(connection__in=connections).exists():
+        if connection in connections and ScriptProgress.objects.filter(connection__in=connections).exists():
             return
         else:
             sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
