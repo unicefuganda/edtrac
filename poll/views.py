@@ -98,54 +98,40 @@ def new_poll(req):
             question = form.cleaned_data['question']
             default_response = form.cleaned_data['default_response']
             contacts = form.cleaned_data['contacts']
-            #groups = []
             if hasattr(Contact, 'groups'):
                 groups = form.cleaned_data['groups']
-#                if len(groups):
-#                    groups = [group.pk for group in groups]
-
             contacts = Contact.objects.filter(Q(pk__in=contacts) | Q(groups__in=groups)).distinct()
 
             name = form.cleaned_data['name']
             p_type = form.cleaned_data['type']
-#            if len(contacts):
-#                contacts = list(contacts.values_list('pk', flat=True))
-#            else:
-#                contacts = []
-            response_type = form.cleaned_data['response_type']
-            if not form.cleaned_data['default_response_luo'] == '' \
-                and not form.cleaned_data['default_response'] == '':
-                (translation, created) = \
-                    Translation.objects.get_or_create(language='ach',
-                        field=form.cleaned_data['default_response'],
-                        value=form.cleaned_data['default_response_luo'])
 
-            if not form.cleaned_data['question_luo'] == '':
-                (translation, created) = \
-                    Translation.objects.get_or_create(language='ach',
-                        field=form.cleaned_data['question'],
-                        value=form.cleaned_data['question_luo'])
+            response_type = form.cleaned_data['response_type']
+
+            if  getattr(settings,"LANGUAGES",None):
+                langs=dict(settings.LANGUAGES)
+                
+                for language in dict(settings.LANGUAGES).keys():
+                    if not language =="en":
+                        int_default_response ='default_response_%s'%langs[language]
+                        int_question='question_%s'%langs[language]
+                        if not form.cleaned_data[int_default_response] == '' \
+                            and not form.cleaned_data['default_response'] == '':
+                            (translation, created) = \
+                                Translation.objects.get_or_create(language=language,
+                                    field=form.cleaned_data['default_response'],
+                                    value=form.cleaned_data[int_default_response])
+
+                        if not form.cleaned_data[int_question] == '':
+                            (translation, created) = \
+                                Translation.objects.get_or_create(language=language,
+                                    field=form.cleaned_data['question'],
+                                    value=form.cleaned_data[int_question])
 
             poll_type = (Poll.TYPE_TEXT if p_type
                          == NewPollForm.TYPE_YES_NO else p_type)
 
             start_immediately = form.cleaned_data['start_immediately']
 
-#            # run poll creation as a daemon process to avoid nginx timing out
-#
-#            args = "['nohup', 'python', 'manage.py' ,'send_poll', '-n', '%s', '-t', '%s', '-q' ,'%s','-r', '%s','-c', '\"%s\"', '-u', '%s','-s', '%s','-e', '%s','-g', '\"%s\"','&']"% (
-#                quote(name),
-#                poll_type,
-#                quote(question),
-#                quote(str(default_response)),
-#                str(contacts),
-#                req.user.pk,
-#                start_immediately,
-#                response_type,
-#                str(groups)
-#                )
-#            subprocess.Popen(eval(args))
-            
             poll = Poll.create_with_bulk(\
                                  name,
                                  poll_type,

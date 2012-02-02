@@ -6,6 +6,7 @@ from rapidsms.models import Contact
 from django.forms.widgets import RadioSelect
 
 import re
+from django.conf import settings
 
 class NewPollForm(forms.Form): # pragma: no cover
 
@@ -23,9 +24,7 @@ class NewPollForm(forms.Form): # pragma: no cover
 
     name = forms.CharField(max_length=32, required=True)
     question = forms.CharField(max_length=160, required=True, widget=forms.Textarea())
-    question_luo = forms.CharField(max_length=160, required=False, widget=forms.Textarea())
     default_response = forms.CharField(max_length=160, required=False, widget=forms.Textarea())
-    default_response_luo = forms.CharField(max_length=160, required=False, widget=forms.Textarea())
     start_immediately = forms.BooleanField(required=False)
     contacts = forms.ModelMultipleChoiceField(queryset=Contact.objects.all(), required=False)
 
@@ -39,6 +38,14 @@ class NewPollForm(forms.Form): # pragma: no cover
             forms.Form.__init__(self, **kwargs)
         if hasattr(Contact, 'groups'):
             self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.all(), required=False)
+        #add translation fields for other languages
+        if  getattr(settings,"LANGUAGES",None):
+            for language in dict(settings.LANGUAGES).values():
+                if not language.lower() == "english":
+                    self.fields['default_response_'+language] = forms.CharField(max_length=160, required=False, widget=forms.Textarea())
+                    self.fields['question_'+language] = forms.CharField(max_length=160, required=False, widget=forms.Textarea())
+
+
 
     def clean(self):
         cleaned_data = self.cleaned_data
