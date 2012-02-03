@@ -1,2 +1,2 @@
 * * * * * root /var/www/env/prod/bin/python /var/www/prod/edtrac/edtrac_project/manage.py check_script_progress -e 8 -l 19
-
+#* 15 * * 4 root /var/www/env/prod/bin/python /var/www/prod/edtrac/edtrac_project/manage.py send_report -h 15
