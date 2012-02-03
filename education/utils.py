@@ -74,6 +74,30 @@ def _next_thursday(sp=None):
         if in_holiday:
             d = d + datetime.timedelta(7)
     return d
+
+def _next_wednesday():
+    """
+    Next Wednesday is the very next Wednesday of the week which is not a school holiday
+    """
+    holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
+    day = datetime.datetime.now()
+    day = day + datetime.timedelta((2 - day.weekday()) % 7)
+    in_holiday = True
+    while in_holiday:
+        in_holiday = False
+        for start, end in holidays:
+            if day >= start and d <= end:
+                in_holiday = True
+                break
+        if in_holiday:
+            day = day + datetime.timedelta(7)
+    return day
+
+def _is_wednesday():
+    pass
+
+def _send_out_report():
+    return _next_wednesday()
     
 def _date_of_monthday(day_offset):
     

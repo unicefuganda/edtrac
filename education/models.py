@@ -7,7 +7,7 @@ from script.models import *
 from rapidsms.contrib.locations.models import Location
 from rapidsms_xforms.models import XFormField, XForm, XFormSubmission, dl_distance, xform_received
 from script.utils.handling import find_best_response, find_closest_match
-from education.utils import _schedule_weekly_scripts, _schedule_monthly_script, _schedule_termly_script
+from education.utils import _schedule_weekly_scripts, _schedule_monthly_script, _schedule_termly_script, _send_out_report
 import re
 import calendar
 from django.conf import settings
@@ -359,7 +359,7 @@ def edtrac_autoreg_transition(**kwargs):
 
 
 def edtrac_attendance_script_transition(**kwargs):
-
+    #import pdb; pdb.set_trace()
     connection = kwargs['connection']
     progress = kwargs['sender']
     if not progress.script.slug == 'edtrac_teachers_weekly':
@@ -473,6 +473,15 @@ def reschedule_termly_polls(grp = 'all', date=None):
         for rep in reps:
             if rep.default_connection and rep.groups.count() > 0:
                 _schedule_termly_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers', 'SMC'], date)
+
+
+def send_report(grp = 'DEO'):
+    """
+    Send report on a particular date to a particular group
+    """
+    grp = Group.objects.get(name=grp)
+    _send_out_report(grp=grp)
+
 
 
 Poll.register_poll_type('date', 'Date Response', parse_date_value, db_type=Attribute.TYPE_OBJECT)

@@ -29,8 +29,9 @@ import difflib
 
 
 class ModelTest(TestCase): #pragma: no cover
-    
+
     def fake_incoming(self, message, connection=None):
+        import pdb; pdb.set_trace()
         if connection is None:
             connection = self.connection
         router = get_router()
