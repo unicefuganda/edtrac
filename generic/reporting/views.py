@@ -48,6 +48,12 @@ class ChartView(View):
         return self.chart_yaxis
 
     def get_group_by(self, start_date, end_date):
+        # The two if statements that follow are just for cases where start_date and end-date are missing
+        if not end_date:
+            end_date = datetime.datetime.now() - datetime.timedelta(days=13)
+            end_date = datetime.datetime(end_date.year, end_date.month, end_date.day)
+        if not start_date:
+            start_date = end_date - datetime.timedelta(days=79)
         interval = end_date - start_date
         if interval <= datetime.timedelta(days=21):
             group_by = GROUP_BY_DAY
