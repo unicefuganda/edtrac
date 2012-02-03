@@ -28,8 +28,8 @@ sys.path.append(os.path.join(filedir, 'rapidsms_geoserver'))
 # -------------------------------------------------------------------- #
 TIME_ZONE = "Africa/Kampala"
 ACTIVATION_CODE = '+START'
-OPT_IN_WORDS = ['join']
-OPT_OUT_WORDS = ['quit']
+OPT_IN_WORDS = ['join', 'joim']
+OPT_OUT_WORDS = ['quit', 'quite']
 OPT_OUT_MESSAGE = 'You have just quit.If you want to re-register,or register to a new location,please send the word JOIN to 6767.'
 
 # map bounding box
