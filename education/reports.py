@@ -628,6 +628,14 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
     else:
         return sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.all()]))
 
+def get_sum_of_poll_response_past_week(poll_queryset, **kwargs):
+    # get the sum, find its total; add up values excluding NoneTypes
+    # keep kwargs = {'location': 'some name'}
+    sum_of_this_poll = sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.filter(
+        contact__in = Contact.objects.filter(reporting__location=Location.objects.filter(type="district").\
+            get(name=kwargs.get('location')))
+    )]))
+
 
 def _generate_deo_report(location_name=None):
     if location_name is None:
@@ -642,6 +650,11 @@ def _generate_deo_report(location_name=None):
             location=location_name, weeks=1)
         attendance_girlsp6 = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_attendance"),\
             location = location_name, weeks=1)
+        #TODO curriculum progress
+        return {
+            'P3 pupils' : attendance_boysp3 + attendance_girlsp3,
+            'P6 pupils' : attendance_boysp6 + attendance_girlsp6
+        }
 
 
 def get_count_response_to_polls(poll_queryset, **kwargs):
