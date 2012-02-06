@@ -7,7 +7,6 @@ from .models import EmisReporter
 class App (AppBase):
 
     def handle (self, message):
-
         if message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_OUT_WORDS', ['quit'])]:
             if Blacklist.objects.filter(connection=message.connection).exists():
                 message.respond('You cannot send Quit to 6200 (EduTrac) more than once.')

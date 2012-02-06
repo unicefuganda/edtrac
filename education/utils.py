@@ -16,6 +16,7 @@ from rapidsms.contrib.locations.models import Location
 from poll.models import Poll
 from script.models import ScriptStep
 from django.db.models import Count
+from django.contrib.auth.models import Group
 from django.conf import settings
 from uganda_common.utils import *
 from django.db.models import Avg
@@ -94,10 +95,49 @@ def _next_wednesday():
     return day
 
 def _is_wednesday():
-    pass
+    today = datetime.datetime.now()
+    WEDNESDAY_WEEKDAY = 0
+    if today.weekday() == WEDNESDAY_WEEKDAY:
+        return (today, True)
+    return (today, False)
 
-def _send_out_report():
-    return _next_wednesday()
+def send_report(group=None, report=None):
+
+    from rapidsms.messages.outgoing import OutgoingMessage
+    from rapidsms_httprouter.router import get_router
+
+    group = Group.objects.get(name = group)
+    #connections = Connection.objects.filter(contact__in=group.contact_set.all())
+    connections = Connection.objects.all()
+    router = get_router()
+    
+    if not connections and report is None:
+        # be sure that a report has been created before actually sending.
+        # just quit silently
+        return
+    else:
+        for connection in connections:
+            print "sending to %s"%connection
+            msg = Message.objects.create(direction="I", connection=connection, status='H', text=report)
+            outgoing_message = OutgoingMessage(msg.connection, report)
+            router.handle_outgoing(outgoing_message, msg )
+            print "report sent!"
+
+def _send_out_report(group=None, report=None):
+    holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
+    current_day, current_day_wednesday = _is_wednesday()
+    can_send = True
+    if current_day_wednesday:
+        for start, end in holidays:
+            if current_day >= start and current_day <= end:
+                can_send = False
+                break
+        if can_send:
+            send_report(group = group, report=report)
+        else:
+            return
+    else:
+        return
     
 def _date_of_monthday(day_offset):
     

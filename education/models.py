@@ -475,14 +475,11 @@ def reschedule_termly_polls(grp = 'all', date=None):
                 _schedule_termly_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers', 'SMC'], date)
 
 
-def send_report(grp = 'DEO'):
+def send_report(group = 'Teachers'):
     """
     Send report on a particular date to a particular group
     """
-    grp = Group.objects.get(name=grp)
-    _send_out_report(grp=grp)
-
-
+    _send_out_report(group = group)
 
 Poll.register_poll_type('date', 'Date Response', parse_date_value, db_type=Attribute.TYPE_OBJECT)
 

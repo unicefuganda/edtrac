@@ -628,6 +628,14 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
     else:
         return sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.all()]))
 
+
+def _generate_deo_report(location_name=None):
+    if location_name is None:
+        return
+    else:
+        violence = get_sum_of_poll_response(Poll.objects.get(name="edtrac_abuse"), location=location_name, months=1)
+
+
 def get_count_response_to_polls(poll_queryset, **kwargs):
     if kwargs.has_key('month_filter') and kwargs.get('month_filter') and not kwargs.has_key('location') and kwargs.has_key('choices'):
         # when no location is provided { worst case scenario }
