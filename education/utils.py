@@ -110,7 +110,7 @@ def send_report(group=None, report=None):
     #connections = Connection.objects.filter(contact__in=group.contact_set.all())
     connections = Connection.objects.all()
     router = get_router()
-    
+
     if not connections and report is None:
         # be sure that a report has been created before actually sending.
         # just quit silently

@@ -633,7 +633,15 @@ def _generate_deo_report(location_name=None):
     if location_name is None:
         return
     else:
-        violence = get_sum_of_poll_response(Poll.objects.get(name="edtrac_abuse"), location=location_name, months=1)
+        attendance_boysp3 = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"),\
+            location=location_name, weeks=1)
+
+        attendance_boysp6 = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_attendance"),\
+            location=location_name, weeks=1)
+        attendance_girlsp3 = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_attendance"),\
+            location=location_name, weeks=1)
+        attendance_girlsp6 = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_attendance"),\
+            location = location_name, weeks=1)
 
 
 def get_count_response_to_polls(poll_queryset, **kwargs):
