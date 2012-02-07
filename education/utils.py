@@ -101,15 +101,14 @@ def _is_wednesday():
         return (today, True)
     return (today, False)
 
-def send_report(group=None):
-
+def send_report(group_name=None):
     from rapidsms.messages.outgoing import OutgoingMessage
     from rapidsms_httprouter.router import get_router
     from .models import EmisReporter
     from .reports import _generate_deo_report
 
     # find unique connections
-    all_connections = [(conn, er) for conn in set(er.connection_set.all()) for er in EmisReporter.objects.filter(groups=Group.objects.get(name=group))]
+    all_connections = Connection.objects.filter(contact__emisreporter__groups__name=group_name)
 
     router = get_router()
 
@@ -127,7 +126,7 @@ def send_report(group=None):
             router.handle_outgoing(outgoing_message, msg )
             print "report sent!"
 
-def _send_out_report(group=None, report=None):
+def _send_out_report(group_name=None, report=None):
     holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
     current_day, current_day_wednesday = _is_wednesday()
     can_send = True
@@ -137,7 +136,7 @@ def _send_out_report(group=None, report=None):
                 can_send = False
                 break
         if can_send:
-            send_report(group = group, report=report)
+            send_report(group_name = group_name, report=report)
         else:
             return
     else:
@@ -403,3 +402,26 @@ themes = {
     12.2: 'Ways of saving energy',
     12.3: 'Dangers of energy and ways of avoiding them'
 }
+
+
+## ref: http://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#Python
+
+def levenshtein(string1, string2):
+
+    if len(string1) < len(string2):
+        return levenshtein(string2, string1)
+
+    if not string1:
+        return len(string2)
+
+    previous_row = xrange(len(string2) + 1)
+    for i, c1 in enumerate(string1):
+        current_row = [i + 1]
+        for j, c2 in enumerate(string2):
+            insertions = previous_row[j + 1] + 1
+            deletions = current_row[j] + (c1 != c2)
+            substitutions = previous_row[j] + (c1 != c2)
+            current_row.append(min(insertions, deletions, substitutions))
+        previous_row = current_row
+
+    return previous_row[-1]

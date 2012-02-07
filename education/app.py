@@ -7,7 +7,10 @@ from .models import EmisReporter
 class App (AppBase):
 
     def handle (self, message):
-        if message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_OUT_WORDS', ['quit'])]:
+        from education.utils import levenshtein
+        if message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_OUT_WORDS', ['quit'])] or\
+            levenshtein(message.text.replace('.', '').strip().lower(), 'quit') < 3:
+
             if Blacklist.objects.filter(connection=message.connection).exists():
                 message.respond('You cannot send Quit to 6200 (EduTrac) more than once.')
                 return
@@ -24,7 +27,8 @@ class App (AppBase):
                 message.respond(getattr(settings, 'OPT_OUT_CONFIRMATION', 'Thank you for your contribution to EduTrac. To rejoin the system, send join to 6200'))
                 return True
 
-        elif message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', ['join'])]:
+        elif message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', ['join'])] or\
+            levenshtein(message.text.replace('.', '').strip().lower(), 'join') < 3:
 
             # check if incoming connection is Blacklisted (previously quit)
             if Blacklist.objects.filter(connection=message.connection).exists():

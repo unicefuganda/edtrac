@@ -648,31 +648,35 @@ def get_sum_of_poll_response_past_week(poll_queryset, **kwargs):
         sum_of_this_poll = sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.filter(
             date__range = get_week_date(number = weeks),
             contact__in =\
-            Contact.objects.filter(reporting__location=kwargs.get('location')))]))
+            Contact.objects.filter(reporting_location__name=kwargs.get('location_name').capitalize()))]))
 
         return sum_of_this_poll
     else:
         return # just quit
 
-def _generate_deo_report(location = None):
+def _generate_deo_report(location_name = None):
     if location is None:
         return
     else:
         attendance_boysp3 = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"),\
-            location=location, weeks=1)
+            location_name = location_name, weeks=1)
 
         attendance_boysp6 = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_attendance"),\
-            location=location, weeks=1)
+            location_name = location_name, weeks=1)
         attendance_girlsp3 = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_attendance"),\
-            location=location, weeks=1)
+            location_name = location_name, weeks=1)
         attendance_girlsp6 = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_attendance"),\
-            location = location, weeks=1)
+            location_name = location_name, weeks=1)
 
         #TODO curriculum progress
-        return {
-            'P3 pupils' : attendance_boysp3 + attendance_girlsp3,
-            'P6 pupils' : attendance_boysp6 + attendance_girlsp6
-        }
+        return (
+            Connection.objects.filter(contact__emisreporter__groups__name="DEO",\
+                contact__reporting_location = location_name),
+                {
+                    'P3 pupils' : attendance_boysp3 + attendance_girlsp3,
+                    'P6 pupils' : attendance_boysp6 + attendance_girlsp6
+                }
+            )
 
 
 def get_count_response_to_polls(poll_queryset, **kwargs):
