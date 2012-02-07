@@ -475,7 +475,7 @@ def reschedule_termly_polls(grp = 'all', date=None):
                 _schedule_termly_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers', 'SMC'], date)
 
 
-def send_report(group = 'Teachers'):
+def send_report(group = 'DEO'):
     """
     Send report on a particular date to a particular group
     """

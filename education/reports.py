@@ -537,6 +537,17 @@ def get_month_day_range(date, **kwargs):
             to_ret.append((first_day, last_day))
         return to_ret
 
+def get_week_date(number=None):
+
+    from dateutil.relativedelta import relativedelta
+    if number is not None:
+        now = datetime.datetime.now()
+        x = number * 7
+        before = now + relativedelta(day=1, days =- x) # remove 7 * number days
+        return [before, now]
+    return
+
+
 def get_sum_of_poll_response(poll_queryset, **kwargs):
     #TODO refactor name of method
     #TODO add poll_type to compute count of repsonses (i.e. how many YES' and Nos do exist)
@@ -631,25 +642,32 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
 def get_sum_of_poll_response_past_week(poll_queryset, **kwargs):
     # get the sum, find its total; add up values excluding NoneTypes
     # keep kwargs = {'location': 'some name'}
-    sum_of_this_poll = sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.filter(
-        contact__in = Contact.objects.filter(reporting__location=Location.objects.filter(type="district").\
-            get(name=kwargs.get('location')))
-    )]))
+    if kwargs:
 
+        weeks = kwargs.get('weeks')
+        sum_of_this_poll = sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.filter(
+            date__range = get_week_date(number = weeks),
+            contact__in =\
+            Contact.objects.filter(reporting__location=kwargs.get('location')))]))
 
-def _generate_deo_report(location_name=None):
-    if location_name is None:
+        return sum_of_this_poll
+    else:
+        return # just quit
+
+def _generate_deo_report(location = None):
+    if location is None:
         return
     else:
         attendance_boysp3 = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"),\
-            location=location_name, weeks=1)
+            location=location, weeks=1)
 
         attendance_boysp6 = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_attendance"),\
-            location=location_name, weeks=1)
+            location=location, weeks=1)
         attendance_girlsp3 = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_attendance"),\
-            location=location_name, weeks=1)
+            location=location, weeks=1)
         attendance_girlsp6 = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_attendance"),\
-            location = location_name, weeks=1)
+            location = location, weeks=1)
+
         #TODO curriculum progress
         return {
             'P3 pupils' : attendance_boysp3 + attendance_girlsp3,

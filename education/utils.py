@@ -101,22 +101,26 @@ def _is_wednesday():
         return (today, True)
     return (today, False)
 
-def send_report(group=None, report=None):
+def send_report(group=None):
 
     from rapidsms.messages.outgoing import OutgoingMessage
     from rapidsms_httprouter.router import get_router
+    from .models import EmisReporter
+    from .reports import _generate_deo_report
 
-    group = Group.objects.get(name = group)
-    #connections = Connection.objects.filter(contact__in=group.contact_set.all())
-    connections = Connection.objects.all()
+    # find unique connections
+    all_connections = [(conn, er) for conn in set(er.connection_set.all()) for er in EmisReporter.objects.filter(groups=Group.objects.get(name=group))]
+
     router = get_router()
 
-    if not connections and report is None:
+    if not all_connections and report is None:
         # be sure that a report has been created before actually sending.
         # just quit silently
         return
     else:
-        for connection in connections:
+        for connection, emis_reporter in all_connections:
+            # compile a report
+            report = _generate_deo_report(location=er.reporting_location)
             print "sending to %s"%connection
             msg = Message.objects.create(direction="I", connection=connection, status='H', text=report)
             outgoing_message = OutgoingMessage(msg.connection, report)
