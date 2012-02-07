@@ -101,7 +101,7 @@ def _is_wednesday():
         return (today, True)
     return (today, False)
 
-def send_report(connections=None):
+def send_report(connections=None, report=None):
     from rapidsms.messages.outgoing import OutgoingMessage
     from rapidsms_httprouter.router import get_router
 
@@ -115,18 +115,14 @@ def send_report(connections=None):
         # just quit silently
         return
     else:
-        for connection, emis_reporter in connections:
-            # compile a report
-            report = _generate_deo_report(location=er.reporting_location)
+        for connection in connections:
             print "sending to %s"%connection
-            attendance_template = "%s% of %s% were absent this week. Attendance for %s is %s %s than it was last week"
-            literacy_template = "An average of %s of %s covered"
             msg = Message.objects.create(direction="I", connection=connection, status='H', text=report)
             outgoing_message = OutgoingMessage(msg.connection, report)
             router.handle_outgoing(outgoing_message, msg )
             print "report sent!"
 
-def _send_out_report(connections=None, report=None):
+def _send_out_report():
     holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
     current_day, current_day_wednesday = _is_wednesday()
     can_send = True
@@ -140,9 +136,16 @@ def _send_out_report(connections=None, report=None):
             from .models import EmisReporter
             all_repoters = EmisReporter.objects.filter(groups__name="DEO")
             for reporter in all_repoters:
+
                 deo_report_connections, deo_report = _generate_deo_report(location_name=reporter.reporting_location__name)
-                for report in deo_report.values():
-                    send_report(connections = deo_report_connections, report=report)
+                attendance_template = "%s% of %s% were absent this week. Attendance is %s %s than it was last week"
+                literacy_template = "An average of %s of %s covered"
+
+                for key, report in deo_report.items():
+                    if 'pupils' in key.split():
+                        send_report(connections = deo_report_connections, report= attendance_template % report)
+                    elif 'progress' in key.split():
+                        send_report(connections = deo_report_connections, report = literacy_template % report)
         else:
             return
     else:
