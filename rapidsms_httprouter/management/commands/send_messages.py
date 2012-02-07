@@ -68,7 +68,7 @@ class Command(BaseCommand, LoggerMixin):
 
 
     def send_backend_chunk(self, router_url, pks, backend_name):
-        msgs = Message.objects.using(self.db).filter(pk__in=pks)
+        msgs = Message.objects.using(self.db).filter(pk__in=pks).exclude(connection__identity__iregex="[a-z]")
         try:
             url = self.build_send_url(router_url, backend_name, ' '.join(msgs.values_list('connection__identity', flat=True)), msgs[0].text)
             status_code = self.fetch_url(url)
