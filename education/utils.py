@@ -101,32 +101,32 @@ def _is_wednesday():
         return (today, True)
     return (today, False)
 
-def send_report(group_name=None):
+def send_report(connections=None):
     from rapidsms.messages.outgoing import OutgoingMessage
     from rapidsms_httprouter.router import get_router
-    from .models import EmisReporter
-    from .reports import _generate_deo_report
+
 
     # find unique connections
-    all_connections = Connection.objects.filter(contact__emisreporter__groups__name=group_name)
 
     router = get_router()
 
-    if not all_connections and report is None:
+    if not connections and report is None:
         # be sure that a report has been created before actually sending.
         # just quit silently
         return
     else:
-        for connection, emis_reporter in all_connections:
+        for connection, emis_reporter in connections:
             # compile a report
             report = _generate_deo_report(location=er.reporting_location)
             print "sending to %s"%connection
+            attendance_template = "%s% of %s% were absent this week. Attendance for %s is %s %s than it was last week"
+            literacy_template = "An average of %s of %s covered"
             msg = Message.objects.create(direction="I", connection=connection, status='H', text=report)
             outgoing_message = OutgoingMessage(msg.connection, report)
             router.handle_outgoing(outgoing_message, msg )
             print "report sent!"
 
-def _send_out_report(group_name=None, report=None):
+def _send_out_report(connections=None, report=None):
     holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
     current_day, current_day_wednesday = _is_wednesday()
     can_send = True
@@ -136,7 +136,13 @@ def _send_out_report(group_name=None, report=None):
                 can_send = False
                 break
         if can_send:
-            send_report(group_name = group_name, report=report)
+            from .reports import _generate_deo_report
+            from .models import EmisReporter
+            all_repoters = EmisReporter.objects.filter(groups__name="DEO")
+            for reporter in all_repoters:
+                deo_report_connections, deo_report = _generate_deo_report(location_name=reporter.reporting_location__name)
+                for report in deo_report.values():
+                    send_report(connections = deo_report_connections, report=report)
         else:
             return
     else:
