@@ -200,7 +200,7 @@ def edtrac_autoreg(**kwargs):
     subcounty_poll = script.steps.get(poll__name='edtrac_subcounty').poll
     school_poll = script.steps.get(poll__name='edtrac_school').poll
     name_poll = script.steps.get(poll__name='edtrac_name').poll
-    
+
     name = find_best_response(session, name_poll)
     role = find_best_response(session, role_poll)
     gender = find_best_response(session, gender_poll)
@@ -218,12 +218,14 @@ def edtrac_autoreg(**kwargs):
     grp = find_closest_match(role, Group.objects)
     grp = grp if grp else default_group
 
-    if subcounty:
-        rep_location = subcounty
-    elif district:
+    if district:
+        # district preferred
         rep_location = district
+    elif subcounty:
+        rep_location = subcounty
     else:
         rep_location = Location.tree.root_nodes()[0]
+
     try:
         contact = connection.contact or EmisReporter.objects.get(name=name, \
                                       reporting_location=rep_location, \
@@ -359,7 +361,7 @@ def edtrac_autoreg_transition(**kwargs):
 
 
 def edtrac_attendance_script_transition(**kwargs):
-    #import pdb; pdb.set_trace()
+
     connection = kwargs['connection']
     progress = kwargs['sender']
     if not progress.script.slug == 'edtrac_teachers_weekly':

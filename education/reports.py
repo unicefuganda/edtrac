@@ -642,19 +642,20 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
 def get_sum_of_poll_response_past_week(poll_queryset, **kwargs):
     # get the sum, find its total; add up values excluding NoneTypes
     # keep kwargs = {'location': 'some name'}
+
     if kwargs:
         first_quota, second_quota = get_week_date(number=kwargs.get('weeks'))
 
         sum_of_poll_responses_week_before = sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.filter(
             date__range = first_quota,
             contact__in =\
-                Contact.objects.filter(reporting_location=Location.objects.filter(type="district").get(name__icontains=\
+                Contact.objects.filter(reporting_location=Location.objects.exclude(type="country").get(name__icontains=\
                     kwargs.get('location_name'))))]))
 
         sum_of_poll_responses_past_week = sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.\
         filter(date__range = second_quota,
                 contact__in =\
-                Contact.objects.filter(reporting_location=Location.objects.filter(type="district").\
+                Contact.objects.filter(reporting_location=Location.objects.exclude(type="country").\
                     get(name__icontains=kwargs.get('location_name'))))]))
 
         return sum_of_poll_responses_past_week, sum_of_poll_responses_week_before
@@ -663,9 +664,29 @@ def get_sum_of_poll_response_past_week(poll_queryset, **kwargs):
 
 def generate_deo_report(location_name = None):
     from rapidsms.models import Connection
+    import pdb; pdb.set_trace()
     if location_name is None:
         return
     else:
+
+        try:
+            # attempt to get a district if the location is not of district type.
+            all_locations = Location.objects.filter(name=location_name) # locations with similar name
+            if len(all_locations) > 1:
+                for loc in all_locations.exclude(type="country"):
+                    if loc.type == 'district':
+                        location = loc
+                        break
+                    else:
+                        # probably a county, subcounty or village by the same name as district
+                        loc_ancestors = loc.get_ancestors()
+                        location = [l for l in loc_ancestors if l.type == 'district'][0] # pick off a district
+                        break
+            else:
+                location = all_locations[0]
+        except DoesNotExist:
+            return #quit
+
         attendance_boysp3 = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"),\
             location_name = location_name, weeks=1)
 
@@ -676,10 +697,12 @@ def generate_deo_report(location_name = None):
         attendance_girlsp6 = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_attendance"),\
             location_name = location_name, weeks=1)
 
+
+
         #TODO curriculum progress
         return (
             Connection.objects.filter(contact__emisreporter__groups__name="DEO",\
-                contact__reporting_location = Location.objects.filter(type="district").get(name=location_name)),
+                contact__reporting_location = location), # we are sure that the contact for the DEO will be retrieved
                 {
                     'P3 pupils' : attendance_boysp3 + attendance_girlsp3,
                     'P6 pupils' : attendance_boysp6 + attendance_girlsp6
