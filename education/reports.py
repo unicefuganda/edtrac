@@ -697,6 +697,9 @@ def generate_deo_report(location_name = None):
     girls_p6_enrollment = Poll.objects.get(name="edtrac_girlsp6_enrollment").responses.filter(contact__reporting_location__in=\
         Location.objects.filter(name=location_name).distinct())
 
+    p3_enrollment = boys_p3_enrollment + girls_p3_enrollment
+    p6_enrollment = boys_p6_enrollment + girls_p6_enrollment
+
 
     attendance_boysp3_past_week, attendance_boysp3_week_before = get_sum_of_poll_response_past_week(Poll.objects.get(name=\
         "edtrac_boysp3_attendance"), location_name = location_name, weeks=1)
@@ -718,12 +721,12 @@ def generate_deo_report(location_name = None):
             contact__reporting_location = location), # we are sure that the contact for the DEO will be retrieved
             (
                 {
-                    'P3 pupils' : attendance_boysp3_past_week + attendance_girlsp3_past_week,
-                    'P6 pupils' : attendance_boysp6_past_week + attendance_girlsp6_past_week
+                    'P3 pupils' : p3_enrollment - (attendance_boysp3_past_week + attendance_girlsp3_past_week),
+                    'P6 pupils' : p6_enrollment - (attendance_boysp6_past_week + attendance_girlsp6_past_week)
                 },
                 {
-                    'P3 pupils' : attendance_boysp3_week_before + attendance_girlsp3_past_week,
-                    'P6 pupils' : attendance_boysp6_week_before + attendance_girlsp6_past_week
+                    'P3 pupils' : p3_enrollment - (attendance_boysp3_week_before + attendance_girlsp3_past_week),
+                    'P6 pupils' : p6_enrollment - (attendance_boysp6_week_before + attendance_girlsp6_past_week)
                 }
             )
         )
