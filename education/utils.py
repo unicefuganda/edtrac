@@ -138,10 +138,13 @@ def send_out_report():
             for reporter in all_repoters:
 
                 deo_report_connections, deo_report = generate_deo_report(location_name=reporter.reporting_location__name)
-                attendance_template = "%s% of %s% were absent this week. Attendance is %s %s than it was last week"
+                #attendance_template = "%s% of %s% were absent this week. Attendance is %s %s than it was last week"
+                attendance_template = "%s% were absent this week."
                 literacy_template = "An average of %s of %s covered"
+                import pdb; pdb.set_trace()
 
-                for key, report in deo_report.items():
+                for current_week, previous_week in deo_report:
+
                     if 'pupils' in key.split():
                         send_report(connections = deo_report_connections, report= attendance_template % report)
                     elif 'progress' in key.split():

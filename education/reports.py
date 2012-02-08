@@ -653,7 +653,7 @@ def get_sum_of_poll_response_past_week(poll_queryset, **kwargs):
                     kwargs.get('location_name'))))]))
 
         sum_of_poll_responses_past_week = sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.\
-        filter(date__range = second_quota,
+            filter(date__range = second_quota,
                 contact__in =\
                 Contact.objects.filter(reporting_location=Location.objects.exclude(type="country").\
                     get(name__icontains=kwargs.get('location_name'))))]))
@@ -664,7 +664,7 @@ def get_sum_of_poll_response_past_week(poll_queryset, **kwargs):
 
 def generate_deo_report(location_name = None):
     from rapidsms.models import Connection
-    
+
     if location_name is None:
         return
     else:
@@ -685,18 +685,30 @@ def generate_deo_report(location_name = None):
                 location = all_locations[0]
         except DoesNotExist:
             return #quit
+    boys_p3_enrollment = Poll.objects.get(name="edtrac_p3_enrollment").responses.filter(contact__reporting_location__in=\
+        Location.objects.filter(name=location_name).distinct())
 
-    attendance_boysp3_past_week, attendance_boysp3_week_before = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"),\
-        location_name = location_name, weeks=1)
+    boys_p6_enrollment = Poll.objects.get(name="edtrac_p6_enrollment").responses.filter(contact__reporting_location__in=\
+        Location.objects.filter(name=location_name).distinct())
 
-    attendance_boysp6_past_week, attendance_boysp6_week_before = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_attendance"),\
-        location_name = location_name, weeks=1)
+    girls_p3_enrollment = Poll.objects.get(name="edtrac_girlsp3_enrollment").responses.filter(contact__reporting_location__in=\
+        Location.objects.filter(name=location_name).distinct())
 
-    attendance_girlsp3_past_week, attendance_girlsp3_week_before = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_attendance"),\
-        location_name = location_name, weeks=1)
+    girls_p6_enrollment = Poll.objects.get(name="edtrac_girlsp6_enrollment").responses.filter(contact__reporting_location__in=\
+        Location.objects.filter(name=location_name).distinct())
 
-    attendance_girlsp6_past_week, attendance_girlsp6_week_before = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_attendance"),\
-        location_name = location_name, weeks=1)
+
+    attendance_boysp3_past_week, attendance_boysp3_week_before = get_sum_of_poll_response_past_week(Poll.objects.get(name=\
+        "edtrac_boysp3_attendance"), location_name = location_name, weeks=1)
+
+    attendance_boysp6_past_week, attendance_boysp6_week_before = get_sum_of_poll_response_past_week(Poll.objects.get(name=\
+        "edtrac_boysp6_attendance"), location_name = location_name, weeks=1)
+
+    attendance_girlsp3_past_week, attendance_girlsp3_week_before = get_sum_of_poll_response_past_week(Poll.objects.get(name=\
+        "edtrac_girlsp3_attendance"), location_name = location_name, weeks=1)
+
+    attendance_girlsp6_past_week, attendance_girlsp6_week_before = get_sum_of_poll_response_past_week(Poll.objects.get(name=\
+        "edtrac_girlsp6_attendance"), location_name = location_name, weeks=1)
 
 
 
@@ -704,14 +716,16 @@ def generate_deo_report(location_name = None):
     return (
         Connection.objects.filter(contact__emisreporter__groups__name="DEO",\
             contact__reporting_location = location), # we are sure that the contact for the DEO will be retrieved
-        {
-            'P3 pupils' : attendance_boysp3_past_week + attendance_girlsp3_past_week,
-            'P6 pupils' : attendance_boysp6_past_week + attendance_girlsp6_past_week
-        },
-        {
-            'P3 pupils' : attendance_boysp3_week_before + attendance_girlsp3_past_week,
-            'P6 pupils' : attendance_boysp6_week_before + attendance_girlsp6_past_week
-        }
+            (
+                {
+                    'P3 pupils' : attendance_boysp3_past_week + attendance_girlsp3_past_week,
+                    'P6 pupils' : attendance_boysp6_past_week + attendance_girlsp6_past_week
+                },
+                {
+                    'P3 pupils' : attendance_boysp3_week_before + attendance_girlsp3_past_week,
+                    'P6 pupils' : attendance_boysp6_week_before + attendance_girlsp6_past_week
+                }
+            )
         )
 
 def get_count_response_to_polls(poll_queryset, **kwargs):
