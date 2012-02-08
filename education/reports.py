@@ -538,13 +538,13 @@ def get_month_day_range(date, **kwargs):
         return to_ret
 
 def get_week_date(number=None):
-
+    #TODO: scope out how well to get ``number`` generic
     from dateutil.relativedelta import relativedelta
     if number is not None:
         now = datetime.datetime.now()
-        x = number * 7
-        before = now + relativedelta(day=1, days =- x) # remove 7 * number days
-        return [before, now]
+        current_week_before_date = now + relativedelta(day=1, days =- number*7)
+        past_week_before_date = current_week_before_date + relativedelta(day=1, days =- 7)
+        return ([past_week_before_date, current_week_before_date], [current_week_before_date, now])
     return
 
 
@@ -643,19 +643,27 @@ def get_sum_of_poll_response_past_week(poll_queryset, **kwargs):
     # get the sum, find its total; add up values excluding NoneTypes
     # keep kwargs = {'location': 'some name'}
     if kwargs:
+        first_quota, second_quota = get_week_date(number=kwargs.get('weeks'))
 
-        weeks = kwargs.get('weeks')
-        sum_of_this_poll = sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.filter(
-            date__range = get_week_date(number = weeks),
+        sum_of_poll_responses_week_before = sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.filter(
+            date__range = first_quota,
             contact__in =\
-            Contact.objects.filter(reporting_location__name=kwargs.get('location_name').capitalize()))]))
+                Contact.objects.filter(reporting_location=Location.objects.filter(type="district").get(name__icontains=\
+                    kwargs.get('location_name'))))]))
 
-        return sum_of_this_poll
+        sum_of_poll_responses_past_week = sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.\
+        filter(date__range = second_quota,
+                contact__in =\
+                Contact.objects.filter(reporting_location=Location.objects.filter(type="district").\
+                    get(name__icontains=kwargs.get('location_name'))))]))
+
+        return sum_of_poll_responses_past_week, sum_of_poll_responses_week_before
     else:
         return # just quit
 
-def _generate_deo_report(location_name = None):
-    if location is None:
+def generate_deo_report(location_name = None):
+    from rapidsms.models import Connection
+    if location_name is None:
         return
     else:
         attendance_boysp3 = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"),\
@@ -671,13 +679,12 @@ def _generate_deo_report(location_name = None):
         #TODO curriculum progress
         return (
             Connection.objects.filter(contact__emisreporter__groups__name="DEO",\
-                contact__reporting_location = location_name),
+                contact__reporting_location = Location.objects.filter(type="district").get(name=location_name)),
                 {
                     'P3 pupils' : attendance_boysp3 + attendance_girlsp3,
                     'P6 pupils' : attendance_boysp6 + attendance_girlsp6
                 }
             )
-
 
 def get_count_response_to_polls(poll_queryset, **kwargs):
     if kwargs.has_key('month_filter') and kwargs.get('month_filter') and not kwargs.has_key('location') and kwargs.has_key('choices'):

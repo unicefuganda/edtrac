@@ -17,12 +17,13 @@ def fake_incoming_message(message, connection):
     return incomingmessage
 
 def fake_poll_responses(poll_tuple, grp):
+
     yesno_resp = ['yes', 'no']
     text_resp = ['0%', '25%', '50%', '75%', '100%']
     poll = Poll.objects.get(name=poll_tuple[1])
     rep_count = EmisReporter.objects.filter(groups__name=grp).count()
 
-    for rep in EmisReporter.objects.filter(groups__name=grp)[:rep_count-1]:
+    for rep in EmisReporter.objects.filter(groups__name=grp):
         if not rep.default_connection == None:
             if poll_tuple[0] == Poll.TYPE_NUMERIC:
                 poll.process_response(fake_incoming_message('%s' % random.randint(0,9), rep.default_connection))
