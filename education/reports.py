@@ -664,11 +664,10 @@ def get_sum_of_poll_response_past_week(poll_queryset, **kwargs):
 
 def generate_deo_report(location_name = None):
     from rapidsms.models import Connection
-    import pdb; pdb.set_trace()
+    
     if location_name is None:
         return
     else:
-
         try:
             # attempt to get a district if the location is not of district type.
             all_locations = Location.objects.filter(name=location_name) # locations with similar name
@@ -687,27 +686,33 @@ def generate_deo_report(location_name = None):
         except DoesNotExist:
             return #quit
 
-        attendance_boysp3 = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"),\
-            location_name = location_name, weeks=1)
+    attendance_boysp3_past_week, attendance_boysp3_week_before = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"),\
+        location_name = location_name, weeks=1)
 
-        attendance_boysp6 = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_attendance"),\
-            location_name = location_name, weeks=1)
-        attendance_girlsp3 = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_attendance"),\
-            location_name = location_name, weeks=1)
-        attendance_girlsp6 = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_attendance"),\
-            location_name = location_name, weeks=1)
+    attendance_boysp6_past_week, attendance_boysp6_week_before = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_attendance"),\
+        location_name = location_name, weeks=1)
+
+    attendance_girlsp3_past_week, attendance_girlsp3_week_before = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_attendance"),\
+        location_name = location_name, weeks=1)
+
+    attendance_girlsp6_past_week, attendance_girlsp6_week_before = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_attendance"),\
+        location_name = location_name, weeks=1)
 
 
 
-        #TODO curriculum progress
-        return (
-            Connection.objects.filter(contact__emisreporter__groups__name="DEO",\
-                contact__reporting_location = location), # we are sure that the contact for the DEO will be retrieved
-                {
-                    'P3 pupils' : attendance_boysp3 + attendance_girlsp3,
-                    'P6 pupils' : attendance_boysp6 + attendance_girlsp6
-                }
-            )
+    #TODO curriculum progress
+    return (
+        Connection.objects.filter(contact__emisreporter__groups__name="DEO",\
+            contact__reporting_location = location), # we are sure that the contact for the DEO will be retrieved
+        {
+            'P3 pupils' : attendance_boysp3_past_week + attendance_girlsp3_past_week,
+            'P6 pupils' : attendance_boysp6_past_week + attendance_girlsp6_past_week
+        },
+        {
+            'P3 pupils' : attendance_boysp3_week_before + attendance_girlsp3_past_week,
+            'P6 pupils' : attendance_boysp6_week_before + attendance_girlsp6_past_week
+        }
+        )
 
 def get_count_response_to_polls(poll_queryset, **kwargs):
     if kwargs.has_key('month_filter') and kwargs.get('month_filter') and not kwargs.has_key('location') and kwargs.has_key('choices'):
