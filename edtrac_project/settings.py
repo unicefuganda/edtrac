@@ -88,7 +88,7 @@ INSTALLED_APPS = [
     # the rapidsms contrib apps.
     "rapidsms.contrib.default",
     "eav",
-    "rapidsms_xforms",
+    #"rapidsms_xforms",
     "auth",
     "rapidsms_httprouter",
     "script",
