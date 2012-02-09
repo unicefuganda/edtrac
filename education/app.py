@@ -7,25 +7,17 @@ from .models import EmisReporter
 class App (AppBase):
 
     def handle (self, message):
-
         from education.utils import levenshtein
-
-        #validation
-        # the assumption is that messages that are sent in are not more than 1 valued responses
-        # examples of such messages from the xform circa which isn't used much in EduTra: Teachers M 3 F 4
-#        if len(message.text.strip().lower().strip()) > 1:
-#            message.respond("You have sent an invalid message. Please send only one value")
-#            return
-#        else:
         if message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_OUT_WORDS', ['quit'])] or\
-            levenshtein(message.text.replace('.', '').strip().lower(), 'quit') < 3:
+           levenshtein(message.text.replace('.', '').strip().lower(), 'quit') < 3:
 
             if Blacklist.objects.filter(connection=message.connection).exists():
-                    message.respond('You cannot send Quit to 6200 (EduTrac) more than once.')
-                    return
+                message.respond('You cannot send Quit to 6200 (EduTrac) more than once.')
+                return
             else:
                 # create a Blacklist object
                 Blacklist.objects.create(connection=message.connection)
+
                 if (message.connection.contact):
                     reporter = EmisReporter.objects.get(connection=message.connection)
                     message.connection.contact.active = False
@@ -36,15 +28,13 @@ class App (AppBase):
                 return True
 
         elif message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', ['join'])] or\
-                levenshtein(message.text.replace('.', '').strip().lower(), 'join') < 3:
-
-
+             levenshtein(message.text.replace('.', '').strip().lower(), 'join') < 3:
 
             # check if incoming connection is Blacklisted (previously quit)
             if Blacklist.objects.filter(connection=message.connection).exists():
                 Blacklist.objects.filter(connection=message.connection).delete()
-                    # create a ScriptProgress object if it does not exist
-                    # this throws the user back to autoreg
+                # create a ScriptProgress object if it does not exist
+                # this throws the user back to autoreg
                 if not ScriptProgress.objects.filter(script__slug='edtrac_autoreg', connection=message.connection).exists():
                     ScriptProgress.objects.create(script=Script.objects.get(slug="edtrac_autoreg"),\
                         connection=message.connection, language="en")
@@ -52,19 +42,23 @@ class App (AppBase):
                     # what if we deleted existing progresses and recreated them?
                     ScriptProgress.objects.filter(script=Script.objects.get(slug="edtrac_autoreg"),\
                         connection = message.connection, language="en").delete()
-
-                        # recreating or getting an existing in case it creeps in
+                    # recreating or getting an existing in case it creeps in
                     ScriptProgress.objects.get_or_create(script=Script.objects.get(slug="edtrac_autoreg"),\
                         connection=message.connection, language="en")
-                # For users joining edtrac the first time
+            # For users joining edtrac the first time
             else:
                 # check that the user is not in the system
                 if not message.connection.contact:
                     # dump the user into autoreg
-                    ScriptProgress.objects.get_or_create(script=Script.objects.get(slug="edtrac_autoreg"), \
-                            connection=message.connection, language="en")
+                    ScriptProgress.objects.get_or_create(script=Script.objects.get(slug="edtrac_autoreg"),\
+                        connection=message.connection, language="en")
                 else:
                     # otherwise, chances are this user already exists in the system
                     message.respond("You are already in the system and do not need to 'Join' again.")
-                    # quit this.
-                    return True
+                # quit this.
+            return True
+
+        elif Blacklist.objects.filter(connection=message.connection).count():
+            return True
+            # when all else fails, quit!
+        return False
