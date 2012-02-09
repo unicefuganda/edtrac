@@ -13,10 +13,10 @@ class Command(BaseCommand, LoggerMixin):
         shortcode_backends = get_backends_by_type(btype=getattr(settings, 'QOS_BACKEND_TYPE', 'shortcode'))
         for si in shortcode_backends:
             for mi in settings.ALLOWED_MODEMS[si.name]:
-                (mb, t) = Backend.objects.get_or_create(name=mi)
+                (mb, t) = Backend.objects.using('monitor').get_or_create(name=mi)
                 Message.objects.using('monitor').create(text=gen_qos_msg(), direction='O',
                         connection=Connection.objects.using('monitor').get_or_create(identity=settings.MODEM_BACKENDS[mb.name], backend=si)[0])
-                Message.objects.create(text=gen_qos_msg(), direction='O',
+                Message.objects.using('monitor').create(text=gen_qos_msg(), direction='O',
                         connection=Connection.objects.using('monitor').get_or_create(identity=settings.SHORTCODE_BACKENDS[si.name], backend=mb)[0])
 
     def handle(self, *args, **options):
