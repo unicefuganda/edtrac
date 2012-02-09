@@ -725,8 +725,8 @@ def generate_deo_report(location_name = None):
                     'P6 pupils' : p6_enrollment - (attendance_boysp6_past_week + attendance_girlsp6_past_week)
                 },
                 {
-                    'P3 pupils' : p3_enrollment - (attendance_boysp3_week_before + attendance_girlsp3_past_week),
-                    'P6 pupils' : p6_enrollment - (attendance_boysp6_week_before + attendance_girlsp6_past_week)
+                    'P3 pupils' : p3_enrollment - (attendance_boysp3_week_before + attendance_girlsp3_week_before),
+                    'P6 pupils' : p6_enrollment - (attendance_boysp6_week_before + attendance_girlsp6_week_before)
                 }
             )
         )
