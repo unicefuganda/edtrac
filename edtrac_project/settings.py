@@ -101,7 +101,7 @@ INSTALLED_APPS = [
     "rapidsms",
     "education",
 #    "geoserver",
-
+    
     #leave south at the end of this list
     "south",
 
