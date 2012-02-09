@@ -7,13 +7,15 @@ from django.db import models
 class Migration(DataMigration):
 
     def forwards(self, orm):
-        db.rename_column('locations_location', 'code', 'alias')
+        #db.rename_column('locations_location', 'code', 'alias')
         db.rename_column('locations_location', 'is_active', 'status')
+        db.add_column('locations_location', 'code', self.gf('django.db.models.fields.CharField')(max_length=100, null=True))
+        db.add_column('locations_location', 'is_active', self.gf('django.db.models.fields.BooleanField')(default=True),keep_default=False)
 
 
 
     def backwards(self, orm):
-        db.rename_column('locations_location', 'alias', 'code')
+        #db.rename_column('locations_location', 'alias', 'code')
         db.rename_column('locations_location', 'status', 'is_active')
 
 
