@@ -5,7 +5,7 @@ from eav.models import Attribute
 from script.signals import script_progress_was_completed, script_progress
 from script.models import *
 from rapidsms.contrib.locations.models import Location
-from rapidsms_xforms.models import XFormField, XForm, XFormSubmission, dl_distance, xform_received
+#from rapidsms_xforms.models import XFormField, XForm, XFormSubmission, dl_distance, xform_received
 from script.utils.handling import find_best_response, find_closest_match
 from education.utils import _schedule_weekly_scripts, _schedule_monthly_script, _schedule_termly_script
 import re
@@ -33,7 +33,7 @@ class EmisReporter(Contact):
     CLASS_CHOICES = (
         ('P3', 'Primary Three'),
         ('P6', 'Primary Six'),
-    )
+        )
 
     grade = models.CharField(max_length=2, choices=CLASS_CHOICES, null=True)
     schools = models.ManyToManyField(School, null=True)
@@ -43,7 +43,7 @@ class EmisReporter(Contact):
 
     def __unicode__(self):
         return self.name
-    
+
     def is_member_of(self, group):
         return group.lower() in [grp.lower for grp in self.groups.objects.values_list('name', flat=True)]
 
@@ -51,9 +51,9 @@ class EmisReporter(Contact):
         return self.schools.values_list('name', flat=True)
 
 class Role(Group):
-   class Meta:
-       proxy = True
-       permissions = (
+    class Meta:
+        proxy = True
+        permissions = (
             ("can_report", "can  send data and receive data via text messages"),
             ("can_view_one_school", "Access to View his/her school specific info"),
             ("can_view_all_schools", "Access to View information from all schools"),
@@ -66,20 +66,20 @@ class Role(Group):
             ("can_export_one_district", "Access to export his/her district specific info"),
             ("can_export_all", "Access to export all data"),
 
-        )
-       
+            )
+
 class UserProfile(models.Model):
     name = models.CharField(max_length=160)
     location = models.ForeignKey(Location)
     role = models.ForeignKey(Role)
     user = models.ForeignKey(User,related_name="profile")
-    
+
     def is_member_of(self, group):
         return group.lower() == self.role.name.lower()
 
     def __unicode__(self):
         return self.name
-    
+
 class ScriptSchedule(models.Model):
     script = models.ForeignKey(Script)
     date = models.DateTimeField(auto_now=True)
@@ -92,15 +92,15 @@ def parse_gender(gender):
     try:
         return list(gender[0])[0]
     except:
-        return None 
-    
+        return None
+
 def parse_grade(grade):
     grade = get_close_matches(grade, ['P 3', 'P3','p3', 'P 6', 'P6', 'p6'], 1, 0.6)
     try:
         cls = list(grade[0])[1] if list(grade[0])[1].strip() else list(grade[0])[2]
         return (list(grade[0])[0]).upper() + cls
     except:
-        return None 
+        return None
 
 
 def parse_date_value(value):
@@ -127,8 +127,8 @@ def parse_date_value(value):
 
     except ValueError:
         raise ValidationError("Expected date format "
-                "(\"dd mmm YYYY\", \"dd/mm/yyyy\", \"dd-mm-yyyy\", \"dd.mm.yyyy\", \"yyyy.mm.dd\" or \"yyyy-mm-dd\"), "
-                "but instead received: %s." % value)
+                              "(\"dd mmm YYYY\", \"dd/mm/yyyy\", \"dd-mm-yyyy\", \"dd.mm.yyyy\", \"yyyy.mm.dd\" or \"yyyy-mm-dd\"), "
+                              "but instead received: %s." % value)
 
     time_tuple = dt_obj.timetuple()
     timestamp = time.mktime(time_tuple)
@@ -141,7 +141,7 @@ def parse_yesno(command, value):
         return 1
     else:
         return 0
-    
+
 def parse_fuzzy_number(command, value):
     fuzzy_number = re.compile('([0-9oOI]+)|(None)', re.IGNORECASE)
     m = fuzzy_number.match(value)
@@ -218,23 +218,21 @@ def edtrac_autoreg(**kwargs):
     grp = find_closest_match(role, Group.objects)
     grp = grp if grp else default_group
 
-    if district:
-        # district preferred
-        rep_location = district
-    elif subcounty:
+    if subcounty:
         rep_location = subcounty
+    elif district:
+        rep_location = district
     else:
         rep_location = Location.tree.root_nodes()[0]
-
     try:
-        contact = connection.contact or EmisReporter.objects.get(name=name, \
-                                      reporting_location=rep_location, \
-                                      groups=grp, \
-                                      )
+        contact = connection.contact or EmisReporter.objects.get(name=name,\
+            reporting_location=rep_location,\
+            groups=grp,\
+        )
         if connection.contact:
             contact = EmisReporter.objects.get(pk=connection.contact.pk)
     except EmisReporter.DoesNotExist, EmisReporter.MultipleObectsReturned:
-            contact = EmisReporter.objects.create()
+        contact = EmisReporter.objects.create()
 
     connection.contact = contact
     connection.save()
@@ -258,7 +256,7 @@ def edtrac_autoreg(**kwargs):
         gender = parse_gender(gender)
         if gender:
             contact.gender = gender
-        
+
     if grade:
         grade = parse_grade(grade)
         if grade:
@@ -271,18 +269,17 @@ def edtrac_autoreg(**kwargs):
         contact.name = 'Anonymous User'
     contact.save()
 
+    reporting_school = None
     school = find_best_response(session, school_poll)
-
     if school:
         if subcounty:
-            reporting_school = find_closest_match(school, School.objects.filter(location__name__in=subcounty,\
+            reporting_school = find_closest_match(school, School.objects.filter(location__name__in=[subcounty],\
                 location__type__name='sub_county'), True)
         elif district:
             reporting_school = find_closest_match(school, School.objects.filter(location__name__in=[district.name],\
                 location__type__name='district'), True)
         else:
             reporting_school = find_closest_match(school, School.objects.filter(location__name=Location.tree.root_nodes()[0].name))
-
         if reporting_school:
             contact.schools.add(reporting_school)
             contact.save()
@@ -351,7 +348,7 @@ def edtrac_autoreg_transition(**kwargs):
     while group and skipped:
         skipped = False
         for step_name, roles in skipsteps.items():
-            if  progress.step.poll and \
+            if  progress.step.poll and\
                 progress.step.poll.name == step_name and group.name not in roles:
                 skipped = True
                 progress.step = progress.script.steps.get(order=progress.step.order + 1)
@@ -362,7 +359,7 @@ def edtrac_autoreg_transition(**kwargs):
 
 
 def edtrac_attendance_script_transition(**kwargs):
-
+    #import pdb; pdb.set_trace()
     connection = kwargs['connection']
     progress = kwargs['sender']
     if not progress.script.slug == 'edtrac_teachers_weekly':
@@ -380,12 +377,12 @@ def edtrac_attendance_script_transition(**kwargs):
         'edtrac_boysp6_attendance':['P6'],
         'edtrac_girlsp3_attendance':['P3'],
         'edtrac_girlsp6_attendance':['P6'],
-    }
+        }
     skipped = True
     while grade and skipped:
         skipped = False
         for step_name, grades in skipsteps.items():
-            if  progress.step.poll and \
+            if  progress.step.poll and\
                 progress.step.poll.name == step_name and grade not in grades:
                 skipped = True
                 if progress.last_step():
@@ -394,7 +391,7 @@ def edtrac_attendance_script_transition(**kwargs):
                 progress.step = progress.script.steps.get(order=progress.step.order + 1)
                 progress.save()
                 break
-            
+
 def edtrac_scriptrun_schedule(**kwargs):
 
     connection = kwargs['connection']
@@ -407,8 +404,8 @@ def edtrac_scriptrun_schedule(**kwargs):
     date = datetime.datetime.now().date()
     if step == 0:
         s, c = ScriptSchedule.objects.get_or_create(script=script, date__contains=date)
-    
-               
+
+
 def reschedule_weekly_polls(grp=None):
     """
     manually reschedule all weekly polls or for a specified group
@@ -418,7 +415,7 @@ def reschedule_weekly_polls(grp=None):
         slg_start = 'edtrac_%s'%grp.replace(' ','_').lower()
         weekly_scripts = weekly_scripts.filter(slug__startswith=slg_start)
         ScriptProgress.objects.filter(script__in=weekly_scripts)\
-                                .exclude(connection__contact__emisreporter__groups__name__iexact=grp).delete()
+        .exclude(connection__contact__emisreporter__groups__name__iexact=grp).delete()
     else:
         ScriptProgress.objects.filter(script__in=weekly_scripts).delete()
     Script.objects.filter(slug__in=weekly_scripts.values_list('slug', flat=True)).update(enabled=True)
@@ -427,7 +424,7 @@ def reschedule_weekly_polls(grp=None):
     for rep in reps:
         if rep.default_connection and rep.groups.count() > 0:
             _schedule_weekly_scripts(rep.groups.all()[0], rep.default_connection, ['Teachers', 'Head Teachers', 'SMC'])
-            
+
 
 def reschedule_monthly_polls(grp=None):
     """
@@ -438,7 +435,7 @@ def reschedule_monthly_polls(grp=None):
         slg_start = 'edtrac_%s'%grp.replace(' ','_').lower()
         monthly_scripts = monthly_scripts.filter(slug__startswith=slg_start)
         ScriptProgress.objects.filter(script__in=monthly_scripts)\
-                                .exclude(connection__contact__emisreporter__groups__name__iexact=grp).delete()
+        .exclude(connection__contact__emisreporter__groups__name__iexact=grp).delete()
     else:
         ScriptProgress.objects.filter(script__in=monthly_scripts).delete()
     Script.objects.filter(slug__in=monthly_scripts.values_list('slug', flat=True)).update(enabled=True)
@@ -455,9 +452,9 @@ def reschedule_monthly_polls(grp=None):
                     _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'edtrac_smc_monthly', 5, ['SMC'])
                 elif slug == 'edtrac_gem_monthly':
                     _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'edtrac_gem_monthly', 20, ['GEM'])
-        
+
 def reschedule_termly_polls(grp = 'all', date=None):
-        
+
     """
     manually reschedule all termly polls or for a specified group
     """
@@ -466,7 +463,7 @@ def reschedule_termly_polls(grp = 'all', date=None):
         slg_start = 'edtrac_%s'%grp.replace(' ','_').lower()
         termly_scripts = termly_scripts.filter(slug__startswith=slg_start)
         ScriptProgress.objects.filter(script__in=termly_scripts)\
-                                .exclude(connection__contact__emisreporter__groups__name__iexact=grp).delete()
+        .exclude(connection__contact__emisreporter__groups__name__iexact=grp).delete()
     else:
         ScriptProgress.objects.filter(script__in=termly_scripts).delete()
     Script.objects.filter(slug__in=termly_scripts.values_list('slug', flat=True)).update(enabled=True)
@@ -480,14 +477,14 @@ def reschedule_termly_polls(grp = 'all', date=None):
 
 Poll.register_poll_type('date', 'Date Response', parse_date_value, db_type=Attribute.TYPE_OBJECT)
 
-XFormField.register_field_type('emisdate', 'Date', parse_date,
-                               db_type=XFormField.TYPE_INT, xforms_type='integer')
-
-XFormField.register_field_type('emisbool', 'YesNo', parse_yesno,
-                               db_type=XFormField.TYPE_INT, xforms_type='integer')
-
-XFormField.register_field_type('fuzzynum', 'Fuzzy Numbers (o/0/none)', parse_fuzzy_number,
-                               db_type=XFormField.TYPE_INT, xforms_type='integer')
+#XFormField.register_field_type('emisdate', 'Date', parse_date,
+#    db_type=XFormField.TYPE_INT, xforms_type='integer')
+#
+#XFormField.register_field_type('emisbool', 'YesNo', parse_yesno,
+#    db_type=XFormField.TYPE_INT, xforms_type='integer')
+#
+#XFormField.register_field_type('fuzzynum', 'Fuzzy Numbers (o/0/none)', parse_fuzzy_number,
+#    db_type=XFormField.TYPE_INT, xforms_type='integer')
 
 script_progress_was_completed.connect(edtrac_autoreg, weak=False)
 script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)
