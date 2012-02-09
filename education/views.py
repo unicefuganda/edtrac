@@ -1007,6 +1007,10 @@ def reschedule_scripts(request, script_slug):
         reschedule_monthly_polls(grp)
     else:
         reschedule_termly_polls(grp)
-    new_script_date = ScriptProgress.objects.filter(script__slug=script_slug)[0].time
-    response = HttpResponse("This Script has been rescheduled to: %s " % new_script_date.strftime("%d-%m-%Y %H:%M"))
-    return response
+
+    new_scripts = ScriptProgress.objects.filter(script__slug=script_slug)
+    if not new_scripts:
+        new_script_date = new_scripts[0].time
+        response = HttpResponse("This Script has been rescheduled to: %s " % new_script_date.strftime("%d-%m-%Y %H:%M"))
+        return response
+    return HttpResponse("This script can't be reschedule. Try agin")

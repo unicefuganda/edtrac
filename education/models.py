@@ -274,12 +274,12 @@ def edtrac_autoreg(**kwargs):
     school = find_best_response(session, school_poll)
 
     if school:
-        if district:
-            reporting_school = find_closest_match(school, School.objects.filter(location__name__in=[subcounty], \
-                                                                                location__type__name='district'), True)
-        elif subcounty:
-            reporting_school = find_closest_match(school, School.objects.filter(location__name__in=[district.name], \
-                                                                            location__type__name='sub_county'), True)
+        if subcounty:
+            reporting_school = find_closest_match(school, School.objects.filter(location__name__in=subcounty,\
+                location__type__name='sub_county'), True)
+        elif district:
+            reporting_school = find_closest_match(school, School.objects.filter(location__name__in=[district.name],\
+                location__type__name='district'), True)
         else:
             reporting_school = find_closest_match(school, School.objects.filter(location__name=Location.tree.root_nodes()[0].name))
 
