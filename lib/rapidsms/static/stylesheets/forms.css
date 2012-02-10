@@ -137,7 +137,7 @@ body:last-child h2 + form {
 
     body:last-child form > div:first-child {
         background-color: #fff;
-        padding: 1em;
+        /*padding: 1em;*/
     }
 
     body:last-child form div.submit {
