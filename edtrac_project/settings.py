@@ -22,6 +22,7 @@ sys.path.append(os.path.join(filedir, 'rapidsms_uganda_common'))
 sys.path.append(os.path.join(filedir, 'rapidsms_unregister'))
 sys.path.append(os.path.join(filedir, 'rapidsms_edtrac'))
 sys.path.append(os.path.join(filedir, 'rapidsms_geoserver'))
+sys.path.append(os.path.join(filedir, 'django_reversion'))
 
 # -------------------------------------------------------------------- #
 #                          MAIN CONFIGURATION                          #
@@ -100,7 +101,8 @@ INSTALLED_APPS = [
     "unregister",
     "rapidsms",
     "education",
-#    "geoserver",
+    "reversion",
+    "geoserver",
     
     #leave south at the end of this list
     "south",
@@ -175,6 +177,11 @@ LOG_FILE = "rapidsms.log"
 LOG_FORMAT = "[%(name)s]: %(message)s"
 LOG_SIZE = 8192  # 8192 bits = 8 kb
 LOG_BACKUPS = 256  # number of logs to keep
+
+
+# this is used for geoserver to tell which website this viz should be for (and prevents clashing of
+# polls across different websites with the same id
+DEPLOYMENT_ID = 6
 
 
 # these weird dependencies should be handled by their respective apps,
