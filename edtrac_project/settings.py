@@ -23,6 +23,7 @@ sys.path.append(os.path.join(filedir, 'rapidsms_unregister'))
 sys.path.append(os.path.join(filedir, 'rapidsms_edtrac'))
 sys.path.append(os.path.join(filedir, 'rapidsms_geoserver'))
 sys.path.append(os.path.join(filedir, 'django_reversion'))
+sys.path.append(os.path.join(filedir, 'endless'))
 
 # -------------------------------------------------------------------- #
 #                          MAIN CONFIGURATION                          #
@@ -103,6 +104,7 @@ INSTALLED_APPS = [
     "education",
     "reversion",
     "geoserver",
+    "endless_pagination",
     
     #leave south at the end of this list
     "south",
