@@ -743,6 +743,14 @@ div.pagination{
     clear: both;
 }
 
+div.new_reporter > .fieldWrapper{
+    padding:10px;
+    margin-bottom: 10px;
+}
+
+div.new_reporter > .fieldWrapper label{
+    margin-right: 5px;
+}
 
 /* some more iconography */
 
