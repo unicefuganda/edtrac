@@ -378,6 +378,7 @@ class ReporterForm(forms.ModelForm):
     def save(self, *args, **kwargs):
         kwargs.pop('commit', None)
         edtrac_reporter = super(ReporterForm, self).save(*args, **kwargs)
+        # create a connection object if it doesn't exist
         edtrac_reporter.connection_set.add(*self.cleaned_data['connection_set'])
         return edtrac_reporter
 
