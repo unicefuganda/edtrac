@@ -363,32 +363,25 @@ class ScriptsForm(forms.ModelForm):
 
 
 class ReporterForm(forms.ModelForm):
-    class Meta:
-        model = Contact
-        fields = ('reporting_location',)
-#        model = EmisReporter
-#        fields = ('default_connection',)
-#        exclude = ('user', 'birthdate', 'user_permissions', 'village_name', 'village', 'language',)
+
+    connection_set = forms.ModelMultipleChoiceField(queryset=Connection.objects.all(), required=False)
 
     def __init__(self, *args, **kwargs):
-
         super(ReporterForm, self).__init__(*args, **kwargs)
-        #self.fields['reporting_location'].queryset = Location.objects.exclude(type__name="county").order_by("name")
+        if self.instance:
+            self.fields['connection_set'].initial = [str(conn.pk) for conn in self.instance.connection_set.all()]
+            self.fields['reporting_location'].queryset = Location.objects.exclude(type__name="county").order_by("name")
 
         for key, field in self.fields.iteritems():
             self.fields[key].required = False
 
-#
-#    def __init__(self, *args, **kwargs):
-#        import pdb; pdb.set_trace()
-#        connections = forms.ModelMultipleChoiceField(queryset=Connection.objects.all())
-#        if 'instance' in kwargs:
-#            initial = kwargs.setdefault('initial', {})
-#            initial['connections'] = [c.pk for c in kwargs['instance'].connection_set.all()]
-#        forms.ModelForm.__init__(self, *args, **kwargs)
-#
-#    def save(self, commit=True):
-#        instance = forms.ModelForm.save(self)
-#        instance.connection_set.clear()
-#        for conn in self.cleaned_data['connections']:
-#            instance.connection_set.add(conn)
+    def save(self, *args, **kwargs):
+        kwargs.pop('commit', None)
+        edtrac_reporter = super(ReporterForm, self).save(*args, **kwargs)
+        edtrac_reporter.connection_set.add(*self.cleaned_data['connection_set'])
+        return edtrac_reporter
+
+    class Meta:
+        model = EmisReporter
+
+        exclude = ('user', 'birthdate', 'user_permissions', 'village_name', 'village', 'language',)
