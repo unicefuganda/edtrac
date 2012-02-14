@@ -36,4 +36,4 @@
 	url = git://github.com/unicefuganda/rapidsms-edtrac.git
 [submodule "edtrac_project/rapidsms_geoserver"]
 	path = edtrac_project/rapidsms_geoserver
-	url = git@github.com:unicefuganda/rapidsms-geoserver.git
+	url = git://github.com/unicefuganda/rapidsms-geoserver.git
