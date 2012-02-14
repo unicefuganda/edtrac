@@ -1,0 +1,12 @@
+{% extends "education/base.html" %}
+{% load stats_extras %}
+{% block content %}
+        <fieldset>
+        <legend>Create a new EduTrac Reporter</legend>
+        <form action="" method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input type="submit" value="create">
+        </form>
+        </fieldset>
+{% endblock %}
