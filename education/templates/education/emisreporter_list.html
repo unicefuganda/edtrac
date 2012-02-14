@@ -1,5 +1,6 @@
 {% extends "education/base.html" %}
 {% load stats_extras %}
+{% load endless %}
 {% block content %}
 <div class="generic_table">
     <table width="100%" cellpadding="5" cellspacing="0">
@@ -13,7 +14,8 @@
             <th>School</th>
             <th>Options</th>
         </tr>
-        {% for reporter in emisreporter_list %}
+        {% paginate reporter_list %}
+        {% for reporter in reporter_list %}
             <tr>
                 <td>
                     {% if reporter.default_connection %}
@@ -71,4 +73,30 @@
         {% endfor %}
     </table>
 </div>
+
+        <div class="pagination">
+        {% show_pages %}
+
+        </div>
+
+<!--
+{% if is_paginated %}
+        <div class="pagination">
+            <span class="page-links">
+                {% if page_obj.has_previous %}
+                   <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+                {% endif %}
+                <span class="page-current">
+                    page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                </span>
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number}}">next</a>
+                {% endif %}
+            </span>
+        </div>
+
+{% endif %}
+-->
+
+
 {% endblock %}

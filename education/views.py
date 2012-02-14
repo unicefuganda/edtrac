@@ -1,11 +1,12 @@
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
+import django.contrib
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import user_passes_test
 from django.utils.decorators import method_decorator
-from django.views.generic import DetailView, TemplateView
+from django.views.generic import DetailView, TemplateView, ListView, CreateView
 from .forms import *
 from .models import *
 from uganda_common.utils import *
@@ -1014,3 +1015,26 @@ def reschedule_scripts(request, script_slug):
         response = HttpResponse("This Script has been rescheduled to: %s " % new_script_date.strftime("%d-%m-%Y %H:%M"))
         return response
     return HttpResponse("This script can't be reschedule. Try agin")
+
+
+
+# Reporters view
+
+class EdtracReporter(ListView):
+    model = EmisReporter
+    template_name = "education/emisreporter_list.html"
+    context_object_name = "reporter_list"
+
+class EdtracReporterCreateView(CreateView):
+
+    form_class = ReporterForm
+    template_name = 'education/new_reporter.html'
+    success_url = '/edtrac/reporter'
+
+    def form_valid(self, form):
+        django.contrib.messages.success(self.request, "Success", extra_tags='msg')
+        return super(EdtracReporterCreateView, self).form_valid(form)
+
+    def form_invalid(self, form):
+        django.contrib.messages.success(self.request, "Error", extra_tags='msg')
+        return super(EditReporterForm, self).form_invalid(form)

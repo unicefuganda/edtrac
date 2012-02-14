@@ -15,7 +15,7 @@ from django.conf import settings
 from rapidsms_httprouter.models import Message
 from django.contrib.sites.models import Site
 from contact.models import MassText
-from rapidsms.models import Connection
+from rapidsms.models import Connection, Contact
 from script.models import Script
 
 date_range_choices = (('w', 'Previous Calendar Week'), ('m', 'Previous Calendar Month'), ('q', 'Previous calendar quarter'),)
@@ -360,3 +360,35 @@ class ScriptsForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'size': 60}),
             'enabled':forms.CheckboxInput(attrs={'onclick':'check_clicked(this);'})
         }
+
+
+class ReporterForm(forms.ModelForm):
+    class Meta:
+        model = Contact
+        fields = ('reporting_location',)
+#        model = EmisReporter
+#        fields = ('default_connection',)
+#        exclude = ('user', 'birthdate', 'user_permissions', 'village_name', 'village', 'language',)
+
+    def __init__(self, *args, **kwargs):
+
+        super(ReporterForm, self).__init__(*args, **kwargs)
+        #self.fields['reporting_location'].queryset = Location.objects.exclude(type__name="county").order_by("name")
+
+        for key, field in self.fields.iteritems():
+            self.fields[key].required = False
+
+#
+#    def __init__(self, *args, **kwargs):
+#        import pdb; pdb.set_trace()
+#        connections = forms.ModelMultipleChoiceField(queryset=Connection.objects.all())
+#        if 'instance' in kwargs:
+#            initial = kwargs.setdefault('initial', {})
+#            initial['connections'] = [c.pk for c in kwargs['instance'].connection_set.all()]
+#        forms.ModelForm.__init__(self, *args, **kwargs)
+#
+#    def save(self, commit=True):
+#        instance = forms.ModelForm.save(self)
+#        instance.connection_set.clear()
+#        for conn in self.cleaned_data['connections']:
+#            instance.connection_set.add(conn)

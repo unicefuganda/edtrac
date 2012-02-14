@@ -1,23 +1,17 @@
-from django.db import models
+from difflib import get_close_matches
 from django.conf import settings
-from rapidsms.models import Contact
+from django.contrib.auth.models import Group, User
+from django.db import models
+from django.forms import ValidationError
 from eav.models import Attribute
+from education.utils import _schedule_weekly_scripts, _schedule_monthly_script, _schedule_termly_script
+from rapidsms_httprouter.models import mass_text_sent
+from rapidsms.models import Contact
+from rapidsms.contrib.locations.models import Location
 from script.signals import script_progress_was_completed, script_progress
 from script.models import *
-from rapidsms.contrib.locations.models import Location
-#from rapidsms_xforms.models import XFormField, XForm, XFormSubmission, dl_distance, xform_received
 from script.utils.handling import find_best_response, find_closest_match
-from education.utils import _schedule_weekly_scripts, _schedule_monthly_script, _schedule_termly_script
-import re
-import calendar
-from django.conf import settings
-import datetime
-import time
-from difflib import get_close_matches
-from django.db.models import Sum
-from django.forms import ValidationError
-from django.contrib.auth.models import Group, User
-from rapidsms_httprouter.models import mass_text_sent
+import re, calendar, datetime, time
 
 
 class School(models.Model):
@@ -192,7 +186,6 @@ def edtrac_autoreg(**kwargs):
         return
     session = ScriptSession.objects.filter(script=progress.script, connection=connection).order_by('-end_time')[0]
     script = progress.script
-
     role_poll = script.steps.get(poll__name='edtrac_role').poll
     gender_poll = script.steps.get(poll__name='edtrac_gender').poll
     class_poll = script.steps.get(poll__name='edtrac_class').poll
@@ -320,6 +313,14 @@ def edtrac_reschedule_script(**kwargs):
         _schedule_termly_script(group, connection, 'edtrac_head_teachers_termly', ['Head Teachers'])
     else:
         _schedule_termly_script(group, connection, 'edtrac_smc_termly', ['SMC'])
+
+def edtrac_schedule_reports(**kwargs):
+    from .utils import send_out_report
+    print "sent message to DEO"
+    connection = kwargs['connection']
+    send_out_report()
+    print connection
+
 
 def edtrac_autoreg_transition(**kwargs):
 
@@ -477,6 +478,12 @@ def reschedule_termly_polls(grp = 'all', date=None):
 
 Poll.register_poll_type('date', 'Date Response', parse_date_value, db_type=Attribute.TYPE_OBJECT)
 
+
+import reversion
+reversion.register(School)
+reversion.register(EmisReporter)
+
+
 #XFormField.register_field_type('emisdate', 'Date', parse_date,
 #    db_type=XFormField.TYPE_INT, xforms_type='integer')
 #
@@ -486,8 +493,10 @@ Poll.register_poll_type('date', 'Date Response', parse_date_value, db_type=Attri
 #XFormField.register_field_type('fuzzynum', 'Fuzzy Numbers (o/0/none)', parse_fuzzy_number,
 #    db_type=XFormField.TYPE_INT, xforms_type='integer')
 
+script_progress_was_completed.connect(edtrac_schedule_reports, weak=False)
 script_progress_was_completed.connect(edtrac_autoreg, weak=False)
 script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)
 script_progress.connect(edtrac_autoreg_transition, weak=False)
 script_progress.connect(edtrac_attendance_script_transition, weak=False)
+
 #script_progress.connect(edtrac_scriptrun_schedule, weak=False)

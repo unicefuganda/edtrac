@@ -18,6 +18,10 @@ class App (AppBase):
                 # create a Blacklist object
                 Blacklist.objects.create(connection=message.connection)
 
+                if ScriptProgress.objects.filter(script__connection=message.connection).exists():
+                    # rogue progress quit
+                    ScriptProgress.objects.filter(script__connection=message.connection).delete()
+
                 if (message.connection.contact):
                     reporter = EmisReporter.objects.get(connection=message.connection)
                     message.connection.contact.active = False
