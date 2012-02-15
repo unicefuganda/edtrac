@@ -1,0 +1,15 @@
+{% extends "education/base.html" %}
+{% load stats_extras %}
+
+{% block content %}
+        <fieldset>
+<form action="" method="post">
+    {% csrf_token %}
+    <div>
+        <label for="identity">Mobile number (start with 256) </label>{{ form.telephone_number }}
+    </div>
+
+    <input type="submit" value="create"/>
+</form>
+        </fieldset>
+{% endblock %}

@@ -6,6 +6,7 @@ from rapidsms.contrib.locations.models import Location
 from generic.forms import ActionForm, FilterForm, ModuleForm
 from mptt.forms import TreeNodeChoiceField
 from rapidsms.contrib.locations.models import Location
+from rapidsms.models import Backend
 from .models import School, EmisReporter
 from rapidsms_xforms.models import XFormSubmissionValue
 from django.contrib.auth.models import Group, User
@@ -386,3 +387,12 @@ class ReporterForm(forms.ModelForm):
         model = EmisReporter
 
         exclude = ('user', 'birthdate', 'user_permissions', 'village_name', 'village', 'language',)
+
+
+
+class ConnectionFormQuick(forms.Form):
+    telephone_number = forms.CharField()
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        cleaned_data['telephone_number'] = str(cleaned_data['telephone_number'])
+        return cleaned_data

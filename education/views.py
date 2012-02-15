@@ -6,7 +6,7 @@ from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import user_passes_test
 from django.utils.decorators import method_decorator
-from django.views.generic import DetailView, TemplateView, ListView, CreateView
+from django.views.generic import DetailView, TemplateView, ListView, CreateView, FormView
 from .forms import *
 from .models import *
 from uganda_common.utils import *
@@ -1029,7 +1029,7 @@ class EdtracReporterCreateView(CreateView):
 
     form_class = ReporterForm
     template_name = 'education/new_reporter.html'
-    success_url = '/edtrac/reporter'
+    success_url = '/edtrac/reporters/connection/create'
 
     def form_valid(self, form):
         django.contrib.messages.success(self.request, "Success", extra_tags='msg')
@@ -1038,3 +1038,26 @@ class EdtracReporterCreateView(CreateView):
     def form_invalid(self, form):
         django.contrib.messages.success(self.request, "Error", extra_tags='msg')
         return super(EditReporterForm, self).form_invalid(form)
+
+
+class EdtracReporterCreateConnection(FormView):
+
+    form_class = ConnectionFormQuick
+    template_name = 'education/new_reporter_connection.html'
+    success_url = '/edtrac/reporters/create'
+
+
+    def post(self, req, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        if form.is_valid():
+            return self.form_valid(form, **kwargs)
+        else:
+            return self.form_invalid(form, **kwargs)
+
+    def form_valid(self, form):
+        from rapidsms.models import Connection
+        connection, created = Connection.objects.get_or_create(identity=form.cleaned_data['telephone_number'],
+                backend=Backend.objects.get(name="yo6200"))
+
+        return HttpResponseRedirect(self.get_success_url())
