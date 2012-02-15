@@ -212,7 +212,7 @@ urlpatterns = patterns('',
     url(r'^edtrac/dash_admin_meals_details/$', MealsAdminDetails.as_view(), name="admin-meals-details"),
     url(r'^edtrac/reporters/$', EdtracReporter.as_view()), #/page(?P<page>[0-9]+)/$', ListView.as_view(
     url(r'^edtrac/reporters/create/$', EdtracReporterCreateView.as_view()),
-    url(r'^edtrac/reporters/connection/create/$', EdtracReporterCreateConnection.as_view()),
+    url(r'^edtrac/reporters/connection/create/$', EdtracReporterCreateConnection.as_view(), name="new-connection"),
 
 #    url(r'^emis/attendance/$', include(AttendanceReport().as_urlpatterns(name='emis-attendance'))),
     url(r'^edtrac/scripts/', edit_scripts, name='emis-scripts'),
