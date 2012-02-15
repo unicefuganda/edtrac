@@ -179,7 +179,7 @@ def parse_fuzzy_number_2(value):
             return int(num)
 
 def edtrac_autoreg(**kwargs):
-    
+
     connection = kwargs['connection']
     progress = kwargs['sender']
     if not progress.script.slug == 'edtrac_autoreg':
@@ -360,7 +360,7 @@ def edtrac_autoreg_transition(**kwargs):
 
 
 def edtrac_attendance_script_transition(**kwargs):
-    #import pdb; pdb.set_trace()
+    
     connection = kwargs['connection']
     progress = kwargs['sender']
     if not progress.script.slug == 'edtrac_teachers_weekly':
