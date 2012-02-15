@@ -8,8 +8,8 @@ class App (AppBase):
 
     def handle (self, message):
         from education.utils import levenshtein
-        if message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_OUT_WORDS', ['quit'])] or\
-           levenshtein(message.text.replace('.', '').strip().lower(), 'quit') < 3:
+
+        if message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_OUT_WORDS', ['quit'])] or levenshtein(message.text.replace('.', '').strip().lower(), 'quit') < 3:
 
             if Blacklist.objects.filter(connection=message.connection).exists():
                 message.respond('You cannot send Quit to 6200 (EduTrac) more than once.')
@@ -18,9 +18,9 @@ class App (AppBase):
                 # create a Blacklist object
                 Blacklist.objects.create(connection=message.connection)
 
-                if ScriptProgress.objects.filter(script__connection=message.connection).exists():
+                if ScriptProgress.objects.filter(connection=message.connection).exists():
                     # rogue progress quit
-                    ScriptProgress.objects.filter(script__connection=message.connection).delete()
+                    ScriptProgress.objects.filter(connection=message.connection).delete()
 
                 if (message.connection.contact):
                     reporter = EmisReporter.objects.get(connection=message.connection)
@@ -28,11 +28,12 @@ class App (AppBase):
                     message.connection.contact.save()
                     reporter.active = False
                     reporter.save()
-                message.respond(getattr(settings, 'OPT_OUT_CONFIRMATION', 'Thank you for your contribution to EduTrac. To rejoin the system, send join to 6200'))
-                return True
 
-        elif message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', ['join'])] or\
-             levenshtein(message.text.replace('.', '').strip().lower(), 'join') < 3:
+                message.respond(getattr(settings, 'OPT_OUT_CONFIRMATION', 'Thank you for your contribution to EduTrac. To rejoin the system, send join to 6200'))
+                return
+#                return True
+
+        elif message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', ['join'])] or levenshtein(message.text.replace('.', '').strip().lower(), 'join') < 3:
 
             # check if incoming connection is Blacklisted (previously quit)
             if Blacklist.objects.filter(connection=message.connection).exists():
@@ -64,5 +65,5 @@ class App (AppBase):
 
         elif Blacklist.objects.filter(connection=message.connection).count():
             return True
-            # when all else fails, quit!
-        return False
+        # when all else fails, quit!
+        return

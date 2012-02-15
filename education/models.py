@@ -179,7 +179,7 @@ def parse_fuzzy_number_2(value):
             return int(num)
 
 def edtrac_autoreg(**kwargs):
-
+    
     connection = kwargs['connection']
     progress = kwargs['sender']
     if not progress.script.slug == 'edtrac_autoreg':
