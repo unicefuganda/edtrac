@@ -374,7 +374,8 @@ class ReporterForm(forms.ModelForm):
         if self.instance:
             self.fields['connection_set'].initial = [str(conn.pk) for conn in self.instance.connection_set.all()]
             self.fields['reporting_location'].queryset = Location.objects.exclude(type__name="county").order_by("name")
-
+            self.fields['schools'].queryset = School.objects.order_by('name')
+            
         for key, field in self.fields.iteritems():
             self.fields[key].required = False
 
