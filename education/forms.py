@@ -365,7 +365,9 @@ class ScriptsForm(forms.ModelForm):
 
 class ReporterForm(forms.ModelForm):
 
-    connection_set = forms.ModelMultipleChoiceField(queryset=Connection.objects.all(), required=False)
+    #connection_set = forms.ModelMultipleChoiceField(queryset=Connection.objects.all(), required=False)
+    #TODO --> from simple_autocomplete.widgets import AutoCompleteMultipleWidget
+    connection_set = forms.ModelChoiceField(queryset = Connection.objects.order_by('identity'))
 
     def __init__(self, *args, **kwargs):
         super(ReporterForm, self).__init__(*args, **kwargs)
