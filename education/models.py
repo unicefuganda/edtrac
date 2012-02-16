@@ -421,7 +421,8 @@ def reschedule_weekly_polls(grp=None):
         ScriptProgress.objects.filter(script__in=weekly_scripts).delete()
     Script.objects.filter(slug__in=weekly_scripts.values_list('slug', flat=True)).update(enabled=True)
     grps = Group.objects.filter(name__iexact=grp) if grp else Group.objects.filter(name__in=['Teachers', 'Head Teachers', 'SMC'])
-    reps = EmisReporter.objects.filter(groups__in=grps)
+    # get active reporters
+    reps = EmisReporter.objects.filter(groups__in=grps, active=True)
     for rep in reps:
         if rep.default_connection and rep.groups.count() > 0:
             _schedule_weekly_scripts(rep.groups.all()[0], rep.default_connection, ['Teachers', 'Head Teachers', 'SMC'])
@@ -442,7 +443,8 @@ def reschedule_monthly_polls(grp=None):
     Script.objects.filter(slug__in=monthly_scripts.values_list('slug', flat=True)).update(enabled=True)
     for slug in monthly_scripts.values_list('slug', flat=True):
         grps = Group.objects.filter(name__iexact=grp) if grp else Group.objects.filter(name__in=['Teachers', 'Head Teachers', 'SMC', 'GEM'])
-        reps = EmisReporter.objects.filter(groups__in=grps)
+        # get list of active reporters
+        reps = EmisReporter.objects.filter(groups__in=grps, active=True)
         for rep in reps:
             if rep.default_connection and rep.groups.count() > 0:
                 if slug == 'edtrac_teachers_monthly':
@@ -459,6 +461,12 @@ def reschedule_termly_polls(grp = 'all', date=None):
     """
     manually reschedule all termly polls or for a specified group
     """
+
+    def enable_script(script):
+        script.enabled = True
+        script.save()
+        return script
+
     termly_scripts = Script.objects.filter(slug__endswith='_termly')
     if not grp == 'all':
         slg_start = 'edtrac_%s'%grp.replace(' ','_').lower()
@@ -467,10 +475,17 @@ def reschedule_termly_polls(grp = 'all', date=None):
         .exclude(connection__contact__emisreporter__groups__name__iexact=grp).delete()
     else:
         ScriptProgress.objects.filter(script__in=termly_scripts).delete()
-    Script.objects.filter(slug__in=termly_scripts.values_list('slug', flat=True)).update(enabled=True)
+
+    # update these scripts change to enabled state
+    scripts_to_enable = Script.objects.filter(slug__in=termly_scripts.values_list('slug',flat=True))
+    map(enable_script, scripts_to_enable)
+
+
     for slug in termly_scripts.values_list('slug', flat=True):
         grps = Group.objects.filter(name__iexact=grp) if not grp == 'all' else Group.objects.filter(name__in=['Head Teachers', 'SMC'])
-        reps = EmisReporter.objects.filter(groups__in=grps)
+        # send poll questions to active reporters
+        reps = EmisReporter.objects.filter(groups__in=grps, active=True)
+        #import pdb; pdb.set_trace()
         for rep in reps:
             if rep.default_connection and rep.groups.count() > 0:
                 _schedule_termly_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers', 'SMC'], date)
@@ -484,19 +499,9 @@ reversion.register(School)
 reversion.register(EmisReporter)
 
 
-#XFormField.register_field_type('emisdate', 'Date', parse_date,
-#    db_type=XFormField.TYPE_INT, xforms_type='integer')
-#
-#XFormField.register_field_type('emisbool', 'YesNo', parse_yesno,
-#    db_type=XFormField.TYPE_INT, xforms_type='integer')
-#
-#XFormField.register_field_type('fuzzynum', 'Fuzzy Numbers (o/0/none)', parse_fuzzy_number,
-#    db_type=XFormField.TYPE_INT, xforms_type='integer')
-
 script_progress_was_completed.connect(edtrac_schedule_reports, weak=False)
 script_progress_was_completed.connect(edtrac_autoreg, weak=False)
 script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)
 script_progress.connect(edtrac_autoreg_transition, weak=False)
 script_progress.connect(edtrac_attendance_script_transition, weak=False)
-
 #script_progress.connect(edtrac_scriptrun_schedule, weak=False)

@@ -217,4 +217,5 @@ urlpatterns = patterns('',
 #    url(r'^emis/attendance/$', include(AttendanceReport().as_urlpatterns(name='emis-attendance'))),
     url(r'^edtrac/scripts/', edit_scripts, name='emis-scripts'),
     url(r'^edtrac/reshedule_scripts/(?P<script_slug>[a-z_]+)/$', reschedule_scripts, name='emis-reschedule-scripts'),
+    url(r'^edtrac/test/$', TemplateView.as_view(template_name="education/admin/admin_test_new.html")),
 )

@@ -238,11 +238,11 @@ def _schedule_termly_script(group, connection, script_slug, role_names, date=Non
         now = datetime.datetime.now()
         dl = date.split('-')
         d = datetime.datetime(int(dl[0]), int(dl[1]), int(dl[2]), now.hour, now.minute, now.second, now.microsecond)
+    import pdb; pdb.set_trace()
     if group.name in role_names:
         connections = Connection.objects.filter(contact__in=Group.objects.get(name=group.name).contact_set.all())
         if connection in connections and ScriptProgress.objects.filter(connection__in=connections).exists():
             return
-
         else:
             d = d if d else _next_midterm()
             sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))

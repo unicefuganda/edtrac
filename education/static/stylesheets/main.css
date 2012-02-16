@@ -1,0 +1,385 @@
+body {
+  background: #CCC;
+  color: #371c37;
+  font-family: "Aller", "Lucida Grande", sans-serif;
+  font-size: 12px;
+  height: 100%;
+  min-width: 1024px;
+  width: 100%;
+  -webkit-font-smoothing: antialiased;
+}
+
+a, a:visited, a:link {text-decoration:none; color:#371c37;}
+h1{
+    font-size: 150%;
+    font-weight: bold;
+}
+h2{
+    font-size:140%;
+    font-weight: bold;
+}
+h3{
+    font-size:130%;
+    font-weight: bold;
+}
+h4{
+    font-size:120%;
+}
+h5{
+    font-size:110%;
+}
+p{line-height: 14px;}
+.clear {clear:both; width:100%;}
+#main-wrapper{width:1020px; margin:0 auto; padding:0; }
+#top{height:36px; background: url(../icons/top-bg.png) repeat-x #246c98; padding:0 36px;}
+#top #nav {float:right; margin:15px 0 0 0;}
+#top #nav ul {padding:0; margin:0; list-style-type: none;}
+#top #nav ul li {display: inline; padding:0 0px 0 0; margin:0;}
+#top #nav ul li a {font-family: Arial, Helvetica, sans-serif; color:#d2dbea; font-weight: bold; padding:8px 12px; background: url(../icons/nav-link-bg.png) repeat-x; }
+#top #nav ul li a:hover {background:url(../icons/top-bg.png) repeat-x; color:#FFF;}
+#main-content{background: url(../icons/main-content-bg.png) repeat-x #246c98; min-height:500px; padding:0 36px;}
+#title-bar{height:70px; padding: 32px 0 0 0; border-bottom: 1px solid #0a2b41;}
+#edutrac-logo {float:left;}
+#edutrac-logo span {font-size: 40px; color:#FFF; font-weight: bold;}
+#unicef-logo{float:right;}
+#unicef-logo img{width:140px; height:35px; border: none;}
+#main-content .inner-content{border-top:1px solid #286c97; padding:5px 0 0 0;}
+#main-content .inner-content .content {float:left; width:700px;}
+#main-content .inner-content .sidebar {float:right; width: 240px;}
+#main-content .inner-content .sidebar .attention, #main-content .inner-content .sidebar .quick-stats {margin:0 0 8px 0;}
+#main-content .inner-content .content .section{background-color: #FFF; min-height: 150px; margin: 0 0 15px 0;}
+.section{-moz-box-shadow:1px 1px 0px 2px #204965; -webkit-box-shadow:1px 1px 0px 2px #204965; box-shadow:1px 1px 0px 2px #204965;}
+
+h1.section-title{
+    padding:10px;
+    padding-left:50px;
+    color:#371c37;
+    border-bottom: 1px solid #a9b8be;
+}
+h1.calendar{
+    background:url(../icons/calendar-week.png) no-repeat;
+    background-position: 10px center;
+}
+h1.month{
+    background:url(../icons/calendar-month.png) no-repeat;
+    background-position: 10px center;
+}
+h1.term{
+    background:url(../icons/calendar-term.png) no-repeat;
+    background-position: 10px center;
+}
+.this-week .attendance, .this-week .curriculum-progress{background-color: #f8f0ff; border: 1px solid #cbadcd; padding:1px; }
+.this-week .attendance {margin:10px 0 10px 10px; width:455px; float: left;}
+.this-week .curriculum-progress {margin:10px 10px 10px 0; width:210px; float: right;}
+.top{border-bottom:1px solid #e0ccef;}
+.this-week .top {min-height: 290px;}
+.this-month .top, .this-term .top{padding-bottom: 15px;}
+h2.block-header{
+    padding:15px 0 5px 5px;
+    color:#371c37;
+    border-bottom: 1px solid #a37ba5;
+    background: url(../icons/block-header-bg.png) repeat-x;
+}
+table.tabulated-data {border:none; width:100%;}
+table.tabulated-data tr:nth-child(even){background-color: #eee0f9;}
+table.tabulated-data tr th {font-weight: bold;}
+table.tabulated-data tr th, table.tabulated-data tr td {text-align: left; padding: 10px 0 10px 15px; vertical-align: middle; max-width:80px;}
+table.tabulated-data tr td.positive{
+    background: url(../icons/positive-change-green.png) no-repeat 50px center;
+}
+table.tabulated-data tr td.zero{
+    background: url(../icons/zero-change-blue.png) no-repeat 50px center;
+}
+table.tabulated-data tr td.negative{
+    background: url(../icons/negative-change-red.png) no-repeat 50px center;
+}
+.actions {border-top:1px solid #ffffff; padding:15px 10px;}
+a.button {
+    padding:5px 5px 5px 0;
+    margin:0 0 0 8px;
+    float:right;
+}
+a.button-purple{
+    border:1px solid #b98cbb;
+    background: url(../icons/button-purple-bg.png) repeat-x top left;
+    -moz-box-shadow:1px 1px 0px 1px #6c4871; 
+    -webkit-box-shadow:1px 1px 0px 1px #6c4871; 
+    box-shadow:1px 1px 0px 1px #6c4871;
+}
+a.button-blue{
+    border:1px solid #a5bfc8;
+    background: url(../icons/button-blue-bg.png) repeat-x top left;
+    -moz-box-shadow:1px 1px 0px 1px #5f7d8b; 
+    -webkit-box-shadow:1px 1px 0px 1px #5f7d8b; 
+    box-shadow:1px 1px 0px 1px #5f7d8b;
+}
+a.button span.messages{
+    color:#1a4554;
+    background: url(../icons/messages.png) no-repeat 5px center;
+}
+a.button span.messages:hover{
+    color:#FFF;
+}
+a.button:hover{
+    color:#FFF;
+}
+a.button span {
+    text-transform: uppercase;
+    padding:5px 5px 5px 25px;
+}
+a.button span.details {
+    background: url(../icons/details.png) no-repeat 5px center;
+}
+a.button span.settings {
+    background: url(../icons/settings.png) no-repeat 5px center;
+}
+a.button span.graph {
+    background: url(../icons/graph.png) no-repeat 5px center;
+}
+.curriculum-progress h3{
+    font-size:180%;
+    padding:30px 65px;
+    padding-right:0;
+    background: url(../icons/literacy.png) no-repeat 10px center;
+}
+.curriculum-progress p {padding:10px;}
+.curriculum-progress .progress {margin:10px; padding:2px; border:1px solid #95ca8c; height: 50px; background-color: #FFF;}
+.curriculum-progress .progress span {background: url(../icons/progress.png) repeat-x; display:block; height:50px; margin:0; padding:0;}
+.curriculum-progress .progress span b {font-weight: bold; font-size: 300%; color: #226c15; display:block; padding:7px 5px;}
+.container{padding:5px; margin:10px; border:1px solid #CBADCD; background-color: #F8F0FF;}
+.this-month, .this-term{padding-bottom: 1px;}
+.this-month .violence{
+    float:left;
+    margin:0 8px 0 0;
+}
+.this-month .violence h3, .this-month .missed-meals h3{
+    background-color: #eee0f9;
+    float:left;
+    padding:20px 5px;
+    margin-right: 5px;
+    width:200px;
+    font-size:125%;
+}
+.top .div-1{
+    float:left;
+    margin-right: 8px;
+}
+.top .div-2{
+    float: left;
+}
+.top .div-1 p, .top .div-2 p{
+    background-color: #eee0f9;
+    padding: 5px 8px;
+    height:45px;
+    vertical-align: middle;
+    float:right;
+    font-weight:bold;
+    width:193px;
+}
+div.data{
+    float:right;
+    padding:11px 5px 11px 10px;
+    width:100px;
+}
+.top .div-1 .data, .top .div-2 .data{
+    float: left;
+    margin:0 5px 0 0;
+}
+.data span.value{
+    font-weight: 600;
+    font-size:140%;
+    padding:0 30px 0 0;
+}
+
+.top .div-1 .data span.value, .top .div-2 .data span.value{
+    font-weight: 800;
+    font-size: 180%;
+    padding-right: 40px;
+    line-height: 32px;
+}
+
+.data-green{
+    background: url(../icons/data-green-bg.png) repeat-x;
+}
+.data-red span.increase{
+    background: url(../icons/positive-change-red.png) no-repeat;
+    background-position: right center;
+    color: #bf1226;
+}
+.data-red span.decrease{
+    background: url(../icons/negative-change-red.png) no-repeat;
+    background-position: right center;
+    color: #bf1226;
+}
+.data-green span.increase{
+    background: url(../icons/positive-change-green-inverted.png) no-repeat;
+    background-position: right center;
+    color:#15630a;
+}
+.data-green span.decrease{
+    background: url(../icons/negative-change-green.png) no-repeat;
+    background-position: right center;
+    color:#15630a;
+}
+.data-red{
+    background: url(../icons/data-red-bg.png);
+}
+.quick-stats{
+    padding:5px 5px 1px 5px;
+    background-color: #f8efff;
+}
+.quick-stats p{
+    vertical-align: middle;
+    margin-bottom: 5px;
+    height:35px;
+    font-weight: bold;
+}
+.quick-stats p b{
+    padding-top:10px;
+    display: block;
+    font-size: 115%;
+}
+.quick-stats label{
+    background-color: #e2cef1;
+    display: block;
+    width:50px;
+    float:left;
+    font-size: 150%;
+    font-weight: 700;
+    padding:10px;
+    text-align: center;
+    margin-right:5px;
+}
+.quick-stats label.active{
+    font-size:180%;
+}
+.attention{
+    background-color: #eaf4fa;
+    color:#1a4554;
+    padding-bottom:10px;
+    padding-right: 10px;
+}
+.attention .items{
+    padding:5px 0 5px 5px;
+    margin:5px 0 0 0;
+}
+.attention .items .item{
+    border:1px solid #8aacc3;
+    background-color: #c1d8e7;
+    padding-left:5px;
+    margin-left:12px;
+    margin-bottom:10px;
+    position: relative;
+}
+.attention .items .item span.call-out{
+    width:30px;
+    height:30px;
+    position: absolute;
+    top:4px;
+    left:-13px;
+    background: url(../icons/call-out.png) no-repeat left top;
+}
+.attention .items .item p.date{
+    padding: 5px 5px 5px 0;
+    text-align: right;
+    border-bottom: 1px solid #abc6d8;
+    color:#6a96a7;
+}
+.attention .items .item p.description{
+    padding:5px 10px 5px 5px;
+    border-top:1px solid #dae8f1;
+    text-align: justify;
+    line-height:16px;
+    font-weight:300;
+}
+.attention h2{
+    padding:10px 0 8px 50px;
+    border-bottom: 1px solid #9eb3bb;
+    background: url(../icons/attention.png) no-repeat 10px center;
+}
+.section .inner{
+    padding:10px;
+}
+.graph-data{
+    padding:1px;
+    margin-bottom:15px;
+    min-height:300px;
+}
+.bar-chart-container{
+    margin:10px 10px 0 10px;
+    position:relative;
+    height: 300px;
+    width:90%;
+}
+.y-axis-label{
+    float:left;
+    /* Safari */
+    -webkit-transform: rotate(-90deg);
+    /* Firefox */
+    -moz-transform: rotate(-90deg);
+    /* IE */
+    -ms-transform: rotate(-90deg);
+    /* Opera */
+    -o-transform: rotate(-90deg);
+    /* Internet Explorer */
+    position:absolute;
+    left:-40px;
+    bottom:90px;
+}
+.y-axis-label span{
+    font-weight:bold;
+    color:#402440;
+}
+.bar-chart-container .calibrations{
+    position:absolute;
+    bottom: 0;
+    left:50px;
+    width:98%;
+}
+
+.bar-chart-container .calibrations .calibration{
+    height:50px;
+    border-top:1px dotted #ba91bc;
+    width:100%;
+    position:relative;
+}
+
+.bar-chart-container .calibrations .calibration span{
+    color:#402440;
+    position:absolute;
+    top:-5px;
+    left:-20px;
+    font-weight: bold;
+}
+
+.bar-chart-container .bar-chart{
+    position:absolute;
+    left:80px;
+    bottom:0;
+}
+
+.bar-chart-container .bar-chart .item{
+    width:80px;
+    float:left;
+    margin-right: 5px;
+    position:relative;
+    height:100%;
+}
+
+.bar-chart-container .bar-chart .item .bar{
+    width:100%;
+    background: url(../icons/bar-bg.png) repeat-y left top;
+    position:absolute;
+    bottom:50px;
+}
+
+.bar-chart-container .bar-chart .item .label{
+    text-align: center;
+    font-weight: bold;
+    background-color: #caaacb;
+    position:absolute;
+    bottom:18px;
+    width:100%;
+    height:20px;
+    padding-top:8px;
+}
