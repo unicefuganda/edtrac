@@ -76,13 +76,13 @@ def _next_thursday(sp=None):
             d = d + datetime.timedelta(7)
     return d
 
-def _next_wednesday():
+def _next_wednesday(sp = None):
     """
     Next Wednesday is the very next Wednesday of the week which is not a school holiday
     """
     holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
-    day = datetime.datetime.now()
-    day = day + datetime.timedelta((2 - day.weekday()) % 7)
+    d = sp.time if sp else datetime.datetime.now()
+    d = d + datetime.timedelta((2 - day.weekday()) % 7)
     in_holiday = True
     while in_holiday:
         in_holiday = False
@@ -217,8 +217,24 @@ def _schedule_weekly_scripts(group, connection, grps):
             sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
             d = _next_thursday(sp)
             sp.set_time(d)
+
+def _schedule_weekly_report(group, connection, grps):
+    if group.name in grps:
+        script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + 'report_weekly'
+        connections = Connection.objects.filter(contact__in=Group.objects.get(name=group.name).contact_set.all())
+        for connection in connections:
+            sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
+            sp.set_time( _next_wednesday(sp) )
     
 def _schedule_monthly_script(group, connection, script_slug, day_offset, role_names):
+    if group.name in role_names:
+        connections = Connection.objects.filter(contact__in=Group.objects.get(name=group.name).contact_set.all())
+        for connection in connections:
+            d = _date_of_monthday(day_offset)
+            sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
+            sp.set_time(d)
+
+def _schedule_monthly_report(group, connection, script_slug, day_offset, role_names):
     if group.name in role_names:
         connections = Connection.objects.filter(contact__in=Group.objects.get(name=group.name).contact_set.all())
         for connection in connections:

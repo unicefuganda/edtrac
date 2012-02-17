@@ -4,7 +4,8 @@ from django.contrib.auth.models import Group, User
 from django.db import models
 from django.forms import ValidationError
 from eav.models import Attribute
-from education.utils import _schedule_weekly_scripts, _schedule_monthly_script, _schedule_termly_script
+from education.utils import _schedule_weekly_scripts, _schedule_monthly_script, _schedule_termly_script,\
+    _schedule_weekly_report, _schedule_monthly_report
 from rapidsms_httprouter.models import mass_text_sent
 from rapidsms.models import Contact
 from rapidsms.contrib.locations.models import Location
@@ -290,6 +291,8 @@ def edtrac_autoreg(**kwargs):
         _schedule_termly_script(group, connection, 'edtrac_head_teachers_termly', ['Head Teachers'])
         _schedule_termly_script(group, connection, 'edtrac_smc_termly', ['SMC'])
 
+
+
 def edtrac_reschedule_script(**kwargs):
     connection = kwargs['connection']
     progress = kwargs['sender']
@@ -313,15 +316,12 @@ def edtrac_reschedule_script(**kwargs):
         _schedule_monthly_script(group, connection, 'edtrac_gem_monthly', 20, ['GEM'])
     elif slug == 'edtrac_head_teachers_termly':
         _schedule_termly_script(group, connection, 'edtrac_head_teachers_termly', ['Head Teachers'])
+    elif slug == 'edtrac_deo_report_weekly':
+        _schedule_weekly_report(group, connection, 'edtrac_deo_report_weekly',['DEO'])
+    elif slug == 'edtrac_deo_report_monthly':
+        _schedule_monthly_report(group, connection, 'edtrac_deo_report_monthly', ['DEO'])
     else:
         _schedule_termly_script(group, connection, 'edtrac_smc_termly', ['SMC'])
-
-def edtrac_schedule_reports(**kwargs):
-    from .utils import send_out_report
-    print "sent message to DEO"
-    connection = kwargs['connection']
-    send_out_report()
-    print connection
 
 
 def edtrac_autoreg_transition(**kwargs):
@@ -504,7 +504,6 @@ reversion.register(School)
 reversion.register(EmisReporter)
 
 
-script_progress_was_completed.connect(edtrac_schedule_reports, weak=False)
 script_progress_was_completed.connect(edtrac_autoreg, weak=False)
 script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)
 script_progress.connect(edtrac_autoreg_transition, weak=False)
