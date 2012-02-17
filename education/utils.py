@@ -145,7 +145,7 @@ def _schedule_report_sending():
                 for current_week, previous_week in deo_report:
 
                     if 'pupils' in key.split():
-                        send_report(connections = deo_report_connections, report= attendance_template % report)
+                        _send_report(connections = deo_report_connections, report= attendance_template % report)
                     elif 'progress' in key.split():
                                 _send_report(connections = deo_report_connections, report = literacy_template % report)
         else:

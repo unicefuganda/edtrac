@@ -429,7 +429,6 @@ def reschedule_weekly_polls(grp=None):
         if rep.default_connection and rep.groups.count() > 0:
             _schedule_weekly_scripts(rep.groups.all()[0], rep.default_connection, ['Teachers', 'Head Teachers', 'SMC'])
 
-
 def reschedule_monthly_polls(grp=None):
     """
     manually reschedule all monthly polls or for a specified group
@@ -492,6 +491,10 @@ def reschedule_termly_polls(grp = 'all', date=None):
             if rep.default_connection and rep.groups.count() > 0:
                 _schedule_termly_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers', 'SMC'], date)
 
+
+def schedule_weekly_report(grp='DEO'):
+    from .utils import _schedule_report_sending
+    _schedule_report_sending()
 
 Poll.register_poll_type('date', 'Date Response', parse_date_value, db_type=Attribute.TYPE_OBJECT)
 
