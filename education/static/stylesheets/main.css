@@ -383,3 +383,16 @@ div.data{
     height:20px;
     padding-top:8px;
 }
+
+/* additional styles */
+
+div#footer{
+    text-align: right;
+    color:white;
+    padding:5px;
+    font-size: 1.2em;
+    margin-bottom: 10px;
+}
+div#footer a{
+    color:cyan;
+}

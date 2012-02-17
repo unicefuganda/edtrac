@@ -42,8 +42,22 @@
             {% block content %}{% endblock %}
 
             <div class="clear"></div>
+            <div id="footer">
+                <p class="rights">
+                    Copyright &copy; 2008 &#8211; 2011
+                    <a href="http://unicef.org">UNICEF</a> et al.<br />
+                    <a href="http://github.com/rapidsms/rapidsms">RapidSMS</a> is available under
+                    <a href="http://github.com/rapidsms/rapidsms/raw/master/LICENSE">the BSD license</a>.
+                </p>
+
+                {% region "footer" %}
+            </div>
+
         </div>
+
     </div>
+    {% region "bottom" %}
+
 
     <script src="{{ MEDIA_URL }}education/javascripts/cufon.js" type="text/javascript"></script>
     <script src="{{ MEDIA_URL }}education/javascripts/oratorstd.font.js" type="text/javascript"></script>

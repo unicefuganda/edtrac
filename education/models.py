@@ -260,6 +260,8 @@ def edtrac_autoreg(**kwargs):
 
     if not contact.name:
         contact.name = 'Anonymous User'
+    # activate reporter by default (deactivate when quit)
+    contact.active = True
     contact.save()
 
     reporting_school = None

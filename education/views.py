@@ -321,11 +321,12 @@ def admin_dashboard(request):
     #can make a dictionary
     top_three_hungry_districts = sorted_hungry_list[:3]
 
-    return index(request, template_name="admin/admin_dashboard.html",
+    return index(request, template_name="admin/admin_test_new.html",
         context_vars={
             'top_three_violent_districts':top_three_violent_districts,
             'top_three_hungry_districts':top_three_hungry_districts,
-            'month':datetime.datetime.now()
+            'month':datetime.datetime.now(),
+            'schools_to_date':School.objects.count()
             })
 
 # Details views... specified by ROLES
