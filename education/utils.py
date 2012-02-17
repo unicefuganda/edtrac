@@ -122,7 +122,7 @@ def _send_report(connections=None, report=None):
             router.handle_outgoing(outgoing_message, msg )
             print "report sent!"
 
-def send_out_report():
+def _schedule_report_sending():
     holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
     current_day, current_day_wednesday = _is_wednesday()
     can_send = True
@@ -141,7 +141,6 @@ def send_out_report():
                 #attendance_template = "%s% of %s% were absent this week. Attendance is %s %s than it was last week"
                 attendance_template = "%s% were absent this week."
                 literacy_template = "An average of %s of %s covered"
-                import pdb; pdb.set_trace()
 
                 for current_week, previous_week in deo_report:
 
@@ -214,9 +213,7 @@ def _schedule_weekly_scripts(group, connection, grps):
     if group.name in grps:
         script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
         connections = Connection.objects.filter(contact__in=Group.objects.get(name=group.name).contact_set.all())
-        if connection in connections and ScriptProgress.objects.filter(connection__in=connections).exists():
-            return
-        else:
+        for connection in connections:
             sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
             d = _next_thursday(sp)
             sp.set_time(d)
@@ -224,10 +221,7 @@ def _schedule_weekly_scripts(group, connection, grps):
 def _schedule_monthly_script(group, connection, script_slug, day_offset, role_names):
     if group.name in role_names:
         connections = Connection.objects.filter(contact__in=Group.objects.get(name=group.name).contact_set.all())
-        if connection in connections and ScriptProgress.objects.filter(connection__in=connections).exists():
-            # leave the user in this group (progress will continue)
-            return
-        else:
+        for connection in connections:
             d = _date_of_monthday(day_offset)
             sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
             sp.set_time(d)
@@ -238,14 +232,12 @@ def _schedule_termly_script(group, connection, script_slug, role_names, date=Non
         now = datetime.datetime.now()
         dl = date.split('-')
         d = datetime.datetime(int(dl[0]), int(dl[1]), int(dl[2]), now.hour, now.minute, now.second, now.microsecond)
-    import pdb; pdb.set_trace()
+
     if group.name in role_names:
         connections = Connection.objects.filter(contact__in=Group.objects.get(name=group.name).contact_set.all())
-        if connection in connections and ScriptProgress.objects.filter(connection__in=connections).exists():
-            return
-        else:
-            d = d if d else _next_midterm()
-            sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
+        d = d if d else _next_midterm()
+        for conn in connections:
+            sp = ScriptProgress.objects.create(connection=conn, script=Script.objects.get(slug=script_slug))
             sp.set_time(d)
 
 def compute_total(chunkit):
