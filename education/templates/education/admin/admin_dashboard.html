@@ -12,14 +12,46 @@
 
                     <table class="tabulated-data">
                         <tr><th>Group</th><th>Absent</th><th>Weekly Change</th></tr>
-                        <tr><td>Boys P3</td><td>10%</td><td class="positive">5%</td></tr>
-                        <tr><td>Girls P3</td><td>10%</td><td class="positive">7%</td></tr>
-                        <tr><td>Boys P6</td><td>10%</td><td class="negative">8%</td></tr>
-                        <tr><td>Girls P6</td><td>10%</td><td class="zero">0%</td></tr>
-                        <tr><td>Female Teachers</td><td>30%</td><td class="zero">0%</td></tr>
-                        <tr><td>Male Teachers</td><td>30%</td><td class="positive">30%</td></tr>
-                        <tr><td>Female H Teachers</td><td>10%</td><td class="zero">0%</td></tr>
-                        <tr><td>Male H Teachers</td><td>10%</td><td class="negative">10%</td></tr>
+                        <tr>
+                            <td>Boys P3</td>
+                            <td>{{ boysp3 }}%</td>
+                            <td class="{{ boysp3_class }}">{{ boysp3_diff }}%</td>
+                        </tr>
+                        <tr>
+                            <td>Girls P3</td>
+                            <td>{{ girlsp3 }}%</td>
+                            <td class="{{ girlsp3_class }}">{{ girlsp6_diff }}%</td>
+                        </tr>
+                        <tr>
+                            <td>Boys P6</td>
+                            <td>{{ boysp6 }}%</td>
+                            <td class="{{ boysp6_class }}">{{ boysp6_diff }}%</td>
+                        </tr>
+                        <tr>
+                            <td>Girls P6</td>
+                            <td>{{ girlsp6 }}%</td>
+                            <td class="{{ girlsp6_class }}">{{ girlsp6_diff }}%</td>
+                        </tr>
+                        <tr>
+                            <td>Female Teachers</td>
+                            <td>{{ female_teachers }}%</td>
+                            <td class="zero">0%</td>
+                        </tr>
+                        <tr>
+                            <td>Male Teachers</td>
+                            <td>{{ male_teachers }}%</td>
+                            <td class="positive">30%</td>
+                        </tr>
+                        <tr>
+                            <td>Female H Teachers</td>
+                            <td>10%</td>
+                            <td class="zero">0%</td>
+                        </tr>
+                        <tr>
+                            <td>Male H Teachers</td>
+                            <td>10%</td>
+                            <td class="negative">10%</td>
+                        </tr>
                     </table>
 
                 </div>
@@ -64,7 +96,7 @@
                     <div class="clear"></div>
                 </div>
                 <div class="actions">
-                    <a class="button button-purple" href="#"><span class="details">View Details</span></a>
+                    <a class="button button-purple" href="{% url violence-admin-details %}"><span class="details">View Details</span></a>
                     <div class="clear"></div>
                 </div>
 

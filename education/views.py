@@ -321,12 +321,106 @@ def admin_dashboard(request):
     #can make a dictionary
     top_three_hungry_districts = sorted_hungry_list[:3]
 
+    # CSS class (dynamic icon)
+    x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"))
+    try:
+        boysp3 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_enrollment"))[0] -\
+                      get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"))[0]) /\
+                 get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_enrollment"))[0] or 0
+        boysp3_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_enrollment"))[0]
+    except ZeroDivisionError:
+        boysp3 = 0
+        boysp3_diff = 0 # just return zero (till more data is populated in the system)
+    if x > y:
+        boysp3_class = 'negative'
+    elif x < y:
+        boysp3_class = 'positive'
+    else:
+        boysp3_class = 'zero'
+
+    x, y  = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_attendance"))
+    try:
+        boysp6 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_enrollment"))[0] -\
+                      get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_attendance"))[0]) /\
+                 get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_enrollment"))[0] or 0
+        boysp6_diff = 100 * ( x - y ) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_enrollment"))[0]
+    except ZeroDivisionError:
+        boysp6 = 0
+        boysp6_diff = 0
+    if x > y:
+        boysp6_class = 'negative'
+    elif x < y:
+        boysp6_class = 'positive'
+    else:
+        boysp6_class = 'zero'
+
+
+    x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_attendance"))
+    try:
+        girlsp3 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_enrollment"))[0] -\
+                 get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_attendance"))[0]) / \
+                    get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_enrollment"))[0] or 0
+        girlsp3_diff = 100 * (x-y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_enrollment"))[0]
+    except ZeroDivisionError:
+        girlsp3 = 0
+        girlsp3_diff = 0
+    if x > y:
+        girlsp3_class = "negative"
+    elif x < y:
+        girlsp3_class = "positive"
+    else:
+        girlsp3_class = "zero"
+
+    x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_attendance"))
+    try:
+        girlsp6 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_enrollment"))[0] -\
+                 get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_attendance"))[0]) /\
+                  get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_enrollment"))[0] or 0
+        girlsp6_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_enrollment"))[0]
+    except ZeroDivisionError:
+        girlsp6 = 0
+        girlsp6_diff = 0
+    if x > y:
+        girlsp6_class = "negative"
+    elif x < y:
+        girlsp6_class = "positive"
+    else:
+        girlsp6_class = "zero"
+
+    female_teachers = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_deployment"))[0] -\
+                   get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_attendance"))[0]) /\
+              get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_deployment"))[0] or 0
+
+    male_teachers = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_deployment"))[0] -\
+                           get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_attendance"))[0]) /\
+                      get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_deployment"))[0] or 0
+
+
     return index(request, template_name="admin/admin_dashboard.html",
         context_vars={
             'top_three_violent_districts':top_three_violent_districts,
             'top_three_hungry_districts':top_three_hungry_districts,
             'month':datetime.datetime.now(),
-            'schools_to_date':School.objects.count()
+            'schools_to_date':School.objects.count(),
+
+            'boysp3' : boysp3,
+            'boysp3_class' : boysp3_class,
+            'boysp3_diff' : boysp3_diff,
+
+            'boysp6' : boysp6,
+            'boysp6_class' : boysp6_class,
+            'boysp6_diff' : boysp6_diff,
+
+            'girlsp3' : girlsp3,
+            'girlsp3_class' : girlsp3_class,
+            'girlsp3_diff' : girlsp3_diff,
+
+            'girlsp6' : girlsp6,
+            'girlsp6_class' : girlsp6_class,
+            'girlsp6_diff' : girlsp6_diff,
+
+            'female_teachers': female_teachers,
+            'male_teachers': male_teachers
         })
 
 # Details views... specified by ROLES

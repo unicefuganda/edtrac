@@ -640,27 +640,57 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
         return sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.all()]))
 
 def get_sum_of_poll_response_past_week(poll_queryset, **kwargs):
-    # get the sum, find its total; add up values excluding NoneTypes
-    # keep kwargs = {'location': 'some name'}
+    """
+    Function to the total number of responses in between this current week and the pastweek
+     get the sum, find its total; add up values excluding NoneTypes
+
+    Usage:
+        >>> #returns poll for current week
+        >>> get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"))
+        >>> (23,6)
+
+        >>>> # this returns sums of responses for a number of weeks while returning them as reanges
+        >>> get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"),
+        .... location="Kampala", weeks=1)
+        >>> (34, 23)
+    """
 
     if kwargs:
         first_quota, second_quota = get_week_date(number=kwargs.get('weeks'))
-
-        sum_of_poll_responses_week_before = sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.filter(
-            date__range = first_quota,
-            contact__in =\
-                Contact.objects.filter(reporting_location=Location.objects.exclude(type="country").get(name__icontains=\
-                    kwargs.get('location_name'))))]))
-
-        sum_of_poll_responses_past_week = sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.\
-            filter(date__range = second_quota,
+        #narrowing to location
+        if kwargs.has_key('location_name'):
+            sum_of_poll_responses_week_before = sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.filter(
+                date__range = first_quota,
                 contact__in =\
-                Contact.objects.filter(reporting_location=Location.objects.exclude(type="country").\
-                    get(name__icontains=kwargs.get('location_name'))))]))
+                Contact.objects.filter(reporting_location=Location.objects.exclude(type="country").get(name__icontains=\
+                kwargs.get('location_name'))))]))
 
-        return sum_of_poll_responses_past_week, sum_of_poll_responses_week_before
+            sum_of_poll_responses_past_week = sum(filter(None,
+                [
+                r.eav.poll_number_value for r in poll_queryset.responses.filter(date__range = second_quota,
+                    contact__in = Contact.objects.filter(reporting_location=Location.objects.exclude(type="country").\
+                    get(name__icontains=kwargs.get('location_name'))))
+                ]))
     else:
-        return # just quit
+        # getting country wide statistics
+        first_quota, second_quota = get_week_date(number=1) # default week range to 1
+        sum_of_poll_responses_week_before = sum(filter(None, [r.eav.poll_number_value
+                                                                for r in poll_queryset.responses.filter(
+                                                                    date__range = first_quota,
+                                                                    contact__in = Contact.objects.all())]))
+        sum_of_poll_responses_past_week = sum(filter(None,[r.eav.poll_number_value
+                                                           for r in poll_queryset.responses.filter(
+                                                            date__range = second_quota,
+                                                            contact__in = Contact.objects.all())]))
+
+    return sum_of_poll_responses_past_week, sum_of_poll_responses_week_before
+
+def get_sum_of_poll_response_since_beginning_of_term(poll_queryset, **kwargs):
+    """
+    Function to get the results of a poll between now and beginning of term
+    """
+    #TODO -> numeric polls, categorical polls
+    pass
 
 def generate_deo_report(location_name = None):
     from rapidsms.models import Connection
