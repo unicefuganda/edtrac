@@ -8,8 +8,6 @@ from .models import EmisReporter
 class App (AppBase):
 
     def handle (self, message):
-        from education.utils import levenshtein
-
         if message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_OUT_WORDS', ['quit'])] or\
            difflib.get_close_matches(message.text.strip().lower(), getattr(settings, 'OPT_OUT_WORDS', ['quit'])):
 
