@@ -425,7 +425,7 @@ def reschedule_weekly_polls(grp=None):
     Script.objects.filter(slug__in=weekly_scripts.values_list('slug', flat=True)).update(enabled=True)
     grps = Group.objects.filter(name__iexact=grp) if grp else Group.objects.filter(name__in=['Teachers', 'Head Teachers', 'SMC'])
     # get active reporters
-    reps = EmisReporter.objects.filter(groups__in=grps, active=True)
+    reps = EmisReporter.objects.filter(groups__in=grps)
     for rep in reps:
         if rep.default_connection and rep.groups.count() > 0:
             _schedule_weekly_scripts(rep.groups.all()[0], rep.default_connection, ['Teachers', 'Head Teachers', 'SMC'])
@@ -446,7 +446,7 @@ def reschedule_monthly_polls(grp=None):
     for slug in monthly_scripts.values_list('slug', flat=True):
         grps = Group.objects.filter(name__iexact=grp) if grp else Group.objects.filter(name__in=['Teachers', 'Head Teachers', 'SMC', 'GEM'])
         # get list of active reporters
-        reps = EmisReporter.objects.filter(groups__in=grps, active=True)
+        reps = EmisReporter.objects.filter(groups__in=grps)
         for rep in reps:
             if rep.default_connection and rep.groups.count() > 0:
                 if slug == 'edtrac_teachers_monthly':
@@ -486,7 +486,7 @@ def reschedule_termly_polls(grp = 'all', date=None):
     for slug in termly_scripts.values_list('slug', flat=True):
         grps = Group.objects.filter(name__iexact=grp) if not grp == 'all' else Group.objects.filter(name__in=['Head Teachers', 'SMC'])
         # send poll questions to active reporters
-        reps = EmisReporter.objects.filter(groups__in=grps, active=True)
+        reps = EmisReporter.objects.filter(groups__in=grps)
         #import pdb; pdb.set_trace()
         for rep in reps:
             if rep.default_connection and rep.groups.count() > 0:
