@@ -387,13 +387,39 @@ def admin_dashboard(request):
     else:
         girlsp6_class = "zero"
 
-    female_teachers = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_deployment"))[0] -\
+    x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_attendance"))
+    try:
+        female_teachers = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_deployment"))[0] -\
                    get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_attendance"))[0]) /\
-              get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_deployment"))[0] or 0
+                  get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_deployment"))[0] or 0
+        female_teachers_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_deployment"))[0]
+    except ZeroDivisionError:
+        female_teachers = 0
+        female_teachers_diff = 0
 
-    male_teachers = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_deployment"))[0] -\
+    if x > y:
+        female_teachers_class = "negative"
+    elif x < y:
+        female_teachers_class = "positive"
+    else:
+        female_teachers_class = "zero"
+
+
+    x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_attendance"))
+    try:
+        male_teachers = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_deployment"))[0] -\
                            get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_attendance"))[0]) /\
-                      get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_deployment"))[0] or 0
+                          get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_deployment"))[0] or 0
+        male_teachers_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_deployment"))[0]
+    except ZeroDivisionError:
+        male_teachers = 0
+        male_teachers_diff = 0
+    if x > y:
+        male_teachers_class = "negative"
+    elif x < y:
+        male_teachers_class = "positive"
+    else:
+        male_teachers_class = "zero"
 
 
     return index(request, template_name="admin/admin_dashboard.html",
@@ -420,7 +446,12 @@ def admin_dashboard(request):
             'girlsp6_diff' : girlsp6_diff,
 
             'female_teachers': female_teachers,
-            'male_teachers': male_teachers
+            'female_teachers_class' : female_teachers_class,
+            'female_teachers_diff' : female_teachers_diff,
+
+            'male_teachers': male_teachers,
+            'male_teachers_class' : male_teachers_class,
+            'male_teachers_diff' : male_teachers_diff
         })
 
 # Details views... specified by ROLES
