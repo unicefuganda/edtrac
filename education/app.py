@@ -1,3 +1,4 @@
+import difflib
 from rapidsms.apps.base import AppBase
 from script.models import Script, ScriptProgress
 from django.conf import settings
@@ -9,7 +10,8 @@ class App (AppBase):
     def handle (self, message):
         from education.utils import levenshtein
 
-        if message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_OUT_WORDS', ['quit'])] or levenshtein(message.text.replace('.', '').strip().lower(), 'quit') < 3:
+        if message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_OUT_WORDS', ['quit'])] or\
+           difflib.get_close_matches(message.text.strip().lower(), getattr(settings, 'OPT_OUT_WORDS', ['quit'])):
 
             if Blacklist.objects.filter(connection=message.connection).exists():
                 message.respond('You cannot send Quit to 6200 (EduTrac) more than once.')
@@ -31,9 +33,10 @@ class App (AppBase):
 
                 message.respond(getattr(settings, 'OPT_OUT_CONFIRMATION', 'Thank you for your contribution to EduTrac. To rejoin the system, send join to 6200'))
                 return
-#                return True
+            #                return True
 
-        elif message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', ['join'])] or levenshtein(message.text.replace('.', '').strip().lower(), 'join') < 3:
+        elif message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', ['join'])] or\
+             difflib.get_close_matches(message.text.strip().lower(), getattr(settings, 'OPT_IN_WORDS', ['join'])):
 
             # check if incoming connection is Blacklisted (previously quit)
             if Blacklist.objects.filter(connection=message.connection).exists():
@@ -60,10 +63,10 @@ class App (AppBase):
                 else:
                     # otherwise, chances are this user already exists in the system
                     message.respond("You are already in the system and do not need to 'Join' again.")
-                # quit this.
+                    # quit this.
             return True
 
         elif Blacklist.objects.filter(connection=message.connection).count():
             return True
-        # when all else fails, quit!
+            # when all else fails, quit!
         return

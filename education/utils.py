@@ -422,26 +422,3 @@ themes = {
     12.2: 'Ways of saving energy',
     12.3: 'Dangers of energy and ways of avoiding them'
 }
-
-
-## ref: http://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#Python
-
-def levenshtein(string1, string2):
-
-    if len(string1) < len(string2):
-        return levenshtein(string2, string1)
-
-    if not string1:
-        return len(string2)
-
-    previous_row = xrange(len(string2) + 1)
-    for i, c1 in enumerate(string1):
-        current_row = [i + 1]
-        for j, c2 in enumerate(string2):
-            insertions = previous_row[j + 1] + 1
-            deletions = current_row[j] + (c1 != c2)
-            substitutions = previous_row[j] + (c1 != c2)
-            current_row.append(min(insertions, deletions, substitutions))
-        previous_row = current_row
-
-    return previous_row[-1]
