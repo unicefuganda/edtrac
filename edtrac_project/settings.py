@@ -31,8 +31,8 @@ sys.path.append(os.path.join(filedir, 'endless'))
 # -------------------------------------------------------------------- #
 TIME_ZONE = "Africa/Kampala"
 ACTIVATION_CODE = '+START'
-OPT_IN_WORDS = ['join', 'joim']
-OPT_OUT_WORDS = ['quit', 'quite']
+OPT_IN_WORDS = ['join']
+OPT_OUT_WORDS = ['quit']
 OPT_OUT_MESSAGE = 'You have just quit.If you want to re-register,or register to a new location,please send the word JOIN to 6767.'
 
 # map bounding box
@@ -188,7 +188,6 @@ LOG_BACKUPS = 256  # number of logs to keep
 # this is used for geoserver to tell which website this viz should be for (and prevents clashing of
 # polls across different websites with the same id
 DEPLOYMENT_ID = 6
-
 
 # these weird dependencies should be handled by their respective apps,
 # but they're not, so here they are. most of them are for django admin.
