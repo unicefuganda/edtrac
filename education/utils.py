@@ -137,7 +137,7 @@ def _schedule_report_sending():
             all_repoters = EmisReporter.objects.filter(groups__name="DEO")
             for reporter in all_repoters:
 
-                deo_report_connections, deo_report = generate_deo_report(location_name=reporter.reporting_location__name)
+                deo_report_connections, deo_report = generate_deo_report(location_name=reporter.reporting_location.name)
                 #attendance_template = "%s% of %s% were absent this week. Attendance is %s %s than it was last week"
                 attendance_template = "%s% were absent this week."
                 literacy_template = "An average of %s of %s covered"
