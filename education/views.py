@@ -44,7 +44,7 @@ def index(request, **kwargs):
             #if no template name is given
             t = "education/index.html"
         else:
-            t = "education/%s"%template_name            
+            t = "education/%s"%template_name
         return render_to_response(t, context_vars, RequestContext(request))
 
 #MAPS
@@ -110,9 +110,9 @@ def dash_violence(request):
     district_violence_cases = [23, 56, 23, 66]
 
     return render_to_response('education/dashboard/violence.html',{\
-                                'x_vals':districts,\
-                                'y_vals':district_violence_cases
-                                }, RequestContext(request))
+        'x_vals':districts,\
+        'y_vals':district_violence_cases
+    }, RequestContext(request))
 
 def dash_ministry_violence(request):
     #NOTE: violence and abuse almost similar
@@ -125,7 +125,7 @@ def dash_ministry_violence(request):
     return render_to_response('education/dashboard/violence.html',
             {'x_vals':districts, 'y_vals' : district_violence_cases, 'dicty' : dicty, 'chart_title':'Violence Cases Recorded'},
         RequestContext(request)
-    )    
+    )
 
 
 def dash_deo_violence(request):
@@ -153,8 +153,8 @@ def dash_meals(request):
     districts = meal_poll_to_ret.keys()
     lunches_to_ret = zip(districts, [20, 30, 40, 10])
     return render_to_response('education/dashboard/meals.html', {\
-                                'lunches':lunches_to_ret,\
-                                }, RequestContext(request))
+        'lunches':lunches_to_ret,\
+        }, RequestContext(request))
 
 def dash_ministry_meals(req):
     meal_poll_responses = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))
@@ -214,7 +214,7 @@ def dash_ministry_meetings(req):
         print "some non numeric values were provided"
     return render_to_response('education/dashboard/meetings.html', {}, RequestContext(req))
 
-def dash_deo_meetings(req):    
+def dash_deo_meetings(req):
     return render_to_response('education/deo/meetings.html', {}, RequestContext(req))
 
 #BEGIN Capitation
@@ -303,8 +303,8 @@ def admin_dashboard(request):
         ret_type = list, months=2)
 
     responses_to_meals = get_sum_of_poll_response(Poll.objects.get(name = "edtrac_headteachers_meals"),
-                       month_filter=True,
-                       location=location, ret_type = list, action='avg', months=2)
+        month_filter=True,
+        location=location, ret_type = list, action='avg', months=2)
 
     responses_to_smc_meetings_poll = get_sum_of_poll_response(Poll.objects.get(name="edtrac_smc_meetings"),
         month_filter = True, location=location, ret_type=list
@@ -321,13 +321,13 @@ def admin_dashboard(request):
     #can make a dictionary
     top_three_hungry_districts = sorted_hungry_list[:3]
 
-    return index(request, template_name="admin/admin_test_new.html",
+    return index(request, template_name="admin/admin_dashboard.html",
         context_vars={
             'top_three_violent_districts':top_three_violent_districts,
             'top_three_hungry_districts':top_three_hungry_districts,
             'month':datetime.datetime.now(),
             'schools_to_date':School.objects.count()
-            })
+        })
 
 # Details views... specified by ROLES
 class ViolenceAdminDetails(TemplateView):
@@ -348,11 +348,11 @@ class ViolenceAdminDetails(TemplateView):
         for dr in get_month_day_range(datetime.datetime.now(), depth=2):
             resp_count = Poll.objects.get(name="edtrac_headteachers_abuse").responses.filter(
                 contact__in = Contact.objects.filter(reporting_location__in=self.request.user.get_profile().\
-                        location.get_descendants().filter(type="district")),
-                        date__range = dr).count()
+                location.get_descendants().filter(type="district")),
+                date__range = dr).count()
 
             report_count += resp_count
-        try:            
+        try:
             context['reporting_percentage'] = 100 * ( report_count / (float(len(get_month_day_range(datetime.datetime.now(),
                 depth=2))) * report_count))
         except ZeroDivisionError:
@@ -457,16 +457,16 @@ class DistrictViolenceDetails(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(DistrictViolenceDetails, self).get_context_data(**kwargs)
-        
+
         location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk')))
         schools = School.objects.filter(location=location)
         school_case = []
         for school in schools:
-            regex_pattern = r'\d+\.\d+|\d+'                    
+            regex_pattern = r'\d+\.\d+|\d+'
             resps = Poll.objects.get(name="edtrac_headteachers_abuse").responses.filter(contact__in=\
-                    EmisReporter.objects.filter(schools__in=[school]),
-                    date__range = get_month_day_range(datetime.datetime.now())
-                )
+            EmisReporter.objects.filter(schools__in=[school]),
+                date__range = get_month_day_range(datetime.datetime.now())
+            )
             #TODO replace with poll_number_value in the response
             resp_values = [re.findall(regex_pattern, r.message.text)[0] for r in resps]
             sum_of_values = 0
@@ -475,7 +475,7 @@ class DistrictViolenceDetails(DetailView):
                     val = int(val)
                 if isinstance(float(val), float):
                     val = float(val)
-                sum_of_values += val            
+                sum_of_values += val
             school_case.append((school, int(sum_of_values)))
 
         #schools and reports from a district
@@ -503,15 +503,15 @@ class DistrictProgressDetails(DetailView):
         context['location'] = location
         return context
 
-# Meals being had at a district        
+# Meals being had at a district
 class DistrictMealsDetails(DetailView):
     context_object_name = "district_meals"
     model = Location
-    
+
     def get_context_data(self, **kwargs):
         context = super(DistrictMealsDetails, self).get_context_data(**kwargs)
         location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk')))
-        context['location'] = location        
+        context['location'] = location
         return context
 
 
@@ -527,10 +527,10 @@ def whitelist(request):
         if not c.identity.strip() in numbers:
             numbers.append(c.identity.strip())
     return render_to_response(
-    "education/whitelist.txt",
-    {'connections': Connection.objects.exclude(backend__name='yo6200').filter(identity__in=numbers)},
-    mimetype="text/plain",
-    context_instance=RequestContext(request))
+        "education/whitelist.txt",
+            {'connections': Connection.objects.exclude(backend__name='yo6200').filter(identity__in=numbers)},
+        mimetype="text/plain",
+        context_instance=RequestContext(request))
 
 def _reload_whitelists():
     refresh_urls = getattr(settings, 'REFRESH_WHITELIST_URL', None)
@@ -551,10 +551,10 @@ def _reload_whitelists():
 
 def _addto_autoreg(connections):
     for connection in connections:
-        if not connection.contact and \
-            not ScriptProgress.objects.filter(script__slug='emis_autoreg', connection=connection).count():
-                        ScriptProgress.objects.create(script=Script.objects.get(slug="emis_autoreg"), \
-                                              connection=connection)
+        if not connection.contact and\
+           not ScriptProgress.objects.filter(script__slug='emis_autoreg', connection=connection).count():
+            ScriptProgress.objects.create(script=Script.objects.get(slug="emis_autoreg"),\
+                connection=connection)
 
 @login_required
 def add_connection(request):
@@ -575,7 +575,7 @@ def add_connection(request):
                     connections.append(connection)
             _addto_autoreg(connections)
             _reload_whitelists()
-#            time.sleep(2)
+            #            time.sleep(2)
             return render_to_response('education/partials/addnumbers_row.html', {'object':connections, 'selectable':False}, RequestContext(request))
 
     return render_to_response("education/partials/new_connection.html", {'form':form}, RequestContext(request))
@@ -600,23 +600,23 @@ def edit_reporter(request, reporter_pk):
     reporter_form = EditReporterForm(instance=reporter)
     if request.method == 'POST':
         reporter_form = EditReporterForm(instance=reporter,
-                data=request.POST)
+            data=request.POST)
         if reporter_form.is_valid():
             reporter_form.save()
         else:
             return render_to_response('education/partials/edit_reporter.html',
                     {'reporter_form': reporter_form,
                      'reporter': reporter},
-                    context_instance=RequestContext(request))
+                context_instance=RequestContext(request))
         return render_to_response('/education/partials/reporter_row.html',
-                                  {'object':EmisReporter.objects.get(pk=reporter_pk),
-                                   'selectable':True},
-                                  context_instance=RequestContext(request))
+                {'object':EmisReporter.objects.get(pk=reporter_pk),
+                 'selectable':True},
+            context_instance=RequestContext(request))
     else:
         return render_to_response('education/partials/edit_reporter.html',
-                                  {'reporter_form': reporter_form,
-                                  'reporter': reporter},
-                                  context_instance=RequestContext(request))
+                {'reporter_form': reporter_form,
+                 'reporter': reporter},
+            context_instance=RequestContext(request))
 
 @login_required
 def add_schools(request):
@@ -638,8 +638,8 @@ def add_schools(request):
     else:
         form = SchoolForm()
     return render_to_response('education/deo/add_schools.html',
-                                  {'form': form,
-                                }, context_instance=RequestContext(request))
+            {'form': form,
+             }, context_instance=RequestContext(request))
 
 @login_required
 def delete_school(request, school_pk):
@@ -654,32 +654,32 @@ def edit_school(request, school_pk):
     school_form = SchoolForm(instance=school)
     if request.method == 'POST':
         school_form = SchoolForm(instance=school,
-                data=request.POST)
+            data=request.POST)
         if school_form.is_valid():
             school_form.save()
         else:
             return render_to_response('education/partials/edit_school.html'
-                    , {'school_form': school_form, 'school'
-                    : school},
-                    context_instance=RequestContext(request))
+                , {'school_form': school_form, 'school'
+                : school},
+                context_instance=RequestContext(request))
         return render_to_response('/education/partials/school_row.html',
-                                  {'object':School.objects.get(pk=school_pk),
-                                   'selectable':True},
-                                  context_instance=RequestContext(request))
+                {'object':School.objects.get(pk=school_pk),
+                 'selectable':True},
+            context_instance=RequestContext(request))
     else:
         return render_to_response('education/partials/edit_school.html',
-                                  {'school_form': school_form,
-                                  'school': school},
-                                  context_instance=RequestContext(request))
-        
+                {'school_form': school_form,
+                 'school': school},
+            context_instance=RequestContext(request))
+
 @login_required
 def school_detail(request, school_id):
     school = School.objects.get(id=school_id)
     last_submissions = school_last_xformsubmission(request, school_id)
     return render_to_response("education/school_detail.html", {\
-                            'school': school,
-                            'last_submissions': last_submissions,
-                                }, RequestContext(request))
+        'school': school,
+        'last_submissions': last_submissions,
+        }, RequestContext(request))
 
 
 # analytics specific for emis {copy, but adjust to suit your needs}
@@ -733,26 +733,26 @@ def attendance_chart(req): #consider passing date function nicely and use of slu
 
     ## Limited number of schools by 25
     schools = School.objects.filter(location__in=user_location.get_descendants(include_self=True).all())[:25]
-#    date_tup = previous_calendar_week()
-#    kw = ('start','end')
-#    dates = dict(zip(kw,date_tup))
-    	
+    #    date_tup = previous_calendar_week()
+    #    kw = ('start','end')
+    #    dates = dict(zip(kw,date_tup))
+
     #monthly diagram
 
     #TODO include date filtering for more than 1week {need a use-case}
 
     def value_gen(slug, dates, schools):
         toret = XFormSubmissionValue.objects.exclude(submission__has_errors=True)\
-                .filter(attribute__slug__in=slug)\
-				.filter(created__range=(dates.get('start'),dates.get('end')))\
-                .filter(submission__connection__contact__emisreporter__schools__in=schools)\
-                .values('submission__connection__contact__emisreporter__schools__name')\
-                .values_list('submission__connection__contact__emisreporter__schools__name','value_int')
+        .filter(attribute__slug__in=slug)\
+        .filter(created__range=(dates.get('start'),dates.get('end')))\
+        .filter(submission__connection__contact__emisreporter__schools__in=schools)\
+        .values('submission__connection__contact__emisreporter__schools__name')\
+        .values_list('submission__connection__contact__emisreporter__schools__name','value_int')
         return toret
 
     boy_values = value_gen(boyslugs,dates,schools)
     girl_values = value_gen(girlslugs,dates,schools)
-    
+
     def cleanup(values):
         index = 0
         clean_val = []
@@ -765,7 +765,7 @@ def attendance_chart(req): #consider passing date function nicely and use of slu
                     school_values.append(values[i][1])
                 except IndexError:
                     school_values.append(0)
-                # cleanup
+                    # cleanup
                 school_values.reverse()
             index += 6
             clean_val.append(school_values)
@@ -823,7 +823,7 @@ def edit_user(request, user_pk=None):
                 profile.save()
             except UserProfile.DoesNotExist:
 
-               
+
                 UserProfile.objects.create(name=user.first_name,user=user,role=Role.objects.get(pk=user_form.cleaned_data['groups'][0].pk),location=user_form.cleaned_data['location'])
 
             return HttpResponseRedirect(reverse("emis-users"))
@@ -834,10 +834,10 @@ def edit_user(request, user_pk=None):
         title="Editing "+user.username
     else:
         user_form = UserForm(instance=user)
-    
+
     return render_to_response('education/partials/edit_user.html', {'user_form': user_form,'title':title},
-                              context_instance=RequestContext(request))
-    
+        context_instance=RequestContext(request))
+
 @login_required
 def alerts_detail(request, alert, district_id=None):
     user_location = get_location(request, district_id)
@@ -848,137 +848,137 @@ def alerts_detail(request, alert, district_id=None):
         results_title = "Schools which didn't send in Pupil Attendance Data this Week"
         start_date, end_date = previous_calendar_week()
         responsive_schools = XFormSubmissionValue.objects.all()\
-                            .filter(Q(submission__xform__keyword__icontains='boys')|Q(submission__xform__keyword__icontains='girls'))\
-                            .filter(created__range=(start_date, end_date))\
-                            .filter(submission__connection__contact__emisreporter__schools__location__in=user_location.get_descendants(include_self=True).all())\
-                            .values_list('submission__connection__contact__emisreporter__schools__name', flat=True)
+        .filter(Q(submission__xform__keyword__icontains='boys')|Q(submission__xform__keyword__icontains='girls'))\
+        .filter(created__range=(start_date, end_date))\
+        .filter(submission__connection__contact__emisreporter__schools__location__in=user_location.get_descendants(include_self=True).all())\
+        .values_list('submission__connection__contact__emisreporter__schools__name', flat=True)
         schools_queryset = schools_queryset.exclude(name__in=responsive_schools)
-        
+
     if int(alert) == 2:
         print 2
         results_title = "Schools which have not sent in Pupil Enrollment Data this Year"
         responsive_schools = XFormSubmissionValue.objects.all()\
-                            .filter(Q(submission__xform__keyword__icontains='enrolledb')|Q(submission__xform__keyword__icontains='enrolledg'))\
-                            .filter(created__range=(start_date, end_date))\
-                            .filter(submission__connection__contact__emisreporter__schools__location__in=user_location.get_descendants(include_self=True).all())\
-                            .values_list('submission__connection__contact__emisreporter__schools__name', flat=True)
+        .filter(Q(submission__xform__keyword__icontains='enrolledb')|Q(submission__xform__keyword__icontains='enrolledg'))\
+        .filter(created__range=(start_date, end_date))\
+        .filter(submission__connection__contact__emisreporter__schools__location__in=user_location.get_descendants(include_self=True).all())\
+        .values_list('submission__connection__contact__emisreporter__schools__name', flat=True)
         schools_queryset = schools_queryset.exclude(name__in=responsive_schools)
-        
+
     if int(alert) == 3:
         results_title = "Schools which have not sent in Teacher Deployment Data this Year"
         responsive_schools = XFormSubmissionValue.objects.all()\
-                        .filter(submission__xform__keyword__icontains='deploy')\
-                        .filter(created__range=(start_date, end_date))\
-                        .filter(submission__connection__contact__emisreporter__schools__location__in=user_location.get_descendants(include_self=True).all())\
-                        .values_list('submission__connection__contact__emisreporter__schools__name', flat=True)
+        .filter(submission__xform__keyword__icontains='deploy')\
+        .filter(created__range=(start_date, end_date))\
+        .filter(submission__connection__contact__emisreporter__schools__location__in=user_location.get_descendants(include_self=True).all())\
+        .values_list('submission__connection__contact__emisreporter__schools__name', flat=True)
         schools_queryset = schools_queryset.exclude(name__in=responsive_schools)
-                            
+
     return generic(request,
-      model = School,
-      queryset = schools_queryset,
-      filter_forms = [FreeSearchSchoolsForm, SchoolDistictFilterForm],
-      action_forms = [SchoolMassTextForm],
-      objects_per_page = 25,
-      results_title = results_title,
-      partial_row = 'education/partials/alerts_row.html',
-      partial_header = 'education/partials/partial_header.html',
-      base_template = 'education/schools_base.html',
-      columns = [('Name', True, 'name', SimpleSorter()),
-                 ('District', True, 'location__name', None,),
-                 ('Head Teacher', False, 'emisreporter', None,),
-                 ('Reporters', False, 'emisreporter', None,),
-                 ('Last Report Date ', True, 'report_date', None,)
-                 ],
-      sort_column = 'date',
-      sort_ascending = False,
-      alert = alert,
+        model = School,
+        queryset = schools_queryset,
+        filter_forms = [FreeSearchSchoolsForm, SchoolDistictFilterForm],
+        action_forms = [SchoolMassTextForm],
+        objects_per_page = 25,
+        results_title = results_title,
+        partial_row = 'education/partials/alerts_row.html',
+        partial_header = 'education/partials/partial_header.html',
+        base_template = 'education/schools_base.html',
+        columns = [('Name', True, 'name', SimpleSorter()),
+            ('District', True, 'location__name', None,),
+            ('Head Teacher', False, 'emisreporter', None,),
+            ('Reporters', False, 'emisreporter', None,),
+            ('Last Report Date ', True, 'report_date', None,)
+        ],
+        sort_column = 'date',
+        sort_ascending = False,
+        alert = alert,
     )
-    
+
 def htattendance(request, start_date=None, end_date=None, district_id=None):
     user_location = get_location(request, district_id)
     dates = get_xform_dates(request)
-        
+
     smc_htpresent = Poll.objects.get(name='emis_absence').responses.exclude(has_errors=True)\
-                            .filter(date__range=(dates.get('start'), dates.get('end')))\
-                            .filter(message__connection__contact__emisreporter__reporting_location__in=user_location.get_descendants(include_self=True).all())\
-                            .order_by('message__date')
-   
+    .filter(date__range=(dates.get('start'), dates.get('end')))\
+    .filter(message__connection__contact__emisreporter__reporting_location__in=user_location.get_descendants(include_self=True).all())\
+    .order_by('message__date')
+
     return generic(request,
-      model = Poll,
-      queryset = smc_htpresent,
-      objects_per_page = 50,
-      results_title = 'Head Teacher Presence as Reported by SMCs',
-#      top_columns = [
-#            ('', 1, None),
-#            ('head teacher attendance (reported by SMCs)', 2, None),
-#            ('head teacher attendance (reported by GEM)', 2, None),
-#        ],
-      columns = [
+        model = Poll,
+        queryset = smc_htpresent,
+        objects_per_page = 50,
+        results_title = 'Head Teacher Presence as Reported by SMCs',
+        #      top_columns = [
+        #            ('', 1, None),
+        #            ('head teacher attendance (reported by SMCs)', 2, None),
+        #            ('head teacher attendance (reported by GEM)', 2, None),
+        #        ],
+        columns = [
             ('school', False, 'school', None),
             ('present', False, 'present', None),
             ('reporting date', False, 'date', None),
-#            ('present', False, 'present', None),
-#            ('reporting date', False, 'date', None),
+            #            ('present', False, 'present', None),
+            #            ('reporting date', False, 'date', None),
         ],
-    partial_row = 'education/partials/ht_attendance_row.html',
-    partial_header = 'education/partials/partial_header.html',
-    base_template = 'education/timeslider_base.html',
-    needs_date = True,
-    selectable = False,
-    dates = get_xform_dates,
+        partial_row = 'education/partials/ht_attendance_row.html',
+        partial_header = 'education/partials/partial_header.html',
+        base_template = 'education/timeslider_base.html',
+        needs_date = True,
+        selectable = False,
+        dates = get_xform_dates,
     )
-    
+
 def gem_htattendance(request, start_date=None, end_date=None, district_id=None):
     user_location = get_location(request, district_id)
     dates = get_xform_dates(request)
-        
+
     gem_htpresent = XFormSubmission.objects.filter(xform__keyword='gemteachers').exclude(has_errors=True)\
-                    .filter(created__range=(dates.get('start'), dates.get('end')))\
-                    .filter(connection__contact__emisreporter__reporting_location__in=user_location.get_descendants(include_self=True).all())\
-                    .order_by('created')
+    .filter(created__range=(dates.get('start'), dates.get('end')))\
+    .filter(connection__contact__emisreporter__reporting_location__in=user_location.get_descendants(include_self=True).all())\
+    .order_by('created')
 
     return generic(request,
-      model = XFormSubmission,
-      queryset = gem_htpresent,
-      objects_per_page = 50,
-      results_title = 'Head Teacher Presence as Reported by GEM',
-      columns = [
+        model = XFormSubmission,
+        queryset = gem_htpresent,
+        objects_per_page = 50,
+        results_title = 'Head Teacher Presence as Reported by GEM',
+        columns = [
             ('school', False, 'school', None),
             ('present', False, 'present', None),
             ('reporting date', False, 'date', None),
         ],
-    partial_row = 'education/partials/gemht_attendance_row.html',
-    partial_header = 'education/partials/partial_header.html',
-    base_template = 'education/timeslider_base.html',
-    needs_date = True,
-    selectable = False,
-    dates = get_xform_dates,
+        partial_row = 'education/partials/gemht_attendance_row.html',
+        partial_header = 'education/partials/partial_header.html',
+        base_template = 'education/timeslider_base.html',
+        needs_date = True,
+        selectable = False,
+        dates = get_xform_dates,
     )
-    
+
 def meals(request, district_id=None):
     user_location = get_location(request, district_id)
     dates = get_xform_dates(request)
-        
+
     meals = Poll.objects.get(name='emis_meals').responses.exclude(has_errors=True)\
-                            .filter(date__range=(dates.get('start'), dates.get('end')))\
-                            .filter(message__connection__contact__emisreporter__reporting_location__in=user_location.get_descendants(include_self=True).all())
+    .filter(date__range=(dates.get('start'), dates.get('end')))\
+    .filter(message__connection__contact__emisreporter__reporting_location__in=user_location.get_descendants(include_self=True).all())
 
     return generic(request,
-      model = Poll,
-      queryset = meals,
-      objects_per_page = 50,
-      results_title = 'Pupils who had Meals at School',
-      columns = [
+        model = Poll,
+        queryset = meals,
+        objects_per_page = 50,
+        results_title = 'Pupils who had Meals at School',
+        columns = [
             ('school', False, 'school', None),
             ('estimated number', False, 'number', None),
             ('reporting date', False, 'date', None),
         ],
-    partial_row = 'education/partials/meals_row.html',
-    partial_header = 'education/partials/partial_header.html',
-    base_template = 'education/timeslider_base.html',
-    needs_date = True,
-    selectable = False,
-    dates = get_xform_dates,
+        partial_row = 'education/partials/meals_row.html',
+        partial_header = 'education/partials/partial_header.html',
+        base_template = 'education/timeslider_base.html',
+        needs_date = True,
+        selectable = False,
+        dates = get_xform_dates,
     )
 
 @super_user_required
@@ -986,14 +986,14 @@ def edit_scripts(request):
     forms = []
     for script in Script.objects.all().order_by('slug'):
         forms.append((script, ScriptsForm(instance=script)))
-        
+
     if request.method == 'POST':
         script_form = ScriptsForm(request.POST,instance=Script.objects.get(slug=request.POST.get('slug')))
         if script_form.is_valid():
             script_form.save()
-    
+
     return render_to_response('education/partials/edit_script.html', {'forms': forms},
-                              context_instance=RequestContext(request))
+        context_instance=RequestContext(request))
 
 #TODO work on forms
 def choose_level(request):
@@ -1058,6 +1058,17 @@ class EdtracReporterCreateConnection(FormView):
     def form_valid(self, form):
         from rapidsms.models import Connection
         connection, created = Connection.objects.get_or_create(identity=form.cleaned_data['telephone_number'],
-                backend=Backend.objects.get(name="yo6200"))
+            backend=Backend.objects.get(name="yo6200"))
 
         return HttpResponseRedirect(self.get_success_url())
+
+
+########## Maps #################
+def attendance_visualization(req):
+    return render_to_response(
+        'education/partials/map_attendance.html',
+            {
+            'geoserver_url':getattr(settings, 'GEOSERVER_URL', 'http://localhost/geoserver')
+        },
+        context_instance = RequestContext(req)
+    )
