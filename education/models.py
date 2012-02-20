@@ -316,10 +316,11 @@ def edtrac_reschedule_script(**kwargs):
         _schedule_monthly_script(group, connection, 'edtrac_gem_monthly', 20, ['GEM'])
     elif slug == 'edtrac_head_teachers_termly':
         _schedule_termly_script(group, connection, 'edtrac_head_teachers_termly', ['Head Teachers'])
-    elif slug == 'edtrac_deo_report_weekly':
-        _schedule_weekly_report(group, connection, 'edtrac_deo_report_weekly',['DEO'])
-    elif slug == 'edtrac_deo_report_monthly':
-        _schedule_monthly_report(group, connection, 'edtrac_deo_report_monthly', ['DEO'])
+    # TODO test a better way for scheduling this
+    #elif slug == 'edtrac_deo_report_weekly':
+    #    _schedule_weekly_report(group, connection, 'edtrac_deo_report_weekly',['DEO'])
+    #elif slug == 'edtrac_deo_report_monthly':
+    #    _schedule_monthly_report(group, connection, 'edtrac_deo_report_monthly', ['DEO'])
     else:
         _schedule_termly_script(group, connection, 'edtrac_smc_termly', ['SMC'])
 
