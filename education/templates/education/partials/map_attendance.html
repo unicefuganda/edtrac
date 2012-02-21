@@ -1,3 +1,6 @@
+<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-1.7.1.min.js"></script>
+
+
 <style>
         #map-id {
             width: 470px;
@@ -5,7 +8,8 @@
         }
 </style>
     <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
-    <script src="http://openlayers.org/api/OpenLayers.js"></script>
+    <!-- <script src="http://openlayers.org/api/OpenLayers.js"></script>-->
+	<script type="text/javascript" src="{{ MEDIA_URL}}education/javascripts/openlayers.js"></script>
 <div id="map-id"></div>
 <script defer="defer" type="text/javascript">
     var map;
@@ -56,6 +60,7 @@
                     "Google RoadMap",
                     {type: google.maps.MapTypeId.ROADMAP, numZoomLevels: 20}
             );
+		console.log(ghyb);
         map.addLayers([ghyb,wms]);
         map.addControl(new OpenLayers.Control.PanZoomBar({
                 position: new OpenLayers.Pixel(2, 15)

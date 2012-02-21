@@ -552,3 +552,8 @@ div#violence_form{
 .alert-message.block-message.info p a {
     color: #404040;
 }
+
+
+div.attendance div.top{
+    background-color:#e0ccef;
+}

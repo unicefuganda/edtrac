@@ -181,6 +181,7 @@ urlpatterns = patterns('',
     url(r'^edtrac/dash_admin_progress/$', dash_admin_progress, {}, name="emis-admin-curriculum-progress"),
 
     url(r'^edtrac/violence_admin_details/$', ViolenceAdminDetails.as_view(), name="violence-admin-details"),
+    url(r'^edtrac/attd_admin_details/$', AttendanceAdminDetails.as_view(), name="attendance-admin-details"),
     # to find out about violence in a district
     url(r'^edtrac/violence/district/(?P<pk>\d+)/$', DistrictViolenceDetails.as_view(template_name =\
     "education/dashboard/district_violence_detail.html"), name="district-violence"),

@@ -484,7 +484,136 @@ class ViolenceAdminDetails(TemplateView):
             context['reporting_percentage'] = 0
         return context
 
+class AttendanceAdminDetails(TemplateView):
+    template_name = "education/admin/attendance_details.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super(AttendanceAdminDetails, self).get_context_data(**kwargs)
+        
+        # CSS class (dynamic icon)
+        x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"))
+        try:
+            boysp3 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_enrollment"))[0] -\
+                          get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"))[0]) /\
+                     get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_enrollment"))[0] or 0
+            boysp3_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_enrollment"))[0]
+        except ZeroDivisionError:
+            boysp3 = 0
+            boysp3_diff = 0 # just return zero (till more data is populated in the system)
+        if x > y:
+            boysp3_class = 'negative'
+        elif x < y:
+            boysp3_class = 'positive'
+        else:
+            boysp3_class = 'zero'
 
+        context['boysp3'] = boysp3
+        context['boysp3_class'] = boysp3_class
+        context['boysp3_diff'] = boysp3_diff
+        
+        x, y  = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_attendance"))
+        try:
+            boysp6 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_enrollment"))[0] -\
+                          get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_attendance"))[0]) /\
+                     get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_enrollment"))[0] or 0
+            boysp6_diff = 100 * ( x - y ) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_enrollment"))[0]
+        except ZeroDivisionError:
+            boysp6 = 0
+            boysp6_diff = 0
+        if x > y:
+            boysp6_class = 'negative'
+        elif x < y:
+            boysp6_class = 'positive'
+        else:
+            boysp6_class = 'zero'
+
+        context['boysp6'] = boysp6
+        context['boysp6_class'] = boysp6_class
+        context['boysp6_diff'] = boysp6_diff
+
+        x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_attendance"))
+        try:
+            girlsp3 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_enrollment"))[0] -\
+                     get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_attendance"))[0]) / \
+                        get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_enrollment"))[0] or 0
+            girlsp3_diff = 100 * (x-y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_enrollment"))[0]
+        except ZeroDivisionError:
+            girlsp3 = 0
+            girlsp3_diff = 0
+        if x > y:
+            girlsp3_class = "negative"
+        elif x < y:
+            girlsp3_class = "positive"
+        else:
+            girlsp3_class = "zero"
+
+        context['girlsp3'] = girlsp3
+        context['girlsp3_class'] = girlsp3_class
+        context['girlsp3_diff'] = girlsp3_diff
+
+        x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_attendance"))
+        try:
+            girlsp6 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_enrollment"))[0] -\
+                     get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_attendance"))[0]) /\
+                      get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_enrollment"))[0] or 0
+            girlsp6_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_enrollment"))[0]
+        except ZeroDivisionError:
+            girlsp6 = 0
+            girlsp6_diff = 0
+        if x > y:
+            girlsp6_class = "negative"
+        elif x < y:
+            girlsp6_class = "positive"
+        else:
+            girlsp6_class = "zero"
+        
+        context['girlsp6'] = girlsp6
+        context['girlsp6_class'] = girlsp6_class
+        context['girlsp6_diff'] = girlsp6_diff
+
+        x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_attendance"))
+        try:
+            female_teachers = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_deployment"))[0] -\
+                       get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_attendance"))[0]) /\
+                      get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_deployment"))[0] or 0
+            female_teachers_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_deployment"))[0]
+        except ZeroDivisionError:
+            female_teachers = 0
+            female_teachers_diff = 0
+
+        if x > y:
+            female_teachers_class = "negative"
+        elif x < y:
+            female_teachers_class = "positive"
+        else:
+            female_teachers_class = "zero"
+        
+        context['female_teachers'] = female_teachers
+        context['female_teachers_class'] = female_teachers_class
+        context['female_teachers_diff'] = female_teachers_diff
+        
+        x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_attendance"))
+        try:
+            male_teachers = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_deployment"))[0] -\
+                               get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_attendance"))[0]) /\
+                              get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_deployment"))[0] or 0
+            male_teachers_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_deployment"))[0]
+        except ZeroDivisionError:
+            male_teachers = 0
+            male_teachers_diff = 0
+        if x > y:
+            male_teachers_class = "negative"
+        elif x < y:
+            male_teachers_class = "positive"
+        else:
+            male_teachers_class = "zero"
+        context['male_teachers'] = male_teachers
+        context['male_teachers_class'] = male_teachers_class
+        context['male_teachers_diff'] = male_teachers_diff    
+        
+        return context
+        
+        
 class ProgressAdminDetails(TemplateView):
     template_name = "education/admin/admin_progress_details.html"
 
