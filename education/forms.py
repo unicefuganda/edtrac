@@ -140,15 +140,16 @@ class RolesFilterForm(FilterForm):
             return queryset.filter(groups=groups_pk)
 
 class SchoolForm(forms.ModelForm):
+    class Meta:
+        model = School
+        fields = ('name', 'location')
+
     def __init__(self, *args, **kwargs):
         super(SchoolForm, self).__init__(*args, **kwargs)
         self.fields['location'] = TreeNodeChoiceField(queryset=self.fields['location'].queryset, level_indicator=u'.')
         self.fields['name'] = forms.CharField(required=False, max_length=160)
         self.fields['emis_id'] = forms.CharField(required=False, max_length=10)
 
-    class Meta:
-        model = School
-        fields = ('name', 'location', 'emis_id')
 
 class FreeSearchSchoolsForm(FilterForm):
 

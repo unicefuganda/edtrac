@@ -102,25 +102,8 @@ def _is_wednesday():
     return (today, False)
 
 def _send_report(connections=None, report=None):
-    from rapidsms.messages.outgoing import OutgoingMessage
-    from rapidsms_httprouter.router import get_router
+    pass
 
-
-    # find unique connections
-
-    router = get_router()
-
-    if not connections and report is None:
-        # be sure that a report has been created before actually sending.
-        # just quit silently
-        return
-    else:
-        for connection in connections:
-            print "sending to %s"%connection
-            msg = Message.objects.create(direction="I", connection=connection, status='H', text=report)
-            outgoing_message = OutgoingMessage(msg.connection, report)
-            router.handle_outgoing(outgoing_message, msg )
-            print "report sent!"
 
 def _schedule_report_sending():
     holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
