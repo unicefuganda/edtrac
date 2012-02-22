@@ -557,7 +557,7 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
     district vs value
     """
     #TODO: provide querying by date too
-
+    #import pdb; pdb.set_trace()
     s = 0
     if kwargs:
         if kwargs.has_key('month_filter') and kwargs.get('month_filter') and not kwargs.has_key('location'):
@@ -574,7 +574,7 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                 to_ret[location.__unicode__()] = s
             return to_ret
 
-        if kwargs.has_key('month_filter') and kwargs.get('month_filter') and kwargs.has_key('location') and\
+        if kwargs.get('month_filter') and kwargs.has_key('location') and\
            kwargs.has_key('ret_type') or kwargs.has_key('months'):
             #TODO support drilldowns
             now = datetime.datetime.now()

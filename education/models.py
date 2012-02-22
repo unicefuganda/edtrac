@@ -288,7 +288,7 @@ def edtrac_autoreg(**kwargs):
         _schedule_monthly_script(group, connection, 'edtrac_smc_monthly', 5, ['SMC'])
         _schedule_monthly_script(group, connection, 'edtrac_gem_monthly', 20, ['GEM'])
         #termly messages go out mid April, July or November by default, this can be overwridden by manual process
-        _schedule_termly_script(group, connection, 'edtrac_head_teachers_termly', ['Head Teachers'])
+        _schedule_termly_script(group, connection, 'edtrac_head_teachers_termly', ['Head Teachers'], datetime.date(2012, 2, 22) )
         _schedule_termly_script(group, connection, 'edtrac_smc_termly', ['SMC'])
 
 

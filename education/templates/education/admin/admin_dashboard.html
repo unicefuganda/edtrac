@@ -8,8 +8,12 @@
             <h1 class="section-title calendar">This Week ({{ month|date:"D d M Y" }})</h1>
             <div class="attendance">
                 <h2 class="block-header">Pupil Attendance</h2>
-				<div id="map"></div>
-               <div class="actions">
+				<div class="viz-wrapper">
+                <div id="map" style="width:inherit; height:inherit; float:left;"></div>
+                <div style="float: right">test</div>
+                </div>
+
+               <div class="actions" style="clear: both;">
                     <a class="button button-purple" href="{% url attendance-admin-details%}"><span class="details">View Details</span></a>
                     <a class="button button-purple" href="#"><span class="graph">View Graph</span></a>
                     <div class="clear"></div>
@@ -40,7 +44,7 @@
                 <div class="top">
                     <div class="violence">
                         <h3>Violence Cases in Schools</h3>
-                        <div class="data data-red"><span class="value increase">45%<br />Increase</span></div>
+                        <div class="data data-red"><span class="value increase">{{ violence_cases_increase }}%<br />Increase</span></div>
                     </div>
                     <div class="missed-meals">
                         <h3>Missed Meals at School</h3>
@@ -118,10 +122,10 @@
         </div>
     </div>
 </div>
-
 <script>
 	$(document).ready(function(){
-		$('#map').load("{% url attendance-visualization%}");
+		$('#map').load("{% url attendance-visualization %}");
+        $('#map').append('<div style="float:right; width:100px;">hi<br/>hi<br/>hi<br/>hi<br/>hi<br/>hi<br/>hi<br/></div>');
 	});
 </script>
 
