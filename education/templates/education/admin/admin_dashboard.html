@@ -8,24 +8,13 @@
             <h1 class="section-title calendar">This Week ({{ month|date:"D d M Y" }})</h1>
             <div class="attendance">
                 <h2 class="block-header">Pupil Attendance</h2>
-                <div class="top">
-
-                    <table class="tabulated-data">
-                        <tr><th>Group</th><th>Absent</th><th>Weekly Change</th></tr>
-                        <tr><td>Boys P3</td><td>10%</td><td class="positive">5%</td></tr>
-                        <tr><td>Girls P3</td><td>10%</td><td class="positive">7%</td></tr>
-                        <tr><td>Boys P6</td><td>10%</td><td class="negative">8%</td></tr>
-                        <tr><td>Girls P6</td><td>10%</td><td class="zero">0%</td></tr>
-                        <tr><td>Female Teachers</td><td>30%</td><td class="zero">0%</td></tr>
-                        <tr><td>Male Teachers</td><td>30%</td><td class="positive">30%</td></tr>
-                        <tr><td>Female H Teachers</td><td>10%</td><td class="zero">0%</td></tr>
-                        <tr><td>Male H Teachers</td><td>10%</td><td class="negative">10%</td></tr>
-                    </table>
-
+				<div class="viz-wrapper">
+                <div id="map" style="width:inherit; height:inherit; float:left;"></div>
+                <div style="float: right">test</div>
                 </div>
 
-                <div class="actions">
-                    <a class="button button-purple" href="#"><span class="details">View Details</span></a>
+               <div class="actions" style="clear: both;">
+                    <a class="button button-purple" href="{% url attendance-admin-details%}"><span class="details">View Details</span></a>
                     <a class="button button-purple" href="#"><span class="graph">View Graph</span></a>
                     <div class="clear"></div>
                 </div>
@@ -53,18 +42,24 @@
             <h1 class="section-title month">This Month ({{ month|date:"M Y" }})</h1>
             <div class="container">
                 <div class="top">
+
                     <div class="violence">
                         <h3>Violence Cases in Schools</h3>
-                        <div class="data data-red"><span class="value increase">45%<br />Increase</span></div>
+                        <div class="data {{ violence_change_data }}"><span class="value {{ violence_change_class }}">{{ violence_change }}%
+                            <br />{{ violence_change_class }}</span>
+                        </div>
                     </div>
+
                     <div class="missed-meals">
                         <h3>Missed Meals at School</h3>
-                        <div class="data data-green"><span class="value decrease">15%<br />Decrease</span></span></div>
+                        <div class="data {{ meal_change_data }}"><span class="value {{ meal_change_class }}">{{ meal_change }}%
+                            <br />{{ meal_change_class }}</span></span>
+                        </div>
                     </div>
                     <div class="clear"></div>
                 </div>
                 <div class="actions">
-                    <a class="button button-purple" href="#"><span class="details">View Details</span></a>
+                    <a class="button button-purple" href="{% url violence-admin-details %}"><span class="details">View Details</span></a>
                     <div class="clear"></div>
                 </div>
 
@@ -133,6 +128,9 @@
         </div>
     </div>
 </div>
-
+<script>
+	$(document).ready(function(){
+		$('#map').load("{% url attendance-visualization %}");
+	});
+</script>
 {% endblock %}
-

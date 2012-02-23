@@ -1,0 +1,162 @@
+<style>
+        #map-id {
+            width: 300px;
+            height: 300px;
+        }
+</style>
+<!--    <script type="text/javascript" src="{{ MEDIA_URL}}education/javascripts/OpenLayers.js"></script> -->
+<!-- <div id="map-id"></div> -->
+<div id="map-id"></div>
+<script defer="defer" type="text/javascript">
+    var map;
+    var wms;
+    var pureCoverage = false;
+    var EVT;
+    var popups = {};
+    var response;
+    OpenLayers.IMAGE_RELOAD_ATTEMPTS = 5;
+    OpenLayers.Util.onImageLoadErrorColor = "transparent";
+    // make OL compute scale according to WMS spec
+    OpenLayers.DOTS_PER_INCH = 25.4 / 0.28;
+    function init_map(){
+    	var bounds = new OpenLayers.Bounds(
+                3292022.5, -164636.828,
+                3896216.5, 471764.844
+        );
+        var options = {
+                controls: [],
+                maxExtent: bounds,
+                maxResolution: 2485.94403125,
+                projection: new OpenLayers.Projection("EPSG:900913"),
+              	displayProjection: new OpenLayers.Projection("EPSG:4326"),
+                units: "m",
+                numZoomLevels: 20,
+
+            };
+        map = new OpenLayers.Map('map-id',options);
+        wms = new OpenLayers.Layer.WMS(
+                    "unicef:mtrack_stock",
+                    "{{ geoserver_url }}unicef/wms",
+                    {
+                        viewparams: "layer:0;app:5",
+                        layers: "unicef:mtrack_stock",
+                        format: "image/png",
+                        tiled: true,
+                        transparent: true,
+                        tilesOrigin : map.maxExtent.left + ',' + map.maxExtent.bottom
+                    },
+                    {
+                        buffer: 0,
+                        displayOutsideMaxExtent: false,
+                        isBaseLayer:false,
+                        // 'opacity':0.1
+                    }
+                );
+
+        var ghyb = new OpenLayers.Layer.Google(
+                    "Google RoadMap",
+                    {type: google.maps.MapTypeId.ROADMAP, numZoomLevels: 20}
+
+            );
+
+        map.addLayers([ghyb,wms]);
+        map.addControl(new OpenLayers.Control.PanZoomBar({
+                position: new OpenLayers.Pixel(2, 15)
+            }));
+        map.addControl(new OpenLayers.Control.Navigation());
+        map.addControl(new OpenLayers.Control.LayerSwitcher());
+        map.zoomToExtent(bounds);
+        map.events.register('click', map, function (e) {
+            EVT = e;
+            var params = {
+            	REQUEST: "GetFeatureInfo",
+                EXCEPTIONS: "text/plain",
+                BBOX: map.getExtent().toBBOX(),
+                SERVICE: "WMS",
+                VERSION: "1.1.1",
+
+                X: Math.round(e.xy.x),
+                Y: Math.round(e.xy.y),
+                INFO_FORMAT: 'text/html',
+                QUERY_LAYERS: map.layers[1].params.LAYERS,
+                FEATURE_COUNT: 1,
+                Layers: 'unicef:mtrack_stock',
+                VIEWPARAMS: 'layer:0;app:5',
+                WIDTH: map.size.w,
+                HEIGHT: map.size.h,
+                format: "image/png",
+                styles: map.layers[1].params.STYLES,
+                srs: map.layers[1].params.SRS};
+            // merge filters
+            if (map.layers[1].params.CQL_FILTER != null) {
+                params.cql_filter = map.layers[1].params.CQL_FILTER;
+            }
+            if (map.layers[1].params.FILTER != null) {
+                params.filter = map.layers[1].params.FILTER;
+            }
+            if (map.layers[1].params.FEATUREID) {
+                params.featureid = map.layers[1].params.FEATUREID;
+            }
+            OpenLayers.loadURL("{{ geoserver_url }}unicef/wms", params, this,create_popup,create_popup);
+            OpenLayers.Event.stop(e);
+        });
+     }
+
+   function create_popup(response) {
+        var text = response.responseText
+        var render_text = "";
+        var data = jQuery(text).find('td');
+
+        var th = [];
+        th = jQuery(text).find('th');
+        jQuery.each(th, function(k, v) {
+
+            if (String(jQuery(v).text()) == "description") {
+                render_text = render_text + "<p>" + jQuery(data[k]).text() + "</p>";
+            }
+
+        });
+
+        var popupId = EVT.xy.x + "," + EVT.xy.y;
+
+        var popup = popups[popupId];
+        if (!popup || !popup.map) {
+            popup = new OpenLayers.Popup.FramedCloud(
+                    popupId,
+                    map.getLonLatFromPixel(EVT.xy),
+                    new OpenLayers.Size(200, 160),
+                    " ",
+                    null,
+                    true,
+                    function(evt) {
+                        delete popups[this.id];
+                        this.hide();
+                        OpenLayers.Event.stop(evt);
+                    }
+            );
+                        popup.useInlineStyles = false;
+            popups[popupId] = popup;
+            wms.map.addPopup(popup, true);
+
+        }
+        popup.setContentHTML(popup.contentHTML + render_text);
+
+        popup.show();
+
+    }
+
+    $(document).ready(function(){
+        init_map();
+    });
+
+
+
+    /*$(document).ready(function() {
+    	init_map();
+    	$('#map-h2').html("Pupils Attendance Map (Week {{ week|safe}} to date)");
+    });
+    */
+</script>
+
+
+

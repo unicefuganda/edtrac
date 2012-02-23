@@ -76,13 +76,13 @@ def _next_thursday(sp=None):
             d = d + datetime.timedelta(7)
     return d
 
-def _next_wednesday():
+def _next_wednesday(sp = None):
     """
     Next Wednesday is the very next Wednesday of the week which is not a school holiday
     """
     holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
-    day = datetime.datetime.now()
-    day = day + datetime.timedelta((2 - day.weekday()) % 7)
+    d = sp.time if sp else datetime.datetime.now()
+    d = d + datetime.timedelta((2 - day.weekday()) % 7)
     in_holiday = True
     while in_holiday:
         in_holiday = False
@@ -102,25 +102,8 @@ def _is_wednesday():
     return (today, False)
 
 def _send_report(connections=None, report=None):
-    from rapidsms.messages.outgoing import OutgoingMessage
-    from rapidsms_httprouter.router import get_router
+    pass
 
-
-    # find unique connections
-
-    router = get_router()
-
-    if not connections and report is None:
-        # be sure that a report has been created before actually sending.
-        # just quit silently
-        return
-    else:
-        for connection in connections:
-            print "sending to %s"%connection
-            msg = Message.objects.create(direction="I", connection=connection, status='H', text=report)
-            outgoing_message = OutgoingMessage(msg.connection, report)
-            router.handle_outgoing(outgoing_message, msg )
-            print "report sent!"
 
 def _schedule_report_sending():
     holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
@@ -137,7 +120,7 @@ def _schedule_report_sending():
             all_repoters = EmisReporter.objects.filter(groups__name="DEO")
             for reporter in all_repoters:
 
-                deo_report_connections, deo_report = generate_deo_report(location_name=reporter.reporting_location__name)
+                deo_report_connections, deo_report = generate_deo_report(location_name=reporter.reporting_location.name)
                 #attendance_template = "%s% of %s% were absent this week. Attendance is %s %s than it was last week"
                 attendance_template = "%s% were absent this week."
                 literacy_template = "An average of %s of %s covered"
@@ -217,8 +200,24 @@ def _schedule_weekly_scripts(group, connection, grps):
             sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
             d = _next_thursday(sp)
             sp.set_time(d)
+
+def _schedule_weekly_report(group, connection, grps):
+    if group.name in grps:
+        script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + 'report_weekly'
+        connections = Connection.objects.filter(contact__in=Group.objects.get(name=group.name).contact_set.all())
+        for connection in connections:
+            sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
+            sp.set_time( _next_wednesday(sp) )
     
 def _schedule_monthly_script(group, connection, script_slug, day_offset, role_names):
+    if group.name in role_names:
+        connections = Connection.objects.filter(contact__in=Group.objects.get(name=group.name).contact_set.all())
+        for connection in connections:
+            d = _date_of_monthday(day_offset)
+            sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
+            sp.set_time(d)
+
+def _schedule_monthly_report(group, connection, script_slug, day_offset, role_names):
     if group.name in role_names:
         connections = Connection.objects.filter(contact__in=Group.objects.get(name=group.name).contact_set.all())
         for connection in connections:
@@ -406,26 +405,3 @@ themes = {
     12.2: 'Ways of saving energy',
     12.3: 'Dangers of energy and ways of avoiding them'
 }
-
-
-## ref: http://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#Python
-
-def levenshtein(string1, string2):
-
-    if len(string1) < len(string2):
-        return levenshtein(string2, string1)
-
-    if not string1:
-        return len(string2)
-
-    previous_row = xrange(len(string2) + 1)
-    for i, c1 in enumerate(string1):
-        current_row = [i + 1]
-        for j, c2 in enumerate(string2):
-            insertions = previous_row[j + 1] + 1
-            deletions = current_row[j] + (c1 != c2)
-            substitutions = previous_row[j] + (c1 != c2)
-            current_row.append(min(insertions, deletions, substitutions))
-        previous_row = current_row
-
-    return previous_row[-1]

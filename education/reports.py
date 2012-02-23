@@ -557,7 +557,7 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
     district vs value
     """
     #TODO: provide querying by date too
-
+    #import pdb; pdb.set_trace()
     s = 0
     if kwargs:
         if kwargs.has_key('month_filter') and kwargs.get('month_filter') and not kwargs.has_key('location'):
@@ -574,7 +574,7 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                 to_ret[location.__unicode__()] = s
             return to_ret
 
-        if kwargs.has_key('month_filter') and kwargs.get('month_filter') and kwargs.has_key('location') and\
+        if kwargs.get('month_filter') and kwargs.has_key('location') and\
            kwargs.has_key('ret_type') or kwargs.has_key('months'):
             #TODO support drilldowns
             now = datetime.datetime.now()
@@ -639,28 +639,80 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
     else:
         return sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.all()]))
 
+
+def cleanup_differences_on_poll(responses):
+    """a function to clean up total poll sums from districts and compute a difference"""
+    #use case --> on polls where a difference is needed between previous and current month
+    # this function also aggregates a Location wide-poll
+    current_month_sum = []
+    previous_month_sum = []
+    for x, y in responses:
+        current_month_sum.append(y[0][0])
+        previous_month_sum.append(y[1][0])
+
+    current_month_sum = sum(filter(None, current_month_sum))
+    previous_month_sum = sum(filter(None, previous_month_sum))
+
+    # difference
+    try:
+        percent = 100 * (current_month_sum - previous_month_sum) / float(previous_month_sum)
+    except ZeroDivisionError:
+        percent = 0
+
+    return percent
+
 def get_sum_of_poll_response_past_week(poll_queryset, **kwargs):
-    # get the sum, find its total; add up values excluding NoneTypes
-    # keep kwargs = {'location': 'some name'}
+    """
+    Function to the total number of responses in between this current week and the pastweek
+     get the sum, find its total; add up values excluding NoneTypes
+
+    Usage:
+        >>> #returns poll for current week
+        >>> get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"))
+        >>> (23,6)
+
+        >>>> # this returns sums of responses for a number of weeks while returning them as reanges
+        >>> get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"),
+        .... location="Kampala", weeks=1)
+        >>> (34, 23)
+    """
 
     if kwargs:
         first_quota, second_quota = get_week_date(number=kwargs.get('weeks'))
-
-        sum_of_poll_responses_week_before = sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.filter(
-            date__range = first_quota,
-            contact__in =\
-                Contact.objects.filter(reporting_location=Location.objects.exclude(type="country").get(name__icontains=\
-                    kwargs.get('location_name'))))]))
-
-        sum_of_poll_responses_past_week = sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.\
-            filter(date__range = second_quota,
+        #narrowing to location
+        if kwargs.has_key('location_name'):
+            sum_of_poll_responses_week_before = sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.filter(
+                date__range = first_quota,
                 contact__in =\
-                Contact.objects.filter(reporting_location=Location.objects.exclude(type="country").\
-                    get(name__icontains=kwargs.get('location_name'))))]))
+                Contact.objects.filter(reporting_location=Location.objects.exclude(type="country").get(name__icontains=\
+                kwargs.get('location_name'))))]))
 
-        return sum_of_poll_responses_past_week, sum_of_poll_responses_week_before
+            sum_of_poll_responses_past_week = sum(filter(None,
+                [
+                r.eav.poll_number_value for r in poll_queryset.responses.filter(date__range = second_quota,
+                    contact__in = Contact.objects.filter(reporting_location=Location.objects.exclude(type="country").\
+                    get(name__icontains=kwargs.get('location_name'))))
+                ]))
     else:
-        return # just quit
+        # getting country wide statistics
+        first_quota, second_quota = get_week_date(number=1) # default week range to 1
+        sum_of_poll_responses_week_before = sum(filter(None, [r.eav.poll_number_value
+                                                                for r in poll_queryset.responses.filter(
+                                                                    date__range = first_quota,
+                                                                    contact__in = Contact.objects.all())]))
+        sum_of_poll_responses_past_week = sum(filter(None,[r.eav.poll_number_value
+                                                           for r in poll_queryset.responses.filter(
+                                                            date__range = second_quota,
+                                                            contact__in = Contact.objects.all())]))
+
+    return sum_of_poll_responses_past_week, sum_of_poll_responses_week_before
+
+def get_sum_of_poll_response_since_beginning_of_term(poll_queryset, **kwargs):
+    """
+    Function to get the results of a poll between now and beginning of term
+    """
+    #TODO -> numeric polls, categorical polls
+    pass
 
 def generate_deo_report(location_name = None):
     from rapidsms.models import Connection

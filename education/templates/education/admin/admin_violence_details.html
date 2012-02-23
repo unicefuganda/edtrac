@@ -1,25 +1,16 @@
-{% extends "layout.html" %}
-{% load humanize %}
-{% block stylesheets %}
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/layout.css" />
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/splits.css" />
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/modules.css" />
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/icons.css" />
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}generic/stylesheets/generic.css" />
-<link type="text/css" rel="stylesheet" href="{{MEDIA_URL}}education/stylesheets/emis.css"/>
-<link type="text/css" rel="stylesheet" href="{{MEDIA_URL}}education/stylesheets/jquery-ui-1.7.3.custom.css"/>
-{% endblock %}
-{% block javascripts %}
-{{ block.super }}
-<!-- {% include "education/partials/chart/javascripts.html" %} -->
-<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/highcharts.js"></script>
-<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/emis_dashboard_charts.js"></script>
-<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-ui-1.7.3.custom.min.js"></script>
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
-{% endblock javascripts %}
+{% extends "layout_base.html" %}
 {% block content %}
-<p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; line-height: inherit;">← Back to EdTrac Home Page</a></p>
+<div class="back_link">
+<p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">← Back to EdTrac Home Page</a></p>
+</div>
 <div class="top_part">
+
+    <div id="violence_form">
+        Choose:<br/>
+        District:<br/>
+        Time: <br/>
+        Reporters
+    </div>
     <div id="violence"></div>
     <script type="text/javascript">
         $(document).ready(function(){
@@ -29,13 +20,10 @@
     </script>
 
 
-    <div id="violence_form">
-        Choose:<br/>
-        District:<br/>
-        Time: <br/>
-        Reporters
-    </div>
+
+
 </div>
+
 <div class="bottom_part">
     <h2>Violence Cases Reported by Schools</h2>
     <table class="classy">
@@ -65,6 +53,8 @@
                 <tr><td colspan="4" style="text-align: center;">No cases</td> </tr>
             {% endif %}
     </table>
-    <p>Results based on {{ reporting_percentage }}% of Total Reporters</p>
+
+    <p class="report alert-message block-message">Results based on {{ reporting_percentage }}% of Total Reporters</p>
+
 </div>
 {% endblock %}

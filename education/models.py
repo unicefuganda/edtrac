@@ -4,7 +4,8 @@ from django.contrib.auth.models import Group, User
 from django.db import models
 from django.forms import ValidationError
 from eav.models import Attribute
-from education.utils import _schedule_weekly_scripts, _schedule_monthly_script, _schedule_termly_script
+from education.utils import _schedule_weekly_scripts, _schedule_monthly_script, _schedule_termly_script,\
+    _schedule_weekly_report, _schedule_monthly_report
 from rapidsms_httprouter.models import mass_text_sent
 from rapidsms.models import Contact
 from rapidsms.contrib.locations.models import Location
@@ -89,10 +90,19 @@ def parse_gender(gender):
         return None
 
 def parse_grade(grade):
-    grade = get_close_matches(grade, ['P 3', 'P3','p3', 'P 6', 'P6', 'p6'], 1, 0.6)
+    grade = get_close_matches(grade, ['P 3', 'P3','p3', 'P 6', 'P6', 'p6', 'primary three', 'primary six'], 1, 0.6)
+    grade_chart = {
+        'primary three': 'P3',
+        'primary six' : 'P6'
+    }
+
     try:
-        cls = list(grade[0])[1] if list(grade[0])[1].strip() else list(grade[0])[2]
-        return (list(grade[0])[0]).upper() + cls
+        if grade[0] in grade_chart.keys():
+            grade = grade_chart[grade[0]]
+            return grade
+        else:
+            cls = list(grade[0])[1] if list(grade[0])[1].strip() else list(grade[0])[2]
+            return (list(grade[0])[0]).upper() + cls
     except:
         return None
 
@@ -290,6 +300,8 @@ def edtrac_autoreg(**kwargs):
         _schedule_termly_script(group, connection, 'edtrac_head_teachers_termly', ['Head Teachers'])
         _schedule_termly_script(group, connection, 'edtrac_smc_termly', ['SMC'])
 
+
+
 def edtrac_reschedule_script(**kwargs):
     connection = kwargs['connection']
     progress = kwargs['sender']
@@ -313,15 +325,13 @@ def edtrac_reschedule_script(**kwargs):
         _schedule_monthly_script(group, connection, 'edtrac_gem_monthly', 20, ['GEM'])
     elif slug == 'edtrac_head_teachers_termly':
         _schedule_termly_script(group, connection, 'edtrac_head_teachers_termly', ['Head Teachers'])
+    # TODO test a better way for scheduling this
+    #elif slug == 'edtrac_deo_report_weekly':
+    #    _schedule_weekly_report(group, connection, 'edtrac_deo_report_weekly',['DEO'])
+    #elif slug == 'edtrac_deo_report_monthly':
+    #    _schedule_monthly_report(group, connection, 'edtrac_deo_report_monthly', ['DEO'])
     else:
         _schedule_termly_script(group, connection, 'edtrac_smc_termly', ['SMC'])
-
-def edtrac_schedule_reports(**kwargs):
-    from .utils import send_out_report
-    print "sent message to DEO"
-    connection = kwargs['connection']
-    send_out_report()
-    print connection
 
 
 def edtrac_autoreg_transition(**kwargs):
@@ -424,7 +434,7 @@ def reschedule_weekly_polls(grp=None):
     Script.objects.filter(slug__in=weekly_scripts.values_list('slug', flat=True)).update(enabled=True)
     grps = Group.objects.filter(name__iexact=grp) if grp else Group.objects.filter(name__in=['Teachers', 'Head Teachers', 'SMC'])
     # get active reporters
-    reps = EmisReporter.objects.filter(groups__in=grps, active=True)
+    reps = EmisReporter.objects.filter(groups__in=grps)
     for rep in reps:
         if rep.default_connection and rep.groups.count() > 0:
             _schedule_weekly_scripts(rep.groups.all()[0], rep.default_connection, ['Teachers', 'Head Teachers', 'SMC'])
@@ -445,7 +455,7 @@ def reschedule_monthly_polls(grp=None):
     for slug in monthly_scripts.values_list('slug', flat=True):
         grps = Group.objects.filter(name__iexact=grp) if grp else Group.objects.filter(name__in=['Teachers', 'Head Teachers', 'SMC', 'GEM'])
         # get list of active reporters
-        reps = EmisReporter.objects.filter(groups__in=grps, active=True)
+        reps = EmisReporter.objects.filter(groups__in=grps)
         for rep in reps:
             if rep.default_connection and rep.groups.count() > 0:
                 if slug == 'edtrac_teachers_monthly':
@@ -485,7 +495,7 @@ def reschedule_termly_polls(grp = 'all', date=None):
     for slug in termly_scripts.values_list('slug', flat=True):
         grps = Group.objects.filter(name__iexact=grp) if not grp == 'all' else Group.objects.filter(name__in=['Head Teachers', 'SMC'])
         # send poll questions to active reporters
-        reps = EmisReporter.objects.filter(groups__in=grps, active=True)
+        reps = EmisReporter.objects.filter(groups__in=grps)
         #import pdb; pdb.set_trace()
         for rep in reps:
             if rep.default_connection and rep.groups.count() > 0:
@@ -504,7 +514,6 @@ reversion.register(School)
 reversion.register(EmisReporter)
 
 
-script_progress_was_completed.connect(edtrac_schedule_reports, weak=False)
 script_progress_was_completed.connect(edtrac_autoreg, weak=False)
 script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)
 script_progress.connect(edtrac_autoreg_transition, weak=False)
