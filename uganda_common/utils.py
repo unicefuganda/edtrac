@@ -581,8 +581,7 @@ def handle_dongle_sms(message):
                                               ['256777773260', '256752145316',
                                                '256711957281', '256790403038',
                                                '256701205129']):
-        Message.objects.create(direction="O", text=message.db_message,
-                                           status='Q', connection=message.connection,
-                                           in_response_to=message.db_message)
+        Message.objects.create(direction="O", text=message.text,
+                                           status='Q', connection=message.connection)
         return True
     return False
