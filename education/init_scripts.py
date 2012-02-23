@@ -2,18 +2,33 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User, Group
 from script.models import *
+from eav.models import Attribute
 
 def init_structures():
     if 'django.contrib.sites' in settings.INSTALLED_APPS:
+<<<<<<< Updated upstream
         site_id = getattr(settings, 'SITE_ID', 5)
         Site.objects.get_or_create(pk=site_id, defaults={'domain':'rapidedtrac.com'})
+=======
+        site_id = getattr(settings, 'SITE_ID', 1)
+        Site.objects.get_or_create(pk=site_id, defaults={'domain':'example.org'})
+>>>>>>> Stashed changes
     init_groups()
+    init_eav_attributes()
     init_autoreg()
     init_scripts()
 
 def init_groups():
     for g in ['P3 Teachers', 'P6 Teachers', 'Teachers', 'Head Teachers', 'SMC', 'GEM', 'CCT', 'DEO', 'District Officials', 'Ministry Officials', 'UNICEF Officials', 'Other Reporters']:
         Group.objects.get_or_create(name=g)
+        
+def init_eav_attributes():
+    if 'django.contrib.sites' in settings.INSTALLED_APPS:
+        site_id = getattr(settings, 'SITE_ID', 1)
+        site, created = Site.objects.get_or_create(pk=site_id, defaults={'domain':'example.org'})
+    Attribute.objects.get_or_create(name='poll_text_value', datatype=Attribute.TYPE_TEXT, site=site.id)
+    Attribute.objects.get_or_create(name='poll_number_value', datatype=Attribute.TYPE_FLOAT, site=site.id)
+    Attribute.objects.get_or_create(name='poll_location_value', datatype=Attribute.TYPE_OBJECT, site=site.id)
 
 def init_autoreg():
 

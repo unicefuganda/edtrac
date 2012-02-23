@@ -175,8 +175,8 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(contact.grade, 'P3')
         self.assertEquals(contact.gender, None)
         self.assertEquals(contact.default_connection, self.connection)
-        self.assertEquals(ScriptProgress.objects.filter(connection=self.connection).count(), 3)
-        self.assertListEqual(list(ScriptProgress.objects.filter(connection=self.connection).values_list('script__slug', flat=True)), ['edtrac_autoreg', 'edtrac_teachers_weekly', 'edtrac_teachers_monthly'])
+        self.assertEquals(ScriptProgress.objects.filter(connection=self.connection).count(), 2)
+        self.assertListEqual(list(ScriptProgress.objects.filter(connection=self.connection).values_list('script__slug', flat=True)), ['edtrac_autoreg', 'edtrac_teachers_weekly'])
 
     def testBadAutoReg(self):
         """

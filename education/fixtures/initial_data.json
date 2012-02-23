@@ -102,7 +102,76 @@
             "name": "UNICEF Officials", 
             "permissions": []
         }
+    },
+    {
+        "pk": 1, 
+        "model": "auth.user", 
+        "fields": {
+            "username": "admin", 
+            "first_name": "", 
+            "last_name": "", 
+            "is_active": true, 
+            "is_superuser": true, 
+            "is_staff": true, 
+            "last_login": "2012-02-17 09:12:00", 
+            "groups": [
+                106, 
+                107
+            ], 
+            "user_permissions": [], 
+            "password": "sha1$d54a6$fc58beda4a8908daca8b8175cdfaa20715dde9cf", 
+            "email": "david.a.mccann@gmail.com", 
+            "date_joined": "2010-10-25 00:17:35"
+        }
+     },
+     {
+        "pk": 98, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "A response value for a Poll with expected numeric responses", 
+            "created": "2011-08-03 11:17:01", 
+            "datatype": "float", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:02", 
+            "type": null, 
+            "slug": "poll_number_value", 
+            "name": "Number"
+        }
     }, 
+    {
+        "pk": 99, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "A response value for a Poll with expected text responses", 
+            "created": "2011-08-03 11:17:02", 
+            "datatype": "text", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:02", 
+            "type": null, 
+            "slug": "poll_text_value", 
+            "name": "Text"
+        }
+    },
+    {
+        "pk": 100, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "A response value for a Poll with expected location-based responses", 
+            "created": "2011-08-03 11:17:02", 
+            "datatype": "object", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 5, 
+            "modified": "2011-08-03 11:17:02", 
+            "type": null, 
+            "slug": "poll_location_value", 
+            "name": "Location"
+        }
+    },
     {
         "pk": 544, 
         "model": "poll.poll", 
