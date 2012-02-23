@@ -1164,7 +1164,7 @@ def choose_level(request):
 
 
 def reschedule_scripts(request, script_slug):
-    import pdb; pdb.set_trace()
+
     grp = get_script_grp(script_slug)
     if script_slug.endswith('_weekly'):
         reschedule_weekly_polls(grp)
