@@ -639,6 +639,28 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
     else:
         return sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.all()]))
 
+
+def cleanup_differences_on_poll(responses):
+    """a function to clean up total poll sums from districts and compute a difference"""
+    #use case --> on polls where a difference is needed between previous and current month
+    # this function also aggregates a Location wide-poll
+    current_month_sum = []
+    previous_month_sum = []
+    for x, y in responses:
+        current_month_sum.append(y[0][0])
+        previous_month_sum.append(y[1][0])
+
+    current_month_sum = sum(filter(None, current_month_sum))
+    previous_month_sum = sum(filter(None, previous_month_sum))
+
+    # difference
+    try:
+        percent = 100 * (current_month_sum - previous_month_sum) / float(previous_month_sum)
+    except ZeroDivisionError:
+        percent = 0
+
+    return percent
+
 def get_sum_of_poll_response_past_week(poll_queryset, **kwargs):
     """
     Function to the total number of responses in between this current week and the pastweek
