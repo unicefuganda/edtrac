@@ -90,10 +90,19 @@ def parse_gender(gender):
         return None
 
 def parse_grade(grade):
-    grade = get_close_matches(grade, ['P 3', 'P3','p3', 'P 6', 'P6', 'p6'], 1, 0.6)
+    grade = get_close_matches(grade, ['P 3', 'P3','p3', 'P 6', 'P6', 'p6', 'primary three', 'primary six'], 1, 0.6)
+    grade_chart = {
+        'primary three': 'P3',
+        'primary six' : 'P6'
+    }
+
     try:
-        cls = list(grade[0])[1] if list(grade[0])[1].strip() else list(grade[0])[2]
-        return (list(grade[0])[0]).upper() + cls
+        if grade[0] in grade_chart.keys():
+            grade = grade_chart[grade[0]]
+            return grade
+        else:
+            cls = list(grade[0])[1] if list(grade[0])[1].strip() else list(grade[0])[2]
+            return (list(grade[0])[0]).upper() + cls
     except:
         return None
 
