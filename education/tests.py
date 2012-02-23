@@ -29,7 +29,7 @@ import difflib
 
 
 class ModelTest(TestCase): #pragma: no cover
-
+    import pdb; pdb.set_trace()
     def setUp(self):
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
             site_id = getattr(settings, 'SITE_ID', 1)
@@ -241,7 +241,7 @@ class ModelTest(TestCase): #pragma: no cover
         script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         call_command('check_script_progress', e=8, l=24)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM')
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Thank you for participating in EduTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM, DEO')
         self.fake_incoming('Teacher')
         script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
@@ -271,7 +271,7 @@ class ModelTest(TestCase): #pragma: no cover
         script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         call_command('check_script_progress', e=8, l=24)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Welcome EdTrac.The information you shall provide contributes to keeping children in school.')
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Welcome to EduTrac.The information you shall provide contributes to keeping children in school.')
 
     def testHeadTeacherAutoregProgression(self):
         Script.objects.filter(slug='edtrac_autoreg').update(enabled=True)
@@ -279,7 +279,7 @@ class ModelTest(TestCase): #pragma: no cover
         script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM')
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Thank you for participating in EduTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM, DEO')
         self.fake_incoming('Head Teacher')
         script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
@@ -309,7 +309,7 @@ class ModelTest(TestCase): #pragma: no cover
         script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Welcome EdTrac.The information you shall provide contributes to keeping children in school.')
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Welcome to EduTrac.The information you shall provide contributes to keeping children in school.')
 
     def testSMCAutoregProgression(self):
         Script.objects.filter(slug='edtrac_autoreg').update(enabled=True)
@@ -317,7 +317,7 @@ class ModelTest(TestCase): #pragma: no cover
         script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM')
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Thank you for participating in EduTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM, DEO')
         self.fake_incoming('SMC')
         script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
@@ -342,7 +342,7 @@ class ModelTest(TestCase): #pragma: no cover
         script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Welcome EdTrac.The information you shall provide contributes to keeping children in school.')
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Welcome to EduTrac.The information you shall provide contributes to keeping children in school.')
 
     def testGEMAutoregProgression(self):
         Script.objects.filter(slug='edtrac_autoreg').update(enabled=True)
@@ -350,7 +350,7 @@ class ModelTest(TestCase): #pragma: no cover
         script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM')
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Thank you for participating in EduTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM, DEO')
         self.fake_incoming('GEM')
         script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
@@ -370,7 +370,7 @@ class ModelTest(TestCase): #pragma: no cover
         script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Welcome EdTrac.The information you shall provide contributes to keeping children in school.')
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Welcome to EduTrac.The information you shall provide contributes to keeping children in school.')
 
     def testDoubleReg(self):
         self.register_reporter('teacher')
@@ -406,7 +406,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.register_reporter('teacher')
         Script.objects.filter(slug__in=['edtrac_teachers_weekly', 'edtrac_teachers_monthly']).update(enabled=True)
         prog = ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly', connection=self.connection)
-        seconds_to_thursday = (_next_thursday() - datetime.datetime.now()).total_seconds()
+        seconds_to_thursday = (_next_thursday() - datetime.datetime.now()).seconds()
         self.elapseTime2(prog, seconds_to_thursday+(1*60*60)) #seconds to thursday + one hour
         prog = ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly', connection=self.connection)
         check_progress(prog.script)
@@ -433,7 +433,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.register_reporter('head teacher')
         Script.objects.filter(slug__in=['edtrac_head_teachers_weekly', 'edtrac_head_teachers_monthly', 'edtrac_head_teachers_termly']).update(enabled=True)
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_weekly', connection=self.connection)
-        seconds_to_thursday = (_next_thursday() - datetime.datetime.now()).total_seconds()
+        seconds_to_thursday = (_next_thursday() - datetime.datetime.now()).seconds()
         self.elapseTime2(prog, seconds_to_thursday+(1*60*60)) #seconds to thursday + one hour
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_weekly', connection=self.connection)
         check_progress(prog.script)
@@ -453,11 +453,12 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
 
     def testMonthlyHeadTeacherPolls(self):
+        import pdb; pdb.set_trace()
         self.register_reporter('head teacher')
         Script.objects.filter(slug__in=['edtrac_head_teachers_weekly', 'edtrac_head_teachers_monthly', 'edtrac_head_teachers_termly']).update(enabled=True)
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
         d = _date_of_monthday(25)
-        seconds_to_25th = (d - datetime.datetime.now()).total_seconds()
+        seconds_to_25th = (d - datetime.datetime.now()).seconds()
         self.elapseTime2(prog, seconds_to_25th+(1*60*60)) #seconds to 25th + one hour
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
         check_progress(prog.script)
@@ -470,7 +471,7 @@ class ModelTest(TestCase): #pragma: no cover
         check_progress(prog.script)
         self.assertNotEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_head_teachers_monthly').steps.get(order=1).poll.question)
         d = _date_of_monthday('last')
-        seconds_to_month_end = (d - prog.time).total_seconds()
+        seconds_to_month_end = (d - prog.time).seconds()
         self.elapseTime2(prog, seconds_to_month_end+(1*60*60)) #seconds to month end + one hour
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
         check_progress(prog.script)
@@ -487,7 +488,7 @@ class ModelTest(TestCase): #pragma: no cover
         Script.objects.filter(slug__in=['edtrac_head_teachers_weekly', 'edtrac_head_teachers_monthly', 'edtrac_head_teachers_termly']).update(enabled=True)
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_termly', connection=self.connection)
         d = _next_midterm()
-        seconds_to_midterm = (d - datetime.datetime.now()).total_seconds()
+        seconds_to_midterm = (d - datetime.datetime.now()).seconds()
         self.elapseTime2(prog, seconds_to_midterm+(1*60*60)) #seconds to 25th + one hour
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_termly', connection=self.connection)
         check_progress(prog.script)
@@ -543,7 +544,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.register_reporter('smc')
         Script.objects.filter(slug__in=['edtrac_smc_weekly', 'edtrac_smc_monthly', 'edtrac_smc_termly']).update(enabled=True)
         prog = ScriptProgress.objects.get(script__slug='edtrac_smc_weekly', connection=self.connection)
-        seconds_to_thursday = (_next_thursday() - datetime.datetime.now()).total_seconds()
+        seconds_to_thursday = (_next_thursday() - datetime.datetime.now()).seconds()
         self.elapseTime2(prog, seconds_to_thursday+(1*60*60)) #seconds to thursday + one hour
         prog = ScriptProgress.objects.get(script__slug='edtrac_smc_weekly', connection=self.connection)
         check_progress(prog.script)
@@ -566,7 +567,7 @@ class ModelTest(TestCase): #pragma: no cover
         prog = ScriptProgress.objects.get(script__slug='edtrac_smc_monthly', connection=self.connection)
         d = _date_of_monthday(5)
         print d
-        seconds_to_5th = (d - datetime.datetime.now()).total_seconds()
+        seconds_to_5th = (d - datetime.datetime.now()).seconds()
         self.elapseTime2(prog, seconds_to_5th+(1*60*60)) #seconds to 5th + one hour
         prog = ScriptProgress.objects.get(script__slug='edtrac_smc_monthly', connection=self.connection)
         check_progress(prog.script)

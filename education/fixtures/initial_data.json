@@ -1302,7 +1302,7 @@
             "email": null, 
             "num_tries": null, 
             "start_offset": 60, 
-            "message": "Welcome EduTrac.The information you shall provide contributes to keeping children in school.", 
+            "message": "Welcome to EduTrac.The information you shall provide contributes to keeping children in school.",
             "poll": null, 
             "order": 7, 
             "giveup_offset": 0
