@@ -35,17 +35,17 @@ def get_location(request):
 
 def attrib_ratios(top_attrib, bottom_attrib, dates, location):
     top_value = XFormSubmissionValue.objects.exclude(submission__has_errors=True)\
-            .exclude(submission__connection__contact=None)\
-            .filter(created__range=(dates.get('start'), dates.get('end')))\
-            .filter(attribute__slug__in=top_attrib)\
-            .filter(submission__connection__contact__emisreporter__schools__location__in=location.get_descendants(include_self=True).all())\
-            .annotate(Sum('value_int')).values_list('value_int__sum', flat=True)
+        .exclude(submission__connection__contact=None)\
+        .filter(created__range=(dates.get('start'), dates.get('end')))\
+        .filter(attribute__slug__in=top_attrib)\
+        .filter(submission__connection__contact__emisreporter__schools__location__in=location.get_descendants(include_self=True).all())\
+        .annotate(Sum('value_int')).values_list('value_int__sum', flat=True)
     bottom_value = XFormSubmissionValue.objects.exclude(submission__has_errors=True)\
-            .exclude(submission__connection__contact=None)\
-            .filter(created__range=(dates.get('start'), dates.get('end')))\
-            .filter(attribute__slug__in=bottom_attrib)\
-            .filter(submission__connection__contact__emisreporter__schools__location__in=location.get_descendants(include_self=True).all())\
-            .annotate(Sum('value_int')).values_list('value_int__sum', flat=True)
+        .exclude(submission__connection__contact=None)\
+        .filter(created__range=(dates.get('start'), dates.get('end')))\
+        .filter(attribute__slug__in=bottom_attrib)\
+        .filter(submission__connection__contact__emisreporter__schools__location__in=location.get_descendants(include_self=True).all())\
+        .annotate(Sum('value_int')).values_list('value_int__sum', flat=True)
     if sum(bottom_value) > 0:
         return sum(top_value) / sum(bottom_value)
     else:
@@ -65,7 +65,7 @@ class SchoolMixin(object):
             .filter(attribute__slug__in=keyword)\
             .filter(submission__connection__contact__emisreporter__schools__location__in=report.location.get_descendants(include_self=True).all())\
             .values(self.SCHOOL_NAME,
-                    self.SCHOOL_ID)\
+                self.SCHOOL_ID)\
             .annotate(Sum('value_int'))
 
     def total_dateless_attribute_by_school(self, report, keyword):
@@ -74,7 +74,7 @@ class SchoolMixin(object):
             .filter(attribute__slug__in=keyword)\
             .filter(submission__connection__contact__emisreporter__schools__location__in=report.location.get_descendants(include_self=True).all())\
             .values(self.SCHOOL_NAME,
-                    self.SCHOOL_ID)\
+                self.SCHOOL_ID)\
             .annotate(Sum('value_int'))
 
 
@@ -87,7 +87,7 @@ class SchoolMixin(object):
             if start > report.start_date and end < report.end_date:
                 td -= (end - start)
 
-#        return td.days / 7
+            #        return td.days / 7
         return td.days / 7 if td.days / 7 > 1 else 1
 
 
@@ -234,7 +234,7 @@ class AverageWeeklyTotalRatioColumn(Column, SchoolMixin):
                 val.append(rdict)
 
         reorganize_dictionary(key, val, dictionary, self.SCHOOL_ID, self.SCHOOL_NAME, 'value_int__sum')
-        
+
 class SchoolReport(Report):
 
     def __init__(self, request, dates):
@@ -245,7 +245,7 @@ class SchoolReport(Report):
         if self.location is None:
             self.location = Location.tree.root_nodes()[0]
         Report.__init__(self, request, dates)
-        
+
 class PollsColumn(Column, SchoolMixin):
     def __init__(self, polls_list, title, order):
         if type(polls_list) != list:
@@ -263,7 +263,7 @@ class PollsColumn(Column, SchoolMixin):
             x = p_list[1].split('p')
             val['value'] = '%s %s%s' % (x[0].title(), 'P', x[1])
             print val
-        
+
 class WeeklyPollSchoolColumn(PollNumericResultsColumn, SchoolMixin):
 
     def __init__(self, poll_name, title, order, attrs=None):
@@ -309,18 +309,18 @@ def school_last_xformsubmission(request, school_id):
     scripted_polls = []
     for xform in XForm.objects.all():
         xform_values = XFormSubmissionValue.objects.exclude(submission__has_errors=True)\
-                .exclude(submission__connection__contact=None)\
-                .filter(submission__connection__contact__emisreporter__schools__pk=school_id)\
-                .filter(submission__xform=xform)\
-                .order_by('-created')\
-                .annotate(Sum('value_int'))[:1] #.values_list('submission__xform__name', 'value_int__sum', 'submission__connection__contact__name', 'submission__created')
+                       .exclude(submission__connection__contact=None)\
+                       .filter(submission__connection__contact__emisreporter__schools__pk=school_id)\
+                       .filter(submission__xform=xform)\
+                       .order_by('-created')\
+                       .annotate(Sum('value_int'))[:1] #.values_list('submission__xform__name', 'value_int__sum', 'submission__connection__contact__name', 'submission__created')
         xforms.append((xform, xform_values))
 
     for script in Script.objects.exclude(slug='emis_autoreg'):
         for step in script.steps.all():
             resp = Response.objects.filter(poll=step.poll)\
-                .filter(message__connection__contact__emisreporter__schools__pk=school_id)\
-                .order_by('-date')[:1]
+                   .filter(message__connection__contact__emisreporter__schools__pk=school_id)\
+                   .order_by('-date')[:1]
             scripted_polls.append((step.poll,resp))
 
     return {'xforms':xforms, 'scripted_polls':scripted_polls}
@@ -331,13 +331,13 @@ def messages(request):
     if request.GET.get('error_msgs'):
         #Get only messages handled by rapidsms_xforms and the polls app (this exludes opt in and opt out messages)
         messages = messages.filter(Q(application=None) | Q(application__in=['rapidsms_xforms', 'poll']))
-    
+
         #Exclude XForm submissions
         messages = messages.exclude(pk__in=XFormSubmission.objects.exclude(message=None).filter(has_errors=False).values_list('message__pk', flat=True))
-    
+
         # Exclude Poll responses
         return messages.exclude(pk__in=Response.objects.exclude(message=None).filter(has_errors=False).values_list('message__pk', flat=True))
-    
+
     else:
         return messages
 
@@ -373,16 +373,16 @@ def raw_data(request, district_id, dates, slugs, teachers=False):
     function is a WIP; tested for better optimization on DB
     currently to be used to get values based on grades; [p7, p6, p5,..., p1]
     """
-#    from .reports import get_location
+    #    from .reports import get_location
     user_location = get_location(request, district_id)
     schools = School.objects.filter(location__in=user_location.get_descendants(include_self=True).all())
     values = XFormSubmissionValue.objects.exclude(submission__has_errors=True)\
-                .filter(created__range=(dates.get('start'), dates.get('end')))\
-                .filter(attribute__slug__in=slugs)\
-                .filter(submission__connection__contact__emisreporter__schools__in=schools)\
-                .order_by('submission__connection__contact__emisreporter__schools__name','-created')\
-                .values('submission__connection__contact__emisreporter__schools__name','value_int', 'created')
-                #.annotate(Avg('value_int'))
+        .filter(created__range=(dates.get('start'), dates.get('end')))\
+        .filter(attribute__slug__in=slugs)\
+        .filter(submission__connection__contact__emisreporter__schools__in=schools)\
+        .order_by('submission__connection__contact__emisreporter__schools__name','-created')\
+        .values('submission__connection__contact__emisreporter__schools__name','value_int', 'created')
+        #.annotate(Avg('value_int'))
 
     data = []
     i = 0
@@ -566,9 +566,9 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
             to_ret = {}
             for location in Location.objects.filter(type="district", name__in=DISTRICT):
                 resps = poll_queryset.responses.filter(contact__in=\
-                            Contact.objects.filter(reporting_location=location),
-                            date__range = get_month_day_range(datetime.datetime.now())
-                            )
+                Contact.objects.filter(reporting_location=location),
+                    date__range = get_month_day_range(datetime.datetime.now())
+                )
                 resp_values = [r.eav.poll_number_value for r in resps]
                 s = sum(filter(None, resp_values))
                 to_ret[location.__unicode__()] = s
@@ -585,10 +585,10 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
             if not kwargs.has_key('months'):
                 for location in locations:
                     resps = poll_queryset.responses.filter(
-                            contact__in = Contact.objects.filter(reporting_location=location),
-                            date__range = get_month_day_range(now)
-                        )
-                        #for Demo purposes compute total from messages
+                        contact__in = Contact.objects.filter(reporting_location=location),
+                        date__range = get_month_day_range(now)
+                    )
+                    #for Demo purposes compute total from messages
                     resp_values = [r.eav.poll_number_value for r in resps]
                     to_ret[location.__unicode__()] = [sum(filter(None, resp_values))]
             else:
@@ -597,8 +597,8 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                 import commands, dateutils
                 today = parse(commands.getoutput('date')).date()
                 month_ranges = [
-                    get_month_day_range(dateutils.increment(today, months=-i))
-                    for i in range(int(kwargs.get('months')))
+                get_month_day_range(dateutils.increment(today, months=-i))
+                for i in range(int(kwargs.get('months')))
                 ]
 
                 for location in locations:
@@ -606,8 +606,8 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                     for month_range in month_ranges:
                         resps = poll_queryset.responses.filter(
                             contact__in = Contact.objects.filter(reporting_location=location),
-                            date__range = month_range)                        
-                        resp_values = [r.eav.poll_number_value for r in resps]                            
+                            date__range = month_range)
+                        resp_values = [r.eav.poll_number_value for r in resps]
                         sum_of_values = sum(filter(None, resp_values))
                         # Averaging function
                         if kwargs.get('action') == 'avg' and kwargs.has_key('action'):
@@ -632,10 +632,10 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                 #initial structure is [('name', val1, val2) ]
                 for name, val in to_ret:
                     val.append(Location.objects.filter(type="district").get(name__icontains=name))
-                # the last elements appear to be the largest
+                    # the last elements appear to be the largest
                 to_ret.reverse()
                 return to_ret
-            #TODO Other data type returns.
+                #TODO Other data type returns.
     else:
         return sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.all()]))
 
@@ -648,7 +648,7 @@ def cleanup_differences_on_poll(responses):
     previous_month_sum = []
     for x, y in responses:
         current_month_sum.append(y[0][0])
-        previous_month_sum.append(y[1][0])settings.py
+        previous_month_sum.append(y[1][0])
 
     current_month_sum = sum(filter(None, current_month_sum))
     previous_month_sum = sum(filter(None, previous_month_sum))
@@ -697,13 +697,13 @@ def get_sum_of_poll_response_past_week(poll_queryset, **kwargs):
         # getting country wide statistics
         first_quota, second_quota = get_week_date(number=1) # default week range to 1
         sum_of_poll_responses_week_before = sum(filter(None, [r.eav.poll_number_value
-                                                                for r in poll_queryset.responses.filter(
-                                                                    date__range = first_quota,
-                                                                    contact__in = Contact.objects.all())]))
+                                                              for r in poll_queryset.responses.filter(
+            date__range = first_quota,
+            contact__in = Contact.objects.all())]))
         sum_of_poll_responses_past_week = sum(filter(None,[r.eav.poll_number_value
                                                            for r in poll_queryset.responses.filter(
-                                                            date__range = second_quota,
-                                                            contact__in = Contact.objects.all())]))
+            date__range = second_quota,
+            contact__in = Contact.objects.all())]))
 
     return sum_of_poll_responses_past_week, sum_of_poll_responses_week_before
 
@@ -738,32 +738,32 @@ def generate_deo_report(location_name = None):
         except DoesNotExist:
             return #quit
     boys_p3_enrollment = Poll.objects.get(name="edtrac_p3_enrollment").responses.filter(contact__reporting_location__in=\
-        Location.objects.filter(name=location_name).distinct())
+    Location.objects.filter(name=location_name).distinct())
 
     boys_p6_enrollment = Poll.objects.get(name="edtrac_p6_enrollment").responses.filter(contact__reporting_location__in=\
-        Location.objects.filter(name=location_name).distinct())
+    Location.objects.filter(name=location_name).distinct())
 
     girls_p3_enrollment = Poll.objects.get(name="edtrac_girlsp3_enrollment").responses.filter(contact__reporting_location__in=\
-        Location.objects.filter(name=location_name).distinct())
+    Location.objects.filter(name=location_name).distinct())
 
     girls_p6_enrollment = Poll.objects.get(name="edtrac_girlsp6_enrollment").responses.filter(contact__reporting_location__in=\
-        Location.objects.filter(name=location_name).distinct())
+    Location.objects.filter(name=location_name).distinct())
 
     p3_enrollment = boys_p3_enrollment + girls_p3_enrollment
     p6_enrollment = boys_p6_enrollment + girls_p6_enrollment
 
 
     attendance_boysp3_past_week, attendance_boysp3_week_before = get_sum_of_poll_response_past_week(Poll.objects.get(name=\
-        "edtrac_boysp3_attendance"), location_name = location_name, weeks=1)
+    "edtrac_boysp3_attendance"), location_name = location_name, weeks=1)
 
     attendance_boysp6_past_week, attendance_boysp6_week_before = get_sum_of_poll_response_past_week(Poll.objects.get(name=\
-        "edtrac_boysp6_attendance"), location_name = location_name, weeks=1)
+    "edtrac_boysp6_attendance"), location_name = location_name, weeks=1)
 
     attendance_girlsp3_past_week, attendance_girlsp3_week_before = get_sum_of_poll_response_past_week(Poll.objects.get(name=\
-        "edtrac_girlsp3_attendance"), location_name = location_name, weeks=1)
+    "edtrac_girlsp3_attendance"), location_name = location_name, weeks=1)
 
     attendance_girlsp6_past_week, attendance_girlsp6_week_before = get_sum_of_poll_response_past_week(Poll.objects.get(name=\
-        "edtrac_girlsp6_attendance"), location_name = location_name, weeks=1)
+    "edtrac_girlsp6_attendance"), location_name = location_name, weeks=1)
 
 
 
@@ -771,15 +771,15 @@ def generate_deo_report(location_name = None):
     return (
         Connection.objects.filter(contact__emisreporter__groups__name="DEO",\
             contact__reporting_location = location), # we are sure that the contact for the DEO will be retrieved
-            (
+        (
                 {
-                    'P3 pupils' : p3_enrollment - (attendance_boysp3_past_week + attendance_girlsp3_past_week),
-                    'P6 pupils' : p6_enrollment - (attendance_boysp6_past_week + attendance_girlsp6_past_week)
-                },
+                'P3 pupils' : p3_enrollment - (attendance_boysp3_past_week + attendance_girlsp3_past_week),
+                'P6 pupils' : p6_enrollment - (attendance_boysp6_past_week + attendance_girlsp6_past_week)
+            },
                 {
-                    'P3 pupils' : p3_enrollment - (attendance_boysp3_week_before + attendance_girlsp3_week_before),
-                    'P6 pupils' : p6_enrollment - (attendance_boysp6_week_before + attendance_girlsp6_week_before)
-                }
+                'P3 pupils' : p3_enrollment - (attendance_boysp3_week_before + attendance_girlsp3_week_before),
+                'P6 pupils' : p6_enrollment - (attendance_boysp6_week_before + attendance_girlsp6_week_before)
+            }
             )
         )
 
@@ -796,7 +796,7 @@ def get_count_response_to_polls(poll_queryset, **kwargs):
 
         for key in to_ret.keys():
             resps = poll_queryset.responses.filter(contact__in=\
-                Contact.objects.filter(reporting_location=Location.objects.filter(type="district").get(name=key)),
+            Contact.objects.filter(reporting_location=Location.objects.filter(type="district").get(name=key)),
                 date__range = get_month_day_range(datetime.datetime.now())
             )
             resp_values = [r.eav.poll_number_value for r in resps]
@@ -811,14 +811,14 @@ def get_responses_to_polls(**kwargs):
             poll_name = kwargs['poll_name']
             #TODO filter poll by district, school or county (might wanna index this too)
             return get_sum_of_poll_response(Poll.objects.get(name=poll_name))
-        #in cases where a list of poll names is passed, a dictionary is returned
+            #in cases where a list of poll names is passed, a dictionary is returned
         if kwargs.has_key('poll_names'):
             poll_names = kwargs['poll_names']
             responses = {}
             for poll in poll_names:
                 responses[poll] = get_sum_of_poll_response(Poll.objects.get(name=poll))
             return responses #can be used as context variable too
-            
+
 def write_to_xls(sheet_name, headings, data):
     sheet = book.add_sheet(sheet_name)
     rowx = 0
