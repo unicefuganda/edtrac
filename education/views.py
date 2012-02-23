@@ -308,10 +308,13 @@ def admin_dashboard(request):
     violence_change = cleanup_differences_on_poll(responses_to_violence)
     if violence_change > 0:
         violence_change_class = "increase"
+        violence_change_data = "data-green"
     elif violence_change < 0:
         violence_change_class = "decrease"
+        violence_change_data = "data-red"
     else:
         violence_change_class = "zero"
+        violence_change_data = "data-white"
 
 
     responses_to_meals = get_sum_of_poll_response(Poll.objects.get(name = "edtrac_headteachers_meals"),
@@ -320,10 +323,13 @@ def admin_dashboard(request):
     meal_change = cleanup_differences_on_poll(responses_to_meals)
     if meal_change > 0:
         meal_change_class = "increase"
+        meal_change_data = "data-green"
     elif meal_change < 0:
         meal_change_class = "decrease"
+        meal_change_data = "data-red"
     else:
         meal_change_class = "zero"
+        meal_change_data = "data-white"
 
 
     responses_to_smc_meetings_poll = get_sum_of_poll_response(Poll.objects.get(name="edtrac_smc_meetings"),
@@ -348,8 +354,10 @@ def admin_dashboard(request):
             'top_three_hungry_districts':top_three_hungry_districts,
             'violence_change' : violence_change,
             'violence_change_class' : violence_change_class,
+            'violence_change_data' : violence_change_data,
             'meal_change' : meal_change,
             'meal_change_class': meal_change_class,
+            'meal_change_data' : meal_change_data,
             'month':datetime.datetime.now(),
             'schools_to_date':School.objects.count()
         })
