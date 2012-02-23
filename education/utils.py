@@ -193,13 +193,16 @@ def _next_midterm():
     return d
 
 def _schedule_weekly_scripts(group, connection, grps):
+    """
+    This method is called within a loop over several connections or for an individual connection
+    and it sets the start time for a script to _next_thursday() relative to either current date
+    or the date that is currently in ScriptProgress
+    """
     if group.name in grps:
         script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
-        connections = Connection.objects.filter(contact__in=Group.objects.get(name=group.name).contact_set.all())
-        for connection in connections:
-            sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-            d = _next_thursday(sp)
-            sp.set_time(d)
+        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
+        d = _next_thursday(sp)
+        sp.set_time(d)
 
 def _schedule_weekly_report(group, connection, grps):
     if group.name in grps:
@@ -210,12 +213,15 @@ def _schedule_weekly_report(group, connection, grps):
             sp.set_time( _next_wednesday(sp) )
     
 def _schedule_monthly_script(group, connection, script_slug, day_offset, role_names):
+    """
+    This method is called within a loop over several connections or for an individual connection
+    and it sets the start time for a script to _date_of_monthday() corresponding to day_offset
+    the new date is computed relative datetime.datetime.now()
+    """
     if group.name in role_names:
-        connections = Connection.objects.filter(contact__in=Group.objects.get(name=group.name).contact_set.all())
-        for connection in connections:
-            d = _date_of_monthday(day_offset)
-            sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-            sp.set_time(d)
+        d = _date_of_monthday(day_offset)
+        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
+        sp.set_time(d)
 
 def _schedule_monthly_report(group, connection, script_slug, day_offset, role_names):
     if group.name in role_names:
@@ -226,6 +232,11 @@ def _schedule_monthly_report(group, connection, script_slug, day_offset, role_na
             sp.set_time(d)
 
 def _schedule_termly_script(group, connection, script_slug, role_names, date=None):
+    """
+    This method is called within a loop over several connections or for an individual connection
+    and it sets the start time for a script to _next_midterm() or to date passed to it as a String argument
+    in the format YYYY-mm-dd
+    """
     d = None
     if date:
         now = datetime.datetime.now()
@@ -233,11 +244,9 @@ def _schedule_termly_script(group, connection, script_slug, role_names, date=Non
         d = datetime.datetime(int(dl[0]), int(dl[1]), int(dl[2]), now.hour, now.minute, now.second, now.microsecond)
 
     if group.name in role_names:
-        connections = Connection.objects.filter(contact__in=Group.objects.get(name=group.name).contact_set.all())
         d = d if d else _next_midterm()
-        for conn in connections:
-            sp = ScriptProgress.objects.create(connection=conn, script=Script.objects.get(slug=script_slug))
-            sp.set_time(d)
+        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
+        sp.set_time(d)
 
 def compute_total(chunkit):
     # function takes in a list of tuples (school_name,value) ---> all grades p1 to p7

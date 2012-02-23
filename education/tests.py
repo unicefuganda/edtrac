@@ -31,7 +31,6 @@ import difflib
 class ModelTest(TestCase): #pragma: no cover
 
     def setUp(self):
-        import pdb; pdb.set_trace()
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
             site_id = getattr(settings, 'SITE_ID', 1)
             Site.objects.get_or_create(pk=site_id, defaults={'domain':'rapidemis.com'})
@@ -123,9 +122,6 @@ class ModelTest(TestCase): #pragma: no cover
             session.save()
         except ScriptSession.DoesNotExist:
             pass
-
-
-
 
     def fake_script_dialog(self, script_prog, connection, responses, emit_signal=True):
         script = script_prog.script
