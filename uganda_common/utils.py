@@ -8,7 +8,7 @@ from generic.utils import get_dates as get_dates_from_post
 from poll.models import Poll, LocationResponseForm, STARTSWITH_PATTERN_TEMPLATE
 from rapidsms.contrib.locations.models import Location
 from rapidsms.models import Backend, Contact
-from rapidsms_xforms.models import XForm, XFormField, XFormFieldConstraint,\
+from rapidsms_xforms.models import XForm, XFormField, XFormFieldConstraint, \
     XFormSubmission, XFormSubmissionValue
 from script.models import Script, ScriptStep, ScriptResponse
 from generic.sorters import SimpleSorter
@@ -94,7 +94,7 @@ def assign_backend(number):
             break
     return (number, backendobj)
 
-def create_workbook(data,encoding):
+def create_workbook(data, encoding):
     ##formatting of the cells
     # Grey background for the header row
     BkgPat = xlwt.Pattern()
@@ -171,32 +171,32 @@ class ExcelResponse(HttpResponse):
         mimetype = 'application/vnd.ms-excel'
         file_ext = 'xls'
         if len(data) <= MAX_SHEET_LENGTH :
-            book=create_workbook(data,encoding)
+            book = create_workbook(data, encoding)
             if write_to_file:
                 book.save(output_name)
             book.save(output)
             output.seek(0)
             super(ExcelResponse, self).__init__(content=output.getvalue(),
                                             mimetype=mimetype)
-            self['Content-Disposition'] = 'attachment;filename="%s.%s"' %\
+            self['Content-Disposition'] = 'attachment;filename="%s.%s"' % \
                                       (output_name.replace('"', '\"'), file_ext)
 
         else:
             #zip em all
             zipped_file = zipfile.ZipFile(output_name, "w")
-            num_files=int(math.ceil(len(data)/float(MAX_SHEET_LENGTH)))
+            num_files = int(math.ceil(len(data) / float(MAX_SHEET_LENGTH)))
             print len(data)
-            file_name=output_name.rsplit('.')[0]
-            start=0
-            end=MAX_SHEET_LENGTH
+            file_name = output_name.rsplit('.')[0]
+            start = 0
+            end = MAX_SHEET_LENGTH
             for file in range(num_files):
-                book=create_workbook(data[start:end],encoding)
-                handle=file_name+str(file)+".xls"
+                book = create_workbook(data[start:end], encoding)
+                handle = file_name + str(file) + ".xls"
                 book.save(handle)
-                zipped_file.write(handle,handle.rsplit("/")[-1])
-                start= end
-                end=end+MAX_SHEET_LENGTH
-            
+                zipped_file.write(handle, handle.rsplit("/")[-1])
+                start = end
+                end = end + MAX_SHEET_LENGTH
+
 
 
 
@@ -215,7 +215,7 @@ def parse_district_value(value):
     else:
         return toret
 
-Poll.register_poll_type('district', 'District Response', parse_district_value, db_type=Attribute.TYPE_OBJECT,\
+Poll.register_poll_type('district', 'District Response', parse_district_value, db_type=Attribute.TYPE_OBJECT, \
                         view_template='polls/response_location_view.html',
                         edit_template='polls/response_location_edit.html',
                         report_columns=((('Text', 'text', True, 'message__text', SimpleSorter()), (
@@ -298,8 +298,8 @@ def total_submissions(keyword, start_date, end_date, location, extra_filters=Non
         'connection__contact__reporting_location__name').extra(
         tables=['locations_location'],
         where=[\
-            'T%d.lft <= locations_location.lft' % tnum,\
-            'T%d.rght >= locations_location.rght' % tnum,\
+            'T%d.lft <= locations_location.lft' % tnum, \
+            'T%d.rght >= locations_location.rght' % tnum, \
             location_children_where]).extra(\
         select=select).values(*values).annotate(value=Count('id')).extra(order_by=['location_name'])
 
@@ -404,9 +404,9 @@ def get_xform_dates(request):
         request.session['start_date'] = dates['start']
         request.session['end_date'] = dates['end']
     elif request.GET.get('start_date', None) and request.GET.get('end_date', None):
-        request.session['start_date'] = dates['start'] =\
+        request.session['start_date'] = dates['start'] = \
         datetime.datetime.fromtimestamp(int(request.GET['start_date']))
-        request.session['end_date'] = dates['end'] = end_date =\
+        request.session['end_date'] = dates['end'] = end_date = \
         datetime.datetime.fromtimestamp(int(request.GET['end_date']))
     elif request.session.get('start_date', None) and request.session.get('end_date', None):
         dates['start'] = request.session['start_date']
@@ -574,3 +574,15 @@ def handle_excel_file(file, group, fields):
     else:
         info = "Invalid file"
     return info
+
+# For QOS testing
+def handle_dongle_sms(message):
+    if message.connection.identity in getattr(settings, 'MODEM_NUMBERS',
+                                              ['256777773260', '256752145316',
+                                               '256711957281', '256790403038',
+                                               '256701205129']):
+        Message.objects.create(direction="O", text=message.db_message,
+                                           status='Q', connection=message.connection,
+                                           in_response_to=message.db_message)
+        return True
+    return False
