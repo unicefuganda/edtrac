@@ -3,7 +3,7 @@ from django.conf import settings
 from django.contrib import admin
 from rapidsms_httprouter.urls import urlpatterns as router_urls
 from rapidsms_xforms.urls import urlpatterns as xform_urls
-from education.urls import urlpatterns as emis_urls
+from education.urls import urlpatterns as edtrac_urls
 from contact.urls import urlpatterns as contact_urls
 admin.autodiscover()
 
@@ -33,7 +33,7 @@ urlpatterns = patterns('',
     (r'^simple-autocomplete/', include('simple_autocomplete.urls')),
     # testing excel export
     
-) + router_urls + xform_urls + contact_urls + emis_urls
+) + router_urls + xform_urls + contact_urls + edtrac_urls
 
 if settings.DEBUG:
     urlpatterns += patterns('',
