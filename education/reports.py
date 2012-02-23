@@ -648,7 +648,7 @@ def cleanup_differences_on_poll(responses):
     previous_month_sum = []
     for x, y in responses:
         current_month_sum.append(y[0][0])
-        previous_month_sum.append(y[1][0])
+        previous_month_sum.append(y[1][0])settings.py
 
     current_month_sum = sum(filter(None, current_month_sum))
     previous_month_sum = sum(filter(None, previous_month_sum))
