@@ -318,6 +318,12 @@ def admin_dashboard(request):
         month_filter=True, location=location, ret_type = list, action='avg', months=2)
     # percentage change in meals missed
     meal_change = cleanup_differences_on_poll(responses_to_meals)
+    if meal_change > 0:
+        meal_change_class = "increase"
+    elif meal_change < 0:
+        meal_change_class = "decrease"
+    else:
+        meal_change_class = "zero"
 
 
     responses_to_smc_meetings_poll = get_sum_of_poll_response(Poll.objects.get(name="edtrac_smc_meetings"),
@@ -341,9 +347,9 @@ def admin_dashboard(request):
             'top_three_violent_districts':top_three_violent_districts,
             'top_three_hungry_districts':top_three_hungry_districts,
             'violence_change' : violence_change,
-            'violence_change_class' : 'increase',
+            'violence_change_class' : violence_change_class,
             'meal_change' : meal_change,
-            'meal_change_class': 'decrease',
+            'meal_change_class': meal_change_class,
             'month':datetime.datetime.now(),
             'schools_to_date':School.objects.count()
         })

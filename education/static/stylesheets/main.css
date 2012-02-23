@@ -201,10 +201,19 @@ div.data{
 .data-green{
     background: url(../icons/data-green-bg.png) repeat-x;
 }
+
 .data-red span.increase{
     background: url(../icons/positive-change-red.png) no-repeat;
     background-position: right center;
     color: #bf1226;
+}
+.data-white{
+    background-color: #fff1d9;
+}
+.data-white span.zero{
+    background: url(../icons/zero-change-blue.png) no-repeat;
+    background-position: right center;
+    color: #15630a;
 }
 .data-red span.decrease{
     background: url(../icons/negative-change-red.png) no-repeat;
