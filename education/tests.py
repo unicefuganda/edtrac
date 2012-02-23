@@ -31,7 +31,6 @@ import difflib
 class ModelTest(TestCase): #pragma: no cover
 
     def setUp(self):
-        import pdb; pdb.set_trace()
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
             site_id = getattr(settings, 'SITE_ID', 1)
             Site.objects.get_or_create(pk=site_id, defaults={'domain':'rapidemis.com'})
@@ -124,9 +123,6 @@ class ModelTest(TestCase): #pragma: no cover
         except ScriptSession.DoesNotExist:
             pass
 
-
-
-
     def fake_script_dialog(self, script_prog, connection, responses, emit_signal=True):
         script = script_prog.script
         ss = ScriptSession.objects.create(script=script, connection=connection, start_time=datetime.datetime.now())
@@ -175,8 +171,8 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(contact.grade, 'P3')
         self.assertEquals(contact.gender, None)
         self.assertEquals(contact.default_connection, self.connection)
-        self.assertEquals(ScriptProgress.objects.filter(connection=self.connection).count(), 3)
-        self.assertListEqual(list(ScriptProgress.objects.filter(connection=self.connection).values_list('script__slug', flat=True)), ['edtrac_autoreg', 'edtrac_teachers_weekly', 'edtrac_teachers_monthly'])
+        self.assertEquals(ScriptProgress.objects.filter(connection=self.connection).count(), 2)
+        self.assertListEqual(list(ScriptProgress.objects.filter(connection=self.connection).values_list('script__slug', flat=True)), ['edtrac_autoreg', 'edtrac_teachers_weekly'])
 
     def testBadAutoReg(self):
         """
