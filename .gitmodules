@@ -42,4 +42,4 @@
 	url = https://github.com/praekelt/django-simple-autocomplete.git
 [submodule "edtrac_project/monitor"]
 	path = edtrac_project/monitor
-	url = git@github.com:unicefuganda/monitor.git
+	url = git://github.com/unicefuganda/monitor.git
