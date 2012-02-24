@@ -40,6 +40,3 @@
 [submodule "edtrac_project/django_simple_autocomplete"]
 	path = edtrac_project/django_simple_autocomplete
 	url = https://github.com/praekelt/django-simple-autocomplete.git
-[submodule "edtrac_project/monitor"]
-	path = edtrac_project/monitor
-	url = git@github.com:unicefuganda/monitor.git
