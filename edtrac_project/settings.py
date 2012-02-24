@@ -23,6 +23,7 @@ sys.path.append(os.path.join(filedir, 'rapidsms_unregister'))
 sys.path.append(os.path.join(filedir, 'rapidsms_edtrac'))
 sys.path.append(os.path.join(filedir, 'rapidsms_geoserver'))
 sys.path.append(os.path.join(filedir, 'django_reversion'))
+sys.path.append(os.path.join(filedir, 'monitor'))
 sys.path.append(os.path.join(filedir, 'django_simple_autocomplete'))
 sys.path.append(os.path.join(filedir, 'endless'))
 
@@ -107,6 +108,7 @@ INSTALLED_APPS = [
     "geoserver",
     "endless_pagination",
     "simple_autocomplete",
+    "monitor",
     #leave south at the end of this list
     "south",
 
