@@ -5,5 +5,10 @@
     <div id="map" style="width:inherit; height:inherit; float:left;"></div>
     <div style="float: right">test</div>
 </div>
+<script>
+    $(document).ready(function(){
+        $('#map').load("{% url attendance-visualization %}");
+    });
+</script>
 
 {% endblock %}

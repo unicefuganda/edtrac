@@ -7,64 +7,57 @@
         <div class="section this-week">
             <h1 class="section-title calendar">This Week ({{ month|date:"D d M Y" }})</h1>
             <div class="attendance">
-                <h2 class="block-header">Pupil Attendance</h2>
-
-                <div class="attendance">
-                    <h2 class="block-header">Pupil Attendance</h2>
-                    <div id="map"></div>
-                    <div class="top">
-                        <table class="tabulated-data">
-                            <tr><th>Group</th><th>Absent</th><th>Weekly Change</th></tr>
-                            <tr>
-                                <td>Boys P3</td>
-                                <td>{{ boysp3|floatformat }}%</td>
-                                <td class="{{ boysp3_class }}">{{ boysp3_diff|floatformat }}%</td>
-                            </tr>
-                            <tr>
-                                <td>Girls P3</td>
-                                <td>{{ girlsp3|floatformat }}%</td>
-                                <td class="{{ girlsp3_class }}">{{ girlsp6_diff|floatformat }}%</td>
-                            </tr>
-                            <tr>
-                                <td>Boys P6</td>
-                                <td>{{ boysp6|floatformat }}%</td>
-                                <td class="{{ boysp6_class }}">{{ boysp6_diff|floatformat }}%</td>
-                            </tr>
-                            <tr>
-                                <td>Girls P6</td>
-                                <td>{{ girlsp6|floatformat }}%</td>
-                                <td class="{{ girlsp6_class }}">{{ girlsp6_diff|floatformat }}%</td>
-                            </tr>
-                            <tr>
-                                <td>Female Teachers</td>
-                                <td>{{ female_teachers|floatformat }}%</td>
-                                <td class="{{ female_teachers_class }}">{{ female_teachers_diff|floatformat }}%</td>
-                            </tr>
-                            <tr>
-                                <td>Male Teachers</td>
-                                <td>{{ male_teachers|floatformat }}%</td>
-                                <td class="{{ male_teachers_class }}">{{ male_teachers_diff|floatformat }}%</td>
-                            </tr>
-                            <tr>
-                                <td>Female H Teachers</td>
-                                <td>10%</td>
-                                <td class="zero">0%</td>
-                            </tr>
-                            <tr>
-                                <td>Male H Teachers</td>
-                                <td>10%</td>
-                                <td class="negative">10%</td>
-                            </tr>
-                        </table>
-                    </div>
+                <h2 class="block-header">Attendance</h2>
+                <div class="top">
+                    <table class="tabulated-data">
+                        <tr><th>Group</th><th>Absent</th><th>Weekly Change</th></tr>
+                        <tr>
+                            <td>Boys P3</td>
+                            <td>{{ boysp3|floatformat }}%</td>
+                            <td class="{{ boysp3_class }}">{{ boysp3_diff|floatformat }}%</td>
+                        </tr>
+                        <tr>
+                            <td>Girls P3</td>
+                            <td>{{ girlsp3|floatformat }}%</td>
+                            <td class="{{ girlsp3_class }}">{{ girlsp3_diff|floatformat }}%</td>
+                        </tr>
+                        <tr>
+                            <td>Boys P6</td>
+                            <td>{{ boysp6|floatformat }}%</td>
+                            <td class="{{ boysp6_class }}">{{ boysp6_diff|floatformat }}%</td>
+                        </tr>
+                        <tr>
+                            <td>Girls P6</td>
+                            <td>{{ girlsp6|floatformat }}%</td>
+                            <td class="{{ girlsp6_class }}">{{ girlsp6_diff|floatformat }}%</td>
+                        </tr>
+                        <tr>
+                            <td>Female Teachers</td>
+                            <td>{{ female_teachers|floatformat }}%</td>
+                            <td class="{{ female_teachers_class }}">{{ female_teachers_diff|floatformat }}%</td>
+                        </tr>
+                        <tr>
+                            <td>Male Teachers</td>
+                            <td>{{ male_teachers|floatformat }}%</td>
+                            <td class="{{ male_teachers_class }}">{{ male_teachers_diff|floatformat }}%</td>
+                        </tr>
+                        <tr>
+                            <td>Female H Teachers</td>
+                            <td>10%</td>
+                            <td class="zero">0%</td>
+                        </tr>
+                        <tr>
+                            <td>Male H Teachers</td>
+                            <td>10%</td>
+                            <td class="negative">10%</td>
+                        </tr>
+                    </table>
                 </div>
-
-               <div class="actions" style="clear: both;">
+                <div class="actions">
                     <a class="button button-purple" href="{% url attendance-admin-details%}"><span class="details">View Details</span></a>
                     <a class="button button-purple" href="#"><span class="graph">View Graph</span></a>
                     <div class="clear"></div>
                 </div>
-
             </div>
 
             <div class="curriculum-progress">
@@ -174,9 +167,4 @@
         </div>
     </div>
 </div>
-<script>
-	$(document).ready(function(){
-		$('#map').load("{% url attendance-visualization %}");
-	});
-</script>
 {% endblock %}

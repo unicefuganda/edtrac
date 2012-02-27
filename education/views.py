@@ -479,7 +479,6 @@ class MealsMinistryDetails(TemplateView):
 ##########################################################################################################
 @login_required
 def admin_dashboard(request):
-    from .reports import cleanup_differences_on_poll
     location = request.user.get_profile().location
     return render_to_response("education/admin/admin_dashboard.html", generate_dashboard_vars(location=location),
         RequestContext(request))
