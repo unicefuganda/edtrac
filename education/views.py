@@ -1171,7 +1171,11 @@ def reschedule_scripts(request, script_slug):
     elif script_slug.endswith('_monthly'):
         reschedule_monthly_polls(grp)
     else:
-        reschedule_termly_polls(grp)
+        if request.POST.get('date'):
+            date = request.POST.get('date')
+        else:
+            date = None
+        reschedule_termly_polls(grp, date)
 
     new_scripts = ScriptProgress.objects.filter(script__slug=script_slug)
     if new_scripts:
