@@ -1285,7 +1285,6 @@ def choose_level(request):
 
 
 def reschedule_scripts(request, script_slug):
-
     grp = get_script_grp(script_slug)
     if script_slug.endswith('_weekly'):
         reschedule_weekly_polls(grp)
