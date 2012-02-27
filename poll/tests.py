@@ -250,9 +250,9 @@ class ProcessingTests(TestScript):
         t_poll.save()
         t_poll.start()
 
-        self.assertEquals(Message.objects.count(), 2)
         self.assertInteraction(self.connection1, 'yes', 'Ureport gives you a chance to speak out on issues in your community & share opinions with youth around Uganda Best responses & results shared through the media')
         self.assertInteraction(self.connection2, 'no', 'Ureport mini kare me lok ikum jami matime i kama in ibedo iyee. Lagam mabejo kibiketo ne I karatac me ngec.')
+        self.assertEquals(Message.objects.count(), 5)
         
     def test_null_responses(self):
      
