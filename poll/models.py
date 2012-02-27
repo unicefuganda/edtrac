@@ -216,6 +216,9 @@ class Poll(models.Model):
     def create_with_bulk(cls, name, type, question, default_response, contacts, user):
         poll = Poll.objects.create(name=name, type=type, question=question, default_response=default_response, user=user)
 
+        #batch for responses
+        MessageBatch.objects.create(name=str(poll.pk),status="Q")
+
         # This is the fastest (pretty much only) was to get contacts and messages M2M into the
         # DB fast enough at scale
         cursor = connection.cursor()

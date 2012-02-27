@@ -5,6 +5,7 @@ import datetime
 from rapidsms.apps.base import AppBase
 from .models import Poll
 from django.db.models import Q
+from rapidsms_httprouter import Message,MessageBatch
 
 class App(AppBase):
     def handle (self, message):
@@ -25,7 +26,14 @@ class App(AppBase):
                             db_message.handled_by = 'poll'
                             db_message.save()
                         if response_msg and response_msg.strip():
-                            message.respond(response_msg)
+                            if response_msg == poll.default_response:
+                                try:
+                                    batch=MessageBatch.objects.get(name=str(poll.pk))
+                                    batch.status="Q"
+                                    batch.save()
+                                    Message.objects.create(status="Q",connection=message.connection,direction="O",batch=batch)
+                                except MessageBatch.DoesNotExist:
+                                    message.respond(response_msg)
                     else:
                         response_obj.delete()
                     return False
