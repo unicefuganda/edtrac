@@ -249,13 +249,9 @@ def dashboard(request):
     else:
         return testindex(request)
 
-
-
-
-
 # generate context vars
 def generate_dashboard_vars(location=None):
-    if not location:
+    if location.name == "Uganda":
         locations = Location.objects.get(name="Uganda").get_descendants().filter(type="district")
     else:
         locations = [location]
@@ -1266,6 +1262,7 @@ def meals(request, district_id=None):
 
 @super_user_required
 def edit_scripts(request):
+
     forms = []
     for script in Script.objects.all().order_by('slug'):
         forms.append((script, ScriptsForm(instance=script)))
@@ -1291,7 +1288,7 @@ def reschedule_scripts(request, script_slug):
     elif script_slug.endswith('_monthly'):
         reschedule_monthly_polls(grp)
     else:
-        if request.POST.get('date'):
+        if request.POST.has_key('date'):
             date = request.POST.get('date')
         else:
             date = None
@@ -1303,7 +1300,7 @@ def reschedule_scripts(request, script_slug):
         response = HttpResponse("This Script has been rescheduled to: %s " % new_script_date.strftime("%d-%m-%Y %H:%M"))
         return response
     else:
-        return HttpResponse("This script can't be reschedule. Try again")
+        return HttpResponse("This script can't be rescheduled. Try again")
 
 # Reporters view
 

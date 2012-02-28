@@ -173,7 +173,8 @@ def _next_midterm():
     d = datetime.datetime.now()
     start_of_year = datetime.datetime(d.year, 1, 1, d.hour, d.minute, d.second, d.microsecond)
     if d.month in [12, 1, 2, 3, 4]:
-        d = start_of_year + datetime.timedelta(days=((2*31)+10))
+        #todo: handle this better/// revert after head teacher poll
+        d = start_of_year + datetime.timedelta(days=58)
     elif d.month in [ 5, 6]:
         d = start_of_year + datetime.timedelta(days=((6*31)+15))
     else:

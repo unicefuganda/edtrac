@@ -557,7 +557,6 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
     district vs value
     """
     #TODO: provide querying by date too
-    #import pdb; pdb.set_trace()
     s = 0
     if kwargs:
         if kwargs.has_key('month_filter') and kwargs.get('month_filter') and not kwargs.has_key('location'):
@@ -578,9 +577,12 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
            kwargs.has_key('ret_type') or kwargs.has_key('months'):
             #TODO support drilldowns
             now = datetime.datetime.now()
-            #if location is Admin/Ministry/UNICEF then all districts will be returned
-            # if location is DEO, then just the district will be returned
-            locations = Location.objects.get(name=kwargs.get('location')).get_descendants().filter(type="district")
+            #if role is Admin/Ministry/UNICEF then all districts will be returned
+            # if role is DEO, then just the district will be returned
+            if kwargs.get('location').type.name == 'country':
+                locations = Location.objects.get(name=kwargs.get('location')).get_descendants().filter(type="district")
+            else:
+                locations = [location]
             to_ret = {}
             if not kwargs.has_key('months'):
                 for location in locations:
