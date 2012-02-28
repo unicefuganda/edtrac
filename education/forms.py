@@ -82,7 +82,7 @@ class EditReporterForm(forms.ModelForm):
 
     class Meta:
         model = EmisReporter
-        fields = ('name', 'gender', 'reporting_location', 'groups', 'schools')
+        fields = ('name', 'gender', 'grade', 'reporting_location', 'groups', 'schools')
 
 class DistrictFilterForm(forms.Form):
     """ filter form for districts """
