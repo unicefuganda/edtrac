@@ -37,6 +37,7 @@ class TestScript(TestCase):
 
     def assertInteraction(self, connection, incoming_message, expected_response):
         incoming_obj = self.fake_incoming(connection, incoming_message)
+        print incoming_obj
         self.assertEquals(Message.objects.filter(in_response_to=incoming_obj, text=expected_response).count(), 1)
 
 
@@ -174,33 +175,22 @@ class ProcessingTests(TestScript):
                 Contact.objects.all(),
                 self.user)
         poll1.start()
-        self.assertInteraction(self.connection1, 'get me a kindle :)', 'yikes :(')
-        self.assertInteraction(self.connection1, 'get me a kindle :)', 'yikes :(')
-        self.assertInteraction(self.connection1, 'get me an ipad :)', 'yikes :(')
-        self.assertInteraction(self.connection1, 'Arrest Bush :)', 'yikes :(')
-        self.assertEqual(Response.objects.filter(contact=self.contact1).count(), 4)
+        self.fake_incoming(self.connection1, 'get me a kindle :)')
+        self.fake_incoming(self.connection1, 'get me a kindle :)')
+        self.fake_incoming(self.connection1, 'get me a kindle :)')
+        self.fake_incoming(self.connection1, 'get me a kindle :)')
+        self.fake_incoming(self.connection1, 'get me a kindle :)')
+        self.fake_incoming(self.connection1, 'get me a kindle :)')
+        self.fake_incoming(self.connection1, 'get me a kindle :)')
+
+
+        self.assertEqual(Response.objects.filter(contact=self.contact1).count(), 7)
+        self.assertEqual(Message.objects.filter(connection=self.connection1,direction="O").count(),2)
         poll1.end()
 
 
-        #test ignore dups
-        poll2 = Poll.create_with_bulk(
-                'test response type handling',
-                Poll.TYPE_TEXT,
-                'ureport is bored.what would u like it 2 do?',
-                'yikes :(',
-                Contact.objects.all(),
-                self.user)
-        poll2.response_type=Poll.RESPONSE_TYPE_NO_DUPS
-        poll2.save()
 
-        poll2.start()
-        self.assertInteraction(self.connection1, 'get me a kindle :)', 'yikes :(')
-        self.fake_incoming(self.connection1, 'get me a kindle :)')
-        self.assertInteraction(self.connection1, 'get me an ipad :)', 'yikes :(')
-        self.assertInteraction(self.connection1, 'Arrest Bush :)', 'yikes :(')
-        self.assertEqual(Response.objects.filter(contact=self.contact1,poll=poll2).count(), 3)
-        poll2.end()
-        #test allow one
+        #allow one
 
         poll3 = Poll.create_with_bulk(
                 'test response type handling',
@@ -213,15 +203,15 @@ class ProcessingTests(TestScript):
         poll3.add_yesno_categories()
         poll3.save()
         poll3.start()
-        self.fake_incoming(self.connection1, 'what?')
-        self.assertEqual(Response.objects.filter(contact=self.contact1,poll=poll3).count(), 1)
-        self.assertInteraction(self.connection1, 'yes', 'yikes :(')
-        self.assertEqual(Response.objects.filter(contact=self.contact1,poll=poll3).count(), 1)
-        self.fake_incoming(self.connection1, 'get me a kindle :)')
-        self.fake_incoming(self.connection1, 'get me an ipad :)')
-        self.fake_incoming(self.connection1, 'Arrest Bush :)')
-        self.assertEqual(Response.objects.filter(contact=self.contact1,poll=poll3).count(), 1)
-        self.assertEqual(Response.objects.filter(contact=self.contact1,poll=poll3)[0].message.text, 'yes')
+
+        self.assertInteraction(self.connection2, 'yes', 'yikes :(')
+
+        self.assertEqual(Response.objects.filter(contact=self.contact2,poll=poll3).count(), 1)
+        self.fake_incoming(self.connection2, 'get me a kindle :)')
+        self.fake_incoming(self.connection2, 'get me an ipad :)')
+        self.fake_incoming(self.connection2, 'Arrest Bush :)')
+        self.assertEqual(Response.objects.filter(contact=self.contact2,poll=poll3).count(), 1)
+        self.assertEqual(Response.objects.filter(contact=self.contact2,poll=poll3)[0].message.text, 'yes')
 
     def test_poll_translation(self):
         

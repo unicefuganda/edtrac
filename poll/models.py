@@ -99,12 +99,11 @@ class Poll(models.Model):
 
     RESPONSE_TYPE_ALL = 'a'# all all responses
     RESPONSE_TYPE_ONE = 'o' # allow only one
-    RESPONSE_TYPE_NO_DUPS = 'd'# ignore duplicates
+
 
     RESPONSE_TYPE_CHOICES = (
                             (RESPONSE_TYPE_ALL, 'Allow all'),
                             (RESPONSE_TYPE_ONE, 'Allow one'),
-                            (RESPONSE_TYPE_NO_DUPS, 'Ignore duplicates')
 
     )
 
