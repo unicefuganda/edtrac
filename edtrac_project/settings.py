@@ -23,7 +23,7 @@ sys.path.append(os.path.join(filedir, 'rapidsms_unregister'))
 sys.path.append(os.path.join(filedir, 'rapidsms_edtrac'))
 sys.path.append(os.path.join(filedir, 'rapidsms_geoserver'))
 sys.path.append(os.path.join(filedir, 'django_reversion'))
-#sys.path.append(os.path.join(filedir, 'monitor', 'monitor_project'))
+sys.path.append(os.path.join(filedir, 'monitor', 'monitor_project'))
 sys.path.append(os.path.join(filedir, 'django_simple_autocomplete'))
 sys.path.append(os.path.join(filedir, 'endless'))
 
@@ -108,7 +108,7 @@ INSTALLED_APPS = [
     "geoserver",
     "endless_pagination",
     "simple_autocomplete",
-    #"monitor",
+    "monitor",
     #leave south at the end of this list
     "south",
 
@@ -118,6 +118,7 @@ SIMPLE_AUTOCOMPLETE_MODELS = ('rapidsms.models.Connection')
 
 
 SMS_APPS = [
+    "monitor",
     "education",
     "script",
     "poll",
