@@ -882,6 +882,9 @@ def edit_reporter(request, reporter_pk):
             data=request.POST)
         if reporter_form.is_valid():
             reporter_form.save()
+            if reporter.default_connection and reporter.groups.count() > 0:
+                from .utils import _schedule_weekly_scripts
+                _schedule_weekly_scripts(reporter.groups.all()[0], reporter.default_connection, ['Teachers', 'Head Teachers', 'SMC'])
         else:
             return render_to_response('education/partials/edit_reporter.html',
                     {'reporter_form': reporter_form,
