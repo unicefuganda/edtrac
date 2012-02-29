@@ -1,5 +1,6 @@
 import rapidsms
 from rapidsms.apps.base import AppBase
+from django.conf import settings
 class App (AppBase):
     def handle (self, message):
         if message.connection.identity in getattr(settings, 'MODEM_NUMBERS',
