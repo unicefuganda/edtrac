@@ -278,7 +278,7 @@ def generate_dashboard_vars(location=None):
         boysp3 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_enrollment"), weeks=1, locations=locations)[0] -\
                       get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"), weeks=1, locations=locations)[0]) /\
                  get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_enrollment"), weeks=1, locations=locations)[0] or 0
-        boysp3_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_enrollment"), locations=locations)[0]
+        boysp3_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_enrollment"), weeks=1, locations=locations)[0]
     except ZeroDivisionError:
         boysp3 = 0
         boysp3_diff = 0 # just return zero (till more data is populated in the system)
