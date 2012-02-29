@@ -23,7 +23,7 @@ sys.path.append(os.path.join(filedir, 'rapidsms_unregister'))
 sys.path.append(os.path.join(filedir, 'rapidsms_edtrac'))
 sys.path.append(os.path.join(filedir, 'rapidsms_geoserver'))
 sys.path.append(os.path.join(filedir, 'django_reversion'))
-sys.path.append(os.path.join(filedir, 'monitor', 'monitor_project'))
+sys.path.append(os.path.join(filedir, 'monitor_src'))
 sys.path.append(os.path.join(filedir, 'django_simple_autocomplete'))
 sys.path.append(os.path.join(filedir, 'endless'))
 
