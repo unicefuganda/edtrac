@@ -559,7 +559,7 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
     #TODO: provide querying by date too
     s = 0
     if kwargs:
-        if kwargs.has_key('month_filter') and kwargs.get('month_filter') and not kwargs.has_key('location'):
+        if kwargs.has_key('month_filter') and not kwargs.get('month_filter') == 'termly' and not kwargs.has_key('location'):
             # when no location is provided { worst case scenario }
             DISTRICT = ['Kaabong', 'Kabarole', 'Kyegegwa', 'Kotido']
             to_ret = {}
@@ -573,7 +573,7 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                 to_ret[location.__unicode__()] = s
             return to_ret
 
-        if kwargs.get('month_filter') and kwargs.has_key('location') and\
+        elif kwargs.get('month_filter') and kwargs.has_key('location') and\
            kwargs.has_key('ret_type') or kwargs.has_key('months'):
             #TODO support drilldowns
             now = datetime.datetime.now()
@@ -623,9 +623,8 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                         else:
                             #to_ret is something like { 'Kampala' : [23, 34] } => ['current_month', 'previoius month']
                             to_ret[location.__unicode__()].append((sum_of_values, month_range[0]))
-
             if kwargs.get('ret_type') == list:
-                #returning a sorted list of values
+                    #returning a sorted list of values
                 import operator
                 #return a dictionary of values e.g. {'kampala': (<Location Kampala>, 34)}
                 #pre-emptive sorting -> by largest -> returns a sorted list of tuples
@@ -638,6 +637,18 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                 to_ret.reverse()
                 return to_ret
                 #TODO Other data type returns.
+
+        elif kwargs.get('month_filter')=='termly' and kwargs.has_key('locations'):
+            # return just one figure/sum without all the list stuff
+            return sum(
+                filter(None,
+                [
+                    r.eav.poll_number_value for r in poll_queryset.responses.filter(
+                    contact__in=Contact.objects.filter(reporting_location__in=kwargs.get('locations')),
+                    date_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
+                )
+                ])
+            )
     else:
         return sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.all()]))
 
@@ -660,7 +671,6 @@ def cleanup_differences_on_poll(responses):
         percent = 100 * (current_month_sum - previous_month_sum) / float(previous_month_sum)
     except ZeroDivisionError:
         percent = 0
-
     return percent
 
 def get_sum_of_poll_response_past_week(poll_queryset, **kwargs):
@@ -682,19 +692,17 @@ def get_sum_of_poll_response_past_week(poll_queryset, **kwargs):
     if kwargs:
         first_quota, second_quota = get_week_date(number=kwargs.get('weeks'))
         #narrowing to location
-        if kwargs.has_key('location_name'):
+        if kwargs.has_key('locations'):
             sum_of_poll_responses_week_before = sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.filter(
                 date__range = first_quota,
                 contact__in =\
-                Contact.objects.filter(reporting_location=Location.objects.exclude(type="country").get(name__icontains=\
-                kwargs.get('location_name'))))]))
+                Contact.objects.filter(reporting_location__in=kwargs.get('locations')))]))
 
             sum_of_poll_responses_past_week = sum(filter(None,
                 [
                 r.eav.poll_number_value for r in poll_queryset.responses.filter(date__range = second_quota,
-                    contact__in = Contact.objects.filter(reporting_location=Location.objects.exclude(type="country").\
-                    get(name__icontains=kwargs.get('location_name'))))
-                ]))
+                    contact__in =\
+                    Contact.objects.filter(reporting_location__in=kwargs.get('locations')))]))
     else:
         # getting country wide statistics
         first_quota, second_quota = get_week_date(number=1) # default week range to 1

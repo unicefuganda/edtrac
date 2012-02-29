@@ -251,13 +251,14 @@ def dashboard(request):
 
 # generate context vars
 def generate_dashboard_vars(location=None):
+    import pdb; pdb.set_trace()
     if location.name == "Uganda":
         locations = Location.objects.get(name="Uganda").get_descendants().filter(type="district")
     else:
         locations = [location]
 
     responses_to_violence = get_sum_of_poll_response(Poll.objects.get(name = "edtrac_headteachers_abuse"),
-        month_filter = True, location = location, ret_type = list, months=2)
+        month_filter = 'termly', location = locations)
     # percentage change in violence from previous month
     violence_change = cleanup_differences_on_poll(responses_to_violence)
     if violence_change > 0:
@@ -271,12 +272,12 @@ def generate_dashboard_vars(location=None):
         violence_change_data = "data-white"
 
     # CSS class (dynamic icon)
-    x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"))
+    x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"), locations=locations)
     try:
-        boysp3 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_enrollment"))[0] -\
-                      get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"))[0]) /\
-                 get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_enrollment"))[0] or 0
-        boysp3_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_enrollment"))[0]
+        boysp3 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_enrollment"), locations=locations)[0] -\
+                      get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"), locations=locations)[0]) /\
+                 get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_enrollment"), locations=locations)[0] or 0
+        boysp3_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_enrollment"), locations=locations)[0]
     except ZeroDivisionError:
         boysp3 = 0
         boysp3_diff = 0 # just return zero (till more data is populated in the system)
@@ -287,12 +288,12 @@ def generate_dashboard_vars(location=None):
     else:
         boysp3_class = 'zero'
 
-    x, y  = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_attendance"))
+    x, y  = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_attendance"), locations=locations)
     try:
-        boysp6 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_enrollment"))[0] -\
-                      get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_attendance"))[0]) /\
-                 get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_enrollment"))[0] or 0
-        boysp6_diff = 100 * ( x - y ) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_enrollment"))[0]
+        boysp6 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_enrollment"), locations=locations)[0] -\
+                      get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_attendance"), locations=locations)[0]) /\
+                 get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_enrollment"), locations=locations)[0] or 0
+        boysp6_diff = 100 * ( x - y ) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_enrollment"),locations=locations)[0]
     except ZeroDivisionError:
         boysp6 = 0
         boysp6_diff = 0
@@ -303,12 +304,12 @@ def generate_dashboard_vars(location=None):
     else:
         boysp6_class = 'zero'
 
-    x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_attendance"))
+    x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_attendance"),locations=locations)
     try:
-        girlsp3 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_enrollment"))[0] -\
-                       get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_attendance"))[0]) /\
-                  get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_enrollment"))[0] or 0
-        girlsp3_diff = 100 * (x-y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_enrollment"))[0]
+        girlsp3 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_enrollment"),locations=locations)[0] -\
+                       get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_attendance"),locations=locations)[0]) /\
+                  get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_enrollment"),locations=locations)[0] or 0
+        girlsp3_diff = 100 * (x-y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_enrollment"),locations=locations)[0]
     except ZeroDivisionError:
         girlsp3 = 0
         girlsp3_diff = 0
@@ -319,12 +320,12 @@ def generate_dashboard_vars(location=None):
     else:
         girlsp3_class = "zero"
 
-    x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_attendance"))
+    x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_attendance"),locations=locations)
     try:
-        girlsp6 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_enrollment"))[0] -\
-                       get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_attendance"))[0]) /\
-                  get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_enrollment"))[0] or 0
-        girlsp6_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_enrollment"))[0]
+        girlsp6 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_enrollment"),locations=locations)[0] -\
+                       get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_attendance"),locations=locations)[0]) /\
+                  get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_enrollment"),locations=locations)[0] or 0
+        girlsp6_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_enrollment"),locations=locations)[0]
     except ZeroDivisionError:
         girlsp6 = 0
         girlsp6_diff = 0
@@ -335,12 +336,12 @@ def generate_dashboard_vars(location=None):
     else:
         girlsp6_class = "zero"
 
-    x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_attendance"))
+    x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_attendance"),locations=locations)
     try:
-        female_teachers = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_deployment"))[0] -\
-                               get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_attendance"))[0]) /\
-                          get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_deployment"))[0] or 0
-        female_teachers_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_deployment"))[0]
+        female_teachers = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_deployment"),locations=locations)[0] -\
+                               get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_attendance"), locations=locations)[0]) /\
+                          get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_deployment"), locations=locations)[0] or 0
+        female_teachers_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_deployment"),locations=locations)[0]
     except ZeroDivisionError:
         female_teachers = 0
         female_teachers_diff = 0
@@ -354,10 +355,10 @@ def generate_dashboard_vars(location=None):
 
     x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_attendance"))
     try:
-        male_teachers = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_deployment"))[0] -\
-                             get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_attendance"))[0]) /\
-                        get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_deployment"))[0] or 0
-        male_teachers_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_deployment"))[0]
+        male_teachers = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_deployment"),locations=locations)[0] -\
+                             get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_attendance"),locations=locations)[0]) /\
+                        get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_deployment"),locations=locations)[0] or 0
+        male_teachers_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_deployment"),locations=locations)[0]
     except ZeroDivisionError:
         male_teachers = 0
         male_teachers_diff = 0
@@ -369,7 +370,7 @@ def generate_dashboard_vars(location=None):
         male_teachers_class = "zero"
 
     responses_to_meals = get_sum_of_poll_response(Poll.objects.get(name = "edtrac_headteachers_meals"),
-        month_filter=True, location=location, ret_type = list, action='avg', months=2)
+        month_filter='termly', locations=locations)
     # percentage change in meals missed
     meal_change = cleanup_differences_on_poll(responses_to_meals)
     if meal_change > 0:
@@ -384,10 +385,10 @@ def generate_dashboard_vars(location=None):
 
 
     responses_to_smc_meetings_poll = get_sum_of_poll_response(Poll.objects.get(name="edtrac_smc_meetings"),
-        month_filter = True, location=location, ret_type=list)
+        month_filter = True, location=locations, ret_type=list)
 
     responses_to_grants_received = get_sum_of_poll_response(Poll.objects.get(name="edtrac_smc_upe_grant"),
-        month_filter=True, location=location, ret_type=list)
+        month_filter=True, location=locations, ret_type=list)
 
     sorted_violence_list = responses_to_violence
     sorted_hungry_list = responses_to_meals
