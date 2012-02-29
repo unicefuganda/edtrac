@@ -821,7 +821,7 @@ def _addto_autoreg(connections):
     for connection in connections:
         if not connection.contact and\
            not ScriptProgress.objects.filter(script__slug='emis_autoreg', connection=connection).count():
-            ScriptProgress.objects.create(script=Script.objects.get(slug="emis_autoreg"),\
+            ScriptProgress.objects.create(script=Script.objects.get(slug="edtrac_autoreg"),\
                 connection=connection)
 
 @login_required
