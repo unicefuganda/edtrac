@@ -79,7 +79,8 @@ class EditReporterForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
            super(EditReporterForm, self).__init__(*args, **kwargs)
            self.fields['reporting_location'] = TreeNodeChoiceField(queryset=self.fields['reporting_location'].queryset, level_indicator=u'.')
-           
+           self.fields['grade'].required = False
+
     class Meta:
         model = EmisReporter
         fields = ('name', 'gender', 'grade', 'reporting_location', 'groups', 'schools')
@@ -364,39 +365,39 @@ class ScriptsForm(forms.ModelForm):
         }
 
 
-class ReporterForm(forms.ModelForm):
+#class ReporterForm(forms.ModelForm):
+#
+#    connection_set = forms.ModelMultipleChoiceField(queryset=Connection.objects.order_by('identity'), required=False)
+#    #TODO --> from simple_autocomplete.widgets import AutoCompleteMultipleWidget
+#    #connection_set = forms.ModelChoiceField(queryset = Connection.objects.order_by('identity'))
+#
+#    def __init__(self, *args, **kwargs):
+#        super(ReporterForm, self).__init__(*args, **kwargs)
+#        if self.instance:
+#            self.fields['connection_set'].initial = [str(conn.pk) for conn in self.instance.connection_set.all()]
+#            self.fields['reporting_location'].queryset = Location.objects.exclude(type__name="county").order_by("name")
+#            self.fields['schools'].queryset = School.objects.order_by('name')
+#
+#        for key, field in self.fields.iteritems():
+#            self.fields[key].required = False
+#
+#    def save(self, *args, **kwargs):
+#        kwargs.pop('commit', None)
+#        edtrac_reporter = super(ReporterForm, self).save(*args, **kwargs)
+#        # create a connection object if it doesn't exist
+#        edtrac_reporter.connection_set.add(*self.cleaned_data['connection_set'])
+#        return edtrac_reporter
+#
+#    class Meta:
+#        model = EmisReporter
+#
+#        exclude = ('user', 'birthdate', 'user_permissions', 'village_name', 'village', 'language',)
 
-    connection_set = forms.ModelMultipleChoiceField(queryset=Connection.objects.order_by('identity'), required=False)
-    #TODO --> from simple_autocomplete.widgets import AutoCompleteMultipleWidget
-    #connection_set = forms.ModelChoiceField(queryset = Connection.objects.order_by('identity'))
-
-    def __init__(self, *args, **kwargs):
-        super(ReporterForm, self).__init__(*args, **kwargs)
-        if self.instance:
-            self.fields['connection_set'].initial = [str(conn.pk) for conn in self.instance.connection_set.all()]
-            self.fields['reporting_location'].queryset = Location.objects.exclude(type__name="county").order_by("name")
-            self.fields['schools'].queryset = School.objects.order_by('name')
-
-        for key, field in self.fields.iteritems():
-            self.fields[key].required = False
-
-    def save(self, *args, **kwargs):
-        kwargs.pop('commit', None)
-        edtrac_reporter = super(ReporterForm, self).save(*args, **kwargs)
-        # create a connection object if it doesn't exist
-        edtrac_reporter.connection_set.add(*self.cleaned_data['connection_set'])
-        return edtrac_reporter
-
-    class Meta:
-        model = EmisReporter
-
-        exclude = ('user', 'birthdate', 'user_permissions', 'village_name', 'village', 'language',)
 
 
-
-class ConnectionFormQuick(forms.Form):
-    telephone_number = forms.CharField()
-    def clean(self):
-        cleaned_data = self.cleaned_data
-        cleaned_data['telephone_number'] = str(cleaned_data['telephone_number'])
-        return cleaned_data
+#class ConnectionFormQuick(forms.Form):
+#    telephone_number = forms.CharField()
+#    def clean(self):
+#        cleaned_data = self.cleaned_data
+#        cleaned_data['telephone_number'] = str(cleaned_data['telephone_number'])
+#        return cleaned_data
