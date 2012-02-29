@@ -48,14 +48,14 @@ def get_alarms(mode="shortcode"):
         for mi in settings.ALLOWED_MODEMS[si.name]:
             (mb, t) = Backend.objects.using('monitor').get_or_create(name=mi)
 
-            b = Message.objects.using('monitor').filter(date__gt=time_offset, direction='I', text=gen_qos_msg(),
+            b = Message.objects.using('monitor').filter(date__gt=time_offset, direction='I', text__startswith=gen_qos_msg(),
                     connection=Connection.objects.using('monitor').get_or_create(identity=settings.SHORTCODE_BACKENDS[si.name], backend=mb)[0])
             if not b.count():
                 msg = "Could not get response  from %s when sender is %s(%s) Backend. Sent Msg=>(%s)" % (settings.SHORTCODE_BACKENDS[si.name], mb.name, settings.MODEM_BACKENDS[mb.name], gen_qos_msg())
                 msgs.append(msg)
 
 
-            b = Message.objects.using('monitor').filter(date__gt=time_offset, direction='I', text=gen_qos_msg(),
+            b = Message.objects.using('monitor').filter(date__gt=time_offset, direction='I', text__startswith=gen_qos_msg(),
                     connection=Connection.objects.using('monitor').get_or_create(identity=settings.MODEM_BACKENDS[mi], backend=si)[0])
             if not b.count():
                 msg = "Could not get response from %s when sender is %s Backend. Sent Msg=>(%s)" % (settings.MODEM_BACKENDS[mi], si.name, gen_qos_msg())
