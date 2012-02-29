@@ -679,20 +679,9 @@ class MealsAdminDetails(TemplateView):
 ##########################################################################################################
 ##########################################################################################################
 @login_required
-def deo_dashboard(request):
-    location = request.user.get_profile().location
-    violence = get_sum_of_poll_response(Poll.objects.get(name="emis_headteachers_abuse"),
-        location=location)
-    months = ["Jan", "Feb", "March"]
-    district_violence = [343,234,64]
-    dicty = dict(zip(months, district_violence))
-
-    return index(request, template_name="deo/deo_dashboard.html",
-        context_vars={'dicty':dicty,
-                      'x_vals':months,
-                      'y_vals':district_violence})
-
-
+def deo_dashboard(req):
+    location = req.user.get_profile().location
+    return render_to_response("deo/deo_dashboard.html", generate_dashboard_vars(location=location), RequestContext(req))
 
 
 class ViolenceDeoDetails(TemplateView):

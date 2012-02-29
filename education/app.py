@@ -23,12 +23,8 @@ class App (AppBase):
                     ScriptProgress.objects.filter(connection=message.connection).delete()
 
                 if (message.connection.contact):
-                    reporter = EmisReporter.objects.get(connection=message.connection)
                     message.connection.contact.active = False
                     message.connection.contact.save()
-                    reporter.active = False
-                    reporter.save()
-
                 message.respond(getattr(settings, 'OPT_OUT_CONFIRMATION', 'Thank you for your contribution to EduTrac. To rejoin the system, send join to 6200'))
                 return
             #                return True
