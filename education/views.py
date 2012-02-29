@@ -833,8 +833,6 @@ def add_connection(request):
         if form.is_valid():
             identity = form.cleaned_data['identity']
             identity, backend = assign_backend(str(identity.strip()))
-            # delete any existing connection
-            Connection.objects.filter(identity=identity).delete()
             # create
             connection, created = Connection.objects.get_or_create(identity=identity, backend=backend)
             connections.append(connection)
