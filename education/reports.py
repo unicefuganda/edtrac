@@ -579,15 +579,14 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
             now = datetime.datetime.now()
             #if role is Admin/Ministry/UNICEF then all districts will be returned
             # if role is DEO, then just the district will be returned
+
             if len(kwargs.get('location')) > 1:
                 #for the curious case that location actually returns a list of locations
-                locations = kwargs.get('location')
-
-            elif kwargs.get('location').type.name == 'country':
+                locations = kwargs.get('location')            
+            elif kwargs.get('location')[0].type.name == 'country':
                 locations = Location.objects.get(name=kwargs.get('location')).get_descendants().filter(type="district")
-
             else:
-                locations = [location]
+                locations = kwargs.get('location')
             to_ret = {}
             if not kwargs.has_key('months'):
                 for location in locations:

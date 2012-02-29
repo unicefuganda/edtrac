@@ -550,7 +550,7 @@ class MealsAdminDetails(TemplateView):
 @login_required
 def deo_dashboard(req):
     location = req.user.get_profile().location
-    return render_to_response("deo/deo_dashboard.html", generate_dashboard_vars(location=location), RequestContext(req))
+    return render_to_response("education/deo/deo_dashboard.html", generate_dashboard_vars(location=location), RequestContext(req))
 
 
 class ViolenceDeoDetails(TemplateView):
