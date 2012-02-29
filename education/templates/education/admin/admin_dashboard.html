@@ -133,6 +133,8 @@
         <div class="attention section">
             <h2>Alerts</h2>
             <div class="items">
+	
+				{% if alerts %}
                 <div class="item">
                             <span class="call-out">
                             </span>
@@ -160,9 +162,19 @@
                     <p class="date">Jan 12th 2012, 8:30 PM</p>
                     <p class="description">Kakosoro Modern Primary School in Kyegegwa district had the lowest P3 girls attendance this week.</p>
                 </div>
+
+				{% else %}
+				
+				<div class="item">
+                            <span class="call-out">
+                            </span>
+                    <p class="date">Notice</p>
+                    <p class="description">There are currently no alerts in the system</p>
+                </div>
+                {% endif %}
             </div>
 
-            <a href="#" class="button button-blue"><span class="messages">View All Messages</span></a>
+            <a href="{% url emis-messagelog %}" class="button button-blue"><span class="messages">View All Messages</span></a>
             <div class="clear"></div>
         </div>
     </div>
