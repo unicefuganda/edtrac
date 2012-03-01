@@ -176,6 +176,19 @@ urlpatterns = patterns('',
     url(r'^edtrac/dash_meetings/$', dash_meetings, {}, name="emis-dash-meetings"),
     url(r'^edtrac/dash_capitation/$', dash_capitation, {}, name="emis-dash-capitation"),
 
+    # attendance views for all roles ---> data prepopulated by location
+    url(r'^edtrac/dash/boy-p3/attendance/$', boys_p3_attendance, {}, name="boys-p3"),
+    url(r'^edtrac/dash/boy-p6/attendance/$', boys_p6_attendance, {}, name="boys-p6"),
+    url(r'^edtrac/dash/girls-p3/attendance/$', girls_p3_attendance, {}, name="girls-p3"),
+    url(r'^edtrac/dash/girls-p6/attendance/$', girls_p6_attendance, {}, name="girls-p6"),
+    url(r'^edtrac/dash/teacher-female/attendance/$', female_teacher_attendance, {}, name="f-teachers"),
+    url(r'^edtrac/dash/teacher-male/attendance/$', male_teacher_attendance, {}, name="m-teachers"),
+    url(r'^edtrac/dash/head-teacher-male/attendance/$', male_head_teacher_attendance, {}, name="m-h-teachers"),
+    url(r'^edtrac/dash/head-teacher-female/attendance/$', female_head_teacher_attendance, {}, name="f-h-teachers"),
+    # end attendance views
+
+
+
     url(r'^edtrac/dash_admin_meetings/$', dash_admin_meetings, {}, name="emis-dash-admin-meetings"),
     url(r'^edtrac/dash_ministry_map/$', dash_ministry_map, {}, name="emis-ministry-dash-map"),
     url(r'^edtrac/dash_ministry_progress/$', dash_ministry_progress, {}, name="emis-ministry-curriculum-progress"),

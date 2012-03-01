@@ -4,10 +4,15 @@ from script.models import Script, ScriptProgress
 from django.conf import settings
 from unregister.models import Blacklist
 from .models import EmisReporter
+from uganda_common.utils import handle_dongle_sms
 
 class App (AppBase):
 
     def handle (self, message):
+
+        if handle_dongle_sms(message):
+            return True
+
         if message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_OUT_WORDS', ['quit'])] or\
            difflib.get_close_matches(message.text.strip().lower(), getattr(settings, 'OPT_OUT_WORDS', ['quit'])):
 

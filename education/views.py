@@ -505,6 +505,9 @@ class AttendanceAdminDetails(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(AttendanceAdminDetails, self).get_context_data(**kwargs)
         #TODO: proper drilldown of attendance by school
+        location = self.request.user.get_profile().location
+        context['location'] = location
+
         return context
         
         
@@ -657,6 +660,81 @@ class DistrictMealsDetails(DetailView):
 ################################ Other handy views for EduTrac ############################################
 ##########################################################################################################
 ##########################################################################################################
+
+def boys_p3_attendance(req):
+    location = req.user.get_profile().location
+    return  render_to_response(
+        'education/partials/boys_p3_attendance.html',
+        {
+            'boys':23
+        },
+        RequestContext(req)
+    )
+
+def boys_p6_attendance(req):
+    location = req.user.get_profile().location
+    return  render_to_response(
+        'education/partials/boys_p6_attendance.html',
+            {
+            'boys':23
+        },
+        RequestContext(req)
+    )
+
+def girls_p3_attendance(req):
+    location = req.user.get_profile().location
+    return render_to_response(
+        'education/partials/girls_p3_attendance.html',
+        {
+            'girls':23
+        },
+        RequestContext(req)
+    )
+
+def girls_p6_attendance(req):
+    location = req.user.get_profile().location
+    return render_to_response(
+        'education/partials/girls_p6_attendance.html',
+            {
+            'girls':23
+        },
+        RequestContext(req)
+    )
+
+def female_teacher_attendance(req):
+    location = req.user.get_profile().location
+    return render_to_response(
+        'education/partials/female_teachers_attendance.html',
+        {},
+        RequestContext(req)
+    )
+
+def male_teacher_attendance(req):
+    location = req.user.get_profile().location
+    return render_to_response(
+        'education/partials/male_teachers_attendance.html',
+            {},
+        RequestContext(req)
+    )
+
+def male_head_teacher_attendance(req):
+    location = req.user.get_profile().location
+    return render_to_response(
+        'education/partials/male_head_teacher_attendance.html',
+            {},
+        RequestContext(req)
+    )
+
+def female_head_teacher_attendance(req):
+    location = req.user.get_profile().location
+    return render_to_response(
+        'education/partials/female_head_teacher_attendance.html',
+            {},
+        RequestContext(req)
+    )
+
+
+
 
 def whitelist(request):
     numbers = []

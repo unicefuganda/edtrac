@@ -1,14 +1,33 @@
 {% extends "education/admin/admin_dashboard.html" %}
 {% block content %}
-
+<!--
 <div class="viz-wrapper">
     <div id="map" style="width:inherit; height:inherit; float:left;"></div>
     <div style="float: right">test</div>
 </div>
+
+
 <script>
     $(document).ready(function(){
         $('#map').load("{% url attendance-visualization %}");
     });
 </script>
+
+-->
+        
+        
+<div class="attendance">
+    <h2 class="block-header">Attendance for {{ location }}</h2>
+    <div class="top">
+        <table class="tabulated-data">
+            <thead>
+            <tr>
+                <th>Location</th><th>Girls P6</th>
+            </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+
 
 {% endblock %}

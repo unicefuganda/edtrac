@@ -305,6 +305,7 @@ def edtrac_autoreg(**kwargs):
 def edtrac_reschedule_script(**kwargs):
     connection = kwargs['connection']
     progress = kwargs['sender']
+    #TODO: test whether connection isn't being duplicated into a progress??
     slug = progress.script.slug
     if not progress.script.slug.startswith('edtrac_') or progress.script.slug == 'edtrac_autoreg':
         return
@@ -372,7 +373,6 @@ def edtrac_autoreg_transition(**kwargs):
 
 
 def edtrac_attendance_script_transition(**kwargs):
-
     connection = kwargs['connection']
     progress = kwargs['sender']
     if not progress.script.slug == 'edtrac_teachers_weekly':
