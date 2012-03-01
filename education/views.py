@@ -704,6 +704,8 @@ def add_connection(request):
             identity, backend = assign_backend(str(identity.strip()))
             # create
             connection, created = Connection.objects.get_or_create(identity=identity, backend=backend)
+            # in case a duplicate process does exist, delete it
+            ScriptProgress.objects.filter(connection=connection).delete()
             connections.append(connection)
             other_numbers = request.POST.getlist('other_nums')
             if len(other_numbers) > 0:

@@ -110,6 +110,17 @@ class ModelTest(TestCase): #pragma: no cover
         cursor.execute("update rapidsms_xforms_xformsubmission set created = '%s' where id = %d" %
                        (newtime.strftime('%Y-%m-%d %H:%M:%S.%f'), submission.pk))
 
+
+    def total_seconds(self, time_delta):
+        """
+        function to return total seconds in interval (for Python less than 2.7)
+        """
+        seconds = time_delta.seconds
+        minutes_to_seconds = time_delta.minutes * 60
+        days_to_seconds = time_delta.days * 24 * 60 * 60
+        return seconds + minutes_to_seconds + days_to_seconds
+
+
     def elapseTime2(self, progress, seconds):
         """
         This hack mimics the progression of time, from the perspective of a linear test case,
