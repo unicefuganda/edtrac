@@ -317,7 +317,7 @@ class ModelTest(TestCase): #pragma: no cover
         script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM')
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Thank you for participating in EduTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM, DEO')
         self.fake_incoming('SMC')
         script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
@@ -342,7 +342,7 @@ class ModelTest(TestCase): #pragma: no cover
         script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Welcome EdTrac.The information you shall provide contributes to keeping children in school.')
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Welcome to EduTrac.The information you shall provide contributes to keeping children in school.')
 
     def testGEMAutoregProgression(self):
         Script.objects.filter(slug='edtrac_autoreg').update(enabled=True)
@@ -350,7 +350,7 @@ class ModelTest(TestCase): #pragma: no cover
         script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM')
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Thank you for participating in EduTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM, DEO')
         self.fake_incoming('GEM')
         script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
@@ -370,7 +370,7 @@ class ModelTest(TestCase): #pragma: no cover
         script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Welcome EdTrac.The information you shall provide contributes to keeping children in school.')
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, 'Welcome to EduTrac.The information you shall provide contributes to keeping children in school.')
 
     def testDoubleReg(self):
         self.register_reporter('teacher')
