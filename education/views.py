@@ -249,6 +249,187 @@ def dashboard(request):
     else:
         return testindex(request)
 
+# generate context vars
+def generate_dashboard_vars(location=None):
+    locations = []
+    if location.name == "Uganda":
+        locations = Location.objects.get(name="Uganda").get_descendants().filter(type="district")
+    else:
+        locations.append(location)
+
+    responses_to_violence = get_sum_of_poll_response(
+        Poll.objects.get(name = "edtrac_headteachers_abuse"),
+        month_filter = 'biweekly', locations = locations)
+    # percentage change in violence from previous month
+    violence_change = cleanup_sums(responses_to_violence)
+    if violence_change > 0:
+        violence_change_class = "increase"
+        violence_change_data = "data-green"
+    elif violence_change < 0:
+        violence_change_class = "decrease"
+        violence_change_data = "data-red"
+    else:
+        violence_change_class = "zero"
+        violence_change_data = "data-white"
+
+    # CSS class (dynamic icon)
+    x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"), locations=locations, weeks=1)
+    try:
+        boysp3 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_enrollment"), weeks=1, locations=locations)[0] -\
+                      get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"), weeks=1, locations=locations)[0]) /\
+                 get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_enrollment"), weeks=1, locations=locations)[0] or 0
+        boysp3_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_enrollment"), weeks=1, locations=locations)[0]
+    except ZeroDivisionError:
+        boysp3 = 0
+        boysp3_diff = 0 # just return zero (till more data is populated in the system)
+    if x > y:
+        boysp3_class = 'negative'
+    elif x < y:
+        boysp3_class = 'positive'
+    else:
+        boysp3_class = 'zero'
+
+    x, y  = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_attendance"), locations=locations, weeks=1)
+    try:
+        boysp6 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_enrollment"), weeks=1, locations=locations)[0] -\
+                      get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_attendance"), weeks=1, locations=locations)[0]) /\
+                 get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_enrollment"), weeks=1, locations=locations)[0] or 0
+        boysp6_diff = 100 * ( x - y ) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_enrollment"),weeks=1, locations=locations)[0]
+    except ZeroDivisionError:
+        boysp6 = 0
+        boysp6_diff = 0
+    if x > y:
+        boysp6_class = 'negative'
+    elif x < y:
+        boysp6_class = 'positive'
+    else:
+        boysp6_class = 'zero'
+
+    x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_attendance"),locations=locations, weeks=1)
+    try:
+        girlsp3 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_enrollment"),locations=locations, weeks=1)[0] -\
+                       get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_attendance"),locations=locations, weeks=1)[0]) /\
+                  get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_enrollment"),locations=locations, weeks=1)[0] or 0
+        girlsp3_diff = 100 * (x-y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_enrollment"),locations=locations, weeks=1)[0]
+    except ZeroDivisionError:
+        girlsp3 = 0
+        girlsp3_diff = 0
+    if x > y:
+        girlsp3_class = "negative"
+    elif x < y:
+        girlsp3_class = "positive"
+    else:
+        girlsp3_class = "zero"
+
+    x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_attendance"),locations=locations, weeks=1)
+    try:
+        girlsp6 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_enrollment"),locations=locations, weeks=1)[0] -\
+                       get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_attendance"),locations=locations, weeks=1)[0]) /\
+                  get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_enrollment"),locations=locations, weeks=1)[0] or 0
+        girlsp6_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_enrollment"),locations=locations, weeks=1)[0]
+    except ZeroDivisionError:
+        girlsp6 = 0
+        girlsp6_diff = 0
+    if x > y:
+        girlsp6_class = "negative"
+    elif x < y:
+        girlsp6_class = "positive"
+    else:
+        girlsp6_class = "zero"
+
+    x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_attendance"),locations=locations, weeks=1)
+    try:
+        female_teachers = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_deployment"),weeks=1, locations=locations)[0] -\
+                               get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_attendance"), weeks=1,locations=locations)[0]) /\
+                          get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_deployment"), weeks=1,locations=locations)[0] or 0
+        female_teachers_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_deployment"),weeks=1,locations=locations)[0]
+    except ZeroDivisionError:
+        female_teachers = 0
+        female_teachers_diff = 0
+
+    if x > y:
+        female_teachers_class = "negative"
+    elif x < y:
+        female_teachers_class = "positive"
+    else:
+        female_teachers_class = "zero"
+
+    x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_attendance"), weeks=1, locations=locations)
+    try:
+        male_teachers = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_deployment"),weeks=1,locations=locations)[0] -\
+                             get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_attendance"),weeks=1,locations=locations)[0]) /\
+                        get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_deployment"),weeks=1,locations=locations)[0] or 0
+        male_teachers_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_deployment"),weeks=1,locations=locations)[0]
+    except ZeroDivisionError:
+        male_teachers = 0
+        male_teachers_diff = 0
+    if x > y:
+        male_teachers_class = "negative"
+    elif x < y:
+        male_teachers_class = "positive"
+    else:
+        male_teachers_class = "zero"
+
+    responses_to_meals = get_sum_of_poll_response(Poll.objects.get(name = "edtrac_headteachers_meals"),
+        month_filter='biweekly', locations=locations)
+    # percentage change in meals missed
+    meal_change = cleanup_sums(responses_to_meals)
+    if meal_change > 0:
+        meal_change_class = "increase"
+        meal_change_data = "data-green"
+    elif meal_change < 0:
+        meal_change_class = "decrease"
+        meal_change_data = "data-red"
+    else:
+        meal_change_class = "zero"
+        meal_change_data = "data-white"
+
+
+    responses_to_smc_meetings_poll = get_sum_of_poll_response(Poll.objects.get(name="edtrac_smc_meetings"),
+        month_filter = True, location=locations, ret_type=list)
+
+    responses_to_grants_received = get_sum_of_poll_response(Poll.objects.get(name="edtrac_smc_upe_grant"),
+        month_filter=True, location=locations, ret_type=list)
+
+    sorted_violence_list = responses_to_violence
+    sorted_hungry_list = responses_to_meals
+    #sorted list...
+
+    top_three_violent_districts = sorted_violence_list[:3]
+    #can make a dictionary
+    top_three_hungry_districts = sorted_hungry_list[:3]
+
+    return {
+        'top_three_violent_districts':top_three_violent_districts,
+        'top_three_hungry_districts':top_three_hungry_districts,
+        'violence_change' : violence_change,
+        'violence_change_class' : violence_change_class,
+        'violence_change_data' : violence_change_data,
+        'meal_change' : meal_change,
+        'meal_change_class': meal_change_class,
+        'meal_change_data' : meal_change_data,
+        'male_teachers' : male_teachers,
+        'male_teachers_diff' : male_teachers_diff,
+        'male_teachers_class' : male_teachers_class,
+        'female_teachers_class' : female_teachers_class,
+        'female_teachers' :female_teachers,
+        'female_teachers_diff' : female_teachers_diff,
+        'girlsp3' : girlsp3,
+        'girlsp3_class': girlsp3_class,
+        'girlsp3_diff' : girlsp3_diff,
+        'girlsp6' : girlsp6,
+        'girlsp6_diff' : girlsp6_diff,
+        'girlsp6_class' : girlsp6_class,
+        'boysp3' : boysp3,
+        'boysp3_class' : boysp3_class,
+        'boysp3_diff' : boysp3_diff,
+        'boysp6' : boysp6,
+        'boysp6_class' : boysp6_class,
+        'boysp6_diff' : boysp6_diff,
+        'month':datetime.datetime.now(),
+        'schools_to_date':School.objects.filter(location__in=locations).count()
+    }
+
 ##########################################################################################################
 ##########################################################################################################
 ############################ Ministry Dashboard #############################################################
@@ -256,21 +437,9 @@ def dashboard(request):
 ##########################################################################################################
 @login_required
 def ministry_dashboard(request):
-    violence = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
-    districts = violence.keys()
-    #assumption is still 4 districts
-    district_violence = [23,56, 23, 66]
-    dicty = dict(zip(districts, district_violence))
-
-    meal_poll_responses = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))
-    districts = meal_poll_responses.keys()
-    lunches_to_ret = dict(zip(districts, [10, 20, 30, 40]))
-
-    return index(request, template_name="ministry/ministry_dashboard.html",
-        context_vars={'dicty':dicty,
-                      'x_vals':districts,
-                      'y_vals':district_violence,
-                      'lunches':lunches_to_ret})
+    location = request.user.get_profile().location
+    return render_to_response("education/ministry/ministry_dashboard.html", generate_dashboard_vars(location=location),
+        RequestContext(request))
 
 
 class ProgressMinistryDetails(TemplateView):
@@ -296,71 +465,9 @@ class MealsMinistryDetails(TemplateView):
 ##########################################################################################################
 @login_required
 def admin_dashboard(request):
-    #import pdb; pdb.set_trace()
-
-    from .reports import cleanup_differences_on_poll
-
     location = request.user.get_profile().location
-
-    responses_to_violence = get_sum_of_poll_response(Poll.objects.get(name = "edtrac_headteachers_abuse"),
-        month_filter = True, location = location, ret_type = list, months=2)
-    # percentage change in violence from previous month
-    violence_change = cleanup_differences_on_poll(responses_to_violence)
-    if violence_change > 0:
-        violence_change_class = "increase"
-        violence_change_data = "data-green"
-    elif violence_change < 0:
-        violence_change_class = "decrease"
-        violence_change_data = "data-red"
-    else:
-        violence_change_class = "zero"
-        violence_change_data = "data-white"
-
-
-    responses_to_meals = get_sum_of_poll_response(Poll.objects.get(name = "edtrac_headteachers_meals"),
-        month_filter=True, location=location, ret_type = list, action='avg', months=2)
-    # percentage change in meals missed
-    meal_change = cleanup_differences_on_poll(responses_to_meals)
-    if meal_change > 0:
-        meal_change_class = "increase"
-        meal_change_data = "data-green"
-    elif meal_change < 0:
-        meal_change_class = "decrease"
-        meal_change_data = "data-red"
-    else:
-        meal_change_class = "zero"
-        meal_change_data = "data-white"
-
-
-    responses_to_smc_meetings_poll = get_sum_of_poll_response(Poll.objects.get(name="edtrac_smc_meetings"),
-        month_filter = True, location=location, ret_type=list)
-
-    responses_to_grants_received = get_sum_of_poll_response(Poll.objects.get(name="edtrac_smc_upe_grant"),
-        month_filter=True, location=location, ret_type=list)
-
-    sorted_violence_list = responses_to_violence
-    sorted_hungry_list = responses_to_meals
-    #sorted list...
-
-    top_three_violent_districts = sorted_violence_list[:3]
-    #can make a dictionary
-    top_three_hungry_districts = sorted_hungry_list[:3]
-
-
-
-    return index(request, template_name="admin/admin_dashboard.html",
-        context_vars={
-            'top_three_violent_districts':top_three_violent_districts,
-            'top_three_hungry_districts':top_three_hungry_districts,
-            'violence_change' : violence_change,
-            'violence_change_class' : violence_change_class,
-            'violence_change_data' : violence_change_data,
-            'meal_change' : meal_change,
-            'meal_change_class': meal_change_class,
-            'meal_change_data' : meal_change_data,
-            'month':datetime.datetime.now(),
-            'schools_to_date':School.objects.count()
-        })
+    return render_to_response("education/admin/admin_dashboard.html", generate_dashboard_vars(location=location),
+        RequestContext(request))
 
 # Details views... specified by ROLES
 class ViolenceAdminDetails(TemplateView):
@@ -394,134 +501,67 @@ class ViolenceAdminDetails(TemplateView):
 
 class AttendanceAdminDetails(TemplateView):
     template_name = "education/admin/attendance_details.html"
-    
+
     def get_context_data(self, **kwargs):
+
         context = super(AttendanceAdminDetails, self).get_context_data(**kwargs)
-        
-        # CSS class (dynamic icon)
-        x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"))
-        try:
-            boysp3 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_enrollment"))[0] -\
-                          get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"))[0]) /\
-                     get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_enrollment"))[0] or 0
-            boysp3_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_enrollment"))[0]
-        except ZeroDivisionError:
-            boysp3 = 0
-            boysp3_diff = 0 # just return zero (till more data is populated in the system)
-        if x > y:
-            boysp3_class = 'negative'
-        elif x < y:
-            boysp3_class = 'positive'
-        else:
-            boysp3_class = 'zero'
-
-        context['boysp3'] = boysp3
-        context['boysp3_class'] = boysp3_class
-        context['boysp3_diff'] = boysp3_diff
-        
-        x, y  = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_attendance"))
-        try:
-            boysp6 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_enrollment"))[0] -\
-                          get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_attendance"))[0]) /\
-                     get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_enrollment"))[0] or 0
-            boysp6_diff = 100 * ( x - y ) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp6_enrollment"))[0]
-        except ZeroDivisionError:
-            boysp6 = 0
-            boysp6_diff = 0
-        if x > y:
-            boysp6_class = 'negative'
-        elif x < y:
-            boysp6_class = 'positive'
-        else:
-            boysp6_class = 'zero'
-
-        context['boysp6'] = boysp6
-        context['boysp6_class'] = boysp6_class
-        context['boysp6_diff'] = boysp6_diff
-
-        x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_attendance"))
-        try:
-            girlsp3 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_enrollment"))[0] -\
-                     get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_attendance"))[0]) / \
-                        get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_enrollment"))[0] or 0
-            girlsp3_diff = 100 * (x-y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp3_enrollment"))[0]
-        except ZeroDivisionError:
-            girlsp3 = 0
-            girlsp3_diff = 0
-        if x > y:
-            girlsp3_class = "negative"
-        elif x < y:
-            girlsp3_class = "positive"
-        else:
-            girlsp3_class = "zero"
-
-        context['girlsp3'] = girlsp3
-        context['girlsp3_class'] = girlsp3_class
-        context['girlsp3_diff'] = girlsp3_diff
-
-        x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_attendance"))
-        try:
-            girlsp6 = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_enrollment"))[0] -\
-                     get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_attendance"))[0]) /\
-                      get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_enrollment"))[0] or 0
-            girlsp6_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_girlsp6_enrollment"))[0]
-        except ZeroDivisionError:
-            girlsp6 = 0
-            girlsp6_diff = 0
-        if x > y:
-            girlsp6_class = "negative"
-        elif x < y:
-            girlsp6_class = "positive"
-        else:
-            girlsp6_class = "zero"
-        
-        context['girlsp6'] = girlsp6
-        context['girlsp6_class'] = girlsp6_class
-        context['girlsp6_diff'] = girlsp6_diff
-
-        x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_attendance"))
-        try:
-            female_teachers = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_deployment"))[0] -\
-                       get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_attendance"))[0]) /\
-                      get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_deployment"))[0] or 0
-            female_teachers_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_f_teachers_deployment"))[0]
-        except ZeroDivisionError:
-            female_teachers = 0
-            female_teachers_diff = 0
-
-        if x > y:
-            female_teachers_class = "negative"
-        elif x < y:
-            female_teachers_class = "positive"
-        else:
-            female_teachers_class = "zero"
-        
-        context['female_teachers'] = female_teachers
-        context['female_teachers_class'] = female_teachers_class
-        context['female_teachers_diff'] = female_teachers_diff
-        
-        x, y = get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_attendance"))
-        try:
-            male_teachers = 100*(get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_deployment"))[0] -\
-                               get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_attendance"))[0]) /\
-                              get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_deployment"))[0] or 0
-            male_teachers_diff = 100 * (x - y) / get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_m_teachers_deployment"))[0]
-        except ZeroDivisionError:
-            male_teachers = 0
-            male_teachers_diff = 0
-        if x > y:
-            male_teachers_class = "negative"
-        elif x < y:
-            male_teachers_class = "positive"
-        else:
-            male_teachers_class = "zero"
-        context['male_teachers'] = male_teachers
-        context['male_teachers_class'] = male_teachers_class
-        context['male_teachers_diff'] = male_teachers_diff    
-        
+        #TODO: proper drilldown of attendance by school
+        # National level ideally "admin" and can be superclassed to suit other roles
+        location = Location.objects.get(name="Uganda")
+        headings = [
+            'Location', 'Boys P3', 'Boys P6', 'Girls P3', 'Girls P6', 'Female Teachers', "Male Teachers",
+            "Male Head Teachers", "Female Head Teachers"
+                    ]
+        context['headings'] = headings
+        context['week'] = datetime.datetime.now()
+        context['location'] = location
+        location_data_container = []
+        for loc in location.get_descendants().filter(type="district").order_by("name"):
+            location_data_container.append(
+                [loc,
+                 get_sum_of_poll_response(Poll.objects.get(name="edtrac_boysp3_attendance"), month_filter='weekly', location=loc),
+                 get_sum_of_poll_response(Poll.objects.get(name="edtrac_boysp6_attendance"), month_filter='weekly', location=loc),
+                 get_sum_of_poll_response(Poll.objects.get(name="edtrac_girlsp3_attendance"), month_filter='weekly', location=loc),
+                 get_sum_of_poll_response(Poll.objects.get(name="edtrac_girlsp3_attendance"), month_filter='weekly', location=loc),
+                 get_sum_of_poll_response(Poll.objects.get(name="edtrac_f_teachers_attendance"), month_filter='weekly', location=loc),
+                 get_sum_of_poll_response(Poll.objects.get(name="edtrac_m_teachers_attendance"), month_filter='weekly', location=loc),
+                 get_sum_of_poll_response(Poll.objects.get(name="edtrac_head_teachers_attendance"), month_filter="weekly", location=loc),
+                 get_sum_of_poll_response(Poll.objects.get(name="edtrac_head_teachers_attendance"), month_filter="weekly", location=loc)
+                ]
+            )
+        context['location_data'] = location_data_container
+        context['total_districts'] = len(location.get_descendants().filter(type="district"))
         return context
         
-        
+
+# search functionality
+def search_form(req):
+
+    searchform = SearchForm()
+    if req.method == 'POST':
+        searchform = SearchForm(req.POST)
+        if searchform.is_valid():
+            searchform.save()
+    return render_to_response(
+            'education/partials/search-form.html',
+        {'form': searchform},
+        RequestContext(req)
+    )
+#    query = req.POST[u'query']
+#    split_query = re.split(ur'(?u)\W', query)
+#    while u'' in split_query:
+#        split_query.remove(u'')
+#    results = []
+#    for word in split_query:
+#        for district in Location.objects.filter(type="district", name__icontains=word):
+#            if re.match(ur'(?ui)\b' + word + ur'\b'):
+#                entry = {
+#                    u'id':district.id,
+#                    u'name':district.name
+#                }
+#            if not entry in results:
+#                results.append(entry)
+
 class ProgressAdminDetails(TemplateView):
     template_name = "education/admin/admin_progress_details.html"
 
@@ -562,20 +602,9 @@ class MealsAdminDetails(TemplateView):
 ##########################################################################################################
 ##########################################################################################################
 @login_required
-def deo_dashboard(request):
-    location = request.user.get_profile().location
-    violence = get_sum_of_poll_response(Poll.objects.get(name="emis_headteachers_abuse"),
-        location=location)
-    months = ["Jan", "Feb", "March"]
-    district_violence = [343,234,64]
-    dicty = dict(zip(months, district_violence))
-
-    return index(request, template_name="deo/deo_dashboard.html",
-        context_vars={'dicty':dicty,
-                      'x_vals':months,
-                      'y_vals':district_violence})
-
-
+def deo_dashboard(req):
+    location = req.user.get_profile().location
+    return render_to_response("education/deo/deo_dashboard.html", generate_dashboard_vars(location=location), RequestContext(req))
 
 
 class ViolenceDeoDetails(TemplateView):
@@ -620,24 +649,17 @@ class DistrictViolenceDetails(DetailView):
     def get_context_data(self, **kwargs):
         context = super(DistrictViolenceDetails, self).get_context_data(**kwargs)
 
-        location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk')))
+        location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk'))) or self.request.user.get_profile().location
         schools = School.objects.filter(location=location)
         school_case = []
         for school in schools:
-            regex_pattern = r'\d+\.\d+|\d+'
             resps = Poll.objects.get(name="edtrac_headteachers_abuse").responses.filter(contact__in=\
-            EmisReporter.objects.filter(schools__in=[school]),
-                date__range = get_month_day_range(datetime.datetime.now())
-            )
-            #TODO replace with poll_number_value in the response
-            resp_values = [re.findall(regex_pattern, r.message.text)[0] for r in resps]
-            sum_of_values = 0
-            for val in resp_values:
-                if isinstance(int(val),int):
-                    val = int(val)
-                if isinstance(float(val), float):
-                    val = float(val)
-                sum_of_values += val
+                EmisReporter.objects.filter(schools__in=[school]),
+                    date__range = get_month_day_range(datetime.datetime.now())
+                )
+            school_case.append((school,
+                                sum(filter(None, [r.eav.poll_number_value for r in resps]))
+                ))
             school_case.append((school, int(sum_of_values)))
 
         #schools and reports from a district
@@ -683,6 +705,81 @@ class DistrictMealsDetails(DetailView):
 ##########################################################################################################
 ##########################################################################################################
 
+def boys_p3_attendance(req):
+    location = req.user.get_profile().location
+    return  render_to_response(
+        'education/partials/boys_p3_attendance.html',
+        {
+            'boys':23
+        },
+        RequestContext(req)
+    )
+
+def boys_p6_attendance(req):
+    location = req.user.get_profile().location
+    return  render_to_response(
+        'education/partials/boys_p6_attendance.html',
+            {
+            'boys':23
+        },
+        RequestContext(req)
+    )
+
+def girls_p3_attendance(req):
+    location = req.user.get_profile().location
+    return render_to_response(
+        'education/partials/girls_p3_attendance.html',
+        {
+            'girls':23
+        },
+        RequestContext(req)
+    )
+
+def girls_p6_attendance(req):
+    location = req.user.get_profile().location
+    return render_to_response(
+        'education/partials/girls_p6_attendance.html',
+            {
+            'girls':23
+        },
+        RequestContext(req)
+    )
+
+def female_teacher_attendance(req):
+    location = req.user.get_profile().location
+    return render_to_response(
+        'education/partials/female_teachers_attendance.html',
+        {},
+        RequestContext(req)
+    )
+
+def male_teacher_attendance(req):
+    location = req.user.get_profile().location
+    return render_to_response(
+        'education/partials/male_teachers_attendance.html',
+            {},
+        RequestContext(req)
+    )
+
+def male_head_teacher_attendance(req):
+    location = req.user.get_profile().location
+    return render_to_response(
+        'education/partials/male_head_teacher_attendance.html',
+            {},
+        RequestContext(req)
+    )
+
+def female_head_teacher_attendance(req):
+    location = req.user.get_profile().location
+    return render_to_response(
+        'education/partials/female_head_teacher_attendance.html',
+            {},
+        RequestContext(req)
+    )
+
+
+
+
 def whitelist(request):
     numbers = []
     for c in Connection.objects.exclude(backend__name='yo6200'):
@@ -715,7 +812,7 @@ def _addto_autoreg(connections):
     for connection in connections:
         if not connection.contact and\
            not ScriptProgress.objects.filter(script__slug='emis_autoreg', connection=connection).count():
-            ScriptProgress.objects.create(script=Script.objects.get(slug="emis_autoreg"),\
+            ScriptProgress.objects.create(script=Script.objects.get(slug="edtrac_autoreg"),\
                 connection=connection)
 
 @login_required
@@ -727,7 +824,10 @@ def add_connection(request):
         if form.is_valid():
             identity = form.cleaned_data['identity']
             identity, backend = assign_backend(str(identity.strip()))
+            # create
             connection, created = Connection.objects.get_or_create(identity=identity, backend=backend)
+            # in case a duplicate process does exist, delete it
+            ScriptProgress.objects.filter(connection=connection).delete()
             connections.append(connection)
             other_numbers = request.POST.getlist('other_nums')
             if len(other_numbers) > 0:
@@ -765,6 +865,9 @@ def edit_reporter(request, reporter_pk):
             data=request.POST)
         if reporter_form.is_valid():
             reporter_form.save()
+            if reporter.default_connection and reporter.groups.count() > 0:
+                from .utils import _schedule_weekly_scripts
+                _schedule_weekly_scripts(reporter.groups.all()[0], reporter.default_connection, ['Teachers', 'Head Teachers', 'SMC'])
         else:
             return render_to_response('education/partials/edit_reporter.html',
                     {'reporter_form': reporter_form,
@@ -1145,6 +1248,7 @@ def meals(request, district_id=None):
 
 @super_user_required
 def edit_scripts(request):
+
     forms = []
     for script in Script.objects.all().order_by('slug'):
         forms.append((script, ScriptsForm(instance=script)))
@@ -1164,14 +1268,13 @@ def choose_level(request):
 
 
 def reschedule_scripts(request, script_slug):
-
     grp = get_script_grp(script_slug)
     if script_slug.endswith('_weekly'):
         reschedule_weekly_polls(grp)
     elif script_slug.endswith('_monthly'):
         reschedule_monthly_polls(grp)
     else:
-        if request.POST.get('date'):
+        if request.POST.has_key('date'):
             date = request.POST.get('date')
         else:
             date = None
@@ -1183,7 +1286,7 @@ def reschedule_scripts(request, script_slug):
         response = HttpResponse("This Script has been rescheduled to: %s " % new_script_date.strftime("%d-%m-%Y %H:%M"))
         return response
     else:
-        return HttpResponse("This script can't be reschedule. Try again")
+        return HttpResponse("This script can't be rescheduled. Try again")
 
 # Reporters view
 
@@ -1192,42 +1295,42 @@ class EdtracReporter(ListView):
     template_name = "education/emisreporter_list.html"
     context_object_name = "reporter_list"
 
-class EdtracReporterCreateView(CreateView):
-
-    form_class = ReporterForm
-    template_name = 'education/new_reporter.html'
-    success_url = '/edtrac/reporters/connection/create'
-
-    def form_valid(self, form):
-        django.contrib.messages.success(self.request, "Success", extra_tags='msg')
-        return super(EdtracReporterCreateView, self).form_valid(form)
-
-    def form_invalid(self, form):
-        django.contrib.messages.success(self.request, "Error", extra_tags='msg')
-        return super(EditReporterForm, self).form_invalid(form)
-
-
-class EdtracReporterCreateConnection(FormView):
-
-    form_class = ConnectionFormQuick
-    template_name = 'education/new_reporter_connection.html'
-    success_url = '/edtrac/reporters/create'
+#class EdtracReporterCreateView(CreateView):
+#
+#    form_class = ReporterForm
+#    template_name = 'education/new_reporter.html'
+#    success_url = '/edtrac/reporters/connection/create'
+#
+#    def form_valid(self, form):
+#        django.contrib.messages.success(self.request, "Success", extra_tags='msg')
+#        return super(EdtracReporterCreateView, self).form_valid(form)
+#
+#    def form_invalid(self, form):
+#        django.contrib.messages.success(self.request, "Error", extra_tags='msg')
+#        return super(EditReporterForm, self).form_invalid(form)
 
 
-    def post(self, req, *args, **kwargs):
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
-        if form.is_valid():
-            return self.form_valid(form, **kwargs)
-        else:
-            return self.form_invalid(form, **kwargs)
-
-    def form_valid(self, form):
-        from rapidsms.models import Connection
-        connection, created = Connection.objects.get_or_create(identity=form.cleaned_data['telephone_number'],
-            backend=Backend.objects.get(name="yo6200"))
-
-        return HttpResponseRedirect(self.get_success_url())
+#class EdtracReporterCreateConnection(FormView):
+#
+#    form_class = ConnectionFormQuick
+#    template_name = 'education/new_reporter_connection.html'
+#    success_url = '/edtrac/reporters/create'
+#
+#
+#    def post(self, req, *args, **kwargs):
+#        form_class = self.get_form_class()
+#        form = self.get_form(form_class)
+#        if form.is_valid():
+#            return self.form_valid(form, **kwargs)
+#        else:
+#            return self.form_invalid(form, **kwargs)
+#
+#    def form_valid(self, form):
+#        from rapidsms.models import Connection
+#        connection, created = Connection.objects.get_or_create(identity=form.cleaned_data['telephone_number'],
+#            backend=Backend.objects.get(name="yo6200"))
+#
+#        return HttpResponseRedirect(self.get_success_url())
 
 
 ########## Maps #################

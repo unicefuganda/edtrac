@@ -169,6 +169,63 @@ def init_scripts():
                            ],
     }
 
+    from education.utils import themes
+    for key in themes.keys():
+        curriculum_progress_poll.categories.create(name=key)
+
+    deo_script_weekly, created = Script.objects.get_or_create(slug="edtrac_deo_report_weekly", name="Edutrac DEO report weekly")
+    deo_script_weekly.sites.add(Site.objects.get(id=5))
+
+    ScriptStep.objects.create(script=deo_script_weekly,
+        message="{{ a_p3 }}% of P3 pupils were absent this week. Attendance for P3 is {{ d_p3 }} {{ superlative }} than it was last week",
+        rule = ScriptStep.WAIT_MOVEON,
+        start_offset =0,
+        giveup_offset = 0,
+        order=0)
+
+    ScriptStep.objects.create(script=deo_script_weekly,
+        message="{{ a_p6 }}% of P6 pupils were absent this week. Attendance for P6 is {{ d_p6 }} {{ superlative }} than it was last week",
+        rule = ScriptStep.WAIT_MOVEON,
+        start_offset =0,
+        giveup_offset = 0,
+        order=1)
+
+
+    ScriptStep.objects.create(script=deo_script_weekly,
+        message="{{ f_t_a }}% female and {{ m_t_a }}% male teachers were absent this week. Attendance for teachers is {{ d_t_w }} {{ superlative }} than it was last week",
+        rule = ScriptStep.WAIT_MOVEON,
+        start_offset =0,
+        giveup_offset = 0,
+        order=2)
+
+    ScriptStep.objects.create(script=deo_script_weekly,
+        message="An avergage of {{ c_p3 }} of P3 literacy curriculumn covered",
+        rule = ScriptStep.WAIT_GIVEUP,
+        start_offset =0,
+        giveup_offset = 0,
+        order=3)
+
+
+    deo_script_monthly, created = Script.objects.get_or_create(slug="edtrac_deo_report_monthly", name="EduTrac DEO report monthly")
+    deo_script_monthly.sites.add(Site.objects.get(id=5))
+
+    ScriptStep.objects.create(script=deo_script_monthly,
+        message = "{{ v_c_m }} violence cases reported in {{ deo_d }} in {{ month }}. {{ p_c_in_v }} {{ superlative }} in cases from {{ prev_m }}",
+        rule = ScriptStep.STRICT_MOVEON,
+        start_offset =60,
+        giveup_offset = 0,
+        order=0)
+
+
+    ScriptStep.objects.create(script=deo_script_monthly,
+        message = "In {{ cur_m }}, {{ meals }}% of children had meals in {{ deo_d }}",
+        rule = ScriptStep.WAIT_GIVEUP,
+        start_offset =0,
+        giveup_offset = 0,
+        order=1)
+
+
+
     user = User.objects.get_or_create(username='admin')[0]
 
     for script_name, polls in simple_scripts.items():

@@ -66,7 +66,8 @@ urlpatterns = patterns('',
         'base_template':'education/contacts_base.html',
         'results_title':'Reporters',
         'columns':[('Name', True, 'name', SimpleSorter()),
-            ('Number', True, 'connection__identity', SimpleSorter(),),
+            ('Number', True, 'connection__identity', SimpleSorter()),
+            ('Grade', True, 'grade', SimpleSorter()),
             ('Gender', True, 'gender', SimpleSorter()),
             ('Role(s)', True, 'groups__name', SimpleSorter(),),
             ('District', False, 'district', None,),
@@ -175,6 +176,19 @@ urlpatterns = patterns('',
     url(r'^edtrac/dash_meetings/$', dash_meetings, {}, name="emis-dash-meetings"),
     url(r'^edtrac/dash_capitation/$', dash_capitation, {}, name="emis-dash-capitation"),
 
+    # attendance views for all roles ---> data prepopulated by location
+    url(r'^edtrac/dash/boy-p3/attendance/$', boys_p3_attendance, {}, name="boys-p3"),
+    url(r'^edtrac/dash/boy-p6/attendance/$', boys_p6_attendance, {}, name="boys-p6"),
+    url(r'^edtrac/dash/girls-p3/attendance/$', girls_p3_attendance, {}, name="girls-p3"),
+    url(r'^edtrac/dash/girls-p6/attendance/$', girls_p6_attendance, {}, name="girls-p6"),
+    url(r'^edtrac/dash/teacher-female/attendance/$', female_teacher_attendance, {}, name="f-teachers"),
+    url(r'^edtrac/dash/teacher-male/attendance/$', male_teacher_attendance, {}, name="m-teachers"),
+    url(r'^edtrac/dash/head-teacher-male/attendance/$', male_head_teacher_attendance, {}, name="m-h-teachers"),
+    url(r'^edtrac/dash/head-teacher-female/attendance/$', female_head_teacher_attendance, {}, name="f-h-teachers"),
+    # end attendance views
+
+
+
     url(r'^edtrac/dash_admin_meetings/$', dash_admin_meetings, {}, name="emis-dash-admin-meetings"),
     url(r'^edtrac/dash_ministry_map/$', dash_ministry_map, {}, name="emis-ministry-dash-map"),
     url(r'^edtrac/dash_ministry_progress/$', dash_ministry_progress, {}, name="emis-ministry-curriculum-progress"),
@@ -182,6 +196,7 @@ urlpatterns = patterns('',
 
     url(r'^edtrac/violence_admin_details/$', ViolenceAdminDetails.as_view(), name="violence-admin-details"),
     url(r'^edtrac/attd_admin_details/$', AttendanceAdminDetails.as_view(), name="attendance-admin-details"),
+    url(r'^edtrac/attd_admin_details/search$', search_form, name="attendance-search"),
     # to find out about violence in a district
     url(r'^edtrac/violence/district/(?P<pk>\d+)/$', DistrictViolenceDetails.as_view(template_name =\
     "education/dashboard/district_violence_detail.html"), name="district-violence"),
@@ -212,12 +227,11 @@ urlpatterns = patterns('',
     url(r'^edtrac/dash_admin_progress_details/$', ProgressAdminDetails.as_view(), name="admin-progress-details"),
     url(r'^edtrac/dash_admin_meals_details/$', MealsAdminDetails.as_view(), name="admin-meals-details"),
     url(r'^edtrac/reporters/$', EdtracReporter.as_view()), #/page(?P<page>[0-9]+)/$', ListView.as_view(
-    url(r'^edtrac/reporters/create/$', EdtracReporterCreateView.as_view()),
-    url(r'^edtrac/reporters/connection/create/$', EdtracReporterCreateConnection.as_view(), name="new-connection"),
+#    url(r'^edtrac/reporters/create/$', EdtracReporterCreateView.as_view()),
+#    url(r'^edtrac/reporters/connection/create/$', EdtracReporterCreateConnection.as_view(), name="new-connection"),
 
     #    url(r'^emis/attendance/$', include(AttendanceReport().as_urlpatterns(name='emis-attendance'))),
     url(r'^edtrac/scripts/', edit_scripts, name='emis-scripts'),
     url(r'^edtrac/reshedule_scripts/(?P<script_slug>[a-z_]+)/$', reschedule_scripts, name='emis-reschedule-scripts'),
     url(r'^edtrac/attdmap/$', attendance_visualization, name="attendance-visualization"),
-
 )

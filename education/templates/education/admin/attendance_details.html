@@ -1,9 +1,79 @@
 {% extends "education/admin/admin_dashboard.html" %}
 {% block content %}
-
+<!--
 <div class="viz-wrapper">
     <div id="map" style="width:inherit; height:inherit; float:left;"></div>
     <div style="float: right">test</div>
 </div>
+
+
+<script>
+    $(document).ready(function(){
+        $('#map').load("{% url attendance-visualization %}");
+    });
+</script>
+
+-->
+
+        <div class="page-header">
+            <h2>Attendance Records for {{ location }}</h2><br/>
+            <p>Total districts: {{ total_districts }}</p>
+        </div>
+
+
+
+<div class="search-form">
+    <span>Search District:</span><br/><br/>
+    <form action="search/{{ district.id }}" method="post">
+        <input type="search"/>
+
+        <button>Load Statistics</button>
+    </form>
+</div>
+
+        
+<div class="attendance">
+    <h2 class="block-header">Attendance Records (week: {{ week|date:"D d M Y" }})</h2>
+    <div class="top">
+        <table class="tabulated-data">
+            <tbody>
+            <tr>
+                {% for heading in headings %}
+                <th>{{ heading }}</th>
+                {% endfor %}
+            </tr>
+
+
+                {% for a, b, c, d, e, f, g, h, i in location_data %}
+            <tr>
+                <td><a href="#">{{ a }}</a></td>
+                <td>{{ b }}</td>
+                <td>{{ c }}</td>
+                <td>{{ d }}</td>
+                <td>{{ e }}</td>
+                <td>{{ f }}</td>
+                <td>{{ g }}</td>
+                <td>{{ h }}</td>
+                <td>{{ i }}</td>
+            </tr>
+                {% endfor %}
+
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function(){
+        $('.search-form button').click(function(){
+            alert('hello');
+        });
+
+    });
+</script>
+
+
 
 {% endblock %}

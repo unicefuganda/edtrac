@@ -3,11 +3,15 @@ from rapidsms.apps.base import AppBase
 from script.models import Script, ScriptProgress
 from django.conf import settings
 from unregister.models import Blacklist
-from .models import EmisReporter
+from uganda_common.utils import handle_dongle_sms
 
 class App (AppBase):
 
     def handle (self, message):
+
+        if handle_dongle_sms(message):
+            return True
+
         if message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_OUT_WORDS', ['quit'])] or\
            difflib.get_close_matches(message.text.strip().lower(), getattr(settings, 'OPT_OUT_WORDS', ['quit'])):
 
@@ -23,12 +27,8 @@ class App (AppBase):
                     ScriptProgress.objects.filter(connection=message.connection).delete()
 
                 if (message.connection.contact):
-                    reporter = EmisReporter.objects.get(connection=message.connection)
                     message.connection.contact.active = False
                     message.connection.contact.save()
-                    reporter.active = False
-                    reporter.save()
-
                 message.respond(getattr(settings, 'OPT_OUT_CONFIRMATION', 'Thank you for your contribution to EduTrac. To rejoin the system, send join to 6200'))
                 return
             #                return True

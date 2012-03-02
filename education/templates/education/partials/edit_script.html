@@ -10,7 +10,7 @@
             <h2>{{ title }}</h2>
         </div>
         {% for script, script_form in forms %}
-            <form action="" method="Post">
+            <form action="" method="post">
                 {{ script_form.slug }}
                 <table width="100%" cellpadding="5" cellspacing="0" border=1 style="border-collapse:collapse;border-color:#ddd;">
                     <tr>
@@ -39,7 +39,7 @@
                                 {% if script|termly %}
                                     <label for="date">Schedule Date:</label> {{ script_form.date }} |
                                 {% endif %}
-                                    <a href="#" onclick="reschedule_polls('{% url emis-reschedule-scripts script.slug %}', '{{ script.pk }}');">Reschedule Questions</a>
+                                <a href="#" onclick="reschedule_polls('{% url emis-reschedule-scripts script.slug %}', '{{ script.pk }}');">Reschedule Questions</a>
                                     <span id="{{ script.pk }}_results"></span>
                             </td>
                         </tr>

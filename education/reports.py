@@ -21,6 +21,7 @@ from rapidsms.models import Contact
 from generic.reporting.views import ReportView
 from generic.reporting.reports import Column
 from uganda_common.views import XFormReport
+from unregister.models import Blacklist
 
 GRADES = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7']
 
@@ -35,17 +36,17 @@ def get_location(request):
 
 def attrib_ratios(top_attrib, bottom_attrib, dates, location):
     top_value = XFormSubmissionValue.objects.exclude(submission__has_errors=True)\
-        .exclude(submission__connection__contact=None)\
-        .filter(created__range=(dates.get('start'), dates.get('end')))\
-        .filter(attribute__slug__in=top_attrib)\
-        .filter(submission__connection__contact__emisreporter__schools__location__in=location.get_descendants(include_self=True).all())\
-        .annotate(Sum('value_int')).values_list('value_int__sum', flat=True)
+    .exclude(submission__connection__contact=None)\
+    .filter(created__range=(dates.get('start'), dates.get('end')))\
+    .filter(attribute__slug__in=top_attrib)\
+    .filter(submission__connection__contact__emisreporter__schools__location__in=location.get_descendants(include_self=True).all())\
+    .annotate(Sum('value_int')).values_list('value_int__sum', flat=True)
     bottom_value = XFormSubmissionValue.objects.exclude(submission__has_errors=True)\
-        .exclude(submission__connection__contact=None)\
-        .filter(created__range=(dates.get('start'), dates.get('end')))\
-        .filter(attribute__slug__in=bottom_attrib)\
-        .filter(submission__connection__contact__emisreporter__schools__location__in=location.get_descendants(include_self=True).all())\
-        .annotate(Sum('value_int')).values_list('value_int__sum', flat=True)
+    .exclude(submission__connection__contact=None)\
+    .filter(created__range=(dates.get('start'), dates.get('end')))\
+    .filter(attribute__slug__in=bottom_attrib)\
+    .filter(submission__connection__contact__emisreporter__schools__location__in=location.get_descendants(include_self=True).all())\
+    .annotate(Sum('value_int')).values_list('value_int__sum', flat=True)
     if sum(bottom_value) > 0:
         return sum(top_value) / sum(bottom_value)
     else:
@@ -60,22 +61,22 @@ class SchoolMixin(object):
         if single_week:
             start_date = report.end_date - datetime.timedelta(7)
         return XFormSubmissionValue.objects.exclude(submission__has_errors=True)\
-            .exclude(submission__connection__contact=None)\
-            .filter(created__range=(start_date, report.end_date))\
-            .filter(attribute__slug__in=keyword)\
-            .filter(submission__connection__contact__emisreporter__schools__location__in=report.location.get_descendants(include_self=True).all())\
-            .values(self.SCHOOL_NAME,
-                self.SCHOOL_ID)\
-            .annotate(Sum('value_int'))
+        .exclude(submission__connection__contact=None)\
+        .filter(created__range=(start_date, report.end_date))\
+        .filter(attribute__slug__in=keyword)\
+        .filter(submission__connection__contact__emisreporter__schools__location__in=report.location.get_descendants(include_self=True).all())\
+        .values(self.SCHOOL_NAME,
+            self.SCHOOL_ID)\
+        .annotate(Sum('value_int'))
 
     def total_dateless_attribute_by_school(self, report, keyword):
         return XFormSubmissionValue.objects.exclude(submission__has_errors=True)\
-            .exclude(submission__connection__contact=None)\
-            .filter(attribute__slug__in=keyword)\
-            .filter(submission__connection__contact__emisreporter__schools__location__in=report.location.get_descendants(include_self=True).all())\
-            .values(self.SCHOOL_NAME,
-                self.SCHOOL_ID)\
-            .annotate(Sum('value_int'))
+        .exclude(submission__connection__contact=None)\
+        .filter(attribute__slug__in=keyword)\
+        .filter(submission__connection__contact__emisreporter__schools__location__in=report.location.get_descendants(include_self=True).all())\
+        .values(self.SCHOOL_NAME,
+            self.SCHOOL_ID)\
+        .annotate(Sum('value_int'))
 
 
     def num_weeks(self, report):
@@ -87,7 +88,7 @@ class SchoolMixin(object):
             if start > report.start_date and end < report.end_date:
                 td -= (end - start)
 
-            #        return td.days / 7
+                #        return td.days / 7
         return td.days / 7 if td.days / 7 > 1 else 1
 
 
@@ -360,7 +361,8 @@ def othermessages(request, district_id=None):
 
 def reporters(request, district_id=None):
     user_location = get_location(request)
-    return EmisReporter.objects.filter(reporting_location__in=user_location.get_descendants(include_self=True).all())
+    black_listed_contacts = [b.connection for b in Blacklist.objects.all()]
+    return EmisReporter.objects.exclude(connection__in=black_listed_contacts).filter(reporting_location__in=user_location.get_descendants(include_self=True))
 
 def schools(request, district_id=None):
     user_location = get_location(request)
@@ -377,12 +379,12 @@ def raw_data(request, district_id, dates, slugs, teachers=False):
     user_location = get_location(request, district_id)
     schools = School.objects.filter(location__in=user_location.get_descendants(include_self=True).all())
     values = XFormSubmissionValue.objects.exclude(submission__has_errors=True)\
-        .filter(created__range=(dates.get('start'), dates.get('end')))\
-        .filter(attribute__slug__in=slugs)\
-        .filter(submission__connection__contact__emisreporter__schools__in=schools)\
-        .order_by('submission__connection__contact__emisreporter__schools__name','-created')\
-        .values('submission__connection__contact__emisreporter__schools__name','value_int', 'created')
-        #.annotate(Avg('value_int'))
+    .filter(created__range=(dates.get('start'), dates.get('end')))\
+    .filter(attribute__slug__in=slugs)\
+    .filter(submission__connection__contact__emisreporter__schools__in=schools)\
+    .order_by('submission__connection__contact__emisreporter__schools__name','-created')\
+    .values('submission__connection__contact__emisreporter__schools__name','value_int', 'created')
+    #.annotate(Avg('value_int'))
 
     data = []
     i = 0
@@ -557,10 +559,9 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
     district vs value
     """
     #TODO: provide querying by date too
-    #import pdb; pdb.set_trace()
     s = 0
     if kwargs:
-        if kwargs.has_key('month_filter') and kwargs.get('month_filter') and not kwargs.has_key('location'):
+        if kwargs.has_key('month_filter') and not kwargs.get('month_filter') in ['biweekly','termly'] and not kwargs.has_key('location'):
             # when no location is provided { worst case scenario }
             DISTRICT = ['Kaabong', 'Kabarole', 'Kyegegwa', 'Kotido']
             to_ret = {}
@@ -574,14 +575,24 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                 to_ret[location.__unicode__()] = s
             return to_ret
 
-        if kwargs.get('month_filter') and kwargs.has_key('location') and\
-           kwargs.has_key('ret_type') or kwargs.has_key('months'):
+        elif kwargs.get('month_filter') and kwargs.has_key('location') and\
+             kwargs.has_key('ret_type') or kwargs.has_key('months'):
             #TODO support drilldowns
             now = datetime.datetime.now()
-            #if location is Admin/Ministry/UNICEF then all districts will be returned
-            # if location is DEO, then just the district will be returned
-            locations = Location.objects.get(name=kwargs.get('location')).get_descendants().filter(type="district")
+            #if role is Admin/Ministry/UNICEF then all districts will be returned
+            # if role is DEO, then just the district will be returned
+
+            locations = kwargs.get('location')
+            if isinstance(locations, list) and len(locations) > 1:
+                #for the curious case that location actually returns a list of locations
+                locations = locations
+            if isinstance(locations, Location):
+                if location.type.name == 'country':
+                    locations = Location.objects.get(name=kwargs.get('location')).get_descendants().filter(type="district")
+                else:
+                    locations = locations
             to_ret = {}
+
             if not kwargs.has_key('months'):
                 for location in locations:
                     resps = poll_queryset.responses.filter(
@@ -621,9 +632,8 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                         else:
                             #to_ret is something like { 'Kampala' : [23, 34] } => ['current_month', 'previoius month']
                             to_ret[location.__unicode__()].append((sum_of_values, month_range[0]))
-
             if kwargs.get('ret_type') == list:
-                #returning a sorted list of values
+            #returning a sorted list of values
                 import operator
                 #return a dictionary of values e.g. {'kampala': (<Location Kampala>, 34)}
                 #pre-emptive sorting -> by largest -> returns a sorted list of tuples
@@ -636,8 +646,64 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                 to_ret.reverse()
                 return to_ret
                 #TODO Other data type returns.
+
+        if kwargs.get('month_filter')=='termly' and kwargs.has_key('locations'):
+            # return just one figure/sum without all the list stuff
+            return sum(
+                filter(None,
+                    [
+                    r.eav.poll_number_value for r in poll_queryset.responses.filter(
+                        contact__in=Contact.objects.filter(reporting_location__in=kwargs.get('locations')),
+                        date__range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END',\
+                            datetime.datetime.now())]
+                    )
+                    ])
+            )
+
+        if kwargs.get('month_filter')=='biweekly' and kwargs.has_key('locations'):
+            # return just one figure/sum without all the list stuff
+            return [sum(filter(None,
+                [
+                r.eav.poll_number_value for r in poll_queryset.responses.filter(
+                    contact__in=Contact.objects.filter(reporting_location__in=kwargs.get('locations')),
+                    date__range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
+                )
+                ])),
+                    sum(filter(None,
+                        [
+                        r.eav.poll_number_value for r in poll_queryset.responses.filter(
+                            contact__in=Contact.objects.filter(reporting_location__in=kwargs.get('locations')),
+                            date__range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
+                        )
+                        ]))
+            ]
+
+
+        if kwargs.get('month_filter')=='weekly' and kwargs.has_key('location'):
+            # return just one figure/sum without all the list stuff
+
+            date_week = [datetime.datetime.now()-datetime.timedelta(days=7), datetime.datetime.now()]
+            return sum(filter(None,
+                [
+                r.eav.poll_number_value for r in poll_queryset.responses.filter(
+                    contact__in=Contact.objects.filter(reporting_location=kwargs.get('location')),
+                    date__range = date_week
+                )
+                ]))
+
+
+
     else:
         return sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.all()]))
+
+
+def cleanup_sums(sums):
+    try:
+        diff = sums[1] - sums[0]
+        percent = (100 * float(diff))/sums[0]
+    except ZeroDivisionError:
+        percent = 0
+    return percent
 
 
 def cleanup_differences_on_poll(responses):
@@ -658,7 +724,6 @@ def cleanup_differences_on_poll(responses):
         percent = 100 * (current_month_sum - previous_month_sum) / float(previous_month_sum)
     except ZeroDivisionError:
         percent = 0
-
     return percent
 
 def get_sum_of_poll_response_past_week(poll_queryset, **kwargs):
@@ -680,19 +745,19 @@ def get_sum_of_poll_response_past_week(poll_queryset, **kwargs):
     if kwargs:
         first_quota, second_quota = get_week_date(number=kwargs.get('weeks'))
         #narrowing to location
-        if kwargs.has_key('location_name'):
+        if kwargs.has_key('locations'):
             sum_of_poll_responses_week_before = sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.filter(
                 date__range = first_quota,
                 contact__in =\
-                Contact.objects.filter(reporting_location=Location.objects.exclude(type="country").get(name__icontains=\
-                kwargs.get('location_name'))))]))
+                Contact.objects.filter(reporting_location__in=kwargs.get('locations')))]))
 
             sum_of_poll_responses_past_week = sum(filter(None,
                 [
                 r.eav.poll_number_value for r in poll_queryset.responses.filter(date__range = second_quota,
-                    contact__in = Contact.objects.filter(reporting_location=Location.objects.exclude(type="country").\
-                    get(name__icontains=kwargs.get('location_name'))))
-                ]))
+                    contact__in =\
+                    Contact.objects.filter(reporting_location__in=kwargs.get('locations')))]))
+
+            return sum_of_poll_responses_past_week, sum_of_poll_responses_week_before
     else:
         # getting country wide statistics
         first_quota, second_quota = get_week_date(number=1) # default week range to 1
@@ -704,8 +769,8 @@ def get_sum_of_poll_response_past_week(poll_queryset, **kwargs):
                                                            for r in poll_queryset.responses.filter(
             date__range = second_quota,
             contact__in = Contact.objects.all())]))
+        return sum_of_poll_responses_past_week, sum_of_poll_responses_week_before
 
-    return sum_of_poll_responses_past_week, sum_of_poll_responses_week_before
 
 def get_sum_of_poll_response_since_beginning_of_term(poll_queryset, **kwargs):
     """

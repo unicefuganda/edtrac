@@ -305,6 +305,7 @@ def edtrac_autoreg(**kwargs):
 def edtrac_reschedule_script(**kwargs):
     connection = kwargs['connection']
     progress = kwargs['sender']
+    #TODO: test whether connection isn't being duplicated into a progress??
     slug = progress.script.slug
     if not progress.script.slug.startswith('edtrac_') or progress.script.slug == 'edtrac_autoreg':
         return
@@ -372,7 +373,6 @@ def edtrac_autoreg_transition(**kwargs):
 
 
 def edtrac_attendance_script_transition(**kwargs):
-
     connection = kwargs['connection']
     progress = kwargs['sender']
     if not progress.script.slug == 'edtrac_teachers_weekly':
@@ -472,11 +472,11 @@ def reschedule_termly_polls(grp = 'all', date=None):
     """
     manually reschedule all termly polls or for a specified group
     """
-
-    def enable_script(script):
-        script.enabled = True
-        script.save()
-        return script
+#
+#    def enable_script(script):
+#        script.enabled = True
+#        script.save()
+#        return script
 
     termly_scripts = Script.objects.filter(slug__endswith='_termly')
     if not grp == 'all':
@@ -488,8 +488,8 @@ def reschedule_termly_polls(grp = 'all', date=None):
         ScriptProgress.objects.filter(script__in=termly_scripts).delete()
 
     # update these scripts change to enabled state
-    scripts_to_enable = Script.objects.filter(slug__in=termly_scripts.values_list('slug',flat=True))
-    map(enable_script, scripts_to_enable)
+#    scripts_to_enable = Script.objects.filter(slug__in=termly_scripts.values_list('slug',flat=True))
+#    map(enable_script, scripts_to_enable)
 
 
     for slug in termly_scripts.values_list('slug', flat=True):
