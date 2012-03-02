@@ -171,25 +171,6 @@
             "slug": "poll_location_value", 
             "name": "Location"
         }
-    },
-    {
-        "pk": 544, 
-        "model": "poll.poll", 
-        "fields": {
-            "default_response": "", 
-            "name": "edtrac_role", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "Thank you for participating in EdTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM, DEO", 
-            "sites": [
-                5
-            ], 
-            "user": 1, 
-            "type": "t", 
-            "start_date": null, 
-            "response_type": "a"
-        }
     }, 
     {
         "pk": 545, 
@@ -299,40 +280,6 @@
             "sites": [
                 5
             ], 
-            "user": 1, 
-            "type": "t", 
-            "start_date": null, 
-            "response_type": "a"
-        }
-    }, 
-    {
-        "pk": 575, 
-        "model": "poll.poll", 
-        "fields": {
-            "default_response": "", 
-            "name": "", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "what?", 
-            "sites": [], 
-            "user": 1, 
-            "type": "t", 
-            "start_date": null, 
-            "response_type": "a"
-        }
-    }, 
-    {
-        "pk": 576, 
-        "model": "poll.poll", 
-        "fields": {
-            "default_response": "", 
-            "name": "test_poll", 
-            "end_date": null, 
-            "contacts": [], 
-            "messages": [], 
-            "question": "what?", 
-            "sites": [], 
             "user": 1, 
             "type": "t", 
             "start_date": null, 

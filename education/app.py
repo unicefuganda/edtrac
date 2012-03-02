@@ -31,23 +31,19 @@ class App (AppBase):
                     message.connection.contact.save()
                 message.respond(getattr(settings, 'OPT_OUT_CONFIRMATION', 'Thank you for your contribution to EduTrac. To rejoin the system, send join to 6200'))
                 return True
-            #                return True
+                #                return True
 
-        elif message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', ['join'])] or\
-             difflib.get_close_matches(message.text.strip().lower(), getattr(settings, 'OPT_IN_WORDS', ['join'])):
-
-            # check if incoming connection is Blacklisted (previously quit)
-            if Blacklist.objects.filter(connection=message.connection).exists():
-                Blacklist.objects.filter(connection=message.connection).delete()
-                # create a ScriptProgress object if it does not exist
-                # this throws the user back to autoreg
-            if not ScriptProgress.objects.filter(script__slug='edtrac_autoreg', connection=message.connection).exists():
+        elif message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', ['join'])]:
+            if not message.connection.contact:
                 ScriptProgress.objects.create(script=Script.objects.get(slug="edtrac_autoreg"),\
-                    connection=message.connection, language="en")
+                    connection=message.connection)
+            elif Blacklist.objects.filter(connection=message.connection).count():
+                Blacklist.objects.filter(connection=message.connection).delete()
+                if not ScriptProgress.objects.filter(script__slug='edtrac_autoreg', connection=message.connection).count():
+                    ScriptProgress.objects.create(script=Script.objects.get(slug="edtrac_autoreg"),\
+                        connection=message.connection)
             else:
-                # otherwise, chances are this user already exists in the system
                 message.respond("You are already in the system and do not need to 'Join' again.")
-                # quit this.
             return True
 
         elif Blacklist.objects.filter(connection=message.connection).count():
