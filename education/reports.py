@@ -21,6 +21,7 @@ from rapidsms.models import Contact
 from generic.reporting.views import ReportView
 from generic.reporting.reports import Column
 from uganda_common.views import XFormReport
+from unregister.models import Blacklist
 
 GRADES = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7']
 
@@ -360,7 +361,8 @@ def othermessages(request, district_id=None):
 
 def reporters(request, district_id=None):
     user_location = get_location(request)
-    return EmisReporter.objects.filter(reporting_location__in=user_location.get_descendants(include_self=True).all())
+    black_listed_contacts = [b.connection for b in Blacklist.objects.all()]
+    return EmisReporter.objects.exclude(connection__in=black_listed_contacts).filter(reporting_location__in=user_location.get_descendants(include_self=True))
 
 def schools(request, district_id=None):
     user_location = get_location(request)
@@ -580,14 +582,17 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
             #if role is Admin/Ministry/UNICEF then all districts will be returned
             # if role is DEO, then just the district will be returned
 
-            if len(kwargs.get('location')) > 1:
+            locations = kwargs.get('location')
+            if isinstance(locations, list) and len(locations) > 1:
                 #for the curious case that location actually returns a list of locations
-                locations = kwargs.get('location')            
-            elif kwargs.get('location')[0].type.name == 'country':
-                locations = Location.objects.get(name=kwargs.get('location')).get_descendants().filter(type="district")
-            else:
-                locations = kwargs.get('location')
+                locations = locations
+            if isinstance(locations, Location):
+                if location.type.name == 'country':
+                    locations = Location.objects.get(name=kwargs.get('location')).get_descendants().filter(type="district")
+                else:
+                    locations = locations
             to_ret = {}
+
             if not kwargs.has_key('months'):
                 for location in locations:
                     resps = poll_queryset.responses.filter(
