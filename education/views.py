@@ -516,7 +516,7 @@ class AttendanceAdminDetails(TemplateView):
         context['week'] = datetime.datetime.now()
         context['location'] = location
         location_data_container = []
-        for loc in location.get_descendants().filter(type="district"):
+        for loc in location.get_descendants().filter(type="district").order_by("name"):
             location_data_container.append(
                 [loc,
                  get_sum_of_poll_response(Poll.objects.get(name="edtrac_boysp3_attendance"), month_filter='weekly', location=loc),
