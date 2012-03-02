@@ -566,3 +566,53 @@ div#violence_form{
 div.attendance div.top{
     background-color:#e0ccef;
 }
+
+/* search box */
+
+div.search-form{
+    padding:20px;
+    font-size: 1.2em;
+    line-height: 2px;
+    color:white;
+}
+
+div.search-form button,
+div.search-form input,
+div.search-form select{
+    margin: 0;
+    font-size: 100%;
+    vertical-align: middle;
+}
+
+div.search-form button, input {
+    *overflow: visible;
+    line-height: normal;
+}
+div.search-form button::-moz-focus-inner, input::-moz-focus-inner {
+    padding: 0;
+    border: 0;
+}
+div.search-form button,
+div.search-form input[type="button"],
+div.serach-form input[type="submit"] {
+    cursor: pointer;
+    -webkit-appearance: button;
+}
+div.search-form input[type="search"] {
+    -webkit-appearance: textfield;
+    -webkit-box-sizing: content-box;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+}
+div.search-form input[type="search"]::-webkit-search-decoration, input[type="search"]::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+}
+
+div.search-form span{
+    margin-bottom: 20px;
+}
+div.page-header{
+    padding:10px;
+    color:white;
+    font-size: 100%;
+}

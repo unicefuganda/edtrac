@@ -3,7 +3,6 @@ from rapidsms.apps.base import AppBase
 from script.models import Script, ScriptProgress
 from django.conf import settings
 from unregister.models import Blacklist
-from .models import EmisReporter
 from uganda_common.utils import handle_dongle_sms
 
 class App (AppBase):

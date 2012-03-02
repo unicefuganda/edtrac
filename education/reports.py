@@ -673,6 +673,21 @@ def get_sum_of_poll_response(poll_queryset, **kwargs):
                         ]))
             ]
 
+
+        if kwargs.get('month_filter')=='weekly' and kwargs.has_key('location'):
+            # return just one figure/sum without all the list stuff
+
+            date_week = [datetime.datetime.now()-datetime.timedelta(days=7), datetime.datetime.now()]
+            return sum(filter(None,
+                [
+                r.eav.poll_number_value for r in poll_queryset.responses.filter(
+                    contact__in=Contact.objects.filter(reporting_location=kwargs.get('location')),
+                    date__range = date_week
+                )
+                ]))
+
+
+
     else:
         return sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.all()]))
 

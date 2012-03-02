@@ -503,14 +503,65 @@ class AttendanceAdminDetails(TemplateView):
     template_name = "education/admin/attendance_details.html"
 
     def get_context_data(self, **kwargs):
+
         context = super(AttendanceAdminDetails, self).get_context_data(**kwargs)
         #TODO: proper drilldown of attendance by school
-        location = self.request.user.get_profile().location
+        # National level ideally "admin" and can be superclassed to suit other roles
+        location = Location.objects.get(name="Uganda")
+        headings = [
+            'Location', 'Boys P3', 'Boys P6', 'Girls P3', 'Girls P6', 'Female Teachers', "Male Teachers",
+            "Male Head Teachers", "Female Head Teachers"
+                    ]
+        context['headings'] = headings
+        context['week'] = datetime.datetime.now()
         context['location'] = location
-
+        location_data_container = []
+        for loc in location.get_descendants().filter(type="district"):
+            location_data_container.append(
+                [loc,
+                 get_sum_of_poll_response(Poll.objects.get(name="edtrac_boysp3_attendance"), month_filter='weekly', location=loc),
+                 get_sum_of_poll_response(Poll.objects.get(name="edtrac_boysp6_attendance"), month_filter='weekly', location=loc),
+                 get_sum_of_poll_response(Poll.objects.get(name="edtrac_girlsp3_attendance"), month_filter='weekly', location=loc),
+                 get_sum_of_poll_response(Poll.objects.get(name="edtrac_girlsp3_attendance"), month_filter='weekly', location=loc),
+                 get_sum_of_poll_response(Poll.objects.get(name="edtrac_f_teachers_attendance"), month_filter='weekly', location=loc),
+                 get_sum_of_poll_response(Poll.objects.get(name="edtrac_m_teachers_attendance"), month_filter='weekly', location=loc),
+                 get_sum_of_poll_response(Poll.objects.get(name="edtrac_head_teachers_attendance"), month_filter="weekly", location=loc),
+                 get_sum_of_poll_response(Poll.objects.get(name="edtrac_head_teachers_attendance"), month_filter="weekly", location=loc)
+                ]
+            )
+        context['location_data'] = location_data_container
+        context['total_districts'] = len(location.get_descendants().filter(type="district"))
         return context
         
-        
+
+# search functionality
+def search_form(req):
+
+    searchform = SearchForm()
+    if req.method == 'POST':
+        searchform = SearchForm(req.POST)
+        if searchform.is_valid():
+            searchform.save()
+    return render_to_response(
+            'education/partials/search-form.html',
+        {'form': searchform},
+        RequestContext(req)
+    )
+#    query = req.POST[u'query']
+#    split_query = re.split(ur'(?u)\W', query)
+#    while u'' in split_query:
+#        split_query.remove(u'')
+#    results = []
+#    for word in split_query:
+#        for district in Location.objects.filter(type="district", name__icontains=word):
+#            if re.match(ur'(?ui)\b' + word + ur'\b'):
+#                entry = {
+#                    u'id':district.id,
+#                    u'name':district.name
+#                }
+#            if not entry in results:
+#                results.append(entry)
+
 class ProgressAdminDetails(TemplateView):
     template_name = "education/admin/admin_progress_details.html"
 
@@ -598,24 +649,17 @@ class DistrictViolenceDetails(DetailView):
     def get_context_data(self, **kwargs):
         context = super(DistrictViolenceDetails, self).get_context_data(**kwargs)
 
-        location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk')))
+        location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk'))) or self.request.user.get_profile().location
         schools = School.objects.filter(location=location)
         school_case = []
         for school in schools:
-            regex_pattern = r'\d+\.\d+|\d+'
             resps = Poll.objects.get(name="edtrac_headteachers_abuse").responses.filter(contact__in=\
-            EmisReporter.objects.filter(schools__in=[school]),
-                date__range = get_month_day_range(datetime.datetime.now())
-            )
-            #TODO replace with poll_number_value in the response
-            resp_values = [re.findall(regex_pattern, r.message.text)[0] for r in resps]
-            sum_of_values = 0
-            for val in resp_values:
-                if isinstance(int(val),int):
-                    val = int(val)
-                if isinstance(float(val), float):
-                    val = float(val)
-                sum_of_values += val
+                EmisReporter.objects.filter(schools__in=[school]),
+                    date__range = get_month_day_range(datetime.datetime.now())
+                )
+            school_case.append((school,
+                                sum(filter(None, [r.eav.poll_number_value for r in resps]))
+                ))
             school_case.append((school, int(sum_of_values)))
 
         #schools and reports from a district

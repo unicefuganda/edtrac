@@ -365,6 +365,16 @@ class ScriptsForm(forms.ModelForm):
         }
 
 
+class SearchForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(SearchForm, self).__init__(*args, **kwargs)
+        self.fields['name'].widget.attrs['class'] = 'autocomplete'
+    class Meta:
+        model = Location
+        fields = ('name',)
+
+
+
 #class ReporterForm(forms.ModelForm):
 #
 #    connection_set = forms.ModelMultipleChoiceField(queryset=Connection.objects.order_by('identity'), required=False)
