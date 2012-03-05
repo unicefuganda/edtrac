@@ -37,6 +37,7 @@ STATUS_CHOICES = (
 #
 class MessageBatch(models.Model):
     status = models.CharField(max_length=1, choices=STATUS_CHOICES)
+    name = models.CharField(max_length=15,null=True,blank=True)
 
 class Message(models.Model):
     connection = models.ForeignKey(Connection, related_name='messages')
