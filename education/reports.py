@@ -550,7 +550,7 @@ def get_week_date(number=None):
     return
 
 
-def get_sum_of_poll_response(poll_queryset, **kwargs):
+def poll_response_sum(poll_queryset, **kwargs):
     #TODO refactor name of method
     #TODO add poll_type to compute count of repsonses (i.e. how many YES' and Nos do exist)
     """
@@ -724,7 +724,7 @@ def cleanup_differences_on_poll(responses):
         percent = 0
     return percent
 
-def get_sum_of_poll_response_past_week(poll_queryset, **kwargs):
+def poll_responses_past_week_sum(poll_queryset, **kwargs):
     """
     Function to the total number of responses in between this current week and the pastweek
      get the sum, find its total; add up values excluding NoneTypes
@@ -739,7 +739,7 @@ def get_sum_of_poll_response_past_week(poll_queryset, **kwargs):
         .... location="Kampala", weeks=1)
         >>> (34, 23)
     """
-    import pdb;pdb.set_trace()
+
     if kwargs:
         first_quota, second_quota = get_week_date(number=kwargs.get('weeks'))
         #narrowing to location
@@ -769,8 +769,8 @@ def get_sum_of_poll_response_past_week(poll_queryset, **kwargs):
             contact__in = Contact.objects.all())]))
         return sum_of_poll_responses_past_week, sum_of_poll_responses_week_before
 
+def poll_responses_term(poll_queryset, **kwargs):
 
-def get_sum_of_poll_response_since_beginning_of_term(poll_queryset, **kwargs):
     """
     Function to get the results of a poll between now and beginning of term
     """
