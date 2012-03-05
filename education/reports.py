@@ -734,7 +734,7 @@ def poll_responses_past_week_sum(poll_queryset, **kwargs):
         >>> get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"))
         >>> (23,6)
 
-        >>>> # this returns sums of responses for a number of weeks while returning them as reanges
+        >>>> # this returns sums of responses for a number of weeks while returning them as ranges
         >>> get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"),
         .... location="Kampala", weeks=1)
         >>> (34, 23)
