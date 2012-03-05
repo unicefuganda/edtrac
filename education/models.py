@@ -390,6 +390,7 @@ def edtrac_attendance_script_transition(**kwargs):
         'edtrac_boysp6_attendance':['P6'],
         'edtrac_girlsp3_attendance':['P3'],
         'edtrac_girlsp6_attendance':['P6'],
+        'edtrac_p3curriculum_progress':['P3'],
         }
     skipped = True
     while grade and skipped:
@@ -401,6 +402,7 @@ def edtrac_attendance_script_transition(**kwargs):
                 if progress.last_step():
                     progress.giveup()
                     return
+                print progress.script.steps.all().values_list('script__slug', 'order')
                 progress.step = progress.script.steps.get(order=progress.step.order + 1)
                 progress.save()
                 break

@@ -466,7 +466,7 @@
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
-            "question": "What sub theme number of the P3 Literacy curriculum are you teaching this week? ", 
+            "question": "What sub theme number of the P3 Literacy curriculum are you teaching this week?", 
             "sites": [
                 5
             ], 
@@ -1267,7 +1267,7 @@
             "start_offset": 60, 
             "message": "", 
             "poll": 656, 
-            "order": 5, 
+            "order": 4, 
             "giveup_offset": 86400
         }
     }, 

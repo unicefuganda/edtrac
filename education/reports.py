@@ -741,7 +741,7 @@ def get_sum_of_poll_response_past_week(poll_queryset, **kwargs):
         .... location="Kampala", weeks=1)
         >>> (34, 23)
     """
-
+    import pdb;pdb.set_trace()
     if kwargs:
         first_quota, second_quota = get_week_date(number=kwargs.get('weeks'))
         #narrowing to location

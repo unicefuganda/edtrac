@@ -153,7 +153,7 @@ class ModelTest(TestCase): #pragma: no cover
         params = [
             ('edtrac_role', grp, ['all']), \
             ('edtrac_gender', 'male', ['Head Teachers']),\
-            ('edtrac_class', 'P3', ['Teachers']),\
+            ('edtrac_class', 'p3', ['Teachers']),\
             ('edtrac_district', 'kampala', ['all']), \
             ('edtrac_subcounty', 'kampala', ['all']), \
             ('edtrac_school', 'st. marys', ['Teachers', 'Head Teachers', 'SMC']), \
@@ -433,7 +433,14 @@ class ModelTest(TestCase): #pragma: no cover
         self.elapseTime2(prog, 61)
         prog = ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly', connection=self.connection)
         check_progress(prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_teachers_weekly').steps.get(order=4).poll.question)
+        self.fake_incoming('3')
+        self.assertEquals(Script.objects.get(slug='edtrac_teachers_weekly').steps.get(order=4).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 3)
+        self.elapseTime2(prog, 61)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly', connection=self.connection)
+        check_progress(prog.script)
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
+        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time, _next_thursday(ScriptProgress.objects.get(connection=self.connection, script=prog.script)))
 
     def testMonthlyTeacherPolls(self):
         self.register_reporter('teacher')
