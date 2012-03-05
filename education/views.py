@@ -507,16 +507,22 @@ class AttendanceAdminDetails(TemplateView):
         context = super(AttendanceAdminDetails, self).get_context_data(**kwargs)
         #TODO: proper drilldown of attendance by school
         # National level ideally "admin" and can be superclassed to suit other roles
-        location = Location.objects.get(name="Uganda")
+        profile = self.request.user.get_profile()
+        if profile.is_member_of("Admins") or profile.is_member_of("Ministry Officials"):
+            locations = Location.objects.get(name="Uganda").get_descendants().filter(type="district").order_by("name")
+            context['total_districts'] = Location.objects.get(name="Uganda").get_descendants().filter(type="district").count()
+        else:
+            locations = [profile.location]
+
         headings = [
             'Location', 'Boys P3', 'Boys P6', 'Girls P3', 'Girls P6', 'Female Teachers', "Male Teachers",
             "Male Head Teachers", "Female Head Teachers"
                     ]
         context['headings'] = headings
         context['week'] = datetime.datetime.now()
-        context['location'] = location
+        context['location'] = profile.location
         location_data_container = []
-        for loc in location.get_descendants().filter(type="district").order_by("name"):
+        for loc in locations:
             location_data_container.append(
                 [loc,
                  get_sum_of_poll_response(Poll.objects.get(name="edtrac_boysp3_attendance"), month_filter='weekly', location=loc),
@@ -530,7 +536,7 @@ class AttendanceAdminDetails(TemplateView):
                 ]
             )
         context['location_data'] = location_data_container
-        context['total_districts'] = len(location.get_descendants().filter(type="district"))
+
         return context
         
 
@@ -707,78 +713,235 @@ class DistrictMealsDetails(DetailView):
 
 def boys_p3_attendance(req):
     location = req.user.get_profile().location
+    profile = req.user.get_profile()
+    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
+        schools = School.objects.all()
+    else:
+        #DEO
+        schools = School.objects.filter(location=location)
+    data_to_render = []
+    for school in schools:
+        data = get_sum_of_poll_response(Poll.objects.get(name="edtrac_boysp3_attendance"),month_filter='weekly',location=school.location)
+        data_to_render.append(
+            [
+                school,
+                school.location,
+                data
+            ]
+        )
+
     return  render_to_response(
         'education/partials/boys_p3_attendance.html',
         {
-            'boys':23
+            'week':datetime.datetime.now(),
+            'headings':['School', 'District', 'Number'],
+            'location_data': data_to_render
         },
         RequestContext(req)
     )
 
 def boys_p6_attendance(req):
     location = req.user.get_profile().location
+    profile = req.user.get_profile()
+    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
+        schools = School.objects.all()
+    else:
+        #DEO
+        schools = School.objects.filter(location=location)
+    data_to_render = []
+    for school in schools:
+        data = get_sum_of_poll_response(Poll.objects.get(name="edtrac_boysp6_attendance"),month_filter='weekly',location=school.location)
+        data_to_render.append(
+            [
+                school,
+                school.location,
+                data
+            ]
+        )
+
     return  render_to_response(
         'education/partials/boys_p6_attendance.html',
             {
-            'boys':23
+            'week':datetime.datetime.now(),
+            'headings':['School', 'District', 'Number'],
+            'location_data': data_to_render
         },
         RequestContext(req)
     )
 
 def girls_p3_attendance(req):
     location = req.user.get_profile().location
+    profile = req.user.get_profile()
+    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
+        schools = School.objects.all()
+    else:
+        #DEO
+        schools = School.objects.filter(location=location)
+    data_to_render = []
+
+    for school in schools:
+        data = get_sum_of_poll_response(Poll.objects.get(name="edtrac_girlsp3_attendance"),month_filter='weekly',location=school.location)
+        data_to_render.append(
+            [
+                school,
+                school.location,
+                data
+            ]
+        )
+
     return render_to_response(
         'education/partials/girls_p3_attendance.html',
-        {
-            'girls':23
+            {
+            'week':datetime.datetime.now(),
+            'headings':['School', 'District', 'Number'],
+            'location_data': data_to_render
         },
         RequestContext(req)
     )
 
 def girls_p6_attendance(req):
     location = req.user.get_profile().location
+    profile = req.user.get_profile()
+    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
+        schools = School.objects.all()
+    else:
+        #DEO
+        schools = School.objects.filter(location=location)
+    data_to_render = []
+    for school in schools:
+        data = get_sum_of_poll_response(Poll.objects.get(name="edtrac_girlsp6_attendance"),month_filter='weekly',location=school.location)
+        data_to_render.append(
+            [
+                school,
+                school.location,
+                data
+            ]
+        )
     return render_to_response(
         'education/partials/girls_p6_attendance.html',
             {
-            'girls':23
+            'week':datetime.datetime.now(),
+            'headings':['School', 'District', 'Number'],
+            'location_data': data_to_render
         },
         RequestContext(req)
     )
 
 def female_teacher_attendance(req):
     location = req.user.get_profile().location
+    profile = req.user.get_profile()
+    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
+        schools = School.objects.all()
+    else:
+        #DEO
+        schools = School.objects.filter(location=location)
+
+    data_to_render = []
+    for school in schools:
+        data = get_sum_of_poll_response(Poll.objects.get(name="edtrac_f_teachers_attendance"),month_filter='weekly',location=school.location)
+        data_to_render.append(
+            [
+                school,
+                school.location,
+                data
+            ]
+        )
     return render_to_response(
         'education/partials/female_teachers_attendance.html',
-        {},
+            {
+            'week':datetime.datetime.now(),
+            'headings':['School', 'District', 'Number'],
+            'location_data': data_to_render
+        },
         RequestContext(req)
     )
 
 def male_teacher_attendance(req):
     location = req.user.get_profile().location
+    profile = req.user.get_profile()
+    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
+        schools = School.objects.all()
+    else:
+        #DEO
+        schools = School.objects.filter(location=location)
+    data_to_render = []
+    for school in schools:
+        data = get_sum_of_poll_response(Poll.objects.get(name="edtrac_m_teachers_attendance"),month_filter='weekly',location=school.location)
+        data_to_render.append(
+            [
+                school,
+                school.location,
+                data
+            ]
+        )
     return render_to_response(
         'education/partials/male_teachers_attendance.html',
-            {},
+            {
+            'week':datetime.datetime.now(),
+            'headings':['School', 'District', 'Number'],
+            'location_data': data_to_render
+        },
         RequestContext(req)
     )
 
 def male_head_teacher_attendance(req):
     location = req.user.get_profile().location
+    profile = req.user.get_profile()
+    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
+        schools = School.objects.all()
+    else:
+        #DEO
+        schools = School.objects.filter(location=location)
+    data_to_render = []
+    for school in schools:
+        #TODO separate male and female head teachers
+        data = get_sum_of_poll_response(Poll.objects.get(name="edtrac_head_teachers_attendance"),month_filter='weekly',location=school.location)
+        data_to_render.append(
+            [
+                school,
+                school.location,
+                data
+            ]
+        )
     return render_to_response(
         'education/partials/male_head_teacher_attendance.html',
-            {},
+            {
+            'week':datetime.datetime.now(),
+            'headings':['School', 'District', 'Number'],
+            'location_data': data_to_render
+        },
         RequestContext(req)
     )
 
 def female_head_teacher_attendance(req):
     location = req.user.get_profile().location
+    profile = req.user.get_profile()
+    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
+        schools = School.objects.all()
+    else:
+        #DEO
+        schools = School.objects.filter(location=location)
+    data_to_render = []
+    for school in schools:
+        #TODO separate male and female head teachers
+        data = get_sum_of_poll_response(Poll.objects.get(name="edtrac_head_teachers_attendance"),month_filter='weekly',location=school.location)
+        data_to_render.append(
+            [
+                school,
+                school.location,
+                data
+            ]
+        )
     return render_to_response(
         'education/partials/female_head_teacher_attendance.html',
-            {},
+            {
+            'week':datetime.datetime.now(),
+            'headings':['School', 'District', 'Number'],
+            'location_data': data_to_render
+        },
+
         RequestContext(req)
     )
-
-
-
 
 def whitelist(request):
     numbers = []
