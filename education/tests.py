@@ -442,9 +442,9 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time, _next_thursday(ScriptProgress.objects.get(connection=self.connection, script=prog.script)))
 
-    def testMonthlyTeacherPolls(self):
-        self.register_reporter('teacher')
-        Script.objects.filter(slug__in=['edtrac_teachers_weekly', 'edtrac_teachers_monthly']).update(enabled=True)
+#    def testMonthlyTeacherPolls(self):
+#        self.register_reporter('teacher')
+#        Script.objects.filter(slug__in=['edtrac_teachers_weekly', 'edtrac_teachers_monthly']).update(enabled=True)
 
     def testWeeklyHeadTeacherPolls(self):
         self.register_reporter('head teacher')
