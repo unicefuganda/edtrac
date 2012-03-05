@@ -252,8 +252,13 @@ def dashboard(request):
 # generate context vars
 def generate_dashboard_vars(location=None):
     locations = []
+
     if location.name == "Uganda":
-        locations = Location.objects.get(name="Uganda").get_descendants().filter(type="district")
+        # get locations from active districts only
+        names = list(set(EmisReporter.objects.exclude(reporting_location=None).filter(reporting_location__type="district").\
+            values_list('reporting_location__name',flat=True).distinct()))
+        locations = Location.objects.filter(name__in=names)
+        #locations = Location.objects.get(name="Uganda").get_descendants().filter(type="district")
     else:
         locations.append(location)
 
@@ -370,7 +375,7 @@ def generate_dashboard_vars(location=None):
     else:
         male_teachers_class = "zero"
 
-    responses_to_meals = get_sum_of_poll_response(Poll.objects.get(name = "edtrac_headteachers_meals"),
+    responses_to_meals = poll_response_sum(Poll.objects.get(name = "edtrac_headteachers_meals"),
         month_filter='biweekly', locations=locations)
     # percentage change in meals missed
     meal_change = cleanup_sums(responses_to_meals)
@@ -385,10 +390,10 @@ def generate_dashboard_vars(location=None):
         meal_change_data = "data-white"
 
 
-    responses_to_smc_meetings_poll = get_sum_of_poll_response(Poll.objects.get(name="edtrac_smc_meetings"),
+    responses_to_smc_meetings_poll = poll_response_sum(Poll.objects.get(name="edtrac_smc_meetings"),
         month_filter = True, location=locations, ret_type=list)
 
-    responses_to_grants_received = get_sum_of_poll_response(Poll.objects.get(name="edtrac_smc_upe_grant"),
+    responses_to_grants_received = poll_response_sum(Poll.objects.get(name="edtrac_smc_upe_grant"),
         month_filter=True, location=locations, ret_type=list)
 
     sorted_violence_list = responses_to_violence
@@ -476,7 +481,7 @@ class ViolenceAdminDetails(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ViolenceAdminDetails, self).get_context_data(**kwargs)
         #TODO: filtering by ajax and time
-        context['violence_cases_reported_by_schools'] = get_sum_of_poll_response(Poll.objects.get(name="edtrac_headteachers_abuse"),
+        context['violence_cases_reported_by_schools'] = poll_response_sum(Poll.objects.get(name="edtrac_headteachers_abuse"),
             location=self.request.user.get_profile().location, month_filter=True, months=2, ret_type=list)
 
         # depth of 2 months
@@ -509,8 +514,12 @@ class AttendanceAdminDetails(TemplateView):
         # National level ideally "admin" and can be superclassed to suit other roles
         profile = self.request.user.get_profile()
         if profile.is_member_of("Admins") or profile.is_member_of("Ministry Officials"):
-            locations = Location.objects.get(name="Uganda").get_descendants().filter(type="district").order_by("name")
-            context['total_districts'] = Location.objects.get(name="Uganda").get_descendants().filter(type="district").count()
+            names = list(set(EmisReporter.objects.exclude(reporting_location=None).filter(reporting_location__type="district").\
+                        values_list('reporting_location__name',flat=True).distinct()))
+            locations = Location.objects.filter(name__in=names).order_by("name")
+            #locations = Location.objects.get(name="Uganda").get_descendants().filter(type="district").order_by("name")
+            #context['total_districts'] = Location.objects.get(name="Uganda").get_descendants().filter(type="district").count()
+            context['total_disticts'] = locations.count()
         else:
             locations = [profile.location]
 
@@ -525,14 +534,14 @@ class AttendanceAdminDetails(TemplateView):
         for loc in locations:
             location_data_container.append(
                 [loc,
-                 get_sum_of_poll_response(Poll.objects.get(name="edtrac_boysp3_attendance"), month_filter='weekly', location=loc),
-                 get_sum_of_poll_response(Poll.objects.get(name="edtrac_boysp6_attendance"), month_filter='weekly', location=loc),
-                 get_sum_of_poll_response(Poll.objects.get(name="edtrac_girlsp3_attendance"), month_filter='weekly', location=loc),
-                 get_sum_of_poll_response(Poll.objects.get(name="edtrac_girlsp3_attendance"), month_filter='weekly', location=loc),
-                 get_sum_of_poll_response(Poll.objects.get(name="edtrac_f_teachers_attendance"), month_filter='weekly', location=loc),
-                 get_sum_of_poll_response(Poll.objects.get(name="edtrac_m_teachers_attendance"), month_filter='weekly', location=loc),
-                 get_sum_of_poll_response(Poll.objects.get(name="edtrac_head_teachers_attendance"), month_filter="weekly", location=loc),
-                 get_sum_of_poll_response(Poll.objects.get(name="edtrac_head_teachers_attendance"), month_filter="weekly", location=loc)
+                 poll_response_sum(Poll.objects.get(name="edtrac_boysp3_attendance"), month_filter='weekly', location=loc),
+                 poll_response_sum(Poll.objects.get(name="edtrac_boysp6_attendance"), month_filter='weekly', location=loc),
+                 poll_response_sum(Poll.objects.get(name="edtrac_girlsp3_attendance"), month_filter='weekly', location=loc),
+                 poll_response_sum(Poll.objects.get(name="edtrac_girlsp3_attendance"), month_filter='weekly', location=loc),
+                 poll_response_sum(Poll.objects.get(name="edtrac_f_teachers_attendance"), month_filter='weekly', location=loc),
+                 poll_response_sum(Poll.objects.get(name="edtrac_m_teachers_attendance"), month_filter='weekly', location=loc),
+                 poll_response_sum(Poll.objects.get(name="edtrac_head_teachers_attendance"), month_filter="weekly", location=loc),
+                 poll_response_sum(Poll.objects.get(name="edtrac_head_teachers_attendance"), month_filter="weekly", location=loc)
                 ]
             )
         context['location_data'] = location_data_container
@@ -619,7 +628,7 @@ class ViolenceDeoDetails(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ViolenceDeoDetails, self).get_context_data(**kwargs)
         #context['violence_cases'] = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
-        context['violence_cases'] = get_sum_of_poll_response(Poll.objects.get(name="edtrac_headteachers_abuse"),
+        context['violence_cases'] = poll_response_sum(Poll.objects.get(name="edtrac_headteachers_abuse"),
             location=self.request.user.get_profile().location, month_filter=True)
         return context
 
@@ -637,8 +646,6 @@ class ProgressDeoDetails(TemplateView):
         context['progress'] = list_poll_responses(Poll.objects.get(name="edtrac_p3curriculum_progress"))
 
         return context
-
-
 
 ##########################################################################################################
 ##########################################################################################################
