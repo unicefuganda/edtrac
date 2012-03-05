@@ -6,11 +6,11 @@ import traceback
 from rapidsms.log.mixin import LoggerMixin
 from datetime import datetime, timedelta
 
-def get_backends_by_type(btype='shortcode'):
-        if btype == 'shortcode':
+def get_backends_by_type(backend_type='shortcode'):
+        if backend_type == 'shortcode':
             # messenger's DB has all backends from all other deployments
             return Backend.objects.using('monitor').exclude(name__endswith='modem').order_by('name')
-        elif btype == 'modem':
+        elif backend_type == 'modem':
             return Backend.objects.using('monitor').filter(name__endswith='modem').order_by('name')
         else:
             return [Backend.objects.using('monitor').get_or_create(name="test_backend")[0]]
@@ -38,26 +38,26 @@ def get_qos_time_offset():
 def get_alarms(mode="shortcode"):
     # here mode refers to test mode which returns test backends
     if mode == "test":
-        btype = "test"
+        backend_type = "test"
     else:
-        btype = mode
+        backend_type = mode
     msgs = []
-    shortcode_backends = get_backends_by_type(btype=btype)
+    shortcode_backends = get_backends_by_type(backend_type=backend_type)
     time_offset = get_qos_time_offset()
-    for si in shortcode_backends:
-        for mi in settings.ALLOWED_MODEMS[si.name]:
-            (mb, t) = Backend.objects.using('monitor').get_or_create(name=mi)
+    for shortcode in shortcode_backends:
+        for modem in settings.ALLOWED_MODEMS[shortcode.name]:
+            (modem_backend, t) = Backend.objects.using('monitor').get_or_create(name=modem)
 
-            b = Message.objects.using('monitor').filter(date__gt=time_offset, direction='I', text=gen_qos_msg(),
-                    connection=Connection.objects.using('monitor').get_or_create(identity=settings.SHORTCODE_BACKENDS[si.name], backend=mb)[0])
-            if not b.count():
-                msg = "Could not get response  from %s when sender is %s(%s) Backend. Sent Msg=>(%s)" % (settings.SHORTCODE_BACKENDS[si.name], mb.name, settings.MODEM_BACKENDS[mb.name], gen_qos_msg())
+            ret = Message.objects.using('monitor').filter(date__gt=time_offset, direction='I', text=gen_qos_msg(),
+                    connection=Connection.objects.using('monitor').get_or_create(identity=settings.SHORTCODE_BACKENDS[shortcode.name], backend=modem_backend)[0])
+            if not ret.count():
+                msg = "Could not get response  from %s when sender is %s(%s) Backend. Sent Msg=>(%s)" % (settings.SHORTCODE_BACKENDS[shortcode.name], modem_backend.name, settings.MODEM_BACKENDS[modem_backend.name], gen_qos_msg())
                 msgs.append(msg)
 
 
-            b = Message.objects.using('monitor').filter(date__gt=time_offset, direction='I', text=gen_qos_msg(),
-                    connection=Connection.objects.using('monitor').get_or_create(identity=settings.MODEM_BACKENDS[mi], backend=si)[0])
-            if not b.count():
-                msg = "Could not get response from %s when sender is %s Backend. Sent Msg=>(%s)" % (settings.MODEM_BACKENDS[mi], si.name, gen_qos_msg())
+            ret = Message.objects.using('monitor').filter(date__gt=time_offset, direction='I', text=gen_qos_msg(),
+                    connection=Connection.objects.using('monitor').get_or_create(identity=settings.MODEM_BACKENDS[modem], backend=shortcode)[0])
+            if not ret.count():
+                msg = "Could not get response from %s when sender is %s Backend. Sent Msg=>(%s)" % (settings.MODEM_BACKENDS[modem], shortcode.name, gen_qos_msg())
                 msgs.append(msg)
     return msgs
