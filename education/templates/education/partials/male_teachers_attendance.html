@@ -1,17 +1,21 @@
 {% extends "education/admin/admin_dashboard.html" %}
+{% load endless %}
 {% block content %}
 <div class="attendance">
     <h2 class="block-header">Attendance Records for Male Teachers (week: {{ week|date:"D d M Y" }})</h2>
+
     <div class="top">
+        {% paginate location_data %}
         <table class="tabulated-data">
-            <tbody>
+            <thead>
             <tr>
                 {% for heading in headings %}
                 <th>{{ heading }}</th>
                 {% endfor %}
             </tr>
 
-
+            </thead>
+            <tbody>
             {% for a, b, c in location_data %}
             <tr>
                 <td><a href="{% url school-detail a.id %}">{{ a }}</a></td>
@@ -19,10 +23,22 @@
                 <td>{{ c }}</td>
             </tr>
             {% endfor %}
-
             </tbody>
         </table>
     </div>
+    <div class="paginator">
+        {% show_pages %}
+    </div>
 </div>
+<script>
+    $(function(){
+        $(".tabulated-data").tablesorter({sortList: [
+            [0,0],
+            [1,0]
+        ]});
+    });
+</script>
+
+
 
 {% endblock %}

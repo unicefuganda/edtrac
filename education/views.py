@@ -722,13 +722,13 @@ def boys_p3_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
-        schools = School.objects.all()
+        schools = School.objects.filter(location__name__in=EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True))
     else:
         #DEO
         schools = School.objects.filter(location=location)
     data_to_render = []
     for school in schools:
-        data = get_sum_of_poll_response(Poll.objects.get(name="edtrac_boysp3_attendance"),month_filter='weekly',location=school.location)
+        data = poll_response_sum(Poll.objects.get(name="edtrac_boysp3_attendance"),month_filter='weekly',location=school.location)
         data_to_render.append(
             [
                 school,
@@ -751,13 +751,13 @@ def boys_p6_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
-        schools = School.objects.all()
+        schools = School.objects.filter(location__name__in=EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True))
     else:
         #DEO
         schools = School.objects.filter(location=location)
     data_to_render = []
     for school in schools:
-        data = get_sum_of_poll_response(Poll.objects.get(name="edtrac_boysp6_attendance"),month_filter='weekly',location=school.location)
+        data = poll_response_sum(Poll.objects.get(name="edtrac_boysp6_attendance"),month_filter='weekly',location=school.location)
         data_to_render.append(
             [
                 school,
@@ -780,14 +780,14 @@ def girls_p3_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
-        schools = School.objects.all()
+        schools = School.objects.filter(location__name__in=EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True))
     else:
         #DEO
         schools = School.objects.filter(location=location)
     data_to_render = []
 
     for school in schools:
-        data = get_sum_of_poll_response(Poll.objects.get(name="edtrac_girlsp3_attendance"),month_filter='weekly',location=school.location)
+        data = poll_response_sum(Poll.objects.get(name="edtrac_girlsp3_attendance"),month_filter='weekly',location=school.location)
         data_to_render.append(
             [
                 school,
@@ -810,13 +810,13 @@ def girls_p6_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
-        schools = School.objects.all()
+        schools = School.objects.filter(location__name__in=EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True))
     else:
         #DEO
         schools = School.objects.filter(location=location)
     data_to_render = []
     for school in schools:
-        data = get_sum_of_poll_response(Poll.objects.get(name="edtrac_girlsp6_attendance"),month_filter='weekly',location=school.location)
+        data = poll_response_sum(Poll.objects.get(name="edtrac_girlsp6_attendance"),month_filter='weekly',location=school.location)
         data_to_render.append(
             [
                 school,
@@ -838,14 +838,15 @@ def female_teacher_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
-        schools = School.objects.all()
+        schools = School.objects.filter(location__name__in=EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True))
     else:
         #DEO
         schools = School.objects.filter(location=location)
 
     data_to_render = []
     for school in schools:
-        data = get_sum_of_poll_response(Poll.objects.get(name="edtrac_f_teachers_attendance"),month_filter='weekly',location=school.location)
+        data = poll_response_sum(
+            Poll.objects.get(name="edtrac_f_teachers_attendance"),month_filter='weekly',location=school.location)
         data_to_render.append(
             [
                 school,
@@ -867,13 +868,13 @@ def male_teacher_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
-        schools = School.objects.all()
+        schools = School.objects.filter(location__name__in=EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True))
     else:
         #DEO
         schools = School.objects.filter(location=location)
     data_to_render = []
     for school in schools:
-        data = get_sum_of_poll_response(Poll.objects.get(name="edtrac_m_teachers_attendance"),month_filter='weekly',location=school.location)
+        data = poll_response_sum(Poll.objects.get(name="edtrac_m_teachers_attendance"),month_filter='weekly',location=school.location)
         data_to_render.append(
             [
                 school,
@@ -895,14 +896,14 @@ def male_head_teacher_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
-        schools = School.objects.all()
+        schools = School.objects.filter(location__name__in=EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True))
     else:
         #DEO
         schools = School.objects.filter(location=location)
     data_to_render = []
     for school in schools:
         #TODO separate male and female head teachers
-        data = get_sum_of_poll_response(Poll.objects.get(name="edtrac_head_teachers_attendance"),month_filter='weekly',location=school.location)
+        data = poll_response_sum(Poll.objects.get(name="edtrac_head_teachers_attendance"),month_filter='weekly',location=school.location)
         data_to_render.append(
             [
                 school,
@@ -924,14 +925,14 @@ def female_head_teacher_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
-        schools = School.objects.all()
+        schools = School.objects.filter(location__name__in=EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True))
     else:
         #DEO
         schools = School.objects.filter(location=location)
     data_to_render = []
     for school in schools:
         #TODO separate male and female head teachers
-        data = get_sum_of_poll_response(Poll.objects.get(name="edtrac_head_teachers_attendance"),month_filter='weekly',location=school.location)
+        data = poll_response_sum(Poll.objects.get(name="edtrac_head_teachers_attendance"),month_filter='weekly',location=school.location)
         data_to_render.append(
             [
                 school,

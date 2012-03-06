@@ -616,3 +616,11 @@ div.page-header{
     color:white;
     font-size: 100%;
 }
+
+
+div.paginator{
+    margin-top: 20px;
+    padding:20px;
+    background-color: #f5f5f5;
+    text-align: center;
+}

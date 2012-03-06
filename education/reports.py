@@ -567,9 +567,8 @@ def poll_response_sum(poll_queryset, **kwargs):
             to_ret = {}
             for location in Location.objects.filter(type="district", name__in=DISTRICT):
                 resps = poll_queryset.responses.filter(contact__in=\
-                Contact.objects.filter(reporting_location=location),
-                    date__range = get_month_day_range(datetime.datetime.now())
-                )
+                                EmisReporter.objects.filter(reporting_location=location),
+                                date__range = get_month_day_range(datetime.datetime.now()))
                 resp_values = [r.eav.poll_number_value for r in resps]
                 s = sum(filter(None, resp_values))
                 to_ret[location.__unicode__()] = s
@@ -595,9 +594,8 @@ def poll_response_sum(poll_queryset, **kwargs):
             if not kwargs.has_key('months'):
                 for location in locations:
                     resps = poll_queryset.responses.filter(
-                        contact__in = Contact.objects.filter(reporting_location=location),
-                        date__range = get_month_day_range(now)
-                    )
+                                contact__in = EmisReporter.objects.filter(reporting_location=location),
+                                date__range = get_month_day_range(now))
                     #for Demo purposes compute total from messages
                     resp_values = [r.eav.poll_number_value for r in resps]
                     to_ret[location.__unicode__()] = [sum(filter(None, resp_values))]
@@ -615,8 +613,8 @@ def poll_response_sum(poll_queryset, **kwargs):
                     to_ret[location.__unicode__()] = [] #empty list we populate in a moment
                     for month_range in month_ranges:
                         resps = poll_queryset.responses.filter(
-                            contact__in = Contact.objects.filter(reporting_location=location),
-                            date__range = month_range)
+                                    contact__in = EmisReporter.objects.filter(reporting_location=location),
+                                    date__range = month_range)
                         resp_values = [r.eav.poll_number_value for r in resps]
                         sum_of_values = sum(filter(None, resp_values))
                         # Averaging function
