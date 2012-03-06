@@ -36,7 +36,7 @@ def check_progress(script):
         to_trans_list = list(to_transition.values_list('pk', flat=True))
         if to_transition.exists():
             to_transition.moveon(script, step)
-            ScriptProgress.objects.filter(pk__in=to_trans_list).update(num_tries=0)
+            ScriptProgress.objects.filter(pk__in=to_trans_list).filter(num_tries=None).update(num_tries=0)
             ScriptProgress.objects.filter(pk__in=to_trans_list).update(num_tries=F('num_tries') + 1, time=datetime.datetime.now())
             ScriptProgress.objects.filter(pk__in=to_trans_list).mass_text()
 
@@ -47,7 +47,7 @@ def check_progress(script):
             ScriptSession.objects.create(script=sp.script, connection=sp.connection)
 
         to_start.moveon(script, None)
-        ScriptProgress.objects.filter(pk__in=to_start_list).update(num_tries=0)
+        ScriptProgress.objects.filter(pk__in=to_start_list).filter(num_tries=None).update(num_tries=0)
         ScriptProgress.objects.filter(pk__in=to_start_list).update(num_tries=F('num_tries') + 1, time=datetime.datetime.now())
 
 
