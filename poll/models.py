@@ -25,6 +25,7 @@ from rapidsms.contrib.locations.nested import models as nested_models
 from rapidsms_httprouter.models import Message, MessageBatch
 
 from django.conf import settings
+from django.db import models
 import re
 from django.utils.translation import (ugettext, activate, deactivate)
 
@@ -213,6 +214,15 @@ class Poll(models.Model):
     @transaction.commit_on_success
 
     def create_with_bulk(cls, name, type, question, default_response, contacts, user):
+        if getattr(settings,"BLACKLIST_MODEL",None):
+            app_label,model_name=settings.BLACKLIST_MODEL.rsplit(".")
+            try:
+                blacklists = models.get_model(app_label,model_name)._default_manager.values_list('connection')
+                contacts=contacts.exclude(connection__pk__in=blacklists)
+            except :
+                raise Exception("Your Blacklist Model is Improperly configured")
+
+
         poll = Poll.objects.create(name=name, type=type, question=question, default_response=default_response, user=user)
 
         #batch for responses
