@@ -556,7 +556,7 @@ class ModelTest(TestCase): #pragma: no cover
         #yes_category = poll.categories.filter(name='yes')
         #response = poll.responses.all().order_by('-date')[0]
         #self.assertEquals(ResponseCategory.objects.get(response__poll__name=poll.name,  category=yes_category).response, response)
-        self.elapseTime2(prog, self.total_seconds(_next_midterm()))
+        self.elapseTime2(prog, 61)
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_termly', connection=self.connection)
         check_progress(prog.script)
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
