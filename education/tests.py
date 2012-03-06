@@ -477,7 +477,9 @@ class ModelTest(TestCase): #pragma: no cover
         seconds_to_25th = self.total_seconds(d - datetime.datetime.now())
         self.elapseTime2(prog, seconds_to_25th+(1*60*60)) #seconds to 25th + one hour
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
+        self.assertEquals(prog.script.steps.count(), 2)
         check_progress(prog.script)
+        self.assertEquals(Message.objects.filter(direction="O").count(), 1)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_head_teachers_monthly').steps.get(order=0).poll.question)
         self.fake_incoming('5')
         self.assertEquals(Message.objects.filter(direction='I').order_by('-date')[0].application, 'script')
@@ -497,7 +499,9 @@ class ModelTest(TestCase): #pragma: no cover
         self.elapseTime2(prog, 61)
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
         check_progress(prog.script)
+
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
+
 
     def testTermlyHeadTeacherPolls(self):
         self.register_reporter('head teacher')
@@ -548,9 +552,9 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_head_teachers_termly').steps.get(order=6).poll.question)
         self.fake_incoming('yeah')
         poll = Script.objects.get(slug='edtrac_head_teachers_termly').steps.get(order=6).poll
-        yes_category = poll.categories.filter(name='yes')
+        #yes_category = poll.categories.filter(name='yes')
         response = poll.responses.all().order_by('-date')[0]
-        self.assertEquals(ResponseCategory.objects.get(response__poll__name=poll.name,  category=yes_category).response, response)
+        #self.assertEquals(ResponseCategory.objects.get(response__poll__name=poll.name,  category=yes_category).response, response)
         self.elapseTime2(prog, 61)
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_termly', connection=self.connection)
         check_progress(prog.script)
