@@ -550,15 +550,17 @@ class ModelTest(TestCase): #pragma: no cover
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_termly', connection=self.connection)
         check_progress(prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_head_teachers_termly').steps.get(order=6).poll.question)
-        self.fake_incoming('yeah')
+        self.fake_incoming('yes')
+        self.assertEquals(Script.objects.get(slug='edtrac_head_teachers_termly').steps.get(order=6).poll.responses.all().order_by('-date')[0].eav.poll_text_value, 'yes')
         poll = Script.objects.get(slug='edtrac_head_teachers_termly').steps.get(order=6).poll
         #yes_category = poll.categories.filter(name='yes')
-        response = poll.responses.all().order_by('-date')[0]
+        #response = poll.responses.all().order_by('-date')[0]
         #self.assertEquals(ResponseCategory.objects.get(response__poll__name=poll.name,  category=yes_category).response, response)
-        self.elapseTime2(prog, 61)
+        self.elapseTime2(prog, self.total_seconds(_next_midterm()))
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_termly', connection=self.connection)
         check_progress(prog.script)
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
+        #self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
 
     def testWeeklySMCPolls(self):
         self.register_reporter('smc')

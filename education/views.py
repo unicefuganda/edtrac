@@ -718,40 +718,158 @@ class DistrictMealsDetails(DetailView):
 ##########################################################################################################
 ##########################################################################################################
 
+@login_required
+def boysp3_district_attd_detail(req, location_id):
+    """
+    This gets the details about schools in a district, the people in attedance, etc.
+    """
+    location = Location.objects.exclude(type="country").get(id=location_id)
+    schools = School.objects.filter(location=location)
+    to_ret = []
+    for school in schools:
+        to_ret.append((
+            school, poll_response_sum(Poll.objects.get(name="edtrac_boysp3_attendance"), month_filter='weekly',school=school)
+        ))
+    return render_to_response("education/boysp3_district_attd_detail.html", { 'location':location,\
+                                        'location_data':to_ret,\
+                                        'week':datetime.datetime.now(),\
+                                        'headings' : ['School', 'Number']
+                                        }, RequestContext(req))
+
+@login_required
+def boysp6_district_attd_detail(req, location_id):
+    """
+    This gets the details about schools in a district, the people in attedance, etc.
+    """
+    location = Location.objects.exclude(type="country").get(id=location_id)
+    schools = School.objects.filter(location=location)
+    to_ret = []
+    for school in schools:
+        to_ret.append((
+            school, poll_response_sum(Poll.objects.get(name="edtrac_boysp6_attendance"), month_filter='weekly',school=school)
+            ))
+    return render_to_response("education/boysp6_district_attd_detail.html", { 'week':datetime.datetime.now(),\
+        'location':location,\
+        'headings':['School','Number'],\
+        'location_data':to_ret },\
+        RequestContext(req))
+
+
+@login_required
+def girlsp3_district_attd_detail(req, location_id):
+    """
+    This gets the details about schools in a district, the people in attedance, etc.
+    """
+    location = Location.objects.exclude(type="country").get(id=location_id)
+    schools = School.objects.filter(location=location)
+    to_ret = []
+    for school in schools:
+        to_ret.append((
+            school, poll_response_sum(Poll.objects.get(name="edtrac_girlsp3_attendance"), month_filter='weekly',school=school)
+            ))
+    return render_to_response("education/girlsp3_district_attd_detail.html", { 'location_data':to_ret,\
+                                                                               'headings':['School', "Number"],\
+                                                                               'location':location}, RequestContext(req))
+
+@login_required
+def girlsp6_district_attd_detail(req, location_id):
+    """
+    This gets the details about schools in a district, the people in attedance, etc.
+    """
+    location = Location.objects.exclude(type="country").get(id=location_id)
+    schools = School.objects.filter(location=location)
+    to_ret = []
+    for school in schools:
+        to_ret.append((
+            school, poll_response_sum(Poll.objects.get(name="edtrac_girlsp6_attendance"), month_filter='weekly',school=school)
+            ))
+    return render_to_response("education/girlsp6_district_attd_detail.html", { 'location_data':to_ret }, RequestContext(req))
+
+
+@login_required
+def female_t_district_attd_detail(req, location_id):
+    """
+    This gets the details about schools in a district, the people in attedance, etc.
+    """
+    location = Location.objects.exclude(type="country").get(id=location_id)
+    schools = School.objects.filter(location=location)
+    to_ret = []
+    for school in schools:
+        to_ret.append((
+            school, poll_response_sum(Poll.objects.get(name="edtrac_boysp3_attendance"), month_filter='weekly',school=school)
+            ))
+    return render_to_response("education/female_t_district_attd_detail.html", { 'location_data':to_ret }, RequestContext(req))
+
+@login_required
+def male_t_district_attd_detail(req, location_id):
+    """
+    This gets the details about schools in a district, the people in attedance, etc.
+    """
+    location = Location.objects.exclude(type="country").get(id=location_id)
+    schools = School.objects.filter(location=location)
+    to_ret = []
+    for school in schools:
+        to_ret.append((
+            school, poll_response_sum(Poll.objects.get(name="edtrac_boysp3_attendance"), month_filter='weekly',school=school)
+            ))
+    return render_to_response("education/male_t_district_attd_detail.html", { 'location_data':to_ret }, RequestContext(req))
+
+
+
 def boys_p3_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
-        schools = School.objects.filter(location__name__in=EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True))
+        """
+        This view shows data by district
+        """
+        locations = Location.objects.filter(name__in=EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True)).order_by("name")
+        # return view that will give shool-based views
+        return boys_p3_attd_admin(req, locations=locations)
     else:
         #DEO
         schools = School.objects.filter(location=location)
-    data_to_render = []
-    for school in schools:
-        data = poll_response_sum(Poll.objects.get(name="edtrac_boysp3_attendance"),month_filter='weekly',location=school.location)
-        data_to_render.append(
-            [
-                school,
-                school.location,
-                data
-            ]
+        data_to_render = []
+        for school in schools:
+            data = poll_response_sum(Poll.objects.get(name="edtrac_boysp3_attendance"),month_filter='weekly',location=school.location)
+            data_to_render.append(
+                [
+                    school,
+                    school.location,
+                    data
+                ]
+            )
+
+        return  render_to_response(
+            'education/partials/boys_p3_attendance.html',
+            {
+                'week':datetime.datetime.now(),
+                'headings':['School', 'District', 'Number'],
+                'location_data': data_to_render
+            },
+            RequestContext(req)
+
         )
 
-    return  render_to_response(
-        'education/partials/boys_p3_attendance.html',
-        {
-            'week':datetime.datetime.now(),
-            'headings':['School', 'District', 'Number'],
-            'location_data': data_to_render
-        },
-        RequestContext(req)
+def boys_p3_attd_admin(req, **kwargs):
+    # P3 attendance /// what to show an admin or Ministry official
+    locations = kwargs.get('locations')
+    to_ret = []
+    for loc in locations:
+        to_ret.append((loc, poll_response_sum(Poll.objects.get(name="edtrac_boysp3_attendance"), month_filter='weekly', location=loc)))
+
+    return render_to_response(
+        'education/partials/boys_p3_attd_admin.html',
+        {'location_data':to_ret, 'headings':['District', 'Percentage'], 'week':datetime.datetime.now()}, RequestContext(req)
     )
+
 
 def boys_p6_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
-        schools = School.objects.filter(location__name__in=EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True))
+        locations = Location.objects.filter(name__in=EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True)).order_by("name")
+        return boys_p6_attd_admin(req, locations=locations)
     else:
         #DEO
         schools = School.objects.filter(location=location)
@@ -775,6 +893,20 @@ def boys_p6_attendance(req):
         },
         RequestContext(req)
     )
+
+def boys_p6_attd_admin(req, **kwargs):
+    # P3 attendance /// what to show an admin or Ministry official
+    locations = kwargs.get('locations')
+    to_ret = []
+    for loc in locations:
+        to_ret.append((loc, poll_response_sum(Poll.objects.get(name="edtrac_boysp6_attendance"), month_filter='weekly', location=loc)))
+
+    return render_to_response(
+        'education/partials/boys_p6_attd_admin.html',
+            {'location_data':to_ret, 'headings':['District', 'Percentage'], 'week':datetime.datetime.now()}, RequestContext(req)
+    )
+
+
 
 def girls_p3_attendance(req):
     location = req.user.get_profile().location
@@ -1116,7 +1248,6 @@ def school_detail(request, school_id):
         'school': school,
         'last_submissions': last_submissions,
         }, RequestContext(request))
-
 
 # analytics specific for emis {copy, but adjust to suit your needs}
 @login_required
