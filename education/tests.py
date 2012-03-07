@@ -599,6 +599,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(seconds_to_nextprog, seconds_to_monthday)
         
     def testRescheduleWeeklyPolls(self):
+        ScriptProgress.objects.all().delete()
         self.register_reporter('teacher', '8675349')
         self.register_reporter('head teacher', '8675319')
         self.register_reporter('smc', '8675329')
@@ -623,6 +624,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='edtrac_smc_weekly').time.date(), next_thursday.date())
 
     def testRescheduleMonthlyPolls(self):
+        ScriptProgress.objects.all().delete()
         self.register_reporter('teacher', '8675349')
         self.register_reporter('head teacher', '8675319')
         self.register_reporter('smc', '8675329')
@@ -643,6 +645,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='edtrac_smc_monthly').time.date(), _date_of_monthday(5).date())
 
     def testRescheduleTermlyPolls(self):
+        ScriptProgress.objects.all().delete()
         self.register_reporter('teacher', '8675349')
         self.register_reporter('head teacher', '8675319')
         self.register_reporter('smc', '8675329')
