@@ -226,6 +226,10 @@ def _schedule_monthly_script(group, connection, script_slug, day_offset, role_na
         sp.set_time(d)
 
 def _schedule_monthly_report(group, connection, script_slug, day_offset, role_names):
+    """
+    This is method is called within a loop of several connections or an individual connection; it stes the time
+    to a particular date in the month and sends of a report as message
+    """
     if group.name in role_names:
         connections = Connection.objects.filter(contact__in=Group.objects.get(name=group.name).contact_set.all())
         for connection in connections:

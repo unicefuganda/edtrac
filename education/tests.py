@@ -471,7 +471,7 @@ class ModelTest(TestCase): #pragma: no cover
 
     def testMonthlyHeadTeacherPolls(self):
         self.register_reporter('head teacher')
-        Script.objects.filter(slug__in=['edtrac_head_teachers_weekly', 'edtrac_head_teachers_monthly', 'edtrac_head_teachers_termly']).update(enabled=True)
+        Script.objects.filter(slug='edtrac_head_teachers_monthly').update(enabled=True)
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
         d = _date_of_monthday(25)
         seconds_to_25th = self.total_seconds(d - datetime.datetime.now())
