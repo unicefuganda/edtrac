@@ -628,7 +628,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='edtrac_smc_weekly').time.date(), next_thursday.date())
 
     def testRescheduleMonthlyPolls(self):
-        self.register_reporter('teacher', '8675349')
+        #self.register_reporter('teacher', '8675349')
         self.register_reporter('head teacher', '8675319')
         self.register_reporter('smc', '8675329')
         self.register_reporter('gem', '8675339')
@@ -644,7 +644,8 @@ class ModelTest(TestCase): #pragma: no cover
         for sp in ScriptProgress.objects.filter(script__slug__in=monthly_scripts.values_list('slug', flat=True)):
             self.elapseTime2(sp, 13*31*24*60*60)
         reschedule_monthly_polls()
-        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675349', script__slug='edtrac_teachers_monthly').time.date(), _date_of_monthday('last').date())
+        #there's no teacher's monthly
+        #self.assertEquals(ScriptProgress.objects.get(connection__identity='8675349', script__slug='edtrac_teachers_monthly').time.date(), _date_of_monthday('last').date())
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_monthly').time.date(), _date_of_monthday('last').date())
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='edtrac_smc_monthly').time.date(), _date_of_monthday(5).date())
 
