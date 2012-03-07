@@ -470,18 +470,18 @@ class ModelTest(TestCase): #pragma: no cover
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_weekly', connection=self.connection)
         check_progress(prog.script)
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
+        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time, _next_thursday(ScriptProgress.objects.get(connection=self.connection, script=prog.script)))
 
     def testMonthlyHeadTeacherPolls(self):
         self.register_reporter('head teacher')
         Script.objects.filter(slug__in=['edtrac_head_teachers_weekly', 'edtrac_head_teachers_monthly', 'edtrac_head_teachers_termly']).update(enabled=True)
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
-        d = _date_of_monthday(25)
-        seconds_to_25th = self.total_seconds(d - datetime.datetime.now())
-        self.elapseTime2(prog, seconds_to_25th+(1*60*60)) #seconds to 25th + one hour
+        d = _date_of_monthday('last')
+        seconds_to_lastday = self.total_seconds(d - datetime.datetime.now())
+        self.elapseTime2(prog, seconds_to_lastday+(1*60*60)) #seconds to last day of month + one hour
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
         self.assertEquals(prog.script.steps.count(), 2)
         check_progress(prog.script)
-        self.assertEquals(Message.objects.filter(direction="O").count(), 1)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_head_teachers_monthly').steps.get(order=0).poll.question)
         self.fake_incoming('5')
         self.assertEquals(Message.objects.filter(direction='I').order_by('-date')[0].application, 'script')
@@ -489,21 +489,17 @@ class ModelTest(TestCase): #pragma: no cover
         self.elapseTime2(prog, 61)
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
         check_progress(prog.script)
-        self.assertNotEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_head_teachers_monthly').steps.get(order=1).poll.question)
-        d = _date_of_monthday('last')
-        seconds_to_month_end = self.total_seconds(d - prog.time)
-        self.elapseTime2(prog, seconds_to_month_end+(1*60*60)) #seconds to month end + one hour
-        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
-        check_progress(prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_head_teachers_monthly').steps.get(order=1).poll.question)
         self.fake_incoming('25%')
-        self.assertEquals(Script.objects.get(slug='edtrac_head_teachers_monthly').steps.get(order=1).poll.responses.all().order_by('-date')[0].eav.poll_text_value, '25%')
+        self.assertEquals(Message.objects.filter(direction='I').order_by('-date')[0].application, 'script')
+        self.assertEquals(Script.objects.get(slug='edtrac_head_teachers_monthly').steps.get(order=1).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 25)
         self.elapseTime2(prog, 61)
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
         check_progress(prog.script)
-
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
-
+        seconds_to_nextprog = self.total_seconds(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time - datetime.datetime.now())
+        seconds_to_monthday = self.total_seconds(_date_of_monthday('last') - datetime.datetime.now())
+        self.assertEquals(seconds_to_nextprog, seconds_to_monthday)
 
     def testTermlyHeadTeacherPolls(self):
         self.register_reporter('head teacher')
