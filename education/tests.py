@@ -575,7 +575,7 @@ class ModelTest(TestCase): #pragma: no cover
         prog = ScriptProgress.objects.get(script__slug='edtrac_smc_weekly', connection=self.connection)
         check_progress(prog.script)
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
-#        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time, _next_thursday(prog))
+        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.date(), _next_thursday(prog).date())
 
     def testMonthlySMCPolls(self):
         self.register_reporter('smc')
