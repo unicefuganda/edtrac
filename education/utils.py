@@ -163,6 +163,40 @@ def _date_of_monthday(day_offset):
                 d = d + datetime.timedelta((0 - d.weekday()) % 7)
     return d
 
+def _next_term_question_date():
+    """
+    The termly questions are sent out on the 12th day of each term and computed based on the beginning of term date
+    """
+    delta = datetime.timedelta(days=12)
+    first_term_qn_date = getattr(settings, 'FIRST_TERM_BEGINS', datetime.datetime.now()) + delta
+    second_term_qn_date = getattr(settings, 'SECOND_TERM_BEGINS', datetime.datetime.now()) + delta
+    third_term_qn_date = getattr(settings, 'THIRD_TERM_BEGINS', datetime.datetime.now()) + delta
+    holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
+    d = datetime.datetime.now()
+    if first_term_qn_date == second_term_qn_date == third_term_qn_date == datetime.datetime.now() + delta:
+        d = d + delta
+    else:
+        if d <= first_term_qn_date:
+            d = first_term_qn_date
+        elif d > first_term_qn_date and d <= second_term_qn_date:
+            d = second_term_qn_date
+        else:
+            d = third_term_qn_date
+            
+    if is_weekend(d):
+        d = d + datetime.timedelta((0 - d.weekday()) % 7)
+    in_holiday = True
+    while in_holiday:
+        in_holiday = False
+        for start, end in holidays:
+            if d >= start and d <= end:
+                in_holiday = True
+                break
+        if in_holiday:
+            if is_weekend(d):
+                d = d + datetime.timedelta((0 - d.weekday()) % 7)
+    return d
+
 def _next_midterm():
     """
     The middle of school term is either in mid April, July or Nov for Term 1, 2 and 3 respectively.
@@ -236,7 +270,7 @@ def _schedule_monthly_report(group, connection, script_slug, day_offset, role_na
 def _schedule_termly_script(group, connection, script_slug, role_names, date=None):
     """
     This method is called within a loop over several connections or for an individual connection
-    and it sets the start time for a script to _next_midterm() or to date passed to it as a String argument
+    and it sets the start time for a script to _next_term_question_date() or _next_midterm() or to date passed to it as a String argument
     in the format YYYY-mm-dd
     """
     d = None
@@ -246,7 +280,7 @@ def _schedule_termly_script(group, connection, script_slug, role_names, date=Non
         d = datetime.datetime(int(dl[0]), int(dl[1]), int(dl[2]), now.hour, now.minute, now.second, now.microsecond)
 
     if group.name in role_names:
-        d = d if d else _next_midterm()
+        d = d if d else _next_term_question_date() #_next_midterm()
         sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
         sp.set_time(d)
 

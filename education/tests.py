@@ -23,7 +23,7 @@ from django.db import connection
 from script.utils.outgoing import check_progress
 from django.core.management import call_command
 from unregister.models import Blacklist
-from education.utils import _next_thursday, _date_of_monthday, _next_midterm
+from education.utils import _next_thursday, _date_of_monthday, _next_midterm, _next_term_question_date
 from poll.models import ResponseCategory
 import difflib
 
@@ -505,7 +505,8 @@ class ModelTest(TestCase): #pragma: no cover
         self.register_reporter('head teacher')
         Script.objects.filter(slug__in=['edtrac_head_teachers_weekly', 'edtrac_head_teachers_monthly', 'edtrac_head_teachers_termly']).update(enabled=True)
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_termly', connection=self.connection)
-        d = _next_midterm()
+#        d = _next_midterm()
+        d = _next_term_question_date()
         seconds_to_midterm = self.total_seconds(d - datetime.datetime.now())
         self.elapseTime2(prog, seconds_to_midterm+(1*60*60)) #seconds to 25th + one hour
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_termly', connection=self.connection)
@@ -549,14 +550,11 @@ class ModelTest(TestCase): #pragma: no cover
         check_progress(prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_head_teachers_termly').steps.get(order=6).poll.question)
         self.fake_incoming('yeah')
-        poll = Script.objects.get(slug='edtrac_head_teachers_termly').steps.get(order=6).poll
-        #yes_category = poll.categories.filter(name='yes')
-        response = poll.responses.all().order_by('-date')[0]
-        #self.assertEquals(ResponseCategory.objects.get(response__poll__name=poll.name,  category=yes_category).response, response)
         self.elapseTime2(prog, 61)
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_termly', connection=self.connection)
         check_progress(prog.script)
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
+        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time, d)
 
     def testWeeklySMCPolls(self):
         self.register_reporter('smc')
