@@ -478,29 +478,41 @@ class ModelTest(TestCase): #pragma: no cover
         self.elapseTime2(prog, seconds_to_25th+(1*60*60)) #seconds to 25th + one hour
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
         self.assertEquals(prog.script.steps.count(), 2)
+        self.elapseTime2(prog, seconds_to_25th+(1*60*60)) #seconds to 25th + one hour
         check_progress(prog.script)
         self.assertEquals(Message.objects.filter(direction="O").count(), 1)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_head_teachers_monthly').steps.get(order=0).poll.question)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text,\
+            Script.objects.get(slug='edtrac_head_teachers_monthly').steps.get(order=0).poll.question)
         self.fake_incoming('5')
-        self.assertEquals(Message.objects.filter(direction='I').order_by('-date')[0].application, 'script')
+        # make sure it is a number!!!
         self.assertEquals(Script.objects.get(slug='edtrac_head_teachers_monthly').steps.get(order=0).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 5)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
         self.elapseTime2(prog, 61)
-        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
         check_progress(prog.script)
-        self.assertNotEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_head_teachers_monthly').steps.get(order=1).poll.question)
-        d = _date_of_monthday('last')
-        seconds_to_month_end = self.total_seconds(d - prog.time)
-        self.elapseTime2(prog, seconds_to_month_end+(1*60*60)) #seconds to month end + one hour
-        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
-        check_progress(prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_head_teachers_monthly').steps.get(order=1).poll.question)
-        self.fake_incoming('25%')
-        self.assertEquals(Script.objects.get(slug='edtrac_head_teachers_monthly').steps.get(order=1).poll.responses.all().order_by('-date')[0].eav.poll_text_value, '25%')
+        # "abuse cases" questions
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text,\
+            Script.objects.get(slug='edtrac_head_teachers_monthly').steps.get(order=1).poll.question)
+        self.fake_incoming('50%')
+        self.assertEquals(Script.objects.get(slug="edtrac_head_teachers_monthly").steps.get(order=1).\
+                          poll.responses.all().order_by('-date')[0].eav.poll_number_value, 50)
         self.elapseTime2(prog, 61)
-        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
         check_progress(prog.script)
-
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
+
+#        d = _date_of_monthday('last')
+#        seconds_to_month_end = self.total_seconds(d - prog.time)
+#        self.elapseTime2(prog, seconds_to_month_end+(1*60*60)) #seconds to month end + one hour
+#        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
+#        check_progress(prog.script)
+#        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text,\
+#            Script.objects.get(slug='edtrac_head_teachers_monthly').steps.get(order=0).poll.question)
+#        self.fake_incoming('25%')
+#        self.assertEquals(Script.objects.get(slug='edtrac_head_teachers_monthly').steps.get(order=1).poll.responses.all().order_by('-date')[0].eav.poll_text_value, '25%')
+#        self.elapseTime2(prog, 61)
+#        prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
+#        check_progress(prog.script)
+#
+#        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
 
 
     def testTermlyHeadTeacherPolls(self):
