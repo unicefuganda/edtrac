@@ -650,10 +650,10 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='edtrac_smc_monthly').time.date(), _date_of_monthday(5).date())
 
     def testRescheduleTermlyPolls(self):
-        self.register_reporter('teacher', '8675349')
+        #self.register_reporter('teacher', '8675349')
         self.register_reporter('head teacher', '8675319')
         self.register_reporter('smc', '8675329')
-        self.register_reporter('gem', '8675339')
+        #self.register_reporter('gem', '8675339')
         termly_scripts = Script.objects.filter(slug__endswith='_termly')
         Script.objects.filter(slug__in=termly_scripts.values_list('slug', flat=True)).update(enabled=True)
         for sp in ScriptProgress.objects.filter(script__slug__in=termly_scripts.values_list('slug', flat=True)):
@@ -675,4 +675,4 @@ class ModelTest(TestCase): #pragma: no cover
             self.elapseTime2(sp, 13*31*24*60*60)
         reschedule_termly_polls('all', '2012-4-17')
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_termly').time.date(), datetime.datetime(2012, 4, 17).date())
-        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='smc_termly').time.date(), datetime.datetime(2012, 4, 17).date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='edtrac_smc_termly').time.date(), datetime.datetime(2012, 4, 17).date())
