@@ -675,4 +675,4 @@ class ModelTest(TestCase): #pragma: no cover
             self.elapseTime2(sp, 13*31*24*60*60)
         reschedule_termly_polls('all', '2012-4-17')
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_termly').time.date(), datetime.datetime(2012, 4, 17).date())
-        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='qsmc_termly').time.date(), datetime.datetime(2012, 4, 17).date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='smc_termly').time.date(), datetime.datetime(2012, 4, 17).date())
