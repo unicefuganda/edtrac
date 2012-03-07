@@ -593,9 +593,10 @@ class ModelTest(TestCase): #pragma: no cover
         self.elapseTime2(prog, seconds_to_5th+(1*60*60)) #seconds to 5th + one hour
         prog = ScriptProgress.objects.get(script__slug='edtrac_smc_monthly', connection=self.connection)
         check_progress(prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_smc_monthly').steps.get(order=0).poll.question)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text,\
+            Script.objects.get(slug='edtrac_smc_monthly').steps.get(order=0).poll.question)
         self.fake_incoming('50%')
-        self.assertEquals(Script.objects.get(slug='edtrac_smc_monthly').steps.get(order=0).poll.responses.all().order_by('-date')[0].eav.poll_text_value, '50%')
+        self.assertEquals(Script.objects.get(slug='edtrac_smc_monthly').steps.get(order=0).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 50)
         prog = ScriptProgress.objects.get(script__slug='edtrac_smc_monthly', connection=self.connection)
         self.elapseTime2(prog, 61)
         prog = ScriptProgress.objects.get(script__slug='edtrac_smc_monthly', connection=self.connection)
