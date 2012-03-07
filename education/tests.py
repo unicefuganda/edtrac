@@ -225,6 +225,8 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(contact.groups.all()[0].name, 'Other Reporters')
         self.assertEquals(contact.reporting_location, self.gulu_subcounty)
         self.assertEquals(contact.name, 'Anonymous User')
+        #without a role a reporter should not be scheduled for any regular polls
+        self.assertListEqual(list(ScriptProgress.objects.filter(connection=self.connection).values_list('script__slug', flat=True)), ['edtrac_autoreg'])
 
     def testGemAutoReg(self):
         self.fake_incoming('join')
