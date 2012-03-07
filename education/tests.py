@@ -589,13 +589,16 @@ class ModelTest(TestCase): #pragma: no cover
         check_progress(prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_smc_monthly').steps.get(order=0).poll.question)
         self.fake_incoming('50%')
-        self.assertEquals(Script.objects.get(slug='edtrac_smc_monthly').steps.get(order=0).poll.responses.all().order_by('-date')[0].eav.poll_text_value, '50%')
+        self.assertEquals(Script.objects.get(slug='edtrac_smc_monthly').steps.get(order=0).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 50)
         prog = ScriptProgress.objects.get(script__slug='edtrac_smc_monthly', connection=self.connection)
         self.elapseTime2(prog, 61)
         prog = ScriptProgress.objects.get(script__slug='edtrac_smc_monthly', connection=self.connection)
         check_progress(prog.script)
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
-
+        seconds_to_nextprog = self.total_seconds(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time - datetime.datetime.now())
+        seconds_to_monthday = self.total_seconds(_date_of_monthday(5) - datetime.datetime.now())
+        self.assertEquals(seconds_to_nextprog, seconds_to_monthday)
+        
     def testRescheduleWeeklyPolls(self):
         self.register_reporter('teacher', '8675349')
         self.register_reporter('head teacher', '8675319')
