@@ -977,7 +977,7 @@ def female_teacher_attendance(req):
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
         locations = Location.objects.exclude(type="country").filter(name__in=\
             EmisReporter.objects.distinct().values_list('reporting_location__name',flat=True)).order_by("name")
-        return female_attd_admin(req, locations=locations)
+        return female_teacher_attd_admin(req, locations=locations)
     else:
         #DEO
         schools = School.objects.filter(location=location)
@@ -997,33 +997,51 @@ def female_teacher_attendance(req):
             RequestContext(req)
         )
 
+def female_teacher_attd_admin(req, locations=None):
+    """
+    Helper function to get differences in absenteeism across districts for all female teachers
+    """
+    to_ret = return_absent('edtrac_f_teachers_attendance', 'edtrac_f_teachers_enrollment', locations=locations)
+    return render_to_response('education/partials/female_teachers_attd_admin.html',
+            {'location_data':to_ret,
+             'headings':HEADINGS,
+             'week':datetime.datetime.now()}, RequestContext(req))
+
 def male_teacher_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
-        schools = School.objects.filter(location__name__in=EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True))
+        locations = Location.objects.exclude(type="country").filter(name__in=\
+            EmisReporter.objects.distinct().values_list('reporting_location__name',flat=True)).order_by("name")
+        return male_teacher_attd_admin(req, locations=locations)
     else:
         #DEO
         schools = School.objects.filter(location=location)
-    data_to_render = []
-    for school in schools:
-        data = poll_response_sum(Poll.objects.get(name="edtrac_m_teachers_attendance"),month_filter='weekly',location=school.location)
-        data_to_render.append(
-            [
-                school,
-                school.location,
-                data
-            ]
+
+        data_to_render = []
+        for school in schools:
+            data = poll_response_sum(
+                Poll.objects.get(name="edtrac_m_teachers_attendance"),month_filter='weekly',location=school.location)
+            data_to_render.append([school, school.location, data])
+        return render_to_response(
+            'education/partials/male_teachers_attendance.html',
+                {
+                'week':datetime.datetime.now(),
+                'headings':['School', 'Location', 'Number'],
+                'location_data': data_to_render
+            },
+            RequestContext(req)
         )
-    return render_to_response(
-        'education/partials/male_teachers_attendance.html',
-            {
-            'week':datetime.datetime.now(),
-            'headings':['School', 'District', 'Number'],
-            'location_data': data_to_render
-        },
-        RequestContext(req)
-    )
+
+def male_teacher_attd_admin(req, locations=None):
+    """
+    Helper function to get differences in absenteeism across districts for all female teachers
+    """
+    to_ret = return_absent('edtrac_m_teachers_attendance', 'edtrac_m_teachers_enrollment', locations=locations)
+    return render_to_response('education/partials/male_teachers_attd_admin.html',
+            {'location_data':to_ret,
+             'headings':HEADINGS,
+             'week':datetime.datetime.now()}, RequestContext(req))
 
 def male_head_teacher_attendance(req):
     location = req.user.get_profile().location
