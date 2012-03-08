@@ -607,7 +607,8 @@ class ModelTest(TestCase): #pragma: no cover
         self.register_reporter('teacher', '8675349')
         self.register_reporter('head teacher', '8675319')
         self.register_reporter('smc', '8675329')
-        self.register_reporter('gem', '8675339')
+        #GEM reporters only get Monthly questiosn asked
+        #self.register_reporter('gem', '8675339')
         weekly_scripts = Script.objects.filter(slug__endswith='_weekly')
         Script.objects.filter(slug__in=weekly_scripts.values_list('slug', flat=True)).update(enabled=True)
         for sp in ScriptProgress.objects.filter(script__slug__in=weekly_scripts.values_list('slug', flat=True)):
@@ -622,6 +623,8 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='edtrac_smc_weekly').time.date(), next_thursday.date())
         for sp in ScriptProgress.objects.filter(script__slug__in=weekly_scripts.values_list('slug', flat=True)):
             self.elapseTime2(sp, 13*31*24*60*60)
+#        reschedule_weekly_polls('gem')
+#        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675339', script__slug='edtrac_gem_weekly').time.date(), next_thursday.date())
         reschedule_weekly_polls()
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675349', script__slug='edtrac_teachers_weekly').time.date(), next_thursday.date())
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_weekly').time.date(), next_thursday.date())
