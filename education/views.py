@@ -1189,8 +1189,27 @@ def edit_reporter(request, reporter_pk):
         if reporter_form.is_valid():
             reporter_form.save()
             if reporter.default_connection and reporter.groups.count() > 0:
-                from .utils import _schedule_weekly_scripts
+                # remove from other scripts
+                ScriptProgress.objects.exclude(script__slug="edtrac_autoreg").filter(connection=rep.default_connection).delete()
+
+
                 _schedule_weekly_scripts(reporter.groups.all()[0], reporter.default_connection, ['Teachers', 'Head Teachers', 'SMC'])
+
+
+                _schedule_monthly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_head_teachers_monthly', 'last', ['Head Teachers'])
+                _schedule_monthly_script(group, connection, 'edtrac_gem_monthly', 20, ['GEM'])
+                _schedule_monthly_script(reporter.groups.all()[0], reporter.default_connection, ['Head Teachers', 'GEM'])
+                _schedule_monthly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_smc_monthly', 5, ['SMC'])
+
+
+                _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_smc_termly', ['SMC'])
+                _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_head_teachers_termly', ['Head Teachers'])
+                _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, ['SMC', 'Head Teachers'])
+
+
+
+
+
         else:
             return render_to_response('education/partials/edit_reporter.html',
                     {'reporter_form': reporter_form,

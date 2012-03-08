@@ -55,7 +55,10 @@ class ReporterFreeSearchForm(FilterForm):
                 search = search[3:]
             elif search[:1] == '0':
                 search = search[1:]
-            queryset = queryset.filter(Q(name__icontains=search) | Q(reporting_location__name__icontains=search) | Q(connection__identity__icontains=search) | Q(schools__name__icontains=search)).distinct()    
+            queryset = queryset.filter(Q(name__icontains=search) |\
+                                       Q(reporting_location__name__icontains=search) |\
+                                       Q(connection__identity__icontains=search) |\
+                                       Q(schools__name__icontains=search)).distinct()
         return queryset
 
 class SchoolFilterForm(FilterForm):

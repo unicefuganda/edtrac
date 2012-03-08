@@ -21,7 +21,7 @@ class School(models.Model):
     location = models.ForeignKey(Location, related_name='schools')
 
     def __unicode__(self):
-        return '%s' % self.name
+        return '%s - %s' % (self.name, self.location.name)
 
 
 class EmisReporter(Contact):
