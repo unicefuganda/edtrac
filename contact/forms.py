@@ -23,6 +23,7 @@ from django.forms.util import ErrorList
 class FlaggedMessageForm(forms.ModelForm):
     class Meta:
         model = Flag
+        fields = ('name','rule','words',)
 
 
 class ReplyForm(forms.Form):
