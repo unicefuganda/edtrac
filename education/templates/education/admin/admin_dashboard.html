@@ -10,45 +10,53 @@
                 <h2 class="block-header">Attendance</h2>
                 <div class="top">
                     <table class="tabulated-data">
-                        <tr><th>Group</th><th>Absent</th><th>Weekly Change</th></tr>
+                        <tr><th>Group</th><th>Absent (%) This week</th><th>Absent (%) Last week</th><th>Weekly Change</th></tr>
                         <tr>
                             <td><a href="{% url boys-p3 %}">Boys P3</a></td>
                             <td>{{ boysp3|floatformat }}%</td>
+                            <td></td>
                             <td class="{{ boysp3_class }}">{{ boysp3_diff|floatformat }}%</td>
                         </tr>
                         <tr>
                             <td><a href="{% url girls-p3 %}">Girls P3</a></td>
                             <td>{{ girlsp3|floatformat }}%</td>
+                            <td></td>
                             <td class="{{ girlsp3_class }}">{{ girlsp3_diff|floatformat }}%</td>
                         </tr>
                         <tr>
                             <td><a href="{% url boys-p6 %}">Boys P6</a></td>
                             <td>{{ boysp6|floatformat }}%</td>
+                            <td></td>
                             <td class="{{ boysp6_class }}">{{ boysp6_diff|floatformat }}%</td>
                         </tr>
                         <tr>
                             <td><a href="{% url girls-p6 %}">Girls P6</a></td>
                             <td>{{ girlsp6|floatformat }}%</td>
+                            <td></td>
                             <td class="{{ girlsp6_class }}">{{ girlsp6_diff|floatformat }}%</td>
                         </tr>
                         <tr>
                             <td><a href="{% url f-teachers %}">Female Teachers</a></td>
                             <td>{{ female_teachers|floatformat }}%</td>
+                            <td></td>
                             <td class="{{ female_teachers_class }}">{{ female_teachers_diff|floatformat }}%</td>
                         </tr>
                         <tr>
                             <td><a href="{% url m-teachers %}">Male Teachers</a></td>
                             <td>{{ male_teachers|floatformat }}%</td>
+                            <td></td>
                             <td class="{{ male_teachers_class }}">{{ male_teachers_diff|floatformat }}%</td>
                         </tr>
                         <tr>
                             <td><a href="{% url f-h-teachers %}">Female H Teachers</a></td>
                             <td>10%</td>
+                            <td></td>
                             <td class="zero">0%</td>
                         </tr>
                         <tr>
                             <td><a href="{% url m-h-teachers %}">Male H Teachers</a></td>
                             <td>10%</td>
+                            <td></td>
                             <td class="negative">10%</td>
                         </tr>
                     </table>

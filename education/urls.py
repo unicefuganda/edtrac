@@ -183,8 +183,8 @@ urlpatterns = patterns('',
     url(r'^edtrac/dash_capitation/$', dash_capitation, {}, name="emis-dash-capitation"),
 
     # attendance views for all roles ---> data prepopulated by location
-    url(r'^edtrac/dash/boy-p3/attendance/$', boys_p3_attendance, {}, name="boys-p3"),
-    url(r'^edtrac/dash/boy-p6/attendance/$', boys_p6_attendance, {}, name="boys-p6"),
+    url(r'^edtrac/dash/boys-p3/attendance/$', boys_p3_attendance, {}, name="boys-p3"),
+    url(r'^edtrac/dash/boys-p6/attendance/$', boys_p6_attendance, {}, name="boys-p6"),
     url(r'^edtrac/dash/girls-p3/attendance/$', girls_p3_attendance, {}, name="girls-p3"),
     url(r'^edtrac/dash/girls-p6/attendance/$', girls_p6_attendance, {}, name="girls-p6"),
     url(r'^edtrac/dash/teacher-female/attendance/$', female_teacher_attendance, {}, name="f-teachers"),
@@ -200,8 +200,8 @@ urlpatterns = patterns('',
     url(r'^edtrac/dash_ministry_progress/$', dash_ministry_progress, {}, name="emis-ministry-curriculum-progress"),
     url(r'^edtrac/dash_admin_progress/$', dash_admin_progress, {}, name="emis-admin-curriculum-progress"),
 
-    url(r'^edtrac/violence_admin_details/$', ViolenceAdminDetails.as_view(), name="violence-admin-details"),
-    url(r'^edtrac/attd_admin_details/$', AttendanceAdminDetails.as_view(), name="attendance-admin-details"),
+    url(r'^edtrac/violence-admin-details/$', ViolenceAdminDetails.as_view(), name="violence-admin-details"),
+    url(r'^edtrac/attendance-admin-details/$', AttendanceAdminDetails.as_view(), name="attendance-admin-details"),
     url(r'^edtrac/attd_admin_details/search$', search_form, name="attendance-search"),
     # to find out about violence in a district
     url(r'^edtrac/violence/district/(?P<pk>\d+)/$', DistrictViolenceDetails.as_view(template_name =\

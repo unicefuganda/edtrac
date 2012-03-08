@@ -13,7 +13,7 @@ from uganda_common.reports import PollNumericResultsColumn, PollCategoryResultsC
 from uganda_common.utils import total_submissions, reorganize_location, total_attribute_value, previous_calendar_month
 from uganda_common.utils import reorganize_dictionary
 from education.utils import previous_calendar_week
-from education.models import EmisReporter, School
+from .models import EmisReporter, School
 from poll.models import Response, Poll
 import datetime, dateutils
 from types import NoneType
@@ -362,7 +362,8 @@ def othermessages(request, district_id=None):
 def reporters(request, district_id=None):
     user_location = get_location(request)
     black_listed_contacts = [b.connection for b in Blacklist.objects.all()]
-    return EmisReporter.objects.exclude(connection__in=black_listed_contacts).filter(reporting_location__in=user_location.get_descendants(include_self=True))
+    return EmisReporter.objects.exclude(connection__in=black_listed_contacts).filter(reporting_location__in=\
+        user_location.get_descendants(include_self=True)).distinct()
 
 def schools(request, district_id=None):
     user_location = get_location(request)
@@ -552,7 +553,7 @@ def get_week_date(number=None):
 
 def poll_response_sum(poll_queryset, **kwargs):
     #TODO refactor name of method
-    #TODO add poll_type to compute count of repsonses (i.e. how many YES' and Nos do exist)
+    #TODO add poll_type to compute count of repsonses (i.e. how many YES' and No's do exist)
     """
     This computes the eav response value to a poll
     can also be used to filter by district and create a dict with
@@ -714,20 +715,20 @@ def cleanup_sums(sums):
 
 def cleanup_differences_on_poll(responses):
     """a function to clean up total poll sums from districts and compute a difference"""
-    #use case --> on polls where a difference is needed between previous and current month
+    #use case --> on polls where a difference is needed between previous and current time epoch
     # this function also aggregates a Location wide-poll
-    current_month_sum = []
-    previous_month_sum = []
+    current_epoch_sum = []
+    previous_epoch_sum = []
     for x, y in responses:
-        current_month_sum.append(y[0][0])
-        previous_month_sum.append(y[1][0])
+        current_epoch_sum.append(y[0][0])
+        previous_epoch_sum.append(y[1][0])
 
-    current_month_sum = sum(filter(None, current_month_sum))
-    previous_month_sum = sum(filter(None, previous_month_sum))
+    current_epoch_sum = sum(filter(None, current_epoch_sum))
+    previous_epoch_sum = sum(filter(None, previous_epoch_sum))
 
     # difference
     try:
-        percent = 100 * (current_month_sum - previous_month_sum) / float(previous_month_sum)
+        percent = 100 * (current_epoch_sum - previous_epoch_sum) / float(previous_epoch_sum)
     except ZeroDivisionError:
         percent = 0
     return percent
@@ -739,11 +740,11 @@ def poll_responses_past_week_sum(poll_queryset, **kwargs):
 
     Usage:
         >>> #returns poll for current week
-        >>> get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"))
+        >>> poll_response_past_week_sum(Poll.objects.get(name="edtrac_boysp3_attendance"))
         >>> (23,6)
 
         >>>> # this returns sums of responses for a number of weeks while returning them as ranges
-        >>> get_sum_of_poll_response_past_week(Poll.objects.get(name="edtrac_boysp3_attendance"),
+        >>> poll_responses_past_week_sum(Poll.objects.get(name="edtrac_boysp3_attendance"),
         .... location="Kampala", weeks=1)
         >>> (34, 23)
     """
@@ -752,18 +753,19 @@ def poll_responses_past_week_sum(poll_queryset, **kwargs):
         first_quota, second_quota = get_week_date(number=kwargs.get('weeks'))
         #narrowing to location
         if kwargs.has_key('locations'):
+            # week_before would refer to the week before week that passed
             sum_of_poll_responses_week_before = sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.filter(
                 date__range = first_quota,
                 contact__in =\
                 Contact.objects.filter(reporting_location__in=kwargs.get('locations')))]))
-
+            # ``past week`` refers to the week that has passed
             sum_of_poll_responses_past_week = sum(filter(None,
                 [
                 r.eav.poll_number_value for r in poll_queryset.responses.filter(date__range = second_quota,
                     contact__in =\
                     Contact.objects.filter(reporting_location__in=kwargs.get('locations')))]))
 
-            return sum_of_poll_responses_past_week, sum_of_poll_responses_week_before
+            return [sum_of_poll_responses_past_week, sum_of_poll_responses_week_before]
     else:
         # getting country wide statistics
         first_quota, second_quota = get_week_date(number=1) # default week range to 1
@@ -780,10 +782,39 @@ def poll_responses_past_week_sum(poll_queryset, **kwargs):
 def poll_responses_term(poll_queryset, **kwargs):
 
     """
-    Function to get the results of a poll between now and beginning of term
+    Function to get the results of a poll between now and beginning of term (this is a broad spectrum poll)
+
+    >>> poll_response_term(Poll.objects.get(name="some_poll"), belongs_to='location', locations=Location.objects.all())
+    >>> ... returns responses that are broad
+
+    Another example:
+
+    >>> poll_response_term(Poll.objects.get(name="some_poll"), belongs_to="schools", school_id=5)
+    >>> ... returns responses coming in from reporters in a particular school
+
     """
+
     #TODO -> numeric polls, categorical polls
-    pass
+
+    if kwargs.get('belongs_to') == 'location':
+        return sum(filter(None, [
+            r.eav.poll_number_value
+            for r in poll_queryset.responses.filter(
+                date__range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')],
+                contact__in = Contact.objects.filter(reporting_location__in=kwargs.get('locations'))
+            )
+        ]))
+
+    elif kwargs.get('belongs_to') == 'schools':
+        return sum(filter(None, [
+            r.eav.poll_number_value
+            for r in poll_queryset.responses.filter(
+                date__range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')],
+                contact__in = School.objects.get(id=kwargs.get('school_id')).emisreporter_set.all()
+            )
+            ]))
+
+
 
 def generate_deo_report(location_name = None):
     from rapidsms.models import Connection
@@ -889,6 +920,47 @@ def get_responses_to_polls(**kwargs):
             for poll in poll_names:
                 responses[poll] = get_sum_of_poll_response(Poll.objects.get(name=poll))
             return responses #can be used as context variable too
+
+
+
+def return_absent(poll_name, enrollment, locations):
+    """
+    Handy function to get weekly figures for enrollment/deployment to get absenteism percentages; 
+    EMIS is about variances and differences, this not only returns values; it returns the percentage 
+    change too.
+
+    Value returned:
+            [<location>, <some_value1>, <some_value2>, <some_difference>]
+    """
+    to_ret = []
+    for loc in locations:
+        pre_ret = []
+        pre_ret.append(loc)
+        now, before = poll_responses_past_week_sum(Poll.objects.get(name=poll_name), weeks=1,\
+            locations=[loc])
+        current_enrollment = poll_responses_term(Poll.objects.get(name=enrollment), locations=[loc],\
+            belongs_to="location")
+        # computing absenteism
+        try:
+            percent_absent_now = 100 * (current_enrollment - now) / current_enrollment
+            percent_absent_before = 100 * (current_enrollment - before) / current_enrollment
+        except ZeroDivisionError:
+            percent_absent_now = 0.0
+            percent_absent_before = 0.0
+        
+        pre_ret.extend([percent_absent_now, percent_absent_before])
+
+        x,y = pre_ret[-2:]
+        
+        # append value difference
+        pre_ret.append( x - y)
+        to_ret.append(pre_ret)
+    
+    return to_ret
+
+
+
+#### Excel reporting
 
 def write_to_xls(sheet_name, headings, data):
     sheet = book.add_sheet(sheet_name)

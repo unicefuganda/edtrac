@@ -26,8 +26,8 @@ class School(models.Model):
 
 class EmisReporter(Contact):
     CLASS_CHOICES = (
-        ('P3', 'Primary Three'),
-        ('P6', 'Primary Six'),
+        ('P3', 'P3'),
+        ('P6', 'P6'),
         )
 
     grade = models.CharField(max_length=2, choices=CLASS_CHOICES, null=True)

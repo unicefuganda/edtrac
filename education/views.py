@@ -1,3 +1,4 @@
+from __future__ import division
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 import django.contrib
@@ -252,7 +253,6 @@ def dashboard(request):
 # generate context vars
 def generate_dashboard_vars(location=None):
     locations = []
-
     if location.name == "Uganda":
         # get locations from active districts only
         names = list(set(EmisReporter.objects.exclude(reporting_location=None).filter(reporting_location__type="district").\
@@ -282,7 +282,7 @@ def generate_dashboard_vars(location=None):
     try:
         boysp3 = 100*(poll_responses_past_week_sum(Poll.objects.get(name="edtrac_boysp3_enrollment"), weeks=1, locations=locations)[0] -\
                       poll_responses_past_week_sum(Poll.objects.get(name="edtrac_boysp3_attendance"), weeks=1, locations=locations)[0]) /\
-                 poll_responses_past_week_sum(Poll.objects.get(name="edtrac_boysp3_enrollment"), weeks=1, locations=locations)[0] or 0
+                 poll_responses_term(Poll.objects.get(name="edtrac_boysp3_enrollment"), belongs_to="location", locations=locations) or 0
         boysp3_diff = 100 * (x - y) / poll_responses_past_week_sum(Poll.objects.get(name="edtrac_boysp3_enrollment"), weeks=1, locations=locations)[0]
     except ZeroDivisionError:
         boysp3 = 0
@@ -298,7 +298,7 @@ def generate_dashboard_vars(location=None):
     try:
         boysp6 = 100*(poll_responses_past_week_sum(Poll.objects.get(name="edtrac_boysp6_enrollment"), weeks=1, locations=locations)[0] -\
                       poll_responses_past_week_sum(Poll.objects.get(name="edtrac_boysp6_attendance"), weeks=1, locations=locations)[0]) /\
-                 poll_responses_past_week_sum(Poll.objects.get(name="edtrac_boysp6_enrollment"), weeks=1, locations=locations)[0] or 0
+                 poll_responses_term(Poll.objects.get(name="edtrac_boysp6_enrollment"), locations=locations, belongs_to="location") or 0
         boysp6_diff = 100 * ( x - y ) / poll_responses_past_week_sum(Poll.objects.get(name="edtrac_boysp6_enrollment"),weeks=1, locations=locations)[0]
     except ZeroDivisionError:
         boysp6 = 0
@@ -314,7 +314,7 @@ def generate_dashboard_vars(location=None):
     try:
         girlsp3 = 100*(poll_responses_past_week_sum(Poll.objects.get(name="edtrac_girlsp3_enrollment"),locations=locations, weeks=1)[0] -\
                        poll_responses_past_week_sum(Poll.objects.get(name="edtrac_girlsp3_attendance"),locations=locations, weeks=1)[0]) /\
-                  poll_responses_past_week_sum(Poll.objects.get(name="edtrac_girlsp3_enrollment"),locations=locations, weeks=1)[0] or 0
+                  poll_responses_term(Poll.objects.get(name="edtrac_girlsp3_enrollment"),locations=locations, belongs_to="location") or 0
         girlsp3_diff = 100 * (x-y) / poll_responses_past_week_sum(Poll.objects.get(name="edtrac_girlsp3_enrollment"),locations=locations, weeks=1)[0]
     except ZeroDivisionError:
         girlsp3 = 0
@@ -330,7 +330,7 @@ def generate_dashboard_vars(location=None):
     try:
         girlsp6 = 100*(poll_responses_past_week_sum(Poll.objects.get(name="edtrac_girlsp6_enrollment"),locations=locations, weeks=1)[0] -\
                        poll_responses_past_week_sum(Poll.objects.get(name="edtrac_girlsp6_attendance"),locations=locations, weeks=1)[0]) /\
-                  poll_responses_past_week_sum(Poll.objects.get(name="edtrac_girlsp6_enrollment"),locations=locations, weeks=1)[0] or 0
+                  poll_responses_term(Poll.objects.get(name="edtrac_girlsp6_enrollment"),locations=locations, belongs_to="location") or 0
         girlsp6_diff = 100 * (x - y) / poll_responses_past_week_sum(Poll.objects.get(name="edtrac_girlsp6_enrollment"),locations=locations, weeks=1)[0]
     except ZeroDivisionError:
         girlsp6 = 0
@@ -344,9 +344,11 @@ def generate_dashboard_vars(location=None):
 
     x, y = poll_responses_past_week_sum(Poll.objects.get(name="edtrac_f_teachers_attendance"),locations=locations, weeks=1)
     try:
-        female_teachers = 100*(poll_responses_past_week_sum(Poll.objects.get(name="edtrac_f_teachers_deployment"),weeks=1, locations=locations)[0] -\
-                               poll_responses_past_week_sum(Poll.objects.get(name="edtrac_f_teachers_attendance"), weeks=1,locations=locations)[0]) /\
-                          poll_responses_past_week_sum(Poll.objects.get(name="edtrac_f_teachers_deployment"), weeks=1,locations=locations)[0] or 0
+        female_teachers = 100*(poll_responses_past_week_sum(Poll.objects.get(name="edtrac_f_teachers_deployment"),\
+            weeks=1, locations=locations)[0] - poll_responses_past_week_sum(Poll.objects.\
+                    get(name="edtrac_f_teachers_attendance"), weeks=1,locations=locations)[0]) /\
+                poll_responses_term(Poll.objects.get(name="edtrac_f_teachers_deployment"), belongs_to="location",locations=locations) or 0
+
         female_teachers_diff = 100 * (x - y) / poll_responses_past_week_sum(Poll.objects.get(name="edtrac_f_teachers_deployment"),weeks=1,locations=locations)[0]
     except ZeroDivisionError:
         female_teachers = 0
@@ -363,7 +365,7 @@ def generate_dashboard_vars(location=None):
     try:
         male_teachers = 100*(poll_responses_past_week_sum(Poll.objects.get(name="edtrac_m_teachers_deployment"),weeks=1,locations=locations)[0] -\
                              poll_responses_past_week_sum(Poll.objects.get(name="edtrac_m_teachers_attendance"),weeks=1,locations=locations)[0]) /\
-                        poll_responses_past_week_sum(Poll.objects.get(name="edtrac_m_teachers_deployment"),weeks=1,locations=locations)[0] or 0
+                        poll_responses_term(Poll.objects.get(name="edtrac_m_teachers_deployment"), belongs_to="location", locations=locations) or 0
         male_teachers_diff = 100 * (x - y) / poll_responses_past_week_sum(Poll.objects.get(name="edtrac_m_teachers_deployment"),weeks=1,locations=locations)[0]
     except ZeroDivisionError:
         male_teachers = 0
@@ -718,6 +720,8 @@ class DistrictMealsDetails(DetailView):
 ##########################################################################################################
 ##########################################################################################################
 
+HEADINGS = ['District', 'Absent (%) This week', 'Absent (%) Last week', 'Change (%) for absenteeism from last week']
+
 @login_required
 def boysp3_district_attd_detail(req, location_id):
     """
@@ -814,8 +818,6 @@ def male_t_district_attd_detail(req, location_id):
             ))
     return render_to_response("education/male_t_district_attd_detail.html", { 'location_data':to_ret }, RequestContext(req))
 
-
-
 def boys_p3_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
@@ -823,8 +825,9 @@ def boys_p3_attendance(req):
         """
         This view shows data by district
         """
-        locations = Location.objects.filter(name__in=EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True)).order_by("name")
+        locations = Location.objects.exclude(type="country").filter(name__in=EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True)).order_by("name")
         # return view that will give shool-based views
+        # --> ref function just below this <---
         return boys_p3_attd_admin(req, locations=locations)
     else:
         #DEO
@@ -847,20 +850,20 @@ def boys_p3_attendance(req):
                 'headings':['School', 'District', 'Number'],
                 'location_data': data_to_render
             },
-            RequestContext(req)
-
-        )
+            RequestContext(req))
 
 def boys_p3_attd_admin(req, **kwargs):
+    """
+    Helper function to get differences in absenteeism across districts.
+    """
     # P3 attendance /// what to show an admin or Ministry official
     locations = kwargs.get('locations')
-    to_ret = []
-    for loc in locations:
-        to_ret.append((loc, poll_response_sum(Poll.objects.get(name="edtrac_boysp3_attendance"), month_filter='weekly', location=loc)))
-
+    to_ret = return_absent('edtrac_boysp3_attendance', 'edtrac_boysp3_enrollment', locations)
     return render_to_response(
         'education/partials/boys_p3_attd_admin.html',
-        {'location_data':to_ret, 'headings':['District', 'Percentage'], 'week':datetime.datetime.now()}, RequestContext(req)
+        {'location_data':to_ret,
+         'headings': HEADINGS,
+         'week':datetime.datetime.now()}, RequestContext(req)
     )
 
 
@@ -868,133 +871,131 @@ def boys_p6_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
-        locations = Location.objects.filter(name__in=EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True)).order_by("name")
+        locations = Location.objects.exclude(type="country").filter(name__in=\
+            EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True)).order_by("name")
         return boys_p6_attd_admin(req, locations=locations)
     else:
         #DEO
         schools = School.objects.filter(location=location)
-    data_to_render = []
-    for school in schools:
-        data = poll_response_sum(Poll.objects.get(name="edtrac_boysp6_attendance"),month_filter='weekly',location=school.location)
-        data_to_render.append(
-            [
-                school,
-                school.location,
-                data
-            ]
+        data_to_render = []
+        for school in schools:
+            data = poll_response_sum(Poll.objects.get(name="edtrac_boysp6_attendance"),month_filter='weekly',location=school.location)
+            data_to_render.append(
+                [
+                    school,
+                    school.location,
+                    data
+                ]
+            )
+
+        return  render_to_response(
+            'education/partials/boys_p6_attendance.html',
+                {
+                'week':datetime.datetime.now(),
+                'headings':['School', 'District', 'Number'],
+                'location_data': data_to_render
+            },
+            RequestContext(req)
         )
 
-    return  render_to_response(
-        'education/partials/boys_p6_attendance.html',
-            {
-            'week':datetime.datetime.now(),
-            'headings':['School', 'District', 'Number'],
-            'location_data': data_to_render
-        },
-        RequestContext(req)
-    )
-
 def boys_p6_attd_admin(req, **kwargs):
-    # P3 attendance /// what to show an admin or Ministry official
+    """
+    Helper function to get differences in absenteeism across districts for P6 boys.
+    """
+    # P6 attendance /// what to show an admin or Ministry official
     locations = kwargs.get('locations')
-    to_ret = []
-    for loc in locations:
-        to_ret.append((loc, poll_response_sum(Poll.objects.get(name="edtrac_boysp6_attendance"), month_filter='weekly', location=loc)))
-
+    to_ret = return_absent('edtrac_boysp6_attendance', 'edtrac_boysp6_enrollment', locations)
+    
     return render_to_response(
         'education/partials/boys_p6_attd_admin.html',
-            {'location_data':to_ret, 'headings':['District', 'Percentage'], 'week':datetime.datetime.now()}, RequestContext(req)
-    )
-
+        {'location_data':to_ret,
+            'headings': HEADINGS,
+            'week':datetime.datetime.now()}, RequestContext(req))            
 
 
 def girls_p3_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
-        schools = School.objects.filter(location__name__in=EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True))
+        locations = Location.objects.exclude(type="country").filter(name__in=\
+            EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True)).order_by("name")
+        return girls_p3_attd_admin(req, locations=locations)
     else:
         #DEO
         schools = School.objects.filter(location=location)
-    data_to_render = []
+        data_to_render = []
 
-    for school in schools:
-        data = poll_response_sum(Poll.objects.get(name="edtrac_girlsp3_attendance"),month_filter='weekly',location=school.location)
-        data_to_render.append(
-            [
-                school,
-                school.location,
-                data
-            ]
-        )
+        for school in schools:
+            data = poll_response_sum(Poll.objects.get(name="edtrac_girlsp3_attendance"),month_filter='weekly',location=school.location)
+            data_to_render.append([school, school.location, data])
 
-    return render_to_response(
-        'education/partials/girls_p3_attendance.html',
-            {
-            'week':datetime.datetime.now(),
-            'headings':['School', 'District', 'Number'],
-            'location_data': data_to_render
-        },
-        RequestContext(req)
-    )
+            return render_to_response('education/partials/girls_p3_attendance.html',{
+                                        'week':datetime.datetime.now(),
+                                        'headings':['School', 'District', 'Number'],
+                                        'location_data': data_to_render}, RequestContext(req))
+
+def girls_p3_attd_admin(req, locations=None):
+    """
+    Helper function to get differences in absenteeism across districts for P3 girls
+    """
+    to_ret = return_absent('edtrac_girlsp3_attendance', 'edtrac_girlsp3_enrollment', locations=locations)
+    return render_to_response('education/partials/girls_p3_attd_admin.html', 
+        {'location_data':to_ret,'headings':HEADINGS,'week':datetime.datetime.now()}, RequestContext(req))
+
 
 def girls_p6_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
-        schools = School.objects.filter(location__name__in=EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True))
+        locations = Location.objects.exclude(type="country").filter(name__in=\
+            EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True)).order_by("name")
+        return girls_p6_attd_admin(req, locations=locations)
     else:
         #DEO
         schools = School.objects.filter(location=location)
-    data_to_render = []
-    for school in schools:
-        data = poll_response_sum(Poll.objects.get(name="edtrac_girlsp6_attendance"),month_filter='weekly',location=school.location)
-        data_to_render.append(
-            [
-                school,
-                school.location,
-                data
-            ]
-        )
-    return render_to_response(
-        'education/partials/girls_p6_attendance.html',
-            {
-            'week':datetime.datetime.now(),
-            'headings':['School', 'District', 'Number'],
-            'location_data': data_to_render
-        },
-        RequestContext(req)
-    )
+        data_to_render = []
+        for school in schools:
+            data = poll_response_sum(Poll.objects.get(name="edtrac_girlsp6_attendance"),month_filter='weekly',location=school.location)
+            data_to_render.append([school, school.location, data])
+        return render_to_response(
+            'education/partials/girls_p6_attendance.html',
+                {'week':datetime.datetime.now(),
+                'headings':['School', 'District', 'Number'],
+                'location_data': data_to_render}, RequestContext(req))
+
+def girls_p6_attd_admin(req, locations=None):
+    """
+    Helper function to get differences in absenteeism across districts for P6 girls
+    """
+    to_ret = return_absent('edtrac_girlsp6_attendance', 'edtrac_girlsp6_enrollment', locations=locations)
+    return render_to_response('education/partials/girls_p6_attd_admin.html',
+        {'location_data':to_ret, 'headings':HEADINGS, 'week':datetime.datetime.now()}, RequestContext(req))
 
 def female_teacher_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
-        schools = School.objects.filter(location__name__in=EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True))
+        locations = Location.objects.exclude(type="country").filter(name__in=\
+            EmisReporter.objects.distinct().values_list('reporting_location__name',flat=True)).order_by("name")
+        return female_attd_admin(req, locations=locations)
     else:
         #DEO
         schools = School.objects.filter(location=location)
 
-    data_to_render = []
-    for school in schools:
-        data = poll_response_sum(
-            Poll.objects.get(name="edtrac_f_teachers_attendance"),month_filter='weekly',location=school.location)
-        data_to_render.append(
-            [
-                school,
-                school.location,
-                data
-            ]
+        data_to_render = []
+        for school in schools:
+            data = poll_response_sum(
+                Poll.objects.get(name="edtrac_f_teachers_attendance"),month_filter='weekly',location=school.location)
+            data_to_render.append([school, school.location, data])
+        return render_to_response(
+            'education/partials/female_teachers_attendance.html',
+                {
+                'week':datetime.datetime.now(),
+                'headings':['School', 'District', 'Number'],
+                'location_data': data_to_render
+            },
+            RequestContext(req)
         )
-    return render_to_response(
-        'education/partials/female_teachers_attendance.html',
-            {
-            'week':datetime.datetime.now(),
-            'headings':['School', 'District', 'Number'],
-            'location_data': data_to_render
-        },
-        RequestContext(req)
-    )
 
 def male_teacher_attendance(req):
     location = req.user.get_profile().location
@@ -1057,10 +1058,11 @@ def female_head_teacher_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
-        schools = School.objects.filter(location__name__in=EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True))
+        schools = School.objects.filter(location__name__in=list(set(EmisReporter.objects.distinct().\
+            values_list('reporting_location__name', flat=True)))).order_by('name','location__name')
     else:
         #DEO
-        schools = School.objects.filter(location=location)
+        schools = School.objects.filter(location=location).order_by("name", "location__name")
     data_to_render = []
     for school in schools:
         #TODO separate male and female head teachers
