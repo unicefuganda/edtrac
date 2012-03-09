@@ -264,7 +264,7 @@ def generate_dashboard_vars(location=None):
 
     responses_to_violence = poll_response_sum(
         Poll.objects.get(name = "edtrac_headteachers_abuse"),
-        month_filter = 'biweekly', locations = locations)
+        month_filter = 'monthly', locations = locations)
     # percentage change in violence from previous month
     violence_change = cleanup_sums(responses_to_violence)
     if violence_change > 0:

@@ -537,7 +537,7 @@ def get_month_day_range(date, **kwargs):
             date -= relativedelta(months=i)
             last_day = date + relativedelta(day = 1, months =+ 1, days =- 1)
             first_day = date + relativedelta(day = 1)
-            to_ret.append((first_day, last_day))
+            to_ret.append([first_day, last_day])
         return to_ret
 
 def get_week_date(number=None):
@@ -562,7 +562,7 @@ def poll_response_sum(poll_queryset, **kwargs):
     #TODO: provide querying by date too
     s = 0
     if kwargs:
-        if kwargs.has_key('month_filter') and not kwargs.get('month_filter') in ['biweekly','weekly','termly'] and not kwargs.has_key('location'):
+        if kwargs.has_key('month_filter') and not kwargs.get('month_filter') in ['biweekly','weekly','monthly','termly'] and not kwargs.has_key('location'):
             # when no location is provided { worst case scenario }
             DISTRICT = ['Kaabong', 'Kabarole', 'Kyegegwa', 'Kotido']
             to_ret = {}
@@ -675,6 +675,27 @@ def poll_response_sum(poll_queryset, **kwargs):
                         )
                         ]))
             ]
+
+
+        if kwargs.get('month_filter')=='monthly' and kwargs.has_key('locations'):
+            # return just one figure/sum without all the list stuff
+            current_month, previous_month = get_month_day_range(datetime.datetime.now(), depth=2)
+            return [sum(filter(None,
+                [
+                r.eav.poll_number_value for r in poll_queryset.responses.filter(
+                    contact__in=Contact.objects.filter(reporting_location__in=kwargs.get('locations')),
+                    date__range = current_month
+                )
+                ])),
+                    sum(filter(None,
+                        [
+                        r.eav.poll_number_value for r in poll_queryset.responses.filter(
+                            contact__in=Contact.objects.filter(reporting_location__in=kwargs.get('locations')),
+                            date__range = previous_month
+                        )
+                        ]))
+            ]
+
 
         date_week = [datetime.datetime.now()-datetime.timedelta(days=7), datetime.datetime.now()]
         if kwargs.get('month_filter')=='weekly' and kwargs.has_key('location'):
