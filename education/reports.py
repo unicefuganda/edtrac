@@ -361,8 +361,7 @@ def othermessages(request, district_id=None):
 
 def reporters(request, district_id=None):
     user_location = get_location(request)
-    black_listed_contacts = [b.connection for b in Blacklist.objects.all()]
-    return EmisReporter.objects.exclude(connection__in=black_listed_contacts).filter(reporting_location__in=\
+    return EmisReporter.objects.exclude(connection__in=Blacklist.objects.all().values_list('connection', flat=True)).filter(reporting_location__in=\
         user_location.get_descendants(include_self=True)).distinct()
 
 def schools(request, district_id=None):
