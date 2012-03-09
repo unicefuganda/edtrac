@@ -4,6 +4,7 @@ from rapidsms.messages.incoming import IncomingMessage
 from education.models import EmisReporter
 from rapidsms_httprouter.models import Message
 from rapidsms_httprouter.router import get_router
+from unregister.models import Blacklist
 import random
 
 
@@ -16,25 +17,25 @@ def fake_incoming_message(message, connection):
     incomingmessage.db_message.handled_by = 'poll'
     return incomingmessage
 
-def fake_poll_responses(poll_tuple, grp):
+def fake_poll_responses(poll_name, grp):
 
     yesno_resp = ['yes', 'no']
     text_resp = ['0%', '25%', '50%', '75%', '100%']
-    poll = Poll.objects.get(name=poll_tuple[1])
+    poll = Poll.objects.get(name=poll_name)
     rep_count = EmisReporter.objects.filter(groups__name=grp).count()
 
-    for rep in EmisReporter.objects.filter(groups__name=grp):
+    for rep in EmisReporter.objects.exclude(connection__in=Blacklist.objects.values_list('connection',flat=True)).filter(groups__name=grp).distinct()[:100]:
         if not rep.default_connection == None:
-            if poll_tuple[0] == Poll.TYPE_NUMERIC:
+            if poll.type == Poll.TYPE_NUMERIC:
                 poll.process_response(fake_incoming_message('%s' % random.randint(0,9), rep.default_connection))
                 #poll.process_response(fake_incoming_message('%s' % random.choice(text_resp), rep.default_connection))
-            elif poll_tuple[0] == Poll.TYPE_TEXT:
+            elif poll.type == Poll.TYPE_TEXT:
             #            if poll.categories.values_list('name', flat=True)[0] in ['yes', 'no', 'unknown']:
             #                resp = random.choice(yesno_resp)
             #            else:
                 resp = random.choice(text_resp)
                 poll.process_response(fake_incoming_message(resp, rep.default_connection))
-            elif poll_tuple[0] == Poll.TYPE_CHOICES:
+            elif poll.type == Poll.TYPE_CHOICES:
                 pass
         #just ignore folks with no default connection
         pass
@@ -43,9 +44,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         poll_name = args[0]
         grp = args[1]
-        poll = Poll.objects.get(name=poll_name)
         fake_poll_responses(
-            (poll.type, poll.name),
+            poll_name,
             grp
         )
         print "finished creating responses"

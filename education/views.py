@@ -668,23 +668,23 @@ class DistrictViolenceDetails(DetailView):
         schools = School.objects.filter(location=location)
         school_case = []
         for school in schools:
+            # optimize with value queries
             resps = Poll.objects.get(name="edtrac_headteachers_abuse").responses.filter(contact__in=\
-                EmisReporter.objects.filter(schools__in=[school]),
-                    date__range = get_month_day_range(datetime.datetime.now())
-                )
+                EmisReporter.objects.filter(schools__in=[school]).values_list('connection__contact'),date__range = get_month_day_range(datetime.datetime.now()))
             school_case.append((school,
                                 sum(filter(None, [r.eav.poll_number_value for r in resps]))
                 ))
-            school_case.append((school, int(sum_of_values)))
 
         #schools and reports from a district
 
-        reports = get_sum_of_poll_response(Poll.objects.get(name="edtrac_headteachers_abuse"), month_filter=True, months=1)
-        emis_reporters = EmisReporter.objects.filter(schools__in=schools)
+        reports = poll_response_sum(Poll.objects.get(name="edtrac_headteachers_abuse"), month_filter=True, months=1)
+        emis_reporters = EmisReporter.objects.exclude(connection__in=\
+            Blacklist.objects.values_list('connection')).filter(schools__in=schools)
 
         context['location'] = location
         context['school_vals'] = school_case
-        context['school_count'] = School.objects.filter(location=location).count()
+        context['school_count'] = School.objects.filter(location__in=EmisReporter.objects.\
+            values_list('reporting_location').exclude(connection__in=Blacklist.objects.values_list('connection'))).count()
         context['month'] = datetime.datetime.now()
         return context
 
@@ -720,7 +720,7 @@ class DistrictMealsDetails(DetailView):
 ##########################################################################################################
 ##########################################################################################################
 
-HEADINGS = ['District', 'Absent (%) This week', 'Absent (%) Last week', 'Change (%) for absenteeism from last week']
+HEADINGS = ['Location', 'Absent (%) This week', 'Absent (%) Last week', 'Change (%) for absenteeism from last week']
 
 @login_required
 def boysp3_district_attd_detail(req, location_id):
@@ -1001,7 +1001,7 @@ def female_teacher_attd_admin(req, locations=None):
     """
     Helper function to get differences in absenteeism across districts for all female teachers
     """
-    to_ret = return_absent('edtrac_f_teachers_attendance', 'edtrac_f_teachers_enrollment', locations=locations)
+    to_ret = return_absent('edtrac_f_teachers_attendance', 'edtrac_f_teachers_deployment', locations=locations)
     return render_to_response('education/partials/female_teachers_attd_admin.html',
             {'location_data':to_ret,
              'headings':HEADINGS,
@@ -1037,7 +1037,7 @@ def male_teacher_attd_admin(req, locations=None):
     """
     Helper function to get differences in absenteeism across districts for all female teachers
     """
-    to_ret = return_absent('edtrac_m_teachers_attendance', 'edtrac_m_teachers_enrollment', locations=locations)
+    to_ret = return_absent('edtrac_m_teachers_attendance', 'edtrac_m_teachers_deployment', locations=locations)
     return render_to_response('education/partials/male_teachers_attd_admin.html',
             {'location_data':to_ret,
              'headings':HEADINGS,

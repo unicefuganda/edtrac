@@ -205,7 +205,7 @@ urlpatterns = patterns('',
     url(r'^edtrac/attd_admin_details/search$', search_form, name="attendance-search"),
     # to find out about violence in a district
     url(r'^edtrac/violence/district/(?P<pk>\d+)/$', DistrictViolenceDetails.as_view(template_name =\
-    "education/dashboard/district_violence_detail.html"), name="district-violence"),
+        "education/dashboard/district_violence_detail.html"), name="district-violence"),
     url(r'^edtrac/violence_deo_details/$', ViolenceDeoDetails.as_view(), name="violence-deo-details"),
     url(r'^edtrac/dash_ministry_attdance/$', dash_attdance, {}, name="emis-ministry-dash-attdance"),
     url(r'^edtrac/dash_ministry_violence/$', dash_ministry_violence, {}, name="emis-ministry-dash-violence"),

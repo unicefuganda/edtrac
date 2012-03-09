@@ -6,6 +6,7 @@ from generic.reporting.views import ReportView
 from generic.utils import flatten_list
 from rapidsms.contrib.locations.models import Location
 from rapidsms_httprouter.models import Message
+from rapidsms.models import Connection
 from django.db.models import Q
 from script.models import Script
 from rapidsms_xforms.models import XFormSubmissionValue, XForm, XFormSubmission
@@ -816,8 +817,6 @@ def poll_responses_term(poll_queryset, **kwargs):
 
 
 def generate_deo_report(location_name = None):
-    from rapidsms.models import Connection
-
     if location_name is None:
         return
     else:

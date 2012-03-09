@@ -1,50 +1,39 @@
-{% extends "layout.html" %}
+{% extends "education/admin/admin_dashboard.html" %}
 {% load humanize %}
-{% block stylesheets %}
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/layout.css" />
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/splits.css" />
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/modules.css" />
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/icons.css" />
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}generic/stylesheets/generic.css" />
-<link type="text/css" rel="stylesheet" href="{{MEDIA_URL}}education/stylesheets/emis.css"/>
-<link type="text/css" rel="stylesheet" href="{{MEDIA_URL}}education/stylesheets/jquery-ui-1.7.3.custom.css"/>
-{% endblock %}
-{% block javascripts %}
-{{ block.super }}
-<!-- {% include "education/partials/chart/javascripts.html" %} -->
-<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/highcharts.js"></script>
-<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/emis_dashboard_charts.js"></script>
-<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-ui-1.7.3.custom.min.js"></script>
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
-{% endblock javascripts %}
+
 {% block content %}
-<p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; line-height: inherit;">← Back to EdTrac Home Page</a></p
-<div class="top-welcome">
-    <span style="font-size:1.2em;">{{ location }}</span>
-<span>There are a total of {{ school_count }} schools in this district</span>
-</div>
-        <ul>
-<div class="table_data">
-    <table class="classy">
-        <thead>
-        <tr>
-            <th>
-                School
-            </th>
-            <th>
-                Numbers of Cases this {{ month|date:"M Y" }}
-            </th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for school,val in school_vals %}
-		{% if val == 0 %}
-		{% else %}
-        <tr><td><a href="{% url school-detail school.pk %}">{{ school }}</a></td><td>{{ val }}</td></tr>
-		{% endif %}
-        {% endfor %}
-        </tbody>
-    </table>
+
+<div class="attendance">
+    <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; line-height: inherit;">← Back to EdTrac Home Page</a></p
+    <div class="top-welcome">
+        <span style="font-size:1.2em;">{{ location }}</span>
+        <span>There are a total of {{ school_count }} schools in this district</span>
+    </div>
+
+
+    <div class="top">
+        <h2 class="block-header">Violence Records (for past 2 months)</h2>
+        <table class="tabulated-data">
+            <thead>
+            <tr>
+                <th>
+                    School
+                </th>
+                <th>
+                    Numbers of Cases this {{ month|date:"M Y" }}
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for school,val in school_vals %}
+                {% if val == 0 %}
+                {% else %}
+                <tr><td><a href="{% url school-detail school.pk %}">{{ school }}</a></td><td>{{ val }}</td></tr>
+                {% endif %}
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 
 {% endblock %}
