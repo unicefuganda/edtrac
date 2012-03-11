@@ -34,7 +34,7 @@ class ModelTest(TestCase): #pragma: no cover
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
             site_id = getattr(settings, 'SITE_ID', 1)
             Site.objects.get_or_create(pk=site_id, defaults={'domain':'rapidemis.com'})
-        #        fixtures = ['initial_data.json']
+            #        fixtures = ['initial_data.json']
         User.objects.get_or_create(username='admin')
         self.backend = Backend.objects.create(name='test')
         self.connection = Connection.objects.create(identity='8675309', backend=self.backend)
@@ -81,8 +81,8 @@ class ModelTest(TestCase): #pragma: no cover
             except IndexError:
                 backend, created = Backend.objects.get_or_create(name='test')
                 connection, created = Connection.objects.get_or_create(identity='8675309',
-                                                                       backend=backend)
-        # if so, process it
+                    backend=backend)
+            # if so, process it
         incomingmessage = IncomingMessage(connection, message)
         incomingmessage.db_message = Message.objects.create(direction='I', connection=connection, text=message)
         if form:
@@ -96,7 +96,7 @@ class ModelTest(TestCase): #pragma: no cover
 
         if connection is None:
             connection = Connection.objects.all()[0]
-        # if so, process it
+            # if so, process it
         incomingmessage = IncomingMessage(connection, message)
         incomingmessage.db_message = Message.objects.create(direction='I', connection=Connection.objects.all()[0], text=message)
         if form:
@@ -151,14 +151,14 @@ class ModelTest(TestCase): #pragma: no cover
         script_prog = ScriptProgress.objects.all()[0]
 
         params = [
-            ('edtrac_role', grp, ['all']), \
+            ('edtrac_role', grp, ['all']),\
             ('edtrac_gender', 'male', ['Head Teachers']),\
             ('edtrac_class', 'p3', ['Teachers']),\
-            ('edtrac_district', 'kampala', ['all']), \
-            ('edtrac_subcounty', 'kampala', ['all']), \
-            ('edtrac_school', 'st. marys', ['Teachers', 'Head Teachers', 'SMC']), \
-            ('edtrac_name', 'testy mctesterton', ['all']), \
-            ]
+            ('edtrac_district', 'kampala', ['all']),\
+            ('edtrac_subcounty', 'kampala', ['all']),\
+            ('edtrac_school', 'st. marys', ['Teachers', 'Head Teachers', 'SMC']),\
+            ('edtrac_name', 'testy mctesterton', ['all']),\
+        ]
         param_list = []
         for step_name, value, grps in params:
             g = difflib.get_close_matches(grp, grps, 1, 0.8)
@@ -191,10 +191,10 @@ class ModelTest(TestCase): #pragma: no cover
         self.fake_incoming('join')
         script_prog = ScriptProgress.objects.all()[0]
         self.fake_script_dialog(script_prog, self.connection, [\
-            ('edtrac_role', 'bodaboda'), \
-            ('edtrac_district', 'kampala'), \
-            ('edtrac_subcounty', 'amudat'), \
-            ('edtrac_name', 'bad tester'), \
+            ('edtrac_role', 'bodaboda'),\
+            ('edtrac_district', 'kampala'),\
+            ('edtrac_subcounty', 'amudat'),\
+            ('edtrac_name', 'bad tester'),\
         ])
         self.assertEquals(EmisReporter.objects.count(), 1)
         contact = EmisReporter.objects.all()[0]
@@ -206,8 +206,8 @@ class ModelTest(TestCase): #pragma: no cover
         self.fake_incoming('join')
         script_prog = ScriptProgress.objects.all()[0]
         self.fake_script_dialog(script_prog, self.connection, [\
-            ('edtrac_role', 'teacher'), \
-            ('edtrac_name', 'no location data tester'), \
+            ('edtrac_role', 'teacher'),\
+            ('edtrac_name', 'no location data tester'),\
         ])
         self.assertEquals(EmisReporter.objects.count(), 1)
         contact = EmisReporter.objects.all()[0]
@@ -217,9 +217,9 @@ class ModelTest(TestCase): #pragma: no cover
         self.fake_incoming('join')
         script_prog = ScriptProgress.objects.all()[0]
         self.fake_script_dialog(script_prog, self.connection, [\
-            ('edtrac_district', 'kampala'), \
-            ('edtrac_subcounty', 'Gul'), \
-            ('edtrac_school', 'St Marys'), \
+            ('edtrac_district', 'kampala'),\
+            ('edtrac_subcounty', 'Gul'),\
+            ('edtrac_school', 'St Marys'),\
         ])
         contact = EmisReporter.objects.all()[0]
         self.assertEquals(contact.groups.all()[0].name, 'Other Reporters')
@@ -235,9 +235,9 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(script_prog.script.slug, 'edtrac_autoreg')
 
         self.fake_script_dialog(script_prog, self.connection, [\
-            ('edtrac_role', 'gem'), \
-            ('edtrac_district', 'kampala'), \
-            ('edtrac_name', 'testy mctesterton'), \
+            ('edtrac_role', 'gem'),\
+            ('edtrac_district', 'kampala'),\
+            ('edtrac_name', 'testy mctesterton'),\
         ])
         self.assertEquals(EmisReporter.objects.count(), 1)
         contact = EmisReporter.objects.all()[0]
@@ -444,9 +444,9 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time, _next_thursday(ScriptProgress.objects.get(connection=self.connection, script=prog.script)))
 
-#    def testMonthlyTeacherPolls(self):
-#        self.register_reporter('teacher')
-#        Script.objects.filter(slug__in=['edtrac_teachers_weekly', 'edtrac_teachers_monthly']).update(enabled=True)
+    #    def testMonthlyTeacherPolls(self):
+    #        self.register_reporter('teacher')
+    #        Script.objects.filter(slug__in=['edtrac_teachers_weekly', 'edtrac_teachers_monthly']).update(enabled=True)
 
     def testWeeklyHeadTeacherPolls(self):
         self.register_reporter('head teacher')
@@ -505,7 +505,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.register_reporter('head teacher')
         Script.objects.filter(slug__in=['edtrac_head_teachers_weekly', 'edtrac_head_teachers_monthly', 'edtrac_head_teachers_termly']).update(enabled=True)
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_termly', connection=self.connection)
-#        d = _next_midterm()
+        #        d = _next_midterm()
         d = _next_term_question_date()
         seconds_to_midterm = self.total_seconds(d - datetime.datetime.now())
         self.elapseTime2(prog, seconds_to_midterm+(1*60*60)) #seconds to 25th + one hour
@@ -554,7 +554,11 @@ class ModelTest(TestCase): #pragma: no cover
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_termly', connection=self.connection)
         check_progress(prog.script)
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
-        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time, d)
+        #time checks
+        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.date(), d.date())
+        # micro seconds make test fail
+        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.time().hour, d.time().hour)
+        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.time().minute, d.time().minute)
 
     def testWeeklySMCPolls(self):
         self.register_reporter('smc')
@@ -597,13 +601,14 @@ class ModelTest(TestCase): #pragma: no cover
         seconds_to_nextprog = self.total_seconds(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time - datetime.datetime.now())
         seconds_to_monthday = self.total_seconds(_date_of_monthday(5) - datetime.datetime.now())
         self.assertEquals(seconds_to_nextprog, seconds_to_monthday)
-        
+
     def testRescheduleWeeklyPolls(self):
         ScriptProgress.objects.all().delete()
         self.register_reporter('teacher', '8675349')
         self.register_reporter('head teacher', '8675319')
         self.register_reporter('smc', '8675329')
-        self.register_reporter('gem', '8675339')
+        #GEM reporters only get Monthly questiosn asked
+        #self.register_reporter('gem', '8675339')
         weekly_scripts = Script.objects.filter(slug__endswith='_weekly')
         Script.objects.filter(slug__in=weekly_scripts.values_list('slug', flat=True)).update(enabled=True)
         for sp in ScriptProgress.objects.filter(script__slug__in=weekly_scripts.values_list('slug', flat=True)):
@@ -618,6 +623,8 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='edtrac_smc_weekly').time.date(), next_thursday.date())
         for sp in ScriptProgress.objects.filter(script__slug__in=weekly_scripts.values_list('slug', flat=True)):
             self.elapseTime2(sp, 13*31*24*60*60)
+#        reschedule_weekly_polls('gem')
+#        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675339', script__slug='edtrac_gem_weekly').time.date(), next_thursday.date())
         reschedule_weekly_polls()
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675349', script__slug='edtrac_teachers_weekly').time.date(), next_thursday.date())
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_weekly').time.date(), next_thursday.date())

@@ -55,7 +55,10 @@ class ReporterFreeSearchForm(FilterForm):
                 search = search[3:]
             elif search[:1] == '0':
                 search = search[1:]
-            queryset = queryset.filter(Q(name__icontains=search) | Q(reporting_location__name__icontains=search) | Q(connection__identity__icontains=search) | Q(schools__name__icontains=search)).distinct()    
+            queryset = queryset.filter(Q(name__icontains=search) |\
+                                       Q(reporting_location__name__icontains=search) |\
+                                       Q(connection__identity__icontains=search) |\
+                                       Q(schools__name__icontains=search)).distinct()
         return queryset
 
 class SchoolFilterForm(FilterForm):
@@ -76,9 +79,11 @@ class NewConnectionForm(forms.Form):
     identity = forms.CharField(max_length=15, required=True, label="Primary contact information")
 
 class EditReporterForm(forms.ModelForm):
+
     def __init__(self, *args, **kwargs):
            super(EditReporterForm, self).__init__(*args, **kwargs)
            self.fields['reporting_location'] = TreeNodeChoiceField(queryset=self.fields['reporting_location'].queryset, level_indicator=u'.')
+           self.fields['schools'].required = False
            self.fields['grade'].required = False
 
     class Meta:

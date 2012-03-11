@@ -3,6 +3,7 @@ Created on Sep 15, 2011
 
 @author: asseym
 '''
+from __future__ import division
 from script.utils.handling import find_best_response
 from script.models import Script, ScriptSession, ScriptProgress
 from rapidsms.models import Connection

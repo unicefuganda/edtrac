@@ -16,10 +16,12 @@
 
             </thead>
             <tbody>
-            {% for a, b in location_data %}
+            {% for district, cur_value, prev_value, diff in location_data %}
             <tr>
-                <td><a href="{% url boysp6-district-attd-detail a.id %}">{{ a }}</a></td>
-                <td>{{ b }}</td>
+                <td><a href="{% url boysp6-district-attd-detail district.id %}">{{ district }}</a></td>
+                <td>{% ifequal cur_value 0%} -- {% else %} {{ cur_value }} {% endifequal %}</td>
+                <td>{% ifequal prev_value 0%} -- {% else %} {{ prev_value }} {% endifequal %}</td>
+                <td>{{ diff }}</td>
             </tr>
             {% endfor %}
             </tbody>
@@ -29,15 +31,5 @@
         {% show_pages %}
     </div>
 </div>
-<script>
-    $(function(){
-        $(".tabulated-data").tablesorter({sortList: [
-            [0,0],
-            [1,0]
-        ]});
-    });
-</script>
-
-
 
 {% endblock %}

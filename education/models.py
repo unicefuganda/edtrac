@@ -21,13 +21,13 @@ class School(models.Model):
     location = models.ForeignKey(Location, related_name='schools')
 
     def __unicode__(self):
-        return '%s' % self.name
+        return '%s - %s' % (self.name, self.location.name)
 
 
 class EmisReporter(Contact):
     CLASS_CHOICES = (
-        ('P3', 'Primary Three'),
-        ('P6', 'Primary Six'),
+        ('P3', 'P3'),
+        ('P6', 'P6'),
         )
 
     grade = models.CharField(max_length=2, choices=CLASS_CHOICES, null=True)

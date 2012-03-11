@@ -153,6 +153,8 @@ def init_scripts():
                            ],
         'gem monthly':[(Poll.TYPE_TEXT, 'edtrac_gem_headteacher_present', 'Name the schools where the Head teacher was present at your last visit? Separate schools with a comma e.g St Peters PS, St John PS',),
                        (Poll.TYPE_TEXT, 'edtrac_gem_headteacher_absent', 'Name the schools where the Head teacher was absent at your last visit? Separate schools with a comma e.g St Peters PS, St John PS',),
+                        (Poll.TYPE_NUMERIC, 'edtrac_gem_abuse', 'How many violence cases were reported to you this month? Answer with a number.')
+
                            ],
         'head teachers termly':[(Poll.TYPE_NUMERIC, 'edtrac_boysp3_enrollment', 'How many boys are enrolled in P3 this term?',),
                                 (Poll.TYPE_NUMERIC, 'edtrac_boysp6_enrollment', 'How many boys are enrolled in P6 this term?',),
