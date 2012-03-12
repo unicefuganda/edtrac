@@ -28,6 +28,11 @@ from poll.models import ResponseCategory
 import difflib
 
 
+
+
+class ViewTest(TestCase):
+    pass
+
 class ModelTest(TestCase): #pragma: no cover
 
     def setUp(self):
