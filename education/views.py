@@ -1190,14 +1190,13 @@ def edit_reporter(request, reporter_pk):
             reporter_form.save()
             if reporter.default_connection and reporter.groups.count() > 0:
                 # remove from other scripts
-                ScriptProgress.objects.exclude(script__slug="edtrac_autoreg").filter(connection=rep.default_connection).delete()
-
-
+                from .utils import _schedule_weekly_scripts, _schedule_monthly_script, _schedule_termly_script
+                ScriptProgress.objects.exclude(script__slug="edtrac_autoreg").filter(connection=reporter.default_connection).delete()
                 _schedule_weekly_scripts(reporter.groups.all()[0], reporter.default_connection, ['Teachers', 'Head Teachers', 'SMC'])
 
 
                 _schedule_monthly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_head_teachers_monthly', 'last', ['Head Teachers'])
-                _schedule_monthly_script(group, connection, 'edtrac_gem_monthly', 20, ['GEM'])
+                _schedule_monthly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_gem_monthly', 20, ['GEM'])
                 _schedule_monthly_script(reporter.groups.all()[0], reporter.default_connection, ['Head Teachers', 'GEM'])
                 _schedule_monthly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_smc_monthly', 5, ['SMC'])
 
@@ -1635,44 +1634,6 @@ class EdtracReporter(ListView):
     model = EmisReporter
     template_name = "education/emisreporter_list.html"
     context_object_name = "reporter_list"
-
-#class EdtracReporterCreateView(CreateView):
-#
-#    form_class = ReporterForm
-#    template_name = 'education/new_reporter.html'
-#    success_url = '/edtrac/reporters/connection/create'
-#
-#    def form_valid(self, form):
-#        django.contrib.messages.success(self.request, "Success", extra_tags='msg')
-#        return super(EdtracReporterCreateView, self).form_valid(form)
-#
-#    def form_invalid(self, form):
-#        django.contrib.messages.success(self.request, "Error", extra_tags='msg')
-#        return super(EditReporterForm, self).form_invalid(form)
-
-
-#class EdtracReporterCreateConnection(FormView):
-#
-#    form_class = ConnectionFormQuick
-#    template_name = 'education/new_reporter_connection.html'
-#    success_url = '/edtrac/reporters/create'
-#
-#
-#    def post(self, req, *args, **kwargs):
-#        form_class = self.get_form_class()
-#        form = self.get_form(form_class)
-#        if form.is_valid():
-#            return self.form_valid(form, **kwargs)
-#        else:
-#            return self.form_invalid(form, **kwargs)
-#
-#    def form_valid(self, form):
-#        from rapidsms.models import Connection
-#        connection, created = Connection.objects.get_or_create(identity=form.cleaned_data['telephone_number'],
-#            backend=Backend.objects.get(name="yo6200"))
-#
-#        return HttpResponseRedirect(self.get_success_url())
-
 
 ########## Maps #################
 def attendance_visualization(req):
