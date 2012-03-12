@@ -226,7 +226,7 @@ class Poll(models.Model):
         poll = Poll.objects.create(name=name, type=type, question=question, default_response=default_response, user=user)
 
         #batch for responses
-        MessageBatch.objects.create(name=str(poll.pk),status="Q")
+        MessageBatch.objects.get_or_create(name=str(poll.pk))
 
         # This is the fastest (pretty much only) was to get contacts and messages M2M into the
         # DB fast enough at scale
