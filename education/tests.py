@@ -148,7 +148,7 @@ class ModelTest(TestCase): #pragma: no cover
     def register_reporter(self, grp, phone=None):
         connection = Connection.objects.create(identity=phone, backend=self.backend) if phone else self.connection
         self.fake_incoming('join', connection)
-        script_prog = ScriptProgress.objects.all()[0]
+        script_prog = ScriptProgress.objects.filter(script__slug='edtrac_autoreg').order_by('-time')[0]
 
         params = [
             ('edtrac_role', grp, ['all']),\
@@ -263,8 +263,8 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(EmisReporter.objects.all()[0].active, False)
 
         #rejoin
-        self.fake_incoming('join')
-        script_prog = ScriptProgress.objects.all()[0]
+#        self.fake_incoming('join')
+#        script_prog = ScriptProgress.objects.all()[0]
 
         self.register_reporter('teacher')
         self.assertEquals(EmisReporter.objects.count(), 1)
