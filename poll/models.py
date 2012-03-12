@@ -286,6 +286,8 @@ class Poll(models.Model):
         All incoming messages from these users will be considered as
         potentially a response to this poll.
         """
+        if self.start_date:
+            return
         contacts = self.contacts
         localized_messages = {}
         for language in dict(settings.LANGUAGES).keys():
