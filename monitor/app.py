@@ -1,5 +1,6 @@
 import rapidsms
 from rapidsms.apps.base import AppBase
+from rapidsms_httprouter.models import Message
 from django.conf import settings
 class App (AppBase):
     def handle (self, message):
