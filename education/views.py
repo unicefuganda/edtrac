@@ -1197,7 +1197,7 @@ def edit_reporter(request, reporter_pk):
 
 
                 _schedule_monthly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_head_teachers_monthly', 'last', ['Head Teachers'])
-                _schedule_monthly_script(group, connection, 'edtrac_gem_monthly', 20, ['GEM'])
+                _schedule_monthly_script(group, reporter.default_connection, 'edtrac_gem_monthly', 20, ['GEM'])
                 _schedule_monthly_script(reporter.groups.all()[0], reporter.default_connection, ['Head Teachers', 'GEM'])
                 _schedule_monthly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_smc_monthly', 5, ['SMC'])
 
