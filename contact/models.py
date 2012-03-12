@@ -58,8 +58,12 @@ class Flag(models.Model):
             one_template=r"(\b%s\b)"
             w_regex=r""
             for word in words:
-                w_regex=w_regex+r"|"+one_template%re.escape(word)
-            rule=w_regex
+                if len(w_regex):
+                    w_regex=w_regex+r"|"+one_template%re.escape(word)
+                else:
+                    w_regex=w_regex+one_template%re.escape(word)
+
+            return w_regex
 
     def save(self,*args,**kwargs):
         if self.words:
