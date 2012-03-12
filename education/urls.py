@@ -64,7 +64,7 @@ urlpatterns = patterns('',
         'objects_per_page':25,
         'partial_row':'education/partials/reporter_row.html',
         'partial_header':'education/partials/reporter_partial_header.html',
-        'base_template':'education/contacts_base.html',
+        'base_template':'education/partials/contact_message_base.html',
         'results_title':'Reporters',
         'columns':[('Name', True, 'name', SimpleSorter()),
             ('Number', True, 'connection__identity', SimpleSorter()),
@@ -170,6 +170,7 @@ urlpatterns = patterns('',
         'sort_column':'date',
         'sort_ascending':False,
         }, name="emis-users"),
+
     url(r'^edtrac/alerts_detail/(?P<alert>\d+)/$', login_required(alerts_detail), {}, name="emis-alerts"),
 
     #Admin Dashboard
