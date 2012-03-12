@@ -233,6 +233,60 @@ class ModelTest(TestCase): #pragma: no cover
         #without a role a reporter should not be scheduled for any regular polls
         self.assertListEqual(list(ScriptProgress.objects.filter(connection=self.connection).values_list('script__slug', flat=True)), ['edtrac_autoreg'])
 
+    def testBasicQuit(self):
+        self.register_reporter('teacher')
+        ScriptProgress.objects.filter(script__slug='edtrac_autoreg', connection=self.connection).delete() #script always deletes a connection on completion of registration
+        #quit system
+        self.fake_incoming('quit')
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, "Thank you for your contribution to EduTrac. To rejoin the system, send join to 6200")
+        self.assertEquals(Blacklist.objects.filter(connection=self.connection).count(), 1) #blacklisted
+        self.assertEquals(EmisReporter.objects.count(), 1) #the user is not deleted, only blacklisted
+    
+    def testDoubleReg(self):
+        self.register_reporter('teacher')
+        self.assertEquals(EmisReporter.objects.count(), 1)
+        contact = EmisReporter.objects.all()[0]
+        self.assertEquals(contact.name, 'Testy Mctesterton')
+        self.assertEquals(contact.reporting_location, self.kampala_subcounty)
+        self.assertEquals(contact.schools.all()[0], self.kampala_school)
+        self.assertEquals(contact.groups.all()[0].name, 'Teachers')
+
+        self.fake_incoming('join')
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, "You are already in the system and do not need to 'Join' again.")
+        self.assertEquals(ScriptProgress.objects.filter(script__slug='edtrac_autoreg').count(), 1)
+
+    def testQuitRejoin(self):
+        #first join
+        self.register_reporter('teacher')
+        self.assertEquals(EmisReporter.objects.count(), 1)
+        #when a user sucessfully registers, their registration is expunged from script progress
+        ScriptProgress.objects.filter(script__slug='edtrac_autoreg', connection=self.connection).delete()
+
+        #then quit
+        self.fake_incoming('quit')
+        self.assertEquals(Blacklist.objects.all()[0].connection, self.connection)
+        self.assertEquals(EmisReporter.objects.all()[0].active, False)
+
+        #rejoin
+        self.fake_incoming('join')
+        script_prog = ScriptProgress.objects.all()[0]
+
+        self.register_reporter('teacher')
+        self.assertEquals(EmisReporter.objects.count(), 1)
+        
+    def testQuitIncompleteRegistration(self):
+        #first join
+        self.fake_incoming('join')
+        self.assertEquals(ScriptProgress.objects.filter(script__slug='edtrac_autoreg', connection=self.connection).count(), 1)
+
+        #then quit
+        self.fake_incoming('quit')
+        self.assertEquals(Blacklist.objects.count(), 0)
+        #notify user to first complete current registration
+        self.assertEquals(Message.objects.all().order_by('-date')[0].text, 'Your registration is not complete, you can not quit at this point')
+        #their current registration process is still valid
+        self.assertEquals(ScriptProgress.objects.filter(script__slug='edtrac_autoreg', connection=self.connection).count(), 1)
+        
     def testGemAutoReg(self):
         self.fake_incoming('join')
         self.assertEquals(ScriptProgress.objects.count(), 1)
@@ -388,49 +442,6 @@ class ModelTest(TestCase): #pragma: no cover
         self.elapseTime2(script_prog, 3601)
         check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_autoreg').steps.get(order=7).message)
-
-    def testDoubleReg(self):
-        self.register_reporter('teacher')
-        self.assertEquals(EmisReporter.objects.count(), 1)
-        contact = EmisReporter.objects.all()[0]
-        self.assertEquals(contact.name, 'Testy Mctesterton')
-        self.assertEquals(contact.reporting_location, self.kampala_subcounty)
-        self.assertEquals(contact.schools.all()[0], self.kampala_school)
-        self.assertEquals(contact.groups.all()[0].name, 'Teachers')
-
-        self.fake_incoming('join')
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, "You are already in the system and do not need to 'Join' again.")
-        self.assertEquals(ScriptProgress.objects.filter(script__slug='edtrac_autoreg').count(), 1)
-
-    def testQuitRejoin(self):
-        #first join
-        self.register_reporter('teacher')
-        self.assertEquals(EmisReporter.objects.count(), 1)
-
-        #then quit
-        self.fake_incoming('quit')
-        self.assertEquals(Blacklist.objects.all()[0].connection, self.connection)
-        self.assertEquals(EmisReporter.objects.all()[0].active, False)
-
-        #rejoin
-        self.fake_incoming('join')
-        script_prog = ScriptProgress.objects.all()[0]
-
-        self.register_reporter('teacher')
-        self.assertEquals(EmisReporter.objects.count(), 1)
-        
-    def testQuitIncompleteRegistration(self):
-        #first join
-        self.fake_incoming('join')
-        self.assertEquals(ScriptProgress.objects.filter(script__slug='edtrac_autoreg', connection=self.connection).count(), 1)
-
-        #then quit
-        self.fake_incoming('quit')
-        self.assertEquals(Blacklist.objects.count(), 0)
-        #notify user to first complete current registration
-        self.assertEquals(Message.objects.all().order_by('-date')[0].text, 'Your registration is not complete, you can not quit at this point')
-        #their current registration process is still valid
-        self.assertEquals(ScriptProgress.objects.filter(script__slug='edtrac_autoreg', connection=self.connection).count(), 1)
 
     def testWeeklyTeacherPolls(self):
         self.register_reporter('teacher')

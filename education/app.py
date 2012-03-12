@@ -18,7 +18,7 @@ class App (AppBase):
                 message.respond('You cannot send Quit to 6200 (EduTrac) more than once.')
                 return True
             else:
-                if ScriptProgress.objects.filter(connection=message.connection).exists():
+                if ScriptProgress.objects.filter(connection=message.connection, script__slug='edtrac_autoreg').exists():
                     # user is attempting to quit before completing registration
                     message.respond('Your registration is not complete, you can not quit at this point')
                     return True
