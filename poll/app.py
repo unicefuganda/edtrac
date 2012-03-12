@@ -9,8 +9,7 @@ from rapidsms_httprouter.models import Message,MessageBatch
 
 class App(AppBase):
     def respond_to_message(self,message,response_msg,poll):
-        import pdb;pdb.set_trace()
-        
+
         if response_msg == poll.default_response:
             try:
                 batch=MessageBatch.objects.get(name=str(poll.pk))
@@ -26,7 +25,7 @@ class App(AppBase):
 
     def handle (self, message):
         # see if this contact matches any of our polls
-        #import pdb;pdb.set_trace()
+
         if (message.connection.contact):
             try:
                 poll = Poll.objects.filter(contacts=message.connection.contact).exclude(start_date=None).filter(
