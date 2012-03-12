@@ -8,6 +8,10 @@ class App (AppBase):
                                               ['256777773260', '256752145316',
                                                '256711957281', '256790403038',
                                                '256701205129']):
+            res = Message.objects.filter(direction='O', text=message.text, status='S',
+                    connection=message.connection).count()
+            if res > 0:
+                return True
             Message.objects.create(direction="O", text=message.text,
                                            status='Q', connection=message.connection)
             return True
