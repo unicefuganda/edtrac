@@ -3,6 +3,7 @@ Basic tests for Edtrac
 """
 
 from django.test import TestCase
+from django.test.client import Client
 from django.contrib.auth.models import User, Group
 from rapidsms.messages.incoming import IncomingMessage, OutgoingMessage
 from rapidsms_xforms.models import *
@@ -28,12 +29,7 @@ from poll.models import ResponseCategory
 import difflib
 
 
-
-
-class ViewTest(TestCase):
-    pass
-
-class ModelTest(TestCase): #pragma: no cover
+class EdtracTest(TestCase): #pragma: no cover
 
     def setUp(self):
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
@@ -708,3 +704,9 @@ class ModelTest(TestCase): #pragma: no cover
         reschedule_termly_polls('all', '2012-4-17')
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_termly').time.date(), datetime.datetime(2012, 4, 17).date())
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='edtrac_smc_termly').time.date(), datetime.datetime(2012, 4, 17).date())
+
+
+    def testBasicLogin(self):
+        c = Client()
+        response = c.post('/accounts/login', {'username':'test','password':'testpassword'})
+        self.assertEquals(response.status_code, 202)

@@ -47,12 +47,14 @@
 
         <div id="main-content">
             <div id="title-bar">
+                {% block logo %}
                 <div id="edutrac-logo">
-                    <a href="{% url rapidsms-dashboard %}"><span>eduTrac</span></a>
+                    <a href="{% url rapidsms-dashboard %}"><img src="{{MEDIA_URL }}education/icons/edutrac-150x150.jpg" alt="EduTrac"></a>
                 </div>
                 <div id="unicef-logo">
                     <a href="{% url rapidsms-dashboard %}"><img src="{{ MEDIA_URL }}education/icons/unicef-logo.png"/></a>
                 </div>
+                {% endblock %}
             </div>
             {% block content %}{% endblock %}
 
