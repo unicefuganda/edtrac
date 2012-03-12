@@ -2,14 +2,9 @@
 {% block remaining_row_content %}
 {% load extra_tags %}
 <td>
-    {% if object|flags %}
-	<span class="messageflag">
-        <img src="{{MEDIA_URL}}ureport/images/flagged.png" width="15" height="15" />
-    </span>
-    {% endif %}
     <span class="textmessage">
-    {{ object.text }}
     {% if user.is_authenticated and user.is_superuser %}
+        {{ object.text }}
         {% ifequal object.direction "I" %}
                 {% ifequal object.connection.backend.name "yo6200" %}
                     ( via 6200 )
