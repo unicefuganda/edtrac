@@ -5,21 +5,30 @@
 {% load i18n %}
 <head>
     <meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
-    <title>UNICEF</title>
+
+    <title>
+        {% block title %}
+        UNICEF
+        {% endblock %}
+    </title>
+    {% block stylesheets %}
     <link rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/reset.css"/>
     <link rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/main.css"/>
-    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-1.7.1.min.js"></script>
-    <!-- TODO: setup table sorting -->
-    <!-- <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery.tablesorter.min.js"></script> -->
-<!--    <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script> -->
-<!--    <script type="text/javascript" src="http://openlayers.org/api/OpenLayers.js"></script> -->
-
     <!--[if lt IE 8 ]>
     <link rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/ie8-below.css"/>
     <![endif]-->
     <!--[if IE]>
     <link rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/ie-only.css"/>
     <![endif]-->
+    {% endblock %}
+    {% block javascripts %}
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-1.7.1.min.js"></script>
+    <!-- TODO: setup table sorting -->
+    <!-- <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery.tablesorter.min.js"></script> -->
+    <!--    <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script> -->
+    <!--    <script type="text/javascript" src="http://openlayers.org/api/OpenLayers.js"></script> -->
+    {% endblock %}
+
 </head>
 
 <body>
