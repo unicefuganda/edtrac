@@ -183,7 +183,12 @@ def _next_term_question_date(rght=None):
     """
     The termly questions are sent out on the 12th day of each term and computed based on the beginning of term date
     """
-    delta = datetime.timedelta(days=12)
+#    import pdb;pdb.set_trace()
+#    delta = datetime.timedelta(days=12)
+#    delta_smc = datetime.timedelta(days=68)
+#    if rght:
+#        delta = delta_smc
+    delta = datetime.timedelta(days=68) if rght else datetime.timedelta(12)
     first_term_qn_date = getattr(settings, 'FIRST_TERM_BEGINS', datetime.datetime.now()) + delta
     second_term_qn_date = getattr(settings, 'SECOND_TERM_BEGINS', datetime.datetime.now()) + delta
     third_term_qn_date = getattr(settings, 'THIRD_TERM_BEGINS', datetime.datetime.now()) + delta
@@ -213,11 +218,9 @@ def _next_term_question_date(rght=None):
                     in_holiday = True
                     break
         if in_holiday:
+            d = d + datetime.timedelta(days=1)
             if is_weekend(d):
                 d = d + datetime.timedelta((0 - d.weekday()) % 7)
-                
-    if rght:
-        d = d + datetime.timedelta(days=56)
     return d
 
 def _next_midterm():
@@ -306,16 +309,16 @@ def _schedule_termly_script(group, connection, script_slug, role_names, date=Non
     in the format YYYY-mm-dd
     """
     d = None
-    rght = None
     if date:
         now = datetime.datetime.now()
         dl = date.split('-')
         d = datetime.datetime(int(dl[0]), int(dl[1]), int(dl[2]), now.hour, now.minute, now.second, now.microsecond)
 
     if group.name in role_names:
+        d = _next_term_question_date()
         if group.name == 'SMC':
-            rght = True
-        d = d if d else _next_term_question_date(rght) #_next_midterm()
+            d = _next_term_question_date(True)        
+#        d = d if d else _next_term_question_date(rght) #_next_midterm()
         sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
         sp.set_time(d)
 

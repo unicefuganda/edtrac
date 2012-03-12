@@ -413,6 +413,19 @@ class ModelTest(TestCase): #pragma: no cover
 
         self.register_reporter('teacher')
         self.assertEquals(EmisReporter.objects.count(), 1)
+        
+    def testQuitIncompleteRegistration(self):
+        #first join
+        self.fake_incoming('join')
+        self.assertEquals(ScriptProgress.objects.filter(script__slug='edtrac_autoreg', connection=self.connection).count(), 1)
+
+        #then quit
+        self.fake_incoming('quit')
+        self.assertEquals(Blacklist.objects.count(), 0)
+        #notify user to first complete current registration
+        self.assertEquals(Message.objects.all().order_by('-date')[0].text, 'Your registration is not complete, you can not quit at this point')
+        #their current registration process is still valid
+        self.assertEquals(ScriptProgress.objects.filter(script__slug='edtrac_autoreg', connection=self.connection).count(), 1)
 
     def testWeeklyTeacherPolls(self):
         self.register_reporter('teacher')

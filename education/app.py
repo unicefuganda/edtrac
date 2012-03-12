@@ -12,26 +12,23 @@ class App (AppBase):
         if handle_dongle_sms(message):
             return True
 
-        if message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_OUT_WORDS', ['quit'])] or\
-           difflib.get_close_matches(message.text.strip().lower(), getattr(settings, 'OPT_OUT_WORDS', ['quit'])):
+        if message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_OUT_WORDS', ['quit'])]:
 
             if Blacklist.objects.filter(connection=message.connection).exists():
                 message.respond('You cannot send Quit to 6200 (EduTrac) more than once.')
-                return
+                return True
             else:
-                # create a Blacklist object
-                Blacklist.objects.create(connection=message.connection)
-
                 if ScriptProgress.objects.filter(connection=message.connection).exists():
-                    # rogue progress quit
-                    ScriptProgress.objects.filter(connection=message.connection).delete()
+                    # user is attempting to quit before completing registration
+                    message.respond('Your registration is not complete, you can not quit at this point')
+                    return True
 
+                Blacklist.objects.create(connection=message.connection)
                 if (message.connection.contact):
                     message.connection.contact.active = False
                     message.connection.contact.save()
                 message.respond(getattr(settings, 'OPT_OUT_CONFIRMATION', 'Thank you for your contribution to EduTrac. To rejoin the system, send join to 6200'))
                 return True
-                #                return True
 
         elif message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', ['join'])]:
             if not message.connection.contact:
