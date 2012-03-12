@@ -1,0 +1,17 @@
+{% extends "education/admin/admin_dashboard.html" %}
+{% block content %}
+        <div class="general">
+        <table class="tabulated-data">
+            <tr>
+                <th>Schools</th>
+                <th>Percentage</th>
+            </tr>
+            <tr>
+                {% for school, data in location_data %}
+                <td>{{ school }}</td>
+                <td>{{ data }}</td>
+                {% endfor %}
+            </tr>
+        </table>
+        </div>
+{% endblock %}
