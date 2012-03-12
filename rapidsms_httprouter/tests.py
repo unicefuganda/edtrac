@@ -423,6 +423,7 @@ class QOSTest(TestCase):
         settings.SHORTCODE_BACKENDS = {self.backend.name: self.connection.identity}
         settings.MODEM_BACKENDS = {self.backend2.name: self.connection2.identity}
         settings.ALLOWED_MODEMS = {self.backend.name: [self.backend2.name]}
+        settings.QOS_BACKEND_TYPE = 'test'
         #self.shortcode_backends = get_backends_by_type(btype="shortcode")
         self.shortcode_backends = []
         self.shortcode_backends.append(self.backend)
@@ -471,7 +472,7 @@ class QOSTest(TestCase):
                             connection=Connection.objects.using('monitor').get(identity=settings.SHORTCODE_BACKENDS[si.name], backend=mb))
         create_expected_msgs()
         call_command('monitor_qos_messages')
-        alarms = get_alarms()
+        alarms = get_alarms(mode='test')
         self.assertEquals(len(alarms), 0)
 
     def testAlarms(self):

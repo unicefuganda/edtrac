@@ -8,10 +8,8 @@ class Command(BaseCommand, LoggerMixin):
     help = """Monitor QOS Messages"""
     def check_qos_messages(self):
         recipients = get_recipients()
-        for msg in get_alarms():
-            #print msg
+        for msg in get_alarms(mode=getattr(settings, 'QOS_BACKEND_TYPE', 'shortcode')):
             send_mail("QOS Alarm", msg, "root@uganda.rapidsms.org", recipients, fail_silently=True)
-
 
     def handle(self, *args, **options):
         self.check_qos_messages()
