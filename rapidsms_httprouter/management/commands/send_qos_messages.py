@@ -10,7 +10,7 @@ class Command(BaseCommand, LoggerMixin):
     help = """Sends quality of Service messages
     """
     def send_qos_messages(self):
-        shortcode_backends = get_backends_by_type(btype=getattr(settings, 'QOS_BACKEND_TYPE', 'shortcode'))
+        shortcode_backends = get_backends_by_type(backend_type=getattr(settings, 'QOS_BACKEND_TYPE', 'shortcode'))
         for shortcode in shortcode_backends:
             for modem in settings.ALLOWED_MODEMS[shortcode.name]:
                 (modem_backend, t) = Backend.objects.using('monitor').get_or_create(name=modem)
