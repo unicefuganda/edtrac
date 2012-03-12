@@ -9,13 +9,15 @@ from rapidsms_httprouter.models import Message,MessageBatch
 
 class App(AppBase):
     def respond_to_message(self,message,response_msg,poll):
+        import pdb;pdb.set_trace()
         
         if response_msg == poll.default_response:
             try:
                 batch=MessageBatch.objects.get(name=str(poll.pk))
                 batch.status="Q"
                 batch.save()
-                Message.objects.create(text=response_msg,status="Q",connection=message.connection,direction="O",batch=batch,in_response_to=message.db_message)
+                msg=Message.objects.create(text=response_msg,status="Q",connection=message.connection,direction="O",in_response_to=message.db_message)
+                batch.messages.add(msg)
             except MessageBatch.DoesNotExist:
                 message.respond(response_msg)
         else:
