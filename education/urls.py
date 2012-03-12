@@ -20,14 +20,15 @@ from django.contrib.auth.models import User
 from django.views.generic import ListView
 
 urlpatterns = patterns('',
-    url(r'^edtrac/messagelog/$', login_required(generic), {
+    url(r'^edtrac/messages/$', login_required(generic), {
         'model':Message,
         'queryset':messages,
         'filter_forms':[FreeSearchTextForm, DistictFilterMessageForm, HandledByForm],
         'action_forms':[ReplyTextForm],
         'objects_per_page':25,
-        'partial_row':'education/partials/message_row.html',
-        'base_template':'education/messages_base.html',
+        'patial_row' : 'education/partials/messages/message_row.html',
+        'base_template':'education/partials/contact_message_base.html',
+        'paginator_template' : 'education/partials/pagination.html',
         'columns':[('Text', True, 'text', SimpleSorter()),
             ('Contact Information', True, 'connection__contact__name', SimpleSorter(),),
             ('Date', True, 'date', SimpleSorter(),),
