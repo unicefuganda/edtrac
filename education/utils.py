@@ -70,9 +70,14 @@ def _next_thursday(sp=None):
     while in_holiday:
         in_holiday = False
         for start, end in holidays:
-            if d >= start and d <= end:
-                in_holiday = True
-                break
+            if type(end) == str:
+                if d.date() == start.date():
+                    in_holiday = True
+                    break
+            else:
+                if d >= start and d <= end:
+                    in_holiday = True
+                    break
         if in_holiday:
             d = d + datetime.timedelta(7)
     return d
@@ -88,9 +93,14 @@ def _next_wednesday(sp = None):
     while in_holiday:
         in_holiday = False
         for start, end in holidays:
-            if day >= start and d <= end:
-                in_holiday = True
-                break
+            if type(end) == str:
+                if d.date() == start.date():
+                    in_holiday = True
+                    break
+            else:
+                if d >= start and d <= end:
+                    in_holiday = True
+                    break
         if in_holiday:
             day = day + datetime.timedelta(7)
     return day
@@ -155,16 +165,21 @@ def _date_of_monthday(day_offset):
     while in_holiday:
         in_holiday = False
         for start, end in holidays:
-            if d >= start and d <= end:
-                in_holiday = True
-                break
+            if type(end) == str:
+                if d.date() == start.date():
+                    in_holiday = True
+                    break
+            else:
+                if d >= start and d <= end:
+                    in_holiday = True
+                    break
         if in_holiday:
             d = next_relativedate(day_offset, 1)
             if is_weekend(d):
                 d = d + datetime.timedelta((0 - d.weekday()) % 7)
     return d
 
-def _next_term_question_date():
+def _next_term_question_date(rght=None):
     """
     The termly questions are sent out on the 12th day of each term and computed based on the beginning of term date
     """
@@ -182,20 +197,27 @@ def _next_term_question_date():
         elif d > first_term_qn_date and d <= second_term_qn_date:
             d = second_term_qn_date
         else:
-            d = third_term_qn_date
-            
+            d = third_term_qn_date        
     if is_weekend(d):
         d = d + datetime.timedelta((0 - d.weekday()) % 7)
     in_holiday = True
     while in_holiday:
         in_holiday = False
         for start, end in holidays:
-            if d >= start and d <= end:
-                in_holiday = True
-                break
+            if type(end) == str:
+                if d.date() == start.date():
+                    in_holiday = True
+                    break
+            else:
+                if d >= start and d <= end:
+                    in_holiday = True
+                    break
         if in_holiday:
             if is_weekend(d):
                 d = d + datetime.timedelta((0 - d.weekday()) % 7)
+                
+    if rght:
+        d = d + datetime.timedelta(days=56)
     return d
 
 def _next_midterm():
@@ -221,9 +243,14 @@ def _next_midterm():
     while in_holiday:
         in_holiday = False
         for start, end in holidays:
-            if d >= start and d <= end:
-                in_holiday = True
-                break
+            if type(end) == str:
+                if d.date() == start.date():
+                    in_holiday = True
+                    break
+            else:
+                if d >= start and d <= end:
+                    in_holiday = True
+                    break
         if in_holiday:
             if is_weekend(d):
                 d = d + datetime.timedelta((0 - d.weekday()) % 7)
@@ -279,13 +306,16 @@ def _schedule_termly_script(group, connection, script_slug, role_names, date=Non
     in the format YYYY-mm-dd
     """
     d = None
+    rght = None
     if date:
         now = datetime.datetime.now()
         dl = date.split('-')
         d = datetime.datetime(int(dl[0]), int(dl[1]), int(dl[2]), now.hour, now.minute, now.second, now.microsecond)
 
     if group.name in role_names:
-        d = d if d else _next_term_question_date() #_next_midterm()
+        if group.name == 'SMC':
+            rght = True
+        d = d if d else _next_term_question_date(rght) #_next_midterm()
         sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
         sp.set_time(d)
 
