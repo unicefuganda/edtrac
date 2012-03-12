@@ -1,0 +1,12 @@
+{% extends "education/admin/admin_dashboard.html" %}
+{% block title %}
+{% endblock %}
+
+{% block content %}
+<div id="object_list" class="module">
+    {% block object_list %}
+    {% include partial_base %}
+    {% endblock %}
+</div>
+<a href="{% url emis-messagelog %}">see all messages &raquo;</a>
+{% endblock %}
