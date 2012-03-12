@@ -1190,7 +1190,7 @@ def edit_reporter(request, reporter_pk):
             reporter_form.save()
             if reporter.default_connection and reporter.groups.count() > 0:
                 # remove from other scripts
-                ScriptProgress.objects.exclude(script__slug="edtrac_autoreg").filter(connection=rep.default_connection).delete()
+                ScriptProgress.objects.exclude(script__slug="edtrac_autoreg").filter(connection=reporter.default_connection).delete()
 
 
                 _schedule_weekly_scripts(reporter.groups.all()[0], reporter.default_connection, ['Teachers', 'Head Teachers', 'SMC'])

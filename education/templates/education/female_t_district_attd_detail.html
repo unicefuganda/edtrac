@@ -9,7 +9,7 @@
             <tr>
                 {% for school, data in location_data %}
                 <td>{{ school }}</td>
-                <td>{{ data }}</td>
+                <td>{{ data|floatformat }}</td>
                 {% endfor %}
             </tr>
         </table>

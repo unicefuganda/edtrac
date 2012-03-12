@@ -19,7 +19,7 @@
             {% for a, b in location_data %}
             <tr>
                 <td><a href="{% url school-detail a.id %}">{{ a }}</a></td>
-                <td>{{ b }}</td>
+                <td>{{ b|floatformat }}</td>
             </tr>
             {% endfor %}
             </tbody>

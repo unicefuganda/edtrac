@@ -19,9 +19,9 @@
             {% for district, cur_value, prev_value, diff in location_data %}
             <tr>
                 <td><a href="{% url boysp6-district-attd-detail district.id %}">{{ district }}</a></td>
-                <td>{% ifequal cur_value 0%} -- {% else %} {{ cur_value }} {% endifequal %}</td>
-                <td>{% ifequal prev_value 0%} -- {% else %} {{ prev_value }} {% endifequal %}</td>
-                <td>{{ diff }}</td>
+                <td>{% ifequal cur_value 0%} -- {% else %} {{ cur_value|floatformat }} {% endifequal %}</td>
+                <td>{% ifequal prev_value 0%} -- {% else %} {{ prev_value|floatformat }} {% endifequal %}</td>
+                <td>{{ diff|floatformat }}</td>
             </tr>
             {% endfor %}
             </tbody>
