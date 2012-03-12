@@ -413,12 +413,12 @@ class QOSTest(TestCase):
     def setUp(self):
         #self.backend = Backend.objects.create(name='test')
         #self.connection = Connection.objects.create(identity='8675309', backend=self.backend)
-        (self.backend, created) = Backend.objects.get_or_create(name="test_backend")
-        (self.connection, created) = Connection.objects.get_or_create(backend=self.backend, identity='2067799294')
+        (self.backend, created) = Backend.objects.using('monitor').get_or_create(name="test_backend")
+        (self.connection, created) = Connection.objects.using('monitor').get_or_create(backend=self.backend, identity='2067799294')
 
 
-        (self.backend2, created) = Backend.objects.get_or_create(name="test_backend2")
-        (self.connection2, created) = Connection.objects.get_or_create(backend=self.backend2, identity='2067799291')
+        (self.backend2, created) = Backend.objects.using('monitor').get_or_create(name="test_backend2")
+        (self.connection2, created) = Connection.objects.using('monitor').get_or_create(backend=self.backend2, identity='2067799291')
 
         settings.SHORTCODE_BACKENDS = {self.backend.name: self.connection.identity}
         settings.MODEM_BACKENDS = {self.backend2.name: self.connection2.identity}
@@ -437,24 +437,24 @@ class QOSTest(TestCase):
             total = 0
             for si in self.shortcode_backends:
                 for mi in settings.ALLOWED_MODEMS[si.name]:
-                    (mb, t) = Backend.objects.get_or_create(name=mi)
-                    b = Message.objects.filter(direction='O', date__gt=self.dt,
-                        connection=Connection.objects.get_or_create(identity=settings.SHORTCODE_BACKENDS[si.name],
+                    (mb, t) = Backend.objects.using('monitor').get_or_create(name=mi)
+                    b = Message.objects.using('monitor').filter(direction='O', date__gt=self.dt,
+                        connection=Connection.objects.using('monitor').get_or_create(identity=settings.SHORTCODE_BACKENDS[si.name],
                         backend=mb)[0])
                     if b.count():
                         total += b.count()
-                    b = Message.objects.filter(date__gt=self.dt, direction='O',
-                        connection=Connection.objects.get_or_create(identity=settings.MODEM_BACKENDS[mb.name], backend=si)[0])
+                    b = Message.objects.using('monitor').filter(date__gt=self.dt, direction='O',
+                        connection=Connection.objects.using('monitor').get_or_create(identity=settings.MODEM_BACKENDS[mb.name], backend=si)[0])
                     if b.count():
                         total += b.count()
             return total
 
         self.assertEquals(count_sent_msgs(), 2)
-        a = Message.objects.filter(date__gt=self.dt, direction='O', connection__backend__name=self.backend.name)[0]
+        a = Message.objects.using('monitor').filter(date__gt=self.dt, direction='O', connection__backend__name=self.backend.name)[0]
         self.assertEquals(a.connection.identity, self.connection2.identity)
         self.assertEquals(a.text, self.txt)
 
-        b = Message.objects.filter(date__gt=self.dt, direction='O', connection__backend__name=self.backend2.name)[0]
+        b = Message.objects.using('monitor').filter(date__gt=self.dt, direction='O', connection__backend__name=self.backend2.name)[0]
         self.assertEquals(b.connection.identity, self.connection.identity)
         self.assertEquals(b.text, self.txt)
 
@@ -464,11 +464,11 @@ class QOSTest(TestCase):
         def create_expected_msgs():
             for si in self.shortcode_backends:
                 for mi in settings.ALLOWED_MODEMS[si.name]:
-                    (mb, t) = Backend.objects.get_or_create(name=mi)
-                    Message.objects.create(text=self.txt, direction='I',
-                            connection=Connection.objects.get(identity=settings.MODEM_BACKENDS[mi], backend=si))
-                    Message.objects.create(text=self.txt, direction='I',
-                            connection=Connection.objects.get(identity=settings.SHORTCODE_BACKENDS[si.name], backend=mb))
+                    (mb, t) = Backend.objects.using('monitor').get_or_create(name=mi)
+                    Message.objects.using('monitor').create(text=self.txt, direction='I',
+                            connection=Connection.objects.using('monitor').get(identity=settings.MODEM_BACKENDS[mi], backend=si))
+                    Message.objects.using('monitor').create(text=self.txt, direction='I',
+                            connection=Connection.objects.using('monitor').get(identity=settings.SHORTCODE_BACKENDS[si.name], backend=mb))
         create_expected_msgs()
         call_command('monitor_qos_messages')
         alarms = get_alarms()
