@@ -196,7 +196,7 @@ class HttpRouter(object, LoggerMixin):
         message which triggered it.
         """
         # add it to our outgoing queue
-        db_message = self.add_outgoing(msg.connection, msg.text, source, status='P', application=application)
+        db_message = self.add_outgoing(msg.connection, msg.text, source, status='Q', application=application)
 
         return db_message
 
