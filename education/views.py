@@ -18,12 +18,20 @@ from poll.models import Poll
 from .reports import *
 from .utils import *
 from urllib2 import urlopen
+from rapidsms.views import login, logout
 import  re, datetime, operator, xlwt
 
 
 Num_REG = re.compile('\d+')
 
 super_user_required=user_passes_test(lambda u: u.groups.filter(name__in=['Admins','DFO']).exists() or u.is_superuser)
+
+def login(req):
+    return login(req, template_name="education/admin/admin_dashboard.html")
+
+def logout(req):
+    return logout(req, tempalte_name="educatoin/admin/admin_dashboard.html")
+
 
 @login_required
 def index(request, **kwargs):
@@ -483,8 +491,21 @@ class ViolenceAdminDetails(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ViolenceAdminDetails, self).get_context_data(**kwargs)
         #TODO: filtering by ajax and time
-        context['violence_cases_reported_by_schools'] = poll_response_sum(Poll.objects.get(name="edtrac_headteachers_abuse"),
+
+        violence_cases_schools = poll_response_sum(Poll.objects.get(name="edtrac_headteachers_abuse"),
             location=self.request.user.get_profile().location, month_filter=True, months=2, ret_type=list)
+        for name, list_val in violence_cases_schools:
+            try:
+                diff = (list_val[0][0] - list_val[1][0]) / list_val[0][0]
+            except ZeroDivisionError:
+                diff = '--'
+            list_val.append(diff)
+
+        total = []
+        for name, list_val in violence_cases_schools:
+            total
+
+        context['violence_cases_reported_by_schools'] = violence_cases_schools
 
         # depth of 2 months
         context['report_dates'] = [start for start, end in get_month_day_range(datetime.datetime.now(), depth=2)]
@@ -492,7 +513,11 @@ class ViolenceAdminDetails(TemplateView):
         #TODO
         # -> 100 * (reports-that-are-sent-to-edtrac / reports-that-should-have-come-edtrac a.k.a. all schools)
         #
+        # Assumes every administrator's location is the root location Uganda
         for dr in get_month_day_range(datetime.datetime.now(), depth=2):
+            locations = Contact.objects.filter(reporting_location__in=self.request.user.get_profile().\
+                location.get_descendants().filter(type="district")) or self.request.user.get_profile().location
+
             resp_count = Poll.objects.get(name="edtrac_headteachers_abuse").responses.filter(
                 contact__in = Contact.objects.filter(reporting_location__in=self.request.user.get_profile().\
                 location.get_descendants().filter(type="district")),

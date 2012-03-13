@@ -1,10 +1,7 @@
 """
 Basic tests for Edtrac
 """
-
 from django.test import TestCase
-from django.test.client import Client
-from django.contrib.auth.models import User, Group
 from rapidsms.messages.incoming import IncomingMessage, OutgoingMessage
 from rapidsms_xforms.models import *
 from rapidsms_httprouter.models import Message
@@ -19,7 +16,7 @@ from education.management import *
 from rapidsms_httprouter.router import get_router
 from script.signals import script_progress_was_completed, script_progress
 from poll.management import create_attributes
-from .models import EmisReporter, School, reschedule_weekly_polls, reschedule_monthly_polls, reschedule_termly_polls
+from education.models import EmisReporter, School, reschedule_weekly_polls, reschedule_monthly_polls, reschedule_termly_polls
 from django.db import connection
 from script.utils.outgoing import check_progress
 from django.core.management import call_command
