@@ -7,6 +7,7 @@ from education.urls import urlpatterns as edtrac_urls
 from contact.urls import urlpatterns as contact_urls
 admin.autodiscover()
 
+
 urlpatterns = patterns('',
     # Example:
     # (r'^my-project/', include('my_project.foo.urls')),
@@ -19,8 +20,8 @@ urlpatterns = patterns('',
     # RapidSMS core URLs
     (r'^account/', include('rapidsms.urls.login_logout')),
 #    url(r'^$', 'rapidsms.views.dashboard', name='rapidsms-dashboard'),
-    url('^accounts/login', 'rapidsms.views.login'),
-    url('^accounts/logout', 'rapidsms.views.logout'),
+    url('^accounts/login', 'rapidsms.views.login', name="login"),
+    url('^accounts/logout', 'rapidsms.views.logout', name="logout"),
     # RapidSMS contrib app URLs
     (r'^ajax/', include('rapidsms.contrib.ajax.urls')),
     (r'^export/', include('rapidsms.contrib.export.urls')),
