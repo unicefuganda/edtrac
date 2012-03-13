@@ -9,11 +9,9 @@ from datetime import datetime, timedelta
 def get_backends_by_type(backend_type='shortcode'):
         if backend_type == 'shortcode':
             # messenger's DB has all backends from all other deployments
-            return Backend.objects.using('monitor').exclude(name__endswith='modem').order_by('name')
-        elif backend_type == 'modem':
-            return Backend.objects.using('monitor').filter(name__endswith='modem').order_by('name')
+            return Backend.objects.exclude(name__endswith='modem').order_by('name')
         else:
-            return [Backend.objects.using('monitor').get_or_create(name="test_backend")[0]]
+            return Backend.objects.filter(name__endswith='modem').order_by('name')
 
 def gen_qos_msg():
     return datetime.now().strftime('%Y-%m-%d %H')
