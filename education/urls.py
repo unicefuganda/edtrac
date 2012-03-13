@@ -56,6 +56,7 @@ urlpatterns = patterns('',
         'sort_column':'date',
         'sort_ascending':False,
         }, name="emis-messagelog"),
+    url(r'^edtrac/control-panel/$',control_panel, name="control-panel"),
     #reporters
     url(r'^edtrac/reporter/$', login_required(generic), {
         'model':EmisReporter,

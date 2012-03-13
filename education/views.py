@@ -655,6 +655,12 @@ class ProgressDeoDetails(TemplateView):
 ##########################################################################################################
 ##########################################################################################################
 
+## management controll panel
+
+def control_panel(req):
+    return render_to_response('education/partials/control_panel.html', {}, RequestContext(req))
+
+
 
 #District violence details (TODO: permission/rolebased viewing)
 class DistrictViolenceDetails(DetailView):
