@@ -1210,16 +1210,16 @@ def edit_reporter(request, reporter_pk):
                 _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_head_teachers_termly', ['Head Teachers'])
 
         else:
-            return render_to_response('education/partials/edit_reporter.html',
+            return render_to_response('education/partials/reporters/edit_reporter.html',
                     {'reporter_form': reporter_form,
                      'reporter': reporter},
                 context_instance=RequestContext(request))
-        return render_to_response('/education/partials/reporter_row.html',
+        return render_to_response('/education/partials/reporters/reporter_row.html',
                 {'object':EmisReporter.objects.get(pk=reporter_pk),
                  'selectable':True},
             context_instance=RequestContext(request))
     else:
-        return render_to_response('education/partials/edit_reporter.html',
+        return render_to_response('education/partials/reporters/edit_reporter.html',
                 {'reporter_form': reporter_form,
                  'reporter': reporter},
             context_instance=RequestContext(request))
