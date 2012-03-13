@@ -102,8 +102,7 @@ class DistrictFilterForm(forms.Form):
 class LimitedDistictFilterForm(FilterForm):
 
     """ filter Emis Reporters on their districts """
-
-    locs = Location.objects.filter(name__in=XFormSubmissionValue.objects.values_list('submission__connection__contact__reporting_location__name', flat=True)).order_by('name')
+    locs = Location.objects.filter(name__in=EmisReporter.objects.values_list('reporting_location__name',flat=True).distinct())
     locs_list = []
     for loc in locs:
         if not Location.tree.root_nodes()[0].pk == loc.pk and loc.type.name == 'district':
