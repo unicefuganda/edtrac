@@ -84,6 +84,7 @@ class EditReporterForm(forms.ModelForm):
            super(EditReporterForm, self).__init__(*args, **kwargs)
            self.fields['reporting_location'] = TreeNodeChoiceField(queryset=self.fields['reporting_location'].queryset, level_indicator=u'.')
            self.fields['schools'].required = False
+           self.fields['schools'].queryset = School.objects.order_by('location__name', 'name')
            self.fields['grade'].required = False
 
     class Meta:
