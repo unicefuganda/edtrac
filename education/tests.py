@@ -33,7 +33,7 @@ class ModelTest(TestCase): #pragma: no cover
     # Model tests
     def setUp(self):
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
-            site_id = getattr(settings, 'SITE_ID', 1)
+            site_id = getattr(settings, 'SITE_ID', 5)
             Site.objects.get_or_create(pk=site_id, defaults={'domain':'rapidemis.com'})
             #        fixtures = ['initial_data.json']
         User.objects.get_or_create(username='admin')
@@ -704,9 +704,3 @@ class ModelTest(TestCase): #pragma: no cover
         reschedule_termly_polls('all', '2012-4-17')
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_termly').time.date(), datetime.datetime(2012, 4, 17).date())
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='edtrac_smc_termly').time.date(), datetime.datetime(2012, 4, 17).date())
-
-    # Client testing
-    def testBasicLogin(self):
-        c = Client()
-        response = c.post('/accounts/login', {'username':'test','password':'testpassword'})
-        self.assertEquals(response.status_code, 200)
