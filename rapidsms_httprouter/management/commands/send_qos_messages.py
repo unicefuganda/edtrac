@@ -13,11 +13,11 @@ class Command(BaseCommand, LoggerMixin):
         shortcode_backends = get_backends_by_type(backend_type=getattr(settings, 'QOS_BACKEND_TYPE', 'shortcode'))
         for shortcode in shortcode_backends:
             for modem in settings.ALLOWED_MODEMS[shortcode.name]:
-                (modem_backend, t) = Backend.objects.using('monitor').get_or_create(name=modem)
-                Message.objects.using('monitor').create(text=gen_qos_msg(), direction='O', status='Q',
-                        connection=Connection.objects.using('monitor').get_or_create(identity=settings.MODEM_BACKENDS[modem_backend.name], backend=shortcode)[0])
-                Message.objects.using('monitor').create(text=gen_qos_msg(), direction='O', status='Q',
-                        connection=Connection.objects.using('monitor').get_or_create(identity=settings.SHORTCODE_BACKENDS[shortcode.name], backend=modem_backend)[0])
+                (modem_backend, t) = Backend.objects.get_or_create(name=modem)
+                #Message.objects.using('monitor').create(text=gen_qos_msg(), direction='O', status='Q',
+                #        connection=Connection.objects.using('monitor').get_or_create(identity=settings.MODEM_BACKENDS[modem_backend.name], backend=shortcode)[0])
+                Message.objects.create(text=gen_qos_msg(), direction='O', status='Q',
+                        connection=Connection.objects.get_or_create(identity=settings.SHORTCODE_BACKENDS[shortcode.name], backend=modem_backend)[0])
 
     def handle(self, *args, **options):
         self.send_qos_messages()
