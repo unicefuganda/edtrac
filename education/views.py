@@ -494,16 +494,22 @@ class ViolenceAdminDetails(TemplateView):
 
         violence_cases_schools = poll_response_sum(Poll.objects.get(name="edtrac_headteachers_abuse"),
             location=self.request.user.get_profile().location, month_filter=True, months=2, ret_type=list)
+
+        total = []
         for name, list_val in violence_cases_schools:
             try:
                 diff = (list_val[0][0] - list_val[1][0]) / list_val[0][0]
+                total.append((list_val[0][0], list_val[1][0], diff))
             except ZeroDivisionError:
                 diff = '--'
             list_val.append(diff)
 
-        total = []
-        for name, list_val in violence_cases_schools:
-            total
+        first_col, second_col, third_col = [],[],[]
+        for first, second, third in total:
+            first_col.append(first), second_col.append(second), third_col.append(third)
+
+        context['totals'] = [sum(first_col), sum(second_col), sum(third_col)]
+
 
         context['violence_cases_reported_by_schools'] = violence_cases_schools
 
