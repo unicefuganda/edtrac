@@ -1208,8 +1208,6 @@ def edit_reporter(request, reporter_pk):
 
                 _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_smc_termly', ['SMC'])
                 _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_head_teachers_termly', ['Head Teachers'])
-                _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, ['SMC', 'Head Teachers'])
-
 
         else:
             return render_to_response('education/partials/edit_reporter.html',
