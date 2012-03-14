@@ -16,16 +16,17 @@ def get_backends_by_type(backend_type='shortcode'):
 def gen_qos_msg():
     return datetime.now().strftime('%Y-%m-%d %H')
 
-def get_recipients():
+def get_recipients(include_managers=True):
     recipients = getattr(settings, 'ADMINS', None)
     if recipients:
         recipients = [email for name, email in recipients]
     else:
         recipients = []
-    mgr = getattr(settings, 'MANAGERS', None)
-    if mgr:
-        for email in mgr:
-            recipients.append(email)
+    if include_managers:
+        mgr = getattr(settings, 'MANAGERS', None)
+        if mgr:
+            for email in mgr:
+                recipients.append(email)
     return recipients
 
 def get_qos_time_offset():
