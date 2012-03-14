@@ -1639,8 +1639,11 @@ def choose_level(request):
 
 
 def reschedule_scripts(request, script_slug):
+#    import subprocess
+#    from django.core.management import call_command
     grp = get_script_grp(script_slug)
     if script_slug.endswith('_weekly'):
+#        call_command('reschedule_weekly_polls', grp)
         reschedule_weekly_polls(grp)
     elif script_slug.endswith('_monthly'):
         reschedule_monthly_polls(grp)

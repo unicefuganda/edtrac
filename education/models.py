@@ -425,7 +425,7 @@ def reschedule_weekly_polls(grp=None):
         slg_start = 'edtrac_%s'%grp.replace(' ','_').lower()
         weekly_scripts = weekly_scripts.filter(slug__startswith=slg_start)
         ScriptProgress.objects.filter(script__in=weekly_scripts)\
-        .exclude(connection__contact__emisreporter__groups__name__iexact=grp).delete()
+        .filter(connection__contact__emisreporter__groups__name__iexact=grp).delete()
     else:
         ScriptProgress.objects.filter(script__in=weekly_scripts).delete()
     Script.objects.filter(slug__in=weekly_scripts.values_list('slug', flat=True)).update(enabled=True)
@@ -445,7 +445,7 @@ def reschedule_monthly_polls(grp=None):
         slg_start = 'edtrac_%s'%grp.replace(' ','_').lower()
         monthly_scripts = monthly_scripts.filter(slug__startswith=slg_start)
         ScriptProgress.objects.filter(script__in=monthly_scripts)\
-        .exclude(connection__contact__emisreporter__groups__name__iexact=grp).delete()
+        .filter(connection__contact__emisreporter__groups__name__iexact=grp).delete()
     else:
         ScriptProgress.objects.filter(script__in=monthly_scripts).delete()
     Script.objects.filter(slug__in=monthly_scripts.values_list('slug', flat=True)).update(enabled=True)
@@ -474,7 +474,7 @@ def reschedule_termly_polls(grp = 'all', date=None):
         slg_start = 'edtrac_%s'%grp.replace(' ','_').lower()
         termly_scripts = termly_scripts.filter(slug__startswith=slg_start)
         ScriptProgress.objects.filter(script__in=termly_scripts)\
-        .exclude(connection__contact__emisreporter__groups__name__iexact=grp).delete()
+        .filter(connection__contact__emisreporter__groups__name__iexact=grp).delete()
     else:
         ScriptProgress.objects.filter(script__in=termly_scripts).delete()
 
