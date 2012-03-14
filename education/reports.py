@@ -589,7 +589,7 @@ def poll_response_sum(poll_queryset, **kwargs):
                 if locations.type.name == 'country':
                     locations = Location.objects.get(name=kwargs.get('location')).get_descendants().filter(type="district")
                 else:
-                    locations = locations
+                    locations = [locations]
             to_ret = {}
 
             if not kwargs.has_key('months'):
