@@ -491,7 +491,6 @@ class ViolenceAdminDetails(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ViolenceAdminDetails, self).get_context_data(**kwargs)
         #TODO: filtering by ajax and time
-        import pdb; pdb.set_trace()
         violence_cases_schools = poll_response_sum(Poll.objects.get(name="edtrac_headteachers_abuse"),
             location=self.request.user.get_profile().location, month_filter=True, months=2, ret_type=list)
 
