@@ -538,7 +538,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.fake_incoming('yes')
         self.assertEquals(Message.objects.filter(direction="I").order_by('-date')[0].application, 'script')
 
-        
+
     def testTermlyHeadTeacherPolls(self):
         self.register_reporter('head teacher')
         Script.objects.filter(slug__in=['edtrac_head_teachers_weekly', 'edtrac_head_teachers_monthly', 'edtrac_head_teachers_termly']).update(enabled=True)
