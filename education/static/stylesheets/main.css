@@ -576,8 +576,12 @@ div.general{
 }
 
 div.general table tr{
-    border-bottom: solid 1px #333;
     margin-bottom: 5px;
+    padding:5px;
+}
+
+div.general table ul li{
+    padding:5px;
 }
 /* search box */
 

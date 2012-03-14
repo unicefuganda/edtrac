@@ -10,9 +10,10 @@
             <h2>{{ title }}</h2>
         </div>
         {% for script, script_form in forms %}
+        <div style="padding:20px; border:1px solid #333;">
             <form action="" method="post">
                 {{ script_form.slug }}
-                <table width="100%" cellpadding="5" cellspacing="0" border=1 style="border-collapse:collapse;border-color:#ddd;">
+                <table width="100%" cellpadding="5" cellspacing="0" border=1 style="border-collapse:collapse;">
                     <tr>
                         <td width="10%"><label for="name">Script Name:</label></td>
                         <td>{{ script_form.name }}</td>
@@ -20,9 +21,10 @@
                         <td>{{ script_form.enabled }}</td>
                     </tr>
                     <tr>
-                        <td><h4>Questions</h4></td>
+                        <td><h4 style="padding:5px;">Questions:</h4></td>
                         <td colspan="3">
-                            <ol>
+                            <br/>
+                            <ul style="list-style: decimal;">
                             {% for step in script.steps.all %}
                                 {% if step.message %}
                                     <li>{{ step.message }}</li>
@@ -30,22 +32,25 @@
                                     <li>{{ step.poll.question }}</li>
                                 {% endif %}
                             {% endfor %}
-                            </ol>    
+                            </ul>
                         </td>
                     </tr>
                     {% ifnotequal script.slug "emis_autoreg" %}
-                        <tr>
-                            <td colspan="4">
+                        <tr style="margin-top: 10px;">
+                            <td colspan="4" style="padding:20px;">
+                                <div style="border-top: 1px solid #9acd32;">
                                 {% if script|termly %}
                                     <label for="date">Schedule Date:</label> {{ script_form.date }} |
                                 {% endif %}
                                 <a href="#" onclick="reschedule_polls('{% url emis-reschedule-scripts script.slug %}', '{{ script.pk }}');">Reschedule Questions</a>
                                     <span id="{{ script.pk }}_results"></span>
+                                </div>
                             </td>
                         </tr>
                     {%endifnotequal %}
                 </table>
             </form>
+        </div>
         {% endfor %}
     </div>
 {% endblock %}

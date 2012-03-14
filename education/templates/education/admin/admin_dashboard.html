@@ -104,11 +104,15 @@
                         </div>
                     </div>
                     <div class="clear"></div>
+                    <div class="actions" style="float:left; margin-left: 190px;">
+                        <a class="button button-purple" href="{% url violence-admin-details %}" style="float:right;"><span class="details">View Details</span></a>
+                    </div>
+                    <div class="actions">
+                        <a class="button button-purple" href="{% url violence-admin-details %}"><span class="details">View Details</span></a>
+                    </div>
+
                 </div>
-                <div class="actions">
-                    <a class="button button-purple" href="{% url violence-admin-details %}"><span class="details">View Details</span></a>
-                    <div class="clear"></div>
-                </div>
+
 
             </div>
         </div>
@@ -122,13 +126,16 @@
                     </div>
                     <div class="div-2">
                         <div class="data data-green"><span class="value increase">85%</span></span></div>
-                        <p>of School Management Commitees held a meeting this term</p>
+                        <p>of UPE capitation grants received</p>
                     </div>
                     <div class="clear"></div>
+
+                <div class="actions" style="float:left; margin-left: 190px;">
+                    <a class="button button-purple" href="#"><span class="details">View Details</span></a>
                 </div>
                 <div class="actions">
                     <a class="button button-purple" href="#"><span class="details">View Details</span></a>
-                    <div class="clear"></div>
+                </div>
                 </div>
             </div>
         </div>
@@ -143,34 +150,7 @@
             <div class="items">
 	
 				{% if alerts %}
-                <div class="item">
-                            <span class="call-out">
-                            </span>
-                    <p class="date">Jan 12th 2012, 8:30 PM</p>
-                    <p class="description">Kakosoro Modern Primary School in Kyegegwa district had the lowest P3 girls attendance this week.</p>
-                </div>
-
-                <div class="item">
-                            <span class="call-out">
-                            </span>
-                    <p class="date">Jan 12th 2012, 8:30 PM</p>
-                    <p class="description">Children in Kaabong district had no meals this month.</p>
-                </div>
-
-                <div class="item">
-                            <span class="call-out">
-                            </span>
-                    <p class="date">Jan 12th 2012, 8:30 PM</p>
-                    <p class="description">10 Cases of violence against children were reported in Moroto in April.</p>
-                </div>
-
-                <div class="item">
-                            <span class="call-out">
-                            </span>
-                    <p class="date">Jan 12th 2012, 8:30 PM</p>
-                    <p class="description">Kakosoro Modern Primary School in Kyegegwa district had the lowest P3 girls attendance this week.</p>
-                </div>
-
+                <!--TODO implement alerts when module is ready -->
 				{% else %}
 				
 				<div class="item">
