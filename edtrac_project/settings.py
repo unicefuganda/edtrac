@@ -74,7 +74,7 @@ INSTALLED_BACKENDS = {
 # to help you get started quickly, many django/rapidsms apps are enabled
 # by default. you may wish to remove some and/or add your own.
 INSTALLED_APPS = [
-    "education",
+
     "djtables",
     "mptt",
     "uni_form",
@@ -89,6 +89,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sites",
     "django.contrib.humanize",
+    "education",
 
     # the rapidsms contrib apps.
     "rapidsms.contrib.default",
