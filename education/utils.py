@@ -268,7 +268,7 @@ def _schedule_weekly_scripts(group, connection, grps):
     if group.name in grps:
         script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
         sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-        d = _next_thursday(sp)
+        d = _next_thursday()
         sp.set_time(d)
 
 def _schedule_weekly_report(group, connection, grps):
