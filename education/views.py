@@ -491,7 +491,6 @@ class ViolenceAdminDetails(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ViolenceAdminDetails, self).get_context_data(**kwargs)
         #TODO: filtering by ajax and time
-
         violence_cases_schools = poll_response_sum(Poll.objects.get(name="edtrac_headteachers_abuse"),
             location=self.request.user.get_profile().location, month_filter=True, months=2, ret_type=list)
 
@@ -521,12 +520,15 @@ class ViolenceAdminDetails(TemplateView):
         #
         # Assumes every administrator's location is the root location Uganda
         for dr in get_month_day_range(datetime.datetime.now(), depth=2):
-            locations = Contact.objects.filter(reporting_location__in=self.request.user.get_profile().\
-                location.get_descendants().filter(type="district")) or self.request.user.get_profile().location
+
+            if self.request.user.get_profile().location.type.name == 'country':
+                contacts = Contact.objects.filter(reporting_location__in=self.request.user.get_profile().\
+                    location.get_descendants().filter(type="district"))
+            else:
+                contacts = Contact.objects.filter(reporting_location=self.request.user.get_profile().location)
 
             resp_count = Poll.objects.get(name="edtrac_headteachers_abuse").responses.filter(
-                contact__in = Contact.objects.filter(reporting_location__in=self.request.user.get_profile().\
-                location.get_descendants().filter(type="district")),
+                contact__in = contacts,
                 date__range = dr).count()
 
             report_count += resp_count
