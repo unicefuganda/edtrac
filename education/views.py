@@ -18,12 +18,20 @@ from poll.models import Poll
 from .reports import *
 from .utils import *
 from urllib2 import urlopen
+from rapidsms.views import login, logout
 import  re, datetime, operator, xlwt
 
 
 Num_REG = re.compile('\d+')
 
 super_user_required=user_passes_test(lambda u: u.groups.filter(name__in=['Admins','DFO']).exists() or u.is_superuser)
+
+def login(req):
+    return login(req, template_name="education/admin/admin_dashboard.html")
+
+def logout(req):
+    return logout(req, tempalte_name="educatoin/admin/admin_dashboard.html")
+
 
 @login_required
 def index(request, **kwargs):
@@ -483,8 +491,27 @@ class ViolenceAdminDetails(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ViolenceAdminDetails, self).get_context_data(**kwargs)
         #TODO: filtering by ajax and time
-        context['violence_cases_reported_by_schools'] = poll_response_sum(Poll.objects.get(name="edtrac_headteachers_abuse"),
+
+        violence_cases_schools = poll_response_sum(Poll.objects.get(name="edtrac_headteachers_abuse"),
             location=self.request.user.get_profile().location, month_filter=True, months=2, ret_type=list)
+
+        total = []
+        for name, list_val in violence_cases_schools:
+            try:
+                diff = (list_val[0][0] - list_val[1][0]) / list_val[0][0]
+                total.append((list_val[0][0], list_val[1][0], diff))
+            except ZeroDivisionError:
+                diff = '--'
+            list_val.append(diff)
+
+        first_col, second_col, third_col = [],[],[]
+        for first, second, third in total:
+            first_col.append(first), second_col.append(second), third_col.append(third)
+
+        context['totals'] = [sum(first_col), sum(second_col), sum(third_col)]
+
+
+        context['violence_cases_reported_by_schools'] = violence_cases_schools
 
         # depth of 2 months
         context['report_dates'] = [start for start, end in get_month_day_range(datetime.datetime.now(), depth=2)]
@@ -492,7 +519,11 @@ class ViolenceAdminDetails(TemplateView):
         #TODO
         # -> 100 * (reports-that-are-sent-to-edtrac / reports-that-should-have-come-edtrac a.k.a. all schools)
         #
+        # Assumes every administrator's location is the root location Uganda
         for dr in get_month_day_range(datetime.datetime.now(), depth=2):
+            locations = Contact.objects.filter(reporting_location__in=self.request.user.get_profile().\
+                location.get_descendants().filter(type="district")) or self.request.user.get_profile().location
+
             resp_count = Poll.objects.get(name="edtrac_headteachers_abuse").responses.filter(
                 contact__in = Contact.objects.filter(reporting_location__in=self.request.user.get_profile().\
                 location.get_descendants().filter(type="district")),
@@ -654,6 +685,12 @@ class ProgressDeoDetails(TemplateView):
 ############################ More Generic Views ##########################################################
 ##########################################################################################################
 ##########################################################################################################
+
+## management controll panel
+
+def control_panel(req):
+    return render_to_response('education/partials/control_panel.html', {}, RequestContext(req))
+
 
 
 #District violence details (TODO: permission/rolebased viewing)
@@ -1202,20 +1239,18 @@ def edit_reporter(request, reporter_pk):
 
                 _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_smc_termly', ['SMC'])
                 _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_head_teachers_termly', ['Head Teachers'])
-                _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, ['SMC', 'Head Teachers'])
-
 
         else:
-            return render_to_response('education/partials/edit_reporter.html',
+            return render_to_response('education/partials/reporters/edit_reporter.html',
                     {'reporter_form': reporter_form,
                      'reporter': reporter},
                 context_instance=RequestContext(request))
-        return render_to_response('/education/partials/reporter_row.html',
+        return render_to_response('/education/partials/reporters/reporter_row.html',
                 {'object':EmisReporter.objects.get(pk=reporter_pk),
                  'selectable':True},
             context_instance=RequestContext(request))
     else:
-        return render_to_response('education/partials/edit_reporter.html',
+        return render_to_response('education/partials/reporters/edit_reporter.html',
                 {'reporter_form': reporter_form,
                  'reporter': reporter},
             context_instance=RequestContext(request))

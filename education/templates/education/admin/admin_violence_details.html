@@ -1,10 +1,10 @@
-{% extends "layout_base.html" %}
+{% extends "education/layout_base.html" %}
 {% block content %}
 <div class="back_link">
 <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">← Back to EdTrac Home Page</a></p>
 </div>
+        <!--
 <div class="top_part">
-
     <div id="violence_form">
         Choose:<br/>
         District:<br/>
@@ -18,12 +18,8 @@
             load_line_graph('Violence Cases - Details', null, 'violence', 'Number of Cases');
         });
     </script>
-
-
-
-
 </div>
-
+-->
 <!-- TODO chance the class names -->
 <div class="attendance">
     <h2 class="block-header">Violence cases reported by schools</h2>
@@ -34,7 +30,7 @@
                 <th>District</th>
                 <th>Violence cases recorded in {{ report_dates.0|date:"M Y"}}</th>
                 <th>Violence cases recorded in {{ report_dates.1|date:"M Y"}}</th>
-                <th>Percentage change</th>
+                <th>Percentage change (%)</th>
             </tr>
             {% if violence_cases_reported_by_schools %}
                 {% for name, list in violence_cases_reported_by_schools %}
@@ -42,15 +38,18 @@
                         <!-- nothing goes in -->
                     {% else %}
                         <tr>
-                            <td><a href="{% url district-violence list.2.pk %}">{{ name }}</a></td>
+                            <td><a href="{% url district-violence list.2.pk %}">{{ list.2 }}</a></td>
                             <td>{{ list.0.0 }}</td> <!-- current month -->
                             <td>{{ list.1.0 }}</td>
-                            <td></td>
+                            <td>{{ list.3|floatformat }}</td>
                         </tr>
                     {% endif %}
               {% endfor %}
             <tr>
-                <td>Total</td><td></td><td></td><td></td>
+                <td>Total</td>
+                {% for t in totals %}
+                <td>{{ t }}</td>
+                {% endfor %}
             </tr>
             {% else %}
                 <tr><td colspan="4" style="text-align: center;">No cases</td> </tr>

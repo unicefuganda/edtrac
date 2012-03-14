@@ -18,6 +18,7 @@ from uganda_common.utils import get_xform_dates, get_messages
 from django.contrib.auth.views import login_required
 from django.contrib.auth.models import User
 from django.views.generic import ListView
+from .reports import othermessages
 
 urlpatterns = patterns('',
     url(r'^edtrac/messages/$', login_required(generic), {
@@ -39,6 +40,30 @@ urlpatterns = patterns('',
         'sort_column':'date',
         'sort_ascending':False,
         }, name="emis-messagelog"),
+
+
+    url(r'^edtrac/other-messages/$', login_required(generic), {
+        'model':Message,
+        'queryset':othermessages,
+        'filter_forms':[FreeSearchTextForm, DistictFilterMessageForm, HandledByForm],
+        'action_forms':[ReplyTextForm],
+        'objects_per_page':25,
+        'partial_row' : 'education/partials/messages/message_row.html',
+        'base_template':'education/partials/contact_message_base.html',
+        'paginator_template' : 'education/partials/pagination.html',
+        'title' : 'Messages',
+        'columns':[('Text', True, 'text', SimpleSorter()),
+            ('Contact Information', True, 'connection__contact__name', SimpleSorter(),),
+            ('Date', True, 'date', SimpleSorter(),),
+            ('Type', True, 'application', SimpleSorter(),),
+            ('Response', False, 'response', None,),
+        ],
+        'sort_column':'date',
+        'sort_ascending':False,
+        }, name="emis-other-messages"),
+
+
+
     url(r'^edtrac/messagelog/(?P<error_msgs>\d+)/', login_required(generic), {
         'model':Message,
         'queryset':messages,
@@ -56,6 +81,7 @@ urlpatterns = patterns('',
         'sort_column':'date',
         'sort_ascending':False,
         }, name="emis-messagelog"),
+    url(r'^edtrac/control-panel/$',control_panel, name="control-panel"),
     #reporters
     url(r'^edtrac/reporter/$', login_required(generic), {
         'model':EmisReporter,
@@ -81,7 +107,7 @@ urlpatterns = patterns('',
         }, name="emis-contact"),
     url(r'^edtrac/reporter/(\d+)/edit/', edit_reporter, name='edit-reporter'),
     url(r'^edtrac/reporter/(\d+)/delete/', delete_reporter, name='delete-reporter'),
-    url(r'^edtrac/reporter/(?P<pk>\d+)/show', generic_row, {'model':EmisReporter, 'partial_row':'education/partials/reporter_row.html'}),
+    url(r'^edtrac/reporter/(?P<pk>\d+)/show', generic_row, {'model':EmisReporter, 'partial_row':'education/partials/reporters/reporter_row.html'}),
     url(r'^edtrac/ht_attendance/$', htattendance, {}, name='ht-attendance-stats'),
     url(r'^edtrac/ht_attendance/(?P<start_date>[0-9\-]+)/(?P<end_date>[0-9\-]+)$', htattendance, {}, name='ht-attendance-stats'),
     url(r'^edtrac/gemht_attendance/$', gem_htattendance, {}, name='gemht-attendance-stats'),
@@ -243,7 +269,5 @@ urlpatterns = patterns('',
     url(r'^edtrac/scripts/', edit_scripts, name='emis-scripts'),
     url(r'^edtrac/reshedule_scripts/(?P<script_slug>[a-z_]+)/$', reschedule_scripts, name='emis-reschedule-scripts'),
     url(r'^edtrac/attdmap/$', attendance_visualization, name="attendance-visualization"),
-
-
 )
 

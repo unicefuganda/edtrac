@@ -47,19 +47,21 @@
 
         <div id="main-content">
             <div id="title-bar">
+                {% block logo %}
                 <div id="edutrac-logo">
-                    <a href="{% url rapidsms-dashboard %}"><span>eduTrac</span></a>
+                    <a href="{% url rapidsms-dashboard %}"><img src="{{MEDIA_URL }}education/icons/web_logo_without_slogan.jpg" alt="EduTrac"></a>
                 </div>
                 <div id="unicef-logo">
                     <a href="{% url rapidsms-dashboard %}"><img src="{{ MEDIA_URL }}education/icons/unicef-logo.png"/></a>
                 </div>
+                {% endblock %}
             </div>
             {% block content %}{% endblock %}
 
             <div class="clear"></div>
             <div id="footer">
                 <p class="rights">
-                    Copyright &copy; 2008 &#8211; 2011
+                    Copyright &copy; 2008 &#8211; 2012
                     <a href="http://unicef.org">UNICEF</a> et al.<br />
                     <a href="http://github.com/rapidsms/rapidsms">RapidSMS</a> is available under
                     <a href="http://github.com/rapidsms/rapidsms/raw/master/LICENSE">the BSD license</a>.

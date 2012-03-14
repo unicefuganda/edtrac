@@ -21,6 +21,7 @@ def fake_poll_responses(poll_name, grp):
 
     yesno_resp = ['yes', 'no']
     text_resp = ['0%', '25%', '50%', '75%', '100%']
+
     poll = Poll.objects.get(name=poll_name)
     rep_count = EmisReporter.objects.filter(groups__name=grp).count()
 
@@ -29,6 +30,12 @@ def fake_poll_responses(poll_name, grp):
             if poll.type == Poll.TYPE_NUMERIC:
                 poll.process_response(fake_incoming_message('%s' % random.randint(0,9), rep.default_connection))
                 #poll.process_response(fake_incoming_message('%s' % random.choice(text_resp), rep.default_connection))
+            if poll.name == 'edtrac_p3_curriculum_progress':
+                poll.process_response(fake_incoming_message('%s'%random.choice([1.1, 1.2, 1.3, 2.1, 2.2, 2.3]), rep.default_connection))
+
+            if poll.name == 'edtrac_smc_grants_test':
+                poll.process_response(fake_incoming_message(random.choice(yesno_resp), rep.default_connection))
+
             elif poll.type == Poll.TYPE_TEXT:
             #            if poll.categories.values_list('name', flat=True)[0] in ['yes', 'no', 'unknown']:
             #                resp = random.choice(yesno_resp)

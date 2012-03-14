@@ -1,9 +1,7 @@
 """
 Basic tests for Edtrac
 """
-
 from django.test import TestCase
-from django.contrib.auth.models import User, Group
 from rapidsms.messages.incoming import IncomingMessage, OutgoingMessage
 from rapidsms_xforms.models import *
 from rapidsms_httprouter.models import Message
@@ -18,7 +16,7 @@ from education.management import *
 from rapidsms_httprouter.router import get_router
 from script.signals import script_progress_was_completed, script_progress
 from poll.management import create_attributes
-from .models import EmisReporter, School, reschedule_weekly_polls, reschedule_monthly_polls, reschedule_termly_polls
+from education.models import EmisReporter, School, reschedule_weekly_polls, reschedule_monthly_polls, reschedule_termly_polls
 from django.db import connection
 from script.utils.outgoing import check_progress
 from django.core.management import call_command
@@ -28,16 +26,11 @@ from poll.models import ResponseCategory
 import difflib
 
 
-
-
-class ViewTest(TestCase):
-    pass
-
 class ModelTest(TestCase): #pragma: no cover
-
+    # Model tests
     def setUp(self):
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
-            site_id = getattr(settings, 'SITE_ID', 1)
+            site_id = getattr(settings, 'SITE_ID', 5)
             Site.objects.get_or_create(pk=site_id, defaults={'domain':'rapidemis.com'})
             #        fixtures = ['initial_data.json']
         User.objects.get_or_create(username='admin')
@@ -531,11 +524,26 @@ class ModelTest(TestCase): #pragma: no cover
         seconds_to_monthday = self.total_seconds(_date_of_monthday('last') - datetime.datetime.now())
         self.assertEquals(seconds_to_nextprog, seconds_to_monthday)
 
+
+    def testTermlySMCPolls(self):
+        self.register_reporter('SMC')
+        Script.objects.filter(slug='edtrac_smc_termly').update(enabled=True)
+        prog = ScriptProgress.objects.get(script__slug="edtrac_smc_termly", connection=self.connection)
+        d = _next_term_question_date()
+        seconds_to_midterm = self.total_seconds(d - datetime.datetime.now())
+        self.elapseTime2(prog, seconds_to_midterm+(1*60*60))
+        prog = ScriptProgress.objects.get(script__slug="edtrac_smc_termly", connection=self.connection)
+        check_progress(prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text,\
+            Script.objects.get(slug="edtrac_smc_termly").steps.get(order=0).poll.question)
+        self.fake_incoming('yes')
+        self.assertEquals(Message.objects.filter(direction="I").order_by('-date')[0].application, 'script')
+
+
     def testTermlyHeadTeacherPolls(self):
         self.register_reporter('head teacher')
         Script.objects.filter(slug__in=['edtrac_head_teachers_weekly', 'edtrac_head_teachers_monthly', 'edtrac_head_teachers_termly']).update(enabled=True)
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_termly', connection=self.connection)
-        #        d = _next_midterm()
         d = _next_term_question_date()
         seconds_to_midterm = self.total_seconds(d - datetime.datetime.now())
         self.elapseTime2(prog, seconds_to_midterm+(1*60*60)) #seconds to 25th + one hour
@@ -588,7 +596,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.date(), d.date())
         # micro seconds make test fail
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.time().hour, d.time().hour)
-        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.time().minute, d.time().minute)
+#        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.time().minute, d.time().minute)
 
     def testWeeklySMCPolls(self):
         self.register_reporter('smc')

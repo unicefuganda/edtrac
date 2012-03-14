@@ -84,6 +84,7 @@ class EditReporterForm(forms.ModelForm):
            super(EditReporterForm, self).__init__(*args, **kwargs)
            self.fields['reporting_location'] = TreeNodeChoiceField(queryset=self.fields['reporting_location'].queryset, level_indicator=u'.')
            self.fields['schools'].required = False
+           self.fields['schools'].queryset = School.objects.order_by('location__name', 'name')
            self.fields['grade'].required = False
 
     class Meta:
@@ -102,8 +103,7 @@ class DistrictFilterForm(forms.Form):
 class LimitedDistictFilterForm(FilterForm):
 
     """ filter Emis Reporters on their districts """
-
-    locs = Location.objects.filter(name__in=XFormSubmissionValue.objects.values_list('submission__connection__contact__reporting_location__name', flat=True)).order_by('name')
+    locs = Location.objects.filter(name__in=EmisReporter.objects.values_list('reporting_location__name',flat=True).distinct())
     locs_list = []
     for loc in locs:
         if not Location.tree.root_nodes()[0].pk == loc.pk and loc.type.name == 'district':
