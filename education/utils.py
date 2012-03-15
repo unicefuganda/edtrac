@@ -65,7 +65,10 @@ def _next_thursday(sp=None):
     """
     holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
     d = sp.time if sp else datetime.datetime.now()
-    d = d + datetime.timedelta((3 - d.weekday()) % 7)
+    if d.weekday() == 3:
+        d = d + datetime.timedelta(7)
+    else: 
+        d = d + datetime.timedelta((3 - d.weekday()) % 7)
     in_holiday = True
     while in_holiday:
         in_holiday = False
