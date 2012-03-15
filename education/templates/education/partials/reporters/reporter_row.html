@@ -21,10 +21,14 @@
     </td>
 
 	<td>
+        {% if object.get_grade_display %}
 		{{ object.get_grade_display }}
+        {% endif %}
 	</td>
         <td>
+            {% if object.get_gender_display %}
             {{ object.get_gender_display }}
+            {% endif %}
         </td>
     <td>
         <ul>
