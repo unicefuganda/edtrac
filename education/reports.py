@@ -551,6 +551,32 @@ def get_week_date(number=None):
     return
 
 
+def get_numeric_report_data(poll_name, location=None, time_range=None):
+        poll = Poll.objects.get(name=poll_name)
+        from eav.models import Value, ContentType
+        if location:
+            q = Value.objects.filter(attribute__slug='poll_number_value', entity_ct=ContentType.objects.get_for_model(Response), entity_id__in=poll.responses.all())
+            q = q.extra(tables=['poll_response', 'rapidsms_contact', 'locations_location', 'locations_location'],
+                    where=['poll_response.id = eav_value.entity_id',
+                           'rapidsms_contact.id = poll_response.contact_id',
+                           'locations_location.id = rapidsms_contact.reporting_location_id',
+                           'T7.id in %s' % (str(tuple(location.get_children().values_list('pk', flat=True)))),
+                           'T7.lft <= locations_location.lft', \
+                           'T7.rght >= locations_location.rght', \
+                           ],
+                    select={
+                        'location_name':'T7.name',
+                        'location_id':'T7.id',
+                        'lft':'T7.lft',
+                        'rght':'T7.rght',
+                    }).values('location_name', 'location_id')
+
+        else:
+            q = Value.objects.filter(attribute__slug='poll_number_value', entity_ct=ContentType.objects.get_for_model(Response), entity_id__in=self.responses.all()).values('entity_ct')
+        q = q.annotate(Sum('value_float'), Count('value_float'), Avg('value_float'), StdDev('value_float'), Max('value_float'), Min('value_float'))
+        return q
+    
+
 def poll_response_sum(poll_queryset, **kwargs):
     #TODO refactor name of method
     #TODO add poll_type to compute count of repsonses (i.e. how many YES' and No's do exist)
