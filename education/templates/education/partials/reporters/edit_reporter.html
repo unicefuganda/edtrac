@@ -1,13 +1,15 @@
 {% load stats_extras %}
 <td>&nbsp;</td>
-<td id="row_{{ reporter.pk }}">{{ reporter_form.name }}
+<td id="row_{{ reporter.pk }}">
+    {{ reporter_form.name }}
     {% if reporter_form.name.errors %}
         <br clear="left"/>
         {{ reporter_form.name.errors }}
     {% endif %}
 </td>
 <td>{{ reporter.default_connection.identity }}</td>
-<td>{{ reporter_form.grade }}
+<td>
+    {{ reporter_form.grade }}
 	{% if reporter_form.grade.errors %}<br clear="left"/>{{ reporter_form.grade.errors}}{% endif %}
 </td>
 <td>{{ reporter_form.gender }}
