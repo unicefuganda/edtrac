@@ -1,0 +1,5 @@
+{% extends "education/partials/partial_header.html" %}
+{% block toprow %}
+	<div id="add_contact_form"></div>
+    <div id="add_contact_anchor_row"><a href="javascript:void(0)" onclick="newConnection(this, '{% url education.views.add_connection %}')" style="color:white; padding:10px; font-size: 1.2em; background-color:gray;">Add Reporter</a><p></p></div>
+{% endblock %}

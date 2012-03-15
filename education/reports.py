@@ -907,12 +907,12 @@ def generate_deo_report(location_name = None):
 def get_count_response_to_polls(poll_queryset, **kwargs):
     if kwargs.has_key('month_filter') and kwargs.get('month_filter') and not kwargs.has_key('location') and kwargs.has_key('choices'):
         # when no location is provided { worst case scenario }
-        DISTRICT = ['Kaabong', 'Kabarole', 'Kyegegwa', 'Kotido']
         #choices = [0, 25, 50, 75, 100 ] <-- percentage
         choices = kwargs.get('choices')
         #initialize to_ret dict with empty lists
         to_ret = {}
-        for location in Location.objects.filter(type="district", name__in=DISTRICT):
+        for location in Location.objects.filter(type="district", name__in=\
+            EmisReporter.objects.exclude(reporting_location=None).values_list('reporting_location__name',flat=True).distinct()):
             to_ret[location.__unicode__()] = []
 
         for key in to_ret.keys():

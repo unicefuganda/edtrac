@@ -705,5 +705,20 @@ table.classy tbody tr:hover td, table.classy tbody tr:hover th{
 
 
 div.module {
-    margin-top: 1em;
+    margin-bottom: 60px;
+}
+
+
+div.actionform a, div.actionform a:active{
+    padding:10px;
+    background-color: gray;
+    color: white;
+    float:right;
+    margin-bottom: 10px;
+    margin-left: 20px;
+    text-align: match-parent;
+    vertical-align: middle;
+}
+div.actionform tr{
+    margin-bottom: 10px;
 }

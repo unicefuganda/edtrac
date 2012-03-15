@@ -1,5 +1,6 @@
 {% extends "education/admin/admin_dashboard.html" %}
 {% block content %}
+        <div class="general">
 <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; line-height: inherit;">← Back to EdTrac Home Page</a></p>
         <div>
         <div id="meals" style="float:left;"></div>
@@ -77,7 +78,6 @@
 
                 {% if community_meals_reports %}
                 {% for name, list in community_meals_reports.items %}
-                    {%
                 <tr>
                     <td>{{ name }}</td>
                     {% for tupple_item in list %}
@@ -92,5 +92,5 @@
             </table>
 
         </div>
-
+        </div>
 {% endblock %}

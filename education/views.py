@@ -1587,13 +1587,14 @@ def gem_htattendance(request, start_date=None, end_date=None, district_id=None):
         ],
         partial_row = 'education/partials/gemht_attendance_row.html',
         partial_header = 'education/partials/partial_header.html',
-        base_template = 'education/timeslider_base.html',
+        base_template = 'education/timesli`der_base.html',
         needs_date = True,
         selectable = False,
         dates = get_xform_dates,
     )
 
 def meals(request, district_id=None):
+
     user_location = get_location(request, district_id)
     dates = get_xform_dates(request)
 
