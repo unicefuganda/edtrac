@@ -236,6 +236,14 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(EmisReporter.objects.count(), 1) #the user is not deleted, only blacklisted
     
     def testDoubleReg(self):
+        
+        #join again when already in the process of registration
+        self.fake_incoming('join')
+        self.fake_incoming('join')
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, "Your registration is not complete yet, you do not need to 'Join' again.")
+        
+        #cleanout scriptprogress and register again
+        ScriptProgress.objects.filter(script__slug='edtrac_autoreg', connection=self.connection).delete()
         self.register_reporter('teacher')
         self.assertEquals(EmisReporter.objects.count(), 1)
         contact = EmisReporter.objects.all()[0]

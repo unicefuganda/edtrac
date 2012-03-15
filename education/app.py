@@ -32,8 +32,11 @@ class App (AppBase):
 
         elif message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', ['join'])]:
             if not message.connection.contact:
-                ScriptProgress.objects.create(script=Script.objects.get(slug="edtrac_autoreg"),\
-                    connection=message.connection)
+                if ScriptProgress.objects.filter(script__slug='edtrac_autoreg', connection=message.connection).count() == 0:
+                    ScriptProgress.objects.create(script=Script.objects.get(slug="edtrac_autoreg"),\
+                        connection=message.connection)
+                else:
+                    message.respond("Your registration is not complete yet, you do not need to 'Join' again.")
             elif Blacklist.objects.filter(connection=message.connection).count():
                 Blacklist.objects.filter(connection=message.connection).delete()
                 if not ScriptProgress.objects.filter(script__slug='edtrac_autoreg', connection=message.connection).count():
