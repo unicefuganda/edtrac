@@ -17,6 +17,7 @@ from generic.sorters import SimpleSorter
 from poll.models import Poll
 from .reports import *
 from .utils import *
+from .utils import _schedule_monthly_script, _schedule_termly_script, _schedule_weekly_scripts
 from urllib2 import urlopen
 from rapidsms.views import login, logout
 import  re, datetime, operator, xlwt
@@ -1221,26 +1222,31 @@ def delete_reporter(request, reporter_pk):
 @login_required
 def edit_reporter(request, reporter_pk):
     reporter = get_object_or_404(EmisReporter, pk=reporter_pk)
+    reporter_group_name = reporter.groups.all()[0].name
     reporter_form = EditReporterForm(instance=reporter)
     if request.method == 'POST':
         reporter_form = EditReporterForm(instance=reporter,
             data=request.POST)
         if reporter_form.is_valid():
             reporter_form.save()
+            saved_reporter_grp = EmisReporter.objects.get(pk=reporter_pk).groups.all()[0].name
             if reporter.default_connection and reporter.groups.count() > 0:
                 # remove from other scripts
-                from education.utils import _schedule_weekly_scripts, _schedule_monthly_script, _schedule_termly_script
-                ScriptProgress.objects.exclude(script__slug="edtrac_autoreg").filter(connection=reporter.default_connection).delete()
-                _schedule_weekly_scripts(reporter.groups.all()[0], reporter.default_connection, ['Teachers', 'Head Teachers', 'SMC'])
+                # if reporter's groups remain the same.
+                if reporter_group_name == saved_reporter_grp:
+                    pass
+                else:
+                    ScriptProgress.objects.exclude(script__slug="edtrac_autoreg").filter(connection=reporter.default_connection).delete()
+                    _schedule_weekly_scripts(reporter.groups.all()[0], reporter.default_connection, ['Teachers', 'Head Teachers', 'SMC'])
 
 
-                _schedule_monthly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_head_teachers_monthly', 'last', ['Head Teachers'])
-                _schedule_monthly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_gem_monthly', 20, ['GEM'])
-                _schedule_monthly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_smc_monthly', 5, ['SMC'])
+                    _schedule_monthly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_head_teachers_monthly', 'last', ['Head Teachers'])
+                    _schedule_monthly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_gem_monthly', 20, ['GEM'])
+                    _schedule_monthly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_smc_monthly', 5, ['SMC'])
 
 
-                _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_smc_termly', ['SMC'])
-                _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_head_teachers_termly', ['Head Teachers'])
+                    _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_smc_termly', ['SMC'])
+                    _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_head_teachers_termly', ['Head Teachers'])
 
         else:
             return render_to_response('education/partials/reporters/edit_reporter.html',
