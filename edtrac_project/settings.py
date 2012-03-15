@@ -89,6 +89,8 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sites",
     "django.contrib.humanize",
+    "script",
+    "poll",
     "education",
 
     # the rapidsms contrib apps.
@@ -97,8 +99,6 @@ INSTALLED_APPS = [
     "rapidsms_xforms",
     "auth",
     "rapidsms_httprouter",
-    "script",
-    "poll",
     "uganda_common",
     "generic",
     "generic.reporting",
