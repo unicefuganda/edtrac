@@ -379,7 +379,13 @@ def edtrac_attendance_script_transition(**kwargs):
         return
     grade = connection.contact.emisreporter.grade
     if not grade:
+        if progress.last_step():
+            progress.giveup()
+            return
+        progress.step = progress.script.steps.get(order=progress.step.order + 1)
+        progress.save()
         return
+    
     skipsteps = {
         'edtrac_boysp3_attendance':['P3'],
         'edtrac_boysp6_attendance':['P6'],
@@ -397,7 +403,6 @@ def edtrac_attendance_script_transition(**kwargs):
                 if progress.last_step():
                     progress.giveup()
                     return
-                print progress.script.steps.all().values_list('script__slug', 'order')
                 progress.step = progress.script.steps.get(order=progress.step.order + 1)
                 progress.save()
                 break
