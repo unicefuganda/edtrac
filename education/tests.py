@@ -525,19 +525,19 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(seconds_to_nextprog, seconds_to_monthday)
 
 
-    def testTermlySMCPolls(self):
-        self.register_reporter('SMC')
-        Script.objects.filter(slug='edtrac_smc_termly').update(enabled=True)
-        prog = ScriptProgress.objects.get(script__slug="edtrac_smc_termly", connection=self.connection)
-        d = _next_term_question_date()
-        seconds_to_midterm = self.total_seconds(d - datetime.datetime.now())
-        self.elapseTime2(prog, seconds_to_midterm+(1*60*60))
-        prog = ScriptProgress.objects.get(script__slug="edtrac_smc_termly", connection=self.connection)
-        check_progress(prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text,\
-            Script.objects.get(slug="edtrac_smc_termly").steps.get(order=0).poll.question)
-        self.fake_incoming('yes')
-        self.assertEquals(Message.objects.filter(direction="I").order_by('-date')[0].application, 'script')
+#    def testTermlySMCPolls(self):
+#        self.register_reporter('SMC')
+#        Script.objects.filter(slug='edtrac_smc_termly').update(enabled=True)
+#        prog = ScriptProgress.objects.get(script__slug="edtrac_smc_termly", connection=self.connection)
+#        d = _next_term_question_date()
+#        seconds_to_midterm = self.total_seconds(d - datetime.datetime.now())
+#        self.elapseTime2(prog, seconds_to_midterm+(1*60*60))
+#        prog = ScriptProgress.objects.get(script__slug="edtrac_smc_termly", connection=self.connection)
+#        check_progress(prog.script)
+#        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text,\
+#            Script.objects.get(slug="edtrac_smc_termly").steps.get(order=0).poll.question)
+#        self.fake_incoming('yes')
+#        self.assertEquals(Message.objects.filter(direction="I").order_by('-date')[0].application, 'script')
 
 
     def testTermlyHeadTeacherPolls(self):
