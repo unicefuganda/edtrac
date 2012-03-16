@@ -486,26 +486,26 @@ class ViolenceAdminDetails(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ViolenceAdminDetails, self).get_context_data(**kwargs)
         #TODO: filtering by ajax and time
-        violence_cases_schools = poll_response_sum(Poll.objects.get(name="edtrac_headteachers_abuse"),
+        violence_cases_schools = poll_response_sum("edtrac_headteachers_abuse",
             location=self.request.user.get_profile().location, month_filter=True, months=2, ret_type=list)
 
         total = []
+
         for name, list_val in violence_cases_schools:
             try:
-                diff = (list_val[0][0] - list_val[1][0]) / list_val[0][0]
-                total.append((list_val[0][0], list_val[1][0], diff))
+                diff = (list_val[0] - list_val[1]) / list_val[0]
+                total.append((list_val[0], list_val[1], diff))
             except ZeroDivisionError:
                 diff = '--'
+
             list_val.append(diff)
+
+        context['violence_cases_reported_by_schools'] = violence_cases_schools
 
         first_col, second_col, third_col = [],[],[]
         for first, second, third in total:
             first_col.append(first), second_col.append(second), third_col.append(third)
-
         context['totals'] = [sum(first_col), sum(second_col), sum(third_col)]
-
-
-        context['violence_cases_reported_by_schools'] = violence_cases_schools
 
         # depth of 2 months
         context['report_dates'] = [start for start, end in get_month_day_range(datetime.datetime.now(), depth=2)]
@@ -564,14 +564,14 @@ class AttendanceAdminDetails(TemplateView):
         for loc in locations:
             location_data_container.append(
                 [loc,
-                 poll_response_sum(Poll.objects.get(name="edtrac_boysp3_attendance"), month_filter='weekly', location=loc),
-                 poll_response_sum(Poll.objects.get(name="edtrac_boysp6_attendance"), month_filter='weekly', location=loc),
-                 poll_response_sum(Poll.objects.get(name="edtrac_girlsp3_attendance"), month_filter='weekly', location=loc),
-                 poll_response_sum(Poll.objects.get(name="edtrac_girlsp3_attendance"), month_filter='weekly', location=loc),
-                 poll_response_sum(Poll.objects.get(name="edtrac_f_teachers_attendance"), month_filter='weekly', location=loc),
-                 poll_response_sum(Poll.objects.get(name="edtrac_m_teachers_attendance"), month_filter='weekly', location=loc),
-                 poll_response_sum(Poll.objects.get(name="edtrac_head_teachers_attendance"), month_filter="weekly", location=loc),
-                 poll_response_sum(Poll.objects.get(name="edtrac_head_teachers_attendance"), month_filter="weekly", location=loc)
+                 poll_response_sum("edtrac_boysp3_attendance", month_filter='weekly', location=loc),
+                 poll_response_sum("edtrac_boysp6_attendance", month_filter='weekly', location=loc),
+                 poll_response_sum("edtrac_girlsp3_attendance", month_filter='weekly', location=loc),
+                 poll_response_sum("edtrac_girlsp3_attendance", month_filter='weekly', location=loc),
+                 poll_response_sum("edtrac_f_teachers_attendance", month_filter='weekly', location=loc),
+                 poll_response_sum("edtrac_m_teachers_attendance", month_filter='weekly', location=loc),
+                 poll_response_sum("edtrac_head_teachers_attendance", month_filter="weekly", location=loc),
+                 poll_response_sum("edtrac_head_teachers_attendance", month_filter="weekly", location=loc)
                 ]
             )
         context['location_data'] = location_data_container

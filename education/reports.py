@@ -683,13 +683,10 @@ def get_numeric_report_data_2(poll_name, location=None, time_range=None, to_ret=
             elif to_ret == 'min':
                 return q.annotate(Min('value_float'))[0]['value_float__min']
         else:
-            print 'q value is empty'
             return 0
     else:
         return q.annotate(Sum('value_float'), Count('value_float'), Avg('value_float'),\
             StdDev('value_float'), Max('value_float'), Min('value_float'))
-
-
 
 def poll_response_sum(poll_name, **kwargs):
     #TODO refactor name of method
@@ -747,6 +744,7 @@ def poll_response_sum(poll_name, **kwargs):
 
                 for location in locations:
                     #to_ret is something like { 'Kampala' : [23, 34] } => ['current_month', 'previoius month']
+
                     to_ret[location.__unicode__()] = [] #empty list we populate in a moment
                     for month_range in month_ranges:
                         to_ret[location.__unicode__()].append(
@@ -755,22 +753,22 @@ def poll_response_sum(poll_name, **kwargs):
                                 location=location,
                                 time_range = month_range,
                                 to_ret = 'sum'
-                            ), month_range[0]
+                            )
                         )
 #TODO --> fix sorting??
-#            if kwargs.get('ret_type') == list:
-#            #returning a sorted list of values
-#                import operator
-#                #return a dictionary of values e.g. {'kampala': (<Location Kampala>, 34)}
-#                #pre-emptive sorting -> by largest -> returns a sorted list of tuples
-#                #TODO improve sorting
-#                to_ret = sorted(to_ret.iteritems(), key=operator.itemgetter(1))
-#                #initial structure is [('name', val1, val2) ]
-#                for name, val in to_ret:
-#                    val.append(Location.objects.filter(type="district").get(name__icontains=name))
-#                    # the last elements appear to be the largest
-#                to_ret.reverse()
-#                return to_ret
+            if kwargs.get('ret_type') == list:
+            #returning a sorted list of values
+                import operator
+                #return a dictionary of values e.g. {'kampala': (<Location Kampala>, 34)}
+                #pre-emptive sorting -> by largest -> returns a sorted list of tuples
+                #TODO improve sorting
+                to_ret = sorted(to_ret.iteritems(), key=operator.itemgetter(1))
+                #initial structure is [('name', val1, val2) ]
+                for name, val in to_ret:
+                    val.append(Location.objects.filter(type="district").get(name__icontains=name))
+                    # the last elements appear to be the largest
+                to_ret.reverse()
+                return to_ret
 #                #TODO Other data type returns.
 
         if kwargs.get('month_filter')=='termly' and kwargs.has_key('locations'):
