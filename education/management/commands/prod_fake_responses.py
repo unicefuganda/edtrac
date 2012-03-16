@@ -25,7 +25,7 @@ def fake_poll_responses(poll_name, grp):
     poll = Poll.objects.get(name=poll_name)
     rep_count = EmisReporter.objects.filter(groups__name=grp).count()
 
-    for rep in EmisReporter.objects.exclude(connection__in=Blacklist.objects.values_list('connection',flat=True)).filter(groups__name=grp).distinct()[:100]:
+    for rep in EmisReporter.objects.exclude(connection__in=Blacklist.objects.values_list('connection',flat=True)).filter(groups__name=grp).distinct():
         if not rep.default_connection == None:
             if poll.type == Poll.TYPE_NUMERIC:
                 poll.process_response(fake_incoming_message('%s' % random.randint(0,9), rep.default_connection))

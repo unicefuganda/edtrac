@@ -24,7 +24,7 @@ from unregister.models import Blacklist
 from education.utils import _next_thursday, _date_of_monthday, _next_midterm, _next_term_question_date
 from poll.models import ResponseCategory
 import difflib
-from education.reports import get_numeric_report_data
+from education.reports import get_numeric_report_data_2
 
 class ModelTest(TestCase): #pragma: no cover
     # Model tests
@@ -519,8 +519,9 @@ class ModelTest(TestCase): #pragma: no cover
 
 
         self.assertEquals(
-            get_numeric_report_data(
+            get_numeric_report_data_2(
                 Script.objects.get(slug='edtrac_head_teachers_monthly').steps.get(order=0).poll.name,
+                time_range=[datetime.datetime.now()-datetime.timedelta(days=25), datetime.datetime.now()],
                 to_ret='sum'
             ), 5
         )

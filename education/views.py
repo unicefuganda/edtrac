@@ -772,7 +772,7 @@ def boysp3_district_attd_detail(req, location_id):
     to_ret = []
     for school in schools:
         to_ret.append((
-            school, poll_response_sum(Poll.objects.get(name="edtrac_boysp3_attendance"), month_filter='weekly',school=school)
+            school, poll_response_sum("edtrac_boysp3_attendance", month_filter='weekly',school=school)
         ))
     return render_to_response("education/boysp3_district_attd_detail.html", { 'location':location,\
                                         'location_data':to_ret,\
@@ -790,7 +790,7 @@ def boysp6_district_attd_detail(req, location_id):
     to_ret = []
     for school in schools:
         to_ret.append((
-            school, poll_response_sum(Poll.objects.get(name="edtrac_boysp6_attendance"), month_filter='weekly',school=school)
+            school, poll_response_sum("edtrac_boysp6_attendance", month_filter='weekly',school=school)
             ))
     return render_to_response("education/boysp6_district_attd_detail.html", { 'week':datetime.datetime.now(),\
         'location':location,\
@@ -809,7 +809,7 @@ def girlsp3_district_attd_detail(req, location_id):
     to_ret = []
     for school in schools:
         to_ret.append((
-            school, poll_response_sum(Poll.objects.get(name="edtrac_girlsp3_attendance"), month_filter='weekly',school=school)
+            school, poll_response_sum("edtrac_girlsp3_attendance", month_filter='weekly', school=school)
             ))
     return render_to_response("education/girlsp3_district_attd_detail.html", { 'location_data':to_ret,\
                                                                                'headings':['School', "Number"],\
@@ -825,7 +825,7 @@ def girlsp6_district_attd_detail(req, location_id):
     to_ret = []
     for school in schools:
         to_ret.append((
-            school, poll_response_sum(Poll.objects.get(name="edtrac_girlsp6_attendance"), month_filter='weekly',school=school)
+            school, poll_response_sum("edtrac_girlsp6_attendance", month_filter='weekly',school=school)
             ))
     return render_to_response("education/girlsp6_district_attd_detail.html", { 'location_data':to_ret }, RequestContext(req))
 
@@ -840,7 +840,7 @@ def female_t_district_attd_detail(req, location_id):
     to_ret = []
     for school in schools:
         to_ret.append((
-            school, poll_response_sum(Poll.objects.get(name="edtrac_boysp3_attendance"), month_filter='weekly',school=school)
+            school, poll_response_sum('edtrac_boysp3_attendance', month_filter='weekly',school=school)
             ))
     return render_to_response("education/female_t_district_attd_detail.html", { 'location_data':to_ret }, RequestContext(req))
 
@@ -854,7 +854,7 @@ def male_t_district_attd_detail(req, location_id):
     to_ret = []
     for school in schools:
         to_ret.append((
-            school, poll_response_sum(Poll.objects.get(name="edtrac_boysp3_attendance"), month_filter='weekly',school=school)
+            school, poll_response_sum("edtrac_boysp3_attendance", month_filter='weekly',school=school)
             ))
     return render_to_response("education/male_t_district_attd_detail.html", { 'location_data':to_ret }, RequestContext(req))
 
@@ -874,7 +874,7 @@ def boys_p3_attendance(req):
         schools = School.objects.filter(location=location)
         data_to_render = []
         for school in schools:
-            data = poll_response_sum(Poll.objects.get(name="edtrac_boysp3_attendance"),month_filter='weekly',location=school.location)
+            data = poll_response_sum("edtrac_boysp3_attendance", month_filter='weekly', school=school)
             data_to_render.append(
                 [
                     school,
@@ -912,14 +912,14 @@ def boys_p6_attendance(req):
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
         locations = Location.objects.exclude(type="country").filter(name__in=\
-            EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True)).order_by("name")
+            EmisReporter.objects.values_list('reporting_location__name', flat=True)).distinct().order_by("name")
         return boys_p6_attd_admin(req, locations=locations)
     else:
         #DEO
         schools = School.objects.filter(location=location)
         data_to_render = []
         for school in schools:
-            data = poll_response_sum(Poll.objects.get(name="edtrac_boysp6_attendance"),month_filter='weekly',location=school.location)
+            data = poll_response_sum("edtrac_boysp6_attendance", month_filter='weekly', school=school)
             data_to_render.append(
                 [
                     school,
@@ -958,7 +958,7 @@ def girls_p3_attendance(req):
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
         locations = Location.objects.exclude(type="country").filter(name__in=\
-            EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True)).order_by("name")
+            EmisReporter.objects.values_list('reporting_location__name', flat=True)).distinct().order_by("name")
         return girls_p3_attd_admin(req, locations=locations)
     else:
         #DEO
@@ -966,7 +966,7 @@ def girls_p3_attendance(req):
         data_to_render = []
 
         for school in schools:
-            data = poll_response_sum(Poll.objects.get(name="edtrac_girlsp3_attendance"),month_filter='weekly',location=school.location)
+            data = poll_response_sum("edtrac_girlsp3_attendance", month_filter='weekly', school=school)
             data_to_render.append([school, school.location, data])
 
             return render_to_response('education/partials/girls_p3_attendance.html',{
@@ -988,14 +988,14 @@ def girls_p6_attendance(req):
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
         locations = Location.objects.exclude(type="country").filter(name__in=\
-            EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True)).order_by("name")
+            EmisReporter.objects.values_list('reporting_location__name', flat=True)).distinct().order_by("name")
         return girls_p6_attd_admin(req, locations=locations)
     else:
         #DEO
         schools = School.objects.filter(location=location)
         data_to_render = []
         for school in schools:
-            data = poll_response_sum(Poll.objects.get(name="edtrac_girlsp6_attendance"),month_filter='weekly',location=school.location)
+            data = poll_response_sum("edtrac_girlsp6_attendance", month_filter='weekly', school=school)
             data_to_render.append([school, school.location, data])
         return render_to_response(
             'education/partials/girls_p6_attendance.html',
