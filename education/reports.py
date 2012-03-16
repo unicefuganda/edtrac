@@ -7,7 +7,7 @@ from generic.utils import flatten_list
 from rapidsms.contrib.locations.models import Location
 from rapidsms_httprouter.models import Message
 from rapidsms.models import Connection
-from django.db.models import Q
+from django.db.models import Q, Sum, StdDev, Max, Min, Avg, Count
 from script.models import Script
 from rapidsms_xforms.models import XFormSubmissionValue, XForm, XFormSubmission
 from uganda_common.reports import PollNumericResultsColumn, PollCategoryResultsColumn, LocationReport, QuotientColumn, InverseQuotientColumn
@@ -18,6 +18,7 @@ from .models import EmisReporter, School
 from poll.models import Response, Poll
 import datetime, dateutils
 from types import NoneType
+from eav.models import Value, ContentType
 from rapidsms.models import Contact
 from generic.reporting.views import ReportView
 from generic.reporting.reports import Column
@@ -551,12 +552,22 @@ def get_week_date(number=None):
     return
 
 
-def get_numeric_report_data(poll_name, location=None, time_range=None):
-        poll = Poll.objects.get(name=poll_name)
-        from eav.models import Value, ContentType
-        if location:
-            q = Value.objects.filter(attribute__slug='poll_number_value', entity_ct=ContentType.objects.get_for_model(Response), entity_id__in=poll.responses.all())
-            q = q.extra(tables=['poll_response', 'rapidsms_contact', 'locations_location', 'locations_location'],
+def get_numeric_report_data(poll_name, location=None, time_range=None, to_ret=None):
+
+    poll = Poll.objects.get(name=poll_name)
+
+    if location:
+        # time filters
+        if time_range:
+            q = Value.objects.filter(attribute__slug='poll_number_value',\
+                entity_ct=ContentType.objects.get_for_model(Response), entity_id__in=poll.responses.filter(date_range=time_range))
+        else:
+            q = Value.objects.filter(attribute__slug='poll_number_value',\
+                entity_ct=ContentType.objects.get_for_model(Response), entity_id__in=poll.responses.all())
+
+        # location filter
+        if location.get_children():
+            q = q.extra(tables=['poll_response', 'rapidsms_contact', 'locations_location'],
                     where=['poll_response.id = eav_value.entity_id',
                            'rapidsms_contact.id = poll_response.contact_id',
                            'locations_location.id = rapidsms_contact.reporting_location_id',
@@ -570,12 +581,40 @@ def get_numeric_report_data(poll_name, location=None, time_range=None):
                         'lft':'T7.lft',
                         'rght':'T7.rght',
                     }).values('location_name', 'location_id')
-
         else:
-            q = Value.objects.filter(attribute__slug='poll_number_value', entity_ct=ContentType.objects.get_for_model(Response), entity_id__in=self.responses.all()).values('entity_ct')
-        q = q.annotate(Sum('value_float'), Count('value_float'), Avg('value_float'), StdDev('value_float'), Max('value_float'), Min('value_float'))
-        return q
-    
+            q = q.extra(tables=['poll_response', 'rapidsms_contact', 'locations_location'],
+                where=['poll_response.id = eav_value.entity_id',
+                       'rapidsms_contact.id = poll_response.contact_id',
+                       'locations_location.id = rapidsms_contact.reporting_location_id',
+                       'T7.id in %s' % (str(tuple(Location.objects.filter(pk=location.pk).values_list('pk',flat=True)))),
+                       'T7.lft <= locations_location.lft',\
+                       'T7.rght >= locations_location.rght',\
+                       ],
+                select={
+                    'location_name':'T7.name',
+                    'location_id':'T7.id',
+                    'lft':'T7.lft',
+                    'rght':'T7.rght',
+                    }).values('location_name', 'location_id')
+
+    else:
+        q = Value.objects.filter(attribute__slug='poll_number_value', \
+            entity_ct=ContentType.objects.get_for_model(Response), entity_id__in=poll.responses.all()).values('entity_ct')
+    if to_ret:
+        if to_ret == 'sum':
+            return q.annotate(Sum('value_float'))[0]['value_float__sum']
+        elif to_ret == 'avg':
+            return q.annotate(Avg('value_float'))[0]['value_float__avg']
+        elif to_ret == 'std':
+            return q.annotate(StdDev('value_float'))[0]['value_float__stddev']
+        elif to_ret == 'max':
+            return q.annotate(Max('value_float'))[0]['value_float__max']
+        elif to_ret == 'min':
+            return q.annotate(Min('value_float'))[0]['value_float__min']
+    else:
+        return q.annotate(Sum('value_float'), Count('value_float'), Avg('value_float'),\
+                    StdDev('value_float'), Max('value_float'), Min('value_float'))
+
 
 def poll_response_sum(poll_queryset, **kwargs):
     #TODO refactor name of method
