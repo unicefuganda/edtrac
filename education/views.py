@@ -264,16 +264,10 @@ def generate_dashboard_vars(location=None):
     locations = []
     if location.name == "Uganda":
         # get locations from active districts only
-        names = list(set(EmisReporter.objects.exclude(reporting_location=None).filter(reporting_location__type="district").\
-            values_list('reporting_location__name',flat=True).distinct()))
-        locations = Location.objects.filter(name__in=names)
-        #locations = Location.objects.get(name="Uganda").get_descendants().filter(type="district")
+        locations = Location.objects.filter(pk__in=EmisReporter.objects.values_list('reporting_location__pk', flat=True)).distinct()
     else:
         locations.append(location)
-
-    responses_to_violence = poll_response_sum(
-        Poll.objects.get(name = "edtrac_headteachers_abuse"),
-        month_filter = 'monthly', locations = locations)
+    responses_to_violence = poll_response_sum("edtrac_headteachers_abuse",month_filter = 'monthly', locations = locations)
     # percentage change in violence from previous month
     violence_change = cleanup_sums(responses_to_violence)
     if violence_change > 0:
@@ -291,7 +285,7 @@ def generate_dashboard_vars(location=None):
     try:
         boysp3 = 100*(poll_responses_past_week_sum("edtrac_boysp3_enrollment", weeks=1, locations=locations)[0] -\
                       poll_responses_past_week_sum("edtrac_boysp3_attendance", weeks=1, locations=locations)[0]) /\
-                 poll_responses_term(Poll.objects.get(name="edtrac_boysp3_enrollment"), belongs_to="location", locations=locations) or 0
+                 poll_responses_term("edtrac_boysp3_enrollment", belongs_to="location", locations=locations) or 0
         boysp3_diff = 100 * (x - y) / poll_responses_past_week_sum("edtrac_boysp3_enrollment", weeks=1, locations=locations)[0]
     except ZeroDivisionError:
         boysp3 = 0
@@ -303,12 +297,12 @@ def generate_dashboard_vars(location=None):
     else:
         boysp3_class = 'zero'
 
-    x, y  = poll_responses_past_week_sum(Poll.objects.get(name="edtrac_boysp6_attendance"), locations=locations, weeks=1)
+    x, y  = poll_responses_past_week_sum("edtrac_boysp6_attendance", locations=locations, weeks=1)
     try:
-        boysp6 = 100*(poll_responses_past_week_sum(Poll.objects.get(name="edtrac_boysp6_enrollment"), weeks=1, locations=locations)[0] -\
-                      poll_responses_past_week_sum(Poll.objects.get(name="edtrac_boysp6_attendance"), weeks=1, locations=locations)[0]) /\
-                 poll_responses_term(Poll.objects.get(name="edtrac_boysp6_enrollment"), locations=locations, belongs_to="location") or 0
-        boysp6_diff = 100 * ( x - y ) / poll_responses_past_week_sum(Poll.objects.get(name="edtrac_boysp6_enrollment"),weeks=1, locations=locations)[0]
+        boysp6 = 100*(poll_responses_past_week_sum("edtrac_boysp6_enrollment", weeks=1, locations=locations)[0] -\
+                      poll_responses_past_week_sum("edtrac_boysp6_attendance", weeks=1, locations=locations)[0]) /\
+                 poll_responses_term("edtrac_boysp6_enrollment", locations=locations, belongs_to="location") or 0
+        boysp6_diff = 100 * ( x - y ) / poll_responses_past_week_sum("edtrac_boysp6_enrollment", weeks=1, locations=locations)[0]
     except ZeroDivisionError:
         boysp6 = 0
         boysp6_diff = 0
@@ -321,10 +315,10 @@ def generate_dashboard_vars(location=None):
 
     x, y = poll_responses_past_week_sum("edtrac_girlsp3_attendance",locations=locations, weeks=1)
     try:
-        girlsp3 = 100*(poll_responses_past_week_sum(Poll.objects.get(name="edtrac_girlsp3_enrollment"),locations=locations, weeks=1)[0] -\
-                       poll_responses_past_week_sum(Poll.objects.get(name="edtrac_girlsp3_attendance"),locations=locations, weeks=1)[0]) /\
-                  poll_responses_term(Poll.objects.get(name="edtrac_girlsp3_enrollment"),locations=locations, belongs_to="location") or 0
-        girlsp3_diff = 100 * (x-y) / poll_responses_past_week_sum(Poll.objects.get(name="edtrac_girlsp3_enrollment"),locations=locations, weeks=1)[0]
+        girlsp3 = 100 * (poll_responses_past_week_sum("edtrac_girlsp3_enrollment", locations=locations, weeks=1)[0] -\
+                       poll_responses_past_week_sum("edtrac_girlsp3_attendance", locations=locations, weeks=1)[0]) /\
+                  poll_responses_term("edtrac_girlsp3_enrollment", locations = locations, belongs_to="location") or 0
+        girlsp3_diff = 100 * (x-y) / poll_responses_past_week_sum("edtrac_girlsp3_enrollment",locations=locations, weeks=1)[0]
     except ZeroDivisionError:
         girlsp3 = 0
         girlsp3_diff = 0
@@ -335,12 +329,12 @@ def generate_dashboard_vars(location=None):
     else:
         girlsp3_class = "zero"
 
-    x, y = poll_responses_past_week_sum(Poll.objects.get(name="edtrac_girlsp6_attendance"),locations=locations, weeks=1)
+    x, y = poll_responses_past_week_sum("edtrac_girlsp6_attendance", locations=locations, weeks=1)
     try:
-        girlsp6 = 100*(poll_responses_past_week_sum(Poll.objects.get(name="edtrac_girlsp6_enrollment"),locations=locations, weeks=1)[0] -\
-                       poll_responses_past_week_sum(Poll.objects.get(name="edtrac_girlsp6_attendance"),locations=locations, weeks=1)[0]) /\
-                  poll_responses_term(Poll.objects.get(name="edtrac_girlsp6_enrollment"),locations=locations, belongs_to="location") or 0
-        girlsp6_diff = 100 * (x - y) / poll_responses_past_week_sum(Poll.objects.get(name="edtrac_girlsp6_enrollment"),locations=locations, weeks=1)[0]
+        girlsp6 = 100*(poll_responses_past_week_sum("edtrac_girlsp6_enrollment", locations=locations, weeks=1)[0] -\
+                       poll_responses_past_week_sum("edtrac_girlsp6_attendance", locations=locations, weeks=1)[0]) /\
+                  poll_responses_term("edtrac_girlsp6_enrollment", locations=locations, belongs_to="location") or 0
+        girlsp6_diff = 100 * (x - y) / poll_responses_past_week_sum("edtrac_girlsp6_enrollment", locations=locations, weeks=1)[0]
     except ZeroDivisionError:
         girlsp6 = 0
         girlsp6_diff = 0
@@ -357,7 +351,7 @@ def generate_dashboard_vars(location=None):
                                - poll_responses_past_week_sum("edtrac_f_teachers_attendance", weeks=1,locations=locations)[0]) /\
                 poll_responses_term("edtrac_f_teachers_deployment", belongs_to="location",locations=locations) or 0
 
-        female_teachers_diff = 100 * (x - y) / poll_responses_past_week_sum("edtrac_f_teachers_deployment",weeks=1,locations=locations)
+        female_teachers_diff = 100 * (x - y) / poll_responses_past_week_sum("edtrac_f_teachers_deployment",weeks=1,locations=locations)[0]
     except ZeroDivisionError:
         female_teachers = 0
         female_teachers_diff = 0
@@ -369,12 +363,12 @@ def generate_dashboard_vars(location=None):
     else:
         female_teachers_class = "zero"
 
-    x, y = poll_responses_past_week_sum(Poll.objects.get(name="edtrac_m_teachers_attendance"), weeks=1, locations=locations)
+    x, y = poll_responses_past_week_sum("edtrac_m_teachers_attendance", weeks=1, locations=locations)
     try:
         male_teachers = 100*(poll_responses_past_week_sum("edtrac_m_teachers_deployment", weeks=1,locations=locations)[0] -\
                              poll_responses_past_week_sum("edtrac_m_teachers_attendance", weeks=1,locations=locations)[0]) /\
                         poll_responses_term("edtrac_m_teachers_deployment", belongs_to="location", locations=locations) or 0
-        male_teachers_diff = 100 * (x - y) / poll_responses_past_week_sum("edtrac_m_teachers_deployment", weeks=1,locations=locations)
+        male_teachers_diff = 100 * (x - y) / poll_responses_past_week_sum("edtrac_m_teachers_deployment", weeks=1,locations=locations)[0]
     except ZeroDivisionError:
         male_teachers = 0
         male_teachers_diff = 0
@@ -442,7 +436,8 @@ def generate_dashboard_vars(location=None):
         'boysp6_class' : boysp6_class,
         'boysp6_diff' : boysp6_diff,
         'month':datetime.datetime.now(),
-        'schools_to_date':School.objects.filter(location__in=locations).count()
+        'schools_to_date':School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).\
+                    values_list('schools__pk')).count()
     }
 
 ##########################################################################################################
@@ -480,7 +475,6 @@ class MealsMinistryDetails(TemplateView):
 ##########################################################################################################
 @login_required
 def admin_dashboard(request):
-    import pdb; pdb.set_trace()
     location = request.user.get_profile().location
     return render_to_response("education/admin/admin_dashboard.html", generate_dashboard_vars(location=location),
         RequestContext(request))
