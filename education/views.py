@@ -287,12 +287,12 @@ def generate_dashboard_vars(location=None):
         violence_change_data = "data-white"
 
     # CSS class (dynamic icon)
-    x, y = poll_responses_past_week_sum(Poll.objects.get(name="edtrac_boysp3_attendance"), locations=locations, weeks=1)
+    x, y = poll_responses_past_week_sum("edtrac_boysp3_attendance", locations=locations, weeks=1)
     try:
-        boysp3 = 100*(poll_responses_past_week_sum(Poll.objects.get(name="edtrac_boysp3_enrollment"), weeks=1, locations=locations)[0] -\
-                      poll_responses_past_week_sum(Poll.objects.get(name="edtrac_boysp3_attendance"), weeks=1, locations=locations)[0]) /\
+        boysp3 = 100*(poll_responses_past_week_sum("edtrac_boysp3_enrollment", weeks=1, locations=locations)[0] -\
+                      poll_responses_past_week_sum("edtrac_boysp3_attendance", weeks=1, locations=locations)[0]) /\
                  poll_responses_term(Poll.objects.get(name="edtrac_boysp3_enrollment"), belongs_to="location", locations=locations) or 0
-        boysp3_diff = 100 * (x - y) / poll_responses_past_week_sum(Poll.objects.get(name="edtrac_boysp3_enrollment"), weeks=1, locations=locations)[0]
+        boysp3_diff = 100 * (x - y) / poll_responses_past_week_sum("edtrac_boysp3_enrollment", weeks=1, locations=locations)[0]
     except ZeroDivisionError:
         boysp3 = 0
         boysp3_diff = 0 # just return zero (till more data is populated in the system)
@@ -319,7 +319,7 @@ def generate_dashboard_vars(location=None):
     else:
         boysp6_class = 'zero'
 
-    x, y = poll_responses_past_week_sum(Poll.objects.get(name="edtrac_girlsp3_attendance"),locations=locations, weeks=1)
+    x, y = poll_responses_past_week_sum("edtrac_girlsp3_attendance",locations=locations, weeks=1)
     try:
         girlsp3 = 100*(poll_responses_past_week_sum(Poll.objects.get(name="edtrac_girlsp3_enrollment"),locations=locations, weeks=1)[0] -\
                        poll_responses_past_week_sum(Poll.objects.get(name="edtrac_girlsp3_attendance"),locations=locations, weeks=1)[0]) /\
@@ -351,14 +351,13 @@ def generate_dashboard_vars(location=None):
     else:
         girlsp6_class = "zero"
 
-    x, y = poll_responses_past_week_sum(Poll.objects.get(name="edtrac_f_teachers_attendance"),locations=locations, weeks=1)
+    x, y = poll_responses_past_week_sum("edtrac_f_teachers_attendance",locations=locations, weeks=1)
     try:
-        female_teachers = 100*(poll_responses_past_week_sum(Poll.objects.get(name="edtrac_f_teachers_deployment"),\
-            weeks=1, locations=locations)[0] - poll_responses_past_week_sum(Poll.objects.\
-                    get(name="edtrac_f_teachers_attendance"), weeks=1,locations=locations)[0]) /\
-                poll_responses_term(Poll.objects.get(name="edtrac_f_teachers_deployment"), belongs_to="location",locations=locations) or 0
+        female_teachers = 100*(poll_responses_past_week_sum("edtrac_f_teachers_deployment", weeks=1, locations=locations)[0] \
+                               - poll_responses_past_week_sum("edtrac_f_teachers_attendance", weeks=1,locations=locations)[0]) /\
+                poll_responses_term("edtrac_f_teachers_deployment", belongs_to="location",locations=locations) or 0
 
-        female_teachers_diff = 100 * (x - y) / poll_responses_past_week_sum(Poll.objects.get(name="edtrac_f_teachers_deployment"),weeks=1,locations=locations)[0]
+        female_teachers_diff = 100 * (x - y) / poll_responses_past_week_sum("edtrac_f_teachers_deployment",weeks=1,locations=locations)
     except ZeroDivisionError:
         female_teachers = 0
         female_teachers_diff = 0
@@ -372,10 +371,10 @@ def generate_dashboard_vars(location=None):
 
     x, y = poll_responses_past_week_sum(Poll.objects.get(name="edtrac_m_teachers_attendance"), weeks=1, locations=locations)
     try:
-        male_teachers = 100*(poll_responses_past_week_sum(Poll.objects.get(name="edtrac_m_teachers_deployment"),weeks=1,locations=locations)[0] -\
-                             poll_responses_past_week_sum(Poll.objects.get(name="edtrac_m_teachers_attendance"),weeks=1,locations=locations)[0]) /\
-                        poll_responses_term(Poll.objects.get(name="edtrac_m_teachers_deployment"), belongs_to="location", locations=locations) or 0
-        male_teachers_diff = 100 * (x - y) / poll_responses_past_week_sum(Poll.objects.get(name="edtrac_m_teachers_deployment"),weeks=1,locations=locations)[0]
+        male_teachers = 100*(poll_responses_past_week_sum("edtrac_m_teachers_deployment", weeks=1,locations=locations)[0] -\
+                             poll_responses_past_week_sum("edtrac_m_teachers_attendance", weeks=1,locations=locations)[0]) /\
+                        poll_responses_term("edtrac_m_teachers_deployment", belongs_to="location", locations=locations) or 0
+        male_teachers_diff = 100 * (x - y) / poll_responses_past_week_sum("edtrac_m_teachers_deployment", weeks=1,locations=locations)
     except ZeroDivisionError:
         male_teachers = 0
         male_teachers_diff = 0
@@ -386,7 +385,7 @@ def generate_dashboard_vars(location=None):
     else:
         male_teachers_class = "zero"
 
-    responses_to_meals = poll_response_sum(Poll.objects.get(name = "edtrac_headteachers_meals"),
+    responses_to_meals = poll_response_sum("edtrac_headteachers_meals",
         month_filter='biweekly', locations=locations)
     # percentage change in meals missed
     meal_change = cleanup_sums(responses_to_meals)
@@ -401,10 +400,10 @@ def generate_dashboard_vars(location=None):
         meal_change_data = "data-white"
 
 
-    responses_to_smc_meetings_poll = poll_response_sum(Poll.objects.get(name="edtrac_smc_meetings"),
+    responses_to_smc_meetings_poll = poll_response_sum("edtrac_smc_meetings",
         month_filter = True, location=locations, ret_type=list)
 
-    responses_to_grants_received = poll_response_sum(Poll.objects.get(name="edtrac_smc_upe_grant"),
+    responses_to_grants_received = poll_response_sum("edtrac_smc_upe_grant",
         month_filter=True, location=locations, ret_type=list)
 
     sorted_violence_list = responses_to_violence
@@ -481,6 +480,7 @@ class MealsMinistryDetails(TemplateView):
 ##########################################################################################################
 @login_required
 def admin_dashboard(request):
+    import pdb; pdb.set_trace()
     location = request.user.get_profile().location
     return render_to_response("education/admin/admin_dashboard.html", generate_dashboard_vars(location=location),
         RequestContext(request))

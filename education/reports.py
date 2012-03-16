@@ -641,22 +641,30 @@ def get_numeric_report_data_2(poll_name, location=None, time_range=None, to_ret=
     if time_range:
         if location:
         # time filters
-            if location.type.name == 'country' or kwargs.has_key('locations'): # for views that have locations
+            if location.type.name == 'country': # for views that have locations
                 q = Value.objects.filter(attribute__slug='poll_number_value',\
                     entity_ct=ContentType.objects.get_for_model(Response), \
                     entity_id__in=poll.responses.filter(date__range=time_range, contact__reporting_location__in=\
                     location.get_descendants().filter(type='district'))).values('entity_ct')
             else:
-                q = Value.objects.filter(attribute__slug='poll_number_value',\
-                    entity_ct=ContentType.objects.get_for_model(Response),\
-                    entity_id__in=poll.responses.filter(date__range=time_range, contact__reporting_location=location)).values('entity_ct')
+                if kwargs.has_key('school'):
+                    q = Value.objects.filter(attribute__slug='poll_number_value',\
+                        entity_ct=ContentType.objects.get_for_model(Response),\
+                        entity_id__in=poll.responses.filter(date__range=time_range,\
+                            contact__in=kwargs.get('school').emisreporter_set.all())).values('entity_ct')
+                else:
+                    q = Value.objects.filter(attribute__slug='poll_number_value',\
+                        entity_ct=ContentType.objects.get_for_model(Response),\
+                        entity_id__in=poll.responses.filter(date__range=time_range, contact__reporting_location=location)).values('entity_ct')
         else:
+            # casing point for kwargs=locations
             q = Value.objects.filter(attribute__slug='poll_number_value',\
                 entity_ct=ContentType.objects.get_for_model(Response),\
-                entity_id__in=poll.responses.all(date__range=time_range)).values('entity_ct')
+                entity_id__in=poll.responses.filter(date__range=time_range)).values('entity_ct')
     else:
         q = Value.objects.filter(attribute__slug='poll_number_value',\
             entity_ct=ContentType.objects.get_for_model(Response), entity_id__in=poll.responses.all()).values('entity_ct')
+
 
     if to_ret:
         if q:
@@ -873,37 +881,19 @@ def poll_responses_past_week_sum(poll_name, **kwargs):
         #narrowing to location
         if kwargs.has_key('locations'):
             # week_before would refer to the week before week that passed
-            sum_of_poll_responses_week_before = get_numeric_report_data_2(
-                poll_name, locations=kwargs.get('locations'), time_range=first_quota, to_ret = 'sum'
-            )
-#            sum(filter(None, [r.eav.poll_number_value for r in poll_queryset.responses.filter(
-#                date__range = first_quota,
-#                contact__in =\
-#                Contact.objects.filter(reporting_location__in=kwargs.get('locations')))]))
-            # ``past week`` refers to the week that has passed
-            sum_of_poll_responses_past_week = get_numeric_report_data_2(
-                poll_name, locations=kwargs.get('locations'), time_range=second_quota, to_ret = 'sum'
-            )
-#            sum(filter(None,
-#                [
-#                r.eav.poll_number_value for r in poll_queryset.responses.filter(date__range = second_quota,
-#                    contact__in =\
-#                    Contact.objects.filter(reporting_location__in=kwargs.get('locations')))]))
-
+            sum_of_poll_responses_week_before = get_numeric_report_data_2(poll_name, locations=kwargs.get('locations'), time_range=first_quota, to_ret = 'sum')
+            sum_of_poll_responses_past_week = get_numeric_report_data_2(poll_name, locations=kwargs.get('locations'), time_range=second_quota, to_ret = 'sum')
             return [sum_of_poll_responses_past_week, sum_of_poll_responses_week_before]
+        elif kwargs.has_key('location'):
+            sum_of_poll_responses_week_before = get_numeric_report_data_2(poll_name, location=kwargs.get('location'), time_range=first_quota, to_ret = 'sum')
+            sum_of_poll_responses_past_week = get_numeric_report_data_2(poll_name, location=kwargs.get('location'), time_range=second_quota, to_ret = 'sum')
+            return [sum_of_poll_responses_past_week, sum_of_poll_responses_week_before]
+
     else:
         # getting country wide statistics
         first_quota, second_quota = get_week_date(number=1) # default week range to 1
         sum_of_poll_responses_week_before = get_numeric_report_data_2(poll_name, time_range=first_quota, to_ret = 'sum')
-#        sum(filter(None, [r.eav.poll_number_value
-#                                                              for r in poll_queryset.responses.filter(
-#            date__range = first_quota,
-#            contact__in = Contact.objects.all())]))
         sum_of_poll_responses_past_week = get_numeric_report_data_2(poll_name, time_range=second_quota, to_ret = 'sum')
-#        sum(filter(None,[r.eav.poll_number_value
-#                                                           for r in poll_queryset.responses.filter(
-#            date__range = second_quota,
-#            contact__in = Contact.objects.all())]))
         return sum_of_poll_responses_past_week, sum_of_poll_responses_week_before
 
 def poll_responses_term(poll_queryset, **kwargs):
