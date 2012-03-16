@@ -554,7 +554,11 @@ class XForm(models.Model):
                 try:
                     required_const[0].validate(None, field.field_type, submission_type)
                 except ValidationError as e:
-                    errors.append(e)
+                    #XXXMake Sean Happy
+                    if getattr(settings, 'USE_DEFAULT_VALIDATION_ERROR', True):
+                        errors.append(e)
+                    else:
+                        errors.append("Error. There is a mistake in this report. Please check carefully, only send one SMS report at a time and resend.")
 
             # check that all fields actually have values
             if field.command in value_dict and value_dict[field.command] is None:
