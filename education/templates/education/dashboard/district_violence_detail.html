@@ -25,7 +25,7 @@
             </tr>
             </thead>
             <tbody>
-            {% for school,val in school_vals %}
+            {% for school, val in school_vals %}
                 {% if val == 0 %}
                 {% else %}
                 <tr><td><a href="{% url school-detail school.pk %}">{{ school }}</a></td><td>{{ val }}</td></tr>

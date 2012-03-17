@@ -394,23 +394,23 @@ def generate_dashboard_vars(location=None):
         meal_change_data = "data-white"
 
 
-    responses_to_smc_meetings_poll = poll_response_sum("edtrac_smc_meetings",
-        month_filter = True, location=locations, ret_type=list)
-
-    responses_to_grants_received = poll_response_sum("edtrac_smc_upe_grant",
-        month_filter=True, location=locations, ret_type=list)
-
-    sorted_violence_list = responses_to_violence
-    sorted_hungry_list = responses_to_meals
-    #sorted list...
-
-    top_three_violent_districts = sorted_violence_list[:3]
-    #can make a dictionary
-    top_three_hungry_districts = sorted_hungry_list[:3]
+#    responses_to_smc_meetings_poll = poll_response_sum("edtrac_smc_meetings",
+#        month_filter = True, location=locations, ret_type=list)
+#
+#    responses_to_grants_received = poll_response_sum("edtrac_smc_upe_grant",
+#        month_filter=True, location=locations, ret_type=list)
+#
+#    sorted_violence_list = responses_to_violence
+#    sorted_hungry_list = responses_to_meals
+#    #sorted list...
+#
+#    top_three_violent_districts = sorted_violence_list[:3]
+#    #can make a dictionary
+#    top_three_hungry_districts = sorted_hungry_list[:3]
 
     return {
-        'top_three_violent_districts':top_three_violent_districts,
-        'top_three_hungry_districts':top_three_hungry_districts,
+#        'top_three_violent_districts':top_three_violent_districts,
+#        'top_three_hungry_districts':top_three_hungry_districts,
         'violence_change' : violence_change,
         'violence_change_class' : violence_change_class,
         'violence_change_data' : violence_change_data,
@@ -697,28 +697,24 @@ class DistrictViolenceDetails(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(DistrictViolenceDetails, self).get_context_data(**kwargs)
-
         location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk'))) or self.request.user.get_profile().location
         schools = School.objects.filter(location=location)
         school_case = []
         for school in schools:
             # optimize with value queries
-            resps = Poll.objects.get(name="edtrac_headteachers_abuse").responses.filter(contact__in=\
-                EmisReporter.objects.filter(schools__in=[school]).values_list('connection__contact'),date__range = get_month_day_range(datetime.datetime.now()))
             school_case.append((school,
-                                sum(filter(None, [r.eav.poll_number_value for r in resps]))
-                ))
+                            poll_response_sum('edtrac_headteachers_abuse', school=school, time_range=get_month_day_range(datetime.datetime.now()))))
 
         #schools and reports from a district
 
-        reports = poll_response_sum(Poll.objects.get(name="edtrac_headteachers_abuse"), month_filter=True, months=1)
+        #reports = poll_response_sum("edtrac_headteachers_abuse", month_filter=True, months=1)
         emis_reporters = EmisReporter.objects.exclude(connection__in=\
             Blacklist.objects.values_list('connection')).filter(schools__in=schools)
 
         context['location'] = location
         context['school_vals'] = school_case
-        context['school_count'] = School.objects.filter(location__in=EmisReporter.objects.\
-            values_list('reporting_location').exclude(connection__in=Blacklist.objects.values_list('connection'))).count()
+#        context['school_count'] = School.objects.filter(location__in=EmisReporter.objects.exclude(connection__in=Blacklist.objects.values_list('connection').\
+#            values_list('reporting_location'))).count()
         context['month'] = datetime.datetime.now()
         return context
 

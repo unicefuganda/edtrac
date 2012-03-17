@@ -1,3 +1,4 @@
+from __future__ import division
 from django.conf import settings
 from django.db.models import Count, Sum
 from generic.reports import Report
@@ -658,9 +659,10 @@ def get_numeric_report_data_2(poll_name, location=None, time_range=None, to_ret=
             # casing point for kwargs=locations
             locations = kwargs.get('locations')
             if len(locations) == 1:
-                # recurse when locations just returns a single value in a list
+                q = Value.objects.filter(attribute__slug='poll_number_value',\
+                    entity_ct=ContentType.objects.get_for_model(Response),\
+                    entity_id__in=poll.responses.filter(date__range=time_range, contact__reporting_location=locations[0])).values('entity_ct')            
                 # use-case designed in views #TODO clean up
-                get_numeric_report_data_2(poll_name, location=locations[0],time_range=time_range, to_ret=None, **kwargs)
             else:
                 q = Value.objects.filter(attribute__slug='poll_number_value',\
                     entity_ct=ContentType.objects.get_for_model(Response),\
@@ -755,7 +757,7 @@ def poll_response_sum(poll_name, **kwargs):
                                 to_ret = 'sum'
                             )
                         )
-#TODO --> fix sorting??
+##TODO --> fix sorting??
             if kwargs.get('ret_type') == list:
             #returning a sorted list of values
                 import operator
@@ -769,7 +771,6 @@ def poll_response_sum(poll_name, **kwargs):
                     # the last elements appear to be the largest
                 to_ret.reverse()
                 return to_ret
-#                #TODO Other data type returns.
 
         if kwargs.get('month_filter')=='termly' and kwargs.has_key('locations'):
             # return just one figure/sum without all the list stuff
@@ -1037,6 +1038,7 @@ def return_absent(poll_name, enrollment, locations):
     Value returned:
             [<location>, <some_value1>, <some_value2>, <some_difference>]
     """
+    
     to_ret = []
     for loc in locations:
         pre_ret = []
