@@ -32,10 +32,13 @@ class SMSInput(forms.Textarea):
         javascript = """
          <script type="text/javascript">
             //<![CDATA[
-            function count_characters(elem,counter_container,submit_btn)
+            function count_characters(name,counter_container,submit_btn)
         {
-        // alert(submit_btn);
-        var elem= $(elem);
+
+        var el="[name='"+name+"']"
+
+        var elem= $(el);
+
         var value = elem.val();
         var count = value.length;
         //regex for stripping the spaces
@@ -68,15 +71,16 @@ class SMSInput(forms.Textarea):
           }
         }
         var ok = (count > 0 && count < 161) && (value.replace(regex,"") != elem._value);
-        /*$(submit_btn).disabled = !ok;*/
-        $(counter_container).html(str);
+
+        $(submit_btn).disabled = !ok;
+        elem.next().html(str);
         }
-        // $('.smsinput').change(setInterval(function() {count_characters('.smsinput','.counter','foo');},500));
-        $('.smsinput').keyup(function() {count_characters('.smsinput','.counter','foo');});
+        $(".smsinput").change(setInterval(function() {count_characters('%(name)s','.counter','foo');},500));
+
              //]]>
         </script>
 
-        """
+        """%{'name':name}
         style = """
         width: 18em;
         height: 56px;
@@ -94,4 +98,4 @@ class SMSInput(forms.Textarea):
         attrs = {'style':style}
         attrs['class'] = "smsinput"
         return mark_safe(
-                "%s<div class='counter'></div>" % super(SMSInput, self).render(name, value, attrs) + javascript)
+                "%s<div class='counter' ></div>" % super(SMSInput, self).render(name, value, attrs) + javascript)
