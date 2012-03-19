@@ -14,7 +14,7 @@ from rapidsms_xforms.models import XFormSubmissionValue, XForm, XFormSubmission
 from uganda_common.reports import PollNumericResultsColumn, PollCategoryResultsColumn, LocationReport, QuotientColumn, InverseQuotientColumn
 from uganda_common.utils import total_submissions, reorganize_location, total_attribute_value, previous_calendar_month
 from uganda_common.utils import reorganize_dictionary
-from education.utils import previous_calendar_week
+from education.utils import previous_calendar_week, Statistics, StatisticsException
 from .models import EmisReporter, School
 from poll.models import Response, Poll
 import datetime, dateutils
@@ -553,15 +553,6 @@ def get_week_date(number=None):
     return
 
 
-
-
-def get_numeric_detailed_data(poll_name):
-    poll = Poll.objects.get(name=poll_name)
-    return Value.objects.filter(attribute__slug='poll_number_value', \
-        entity_ct=ContentType.objects.get_for_model(Response), \
-        entity_id__in=poll.responses.all()).values_list('value_float').annotate(Count('value_float')).order_by('-value_float')
-
-
 def get_numeric_sum_data(poll_name):
     poll = Poll.objects.get(name=poll_name)
     return Value.objects.filter(attribute__slug='poll_number_value',\
@@ -691,6 +682,8 @@ def get_numeric_report_data_2(poll_name, location=None, time_range=None, to_ret=
                 return q.annotate(Max('value_float'))[0]['value_float__max']
             elif to_ret == 'min':
                 return q.annotate(Min('value_float'))[0]['value_float__min']
+            elif to_ret == 'q':
+                return q
         else:
             return 0
     else:
@@ -931,8 +924,24 @@ def poll_responses_term(poll_name, **kwargs):
                     [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')], to_ret='sum')
 
 
-def curriculum_progress_count(poll_name, **kwargs):
-    p = Poll.objects.get(name=poll_name)
+def curriculum_progress_list(poll_name, **kwargs):
+    from .utils import themes
+    if kwargs:
+        if kwargs.has_key('location'):
+            return list(get_numeric_report_data_2(
+                poll_name,
+                to_ret = 'q',
+                location=kwarg.get('location'),
+                time_range=get_week_date(number=1)
+            ))
+    else:
+        x = list(get_numeric_report_data_2(poll_name, to_ret = 'q').values_list('value_float', flat=True))
+        return x
+
+def curriculum_progress_mode(list):
+    stats = Statistics(list)
+    mode = stats.mode
+    return mode[0][0]
 
 
 

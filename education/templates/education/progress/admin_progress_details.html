@@ -2,15 +2,14 @@
 {% block content %}
 <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; line-height: inherit;">← Back to EdTrac Home Page</a></p>
 <div class="top_row">
-    <!-- violence chart detail goes over here -->
     <div id="progress"></div>
 </div>
 <div id="table_row">
-    <div class="school_report">
+    <div class="school_report general">
         <div class="table_container">
             <div class="table">
                 <h2>Curriculum Progress</h2>
-                <table class="classy">
+                <table class="tabular-data classy">
                     <tr>
                         <thead>
                         <th>District</th>
@@ -19,6 +18,10 @@
                         <th>Progress Status</th>
                         </thead>
                     </tr>
+
+                    {% for district, mode, percent_comp, status in location_data %}
+                    <tr><td>{{ district }}</td><td>{{ mode }}</td><td>{{ percent_comp }}</td><td>{{ status }}</td></tr>
+                    {% endfor %}
                     <tr>
                         <td>Kampala</td><td>1.3 People in our subcounty/Division</td><td>75%</td><td style="color:green;">On Schedule</td>
                     </tr>

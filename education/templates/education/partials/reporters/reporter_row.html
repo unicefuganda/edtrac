@@ -32,11 +32,7 @@
         </td>
     <td>
         <ul>
-            {% for g in object.groups.all %}
-                <li>
-                    {{ g.name }}
-                </li>
-            {% endfor %}
+            {{ object.groups.all|first }}
         </ul>
     </td>
     <td>{{ object.reporting_location|get_district }}</td>

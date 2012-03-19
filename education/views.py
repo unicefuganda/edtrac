@@ -187,8 +187,10 @@ def dash_ministry_progress(request):
     pass
 
 def dash_admin_progress(req):
-    p3_response = 34
-    return render_to_response('education/admin/progress.html', {'p3':p3_response}, RequestContext(req))
+    c_list = list(curriculum_progress_list("edtrac_p3curriculum_progress"))
+    mode = curriculum_progress_mode(c_list)
+
+    return render_to_response('education/progress/admin_progress_details.html', {'mode':curriculum_progress_mode(c_list)}, RequestContext(req))
 
 # Meetings
 """
