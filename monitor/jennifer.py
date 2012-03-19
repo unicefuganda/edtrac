@@ -58,19 +58,17 @@ MODEM_STATUS_RECIPIENTS = [
         ('Samuel', 'sekiskylink@gmail.com')
         ]
 
-
 RECIEVE_URL = 'http://messenger.unicefuganda.org/router/receive/?password=p73xvyqi&backend=%s&sender=%s&message=%s'
 
-KANNEL_STATUS_URL = 'http://localhost:13000/status'
-
-#SENDSMS_URL = ('http://localhost:13013/cgi-bin/sendsms?username=tester&password=foobar&from=%(from)s&'
-#                'to=%(to)s&text=%(text)s&smsc=%(backend)s')
-SENDSMS_URL = 'http://localhost:13013/cgi-bin/sendsms?username=tester&password=foobar'
+SETTINGS = {
+    'SENDSMS_URL': 'http://localhost:13013/cgi-bin/sendsms?username=tester&password=foobar',
+    'DEFAULT_EMAIL_SENDER': 'root@uganda.rapidsms.org',
+    'KANNEL_STATUS_URL': 'http://localhost:13000/status',
+    }
 QOS_INTERVAL = {'hours':1, 'minutes':0, 'offset':5}
-DEFAULT_EMAIL_SENDER = 'root@uganda.rapidsms.org'
-
 ## Helper Classes and Functions
 class GetBackends(object):
+    """Returns backends of a given type"""
     def __init__(self,db,btype='s',active='t'):
         self.db = db
         self.backend_type = btype
@@ -82,6 +80,7 @@ class GetBackends(object):
         return backends
 
 class GetAllowedModems(object):
+    """Given a shortcode, return modems allowed to send to shortcode"""
     def __init__(self,db,shortcode_id):
         self.db = db
         self.shortcode_id = shortcode_id
@@ -93,8 +92,9 @@ class GetAllowedModems(object):
         return res
 
 def IsModemActive(modem_smscname):
+    """Checks modem status in Kannel i.e(online, re-connecting,..)"""
     try:
-        f = urllib.urlopen(KANNEL_STATUS_URL)
+        f = urllib.urlopen(SETTINGS['KANNEL_STATUS_URL'])
         x = f.readlines()
     except IOError, (instance):
         return False
@@ -108,9 +108,26 @@ def IsModemActive(modem_smscname):
             status = l.strip().split()[2].replace('(','')
     return True if status == 'online' else False
 
+class Settings(object):
+    """Load settings from misc table in DB"""
+    def __init__(self,db):
+        self.db = db
+        self.get_all_setting()
+    def get_all_setting(self):
+        global SETTINGS
+        res = self.db.query("SELECT item,val FROM misc")
+        if res:
+            for setting in res:
+                #if not hasattr(SETTINGS, setting['item']):
+                SETTINGS['%s'%setting['item']] = setting['val']
+
+# Load Settings from DB
+Settings(db)
+
 def sendsms(frm, to, msg,smsc):
+    """sends the sms"""
     params = {'from':frm,'to':to,'text':msg,'smsc':smsc}
-    surl = SENDSMS_URL
+    surl = SETTINGS['SENDSMS_URL']
     if surl.find('?'):
         c = '&'
     else: c = '?'
@@ -124,23 +141,21 @@ def sendsms(frm, to, msg,smsc):
 
 # Logs Sent Message to out message table
 def log_message(dbconn,msg_dict):
-    #query = "INSERT INTO messages (%s) VALUES %s"%(','.join([k for k in msg_dict.keys()]),
-    #        tuple(['%s'%k for k in msg_dict.keys()]))
-    #dbconn.query(query)
+    """Log sent message to messages table"""
     dbconn.insert('messages',backend_id=msg_dict['backend_id'], msg_out=msg_dict['msg_out'],
             status_out=msg_dict['status_out'], destination=msg_dict['destination'])
 
 
-def send_email(fro, recipient, subject, msg):
-    web.sendmail('root@uganda.rapidsms.org',recipient, subject, msg)
+def send_email(_from, recipient, subject, msg):
+    """Sends email"""
+    web.sendmail(_from,recipient, subject, msg)
 
 def SendModemAvailabilityAlert(modem_smscname):
-    #send email
-    #msg, recipient = ['Hello %s,\n The '+ modem_smscname + ' is not on-line!'%(name),email for name, email in MODEM_STATUS_RECIPIENTS]
+    """used to send mail if modem is not onlile"""
     subject = 'QOS Modem Alert'
     for name, email in MODEM_STATUS_RECIPIENTS:
         msg = 'Hello %s,\nThe %s is not on-line!\n\nRegards,\nJenifer'%(name, modem_smscname)
-        send_email(DEFAULT_EMAIL_SENDER, email, subject, msg)
+        send_email(SETTINGS['DEFAULT_EMAIL_SENDER'], email, subject, msg)
 
 def get_qos_time_offset():
     qos_interval = QOS_INTERVAL
@@ -149,6 +164,7 @@ def get_qos_time_offset():
     return time_offset
 
 def get_backendlist(l,ret_strlist=True):
+    """return list to pass to IN in an SQL query. Eg [1,2,3] returns 1,2,3"""
     t = ''
     for i in l:
         if ret_strlist:
@@ -157,9 +173,9 @@ def get_backendlist(l,ret_strlist=True):
             t += "%s,"%(i)
     return t[:-1]
 
-
 #Page Handlers
 class HandleReceivedQosMessage:
+    """This is what Kannel get-url calls"""
     def GET(self):
         params = web.input(
                 sender='',
@@ -191,6 +207,7 @@ class HandleReceivedQosMessage:
         return "Done!"
 
 class HandleDlr:
+    """handles DLRs"""
     def GET(self):
         params = web.input(
                 source='',
@@ -202,6 +219,7 @@ class HandleDlr:
         return "It works!"
 
 class SendQosMessages:
+    """Sends the QOS messages"""
     def GET(self):
         params = web.input()
         web.header("Content-Type","text/plain; charset=utf-8");
@@ -210,6 +228,9 @@ class SendQosMessages:
         applied_modems = [] # for logging
         failed_modems = []
         logging.debug("[%s] Started Sending QOS Messages"%('/send'))
+        rpt_subject = "QOS Messages Sent at: %s"%datetime.now().strftime('%Y-%m-%d %H')
+        rpt_body = "Hi,\nJennifer sent SMS from and to the following:\nSENDER                  | RECIPIENT\n"
+        rpt_body +="--------------------------"
         for shortcode in shortcode_backends:
             y = GetAllowedModems(db, shortcode['id'])
             allowed_modems = y.get()
@@ -228,10 +249,10 @@ class SendQosMessages:
                 res = sendsms(_from, to, msg, smsc)
                 status = 'S' if res.find('Accept') else 'Q'
                 if res.find('Error'):
-                    send_email("SMS Send Error", 'sekiskylink@gmail.com',
+                    send_email(SETTINGS['DEFAULT_EMAIL_SENDER'], 'sekiskylink@gmail.com', "Send SMS Error",
                             'Hi,\nError sending from %s to %s.\n\nRegards,\nJenifer'%(modem['name'],shortcode['identity']))
                     status = 'E'
-
+                rpt_body +='%s| %s\n'%(modem['smsc_name'] + ' '*(24-len(modem['smsc_name'])), shortcode['identity'])
                 #create log message dict
                 backend_id = modem['id']
                 log_message_dict = {
@@ -243,9 +264,12 @@ class SendQosMessages:
                 with db.transaction():
                     log_message(db, log_message_dict)
         logging.debug("[%s] Sent QOS messages using %s: Failed = %s"%('/send', applied_modems, set(failed_modems)))
+        rpt_body += "\n\nRegards,Jennifer"
+        send_email(SETTINGS['DEFAULT_EMAIL_SENDER'], 'sekiskylink@gmail.com', rpt_subject, rpt_body)
         return "Done!"
 
 class MonitorQosMessages:
+    """Used to monitor sent QOS messages. did recipient receive and respond?"""
     def GET(self):
         params = web.input()
         web.header("Content-Type","text/plain; charset=utf-8");
@@ -253,6 +277,10 @@ class MonitorQosMessages:
         shortcode_backends = x.get()
         time_offset = get_qos_time_offset()
         logging.debug("[%s] Started Mornitoring"%('/monitor'))
+        rpt_subject = "QOS Messages Received within: %s"%datetime.now().strftime('%Y-%m-%d %H')
+        rpt_body = "Hi,\nJennifer received SMS from and to the following:\nSHORTCODE   | MODEM-NAME\n"
+        rpt_body +="----------------------------------"
+        rpt_body2 = ""
         for shortcode in shortcode_backends:
             y = GetAllowedModems(db, shortcode['id'])
             allowed_modems = y.get()
@@ -268,13 +296,21 @@ class MonitorQosMessages:
                         msg = msg % (name, shortcode['identity'], shortcode['name'], modem['name'])
                         send_email('root@uganda.rapidsms.org',recipient, subject, msg)
                         logging.warning("[%s] No response from %s for %s"%('/monitor', shortcode['identity'], modem['name']))
+                else:
+                    rpt_body2 +='%s| %s\n'%(shortcode['identity'] + ' '*(12-len(shortcode['identity'])), modem['name'])
         logging.debug("[%s] Stopped Mornitoring"%('/monitor'))
+        if not rpt_body2:
+            rpt_body += "Ooops Jennifer didn't receive any SMS!\n\nRegards,\nJennifer"
+        else:
+            rpt_body += rpt_body2 + "\n\nRegards,\nJennifer"
+        send_email(SETTINGS['DEFAULT_EMAIL_SENDER'], 'sekiskylink@gmail.com', rpt_subject, rpt_body)
         return "Done!"
 
 class CheckModems:
+    """Checks Kannel status of all modems"""
     def GET(self):
         try:
-            f = urllib.urlopen(KANNEL_STATUS_URL)
+            f = urllib.urlopen(SETTINGS['KANNEL_STATUS_URL'])
             x = f.readlines()
         except IOError, (instance):
             logging.debug("[%s] Checked status: perhaps kannel is down!"%('/check'))
@@ -298,6 +334,7 @@ class CheckModems:
         return toret
 
 class DisableEnableBackend:
+    """Disable or enable a given backend"""
     def get_backendlist(self,l):
         t = ''
         for i in l:
@@ -329,6 +366,7 @@ class DisableEnableBackend:
         return resp
 
 class ManageShortcode:
+    """Sets enabled list of modems for a given shortcode"""
     def GET(self):
         params = web.input(
                 shortcode_name = '',
@@ -364,11 +402,13 @@ class ManageShortcode:
         return "Done!"
 
 class Info:
+    """To return some info about system"""
     def GET(self):
         return "Not yet Implemented!"
 
 # Consider doing webpy nose testing!!
 class Test:
+    """Used for Testing"""
     def GET(self):
         params = web.input()
         web.header("Content-Type","text/plain; charset=utf-8");
