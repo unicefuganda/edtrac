@@ -811,12 +811,12 @@ def boysp3_district_attd_detail(req, location_id):
     """
     This gets the details about schools in a district, the people in attedance, etc.
     """
-    location = Location.objects.exclude(type="country").get(id=location_id)
+    location = Location.objects.exclude(type="country").filter(type="district").get(id=location_id)
     schools = School.objects.filter(location=location)
     to_ret = []
     for school in schools:
         to_ret.append((
-            school, poll_response_sum("edtrac_boysp3_attendance", month_filter='weekly',school=school)
+            school, poll_response_sum("edtrac_boysp3_attendance", month_filter='weekly', school=school)
         ))
     return render_to_response("education/boysp3_district_attd_detail.html", { 'location':location,\
                                         'location_data':to_ret,\
@@ -829,7 +829,7 @@ def boysp6_district_attd_detail(req, location_id):
     """
     This gets the details about schools in a district, the people in attedance, etc.
     """
-    location = Location.objects.exclude(type="country").get(id=location_id)
+    location = Location.objects.exclude(type="country").filter(type="district").get(id=location_id)
     schools = School.objects.filter(location=location)
     to_ret = []
     for school in schools:
@@ -848,7 +848,7 @@ def girlsp3_district_attd_detail(req, location_id):
     """
     This gets the details about schools in a district, the people in attedance, etc.
     """
-    location = Location.objects.exclude(type="country").get(id=location_id)
+    location = Location.objects.exclude(type="country").filter(type="district").get(id=location_id)
     schools = School.objects.filter(location=location)
     to_ret = []
     for school in schools:
@@ -864,7 +864,7 @@ def girlsp6_district_attd_detail(req, location_id):
     """
     This gets the details about schools in a district, the people in attedance, etc.
     """
-    location = Location.objects.exclude(type="country").get(id=location_id)
+    location = Location.objects.exclude(type="country").filter(type="district").get(id=location_id)
     schools = School.objects.filter(location=location)
     to_ret = []
     for school in schools:
@@ -879,7 +879,7 @@ def female_t_district_attd_detail(req, location_id):
     """
     This gets the details about schools in a district, the people in attedance, etc.
     """
-    location = Location.objects.exclude(type="country").get(id=location_id)
+    location = Location.objects.exclude(type="country").filter(type="district").get(id=location_id)
     schools = School.objects.filter(location=location)
     to_ret = []
     for school in schools:
@@ -893,7 +893,7 @@ def male_t_district_attd_detail(req, location_id):
     """
     This gets the details about schools in a district, the people in attedance, etc.
     """
-    location = Location.objects.exclude(type="country").get(id=location_id)
+    location = Location.objects.exclude(type="country").filter(type="district").get(id=location_id)
     schools = School.objects.filter(location=location)
     to_ret = []
     for school in schools:
@@ -955,7 +955,7 @@ def boys_p6_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
-        locations = Location.objects.exclude(type="country").filter(name__in=\
+        locations = Location.objects.exclude(type="country").filter(type="district", name__in=\
             EmisReporter.objects.values_list('reporting_location__name', flat=True)).distinct().order_by("name")
         return boys_p6_attd_admin(req, locations=locations)
     else:
@@ -1001,7 +1001,7 @@ def girls_p3_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
-        locations = Location.objects.exclude(type="country").filter(name__in=\
+        locations = Location.objects.exclude(type="country").filter(type="district", name__in=\
             EmisReporter.objects.values_list('reporting_location__name', flat=True)).distinct().order_by("name")
         return girls_p3_attd_admin(req, locations=locations)
     else:
@@ -1031,7 +1031,7 @@ def girls_p6_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
-        locations = Location.objects.exclude(type="country").filter(name__in=\
+        locations = Location.objects.exclude(type="country").filter(type="district", name__in=\
             EmisReporter.objects.values_list('reporting_location__name', flat=True)).distinct().order_by("name")
         return girls_p6_attd_admin(req, locations=locations)
     else:
@@ -1059,7 +1059,7 @@ def female_teacher_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
-        locations = Location.objects.exclude(type="country").filter(name__in=\
+        locations = Location.objects.exclude(type="country").filter(type="district", name__in=\
             EmisReporter.objects.distinct().values_list('reporting_location__name',flat=True)).order_by("name")
         return female_teacher_attd_admin(req, locations=locations)
     else:
@@ -1095,7 +1095,7 @@ def male_teacher_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
-        locations = Location.objects.exclude(type="country").filter(name__in=\
+        locations = Location.objects.exclude(type="country").filter(type="district", name__in=\
             EmisReporter.objects.distinct().values_list('reporting_location__name',flat=True)).order_by("name")
         return male_teacher_attd_admin(req, locations=locations)
     else:
@@ -1131,7 +1131,8 @@ def male_head_teacher_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
-        schools = School.objects.filter(location__name__in=EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True))
+        schools = School.objects.filter(location__name__in=EmisReporter.objects.distinct().\
+        filter(reporting_location__type = 'district').values_list('reporting_location__name', flat=True))
     else:
         #DEO
         schools = School.objects.filter(location=location)
@@ -1160,8 +1161,9 @@ def female_head_teacher_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
-        schools = School.objects.filter(location__name__in=list(set(EmisReporter.objects.distinct().\
-            values_list('reporting_location__name', flat=True)))).order_by('name','location__name')
+        schools = School.objects.filter(location__name__in= EmisReporter.objects.distinct().\
+            filter(reporting_location__type = 'district').values_list('reporting_location__name', flat=True))
+
     else:
         #DEO
         schools = School.objects.filter(location=location).order_by("name", "location__name")

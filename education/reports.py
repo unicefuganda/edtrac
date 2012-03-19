@@ -659,7 +659,13 @@ def get_numeric_report_data_2(poll_name, location=None, time_range=None, to_ret=
         else:
             # casing point for kwargs=locations
             locations = kwargs.get('locations')
-            if len(locations) == 1:
+            if kwargs.has_key('school'):
+                q = Value.objects.filter(attribute__slug='poll_number_value',\
+                    entity_ct=ContentType.objects.get_for_model(Response),\
+                    entity_id__in=poll.responses.filter(date__range=time_range,\
+                        contact__in=kwargs.get('school').emisreporter_set.all())).values('entity_ct')
+
+            elif len(locations) == 1:
                 q = Value.objects.filter(attribute__slug='poll_number_value',\
                     entity_ct=ContentType.objects.get_for_model(Response),\
                     entity_id__in=poll.responses.filter(date__range=time_range, contact__reporting_location=locations[0])).values('entity_ct')            
@@ -823,7 +829,7 @@ def poll_response_sum(poll_name, **kwargs):
             school = kwargs.get('school')
             # return only sums of values from responses sent in by EMIS reporters in this school
             response_sum = get_numeric_report_data_2(
-                poll_name, time_range = date_week, school=school, to_ret = 'sum'
+                poll_name, time_range = date_week, school=school, to_ret = 'sum', belongs_to = 'schools'
             )
 
             if response_sum == 0:
