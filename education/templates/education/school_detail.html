@@ -1,9 +1,23 @@
-{% extends "education/index.html" %}
+{% extends "education/admin/admin_dashboard.html" %}
 {% load humanize %}
 {% block content %}
-    <div class="module">
-        <h2>Last Submissions from {{ school }}</h2>
-        <p> 
+        <div class="general">
+            <div class="module">
+                <h2>Monthly and Term Reports from {{ school }}</h2>
+            </div>
+            <div class="top">
+                <table class="tabulated-data">
+                    <tbody>
+                    <tr>
+                        <th>Jan</th>
+                    </tr>
+                    <tr>
+                        <td>hi</td>
+                    </tr>
+                    </tbody>
+                </table>
+
+            </div>
         	<table width="100%" cellpadding="5" cellspacing="0" class="school_detail" border="1">
         	    <thead>
         	        <tr>
@@ -39,4 +53,5 @@
         	</table>
         </p>
 	</div>
+        </div>
 {% endblock %}

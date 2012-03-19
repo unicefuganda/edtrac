@@ -35,7 +35,6 @@
             {% if violence_cases_reported_by_schools %}
                 {% for name, list in violence_cases_reported_by_schools %}
                     {% if list.0 == 0 and list.1 == 0 %}
-                        <!-- nothing goes in -->
                     {% else %}
                         <tr>
                             <td><a href="{% url district-violence list.2.pk %}">{{ list.2 }}</a></td>
