@@ -282,14 +282,23 @@ def generate_dashboard_vars(location=None):
 
     # CSS class (dynamic icon)
     x, y = poll_responses_past_week_sum("edtrac_boysp3_attendance", locations=locations, weeks=1)
+    enrol = poll_responses_term("edtrac_boysp3_enrollment", belongs_to="location", locations=locations)
     try:
-        boysp3 = 100*(poll_responses_past_week_sum("edtrac_boysp3_enrollment", weeks=1, locations=locations)[0] -\
-                      poll_responses_past_week_sum("edtrac_boysp3_attendance", weeks=1, locations=locations)[0]) /\
-                 poll_responses_term("edtrac_boysp3_enrollment", belongs_to="location", locations=locations) or 0
-        boysp3_diff = 100 * (x - y) / poll_responses_past_week_sum("edtrac_boysp3_enrollment", weeks=1, locations=locations)[0]
+        boysp3 = 100*(enrol - x ) / enrol
     except ZeroDivisionError:
         boysp3 = 0
+
+    try:
+        # boys in the past week
+        boysp3_past = 100*(enrol - y ) / enrol
+    except ZeroDivisionError:
+        boysp3_past = 0
+
+    try:
+        boysp3_diff = 100 * (x - y) / x
+    except ZeroDivisionError:
         boysp3_diff = 0 # just return zero (till more data is populated in the system)
+
     if x > y:
         boysp3_class = 'negative'
     elif x < y:
@@ -298,14 +307,22 @@ def generate_dashboard_vars(location=None):
         boysp3_class = 'zero'
 
     x, y  = poll_responses_past_week_sum("edtrac_boysp6_attendance", locations=locations, weeks=1)
+    enrol = poll_responses_term("edtrac_boysp6_enrollment", belongs_to="location", locations=locations)
     try:
-        boysp6 = 100*(poll_responses_past_week_sum("edtrac_boysp6_enrollment", weeks=1, locations=locations)[0] -\
-                      poll_responses_past_week_sum("edtrac_boysp6_attendance", weeks=1, locations=locations)[0]) /\
-                 poll_responses_term("edtrac_boysp6_enrollment", locations=locations, belongs_to="location") or 0
-        boysp6_diff = 100 * ( x - y ) / poll_responses_past_week_sum("edtrac_boysp6_enrollment", weeks=1, locations=locations)[0]
+        boysp6 = 100*(enrol - x ) / enrol
     except ZeroDivisionError:
         boysp6 = 0
+
+    try:
+        boysp6_past = 100*(enrol - y ) / enrol
+    except ZeroDivisionError:
+        boysp6_past = 0
+
+    try:
+        boysp6_diff = 100 * ( x - y ) / x
+    except ZeroDivisionError:
         boysp6_diff = 0
+
     if x > y:
         boysp6_class = 'negative'
     elif x < y:
@@ -314,14 +331,22 @@ def generate_dashboard_vars(location=None):
         boysp6_class = 'zero'
 
     x, y = poll_responses_past_week_sum("edtrac_girlsp3_attendance",locations=locations, weeks=1)
+    enrol = poll_responses_term("edtrac_girlsp3_enrollment", belongs_to="location", locations=locations)
     try:
-        girlsp3 = 100 * (poll_responses_past_week_sum("edtrac_girlsp3_enrollment", locations=locations, weeks=1)[0] -\
-                       poll_responses_past_week_sum("edtrac_girlsp3_attendance", locations=locations, weeks=1)[0]) /\
-                  poll_responses_term("edtrac_girlsp3_enrollment", locations = locations, belongs_to="location") or 0
-        girlsp3_diff = 100 * (x-y) / poll_responses_past_week_sum("edtrac_girlsp3_enrollment",locations=locations, weeks=1)[0]
+        girlsp3 = 100*(enrol - x ) / enrol
     except ZeroDivisionError:
         girlsp3 = 0
+
+    try:
+        girlsp3_past = 100*(enrol - y ) / enrol
+    except ZeroDivisionError:
+        girlsp3_past = 0
+
+    try:
+        girlsp3_diff = 100 * ( x - y ) / x
+    except ZeroDivisionError:
         girlsp3_diff = 0
+
     if x > y:
         girlsp3_class = "negative"
     elif x < y:
@@ -330,14 +355,23 @@ def generate_dashboard_vars(location=None):
         girlsp3_class = "zero"
 
     x, y = poll_responses_past_week_sum("edtrac_girlsp6_attendance", locations=locations, weeks=1)
+    enrol = poll_responses_term("edtrac_girlsp6_enrollment", belongs_to="location", locations=locations)
+
     try:
-        girlsp6 = 100*(poll_responses_past_week_sum("edtrac_girlsp6_enrollment", locations=locations, weeks=1)[0] -\
-                       poll_responses_past_week_sum("edtrac_girlsp6_attendance", locations=locations, weeks=1)[0]) /\
-                  poll_responses_term("edtrac_girlsp6_enrollment", locations=locations, belongs_to="location") or 0
-        girlsp6_diff = 100 * (x - y) / poll_responses_past_week_sum("edtrac_girlsp6_enrollment", locations=locations, weeks=1)[0]
+        girlsp6 = 100*(enrol - x ) / enrol
     except ZeroDivisionError:
         girlsp6 = 0
+
+    try:
+        girlsp6_past = 100*(enrol - y ) / enrol
+    except ZeroDivisionError:
+        girlsp6_past = 0
+
+    try:
+        girlsp6_diff = 100 * ( x - y ) / x
+    except ZeroDivisionError:
         girlsp6_diff = 0
+
     if x > y:
         girlsp6_class = "negative"
     elif x < y:
@@ -346,14 +380,20 @@ def generate_dashboard_vars(location=None):
         girlsp6_class = "zero"
 
     x, y = poll_responses_past_week_sum("edtrac_f_teachers_attendance",locations=locations, weeks=1)
+    deploy = poll_responses_term("edtrac_f_teachers_deployment", belongs_to="location", locations=locations)
     try:
-        female_teachers = 100*(poll_responses_past_week_sum("edtrac_f_teachers_deployment", weeks=1, locations=locations)[0] \
-                               - poll_responses_past_week_sum("edtrac_f_teachers_attendance", weeks=1,locations=locations)[0]) /\
-                poll_responses_term("edtrac_f_teachers_deployment", belongs_to="location",locations=locations) or 0
-
-        female_teachers_diff = 100 * (x - y) / poll_responses_past_week_sum("edtrac_f_teachers_deployment",weeks=1,locations=locations)[0]
+        female_teachers = 100*(deploy - x ) / deploy
     except ZeroDivisionError:
         female_teachers = 0
+
+    try:
+        female_teachers_past = 100*(deploy - y ) / deploy
+    except ZeroDivisionError:
+        female_teachers_past = 0
+
+    try:
+        female_teachers_diff = 100 * ( x - y ) / x
+    except ZeroDivisionError:
         female_teachers_diff = 0
 
     if x > y:
@@ -364,14 +404,22 @@ def generate_dashboard_vars(location=None):
         female_teachers_class = "zero"
 
     x, y = poll_responses_past_week_sum("edtrac_m_teachers_attendance", weeks=1, locations=locations)
+    deploy = poll_responses_term("edtrac_m_teachers_deployment", belongs_to="location", locations=locations)
     try:
-        male_teachers = 100*(poll_responses_past_week_sum("edtrac_m_teachers_deployment", weeks=1,locations=locations)[0] -\
-                             poll_responses_past_week_sum("edtrac_m_teachers_attendance", weeks=1,locations=locations)[0]) /\
-                        poll_responses_term("edtrac_m_teachers_deployment", belongs_to="location", locations=locations) or 0
-        male_teachers_diff = 100 * (x - y) / poll_responses_past_week_sum("edtrac_m_teachers_deployment", weeks=1,locations=locations)[0]
-    except ZeroDivisionError:
+        male_teachers = 100*(deploy - x ) / deploy
+    except ZeroDivsionError:
         male_teachers = 0
+
+    try:
+        male_teachers_past = 100*(deploy - y ) / deploy
+    except ZeroDivisionError:
+        male_teachers_past = 0
+
+    try:
+        male_teachers_diff = 100 * ( x - y ) / x
+    except ZeroDivisionError:
         male_teachers_diff = 0
+
     if x > y:
         male_teachers_class = "negative"
     elif x < y:
@@ -418,21 +466,27 @@ def generate_dashboard_vars(location=None):
         'meal_change_class': meal_change_class,
         'meal_change_data' : meal_change_data,
         'male_teachers' : male_teachers,
+        'male_teachers_past' : male_teachers_past,
         'male_teachers_diff' : male_teachers_diff,
         'male_teachers_class' : male_teachers_class,
         'female_teachers_class' : female_teachers_class,
         'female_teachers' :female_teachers,
+        'female_teachers_past' : female_teachers_past,
         'female_teachers_diff' : female_teachers_diff,
         'girlsp3' : girlsp3,
+        'girlsp3_past' : girlsp3_past,
         'girlsp3_class': girlsp3_class,
         'girlsp3_diff' : girlsp3_diff,
         'girlsp6' : girlsp6,
+        'girlsp6_past' : girlsp6_past,
         'girlsp6_diff' : girlsp6_diff,
         'girlsp6_class' : girlsp6_class,
         'boysp3' : boysp3,
+        'boysp3_past': boysp3_past,
         'boysp3_class' : boysp3_class,
         'boysp3_diff' : boysp3_diff,
         'boysp6' : boysp6,
+        'boysp6_past' : boysp6_past,
         'boysp6_class' : boysp6_class,
         'boysp6_diff' : boysp6_diff,
         'month':datetime.datetime.now(),

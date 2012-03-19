@@ -637,6 +637,7 @@ def get_numeric_report_data_1(poll_name, location=None, time_range=None, to_ret=
 
 def get_numeric_report_data_2(poll_name, location=None, time_range=None, to_ret=None, **kwargs):
     poll = Poll.objects.get(name=poll_name)
+
     if time_range:
         if location:
         # time filters
@@ -922,6 +923,12 @@ def poll_responses_term(poll_name, **kwargs):
     elif kwargs.get('belongs_to') == 'schools':
         return get_numeric_report_data_2(poll_name, school=kwargs.get('school'), time_range=\
                     [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')], to_ret='sum')
+
+
+def curriculum_progress_count(poll_name, **kwargs):
+    p = Poll.objects.get(name=poll_name)
+    
+
 
 
 def generate_deo_report(location_name = None):
