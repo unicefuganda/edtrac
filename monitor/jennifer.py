@@ -16,9 +16,9 @@ class AppURLopener(urllib.FancyURLopener):
 
 urllib._urlopener = AppURLopener()
 
-render = web.template.render('/var/log/qos')
+render = web.template.render('/var/www/qos')
 
-logging.basicConfig( format='%(asctime)s:%(levelname)s:%(message)s', filename='/tmp/qos.log',
+logging.basicConfig( format='%(asctime)s:%(levelname)s:%(message)s', filename='/var/log/jennifer/jennifer.log',
 		datefmt='%Y-%m-%d %I:%M:%S', level=logging.DEBUG)
 
 #DB confs
@@ -157,6 +157,7 @@ class HandleReceivedQosMessage:
                 backend='',
                 message=''
                 )
+        web.header("Content-Type","text/plain; charset=utf-8");
         x = GetBackends(db, 's', True)
         shortcode_backends = x.get()
         shortcodes = [s['identity'] for s in shortcode_backends]
@@ -187,10 +188,13 @@ class HandleDlr:
                 message='',
                 dlrvalue=''
                 )
+        web.header("Content-Type","text/plain; charset=utf-8");
         return "It works!"
 
 class SendQosMessages:
     def GET(self):
+        params = web.input()
+        web.header("Content-Type","text/plain; charset=utf-8");
         x = GetBackends(db,'s',True)
         shortcode_backends = x.get()
         applied_modems = [] # for logging
@@ -233,6 +237,8 @@ class SendQosMessages:
 
 class MonitorQosMessages:
     def GET(self):
+        params = web.input()
+        web.header("Content-Type","text/plain; charset=utf-8");
         x = GetBackends(db,'s',True)
         shortcode_backends = x.get()
         time_offset = get_qos_time_offset()
@@ -295,6 +301,7 @@ class DisableEnableBackend:
                 passwd='',
                 action='disable'
                 )
+        web.header("Content-Type","text/plain; charset=utf-8");
         backend_list = params.backend_list
         if not backend_list:
             web.ctx.status = '400 Bad Request'
@@ -318,17 +325,15 @@ class Info:
 # Consider doing webpy nose testing!!
 class Test:
     def GET(self):
+        params = web.input()
+        web.header("Content-Type","text/plain; charset=utf-8");
         x = GetBackends(db,'s',True)
         shortcode_backends = x.get()
-        #print shortcode_backends[0]
         y = GetAllowedModems(db,2)
-        #print y.get()[0]
         SendModemAvailabilityAlert('mtn-modem')
 
-        #print SENDSMS_URL
         modems  = GetBackends(db,'m',True).get()
         backend_id = [b['id'] for b in modems if b['name'] == 'mtn-modem']
-        #print backend_id
         log_message_dict = {
                 'backend_id':backend_id[0],
                 'msg_out':'2012-03-18 04',
