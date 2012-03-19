@@ -36,6 +36,7 @@ urls = (
         "/monitor", "MonitorQosMessages",
         "/manage", "DisableEnableBackend",
         "info", "Info",
+        "/manage_shortcode", "ManageShortcode",
         "/test", "Test",
         )
 
@@ -146,6 +147,15 @@ def get_qos_time_offset():
     time_offset = datetime.now() - timedelta(hours=qos_interval['hours'],
                     minutes=(qos_interval['minutes'] + qos_interval['offset']))
     return time_offset
+
+def get_backendlist(l,ret_strlist=True):
+    t = ''
+    for i in l:
+        if ret_strlist:
+            t += "\'%s\',"%(i)
+        else:
+            t += "%s,"%(i)
+    return t[:-1]
 
 
 #Page Handlers
@@ -317,6 +327,41 @@ class DisableEnableBackend:
         logging.debug('[%s] %s the following backends: %s '%('/manage',
             'disabled' if params.action == 'disable' else 'enabled', backend_list))
         return resp
+
+class ManageShortcode:
+    def GET(self):
+        params = web.input(
+                shortcode_name = '',
+                modem_list='',
+                )
+        web.header("Content-Type","text/plain; charset=utf-8");
+        shortcode_name = params.shortcode_name
+        modem_list = params.modem_list
+
+        if not modem_list:
+            web.ctx.status = '400 Bad Request'
+            return "No Modems Specified for enabling/disabling, required parameter: modem_list"
+        if not shortcode_name:
+            web.ctx.status = '400 Bad Request'
+            return "No Shortcode specifies, please pass required parameter: shortcode_name"
+
+        modem_list = modem_list.split(',')
+        res = db.query("SELECT id FROM backends WHERE name IN (%s)"%get_backendlist(modem_list,True))
+        if not res:
+            web.ctx.status = '400 Bad Request'
+            return "Specified modem(s) %s not in our list of modems"%modem_list
+        shortcode = db.query("SELECT id FROM backends WHERE name = '%s' AND btype = 's'"%(shortcode_name))
+        if shortcode:
+            shortcode_id = shortcode[0]['id']
+        else:
+            web.ctx.status = '400 Bad Request'
+            return "Unknown Shortcode name %s"%shortcode_name
+        modem_ids = [i['id'] for i in res]
+        t_query = ("UPDATE shortcode_allowed_modems SET allowedlist = ARRAY[%s] WHERE shortcode_id = %s")
+        db.query(t_query % (get_backendlist(modem_ids,False),shortcode_id))
+        resp = ', '.join(modem_list) + " successfully set as allowed modems for %s"%(shortcode_name)
+        logging.debug('[%s] set [%s] as allowed modems for [%s] '%('/manage_shortcode', ', '.join(modem_list), shortcode_name))
+        return "Done!"
 
 class Info:
     def GET(self):

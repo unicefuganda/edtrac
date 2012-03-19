@@ -99,4 +99,17 @@ VALUES
             (SELECT id FROM backends WHERE name = 'utl-modem')
         ]
     );
+
+CREATE OR REPLACE FUNCTION array_pop(a anyarray, element character varying)
+RETURNS anyarray
+LANGUAGE plpgsql
+AS $function$
+DECLARE
+    result a%TYPE;
+    BEGIN
+        SELECT ARRAY(
+                SELECT b.e FROM (SELECT unnest(a)) AS b(e) WHERE b.e <> element) INTO result;
+            RETURN result;
+        END;
+$function$;
 END;
