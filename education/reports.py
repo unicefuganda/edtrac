@@ -927,7 +927,7 @@ def poll_responses_term(poll_name, **kwargs):
 
 def curriculum_progress_count(poll_name, **kwargs):
     p = Poll.objects.get(name=poll_name)
-    
+
 
 
 

@@ -909,7 +909,7 @@ def boys_p3_attendance(req):
         """
         This view shows data by district
         """
-        locations = Location.objects.exclude(type="country").filter(name__in=EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True)).order_by("name")
+        locations = Location.objects.exclude(type="country").filter(type="district", name__in=EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True)).order_by("name")
         # return view that will give shool-based views
         # --> ref function just below this <---
         return boys_p3_attd_admin(req, locations=locations)
