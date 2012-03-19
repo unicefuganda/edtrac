@@ -111,7 +111,7 @@ class Command(BaseCommand, LoggerMixin):
 
     def handle(self, **options):
         DBS = settings.DATABASES.keys()
-        DBS.remove('default') # skip the dummy
+        #DBS.remove('default') # skip the dummy -we now check default DB as well
         CHUNK_SIZE = getattr(settings, 'MESSAGE_CHUNK_SIZE', 400)
         self.info("starting up")
         recipients = getattr(settings, 'ADMINS', None)
