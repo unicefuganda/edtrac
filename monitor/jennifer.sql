@@ -112,4 +112,8 @@ DECLARE
             RETURN result;
         END;
 $function$;
+
+CREATE VIEW shortcode_modems AS
+    SELECT a.shortcode_id, b.name, a.allowedlist FROM shortcode_allowed_modems a, backends b
+    WHERE a.shortcode_id =  b.id;
 END;
