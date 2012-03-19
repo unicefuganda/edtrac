@@ -8,7 +8,7 @@ import logging
 import psycopg2
 import re
 from datetime import datetime
-
+from datetime import timedelta
 
 class AppURLopener(urllib.FancyURLopener):
 	version = "QOS /0.1"
@@ -74,7 +74,7 @@ class GetBackends(object):
         self.backend_type = btype
         self.active = active
     def get(self):
-        b_query = ("SELECT id,name,identity FROM backends WHERE btype = '%s' AND active = %s")
+        b_query = ("SELECT id,name,identity, smsc_name FROM backends WHERE btype = '%s' AND active = %s")
         query = b_query %(self.backend_type, self.active)
         backends = self.db.query(query)
         return backends
@@ -125,7 +125,8 @@ def log_message(dbconn,msg_dict):
     #query = "INSERT INTO messages (%s) VALUES %s"%(','.join([k for k in msg_dict.keys()]),
     #        tuple(['%s'%k for k in msg_dict.keys()]))
     #dbconn.query(query)
-    dbconn.insert('messages',backend_id=msg_dict['backend_id'], msg_out=msg_dict['msg_out'], status=msg_dict['status'])
+    dbconn.insert('messages',backend_id=msg_dict['backend_id'], msg_out=msg_dict['msg_out'],
+            status_out=msg_dict['status_out'], destination=msg_dict['destination'])
 
 
 def send_email(fro, recipient, subject, msg):
@@ -138,7 +139,6 @@ def SendModemAvailabilityAlert(modem_smscname):
     for name, email in MODEM_STATUS_RECIPIENTS:
         msg = 'Hello %s,\nThe %s is not on-line!\n\nRegards,\nJenifer'%(name, modem_smscname)
         send_email(DEFAULT_EMAIL_SENDER, email, subject, msg)
-        print msg
 
 def get_qos_time_offset():
     qos_interval = QOS_INTERVAL
@@ -156,22 +156,26 @@ class HandleReceivedQosMessage:
                 backend='',
                 message=''
                 )
-        x = GetBackends(db,'s',True)
+        x = GetBackends(db, 's', True)
         shortcode_backends = x.get()
-        shortcodes = [s[2] for s in shortcode_backends]
+        shortcodes = [s['identity'] for s in shortcode_backends]
         if params.sender.lower() not in shortcodes:
             return "Ignored, black listed sender!"
         msg = params.message.strip()
         if not re.match(r'^\d{4}-\d{2}-\d{2}\s\d{2}$', msg):
             return "Message not in format we want!"
         # Now log message to DB in msg_in
-        modems  = GetBackends(db,'m',True).get()
-        backend_id = [b['id'] for b in modems if b['name'] == backend]
+        modems  = GetBackends(db, 'm' ,True).get()
+        modem_numbers = [m['identity'] for m in GetBackends(db, 'm', True).get()]
+        if params.receiver not in modem_numbers:
+            return "Message Ingnored, receiver not one of our modem numbers!"
+        backend_id = [b['id'] for b in modems if b['smsc_name'] == params.backend][0]
         msg_in = msg
         with db.transaction():
-            db.update('messages', msg_in=msg_in, ldate=datetime.datetime.now(),
-                    where=web.db.sqlwhere({'msg_out':msg, 'backend_id':backend_id, destination:sender}))
-            logging.debug("[%s] Received SMS [SMSC: %s] [from: %s] [to: %s] [msg: %s]"%('/qos', backend, sender, receiver, msg))
+            db.update('messages', msg_in=msg_in, ldate=datetime.now(),
+                    where=web.db.sqlwhere({'msg_out':msg, 'backend_id':backend_id, 'destination':params.sender}))
+            logging.debug("[%s] Received SMS [SMSC: %s] [from: %s] [to: %s] [msg: %s]"%('/qos',
+                params.backend, params.sender, params.receiver, msg))
         return "Done!"
 
 class HandleDlr:
@@ -192,7 +196,7 @@ class SendQosMessages:
         failed_modems = []
         logging.debug("[%s] Started Sending QOS Messages"%('/send'))
         for shortcode in shortcode_backends:
-            y = GetAllowedModems(db, shortcode[0])
+            y = GetAllowedModems(db, shortcode['id'])
             allowed_modems = y.get()
             for modem in allowed_modems:
                 #Check if modem SMSC is active if not SEND Mail
@@ -210,7 +214,7 @@ class SendQosMessages:
                 status = 'S' if res.find('Accept') else 'Q'
                 if res.find('Error'):
                     send_email("SMS Send Error", 'sekiskylink@gmail.com',
-                            'Hi,\nError sending from %s to %s.\n\nRegards,\nJenifer'%(modem[3],shortcode[2]))
+                            'Hi,\nError sending from %s to %s.\n\nRegards,\nJenifer'%(modem['name'],shortcode['identity']))
                     status = 'E'
 
                 #create log message dict
@@ -223,7 +227,7 @@ class SendQosMessages:
                         }
                 with db.transaction():
                     log_message(db, log_message_dict)
-        logging.debug("[%s] Sent QOS messages using %s: Failed = %s"%('/send', applied_modems, failed_modems))
+        logging.debug("[%s] Sent QOS messages using %s: Failed = %s"%('/send', applied_modems, set(failed_modems)))
         return "Done!"
 
 class MonitorQosMessages:
@@ -233,10 +237,10 @@ class MonitorQosMessages:
         time_offset = get_qos_time_offset()
         logging.debug("[%s] Started Mornitoring"%('/monitor'))
         for shortcode in shortcode_backends:
-            y = GetAllowedModems(db, shortcode[0])
+            y = GetAllowedModems(db, shortcode['id'])
             allowed_modems = y.get()
             for modem in allowed_modems:
-                t_query = ("SELECT FROM messages WHERE cdate > '%s' AND msg_out = mgs_in AND msg_out <> '' "
+                t_query = ("SELECT id FROM messages WHERE cdate > '%s' AND msg_out = msg_in AND msg_out <> '' "
                             " AND backend_id = %s AND destination = '%s'")
                 query = t_query % (time_offset, modem['id'], shortcode['identity'])
                 res = db.query(query)
@@ -256,6 +260,7 @@ class CheckModems:
             f = urllib.urlopen(KANNEL_STATUS_URL)
             x = f.readlines()
         except IOError, (instance):
+            logging.debug("[%s] Checked status: perhaps kannel is down!"%('/check'))
             return "Kannel is likely to be down! Sam is your friend now!"
         p = x[:]
 
@@ -263,18 +268,25 @@ class CheckModems:
         modem_backends = y.get()
         status = 'offline'
         toret = ""
+        smscs = [z['smsc_name'] for z in modem_backends]
         for l in p:
             if not l.strip():
                 continue
-            for smsc in [z['smsc_name'] for z in modem_backends]:
-                pattern = re.compile(r'%s'%modem_smscname)
+            for smsc in smscs:
+                pattern = re.compile(r'%s'%smsc)
                 if pattern.match(l.strip()):
                     status = l.strip().split()[2].replace('(','')
                     toret += "%s is %s\n"%(smsc, status)
-        logging.debug("[%s] Checked status for %s"%('/check', [z['smsc_name'] for z in modem_backends]))
+        logging.debug("[%s] Checked status for %s"%('/check', smscs))
         return toret
 
 class DisableEnableBackend:
+    def get_backendlist(self,l):
+        t = ''
+        for i in l:
+            t += "\'%s\',"%(i)
+        return t[:-1]
+
     def GET(self):
         params = web.input(
                 backend_list='',
@@ -286,12 +298,16 @@ class DisableEnableBackend:
         if not backend_list:
             web.ctx.status = '400 Bad Request'
             return "No Backends Specified for enabling/disabling!"
-        backend_list = backend_list.split()
-        t_query = "UPDATE backends SET active = %s WHERE smsc_name IN %s"%(False if action=='disable' else True,tuple(backend_list))
-        db.query(t_query)
-        resp = ','.join(backend_list) + " successfully %s"%('disabled' if action == 'disable' else 'enabled')
+        if params.action not in ['disable', 'enable']:
+            web.ctx.status = '400 Bad Request'
+            return "Unknown action %s passed as parameter"%params.action
+        backend_list = backend_list.split(',')
+        t_query = ("UPDATE backends SET active = %s WHERE smsc_name IN (%s)")
+        query = t_query % (False if params.action=='disable' else True,self.get_backendlist(backend_list))
+        db.query(query)
+        resp = ', '.join(backend_list) + " successfully %s"%('disabled' if params.action == 'disable' else 'enabled')
         logging.debug('[%s] %s the following backends: %s '%('/manage',
-            'disabled' if action == 'disable' else 'enabled', backend_list))
+            'disabled' if params.action == 'disable' else 'enabled', backend_list))
         return resp
 
 class Info:
@@ -303,14 +319,24 @@ class Test:
     def GET(self):
         x = GetBackends(db,'s',True)
         shortcode_backends = x.get()
-        print shortcode_backends[0]
+        #print shortcode_backends[0]
         y = GetAllowedModems(db,2)
-        print y.get()[0]
+        #print y.get()[0]
         SendModemAvailabilityAlert('mtn-modem')
 
-        print SENDSMS_URL
+        #print SENDSMS_URL
         modems  = GetBackends(db,'m',True).get()
         backend_id = [b['id'] for b in modems if b['name'] == 'mtn-modem']
+        #print backend_id
+        log_message_dict = {
+                'backend_id':backend_id[0],
+                'msg_out':'2012-03-18 04',
+                'destination':'8500',
+                'status_out':'Q'
+                }
+        with db.transaction():
+            log_message(db, log_message_dict)
+
         return "It works!!"
 
 if __name__ == "__main__":
