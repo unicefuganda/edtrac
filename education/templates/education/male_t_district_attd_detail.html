@@ -1,0 +1,21 @@
+{% extends "education/admin/admin_dashboard.html" %}
+{% load endless %}
+{% block content %}
+<div class="general">
+    <table class="tabulated-data">
+        <tr>
+            <th>Schools</th>
+            <th>Percentage</th>
+        </tr>
+        {% paginate location_data %}
+        {% for school, data in location_data %}
+        <tr>
+            <td>{{ school }}</td>
+            <td>{{ data }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <div class="paginator">{% show_pages %}</div>
+</div>
+
+{% endblock %}

@@ -1,4 +1,5 @@
 {% extends "education/admin/admin_dashboard.html" %}
+{% load endless %}
 {% block content %}
         <div class="general">
         <table class="tabulated-data">
@@ -6,12 +7,15 @@
                 <th>Schools</th>
                 <th>Percentage</th>
             </tr>
+            {% paginate location_data %}
+            {% for school, data in location_data %}
             <tr>
-                {% for school, data in location_data %}
                 <td>{{ school }}</td>
-                <td>{{ data|floatformat }}</td>
-                {% endfor %}
+                <td>{{ data }}</td>
             </tr>
+            {% endfor %}
         </table>
+            <div class="paginator">{% show_pages %}</div>
         </div>
+
 {% endblock %}

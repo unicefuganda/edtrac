@@ -16,10 +16,10 @@
 
             </thead>
             <tbody>
-            {% for district, value in location_data %}
+            {% for school, value in location_data %}
             <tr>
-                <td><a href="{% url girlsp3-district-attd-detail district.id %}">{{ district }}</a></td>
-                <td>{{ value|floatformat }}</td>
+                <td><a href="{% url school-detail school.id %}">{{ school }}</a></td>
+                <td>{{ value }}</td>
             </tr>
             {% endfor %}
             </tbody>

@@ -17,10 +17,12 @@
             </thead>
             <tbody>
             {% for a, b in location_data %}
+            {% if b %}
             <tr>
                 <td><a href="{% url school-detail a.id %}">{{ a }}</a></td>
-                <td>{{ b|floatformat }}</td>
+                <td>{{ b }}</td>
             </tr>
+            {% endif %}
             {% endfor %}
             </tbody>
         </table>
