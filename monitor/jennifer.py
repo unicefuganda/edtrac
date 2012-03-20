@@ -138,7 +138,6 @@ class Settings(object):
 
 # Load Settings from DB
 Settings(db)
-print QOS_RECIPIENTS
 
 def sendsms(frm, to, msg,smsc):
     """sends the sms"""
@@ -329,8 +328,8 @@ class MonitorQosMessages:
 
         if there_is_an_alert:
             for name, recipient in QOS_RECIPIENTS:
-                monitor_msg = monitor_msg % name + '\n\nRegards,\nJennifer'
-                send_email(SETTINGS['DEFAULT_EMAIL_SENDER'],recipient, subject, monitor_msg)
+                the_msg = (monitor_msg % name) + '\n\nRegards,\nJennifer'
+                send_email(SETTINGS['DEFAULT_EMAIL_SENDER'],recipient, subject, the_msg)
         else:
             rpt_body += rpt_body2 + "\n\nRegards,\nJennifer"
             send_email(SETTINGS['DEFAULT_EMAIL_SENDER'], 'sekiskylink@gmail.com', rpt_subject, rpt_body)
