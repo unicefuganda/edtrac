@@ -189,7 +189,7 @@ class HandleReceivedQosMessage:
         x = GetBackends(db, 's', True)
         shortcode_backends = x.get()
         shortcodes = [s['identity'] for s in shortcode_backends]
-        params.sender.replace('+','')
+        params.sender = params.sender.replace('+','')
         if params.sender.lower() not in shortcodes:
             return "Ignored, black listed sender!"
         msg = params.message.strip()
