@@ -10,6 +10,8 @@ import psycopg2
 import re
 from datetime import datetime
 from datetime import timedelta
+from urllib import urlencode
+from urllib import urlopen
 
 class AppURLopener(urllib.FancyURLopener):
 	version = "QOS /0.1"
@@ -187,6 +189,7 @@ class HandleReceivedQosMessage:
         x = GetBackends(db, 's', True)
         shortcode_backends = x.get()
         shortcodes = [s['identity'] for s in shortcode_backends]
+        params.sender.replace('+','')
         if params.sender.lower() not in shortcodes:
             return "Ignored, black listed sender!"
         msg = params.message.strip()
@@ -195,6 +198,7 @@ class HandleReceivedQosMessage:
         # Now log message to DB in msg_in
         modems  = GetBackends(db, 'm' ,True).get()
         modem_numbers = [m['identity'] for m in GetBackends(db, 'm', True).get()]
+        params.receiver = params.receiver.replace('+','')
         if params.receiver not in modem_numbers:
             return "Message Ingnored, receiver not one of our modem numbers!"
         backend_id = [b['id'] for b in modems if b['smsc_name'] == params.backend][0]
@@ -229,8 +233,8 @@ class SendQosMessages:
         failed_modems = []
         logging.debug("[%s] Started Sending QOS Messages"%('/send'))
         rpt_subject = "QOS Messages Sent at: %s"%datetime.now().strftime('%Y-%m-%d %H')
-        rpt_body = "Hi,\nJennifer sent SMS from and to the following:\nSENDER                  | RECIPIENT\n"
-        rpt_body +="--------------------------"
+        rpt_body = "Hi,\nJennifer sent SMS from and to the following:\nSENDER                         | RECIPIENT\n"
+        rpt_body +="----------------------------------------------\n"
         for shortcode in shortcode_backends:
             y = GetAllowedModems(db, shortcode['id'])
             allowed_modems = y.get()
@@ -241,18 +245,24 @@ class SendQosMessages:
                     failed_modems.append(modem['smsc_name'])
                     continue
                 #now you can send using this modem
-                mgs = datetime.now().strftime('%Y-%m-%d %H')
+                msg = datetime.now().strftime('%Y-%m-%d %H')
                 _from = modem['identity']
                 to = shortcode['identity']
                 smsc = modem['smsc_name']
                 applied_modems.append(smsc)
                 res = sendsms(_from, to, msg, smsc)
-                status = 'S' if res.find('Accept') else 'Q'
-                if res.find('Error'):
-                    send_email(SETTINGS['DEFAULT_EMAIL_SENDER'], 'sekiskylink@gmail.com', "Send SMS Error",
-                            'Hi,\nError sending from %s to %s.\n\nRegards,\nJenifer'%(modem['name'],shortcode['identity']))
+                if isinstance(res,list):
+                    res = ' '.join(res)
+                if res.find('Accept') <> -1:
+                    status = 'S'
+                elif res.find('Error') <> -1:
                     status = 'E'
-                rpt_body +='%s| %s\n'%(modem['smsc_name'] + ' '*(24-len(modem['smsc_name'])), shortcode['identity'])
+                else:
+                    status = 'Q'
+                if status == 'E':
+                    email_body = 'Hi,\nError sending from %s to %s.\n\nRegards,\nJennifer'%(modem['name'],shortcode['identity'])
+                    send_email(SETTINGS['DEFAULT_EMAIL_SENDER'], 'sekiskylink@gmail.com', "Send SMS Error",email_body)
+                rpt_body +='%s(%s)| %s\n'%(modem['smsc_name'] + ' '*(32-len(modem['smsc_name'])), modem['identity'],shortcode['identity'])
                 #create log message dict
                 backend_id = modem['id']
                 log_message_dict = {
@@ -264,7 +274,7 @@ class SendQosMessages:
                 with db.transaction():
                     log_message(db, log_message_dict)
         logging.debug("[%s] Sent QOS messages using %s: Failed = %s"%('/send', applied_modems, set(failed_modems)))
-        rpt_body += "\n\nRegards,Jennifer"
+        rpt_body += "\n\nRegards,\nJennifer"
         send_email(SETTINGS['DEFAULT_EMAIL_SENDER'], 'sekiskylink@gmail.com', rpt_subject, rpt_body)
         return "Done!"
 
@@ -279,7 +289,7 @@ class MonitorQosMessages:
         logging.debug("[%s] Started Mornitoring"%('/monitor'))
         rpt_subject = "QOS Messages Received within: %s"%datetime.now().strftime('%Y-%m-%d %H')
         rpt_body = "Hi,\nJennifer received SMS from and to the following:\nSHORTCODE   | MODEM-NAME\n"
-        rpt_body +="----------------------------------"
+        rpt_body +="------------------------------------------"
         rpt_body2 = ""
         for shortcode in shortcode_backends:
             y = GetAllowedModems(db, shortcode['id'])
@@ -294,10 +304,11 @@ class MonitorQosMessages:
                     for name, recipient in QOS_RECIPIENTS:
                         msg = ('Hello %s,\nThere was no response from %s(%s) when using %s!\n\nRegards,\nJenifer')
                         msg = msg % (name, shortcode['identity'], shortcode['name'], modem['name'])
-                        send_email('root@uganda.rapidsms.org',recipient, subject, msg)
+                        send_email(SETTINGS['DEFAULT_EMAIL_SENDER'],recipient, subject, msg)
                         logging.warning("[%s] No response from %s for %s"%('/monitor', shortcode['identity'], modem['name']))
                 else:
-                    rpt_body2 +='%s| %s\n'%(shortcode['identity'] + ' '*(12-len(shortcode['identity'])), modem['name'])
+                    rpt_body2 +='%s| %s(%s)\n'%(shortcode['identity'] + ' '*(12-len(shortcode['identity'])),
+                            modem['name'],modem['identity'])
         logging.debug("[%s] Stopped Mornitoring"%('/monitor'))
         if not rpt_body2:
             rpt_body += "Ooops Jennifer didn't receive any SMS!\n\nRegards,\nJennifer"
@@ -415,18 +426,19 @@ class Test:
         x = GetBackends(db,'s',True)
         shortcode_backends = x.get()
         y = GetAllowedModems(db,2)
-        SendModemAvailabilityAlert('mtn-modem')
+        #SendModemAvailabilityAlert('mtn-modem')
 
         modems  = GetBackends(db,'m',True).get()
         backend_id = [b['id'] for b in modems if b['name'] == 'mtn-modem']
-        log_message_dict = {
-                'backend_id':backend_id[0],
-                'msg_out':'2012-03-18 04',
-                'destination':'8500',
-                'status_out':'Q'
-                }
-        with db.transaction():
-            log_message(db, log_message_dict)
+        #log_message_dict = {
+        #        'backend_id':backend_id[0],
+        #        'msg_out':'2012-03-18 04',
+        #        'destination':'8500',
+        #        'status_out':'Q'
+        #        }
+        #with db.transaction():
+        #    log_message(db, log_message_dict)
+        #sendsms()
 
         return "It works!!"
 
