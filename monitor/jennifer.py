@@ -88,7 +88,7 @@ class GetAllowedModems(object):
         self.shortcode_id = shortcode_id
     def get(self):
         t_query = ("SELECT id, name, identity, smsc_name, active FROM backends "
-                    "WHERE id IN (SELECT unnest(allowedlist) FROM shortcode_allowed_modems WHERE id = %s) AND active = %s")
+                    "WHERE id IN (SELECT unnest(allowedlist) FROM shortcode_allowed_modems WHERE shortcode_id = %s) AND active = %s")
         query = t_query % (self.shortcode_id, True)
         res = self.db.query(query)
         return res
