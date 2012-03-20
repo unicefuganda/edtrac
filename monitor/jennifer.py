@@ -289,11 +289,11 @@ class MonitorQosMessages:
         time_offset = get_qos_time_offset()
         logging.debug("[%s] Started Mornitoring"%('/monitor'))
         rpt_subject = "QOS Messages Received within: %s"%datetime.now().strftime('%Y-%m-%d %H')
-        rpt_body = "Hi,\nJennifer received SMS from and to the following:\nSHORTCODE   | MODEM-NAME\n"
+        rpt_body = "Hi,\nJennifer received SMS from and to the following:\nSHORTCODE(from)  | MODEM-NAME(to)\n"
         rpt_body +="----------------------------------------------------\n"
         rpt_body2 = ""
         subject = "QOS Monitor Alert"
-        monitor_msg = ('Hello %s,\nJenifer didn\'t get responses from and to the following:\nSHORTCODE   | MODEM-NAME\n')
+        monitor_msg = ('Hello %s,\nJenifer didn\'t get responses from and to the following:\nSHORTCODE(from)   | MODEM-NAME(to)\n')
         monitor_msg +=("----------------------------------------------------\n")
         there_is_an_alert = False
         for shortcode in shortcode_backends:
@@ -306,11 +306,11 @@ class MonitorQosMessages:
                 res = db.query(query)
                 if not res:
                     there_is_an_alert = True
-                    monitor_msg += '%s| %s(%s)\n'%(shortcode['identity'] + ' '*(12-len(shortcode['identity'])),
+                    monitor_msg += '%s%s| %s(%s)\n'%(shortcode['identity'], ' '*(18-len(shortcode['identity'])),
                             modem['name'],modem['identity'])
                     logging.warning("[%s] No response from %s for %s"%('/monitor', shortcode['identity'], modem['name']))
                 else:
-                    rpt_body2 +='%s| %s(%s)\n'%(shortcode['identity'] + ' '*(12-len(shortcode['identity'])),
+                    rpt_body2 +='%s%s| %s(%s)\n'%(shortcode['identity'], ' '*(18-len(shortcode['identity'])),
                             modem['name'],modem['identity'])
 
         if there_is_an_alert:
