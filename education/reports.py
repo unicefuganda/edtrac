@@ -18,6 +18,7 @@ from education.utils import previous_calendar_week, Statistics, StatisticsExcept
 from .models import EmisReporter, School
 from poll.models import Response, Poll
 import datetime, dateutils
+from datetime import date, timedelta
 from types import NoneType
 from eav.models import Value, ContentType
 from rapidsms.models import Contact
@@ -544,7 +545,10 @@ def get_month_day_range(date, **kwargs):
 
 def get_week_date(number=None):
     #TODO: scope out how well to get ``number`` generic
-    from dateutil.relativedelta import relativedelta
+    #FIXTHIS
+    from dateutils import relativedelta
+#    import pdb; pdb.set_trace()
+    now = datetime.datetime.now()
     if number is not None:
         now = datetime.datetime.now()
         current_week_before_date = now + relativedelta(day=1, days =- number*7)
@@ -552,6 +556,15 @@ def get_week_date(number=None):
         return ([past_week_before_date, current_week_before_date], [current_week_before_date, now])
     return
 
+def get_week_days(year, week):
+    #TODO -> get a datetime instance and call the .isocalendar() method (preferably the 1st element in the list)
+    d = date(year, 1, 1)
+    if d.weekday() > 3:
+        d = d + timedelta(7 - d.weekday())
+    else:
+        d = d - timedelta(d.weekday())
+    dlt = timedelta(days = (week - 7) * 7)
+    return d + dlt, d + dlt + timedelta(days=6)
 
 def get_numeric_sum_data(poll_name):
     poll = Poll.objects.get(name=poll_name)

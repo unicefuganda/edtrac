@@ -254,9 +254,9 @@ def dashboard(request):
     profile = request.user.get_profile()
     if profile.is_member_of('DEO'):
         return deo_dashboard(request)
-    elif profile.is_member_of('Ministry Officials'):
-        return ministry_dashboard(request)
-    elif profile.is_member_of('Admins'):
+#    elif profile.is_member_of('Ministry Officials'):
+#        return ministry_dashboard(request)
+    elif profile.is_member_of('Admins') or profile.is_member_of('Ministry Officials'):
         return admin_dashboard(request)
     else:
         return testindex(request)
@@ -296,10 +296,7 @@ def generate_dashboard_vars(location=None):
     except ZeroDivisionError:
         boysp3_past = 0
 
-    try:
-        boysp3_diff = 100 * (x - y) / x
-    except ZeroDivisionError:
-        boysp3_diff = 0 # just return zero (till more data is populated in the system)
+    boysp3_diff = boysp3 - boysp3_past
 
     if x > y:
         boysp3_class = 'negative'
@@ -320,10 +317,7 @@ def generate_dashboard_vars(location=None):
     except ZeroDivisionError:
         boysp6_past = 0
 
-    try:
-        boysp6_diff = 100 * ( x - y ) / x
-    except ZeroDivisionError:
-        boysp6_diff = 0
+    boysp6_diff = boysp6 - boysp6_past
 
     if x > y:
         boysp6_class = 'negative'
@@ -344,10 +338,7 @@ def generate_dashboard_vars(location=None):
     except ZeroDivisionError:
         girlsp3_past = 0
 
-    try:
-        girlsp3_diff = 100 * ( x - y ) / x
-    except ZeroDivisionError:
-        girlsp3_diff = 0
+    girlsp3_diff = girlsp3 - girlsp3_past
 
     if x > y:
         girlsp3_class = "negative"
@@ -369,10 +360,7 @@ def generate_dashboard_vars(location=None):
     except ZeroDivisionError:
         girlsp6_past = 0
 
-    try:
-        girlsp6_diff = 100 * ( x - y ) / x
-    except ZeroDivisionError:
-        girlsp6_diff = 0
+    girlsp6_diff = girlsp6 - girlsp6_past
 
     if x > y:
         girlsp6_class = "negative"
@@ -393,10 +381,7 @@ def generate_dashboard_vars(location=None):
     except ZeroDivisionError:
         female_teachers_past = 0
 
-    try:
-        female_teachers_diff = 100 * ( x - y ) / x
-    except ZeroDivisionError:
-        female_teachers_diff = 0
+    female_teachers_diff = female_teachers_past - female_teachers
 
     if x > y:
         female_teachers_class = "negative"
@@ -417,10 +402,7 @@ def generate_dashboard_vars(location=None):
     except ZeroDivisionError:
         male_teachers_past = 0
 
-    try:
-        male_teachers_diff = 100 * ( x - y ) / x
-    except ZeroDivisionError:
-        male_teachers_diff = 0
+    male_teachers_diff = male_teachers_past - male_teachers
 
     if x > y:
         male_teachers_class = "negative"
@@ -531,7 +513,10 @@ class MealsMinistryDetails(TemplateView):
 ##########################################################################################################
 @login_required
 def admin_dashboard(request):
-    location = request.user.get_profile().location
+    if request.user.get_profile().is_member_of('Ministry Officials'):
+        location = Location.objects.get(name="Uganda")
+    else:
+        location = request.user.get_profile().location
     return render_to_response("education/admin/admin_dashboard.html", generate_dashboard_vars(location=location),
         RequestContext(request))
 
@@ -542,8 +527,14 @@ class ViolenceAdminDetails(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ViolenceAdminDetails, self).get_context_data(**kwargs)
         #TODO: filtering by ajax and time
+
+        if self.request.user.get_profile().is_member_of('Ministry Officials'):
+            location = Location.objects.get(name="Uganda")
+        else:
+            location = self.request.user.get_profile().location
+
         violence_cases_schools = poll_response_sum("edtrac_headteachers_abuse",
-            location=self.request.user.get_profile().location, month_filter=True, months=2, ret_type=list)
+            location=location, month_filter=True, months=2, ret_type=list)
 
         total = []
 
