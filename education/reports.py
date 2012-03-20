@@ -566,80 +566,8 @@ def get_week_days(year, week):
     dlt = timedelta(days = (week - 7) * 7)
     return d + dlt, d + dlt + timedelta(days=6)
 
-def get_numeric_sum_data(poll_name):
-    poll = Poll.objects.get(name=poll_name)
-    return Value.objects.filter(attribute__slug='poll_number_value',\
-        entity_ct=ContentType.objects.get_for_model(Response),\
-        entity_id__in=poll.responses.all()).values_list('value_float').annotate(Sum('value_float'))
 
-def get_numeric_report_data_1(poll_name, location=None, time_range=None, to_ret=None):
-
-    poll = Poll.objects.get(name=poll_name)
-
-    if location:
-        # time filters
-        if time_range:
-            q = Value.objects.filter(attribute__slug='poll_number_value',\
-                entity_ct=ContentType.objects.get_for_model(Response), entity_id__in=poll.responses.filter(date_range=time_range))
-        else:
-            q = Value.objects.filter(attribute__slug='poll_number_value',\
-                entity_ct=ContentType.objects.get_for_model(Response), entity_id__in=poll.responses.all())
-
-        # location filter
-        if location.get_children():
-            q = q.extra(tables=['poll_response', 'rapidsms_contact', 'locations_location'],
-                    where=['poll_response.id = eav_value.entity_id',
-                           'rapidsms_contact.id = poll_response.contact_id',
-                           'locations_location.id = rapidsms_contact.reporting_location_id',
-                           'T7.id in %s' % (str(tuple(location.get_children().values_list('pk', flat=True)))),
-                           'T7.lft <= locations_location.lft', \
-                           'T7.rght >= locations_location.rght', \
-                           ],
-                    select={
-                        'location_name':'T7.name',
-                        'location_id':'T7.id',
-                        'lft':'T7.lft',
-                        'rght':'T7.rght',
-                    }).values('location_name', 'location_id')
-        else:
-            q = q.extra(tables=['poll_response', 'rapidsms_contact', 'locations_location'],
-                where=['poll_response.id = eav_value.entity_id',
-                       'rapidsms_contact.id = poll_response.contact_id',
-                       'locations_location.id = rapidsms_contact.reporting_location_id',
-                       'T7.id in %s' % (str(tuple(Location.objects.filter(pk=location.pk).values_list('pk',flat=True)))),
-                       'T7.lft <= locations_location.lft',\
-                       'T7.rght >= locations_location.rght',\
-                       ],
-                select={
-                    'location_name':'T7.name',
-                    'location_id':'T7.id',
-                    'lft':'T7.lft',
-                    'rght':'T7.rght',
-                    }).values('location_name', 'location_id')
-
-    else:
-        q = Value.objects.filter(attribute__slug='poll_number_value', \
-            entity_ct=ContentType.objects.get_for_model(Response), entity_id__in=poll.responses.all()).values('entity_ct')
-    if to_ret:
-        if q:
-            if to_ret == 'sum':
-                return q.annotate(Sum('value_float'))[0]['value_float__sum']
-            elif to_ret == 'avg':
-                return q.annotate(Avg('value_float'))[0]['value_float__avg']
-            elif to_ret == 'std':
-                return q.annotate(StdDev('value_float'))[0]['value_float__stddev']
-            elif to_ret == 'max':
-                return q.annotate(Max('value_float'))[0]['value_float__max']
-            elif to_ret == 'min':
-                return q.annotate(Min('value_float'))[0]['value_float__min']
-        else:
-            return 0
-    else:
-        return q.annotate(Sum('value_float'), Count('value_float'), Avg('value_float'),\
-                    StdDev('value_float'), Max('value_float'), Min('value_float'))
-
-
-def get_numeric_report_data_2(poll_name, location=None, time_range=None, to_ret=None, **kwargs):
+def get_numeric_report_data(poll_name, location=None, time_range=None, to_ret=None, **kwargs):
     poll = Poll.objects.get(name=poll_name)
 
     if time_range:
@@ -718,7 +646,7 @@ def poll_response_sum(poll_name, **kwargs):
             # when no location is provided { worst case scenario }
             to_ret = {}
             for location in Location.objects.filter(type='district', name__in = EmisReporter.objects.values_list('reporting_location',flat=True)).distinct():
-                to_ret[location.__unicode__()] = get_numeric_report_data_2(
+                to_ret[location.__unicode__()] = get_numeric_report_data(
                     poll_name,
                     location = location,
                     time_range = get_month_day_range(datetime.datetime.now()),
@@ -763,7 +691,7 @@ def poll_response_sum(poll_name, **kwargs):
                     to_ret[location.__unicode__()] = [] #empty list we populate in a moment
                     for month_range in month_ranges:
                         to_ret[location.__unicode__()].append(
-                            get_numeric_report_data_2(
+                            get_numeric_report_data(
                                 poll_name,
                                 location=location,
                                 time_range = month_range,
@@ -818,8 +746,8 @@ def poll_response_sum(poll_name, **kwargs):
             # return just one figure/sum without all the list stuff
             current_month, previous_month = get_month_day_range(datetime.datetime.now(), depth=2)
             return [
-                get_numeric_report_data_2(poll_name, locations=kwargs.get('locations'), time_range=current_month, to_ret='sum'),
-                get_numeric_report_data_2(poll_name, locations=kwargs.get('locations'), time_range=previous_month, to_ret='sum')
+                get_numeric_report_data(poll_name, locations=kwargs.get('locations'), time_range=current_month, to_ret='sum'),
+                get_numeric_report_data(poll_name, locations=kwargs.get('locations'), time_range=previous_month, to_ret='sum')
             ]
 
         date_week = [datetime.datetime.now()-datetime.timedelta(days=7), datetime.datetime.now()]
@@ -834,7 +762,7 @@ def poll_response_sum(poll_name, **kwargs):
         if kwargs.get('month_filter') == 'weekly' and kwargs.has_key('school'):
             school = kwargs.get('school')
             # return only sums of values from responses sent in by EMIS reporters in this school
-            response_sum = get_numeric_report_data_2(
+            response_sum = get_numeric_report_data(
                 poll_name, time_range = date_week, school=school, to_ret = 'sum', belongs_to = 'schools'
             )
 
@@ -843,7 +771,7 @@ def poll_response_sum(poll_name, **kwargs):
             else:
                 return response_sum
     else:
-        return get_numeric_report_data_2(poll_name)
+        return get_numeric_report_data(poll_name)
 
 
 def cleanup_sums(sums):
@@ -896,19 +824,19 @@ def poll_responses_past_week_sum(poll_name, **kwargs):
         #narrowing to location
         if kwargs.has_key('locations'):
             # week_before would refer to the week before week that passed
-            sum_of_poll_responses_week_before = get_numeric_report_data_2(poll_name, locations=kwargs.get('locations'), time_range=first_quota, to_ret = 'sum')
-            sum_of_poll_responses_past_week = get_numeric_report_data_2(poll_name, locations=kwargs.get('locations'), time_range=second_quota, to_ret = 'sum')
+            sum_of_poll_responses_week_before = get_numeric_report_data(poll_name, locations=kwargs.get('locations'), time_range=first_quota, to_ret = 'sum')
+            sum_of_poll_responses_past_week = get_numeric_report_data(poll_name, locations=kwargs.get('locations'), time_range=second_quota, to_ret = 'sum')
             return [sum_of_poll_responses_past_week, sum_of_poll_responses_week_before]
         elif kwargs.has_key('location'):
-            sum_of_poll_responses_week_before = get_numeric_report_data_2(poll_name, location=kwargs.get('location'), time_range=first_quota, to_ret = 'sum')
-            sum_of_poll_responses_past_week = get_numeric_report_data_2(poll_name, location=kwargs.get('location'), time_range=second_quota, to_ret = 'sum')
+            sum_of_poll_responses_week_before = get_numeric_report_data(poll_name, location=kwargs.get('location'), time_range=first_quota, to_ret = 'sum')
+            sum_of_poll_responses_past_week = get_numeric_report_data(poll_name, location=kwargs.get('location'), time_range=second_quota, to_ret = 'sum')
             return [sum_of_poll_responses_past_week, sum_of_poll_responses_week_before]
 
     else:
         # getting country wide statistics
         first_quota, second_quota = get_week_date(number=1) # default week range to 1
-        sum_of_poll_responses_week_before = get_numeric_report_data_2(poll_name, time_range=first_quota, to_ret = 'sum')
-        sum_of_poll_responses_past_week = get_numeric_report_data_2(poll_name, time_range=second_quota, to_ret = 'sum')
+        sum_of_poll_responses_week_before = get_numeric_report_data(poll_name, time_range=first_quota, to_ret = 'sum')
+        sum_of_poll_responses_past_week = get_numeric_report_data(poll_name, time_range=second_quota, to_ret = 'sum')
         return sum_of_poll_responses_past_week, sum_of_poll_responses_week_before
 
 def poll_responses_term(poll_name, **kwargs):
@@ -929,11 +857,11 @@ def poll_responses_term(poll_name, **kwargs):
     #TODO -> numeric polls, categorical polls
 
     if kwargs.get('belongs_to') == 'location':
-        return get_numeric_report_data_2(poll_name, locations=kwargs.get('locations'), time_range=\
+        return get_numeric_report_data(poll_name, locations=kwargs.get('locations'), time_range=\
             [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')], to_ret='sum')
 
     elif kwargs.get('belongs_to') == 'schools':
-        return get_numeric_report_data_2(poll_name, school=kwargs.get('school'), time_range=\
+        return get_numeric_report_data(poll_name, school=kwargs.get('school'), time_range=\
                     [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')], to_ret='sum')
 
 
@@ -941,14 +869,14 @@ def curriculum_progress_list(poll_name, **kwargs):
     from .utils import themes
     if kwargs:
         if kwargs.has_key('location'):
-            return list(get_numeric_report_data_2(
+            return list(get_numeric_report_data(
                 poll_name,
                 to_ret = 'q',
                 location=kwarg.get('location'),
                 time_range=get_week_date(number=1)
             ))
     else:
-        x = list(get_numeric_report_data_2(poll_name, to_ret = 'q').values_list('value_float', flat=True))
+        x = list(get_numeric_report_data(poll_name, to_ret = 'q').values_list('value_float', flat=True))
         return x
 
 def curriculum_progress_mode(list):
