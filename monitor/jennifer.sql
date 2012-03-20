@@ -72,6 +72,13 @@ VALUES
     ('airtel-modem','airtel-modem','256752145316','m'),
     ('warid-modem','warid-modem','256701205129','m'),
     ('orange-modem','orange-modem','256790403038','m');
+
+INSERT INTO misc (item, val, detail)
+VALUES
+    ('DEFAULT_EMAIL_SENDER','root@uganda.rapidsms.org','The defaul email sender'),
+    ('KANNEL_STATUS_URL','http://localhost:13000/status','The Kannel status URL'),
+    ('SENDSMS_URL','http://localhost:13013/cgi-bin/sendsms?username=tester&password=foobar','The Send SMS URL'),
+    ('ACTIVATE_MANAGERS','true','Whether to activate managers for email alerts');
 INSERT INTO shortcode_allowed_modems (shortcode_id, allowedlist)
 VALUES
     ((SELECT id FROM backends WHERE name='dmark6767'),

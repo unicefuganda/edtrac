@@ -115,16 +115,30 @@ class Settings(object):
     def __init__(self,db):
         self.db = db
         self.get_all_setting()
+        self.get_email_recipients()
     def get_all_setting(self):
         global SETTINGS
         res = self.db.query("SELECT item,val FROM misc")
         if res:
             for setting in res:
-                #if not hasattr(SETTINGS, setting['item']):
                 SETTINGS['%s'%setting['item']] = setting['val']
+    def get_email_recipients(self):
+        global QOS_RECIPIENTS, SETTINGS
+        res = self.db.query("SELECT firstname, email, utype FROM users WHERE active = %s"%True)
+        if res:
+            for r in res:
+                if r['utype'] == 'admin':
+                    QOS_RECIPIENTS.append((r['firstname'],r['email']))
+                else:
+                    if 'ACTIVATE_MANAGERS' in SETTINGS:
+                        if SETTINGS['ACTIVATE_MANAGERS'] == 'true':
+                            QOS_RECIPIENTS.append((r['firstname'],r['email']))
+        QOS_RECIPIENTS = list(set(QOS_RECIPIENTS))
+
 
 # Load Settings from DB
 Settings(db)
+print QOS_RECIPIENTS
 
 def sendsms(frm, to, msg,smsc):
     """sends the sms"""
@@ -274,7 +288,7 @@ class SendQosMessages:
                         }
                 with db.transaction():
                     log_message(db, log_message_dict)
-        logging.debug("[%s] Sent QOS messages using %s: Failed = %s"%('/send', applied_modems, set(failed_modems)))
+        logging.debug("[%s] Sent QOS messages using %s: Failed = %s"%('/send', applied_modems, list(set(failed_modems))))
         rpt_body += "\n\nRegards,\nJennifer"
         send_email(SETTINGS['DEFAULT_EMAIL_SENDER'], 'sekiskylink@gmail.com', rpt_subject, rpt_body)
         return "Done!"
