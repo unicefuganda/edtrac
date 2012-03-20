@@ -1,4 +1,14 @@
 BEGIN;
+CREATE TABLE users(
+    id  SERIAL NOT NULL PRIMARY KEY,
+    firstname TEXT NOT NULL DEFAULT '',
+    lastname TEXT NOT NULL DEFAULT '',
+    email TEXT NOT NULL,
+    utype TEXT NOT NULL DEFAULT 'admin',
+    active BOOLEAN DEFAULT 't',
+    cdate TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE backends(
     id  SERIAL NOT NULL PRIMARY KEY,
     name TEXT NOT NULL,
@@ -36,6 +46,16 @@ CREATE TABLE misc(
 );
 
 -- Sample data
+INSERT INTO users (firstname, lastname, email, utype, active)
+VALUES
+    ('Samuel','Sekiwere','sekiskylink@gmail.com','admin','t'),
+    ('Alfred','Mukasa','asseym@gmail.com','admin','t'),
+    ('Victor','Miclovich','vicmiclovich@gmail.com','admin','t'),
+    ('James','Powell','js123powell@gmail.com','manager','t'),
+    ('Sean','Blaschke','sean.blaschke@gmail.com','manager','t'),
+    ('Stefan','Bock','stiefbock@gmail.com','manager','t'),
+    ('Terra','Weikel','terraw@gmail.com','manager','f');
+
 INSERT INTO backends (name, smsc_name, identity, btype)
 VALUES
     ('test','fake','1234','t'),
