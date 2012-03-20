@@ -276,7 +276,7 @@ class SendQosMessages:
                     email_body = 'Hi,\nError sending from %s to %s.\n\nRegards,\nJennifer'%(modem['name'],shortcode['identity'])
                     send_email(SETTINGS['DEFAULT_EMAIL_SENDER'], 'sekiskylink@gmail.com', "Send SMS Error",email_body)
                 rpt_body +='%s(%s)%s| %s\n'%(modem['smsc_name'], modem['identity'],
-                        ' '*(32-(len(modem['smsc_name']+len(modem['identity']))+2)),shortcode['identity'])
+                        ' '*(32-(len(modem['smsc_name']+ modem['identity'])+2)),shortcode['identity'])
                 #create log message dict
                 backend_id = modem['id']
                 log_message_dict = {
