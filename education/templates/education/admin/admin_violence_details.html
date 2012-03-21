@@ -1,4 +1,5 @@
 {% extends "education/layout_base.html" %}
+{% block title %} Violence Cases -- {{ block.super }}{% endblock %}
 {% block content %}
 <div class="back_link">
 <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">← Back to EdTrac Home Page</a></p>
@@ -47,7 +48,7 @@
               {% endfor %}
             <tr>
                 <td>Total</td>
-                {% for t in totals %}
+                {% for t in school_totals %}
                 <td>{{ t }}</td>
                 {% endfor %}
             </tr>
@@ -56,7 +57,43 @@
             {% endif %}
     </table>
 
-    <p class="report alert-message block-message">Results based on {{ reporting_percentage }}% of Total Reporters</p>
+    <p class="report alert-message block-message">Results based on {{ sch_reporting_percentage }}% of Total Reporters</p>
 
+
+    <h2 class="block-header">Violence cases reported by community members</h2>
+        <table class="tabulated-data">
+            <tbody>
+            <tr>
+                <th>District</th>
+                <th>Violence cases recorded in {{ report_dates.0|date:"M Y"}}</th>
+                <th>Violence cases recorded in {{ report_dates.1|date:"M Y"}}</th>
+                <th>Percentage change (%)</th>
+            </tr>
+            {% if violence_cases_reported_by_gem %}
+            {% for name, list in violence_cases_reported_by_gem %}
+            {% if list.0 == 0 and list.1 == 0 %}
+            {% else %}
+            <tr>
+                <td><a href="{% url district-violence list.2.pk %}">{{ list.2 }}</a></td>
+                <td>{{ list.0 }}</td> <!-- current month -->
+                <td>{{ list.1 }}</td>
+                <!-- TODO check if list.3 is a decimal and limit dps -->
+                <td>{{ list.3 }}</td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+            <tr>
+                <td>Total</td>
+                {% for t in gem_totals %}
+                <td>{{ t }}</td>
+                {% endfor %}
+            </tr>
+            {% else %}
+            <tr><td colspan="4" style="text-align: center;">No cases</td> </tr>
+            {% endif %}
+        </table>
+
+        <p class="report alert-message block-message">Results based on {{ gem_reporting_percentage }}% of Total Reporters</p>
+    </div>
 </div>
 {% endblock %}

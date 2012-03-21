@@ -625,16 +625,17 @@ class ViolenceAdminDetails(TemplateView):
             location = Location.objects.get(name="Uganda")
         else:
             location = self.request.user.get_profile().location
-
+        
         violence_cases_schools = poll_response_sum("edtrac_headteachers_abuse",
             location=location, month_filter=True, months=2, ret_type=list)
 
-        total = []
+        violence_cases_gem = poll_response_sum('edtrac_gem_abuse', location=location, month_filter=True, months=2, ret_type=list)
 
+        school_total = [] # total violence cases reported by school
         for name, list_val in violence_cases_schools:
             try:
                 diff = (list_val[0] - list_val[1]) / list_val[0]
-                total.append((list_val[0], list_val[1], diff))
+                school_total.append((list_val[0], list_val[1], diff))
             except ZeroDivisionError:
                 diff = '--'
 
@@ -643,13 +644,32 @@ class ViolenceAdminDetails(TemplateView):
         context['violence_cases_reported_by_schools'] = violence_cases_schools
 
         first_col, second_col, third_col = [],[],[]
-        for first, second, third in total:
+        for first, second, third in school_total:
             first_col.append(first), second_col.append(second), third_col.append(third)
-        context['totals'] = [sum(first_col), sum(second_col), sum(third_col)]
+        context['school_totals'] = [sum(first_col), sum(second_col), sum(third_col)]
+
+        gem_total = [] # total violence cases reported by school
+        for name, list_val in violence_cases_gem:
+            try:
+                diff = (list_val[0] - list_val[1]) / list_val[0]
+                gem_total.append((list_val[0], list_val[1], diff))
+            except ZeroDivisionError:
+                diff = '--'
+
+            list_val.append(diff)
+
+        context['violence_cases_reported_by_gem'] = violence_cases_gem
+
+        first_col, second_col, third_col = [],[],[]
+        for first, second, third in gem_total:
+            first_col.append(first), second_col.append(second), third_col.append(third)
+        context['gem_totals'] = [sum(first_col), sum(second_col), sum(third_col)]
+
 
         # depth of 2 months
         context['report_dates'] = [start for start, end in get_month_day_range(datetime.datetime.now(), depth=2)]
-        report_count = 0
+        school_report_count = 0
+        gem_report_count = 0
         #TODO
         # -> 100 * (reports-that-are-sent-to-edtrac / reports-that-should-have-come-edtrac a.k.a. all schools)
         #
@@ -662,16 +682,29 @@ class ViolenceAdminDetails(TemplateView):
             else:
                 contacts = Contact.objects.filter(reporting_location=self.request.user.get_profile().location)
 
-            resp_count = Poll.objects.get(name="edtrac_headteachers_abuse").responses.filter(
+            school_resp_count = Poll.objects.get(name="edtrac_headteachers_abuse").responses.filter(
                 contact__in = contacts,
                 date__range = dr).count()
 
-            report_count += resp_count
+            gem_resp_count = Poll.objects.get(name="edtrac_gem_abuse").responses.filter(
+                contact__in = contacts,
+                date__range = dr).count()
+
+            school_report_count += school_resp_count
+            gem_report_count += gem_resp_count
+
         try:
-            context['reporting_percentage'] = 100 * ( report_count / (float(len(get_month_day_range(datetime.datetime.now(),
-                depth=2))) * report_count))
+            context['sch_reporting_percentage'] = 100 * ( school_report_count / (float(len(get_month_day_range(datetime.datetime.now(),
+                depth=2))) * school_report_count))
         except ZeroDivisionError:
-            context['reporting_percentage'] = 0
+            context['sch_reporting_percentage'] = 0
+
+        try:
+            context['gem_reporting_percentage'] = 100 * ( gem_report_count / (float(len(get_month_day_range(datetime.datetime.now(),
+                depth=2))) * gem_report_count))
+        except ZeroDivisionError:
+            context['gem_reporting_percentage'] = 0
+
         return context
 
 class AttendanceAdminDetails(TemplateView):
