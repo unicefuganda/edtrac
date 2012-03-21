@@ -1,8 +1,11 @@
 {% extends "education/admin/admin_dashboard.html" %}
 {% load endless %}
+{% block title %}
+        Absenteism of P3 Boys in {{ location }} -- {{ block.super }}
+{% endblock %}
 {% block content %}
 <div class="attendance">
-    <h2 class="block-header">Attendance Records for P3 Boys for {{ location }} (week: {{ week|date:"D d M Y" }})</h2>
+    <h2 class="block-header">Absenteism of P3 Boys for {{ location }} (week: {{ week|date:"D d M Y" }})</h2>
 
     <div class="top">
         {% paginate location_data %}
@@ -16,13 +19,17 @@
 
             </thead>
             <tbody>
-            {% for a, b in location_data %}
-            {% if b %}
+            {% for school, current_week, week_before, diff, enrolled in location_data %}
+
             <tr>
-                <td><a href="{% url school-detail a.id %}">{{ a }}</a></td>
-                <td>{{ b }}</td>
+                <td><a href="{% url school-detail school.id %}">{{ school }}</a></td>
+                <td>{{ current_week }}</td>
+                <td> {{ week_before }}</td>
+
+                <td class="{% if diff > 0.0 %} positive {% endif %} {% if diff < 0.0 %} negative {% else %}{% endif %} {% if diff == 0.0 %} zero {% endif %} {% if diff == '--'%}{%endif%} "> {{ diff }}</td>
+                <td style="color:red; font-size: 0.8em;">{{ enrolled }} (<i>enroll, this_week, prev_week</i>)</td>
             </tr>
-            {% endif %}
+
             {% endfor %}
             </tbody>
         </table>

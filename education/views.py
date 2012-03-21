@@ -298,9 +298,9 @@ def generate_dashboard_vars(location=None):
 
     boysp3_diff = boysp3 - boysp3_past
 
-    if x > y:
+    if boysp3_diff > 0:
         boysp3_class = 'negative'
-    elif x < y:
+    elif boysp3_diff < 0:
         boysp3_class = 'positive'
     else:
         boysp3_class = 'zero'
@@ -319,9 +319,9 @@ def generate_dashboard_vars(location=None):
 
     boysp6_diff = boysp6 - boysp6_past
 
-    if x > y:
+    if boysp6_diff > 0:
         boysp6_class = 'negative'
-    elif x < y:
+    elif boys6_diff < 0:
         boysp6_class = 'positive'
     else:
         boysp6_class = 'zero'
@@ -340,9 +340,9 @@ def generate_dashboard_vars(location=None):
 
     girlsp3_diff = girlsp3 - girlsp3_past
 
-    if x > y:
+    if girlsp3_diff > 0:
         girlsp3_class = "negative"
-    elif x < y:
+    elif girlsp3_diff < 0:
         girlsp3_class = "positive"
     else:
         girlsp3_class = "zero"
@@ -362,9 +362,9 @@ def generate_dashboard_vars(location=None):
 
     girlsp6_diff = girlsp6 - girlsp6_past
 
-    if x > y:
+    if girlsp6_diff > 0:
         girlsp6_class = "negative"
-    elif x < y:
+    elif girlsp6_diff < 0:
         girlsp6_class = "positive"
     else:
         girlsp6_class = "zero"
@@ -383,9 +383,9 @@ def generate_dashboard_vars(location=None):
 
     female_teachers_diff = female_teachers_past - female_teachers
 
-    if x > y:
+    if female_teachers_diff > 0:
         female_teachers_class = "negative"
-    elif x < y:
+    elif female_teachers_diff < 0:
         female_teachers_class = "positive"
     else:
         female_teachers_class = "zero"
@@ -404,10 +404,10 @@ def generate_dashboard_vars(location=None):
 
     male_teachers_diff = male_teachers_past - male_teachers
 
-    if x > y:
-        male_teachers_class = "negative"
-    elif x < y:
+    if male_teachers_diff < 0:
         male_teachers_class = "positive"
+    elif male_teachers_diff > 0:
+        male_teachers_class = "negative"
     else:
         male_teachers_class = "zero"
 
@@ -439,6 +439,33 @@ def generate_dashboard_vars(location=None):
 #    top_three_violent_districts = sorted_violence_list[:3]
 #    #can make a dictionary
 #    top_three_hungry_districts = sorted_hungry_list[:3]
+
+
+    d1, d2 = get_week_date(number = 1)
+    resp_d1 = Poll.objects.get(name="edtrac_head_teachers_attendance").responses_by_category().filter(
+        response__contact__reporting_location__in = locations,
+        response__date__range = d1
+    )
+
+    resp_d2 = Poll.objects.get(name="edtrac_head_teachers_attendance").responses_by_category().filter(
+        response__contact__reporting_location__in = locations,
+        response__date__range = d2
+    )
+
+    # ideally head teachers match the number of SMCs in eductrac
+
+    female_head_teachers = EmisReporter.objects.filter(reporting_location__in =\
+        locations, groups__name="Head Teachers", gender='F')
+    female_head_t_deploy = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
+        female_head_teachers.values_list('schools', flat=True),
+        groups__name = 'SMC').distinct().count()
+
+    male_head_teachers = EmisReporter.objects.filter(reporting_location__in =\
+        locations, groups__name="Head Teachers", gender='M')
+    male_head_t_deploy = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
+        male_head_teachers.values_list('schools', flat=True),
+            groups__name = 'SMC').distinct().count()
+
 
     return {
 #        'top_three_violent_districts':top_three_violent_districts,
@@ -808,13 +835,19 @@ def boysp3_district_attd_detail(req, location_id):
     schools = School.objects.filter(location=location)
     to_ret = []
     for school in schools:
-        to_ret.append((
-            school, poll_response_sum("edtrac_boysp3_attendance", month_filter='weekly', school=school)
-        ))
+        #import pdb; pdb.set_trace()
+        temp = [school]
+        temp.extend(
+            return_absent(
+                'edtrac_boysp3_attendance','edtrac_boysp3_enrollment', school=school
+            )
+        )
+
+        to_ret.append(temp)
     return render_to_response("education/boysp3_district_attd_detail.html", { 'location':location,\
                                         'location_data':to_ret,\
                                         'week':datetime.datetime.now(),\
-                                        'headings' : ['School', 'Number']
+                                        'headings' : ['School', 'Current Week (%)', 'Week before (%)', 'Percentage change', 'Enrolled']
                                         }, RequestContext(req))
 
 @login_required
@@ -902,7 +935,8 @@ def boys_p3_attendance(req):
         """
         This view shows data by district
         """
-        locations = Location.objects.exclude(type="country").filter(type="district", name__in=EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True)).order_by("name")
+        locations = Location.objects.exclude(type="country").filter(type="district", name__in=\
+            EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True)).order_by("name")
         # return view that will give shool-based views
         # --> ref function just below this <---
         return boys_p3_attd_admin(req, locations=locations)
@@ -935,6 +969,7 @@ def boys_p3_attd_admin(req, **kwargs):
     """
     # P3 attendance /// what to show an admin or Ministry official
     locations = kwargs.get('locations')
+
     to_ret = return_absent('edtrac_boysp3_attendance', 'edtrac_boysp3_enrollment', locations)
     return render_to_response(
         'education/partials/boys_p3_attd_admin.html',

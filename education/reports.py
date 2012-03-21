@@ -1,4 +1,5 @@
 from __future__ import division
+from exceptions import ZeroDivisionError
 from django.conf import settings
 from django.db.models import Count, Sum
 from generic.reports import Report
@@ -26,6 +27,7 @@ from generic.reporting.views import ReportView
 from generic.reporting.reports import Column
 from uganda_common.views import XFormReport
 from unregister.models import Blacklist
+import exceptions
 
 GRADES = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7']
 
@@ -543,19 +545,6 @@ def get_month_day_range(date, **kwargs):
             to_ret.append([first_day, last_day])
         return to_ret
 
-def get_week_date(number=None):
-    #TODO: scope out how well to get ``number`` generic
-    #FIXTHIS
-    from dateutils import relativedelta
-#    import pdb; pdb.set_trace()
-    now = datetime.datetime.now()
-    if number is not None:
-        now = datetime.datetime.now()
-        current_week_before_date = now + relativedelta(day=1, days =- number*7)
-        past_week_before_date = current_week_before_date + relativedelta(day=1, days =- 7)
-        return ([past_week_before_date, current_week_before_date], [current_week_before_date, now])
-    return
-
 def get_week_days(year, week):
     #TODO -> get a datetime instance and call the .isocalendar() method (preferably the 1st element in the list)
     d = date(year, 1, 1)
@@ -563,8 +552,20 @@ def get_week_days(year, week):
         d = d + timedelta(7 - d.weekday())
     else:
         d = d - timedelta(d.weekday())
-    dlt = timedelta(days = (week - 7) * 7)
-    return d + dlt, d + dlt + timedelta(days=6)
+    dlt = timedelta(days = (week - 1) * 7)
+    return [d + dlt, d + dlt + timedelta(days=6)]
+
+
+def get_week_date(number=None):
+    #TODO: scope out how well to get ``number`` generic
+    #FIXTHIS
+    now = datetime.datetime.now()
+    if number:
+        now = datetime.datetime.now()
+        current_week_range = get_week_days(now.year, now.isocalendar()[1])
+        past_week_range = get_week_days(now.year, now.isocalendar()[1]-1)
+        return [past_week_range, current_week_range]
+    return
 
 
 def get_numeric_report_data(poll_name, location=None, time_range=None, to_ret=None, **kwargs):
@@ -715,7 +716,7 @@ def poll_response_sum(poll_name, **kwargs):
 
         if kwargs.get('month_filter')=='termly' and kwargs.has_key('locations'):
             # return just one figure/sum without all the list stuff
-            return get_numeric_report_data_2(
+            return get_numeric_report_data(
                     poll_name,
                     location=kwargs.get('locations'),
                     time_range= [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')],
@@ -750,10 +751,12 @@ def poll_response_sum(poll_name, **kwargs):
                 get_numeric_report_data(poll_name, locations=kwargs.get('locations'), time_range=previous_month, to_ret='sum')
             ]
 
-        date_week = [datetime.datetime.now()-datetime.timedelta(days=7), datetime.datetime.now()]
+        #date_week = [datetime.datetime.now()-datetime.timedelta(days=7), datetime.datetime.now()]
+
+        date_week = get_week_date(number=1)[0]
         if kwargs.get('month_filter')=='weekly' and kwargs.has_key('location'):
             # return just one figure/sum without all the list stuff
-            return get_numeric_report_data_2(
+            return get_numeric_report_data(
                 poll_name, location=kwargs.get('location'), time_range= date_week, to_ret = 'sum'
             )
 
@@ -831,6 +834,14 @@ def poll_responses_past_week_sum(poll_name, **kwargs):
             sum_of_poll_responses_week_before = get_numeric_report_data(poll_name, location=kwargs.get('location'), time_range=first_quota, to_ret = 'sum')
             sum_of_poll_responses_past_week = get_numeric_report_data(poll_name, location=kwargs.get('location'), time_range=second_quota, to_ret = 'sum')
             return [sum_of_poll_responses_past_week, sum_of_poll_responses_week_before]
+
+        elif kwargs.has_key('school'):
+            sum_of_poll_responses_week_before = get_numeric_report_data(poll_name, belongs_to='schools',\
+                school=kwargs.get('school'), time_range=first_quota, to_ret = 'sum')
+            sum_of_poll_responses_past_week = get_numeric_report_data(poll_name, belongs_to = 'schools',\
+                school=kwargs.get('school'), time_range=second_quota, to_ret = 'sum')
+            return [sum_of_poll_responses_past_week, sum_of_poll_responses_week_before]
+
 
     else:
         # getting country wide statistics
@@ -992,7 +1003,7 @@ def get_responses_to_polls(**kwargs):
 
 
 
-def return_absent(poll_name, enrollment, locations):
+def return_absent(poll_name, enrollment, locations=None, school=None):
     """
     Handy function to get weekly figures for enrollment/deployment to get absenteism percentages; 
     EMIS is about variances and differences, this not only returns values; it returns the percentage 
@@ -1001,32 +1012,59 @@ def return_absent(poll_name, enrollment, locations):
     Value returned:
             [<location>, <some_value1>, <some_value2>, <some_difference>]
     """
-    
+
     to_ret = []
-    for loc in locations:
-        pre_ret = []
-        pre_ret.append(loc)
-        now, before = poll_responses_past_week_sum(poll_name, weeks=1, locations=[loc])
-        current_enrollment = poll_responses_term(enrollment, locations=[loc], belongs_to="location")
-        # computing absenteism
+    if locations:
+        for loc in locations:
+            pre_ret = []
+            pre_ret.append(loc)
+            now, before = poll_responses_past_week_sum(poll_name, weeks=1, locations=[loc])
+            current_enrollment = poll_responses_term(enrollment, locations=[loc], belongs_to="location")
+            # computing absenteism
+            try:
+                percent_absent_now = 100 * (current_enrollment - now) / current_enrollment
+            except exceptions.ZeroDivisionError:
+                percent_absent_now = '--'
+
+            try:
+                percent_absent_before = 100 * (current_enrollment - before) / current_enrollment
+            except exceptions.ZeroDivisionError:
+                percent_absent_before = '--'
+
+            pre_ret.extend([percent_absent_now, percent_absent_before])
+
+            x,y = pre_ret[-2:]
+
+            try:
+                diff = x - y
+            except TypeError:
+                diff = '--'
+
+            # append value difference
+            pre_ret.append( diff )
+            to_ret.append(pre_ret)
+        return to_ret
+
+    if school:
+        now, before = poll_responses_past_week_sum(poll_name, weeks=1, school=school)
+        current_enrollment = poll_responses_term(poll_name, school=school, belongs_to='schools')
         try:
-            percent_absent_now = 100 * (current_enrollment - now) / current_enrollment
-            percent_absent_before = 100 * (current_enrollment - before) / current_enrollment
-        except ZeroDivisionError:
-            percent_absent_now = 0.0
-            percent_absent_before = 0.0
-        
-        pre_ret.extend([percent_absent_now, percent_absent_before])
+            now_percentage = 100 * (current_enrollment - now) / current_enrollment
+        except exceptions.ZeroDivisionError:
+            now_percentage = '--'
 
-        x,y = pre_ret[-2:]
-        
-        # append value difference
-        pre_ret.append( x - y)
-        to_ret.append(pre_ret)
-    
-    return to_ret
+        try:
+            before_percentage = 100 * (current_enrollment - before) / current_enrollment
+        except exceptions.ZeroDivisionError:
+            before_percentage = '--'
 
-
+        try:
+            diff = now_percentage - before_percentage
+        except TypeError:
+            diff = '--'
+        return [
+            now_percentage, before_percentage, diff, "%s, %s, %s" % (current_enrollment, now, before)
+        ]
 
 #### Excel reporting
 
