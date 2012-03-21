@@ -670,3 +670,20 @@ class Statistics(object):
 
         # Take the square root of the variance.
         self.stddev = sqrt(self.variance)
+
+
+def extract_key_count(list, key=None):
+    """
+    A utility function written to count the number of times a `key` would appear in, for example, a categorized poll.
+    Examples:
+        >>> extract_key_count('yes',
+    """
+
+    if list and key:
+
+        # go through a list of dictionaries
+        for dict in list:
+            if dict.get('category__name') == key:
+                return dict.get('value')
+    else:
+        return 0

@@ -440,18 +440,6 @@ def generate_dashboard_vars(location=None):
 #    #can make a dictionary
 #    top_three_hungry_districts = sorted_hungry_list[:3]
 
-
-    d1, d2 = get_week_date(number = 1)
-    resp_d1 = Poll.objects.get(name="edtrac_head_teachers_attendance").responses_by_category().filter(
-        response__contact__reporting_location__in = locations,
-        response__date__range = d1
-    )
-
-    resp_d2 = Poll.objects.get(name="edtrac_head_teachers_attendance").responses_by_category().filter(
-        response__contact__reporting_location__in = locations,
-        response__date__range = d2
-    )
-
     # ideally head teachers match the number of SMCs in eductrac
 
     female_head_teachers = EmisReporter.objects.filter(reporting_location__in =\
@@ -465,6 +453,76 @@ def generate_dashboard_vars(location=None):
     male_head_t_deploy = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
         male_head_teachers.values_list('schools', flat=True),
             groups__name = 'SMC').distinct().count()
+
+    d1, d2 = get_week_date(number = 1)
+    resp_d1_female = Poll.objects.get(name="edtrac_head_teachers_attendance").responses_by_category().filter(
+        response__contact__in = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
+        female_head_teachers.values_list('schools', flat=True)),
+        response__date__range = d1
+    )
+
+    resp_d2_female = Poll.objects.get(name="edtrac_head_teachers_attendance").responses_by_category().filter(
+        response__contact__in = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
+            female_head_teachers.values_list('schools', flat=True)),
+            response__date__range = d2
+        )
+
+    # get the count for female head teachers present in the last 3 days
+    female_d1 = extract_key_count(resp_d1_female, 'yes')
+
+    try:
+        female_d1 = 100 * (female_d1 / female_head_t_deploy)
+    except ZeroDivisionError, TypeError:
+        female_d1 = 0
+
+    female_d2 = extract_key_count(resp_d2_female, 'yes')
+    try:
+        female_d2 = 100 * (female_d2 / female_head_t_deploy)
+    except ZeroDivisionError, TypeError:
+        female_d2 = 0
+
+    f_head_diff = female_d2 - female_d1
+
+    if f_head_diff > 0:
+        f_head_t_class = "negative"
+    elif f_head_diff < 0:
+        f_head_t_class = "positive"
+    else:
+        f_head_t_class = "zero"
+
+    resp_d1_male = Poll.objects.get(name="edtrac_head_teachers_attendance").responses_by_category().filter(
+        response__contact__in = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
+            male_head_teachers.values_list('schools', flat=True)),
+        response__date__range = d1
+    )
+
+    resp_d2_male = Poll.objects.get(name="edtrac_head_teachers_attendance").responses_by_category().filter(
+        response__contact__in = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
+            male_head_teachers.values_list('schools', flat=True)),
+        response__date__range = d2
+    )
+    # get the count for female head teachers present in the last 3 days
+    male_d1 = extract_key_count(resp_d1_male, 'yes')
+    try:
+        male_d1 = 100 * (male_d1 / male_head_t_deploy)
+    except ZeroDivisionError, TypeError:
+        male_d1 = 0
+
+    male_d2 = extract_key_count(resp_d2_male, 'yes')
+    try:
+        male_d2 = 100 * (male_d2 / male_head_t_deploy)
+    except ZeroDivisionError, TypeError:
+        male_d2 = 0
+
+
+    m_head_diff = male_d2 - male_d1
+
+    if m_head_diff > 0:
+        m_head_t_class = "negative"
+    elif m_head_diff < 0:
+        m_head_t_class = "positive"
+    else:
+        m_head_t_class = "zero"
 
 
     return {
@@ -500,6 +558,14 @@ def generate_dashboard_vars(location=None):
         'boysp6_past' : boysp6_past,
         'boysp6_class' : boysp6_class,
         'boysp6_diff' : boysp6_diff,
+        'f_head_t_week' : female_d2,
+        'f_head_t_week_before' : female_d1,
+        'f_head_diff' : f_head_diff,
+        'm_head_t_week' : male_d2,
+        'm_head_t_week_before' : male_d1,
+        'm_head_diff' : m_head_diff,
+        'f_head_t_class' : f_head_t_class,
+        'm_head_t_class' : m_head_t_class,
         'month':datetime.datetime.now(),
         'schools_to_date':School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).\
                     values_list('schools__pk')).count()
