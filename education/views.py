@@ -682,10 +682,12 @@ class AttendanceAdminDetails(TemplateView):
         context = super(AttendanceAdminDetails, self).get_context_data(**kwargs)
         #TODO: proper drilldown of attendance by school
         # National level ideally "admin" and can be superclassed to suit other roles
+
         profile = self.request.user.get_profile()
+        context['role_name'] = profile.role.name
         if profile.is_member_of("Admins") or profile.is_member_of("Ministry Officials"):
             names = list(set(EmisReporter.objects.exclude(reporting_location=None).filter(reporting_location__type="district").\
-                        values_list('reporting_location__name',flat=True).distinct()))
+                        values_list('reporting_location__name',flat=True)))
             locations = Location.objects.filter(name__in=names).order_by("name")
             #locations = Location.objects.get(name="Uganda").get_descendants().filter(type="district").order_by("name")
             #context['total_districts'] = Location.objects.get(name="Uganda").get_descendants().filter(type="district").count()
@@ -695,7 +697,7 @@ class AttendanceAdminDetails(TemplateView):
 
         headings = [
             'Location', 'Boys P3', 'Boys P6', 'Girls P3', 'Girls P6', 'Female Teachers', "Male Teachers",
-            "Male Head Teachers", "Female Head Teachers"
+            #"Male Head Teachers", "Female Head Teachers"
                     ]
         context['headings'] = headings
         context['week'] = datetime.datetime.now()
@@ -704,16 +706,23 @@ class AttendanceAdminDetails(TemplateView):
         for loc in locations:
             location_data_container.append(
                 [loc,
-                 poll_response_sum("edtrac_boysp3_attendance", month_filter='weekly', location=loc),
-                 poll_response_sum("edtrac_boysp6_attendance", month_filter='weekly', location=loc),
-                 poll_response_sum("edtrac_girlsp3_attendance", month_filter='weekly', location=loc),
-                 poll_response_sum("edtrac_girlsp3_attendance", month_filter='weekly', location=loc),
-                 poll_response_sum("edtrac_f_teachers_attendance", month_filter='weekly', location=loc),
-                 poll_response_sum("edtrac_m_teachers_attendance", month_filter='weekly', location=loc),
-                 poll_response_sum("edtrac_head_teachers_attendance", month_filter="weekly", location=loc),
-                 poll_response_sum("edtrac_head_teachers_attendance", month_filter="weekly", location=loc)
+                 return_absent('edtrac_boysp3_attendance', 'edtrac_boysp3_enrollment', locations=[loc]),
+                 return_absent('edtrac_boysp6_attendance', 'edtrac_boysp6_enrollment', locations=[loc]),
+                 return_absent('edtrac_girlsp3_attendance', 'edtrac_girlsp3_enrollment', locations=[loc]),
+                 return_absent('edtrac_girlsp6_attendance', 'edtrac_girlsp6_enrollment', locations=[loc]),
+                 return_absent('edtrac_f_teachers_attendance', 'edtrac_f_teachers_deployment', locations=[loc]),
+                 return_absent('edtrac_m_teachers_attendance', 'edtrac_m_teachers_deployment', locations=[loc]),
+#                 poll_response_sum("edtrac_boysp3_attendance", month_filter='weekly', location=loc),
+#                 poll_response_sum("edtrac_boysp6_attendance", month_filter='weekly', location=loc),
+#                 poll_response_sum("edtrac_girlsp3_attendance", month_filter='weekly', location=loc),
+#                 poll_response_sum("edtrac_girlsp3_attendance", month_filter='weekly', location=loc),
+#                 poll_response_sum("edtrac_f_teachers_attendance", month_filter='weekly', location=loc),
+#                 poll_response_sum("edtrac_m_teachers_attendance", month_filter='weekly', location=loc),
+#                 poll_response_sum("edtrac_head_teachers_attendance", month_filter="weekly", location=loc),
+#                 poll_response_sum("edtrac_head_teachers_attendance", month_filter="weekly", location=loc)
                 ]
             )
+
         context['location_data'] = location_data_container
 
         return context

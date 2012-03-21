@@ -16,12 +16,14 @@
 -->
 
         <div class="page-header">
-            <h2>Attendance Records for {{ location }}</h2><br/>
+            <h2>Absenteism Records for {{ location }}</h2><br/>
+            {% ifequal role_name "Admins" %}
             <p>Total districts: {{ total_districts }}</p>
+            {% endifequal %}
         </div>
 
 
-
+<!-- TODO: work on a nice search
 <div class="search-form">
     <span>Search District:</span><br/><br/>
     <form action="search/{{ district.id }}" method="post">
@@ -31,30 +33,53 @@
     </form>
 </div>
 
+-->
         
 <div class="attendance">
-    <h2 class="block-header">Attendance Records (week: {{ week|date:"D d M Y" }})</h2>
+    <h2 class="block-header">Absenteeism recorded as of(week: {{ week|date:"D d M Y" }})</h2>
     <div class="top">
         <table class="tabulated-data">
             <tbody>
             <tr>
                 {% for heading in headings %}
-                <th>{{ heading }}</th>
+                <th>{{ heading }} (%)<br/>|<span>cur. wk</span>,<span>wk. before</span>,<span>diff</span>|</th>
                 {% endfor %}
             </tr>
 
-
-                {% for a, b, c, d, e, f, g, h, i in location_data %}
+                {% for a, b, c, d, e, f, g in location_data %}
             <tr>
                 <td><a href="#">{{ a }}</a></td>
-                <td>{{ b }}</td>
-                <td>{{ c }}</td>
-                <td>{{ d }}</td>
-                <td>{{ e }}</td>
-                <td>{{ f }}</td>
-                <td>{{ g }}</td>
-                <td>{{ h }}</td>
-                <td>{{ i }}</td>
+                <td>
+                    {% for w, x, y, z in b %}
+                        {{ x|floatformat }}, {{ y|floatformat }}, {{ z|floatformat }}
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for w, x, y, z in c %}
+                    {{ x|floatformat }}, {{ y|floatformat }}, {{ z|floatformat }}
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for w, x, y, z in d %}
+                    {{ x|floatformat }}, {{ y|floatformat }}, {{ z|floatformat }}
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for w, x, y, z in e %}
+                    {{ x|floatformat }}, {{ y|floatformat }}, {{ z|floatformat }}
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for w, x, y, z in f %}
+                    {{ x|floatformat }}, {{ y|floatformat }}, {{ z|floatformat }}
+                    {% endfor %}
+                </td>
+
+                <td>
+                    {% for w, x, y, z in g %}
+                    {{ x|floatformat }}, {{ y|floatformat }}, {{ z|floatformat }}
+                    {% endfor %}
+                </td>
             </tr>
                 {% endfor %}
 
