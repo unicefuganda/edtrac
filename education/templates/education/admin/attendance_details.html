@@ -42,7 +42,7 @@
             <tbody>
             <tr>
                 {% for heading in headings %}
-                <th>{{ heading }} (%)<br/>|<span>cur. wk</span>,<span>wk. before</span>,<span>diff</span>|</th>
+                <th>{{ heading }}</th>
                 {% endfor %}
             </tr>
 
@@ -51,33 +51,45 @@
                 <td><a href="#">{{ a }}</a></td>
                 <td>
                     {% for w, x, y, z in b %}
-                        {{ x|floatformat }}, {{ y|floatformat }}, {{ z|floatformat }}
+                        <a href="#" rel='tooltip' title="Current week: {{x|floatformat}}%">{{ x|floatformat }}</a>,
+                        <a href="#" rel="tooltip" title="Previous Week: {{y|floatformat}}%">{{ y|floatformat }}</a>,
+                        <a href="#" rel="tooltip" title="Difference in percentage is {{ z|floatformat }}%">{{ z|floatformat }}</a>
                     {% endfor %}
                 </td>
                 <td>
                     {% for w, x, y, z in c %}
-                    {{ x|floatformat }}, {{ y|floatformat }}, {{ z|floatformat }}
+                    <a href="#" rel='tooltip' title="Current week: {{x|floatformat}}%">{{ x|floatformat }}</a>,
+                    <a href="#" rel="tooltip" title="Previous Week: {{y|floatformat}}%">{{ y|floatformat }}</a>,
+                    <a href="#" rel="tooltip" title="Difference in percentage is {{ z|floatformat }}%">{{ z|floatformat }}</a>
                     {% endfor %}
                 </td>
                 <td>
                     {% for w, x, y, z in d %}
-                    {{ x|floatformat }}, {{ y|floatformat }}, {{ z|floatformat }}
+                    <a href="#" rel='tooltip' title="Current week: {{x|floatformat}}%">{{ x|floatformat }}</a>,
+                    <a href="#" rel="tooltip" title="Previous Week: {{y|floatformat}}%">{{ y|floatformat }}</a>,
+                    <a href="#" rel="tooltip" title="Difference in percentage is {{ z|floatformat }}%">{{ z|floatformat }}</a>
                     {% endfor %}
                 </td>
                 <td>
                     {% for w, x, y, z in e %}
-                    {{ x|floatformat }}, {{ y|floatformat }}, {{ z|floatformat }}
+                    <a href="#" rel='tooltip' title="Current week: {{x|floatformat}}%">{{ x|floatformat }}</a>,
+                    <a href="#" rel="tooltip" title="Previous Week: {{y|floatformat}}%">{{ y|floatformat }}</a>,
+                    <a href="#" rel="tooltip" title="Difference in percentage is {{ z|floatformat }}%">{{ z|floatformat }}</a>
                     {% endfor %}
                 </td>
                 <td>
                     {% for w, x, y, z in f %}
-                    {{ x|floatformat }}, {{ y|floatformat }}, {{ z|floatformat }}
+                    <a href="#" rel='tooltip' title="Current week: {{x|floatformat}}%">{{ x|floatformat }}</a>,
+                    <a href="#" rel="tooltip" title="Previous Week: {{y|floatformat}}%">{{ y|floatformat }}</a>,
+                    <a href="#" rel="tooltip" title="Difference in percentage is {{ z|floatformat }}%">{{ z|floatformat }}</a>
                     {% endfor %}
                 </td>
 
                 <td>
                     {% for w, x, y, z in g %}
-                    {{ x|floatformat }}, {{ y|floatformat }}, {{ z|floatformat }}
+                    <a href="#" rel='tooltip' title="Current week: {{x|floatformat}}%">{{ x|floatformat }}</a>,
+                    <a href="#" rel="tooltip" title="Previous Week: {{y|floatformat}}%">{{ y|floatformat }}</a>,
+                    <a href="#" rel="tooltip" title="Difference in percentage is {{ z|floatformat }}%">{{ z|floatformat }}</a>
                     {% endfor %}
                 </td>
             </tr>
@@ -92,10 +104,7 @@
 
 <script>
     $(document).ready(function(){
-        $('.search-form button').click(function(){
-            alert('hello');
-        });
-
+        $("[rel=tooltip]").tooltip();
     });
 </script>
 

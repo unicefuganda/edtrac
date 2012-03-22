@@ -625,7 +625,7 @@ class ViolenceAdminDetails(TemplateView):
             location = Location.objects.get(name="Uganda")
         else:
             location = self.request.user.get_profile().location
-        
+
         violence_cases_schools = poll_response_sum("edtrac_headteachers_abuse",
             location=location, month_filter=True, months=2, ret_type=list)
 
@@ -635,10 +635,9 @@ class ViolenceAdminDetails(TemplateView):
         for name, list_val in violence_cases_schools:
             try:
                 diff = (list_val[0] - list_val[1]) / list_val[0]
-                school_total.append((list_val[0], list_val[1], diff))
             except ZeroDivisionError:
                 diff = '--'
-
+            school_total.append((list_val[0], list_val[1], diff))
             list_val.append(diff)
 
         context['violence_cases_reported_by_schools'] = violence_cases_schools
@@ -646,16 +645,19 @@ class ViolenceAdminDetails(TemplateView):
         first_col, second_col, third_col = [],[],[]
         for first, second, third in school_total:
             first_col.append(first), second_col.append(second), third_col.append(third)
+        first_col = [i for i in first_col if i != '--']
+        second_col = [i for i in second_col if i != '--']
+        third_col = [i for i in third_col if i != '--']
+
         context['school_totals'] = [sum(first_col), sum(second_col), sum(third_col)]
 
         gem_total = [] # total violence cases reported by school
         for name, list_val in violence_cases_gem:
             try:
                 diff = (list_val[0] - list_val[1]) / list_val[0]
-                gem_total.append((list_val[0], list_val[1], diff))
             except ZeroDivisionError:
                 diff = '--'
-
+            gem_total.append((list_val[0], list_val[1], diff))
             list_val.append(diff)
 
         context['violence_cases_reported_by_gem'] = violence_cases_gem
@@ -663,6 +665,9 @@ class ViolenceAdminDetails(TemplateView):
         first_col, second_col, third_col = [],[],[]
         for first, second, third in gem_total:
             first_col.append(first), second_col.append(second), third_col.append(third)
+        first_col = [i for i in first_col if i != '--']
+        second_col = [i for i in second_col if i != '--']
+        third_col = [i for i in third_col if i != '--']
         context['gem_totals'] = [sum(first_col), sum(second_col), sum(third_col)]
 
 

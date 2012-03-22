@@ -42,14 +42,14 @@
                             <td>{{ list.0 }}</td> <!-- current month -->
                             <td>{{ list.1 }}</td>
                             <!-- TODO check if list.3 is a decimal and limit dps -->
-                            <td>{{ list.3 }}</td>
+                            <td>{{ list.3|floatformat }}</td>
                         </tr>
                     {% endif %}
               {% endfor %}
             <tr>
                 <td>Total</td>
                 {% for t in school_totals %}
-                <td>{{ t }}</td>
+                <td>{{ t|floatformat }}</td>
                 {% endfor %}
             </tr>
             {% else %}
