@@ -64,7 +64,12 @@ class HttpRouter(object, LoggerMixin):
         contact = HttpRouter.normalize_number(contact)
 
         # create our connection
-        connection, created = Connection.objects.get_or_create(backend=backend, identity=contact)
+        #connection, created = Connection.objects.get_or_create(backend=backend, identity=contact)
+        try:
+            connection = Connection.objects.get(identity=contact)
+        except Connection.DoesNotExist:
+            connection = Connection.objects.create(backend=backend, identity=contact)
+
 
         # finally, create our db message
         message = Message.objects.create(connection=connection,
@@ -196,7 +201,7 @@ class HttpRouter(object, LoggerMixin):
         message which triggered it.
         """
         # add it to our outgoing queue
-        db_message = self.add_outgoing(msg.connection, msg.text, source, status='Q', application=application)
+        db_message = self.add_outgoing(msg.connection, msg.text, source, status='P', application=application)
 
         return db_message
 
