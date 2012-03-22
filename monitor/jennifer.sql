@@ -45,6 +45,14 @@ CREATE TABLE misc(
         detail TEXT DEFAULT ''
 );
 
+CREATE TABLE templates(
+        id SERIAL NOT NULL PRIMARY KEY,
+        name TEXT NOT NULL,
+        en_txt TEXT NOT NULL DEFAULT '',
+        fr_txt TEXT NOT NULL DEFAULT '',
+        cdate TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Sample data
 INSERT INTO users (firstname, lastname, email, utype, active)
 VALUES
@@ -67,11 +75,11 @@ VALUES
     ('zain8500','zain','8500','s'),
     ('utl6767','utl','6767','s'),
     ('utl8500','utl','8500','s'),
-    ('mtn-modem','mtn-modem','256777773260','m'),
-    ('utl-modem','utl-modem','256711957281','m'),
-    ('airtel-modem','airtel-modem','256752145316','m'),
-    ('warid-modem','warid-modem','256701205129','m'),
-    ('orange-modem','orange-modem','256790403038','m');
+    ('MNT','mtn-modem','256777773260','m'),
+    ('UTL','utl-modem','256711957281','m'),
+    ('AIRTEL','airtel-modem','256752145316','m'),
+    ('WARID','warid-modem','256701205129','m'),
+    ('ORANGE','orange-modem','256790403038','m');
 
 INSERT INTO misc (item, val, detail)
 VALUES
@@ -79,6 +87,23 @@ VALUES
     ('KANNEL_STATUS_URL','http://localhost:13000/status','The Kannel status URL'),
     ('SENDSMS_URL','http://localhost:13013/cgi-bin/sendsms?username=tester&password=foobar','The Send SMS URL'),
     ('ACTIVATE_MANAGERS','true','Whether to activate managers for email alerts');
+
+INSERT INTO templates(name, en_txt)
+VALUES
+    ('QOS_SEND_SUBJ','QOS Messages Sent at: '),
+    ('QOS_SEND_BODY_LINIE1',E'Hi,\nJennifer sent SMS from the following networks:\nSENDER                         | RECIPIENT\n'),
+    ('QOS_SEND_BODY_LINIE2',E'----------------------------------------------\n'),
+    ('QOS_SEND_INNER_BODY',E'%s(%s)%s| %s\n'),
+    ('QOS_RECV_ALL_SUBJ','QOS Messages Received within:'),
+    ('QOS_ALARM_SUBJ','QOS Monitor Alert'),
+    ('QOS_RECV_BODY_LINE1',E'Hi,\nJennifer received SMS from all networks:'),
+    ('QOS_RECV_BODY_LINE2',E'----------------------------------------------------\n'),
+    ('QOS_ALARM_BODY_LINE1',E'Hello %s,\nJenifer didn\'t get a reply for the following networks:\n'),
+    ('QOS_ALARM_BODY_LINE2',E'----------------------------------------------------\n'),
+    ('QOS_ALARM_INNER_BODY',E'%s(%s) -Tested with %s\n'),
+    ('QOS_FOOTER',E'\n\nRegards,\nJennifer'),
+    ('QOS_TIME_LINE','Time of Testing: ');
+
 INSERT INTO shortcode_allowed_modems (shortcode_id, allowedlist)
 VALUES
     ((SELECT id FROM backends WHERE name='dmark6767'),

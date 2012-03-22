@@ -66,7 +66,21 @@ SETTINGS = {
     'SENDSMS_URL': 'http://localhost:13013/cgi-bin/sendsms?username=tester&password=foobar',
     'DEFAULT_EMAIL_SENDER': 'root@uganda.rapidsms.org',
     'KANNEL_STATUS_URL': 'http://localhost:13000/status',
+    'LANGUAGE': 'en',
     }
+TEMPLATES = {
+            'QOS_SEND_SUBJ':'QOS Messages Sent at: ',
+            'QOS_SEND_BODY_LINIE1':'Hi,\nJennifer sent SMS from the following networks:\nSENDER                         | RECIPIENT\n',
+            'QOS_SEND_INNER_BODY':'%s(%s)%s| %s\n',
+            'QOS_RECV_ALL_SUBJ':'QOS Messages Received within:',
+            'QOS_ALARM_SUBJ':'QOS Monitor Alert',
+            'QOS_RECV_BODY_LINE1':'Hi,\nJennifer received SMS from all networks:',
+            'QOS_RECV_BODY_LINE2':'----------------------------------------------------\n',
+            'QOS_ALARM_BODY_LINE1':'Hello %s,\nJenifer didn\'t get a reply for the following networks:\n',
+            'QOS_ALARM_INNER_BODY':'%s -Tested with %s\n',
+            'QOS_FOOTER':'\n\nRegards,\nJennifer',
+            'QOS_TIME_LINE':'Time of Testing: ',
+        }
 QOS_INTERVAL = {'hours':1, 'minutes':0, 'offset':5}
 ## Helper Classes and Functions
 class GetBackends(object):
@@ -116,6 +130,7 @@ class Settings(object):
         self.db = db
         self.get_all_setting()
         self.get_email_recipients()
+        self.get_templates()
     def get_all_setting(self):
         global SETTINGS
         res = self.db.query("SELECT item,val FROM misc")
@@ -134,6 +149,12 @@ class Settings(object):
                         if SETTINGS['ACTIVATE_MANAGERS'] == 'true':
                             QOS_RECIPIENTS.append((r['firstname'],r['email']))
         QOS_RECIPIENTS = list(set(QOS_RECIPIENTS))
+    def get_templates(self):
+        global TEMPLATES
+        res =  self.db.query('SELECT name, en_txt, fr_txt FROM templates')
+        if res:
+            for template in res:
+                TEMPLATES['%s'%template['name']] = template['%s'%('%s_txt'%getattr(SETTINGS,'LANGUAGE','en'))]
 
 
 # Load Settings from DB
@@ -245,9 +266,10 @@ class SendQosMessages:
         applied_modems = [] # for logging
         failed_modems = []
         logging.debug("[%s] Started Sending QOS Messages"%('/send'))
-        rpt_subject = "QOS Messages Sent at: %s"%datetime.now().strftime('%Y-%m-%d %H')
-        rpt_body = "Hi,\nJennifer sent SMS from and to the following:\nSENDER                         | RECIPIENT\n"
-        rpt_body +="----------------------------------------------\n"
+        testing_time = datetime.now().strftime('%H:%M%p %h %d, %Y')
+        rpt_subject = "%s: %s"%(TEMPLATES['QOS_SEND_SUBJ'],datetime.now().strftime('%Y-%m-%d %H'))
+        rpt_body = TEMPLATES['QOS_SEND_BODY_LINIE1']
+        rpt_body += TEMPLATES['QOS_SEND_BODY_LINIE2']
         for shortcode in shortcode_backends:
             y = GetAllowedModems(db, shortcode['id'])
             allowed_modems = y.get()
@@ -275,8 +297,8 @@ class SendQosMessages:
                 if status == 'E':
                     email_body = 'Hi,\nError sending from %s to %s.\n\nRegards,\nJennifer'%(modem['name'],shortcode['identity'])
                     send_email(SETTINGS['DEFAULT_EMAIL_SENDER'], 'sekiskylink@gmail.com', "Send SMS Error",email_body)
-                rpt_body +='%s(%s)%s| %s\n'%(modem['smsc_name'], modem['identity'],
-                        ' '*(32-(len(modem['smsc_name']+ modem['identity'])+2)),shortcode['identity'])
+                rpt_body += TEMPLATES['QOS_SEND_INNER_BODY'] %(modem['name'], modem['identity'],
+                        ' '*(32-(len(modem['name']+ modem['identity'])+2)),shortcode['identity'])
                 #create log message dict
                 backend_id = modem['id']
                 log_message_dict = {
@@ -288,7 +310,7 @@ class SendQosMessages:
                 with db.transaction():
                     log_message(db, log_message_dict)
         logging.debug("[%s] Sent QOS messages using %s: Failed = %s"%('/send', applied_modems, list(set(failed_modems))))
-        rpt_body += "\n\nRegards,\nJennifer"
+        rpt_body += "\n%s %s\n"%(TEMPLATES['QOS_TIME_LINE'],testing_time) + TEMPLATES['QOS_FOOTER']
         send_email(SETTINGS['DEFAULT_EMAIL_SENDER'], 'sekiskylink@gmail.com', rpt_subject, rpt_body)
         return "Done!"
 
@@ -300,13 +322,14 @@ class MonitorQosMessages:
         x = GetBackends(db,'s',True)
         shortcode_backends = x.get()
         time_offset = get_qos_time_offset()
+        testing_time = datetime.now().strftime('%H:%M%p %h %d, %Y')
         logging.debug("[%s] Started Mornitoring"%('/monitor'))
-        rpt_subject = "QOS Messages Received within: %s"%datetime.now().strftime('%Y-%m-%d %H')
-        rpt_body = "Hi,\nJennifer received SMS from and to the following:\nSHORTCODE(from)  | MODEM-NAME(to)\n"
-        rpt_body +="----------------------------------------------------\n"
+        rpt_subject = "%s %s"%(TEMPLATES['QOS_RECV_ALL_SUBJ'],datetime.now().strftime('%Y-%m-%d %H'))
+        rpt_body = TEMPLATES['QOS_RECV_BODY_LINE1']
+        rpt_body += TEMPLATES['QOS_RECV_BODY_LINE2']
         rpt_body2 = ""
-        subject = "QOS Monitor Alert"
-        monitor_msg = ('Hello %s,\nJenifer didn\'t get responses from and to the following:\nSHORTCODE(from)   | MODEM-NAME(to)\n')
+        subject = TEMPLATES['QOS_ALARM_SUBJ']
+        monitor_msg = ('Hello %s,\nJenifer didn\'t get a reply for the following networks:\n')
         monitor_msg +=("----------------------------------------------------\n")
         there_is_an_alert = False
         for shortcode in shortcode_backends:
@@ -319,19 +342,17 @@ class MonitorQosMessages:
                 res = db.query(query)
                 if not res:
                     there_is_an_alert = True
-                    monitor_msg += '%s%s| %s(%s)\n'%(shortcode['identity'], ' '*(18-len(shortcode['identity'])),
-                            modem['name'],modem['identity'])
+                    monitor_msg += TEMPLATES['QOS_ALARM_INNER_BODY'] %(modem['name']+(' '*(9-len(modem['name']))), shortcode['identity'])
                     logging.warning("[%s] No response from %s for %s"%('/monitor', shortcode['identity'], modem['name']))
                 else:
-                    rpt_body2 +='%s%s| %s(%s)\n'%(shortcode['identity'], ' '*(18-len(shortcode['identity'])),
-                            modem['name'],modem['identity'])
+                    rpt_body2 += TEMPLATES['QOS_ALARM_INNER_BODY'] %(modem['name'], shortcode['identity'])
 
         if there_is_an_alert:
             for name, recipient in QOS_RECIPIENTS:
-                the_msg = (monitor_msg % name) + '\n\nRegards,\nJennifer'
+                the_msg = (monitor_msg % name) + "\n%s %s\n"%(TEMPLATES['QOS_TIME_LINE'],testing_time) + TEMPLATES['QOS_FOOTER']
                 send_email(SETTINGS['DEFAULT_EMAIL_SENDER'],recipient, subject, the_msg)
         else:
-            rpt_body += rpt_body2 + "\n\nRegards,\nJennifer"
+            rpt_body += rpt_body2 + "\n%s %s\n"%(TEMPLATES['QOS_TIME_LINE'],testing_time) + TEMPLATES['QOS_FOOTER']
             send_email(SETTINGS['DEFAULT_EMAIL_SENDER'], 'sekiskylink@gmail.com', rpt_subject, rpt_body)
         logging.debug("[%s] Stopped Mornitoring"%('/monitor'))
         return "Done!"
