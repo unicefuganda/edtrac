@@ -7,7 +7,8 @@ from django.core.mail import send_mail
 class Command(BaseCommand, LoggerMixin):
     help = """Monitor QOS Messages"""
     def check_qos_messages(self):
-        recipients = get_recipients()
+        allow = getattr(settings, 'QOS_INCLUDE_MANAGERS_AS_RECIPIENTS', False)
+        recipients = get_recipients(include_managers=allow)
         for msg in get_alarms(mode=getattr(settings, 'QOS_BACKEND_TYPE', 'shortcode')):
             send_mail("QOS Alarm", msg, "root@uganda.rapidsms.org", recipients, fail_silently=True)
 

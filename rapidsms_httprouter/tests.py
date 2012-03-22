@@ -401,84 +401,72 @@ class ViewTest(TestCase):
 
 
 class QOSTest(TestCase):
+    def setUp(self):
+        dct = dict(getattr(settings, 'MODEM_BACKENDS', {}).items() + getattr(settings, 'SHORTCODE_BACKENDS', {}).items())
+#        dct = dict(getattr(settings, 'MODEM_BACKENDS', {}).items())
+        for bkend, identity in dct.items():
+            Connection.objects.create(identity=identity, backend=Backend.objects.create(name=bkend))
+        
+        for shortcode_backend, backend_names in settings.ALLOWED_MODEMS.items():
+            identity = settings.SHORTCODE_BACKENDS[shortcode_backend]
+            for bkend in backend_names:
+                Connection.objects.create(identity=identity, backend=Backend.objects.get(name=bkend))
+            
     def fake_incoming(self, message, connection=None):
         if connection is None:
             connection = self.connection
         router = get_router()
         router.handle_incoming(connection.backend.name, connection.identity, message)
-        #form = XForm.find_form(message)
-        #if form:
-        #    return XFormSubmission.objects.all().order_by('-created')[0]
-
-    def setUp(self):
-        #self.backend = Backend.objects.create(name='test')
-        #self.connection = Connection.objects.create(identity='8675309', backend=self.backend)
-        (self.backend, created) = Backend.objects.using('monitor').get_or_create(name="test_backend")
-        (self.connection, created) = Connection.objects.using('monitor').get_or_create(backend=self.backend, identity='2067799294')
-
-
-        (self.backend2, created) = Backend.objects.using('monitor').get_or_create(name="test_backend2")
-        (self.connection2, created) = Connection.objects.using('monitor').get_or_create(backend=self.backend2, identity='2067799291')
-
-        settings.SHORTCODE_BACKENDS = {self.backend.name: self.connection.identity}
-        settings.MODEM_BACKENDS = {self.backend2.name: self.connection2.identity}
-        settings.ALLOWED_MODEMS = {self.backend.name: [self.backend2.name]}
-        settings.QOS_BACKEND_TYPE = 'test'
-        #self.shortcode_backends = get_backends_by_type(btype="shortcode")
-        self.shortcode_backends = []
-        self.shortcode_backends.append(self.backend)
-        self.dt = datetime.now()
-        self.txt = gen_qos_msg()
-        call_command('send_qos_messages')
-
-
 
     def testMsgsSent(self):
-        def count_sent_msgs():
-            total = 0
-            for si in self.shortcode_backends:
-                for mi in settings.ALLOWED_MODEMS[si.name]:
-                    (mb, t) = Backend.objects.using('monitor').get_or_create(name=mi)
-                    b = Message.objects.using('monitor').filter(direction='O', date__gt=self.dt,
-                        connection=Connection.objects.using('monitor').get_or_create(identity=settings.SHORTCODE_BACKENDS[si.name],
-                        backend=mb)[0])
-                    if b.count():
-                        total += b.count()
-                    b = Message.objects.using('monitor').filter(date__gt=self.dt, direction='O',
-                        connection=Connection.objects.using('monitor').get_or_create(identity=settings.MODEM_BACKENDS[mb.name], backend=si)[0])
-                    if b.count():
-                        total += b.count()
-            return total
-
-        self.assertEquals(count_sent_msgs(), 2)
-        a = Message.objects.using('monitor').filter(date__gt=self.dt, direction='O', connection__backend__name=self.backend.name)[0]
-        self.assertEquals(a.connection.identity, self.connection2.identity)
-        self.assertEquals(a.text, self.txt)
-
-        b = Message.objects.using('monitor').filter(date__gt=self.dt, direction='O', connection__backend__name=self.backend2.name)[0]
-        self.assertEquals(b.connection.identity, self.connection.identity)
-        self.assertEquals(b.text, self.txt)
-
+        #Jenifer sends out messages to all short codes (6767, 8500) via the various modems (mtn-modem, utl-modem) etc
+        call_command('send_qos_messages')
+        self.assertEquals(Message.objects.filter(direction='O').count(), 13)
+        for msg in Message.objects.filter(direction='O'):
+            self.assertEquals(msg.text, datetime.now().strftime('%Y-%m-%d %H'))
+        self.assertEquals(Message.objects.filter(direction='O', connection__identity='6767').count(), 4)
+        self.assertEquals(Message.objects.filter(direction='O', connection__identity='8500').count(), 4)
+        self.assertEquals(Message.objects.filter(direction='O', connection__identity='6200').count(), 3)
+        self.assertEquals(Message.objects.filter(direction='O', connection__identity='8200').count(), 2)
 
     def testNoAlarms(self):
-
-        def create_expected_msgs():
-            for si in self.shortcode_backends:
-                for mi in settings.ALLOWED_MODEMS[si.name]:
-                    (mb, t) = Backend.objects.using('monitor').get_or_create(name=mi)
-                    Message.objects.using('monitor').create(text=self.txt, direction='I',
-                            connection=Connection.objects.using('monitor').get(identity=settings.MODEM_BACKENDS[mi], backend=si))
-                    Message.objects.using('monitor').create(text=self.txt, direction='I',
-                            connection=Connection.objects.using('monitor').get(identity=settings.SHORTCODE_BACKENDS[si.name], backend=mb))
-        create_expected_msgs()
+        #Jenifer sends out messages to all short codes (6767, 8500) via the various modems (mtn-modem, utl-modem) etc
+        call_command('send_qos_messages')
+        
+        #Through the various apps, all short codes send back replies to Jennifer
+        for connection in Connection.objects.filter(backend__name__endswith='modem'):
+            self.fake_incoming(datetime.now().strftime('%Y-%m-%d %H'), connection)
+            
+        #Jennifer kicks in with the monitoring service
         call_command('monitor_qos_messages')
-        alarms = get_alarms(mode='test')
+        alarms = get_alarms()
+        
+        #no alarms expected since all apps replied
         self.assertEquals(len(alarms), 0)
 
     def testAlarms(self):
+        #Jenifer sends out messages to all short codes (6767, 8500) via the various modems (mtn-modem, utl-modem) etc
+        call_command('send_qos_messages')
+        
+        #Only a few modems reply with messages to Jenny
+        for connection in Connection.objects.filter(backend__name__endswith='modem').exclude(identity__in=['256777773260', '256752145316', '256711957281', '256701205129'])[:5]:
+            self.fake_incoming(datetime.now().strftime('%Y-%m-%d %H'), connection)
+        
+        #Jennifer kicks in with the monitoring service
         call_command('monitor_qos_messages')
-        alarms = get_alarms(mode="test")
-        self.assertEquals(len(alarms), 2)
+        alarms = get_alarms()
+        
+        #Jenny complains about her missing replies
+        self.assertEquals(len(alarms), 8)
+        
+        #Poor Jenny spams everyone in protest
+        msgs = []
+        for msg in Message.objects.filter(direction='O').exclude(connection__identity__in=Message.objects.filter(direction='I').values_list('connection__identity')):
+            identity = msg.connection.identity
+            modem = msg.connection.backend
+            network = msg.connection.backend.name.split('-')[0]
+            msgs.append('Jennifer did not get a reply from %s using the %s, %s appears to be down!' % (identity, modem, network.upper()))
+        self.assertEquals(msgs, get_alarms())
 
 
 
