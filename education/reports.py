@@ -21,6 +21,7 @@ from poll.models import Response, Poll
 import datetime, dateutils
 from datetime import date, timedelta
 from types import NoneType
+from dateutil.relativedelta import relativedelta
 from eav.models import Value, ContentType
 from rapidsms.models import Contact
 from generic.reporting.views import ReportView
@@ -521,8 +522,7 @@ def get_month_day_range(date, **kwargs):
     """
     handy function to give as a date range
     """
-    import datetime
-    from dateutil.relativedelta import relativedelta
+    #import pdb; pdb.set_trace()
     if not kwargs:
         last_day = date + relativedelta(day = 1, months =+ 1, days =- 1)
         first_day = date + relativedelta(day = 1)
@@ -538,11 +538,15 @@ def get_month_day_range(date, **kwargs):
         """
         depth = int(kwargs.get('depth'))
         to_ret = []
-        for i in range(depth):
-            date -= relativedelta(months=i)
-            last_day = date + relativedelta(day = 1, months =+ 1, days =- 1)
-            first_day = date + relativedelta(day = 1)
+        d = date
+        i = 0
+        while i < len(range(depth)):
+            first_day = d + relativedelta(day = 1)
+            last_day = d + relativedelta(day = 1, months =+ 1, days =- 1)
+            d += relativedelta(months=-1)
+            i+=1
             to_ret.append([first_day, last_day])
+
         return to_ret
 
 def get_week_days(year, week):

@@ -1506,11 +1506,15 @@ def edit_school(request, school_pk):
 
 @login_required
 def school_detail(request, school_id):
+    from datetime import date
+    from dateutil.relativedelta import  relativedelta
     school = School.objects.get(id=school_id)
-    last_submissions = school_last_xformsubmission(request, school_id)
+    today = date.today()
+    month_ranges = get_month_day_range(today, depth=today.month)
+
     return render_to_response("education/school_detail.html", {\
-        'school': school,
-        'last_submissions': last_submissions,
+        'school_name': school.name,
+        'months' : [dt for dt, dx in month_ranges],
         }, RequestContext(request))
 
 # analytics specific for emis {copy, but adjust to suit your needs}
