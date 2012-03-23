@@ -77,7 +77,7 @@ TEMPLATES = {
             'QOS_RECV_BODY_LINE1':'Hi,\nJennifer received SMS from all networks:',
             'QOS_RECV_BODY_LINE2':'----------------------------------------------------\n',
             'QOS_ALARM_BODY_LINE1':'Hello %s,\nJenifer didn\'t get a reply for the following networks:\n',
-            'QOS_ALARM_INNER_BODY':'%s -Tested with %s\n',
+            'QOS_ALARM_INNER_BODY':'%s -Tested with %s(%s)\n',
             'QOS_FOOTER':'\n\nRegards,\nJennifer',
             'QOS_TIME_LINE':'Time of Testing: ',
         }
@@ -309,7 +309,7 @@ class SendQosMessages:
                         }
                 with db.transaction():
                     log_message(db, log_message_dict)
-        logging.debug("[%s] Sent QOS messages using %s: Failed = %s"%('/send', applied_modems, list(set(failed_modems))))
+        logging.debug("[%s] Sent QOS messages using %s: Failed = %s"%('/send', list(set(applied_modems)), list(set(failed_modems))))
         rpt_body += "\n%s %s\n"%(TEMPLATES['QOS_TIME_LINE'],testing_time) + TEMPLATES['QOS_FOOTER']
         send_email(SETTINGS['DEFAULT_EMAIL_SENDER'], 'sekiskylink@gmail.com', rpt_subject, rpt_body)
         return "Done!"
@@ -342,7 +342,7 @@ class MonitorQosMessages:
                 res = db.query(query)
                 if not res:
                     there_is_an_alert = True
-                    monitor_msg += TEMPLATES['QOS_ALARM_INNER_BODY'] %(modem['name']+(' '*(9-len(modem['name']))), shortcode['identity'])
+                    monitor_msg += TEMPLATES['QOS_ALARM_INNER_BODY'] %(modem['name']+(' '*(9-len(modem['name']))), shortcode['identity'], shortcode['smsc_name'])
                     logging.warning("[%s] No response from %s for %s"%('/monitor', shortcode['identity'], modem['name']))
                 else:
                     rpt_body2 += TEMPLATES['QOS_ALARM_INNER_BODY'] %(modem['name'], shortcode['identity'])

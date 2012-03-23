@@ -152,6 +152,11 @@ VALUES
         ]
     );
 
+-- Create required indexes
+CREATE INDEX msgs_idx1 ON messages(msg_out);
+CREATE INDEX msgs_idx2 ON messages(msg_in);
+CREATE INDEX msgs_idx3 ON messages(cdate);
+
 CREATE OR REPLACE FUNCTION array_pop(a anyarray, element character varying)
 RETURNS anyarray
 LANGUAGE plpgsql
