@@ -407,6 +407,7 @@ div#footer a{
 }
 div.back_link{
     padding:20px;
+    background-color: #333;
 }
 
 div.bottom_part{
@@ -793,4 +794,16 @@ div.actionform tr{
     position: absolute;
     width: 0;
     height: 0;
+}
+
+div.stats{
+    background-color:#333;
+    color: #caff7a;
+    padding:20px;
+    margin: 10px;
+}
+div.stats span{
+    font-size: 1.2em;
+    margin-bottom: 5px;
+    padding: 5px;
 }

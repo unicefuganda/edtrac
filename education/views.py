@@ -527,6 +527,15 @@ def generate_dashboard_vars(location=None):
     else:
         m_head_t_class = "zero"
 
+    school_to_date = School.objects.filter(pk__in=EmisReporter.objects.values_list('schools__pk', flat=True)).count()
+    try:
+        school_active = 100 * School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None,\
+                connection__in=Blacklist.objects.values_list('connection',flat=True)).filter(connection__in = Message.objects.filter(
+                date__range= get_week_date(number=1)[1] # participants in the past week.
+                ).values_list('connection', flat=True)).values_list('schools__pk', flat=True)).count() / school_to_date
+
+    except ZeroDivisionError:
+        school_active = 0
 
     return {
 #        'top_three_violent_districts':top_three_violent_districts,
@@ -570,8 +579,8 @@ def generate_dashboard_vars(location=None):
         'f_head_t_class' : f_head_t_class,
         'm_head_t_class' : m_head_t_class,
         'month':datetime.datetime.now(),
-        'schools_to_date':School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).\
-                    values_list('schools__pk')).count()
+        'schools_to_date': school_to_date,
+        'school_active' : school_active
     }
 
 ##########################################################################################################
@@ -615,6 +624,58 @@ def admin_dashboard(request):
         location = request.user.get_profile().location
     return render_to_response("education/admin/admin_dashboard.html", generate_dashboard_vars(location=location),
         RequestContext(request))
+
+class NationalStatistics(TemplateView):
+    template_name = "education/admin/national_statistics.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(NationalStatistics, self).get_context_data(**kwargs)
+        profile = self.request.user.get_profile()
+        if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
+            districts = Location.objects.filter(type="district", pk__in=EmisReporter.objects.exclude(connection__in=\
+                Blacklist.objects.values_list('connection',flat=True)).values_list('reporting_location__pk', flat=True))
+
+            district_schools = [
+                (district, School.objects.filter(location=district).count())
+                for district in districts
+            ]
+            context['total_districts'] = districts.count()
+            context['district_schools'] = district_schools
+            context['school_count'] = School.objects.filter(
+                       pk__in = EmisReporter.objects.exclude(schools = None,
+                    connection__in= Blacklist.objects.values_list('connection',flat=True)).values_list('schools__pk', flat=True)
+                ).count()
+            # getting weekly system usage
+            # reporters that sent messages in the past week.
+            reps = EmisReporter.objects.filter(groups__name="Head Teachers", connection__in=Message.objects.\
+                filter(date__range = get_week_date(number=1)[1]).values_list('connection', flat = True)).\
+                exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
+
+            district_active = [
+                (district, reps.filter(reporting_location__pk=district.pk).count())
+                for district in districts
+            ]
+            district_active.sort(key=operator.itemgetter(1), reverse=True)
+            context['district_active'] = district_active[:3]
+            context['district_less_active'] = district_active[-3:]
+
+            context['head_teacher_count'] = reps.count()
+            context['smc_count'] = EmisReporter.objects.exclude(schools=None).exclude(connection__in = Blacklist.objects.\
+                values_list('connection', flat = True)).filter(groups__name = "SMC").count()
+
+            context['p6_teacher_count'] = EmisReporter.objects.exclude(schools=None, connection__in = Blacklist.objects.\
+                values_list('connection', flat = True)).filter(groups__name = "Teachers", grade = "P6").count()
+
+            context['p3_teacher_count'] = EmisReporter.objects.exclude(schools=None, connection__in = Blacklist.objects.\
+                values_list('connection', flat = True)).filter(groups__name = "Teachers", grade = "P3").count()
+            context['total_teacher_count'] = EmisReporter.objects.exclude(schools=None, connection__in = Blacklist.objects.\
+                values_list('connection', flat = True)).filter(groups__name="Teachers").count()
+
+            return context
+
+        else:
+
+            return self.render_to_response(dashboard(self.request))
 
 # Details views... specified by ROLES
 class ViolenceAdminDetails(TemplateView):
@@ -736,23 +797,20 @@ class AttendanceAdminDetails(TemplateView):
         else:
             locations = [profile.location]
 
-        headings = [
-            'Location', 'Boys P3', 'Boys P6', 'Girls P3', 'Girls P6', 'Female Teachers', "Male Teachers",
-            #"Male Head Teachers", "Female Head Teachers"
-                    ]
+        headings = [ 'Location', 'Boys P3', 'Boys P6', 'Girls P3', 'Girls P6', 'Female Teachers', "Male Teachers"]
         context['headings'] = headings
         context['week'] = datetime.datetime.now()
         context['location'] = profile.location
-        location_data_container = []
-        for loc in locations:
-            location_data_container.append(
-                [loc,
-                 return_absent('edtrac_boysp3_attendance', 'edtrac_boysp3_enrollment', locations=[loc]),
-                 return_absent('edtrac_boysp6_attendance', 'edtrac_boysp6_enrollment', locations=[loc]),
-                 return_absent('edtrac_girlsp3_attendance', 'edtrac_girlsp3_enrollment', locations=[loc]),
-                 return_absent('edtrac_girlsp6_attendance', 'edtrac_girlsp6_enrollment', locations=[loc]),
-                 return_absent('edtrac_f_teachers_attendance', 'edtrac_f_teachers_deployment', locations=[loc]),
-                 return_absent('edtrac_m_teachers_attendance', 'edtrac_m_teachers_deployment', locations=[loc]),
+#        location_data_container = []
+#        for loc in locations:
+#            location_data_container.append(
+#                [loc,
+#                 return_absent('edtrac_boysp3_attendance', 'edtrac_boysp3_enrollment', locations=[loc]),
+#                 return_absent('edtrac_boysp6_attendance', 'edtrac_boysp6_enrollment', locations=[loc]),
+#                 return_absent('edtrac_girlsp3_attendance', 'edtrac_girlsp3_enrollment', locations=[loc]),
+#                 return_absent('edtrac_girlsp6_attendance', 'edtrac_girlsp6_enrollment', locations=[loc]),
+#                 return_absent('edtrac_f_teachers_attendance', 'edtrac_f_teachers_deployment', locations=[loc]),
+#                 return_absent('edtrac_m_teachers_attendance', 'edtrac_m_teachers_deployment', locations=[loc]),
 #                 poll_response_sum("edtrac_boysp3_attendance", month_filter='weekly', location=loc),
 #                 poll_response_sum("edtrac_boysp6_attendance", month_filter='weekly', location=loc),
 #                 poll_response_sum("edtrac_girlsp3_attendance", month_filter='weekly', location=loc),
@@ -761,10 +819,10 @@ class AttendanceAdminDetails(TemplateView):
 #                 poll_response_sum("edtrac_m_teachers_attendance", month_filter='weekly', location=loc),
 #                 poll_response_sum("edtrac_head_teachers_attendance", month_filter="weekly", location=loc),
 #                 poll_response_sum("edtrac_head_teachers_attendance", month_filter="weekly", location=loc)
-                ]
-            )
-
-        context['location_data'] = location_data_container
+#                ]
+#            )
+#
+#        context['location_data'] = location_data_container
 
         return context
         

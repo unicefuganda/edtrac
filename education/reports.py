@@ -549,6 +549,35 @@ def get_month_day_range(date, **kwargs):
 
         return to_ret
 
+
+def set_thur_wed_range(day):
+    """
+    Function that sets today { a thursday } range
+    """
+    THURSDAY = 3
+    year = day.year
+    day = day.day
+
+    new_date = datetime.datetime(year, THURSDAY, day)
+    to_ret_week = [new_date-datetime.timedelta(days=7), new_date-datetime.timedelta(days=1)]
+    return to_ret_week
+
+def get_day_range(today):
+    # Day range when a Thursday range is expected
+    #refactor
+    if today.weekday() == 3:
+        return set_thur_wed_range(today)
+    else:
+        # reduce week number
+        index = 0
+        while index <= 6:
+            day = today - datetime.timedelta(days=index)
+            if day.weekday() == 3:
+                break
+            index += 1
+        return set_thur_wed_range(day)
+
+
 def get_week_days(year, week):
     #TODO -> get a datetime instance and call the .isocalendar() method (preferably the 1st element in the list)
     d = date(year, 1, 1)
@@ -557,18 +586,21 @@ def get_week_days(year, week):
     else:
         d = d - timedelta(d.weekday())
     dlt = timedelta(days = (week - 1) * 7)
-    return [d + dlt, d + dlt + timedelta(days=6)]
+    return [
+        get_day_range(d + dlt),
+        get_day_range(d + dlt + timedelta(days=6))
+    ]
 
 
 def get_week_date(number=None):
     #TODO: scope out how well to get ``number`` generic
     #FIXTHIS
-    now = datetime.datetime.now()
     if number:
         now = datetime.datetime.now()
-        current_week_range = get_week_days(now.year, now.isocalendar()[1])
-        past_week_range = get_week_days(now.year, now.isocalendar()[1]-1)
-        return [past_week_range, current_week_range]
+        return get_week_days(
+            now.year,
+            now.isocalendar()[1]
+        )
     return
 
 

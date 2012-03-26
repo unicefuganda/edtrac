@@ -258,6 +258,8 @@ urlpatterns = patterns('',
     url(r'^edtrac/dash_deo_meetings/$', dash_deo_meetings, {}, name="emis-deo-dash-meetings"),
     url(r'^edtrac/dash_deo_capitation/$', dash_deo_capitation, {}, name="emis-deo-dash-capitation"),
 
+    #National statistics
+    url(r'^edtrac/national-stats/$', NationalStatistics.as_view(), name="emis-national-stats"),
 
     #PROGRESS views
     url('^edtrac/progress/district/(?P<pk>\d+)/$', DistrictProgressDetails.as_view(template_name=\

@@ -1,0 +1,70 @@
+{% extends "education/admin/admin_dashboard.html" %}
+{% load endless %}
+{% block title %} National statistics -- {{ block.super }} {% endblock %}
+{% block content %}
+
+<div class="back_link">
+    <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">← Back to the EduTrac Home Page</a></p>
+</div>
+        <div class="general">
+            <p>
+            <h3 style="background-color:black; color:white; margin-bottom:5px; padding:10px; text-align:center;">
+                Total Number of Districts being covered: {{ total_districts }}
+            </h3>
+            </p>
+            <table class="classy">
+                <tr>
+                    <th>District</th>
+                    <th>Schools being tracked</th>
+                </tr>
+                {% for district, school_count in district_schools %}
+                <tr>
+                    <td>{{ district }}</td>
+                    <td>{{ school_count }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            <p>
+            <span style="font-family:bold; font-size:1.2em; color: #333;">Total number of schools: {{ school_count }} </span><br/>
+            </p>
+            <hr>
+
+            <h3>Districts with the most active Head Teachers using EduTrac</h3>
+
+
+            <table class="classy">
+                <tr>
+                    <th>District</th>
+                    <th>Percentage Active (%)</th>
+                </tr>
+                {% for district, active_heads in district_active %}
+                    <tr><td>{{ district }}</td><td>{{ active_heads }}%</td></tr>
+                {% endfor %}
+            </table>
+
+
+                <h3>Districts with the least active Head Teachers using EduTrac { <span style="color: red; font-size:1.2em; ">Poor Performance</span> }</h3>
+
+            <table class="classy">
+                <tr>
+                    <th>District</th>
+                    <th>Percentage Inactive (%)</th>
+                </tr>
+                {% for district, active_heads in district_less_active %}
+                <tr><td>{{ district }}</td><td>{{ active_heads }}%</td></tr>
+                {% endfor %}
+            </table>
+            <br/>
+            <hr>
+
+            <div class="stats">
+                <h3 style="background-color:black; color:white; margin-bottom:5px; padding:10px; text-align:center;">Crucial Statistics for EduTrac (Total)</h3>
+                <span>Head Teachers</span>: <span style="color:white;">{{ head_teacher_count }}</span><br/><br/>
+                <span>SMC Members</span>: <span style="color:white;">{{ smc_count }}</span><br/><br/>
+                <span>P6 Teachers</span>: <span style="color:white;">{{ p6_teacher_count }}</span><br/><br/>
+                <span>P3 Teachers</span>: <span style="color:white;">{{ p3_teacher_count }}</span><br/><br/>
+                <span>Total Teachers <small>(*includes those without grades)</small></span>: <span style="color:white;">{{ total_teacher_count }}</span>
+
+            </div>
+        </div>
+{% endblock %}

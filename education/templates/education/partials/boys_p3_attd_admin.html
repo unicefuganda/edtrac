@@ -4,6 +4,9 @@
 Absenteeism of P3 Boys by District -- {{ block.super }}
 {% endblock %}
 {% block content %}
+<div class="back_link">
+    <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">← Back to the EduTrac Home Page</a></p>
+</div>
 <div class="attendance">
     <h2 class="block-header">Absenteism of P3 Boys by District (week: {{ week|date:"D d M Y" }})</h2>
 
