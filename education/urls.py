@@ -134,6 +134,7 @@ urlpatterns = patterns('',
             ('School ID', False, 'emis_id', None,),
             ('Head Teacher', False, 'emisreporter', None,),
             ('Reporters', False, 'emisreporter', None,),
+            ('', False, '', None,)
         ],
         'sort_column':'date',
         'sort_ascending':False,
