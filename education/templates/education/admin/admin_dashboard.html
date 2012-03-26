@@ -1,5 +1,8 @@
 {% extends "education/layout_base.html" %}
 {% load humanize %}
+{% block title %}
+Dashboard -- {{ block.super }}
+{% endblock %}
 {% block content %}
 
 <div class="inner-content">
@@ -7,7 +10,7 @@
         <div class="section this-week">
             <h1 class="section-title calendar">This Week ({{ month|date:"D d M Y" }})</h1>
             <div class="attendance">
-                <h2 class="block-header">Absenteism</h2>
+                <h2 class="block-header">Absenteeism</h2>
                 <div class="top">
                     <table class="tabulated-data">
                         <tr><th>Group</th><th>Absent (%) This week</th><th>Absent (%) Last week</th><th>Weekly Change</th></tr>

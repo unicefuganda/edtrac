@@ -21,6 +21,7 @@ from .utils import _schedule_monthly_script, _schedule_termly_script, _schedule_
 from urllib2 import urlopen
 from rapidsms.views import login, logout
 import  re, datetime, operator, xlwt
+from datetime import date
 
 
 Num_REG = re.compile('\d+')
@@ -269,15 +270,16 @@ def generate_dashboard_vars(location=None):
         locations = Location.objects.filter(pk__in=EmisReporter.objects.values_list('reporting_location__pk', flat=True)).distinct()
     else:
         locations.append(location)
+
     responses_to_violence = poll_response_sum("edtrac_headteachers_abuse",month_filter = 'monthly', locations = locations)
     # percentage change in violence from previous month
     violence_change = cleanup_sums(responses_to_violence)
     if violence_change > 0:
-        violence_change_class = "increase"
-        violence_change_data = "data-green"
-    elif violence_change < 0:
         violence_change_class = "decrease"
         violence_change_data = "data-red"
+    elif violence_change < 0:
+        violence_change_class = "increase"
+        violence_change_data = "data-green"
     else:
         violence_change_class = "zero"
         violence_change_data = "data-white"
@@ -381,7 +383,7 @@ def generate_dashboard_vars(location=None):
     except ZeroDivisionError:
         female_teachers_past = 0
 
-    female_teachers_diff = female_teachers_past - female_teachers
+    female_teachers_diff = female_teachers - female_teachers_past
 
     if female_teachers_diff > 0:
         female_teachers_class = "negative"
@@ -402,7 +404,7 @@ def generate_dashboard_vars(location=None):
     except ZeroDivisionError:
         male_teachers_past = 0
 
-    male_teachers_diff = male_teachers_past - male_teachers
+    male_teachers_diff = male_teachers - male_teachers_past
 
     if male_teachers_diff < 0:
         male_teachers_class = "positive"
@@ -490,6 +492,7 @@ def generate_dashboard_vars(location=None):
     else:
         f_head_t_class = "zero"
 
+    #TODO -> extract data on head teachers.
     resp_d1_male = Poll.objects.get(name="edtrac_head_teachers_attendance").responses_by_category().filter(
         response__contact__in = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
             male_head_teachers.values_list('schools', flat=True)),
@@ -1506,12 +1509,10 @@ def edit_school(request, school_pk):
 
 @login_required
 def school_detail(request, school_id):
-    from datetime import date
-    from dateutil.relativedelta import  relativedelta
     school = School.objects.get(id=school_id)
     today = date.today()
     month_ranges = get_month_day_range(today, depth=today.month)
-
+    #monthly_violence =
     return render_to_response("education/school_detail.html", {\
         'school_name': school.name,
         'months' : [dt for dt, dx in month_ranges],

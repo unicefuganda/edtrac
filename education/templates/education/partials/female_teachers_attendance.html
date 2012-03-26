@@ -1,8 +1,11 @@
 {% extends "education/admin/admin_dashboard.html" %}
 {% load endless %}
+{% block title %}
+Absenteism of Female Teachers -- {{ block.super }}
+{% endblock %}
 {% block content %}
 <div class="attendance">
-    <h2 class="block-header">Attendance Records for Female Teachers (week: {{ week|date:"D d M Y" }})</h2>
+    <h2 class="block-header">Absenteism of Female Teachers (week: {{ week|date:"D d M Y" }})</h2>
     <div class="top">
         {% paginate location_data %}
         <table class="tabulated-data">

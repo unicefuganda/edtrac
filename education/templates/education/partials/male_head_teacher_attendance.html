@@ -1,5 +1,8 @@
 {% extends "education/admin/admin_dashboard.html" %}
 {% load endless %}
+{% block title %}
+        Absenteeism of Male Head Teachers -- {{ block.super }}
+{% endblock %}
 {% block content %}
 <div class="attendance">
     <h2 class="block-header">Attendance Records for Male Head Teachers (week: {{ week|date:"D d M Y" }})</h2>

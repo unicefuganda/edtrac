@@ -1,7 +1,55 @@
 {% extends "education/admin/admin_dashboard.html" %}
 {% load humanize %}
+{% block title %}
+{{ school_name }} report -- {{ block.super }}
+{% endblock %}
 {% block content %}
         <div class="general">
+            <h2>Attendance of Pupils</h2>
+            <table class="tabulated-data">
+                <tbody>
+                <tr><td colspan="1"></td>
+                    {% for month in months %}
+                    <th>{{ month|date }}</th>
+                    {% endfor %}
+                </tr>
+
+                <tr><th>Attendance of Pupils</th></tr>
+                <tr><td>P3 Girls</td></tr>
+                <tr><td>P3 Boys</td></tr>
+                <tr><td>P6 Girls</td></tr>
+                <tr><td>P6 Boys</td></tr>
+                </tbody>
+            </table>
+            <br/><br/>
+            <h2>Attendance of Teachers</h2>
+            <table class="tabulated-data">
+                <tbody>
+                <tr><td colspan="1"></td>
+                    {% for month in months %}
+                    <th>{{ month|date }}</th>
+                    {% endfor %}
+                </tr>
+
+                <tr><td>Female</td></tr>
+                <tr><td>Male</td></tr>
+                </tbody>
+            </table>
+
+            <br/><br/>
+            <h2>Attendance of Head Teachers</h2>
+            <table class="tabulated-data">
+                <tbody>
+                <tr>
+                    {% for month in months %}
+                    <th>{{ month|date }}</th>
+                    {% endfor %}
+                </tr>
+                </tbody>
+            </table>
+
+            <br/><br/>
+            <hr>
             <div class="module">
                 <h2>Monthly and Term Reports from {{ school_name }}</h2>
             </div>
@@ -21,7 +69,7 @@
                     </tr>
                     </tbody>
                 </table>
-                <br/>
+                <br/><br/><hr>
             <h2>Termly</h2>
                 <table class="tabulated-data">
                     <tbody>
@@ -58,50 +106,6 @@
                     </tr>
                     </tbody>
                 </table>
-            <br/>
-            <h2>Attendance of Pupils</h2>
-                <table class="tabulated-data">
-                    <tbody>
-                    <tr><td colspan="1"></td>
-                        {% for month in months %}
-                        <th>{{ month|date }}</th>
-                        {% endfor %}
-                    </tr>
-
-                    <tr><th>Attendance of Pupils</th></tr>
-                    <tr><td>P3 Girls</td></tr>
-                    <tr><td>P3 Boys</td></tr>
-                    <tr><td>P6 Girls</td></tr>
-                    <tr><td>P6 Boys</td></tr>
-                    </tbody>
-                </table>
-            <br/>
-            <h2>Attendance of Teachers</h2>
-            <table class="tabulated-data">
-                <tbody>
-                <tr><td colspan="1"></td>
-                    {% for month in months %}
-                    <th>{{ month|date }}</th>
-                    {% endfor %}
-                </tr>
-
-                <tr><td>Female</td></tr>
-                <tr><td>Male</td></tr>
-                </tbody>
-            </table>
-
-            <br/>
-            <h2>Attendance of Head Teachers</h2>
-            <table class="tabulated-data">
-                <tbody>
-                <tr>
-                    {% for month in months %}
-                    <th>{{ month|date }}</th>
-                    {% endfor %}
-                </tr>
-                </tbody>
-            </table>
-
 
 
             </div>
