@@ -1,5 +1,8 @@
 {% extends "education/admin/admin_dashboard.html" %}
 {% load endless %}
+{% block title %}
+Absenteeism of P6 Girls by District -- {{ block.super }}
+{% endblock %}
 {% block content %}
 <div class="attendance">
     <h2 class="block-header">Absenteeism P6 Girls by District (week: {{ week|date:"D d M Y" }})</h2>

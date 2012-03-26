@@ -937,7 +937,7 @@ class DistrictMealsDetails(DetailView):
 ##########################################################################################################
 ##########################################################################################################
 
-HEADINGS = ['Location', 'Absent (%) This week', 'Absent (%) Last week', 'Change (%) for absenteeism from last week']
+HEADINGS = ['Location', 'Absent (%) This week', 'Absent (%) Last week', 'Change (%) for absent}eeism from last week']
 
 @login_required
 def boysp3_district_attd_detail(req, location_id):
