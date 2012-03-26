@@ -1,11 +1,11 @@
 {% extends "education/admin/admin_dashboard.html" %}
 {% load endless %}
 {% block title %}
-        Absenteism of P3 Boys in {{ location }} -- {{ block.super }}
+        Absenteeism of P3 Boys in {{ location }} -- {{ block.super }}
 {% endblock %}
 {% block content %}
 <div class="attendance">
-    <h2 class="block-header">Absenteism of P3 Boys for {{ location }} (week: {{ week|date:"D d M Y" }})</h2>
+    <h2 class="block-header">Absenteeism of P3 Boys for {{ location }} (week: {{ week|date:"D d M Y" }})</h2>
 
     <div class="top">
         {% paginate location_data %}
