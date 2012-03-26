@@ -918,9 +918,10 @@ class DistrictViolenceCommunityDetails(DetailView):
         #schools and reports from a district
 
         #reports = poll_response_sum("edtrac_headteachers_abuse", month_filter=True, months=1)
-        emis_reporters = EmisReporter.objects.exclude(connection__in= Blacklist.objects.\
-                values_list('connection', flat=True)).filter(reporting_location=location, groups__name="GEM")
-
+        emis_reporters = EmisReporter.objects.filter(groups__name="GEM", connection__in= Poll.objects.get(name="edtrac_gem_abuse").responses.values_list('contact__connection',flat=True))
+#
+#        Blacklist.objects.\
+#                values_list('connection', flat=True)).filter(reporting_location=location, groups__name="GEM")
         context['location'] = location
         context['reporters'] = emis_reporters
         #        context['school_count'] = School.objects.filter(location__in=EmisReporter.objects.exclude(connection__in=Blacklist.objects.values_list('connection').\
