@@ -74,7 +74,7 @@
             {% if list.0 == 0 and list.1 == 0 %}
             {% else %}
             <tr>
-                <td><a href="{% url district-violence list.2.pk %}">{{ list.2 }}</a></td>
+                <td><a href="{% url district-violence-community list.2.pk %}">{{ list.2 }}</a></td>
                 <td>{{ list.0 }}</td> <!-- current month -->
                 <td>{{ list.1 }}</td>
                 <!-- TODO check if list.3 is a decimal and limit dps -->

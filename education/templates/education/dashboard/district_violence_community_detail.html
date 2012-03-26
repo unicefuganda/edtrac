@@ -1,0 +1,38 @@
+{% extends "education/admin/admin_dashboard.html" %}
+{% load humanize %}
+{% block title %} Violence cases reported by GEM -- {{ block.super }} {% endblock %}
+{% block content %}
+
+<div class="general" style="margin:10px;">
+    <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; line-height: inherit;">← Back to EdTrac Home Page</a></p
+    <div class="top-welcome">
+        <span style="font-size:1.2em;">{{ location }}</span>
+        <span>There are a total of {{ school_count }} schools in this district</span>
+    </div>
+
+
+    <div class="top general">
+        <h2 class="block-header">Violence Records reported by GEM</h2>
+        <table class="tabulated-data">
+            <thead>
+            <tr>
+                <th>
+                    Reporter
+                </th>
+                <th>
+                    Link to message
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for reporter in reporters %}
+            <tr><td>{{ reporter }}</td>
+                <td><a href="/contact/{{ reporter.default_connection.pk }}/message_history/">message</a> </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

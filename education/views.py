@@ -908,7 +908,25 @@ class DistrictViolenceDetails(DetailView):
         context['month'] = datetime.datetime.now()
         return context
 
+class DistrictViolenceCommunityDetails(DetailView):
+    context_object_name = "district_violence"
+    model = Location
 
+    def get_context_data(self, **kwargs):
+        context = super(DistrictViolenceCommunityDetails, self).get_context_data(**kwargs)
+        location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk'))) or self.request.user.get_profile().location
+        #schools and reports from a district
+
+        #reports = poll_response_sum("edtrac_headteachers_abuse", month_filter=True, months=1)
+        emis_reporters = EmisReporter.objects.exclude(connection__in= Blacklist.objects.\
+                values_list('connection', flat=True)).filter(reporting_location=location, groups__name="GEM")
+
+        context['location'] = location
+        context['reporters'] = emis_reporters
+        #        context['school_count'] = School.objects.filter(location__in=EmisReporter.objects.exclude(connection__in=Blacklist.objects.values_list('connection').\
+        #            values_list('reporting_location'))).count()
+        context['month'] = datetime.datetime.now()
+        return context
 
 
 # Progress happening in a district
