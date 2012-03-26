@@ -345,7 +345,7 @@ class MonitorQosMessages:
                     monitor_msg += TEMPLATES['QOS_ALARM_INNER_BODY'] %(modem['name']+(' '*(9-len(modem['name']))), shortcode['identity'], shortcode['smsc_name'])
                     logging.warning("[%s] No response from %s for %s"%('/monitor', shortcode['identity'], modem['name']))
                 else:
-                    rpt_body2 += TEMPLATES['QOS_ALARM_INNER_BODY'] %(modem['name'], shortcode['identity'])
+                    rpt_body2 += TEMPLATES['QOS_ALARM_INNER_BODY'] %(modem['name'], shortcode['identity'],shortcode['smsc_name'])
 
         if there_is_an_alert:
             for name, recipient in QOS_RECIPIENTS:
