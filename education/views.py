@@ -20,7 +20,7 @@ from .utils import *
 from .utils import _schedule_monthly_script, _schedule_termly_script, _schedule_weekly_scripts
 from urllib2 import urlopen
 from rapidsms.views import login, logout
-import  re, datetime, operator, xlwt
+import  re, datetime, operator, xlwt, exceptions
 from datetime import date
 
 
@@ -640,8 +640,26 @@ def admin_dashboard(request):
 class NationalStatistics(TemplateView):
     template_name = "education/admin/national_statistics.html"
 
+
+    #simple helper function
+    def compute_percent(self, reps, groups = []):
+
+        if groups:
+            all_reporters = EmisReporter.objects.filter(groups__name__in=groups).exclude(connection__in=\
+                Blacklist.objects.values_list('connection',flat=True))
+        else:
+            all_reporters = EmisReporter.objects.exclude(connection__in=\
+                Blacklist.objects.values_list('connection',flat=True))
+
+        try:
+            return 100 * reps.count() / all_reporters.count()
+        except ZeroDivisionError:
+            return 0
+
+
     def get_context_data(self, **kwargs):
         context = super(NationalStatistics, self).get_context_data(**kwargs)
+
         profile = self.request.user.get_profile()
         if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
             districts = Location.objects.filter(type="district", pk__in=EmisReporter.objects.exclude(connection__in=\
@@ -664,7 +682,9 @@ class NationalStatistics(TemplateView):
                 exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
 
             district_active = [
-                (district, reps.filter(reporting_location__pk=district.pk).count())
+                    (
+                    district, self.compute_percent(reps.filter(reporting_location__pk=district.pk), groups=['Head Teachers'])
+                    )
                 for district in districts
             ]
             district_active.sort(key=operator.itemgetter(1), reverse=True)
@@ -683,11 +703,56 @@ class NationalStatistics(TemplateView):
             context['total_teacher_count'] = EmisReporter.objects.exclude(schools=None, connection__in = Blacklist.objects.\
                 values_list('connection', flat = True)).filter(groups__name="Teachers").count()
 
+            context['deo_count'] = EmisReporter.objects.exclude(schools=None, connection__in = Blacklist.objects.\
+            values_list('connection', flat = True)).filter(groups__name="DEO").count()
+
+            context['gem_count'] = EmisReporter.objects.exclude(schools=None, connection__in = Blacklist.objects.\
+            values_list('connection', flat = True)).filter(groups__name="GEM").count()
+
+            context['all_reporters'] = EmisReporter.objects.exclude(schools=None, connection__in = Blacklist.objects.\
+            values_list('connection', flat = True)).count()
+
+            schools = School.objects.filter(pk__in = EmisReporter.objects.exclude(schools=None, connection__in=\
+                Blacklist.objects.values_list('connection',flat=True)).values_list('schools__pk', flat=True))
+
+            reps_schools = EmisReporter.objects.filter(groups__name__in=["Head Teachers", "Teachers"], connection__in=Message.objects.\
+                filter(date__range = get_week_date(number=1)[1]).values_list('connection', flat = True)).\
+                exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
+
+            school_active = [
+                (school, self.compute_percent(reps_schools.filter(schools__pk=school.pk), groups=['Head Teachers', 'Teachers']))
+                for school in schools
+                ]
+            school_active.sort(key=operator.itemgetter(1), reverse=True)
+            context['school_active_count'] = schools.count()
+            context['school_active'] = school_active[:3]
+            context['school_less_active'] = school_active[-3:]
             return context
 
         else:
 
             return self.render_to_response(dashboard(self.request))
+
+
+class CapitationGrants(TemplateView):
+    template_name = 'education/admin/capitation_grants.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(CapitationGrants, self).get_context_data(**kwargs)
+
+        cg = Poll.objects.get(name="edtrac_upe_grant")
+        responses = cg.responses_by_category(location=Location.tree.root_nodes()[0])
+        location_ids = Location.objects.filter(type="district", pk__in = EmisReporter.objects.exclude(connection__in=Blacklist.objects.\
+            values_list('connection', flat=True), schools=None).filter(groups__name="Head Teachers").\
+            values_list('reporting_location__pk',flat=True)).distinct().values_list('id',flat=True)
+        to_ret = [
+
+        ]
+
+
+
+        context['capitation_location_data'] = responses
+        return context
 
 # Details views... specified by ROLES
 class ViolenceAdminDetails(TemplateView):

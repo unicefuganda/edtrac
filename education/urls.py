@@ -260,7 +260,7 @@ urlpatterns = patterns('',
 
     #National statistics
     url(r'^edtrac/national-stats/$', NationalStatistics.as_view(), name="emis-national-stats"),
-
+    url(r'^edtrac/capitation-grants/$', CapitationGrants.as_view(), name = "emis-grants"),
     #PROGRESS views
     url('^edtrac/progress/district/(?P<pk>\d+)/$', DistrictProgressDetails.as_view(template_name=\
     "education/dashboard/district_progress_detail.html"), name="district-progress"),
