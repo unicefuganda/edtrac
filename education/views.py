@@ -537,6 +537,17 @@ def generate_dashboard_vars(location=None):
     except ZeroDivisionError:
         school_active = 0
 
+
+    # capitation grants
+    cg = Poll.objects.get(name="edtrac_upe_grant")
+    yeses_cg = cg.responses_by_category().get(category__name = "yes").get('value')
+    nos_cg = cg.responses_by_category().get(category__name = 'no').get('value')
+    # percent of those that received grants
+    try:
+        grant_percent = 100 * yeses_cg / (yeses_cg + nos_cg)
+    except ZeroDivisionError:
+        grant_percent = 0
+
     return {
 #        'top_three_violent_districts':top_three_violent_districts,
 #        'top_three_hungry_districts':top_three_hungry_districts,
@@ -580,7 +591,8 @@ def generate_dashboard_vars(location=None):
         'm_head_t_class' : m_head_t_class,
         'month':datetime.datetime.now(),
         'schools_to_date': school_to_date,
-        'school_active' : school_active
+        'school_active' : school_active,
+        'grant_percent' : grant_percent
     }
 
 ##########################################################################################################
