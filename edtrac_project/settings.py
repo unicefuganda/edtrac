@@ -157,7 +157,7 @@ AUTH_PROFILE_MODULE = 'education.UserProfile'
 # debug mode is turned on as default, since rapidsms is under heavy
 # development at the moment, and full stack traces are very useful
 # when reporting bugs. don't forget to turn this off in production.
-DEBUG = TEMPLATE_DEBUG = True
+DEBUG = TEMPLATE_DEBUG = False
 
 
 # after login (which is handled by django.contrib.auth), redirect to the
