@@ -16,7 +16,11 @@
 
 {% block header %}
 <div id="top" style="width: 1020px; margin: 0 auto; padding: 0;">
-    <div id="nav">
+    <div id="edutrac-logo" style="float:left;">
+        <a href="{% url rapidsms-dashboard %}"><img src="{{MEDIA_URL }}education/icons/web_logo_without_slogan.jpg" alt="EduTrac"></a>
+    </div>
+
+    <div id="nav" style="float:right;">
         <ul>
             {% if user.is_authenticated %}
             <li><a href="{% url rapidsms-logout %}">{% trans "Log out" %} {{ user.username }}</a></li>
@@ -30,7 +34,7 @@
 {% endblock %}
 
 {% block content %}
-<div id="main-wrapper">
+<div id="main-wrapper" style="clear:both;">
     <div id="main-content">
         {{ block.super }}
     </div>

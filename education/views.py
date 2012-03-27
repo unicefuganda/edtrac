@@ -276,10 +276,10 @@ def generate_dashboard_vars(location=None):
     violence_change = cleanup_sums(responses_to_violence)
     if violence_change > 0:
         violence_change_class = "decrease"
-        violence_change_data = "data-red"
+        violence_change_data = "data-green"
     elif violence_change < 0:
         violence_change_class = "increase"
-        violence_change_data = "data-green"
+        violence_change_data = "data-red"
     else:
         violence_change_class = "zero"
         violence_change_data = "data-white"
@@ -301,9 +301,9 @@ def generate_dashboard_vars(location=None):
     boysp3_diff = boysp3 - boysp3_past
 
     if boysp3_diff > 0:
-        boysp3_class = 'negative'
-    elif boysp3_diff < 0:
         boysp3_class = 'positive'
+    elif boysp3_diff < 0:
+        boysp3_class = 'negative'
     else:
         boysp3_class = 'zero'
 
@@ -322,9 +322,9 @@ def generate_dashboard_vars(location=None):
     boysp6_diff = boysp6 - boysp6_past
 
     if boysp6_diff > 0:
-        boysp6_class = 'negative'
-    elif boys6_diff < 0:
         boysp6_class = 'positive'
+    elif boys6_diff < 0:
+        boysp6_class = 'negative'
     else:
         boysp6_class = 'zero'
 
@@ -343,9 +343,9 @@ def generate_dashboard_vars(location=None):
     girlsp3_diff = girlsp3 - girlsp3_past
 
     if girlsp3_diff > 0:
-        girlsp3_class = "negative"
-    elif girlsp3_diff < 0:
         girlsp3_class = "positive"
+    elif girlsp3_diff < 0:
+        girlsp3_class = "negative"
     else:
         girlsp3_class = "zero"
 
@@ -365,9 +365,9 @@ def generate_dashboard_vars(location=None):
     girlsp6_diff = girlsp6 - girlsp6_past
 
     if girlsp6_diff > 0:
-        girlsp6_class = "negative"
-    elif girlsp6_diff < 0:
         girlsp6_class = "positive"
+    elif girlsp6_diff < 0:
+        girlsp6_class = "negative"
     else:
         girlsp6_class = "zero"
 
@@ -386,9 +386,9 @@ def generate_dashboard_vars(location=None):
     female_teachers_diff = female_teachers - female_teachers_past
 
     if female_teachers_diff > 0:
-        female_teachers_class = "negative"
-    elif female_teachers_diff < 0:
         female_teachers_class = "positive"
+    elif female_teachers_diff < 0:
+        female_teachers_class = "negative"
     else:
         female_teachers_class = "zero"
 
@@ -407,9 +407,9 @@ def generate_dashboard_vars(location=None):
     male_teachers_diff = male_teachers - male_teachers_past
 
     if male_teachers_diff < 0:
-        male_teachers_class = "positive"
-    elif male_teachers_diff > 0:
         male_teachers_class = "negative"
+    elif male_teachers_diff > 0:
+        male_teachers_class = "positive"
     else:
         male_teachers_class = "zero"
 
