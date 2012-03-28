@@ -737,21 +737,43 @@ class NationalStatistics(TemplateView):
 
 class CapitationGrants(TemplateView):
     template_name = 'education/admin/capitation_grants.html'
-
+    #TODO include SMC replies to question on whether grant chat is displayed publicly in schools visited
     def get_context_data(self, **kwargs):
         context = super(CapitationGrants, self).get_context_data(**kwargs)
 
         cg = Poll.objects.get(name="edtrac_upe_grant")
+        head_teacher_count = EmisReporter.objects.filter(groups__name = "Head Teachers").exclude(schools=None).count()
         responses = cg.responses_by_category(location=Location.tree.root_nodes()[0])
         all_responses = cg.responses_by_category()
+
         location_ids = Location.objects.filter(type="district", pk__in = EmisReporter.objects.exclude(connection__in=Blacklist.objects.\
             values_list('connection', flat=True), schools=None).filter(groups__name="Head Teachers").\
             values_list('reporting_location__pk',flat=True)).distinct().values_list('id',flat=True)
+
         to_ret = [
 
         ]
 
         context['capitation_location_data'] = responses
+
+        try:
+            ht_no = (100 * all_responses.get(category__name = 'no').get('value')) / head_teacher_count
+        except ZeroDivisionError:
+            ht_no = 0
+
+        try:
+            ht_yes = (100 * all_responses.get(category__name = 'yes').get('value')) / head_teacher_count
+        except ZeroDivisionError:
+            ht_yes = 0
+
+        context['national_responses'] = [('Yes', ht_yes), ('No', ht_no)]
+        context['head_teacher_count'] = 100 * (head_teacher_count / EmisReporter.objects.exclude(schools=None,\
+            connection__in = Blacklist.objects.values_list('connection', flat=True)).count())
+
+
+        context['districts'] = [
+            (Location.objects.filter(type="district")[0], [('yes',60), ('No', 40)])
+        ]
         return context
 
 # Details views... specified by ROLES

@@ -109,11 +109,10 @@ function violence_cases(xVals, yVals, title){
 
 
 //pie chart
-function pie(data, chart_title, series_title, selector_id, tooltip_text) {
-
+function pie(data, chart_title, series_title, selector_id, tooltip_text, showLegend) {
     var d = data.split(",");
     var data_array = [];
-    for(i=0;i<d.length; i++){
+    for(i=0; i < d.length; i++){
         x = d[i].split('-');
         data_array.push([x[0], parseInt(x[1])]);
     }
@@ -129,10 +128,18 @@ function pie(data, chart_title, series_title, selector_id, tooltip_text) {
         title: {
             text: chart_title
         },
+        legend:{
+          layout: 'vertical',
+            align: 'right',
+            verticalAlign: 'top',
+            x : -10,
+            y: 100,
+            borderWidth:0
+        },
         tooltip: {
             formatter: function() {
                 //return this.percentage +' % \n didn\'t have meals';
-                return this.percentage + ' % \n' + tooltip_text;
+                return this.percentage.toFixed(1) + '%'+ tooltip_text;
             }
         },
         plotOptions: {
@@ -142,7 +149,7 @@ function pie(data, chart_title, series_title, selector_id, tooltip_text) {
                 dataLabels: {
                     enabled: true
                 },
-                showInLegend:false
+                showInLegend:showLegend
             }
         },
         series: [{

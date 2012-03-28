@@ -807,3 +807,12 @@ div.stats span{
     margin-bottom: 5px;
     padding: 5px;
 }
+
+div.district-stats{
+    margin-top: 20px;
+}
+
+div.report-stickie{
+    margin-top: 5px;
+    padding:10px;
+}

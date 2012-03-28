@@ -335,7 +335,9 @@ def school_last_xformsubmission(request, school_id):
 
 def messages(request):
     user_location = get_location(request)
-    messages = Message.objects.filter(direction='I', connection__contact__emisreporter__reporting_location__in=user_location.get_descendants(include_self=True).all())
+    messages = Message.objects.exclude(
+        connection__identity__in = getattr(settings, 'MODEM_NUMBERS')
+    ).filter(direction='I', connection__contact__emisreporter__reporting_location__in=user_location.get_descendants(include_self=True).all())
     if request.GET.get('error_msgs'):
         #Get only messages handled by rapidsms_xforms and the polls app (this exludes opt in and opt out messages)
         messages = messages.filter(Q(application=None) | Q(application__in=['rapidsms_xforms', 'poll']))
@@ -353,7 +355,9 @@ def messages(request):
 def othermessages(request, district_id=None):
     user_location = get_location(request)
     #First we get all incoming messages
-    messages = Message.objects.filter(direction='I', connection__contact__emisreporter__reporting_location__in=user_location.get_descendants(include_self=True).all())
+    messages = Message.objects.exclude(
+        connection__identity__in = getattr(settings, 'MODEM_NUMBERS')
+    ).filter(direction='I', connection__contact__emisreporter__reporting_location__in=user_location.get_descendants(include_self=True).all())
 
     #Get only messages handled by rapidsms_xforms and the polls app (this exludes opt in and opt out messages)
     messages = messages.filter(Q(application=None) | Q(application__in=['rapidsms_xforms', 'poll']))

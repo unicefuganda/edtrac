@@ -244,7 +244,7 @@ def reorganize_data(obj):
     to_ret = []
     print obj
     for label, val in obj:
-        to_ret.append("%s-%d"%(label,val))
+        to_ret.append("%s-%d" % (label, val))
     return to_ret
 
 def termly(obj):
