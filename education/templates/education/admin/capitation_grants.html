@@ -7,6 +7,15 @@
     <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">← Back to the EduTrac Home Page</a></p>
 </div>
 <div class="general">
-    {{ capitation_location_data }}
 </div>
+{% endblock %}
+{% block javascripts %}
+        {{ block.super }}
+        <script>
+            $(document).ready(
+                    function(){
+                        //
+                    }
+            );
+        </script>
 {% endblock %}

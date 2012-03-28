@@ -742,6 +742,7 @@ class CapitationGrants(TemplateView):
 
         cg = Poll.objects.get(name="edtrac_upe_grant")
         responses = cg.responses_by_category(location=Location.tree.root_nodes()[0])
+        all_responses = cg.responses_by_category()
         location_ids = Location.objects.filter(type="district", pk__in = EmisReporter.objects.exclude(connection__in=Blacklist.objects.\
             values_list('connection', flat=True), schools=None).filter(groups__name="Head Teachers").\
             values_list('reporting_location__pk',flat=True)).distinct().values_list('id',flat=True)
