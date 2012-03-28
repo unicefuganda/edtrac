@@ -44,6 +44,9 @@ MAX_LAT = '4.280680030820496'
 # map categorized color pallete
 CATEGORY_COLORS = ['#AA4643', '#4572A7', '#89A54E', '#80699B', '#3D96AE', '#DB843D', '#92A8CD', '#A47D7C', '#B5CA92']
 
+# Modem numbers used by QoS
+MODEM_NUMBERS = ['256777773260', '256752145316','256711957281', '256790403038','256701205129','256792197598']
+
 # you should configure your database here before doing any real work.
 # see: http://docs.djangoproject.com/en/dev/ref/settings/#databases
 DATABASES = {
