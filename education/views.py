@@ -528,12 +528,13 @@ def generate_dashboard_vars(location=None):
         m_head_t_class = "zero"
 
     school_to_date = School.objects.filter(pk__in=EmisReporter.objects.values_list('schools__pk', flat=True)).count()
-    try:
-        school_active = 100 * School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None,\
-                connection__in=Blacklist.objects.values_list('connection',flat=True)).filter(connection__in = Message.objects.filter(
-                date__range= get_week_date(number=1)[1] # participants in the past week.
-                ).values_list('connection', flat=True)).values_list('schools__pk', flat=True)).count() / school_to_date
 
+    try:
+        school_reporters = EmisReporter.objects.filter(groups__name__in=["Head Teachers", "Teachers"], connection__in=Message.objects.\
+            filter(date__range = get_week_date(number=1)[1]).values_list('connection', flat = True)).\
+            exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
+        school_active = (100 * School.objects.filter(pk__in = school_reporters.values_list('schools__pk', flat=True)).\
+            count()) / school_to_date
     except ZeroDivisionError:
         school_active = 0
 
@@ -643,7 +644,6 @@ class NationalStatistics(TemplateView):
 
     #simple helper function
     def compute_percent(self, reps, groups = []):
-
         if groups:
             all_reporters = EmisReporter.objects.filter(groups__name__in=groups).exclude(connection__in=\
                 Blacklist.objects.values_list('connection',flat=True))
@@ -715,16 +715,17 @@ class NationalStatistics(TemplateView):
             schools = School.objects.filter(pk__in = EmisReporter.objects.exclude(schools=None, connection__in=\
                 Blacklist.objects.values_list('connection',flat=True)).values_list('schools__pk', flat=True))
 
-            reps_schools = EmisReporter.objects.filter(groups__name__in=["Head Teachers", "Teachers"], connection__in=Message.objects.\
+            # reporters that used EduTrac the past week
+            school_reporters = EmisReporter.objects.filter(groups__name__in=["Head Teachers", "Teachers"], connection__in=Message.objects.\
                 filter(date__range = get_week_date(number=1)[1]).values_list('connection', flat = True)).\
                 exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
 
             school_active = [
-                (school, self.compute_percent(reps_schools.filter(schools__pk=school.pk), groups=['Head Teachers', 'Teachers']))
+                (school, self.compute_percent(school_reporters.filter(schools__pk=school.pk), groups=['Head Teachers', 'Teachers']))
                 for school in schools
                 ]
             school_active.sort(key=operator.itemgetter(1), reverse=True)
-            context['school_active_count'] = schools.count()
+            context['school_active_count'] = School.objects.filter(pk__in = school_reporters.values_list('schools__pk', flat=True)).count()
             context['school_active'] = school_active[:3]
             context['school_less_active'] = school_active[-3:]
             return context
@@ -749,8 +750,6 @@ class CapitationGrants(TemplateView):
         to_ret = [
 
         ]
-
-
 
         context['capitation_location_data'] = responses
         return context
