@@ -308,6 +308,7 @@ def generate_dashboard_vars(location=None):
         boysp3_data = 'data-green'
     else:
         boysp3_class = 'zero'
+        boysp3_data = 'data-white'
 
     x, y  = poll_responses_past_week_sum("edtrac_boysp6_attendance", locations=locations, weeks=1)
     enrol = poll_responses_term("edtrac_boysp6_enrollment", belongs_to="location", locations=locations)
@@ -331,6 +332,7 @@ def generate_dashboard_vars(location=None):
         boysp6_data = 'data-green'
     else:
         boysp6_class = 'zero'
+        boysp6_data = 'data-white'
 
     x, y = poll_responses_past_week_sum("edtrac_girlsp3_attendance",locations=locations, weeks=1)
     enrol = poll_responses_term("edtrac_girlsp3_enrollment", belongs_to="location", locations=locations)
@@ -1365,12 +1367,11 @@ def girls_p3_attendance(req):
         #DEO
         schools = School.objects.filter(location=location)
         data_to_render = []
-
         for school in schools:
             data = poll_response_sum("edtrac_girlsp3_attendance", month_filter='weekly', school=school)
             data_to_render.append([school, school.location, data])
 
-            return render_to_response('education/partials/girls_p3_attendance.html',{
+        return render_to_response('education/partials/girls_p3_attendance.html',{
                                         'week':datetime.datetime.now(),
                                         'headings':['School', 'District', 'Number'],
                                         'location_data': data_to_render}, RequestContext(req))

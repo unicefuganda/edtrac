@@ -209,7 +209,7 @@ div.data{
     color: #bf1226;
 }
 
-.data-green span, .data-red span, .data-white{
+.data-green span, .data-red span, .data-white span{
     padding:20px;
 }
 
