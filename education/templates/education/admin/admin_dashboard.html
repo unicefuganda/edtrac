@@ -17,38 +17,51 @@ Dashboard -- {{ block.super }}
                         <tr>
                             <td><a href="{% url boys-p3 %}">Boys P3</a></td>
                             <td>{{ boysp3|floatformat }}%</td>
-                            <td>{{ boysp3_past|floatformat }}%</td>
-                            <td class="{{ boysp3_class }}">{{ boysp3_diff|floatformat }}%</td>
+                            <td>
+                                {{ boysp3_past|floatformat }}%
+                            </td>
+
+                            <td class="{{ boysp3_data }}">
+                                <span class="{{ boysp3_class  }}">{{ boysp3_diff|floatformat }}%</span>
+                            </td>
                         </tr>
                         <tr>
                             <td><a href="{% url girls-p3 %}">Girls P3</a></td>
                             <td>{{ girlsp3|floatformat }}%</td>
                             <td>{{ girlsp3_past|floatformat }}%</td>
-                            <td class="{{ girlsp3_class }}">{{ girlsp3_diff|floatformat }}%</td>
+                            <td class="{{ girlsp3_data }}"><span class="{{ girlsp3_class }}">{{ girlsp3_diff|floatformat }}%</span></td>
                         </tr>
                         <tr>
                             <td><a href="{% url boys-p6 %}">Boys P6</a></td>
                             <td>{{ boysp6|floatformat }}%</td>
                             <td>{{ boysp6_past|floatformat }}%</td>
-                            <td class="{{ boysp6_class }}" style="margin-left: 3px;">{{ boysp6_diff|floatformat }}%</td>
+                            <td class="{{ boysp6_data }}">
+                                <span class="{{ boysp6_class }}">{{ boysp6_diff|floatformat }}%</span>
+                            </td>
                         </tr>
                         <tr>
                             <td><a href="{% url girls-p6 %}">Girls P6</a></td>
                             <td>{{ girlsp6|floatformat }}%</td>
                             <td>{{ girlsp6_past|floatformat }}%</td>
-                            <td class="{{ girlsp6_class }}">{{ girlsp6_diff|floatformat }}%</td>
+                            <td class="{{ girlsp6_data }}">
+                                <span class="{{ girlsp6_class }}">{{ girlsp6_diff|floatformat }}%</span>
+                            </td>
                         </tr>
                         <tr>
                             <td><a href="{% url f-teachers %}">Female Teachers</a></td>
                             <td>{{ female_teachers|floatformat }}%</td>
                             <td>{{ female_teachers_past|floatformat }}%</td>
-                            <td class="{{ female_teachers_class }}">{{ female_teachers_diff|floatformat }}%</td>
+                            <td class="{{ female_teachers_data }}">
+                                <span class="{{ female_teachers_class }}">{{ female_teachers_diff|floatformat }}%</span>
+                            </td>
                         </tr>
                         <tr>
                             <td><a href="{% url m-teachers %}">Male Teachers</a></td>
                             <td>{{ male_teachers|floatformat }}%</td>
                             <td>{{ male_teachers_past|floatformat }}%</td>
-                            <td class="{{ male_teachers_class }}">{{ male_teachers_diff|floatformat }}%</td>
+                            <td class="{{ male_teachers_data }}">
+                                <span class="{{ male_teachers_class }}"> {{ male_teachers_diff|floatformat }}%</span>
+                            </td>
                         </tr>
                         <tr>
                             <td><a href="#">Female H Teachers</a></td>

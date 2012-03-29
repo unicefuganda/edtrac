@@ -270,7 +270,7 @@ def generate_dashboard_vars(location=None):
         locations = Location.objects.filter(pk__in=EmisReporter.objects.values_list('reporting_location__pk', flat=True)).distinct()
     else:
         locations.append(location)
-
+    
     responses_to_violence = poll_response_sum("edtrac_headteachers_abuse",month_filter = 'monthly', locations = locations)
     # percentage change in violence from previous month
     violence_change = cleanup_sums(responses_to_violence)
@@ -301,9 +301,11 @@ def generate_dashboard_vars(location=None):
     boysp3_diff = boysp3 - boysp3_past
 
     if boysp3_diff > 0:
-        boysp3_class = 'positive'
+        boysp3_class = 'increase'
+        boysp3_data = 'data-red'
     elif boysp3_diff < 0:
-        boysp3_class = 'negative'
+        boysp3_class = 'decrease'
+        boysp3_data = 'data-green'
     else:
         boysp3_class = 'zero'
 
@@ -322,9 +324,11 @@ def generate_dashboard_vars(location=None):
     boysp6_diff = boysp6 - boysp6_past
 
     if boysp6_diff > 0:
-        boysp6_class = 'positive'
-    elif boys6_diff < 0:
-        boysp6_class = 'negative'
+        boysp6_class = 'increase'
+        boysp6_data = 'data-red'
+    elif boysp6_diff < 0:
+        boysp6_class = 'decrease'
+        boysp6_data = 'data-green'
     else:
         boysp6_class = 'zero'
 
@@ -343,9 +347,11 @@ def generate_dashboard_vars(location=None):
     girlsp3_diff = girlsp3 - girlsp3_past
 
     if girlsp3_diff > 0:
-        girlsp3_class = "positive"
+        girlsp3_class = "increase"
+        girlsp3_data = 'data-red'
     elif girlsp3_diff < 0:
-        girlsp3_class = "negative"
+        girlsp3_class = "decrease"
+        girlsp3_data = 'data-green'
     else:
         girlsp3_class = "zero"
 
@@ -365,10 +371,14 @@ def generate_dashboard_vars(location=None):
     girlsp6_diff = girlsp6 - girlsp6_past
 
     if girlsp6_diff > 0:
-        girlsp6_class = "positive"
+        girlsp6_class = "increase"
+        girlsp6_data = 'data-red'
+
     elif girlsp6_diff < 0:
-        girlsp6_class = "negative"
+        girlsp6_class = 'decrease'
+        girlsp6_data = 'data-green'
     else:
+        girlsp6_data = 'data-white'
         girlsp6_class = "zero"
 
     x, y = poll_responses_past_week_sum("edtrac_f_teachers_attendance",locations=locations, weeks=1)
@@ -386,17 +396,20 @@ def generate_dashboard_vars(location=None):
     female_teachers_diff = female_teachers - female_teachers_past
 
     if female_teachers_diff > 0:
-        female_teachers_class = "positive"
+        female_teachers_class = "increase"
+        female_teachers_data = 'data-red'
     elif female_teachers_diff < 0:
-        female_teachers_class = "negative"
+        female_teachers_class = "decrease"
+        female_teachers_data = 'data-green'
     else:
+        female_teachers_data = "data-white"
         female_teachers_class = "zero"
 
     x, y = poll_responses_past_week_sum("edtrac_m_teachers_attendance", weeks=1, locations=locations)
     deploy = poll_responses_term("edtrac_m_teachers_deployment", belongs_to="location", locations=locations)
     try:
         male_teachers = 100*(deploy - x ) / deploy
-    except ZeroDivsionError:
+    except ZeroDivisionError:
         male_teachers = 0
 
     try:
@@ -407,11 +420,14 @@ def generate_dashboard_vars(location=None):
     male_teachers_diff = male_teachers - male_teachers_past
 
     if male_teachers_diff < 0:
-        male_teachers_class = "negative"
+        male_teachers_class = "decrease"
+        male_teachers_data = 'data-green'
     elif male_teachers_diff > 0:
-        male_teachers_class = "positive"
+        male_teachers_class = "increase"
+        male_teachers_data = 'data-red'
     else:
         male_teachers_class = "zero"
+        male_teachers_data = 'data-white'
 
     responses_to_meals = poll_response_sum("edtrac_headteachers_meals",
         month_filter='biweekly', locations=locations)
@@ -486,11 +502,14 @@ def generate_dashboard_vars(location=None):
     f_head_diff = female_d2 - female_d1
 
     if f_head_diff > 0:
-        f_head_t_class = "negative"
+        f_head_t_class = "increase"
+        f_head_t_data = 'data-red'
     elif f_head_diff < 0:
-        f_head_t_class = "positive"
+        f_head_t_class = "decrease"
+        f_head_t_data = 'data-green'
     else:
         f_head_t_class = "zero"
+        f_head_t_data = 'data-white'
 
     #TODO -> extract data on head teachers.
     resp_d1_male = Poll.objects.get(name="edtrac_head_teachers_attendance").responses_by_category().filter(
@@ -521,11 +540,14 @@ def generate_dashboard_vars(location=None):
     m_head_diff = male_d2 - male_d1
 
     if m_head_diff > 0:
-        m_head_t_class = "negative"
+        m_head_t_class = "increase"
+        m_head_t_data = 'data-red'
     elif m_head_diff < 0:
-        m_head_t_class = "positive"
+        m_head_t_class = "decrease"
+        m_head_t_data = 'data-green'
     else:
         m_head_t_class = "zero"
+        m_head_t_data = 'data-white'
 
     school_to_date = School.objects.filter(pk__in=EmisReporter.objects.values_list('schools__pk', flat=True)).count()
 
@@ -562,26 +584,32 @@ def generate_dashboard_vars(location=None):
         'male_teachers_past' : male_teachers_past,
         'male_teachers_diff' : male_teachers_diff,
         'male_teachers_class' : male_teachers_class,
+        'male_teachers_data' : male_teachers_data,
         'female_teachers_class' : female_teachers_class,
         'female_teachers' :female_teachers,
         'female_teachers_past' : female_teachers_past,
         'female_teachers_diff' : female_teachers_diff,
+        'female_teachers_data' : female_teachers_data,
         'girlsp3' : girlsp3,
         'girlsp3_past' : girlsp3_past,
         'girlsp3_class': girlsp3_class,
         'girlsp3_diff' : girlsp3_diff,
+        'girlsp3_data' : girlsp3_data,
         'girlsp6' : girlsp6,
         'girlsp6_past' : girlsp6_past,
         'girlsp6_diff' : girlsp6_diff,
         'girlsp6_class' : girlsp6_class,
+        'girlsp6_data' : girlsp6_data,
         'boysp3' : boysp3,
         'boysp3_past': boysp3_past,
         'boysp3_class' : boysp3_class,
         'boysp3_diff' : boysp3_diff,
+        'boysp3_data' : boysp3_data,
         'boysp6' : boysp6,
         'boysp6_past' : boysp6_past,
         'boysp6_class' : boysp6_class,
         'boysp6_diff' : boysp6_diff,
+        'boysp6_data' : boysp6_data,
         'f_head_t_week' : female_d2,
         'f_head_t_week_before' : female_d1,
         'f_head_diff' : f_head_diff,

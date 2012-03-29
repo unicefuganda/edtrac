@@ -208,6 +208,11 @@ div.data{
     background-position: right center;
     color: #bf1226;
 }
+
+.data-green span, .data-red span, .data-white{
+    padding:20px;
+}
+
 .data-white{
     background-color: #fff1d9;
 }
