@@ -270,7 +270,7 @@ def generate_dashboard_vars(location=None):
         locations = Location.objects.filter(pk__in=EmisReporter.objects.values_list('reporting_location__pk', flat=True)).distinct()
     else:
         locations.append(location)
-    
+
     responses_to_violence = poll_response_sum("edtrac_headteachers_abuse",month_filter = 'monthly', locations = locations)
     # percentage change in violence from previous month
     violence_change = cleanup_sums(responses_to_violence)
@@ -354,6 +354,7 @@ def generate_dashboard_vars(location=None):
         girlsp3_data = 'data-green'
     else:
         girlsp3_class = "zero"
+        girlsp3_data = 'data-white'
 
     x, y = poll_responses_past_week_sum("edtrac_girlsp6_attendance", locations=locations, weeks=1)
     enrol = poll_responses_term("edtrac_girlsp6_enrollment", belongs_to="location", locations=locations)
