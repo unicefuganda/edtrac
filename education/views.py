@@ -712,9 +712,11 @@ class NationalStatistics(TemplateView):
             context['all_reporters'] = EmisReporter.objects.exclude(schools=None, connection__in = Blacklist.objects.\
             values_list('connection', flat = True)).count()
 
+
+
             schools = School.objects.filter(pk__in = EmisReporter.objects.exclude(schools=None, connection__in=\
                 Blacklist.objects.values_list('connection',flat=True)).values_list('schools__pk', flat=True))
-
+            context['expected_reporters'] = len(schools) * 4
             # reporters that used EduTrac the past week
             school_reporters = EmisReporter.objects.filter(groups__name__in=["Head Teachers", "Teachers"], connection__in=Message.objects.\
                 filter(date__range = get_week_date(number=1)[1]).values_list('connection', flat = True)).\
@@ -728,6 +730,8 @@ class NationalStatistics(TemplateView):
             context['school_active_count'] = School.objects.filter(pk__in = school_reporters.values_list('schools__pk', flat=True)).count()
             context['school_active'] = school_active[:3]
             context['school_less_active'] = school_active[-3:]
+
+
             return context
 
         else:

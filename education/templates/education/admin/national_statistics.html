@@ -31,13 +31,22 @@
             <div class="stats" style="float:right; width:400px;">
                 <p>
                 <h3 style="background-color:black; color:white; margin-bottom:5px; padding:10px; text-align:center;">EduTrac Reporters</h3>
-                <span>Head Teachers</span>: <span style="color:white;">{{ head_teacher_count }}</span><br/><br/>
-                <span>SMC Members</span>: <span style="color:white;">{{ smc_count }}</span><br/><br/>
-                <span>P6 Teachers</span>: <span style="color:white;">{{ p6_teacher_count }}</span><br/><br/>
-                <span>P3 Teachers</span>: <span style="color:white;">{{ p3_teacher_count }}</span><br/><br/>
-                <span>GEM</span>: <span style="color:white;">{{ gem_count }}</span><br/><br/>
-                <span>District Officials</span><span style="color:white;">{{ deo_count }}</span><br/>
-                <span>Total Teachers</span>: <span style="color:white;">{{ total_teacher_count }}</span>
+                <table>
+                <tr>
+                    <td><span>Head Teachers</span>:</td><td> <span style="color:white;">{{ head_teacher_count }}</span></td>
+                </tr>
+                <tr>
+                <td><span>SMC Members</span>:</td><td> <span style="color:white;">{{ smc_count }}</span></td>
+                </tr>
+                <tr>
+                <td><span>P6 Teachers</span>:</td><td> <span style="color:white;">{{ p6_teacher_count }}</span></td>
+                </tr>
+                <tr><td><span>P3 Teachers</span>:</td><td> <span style="color:white;">{{ p3_teacher_count }}</span></td></tr>
+                <tr><td><span>GEM</span>: </td><td><span style="color:white;">{{ gem_count }}</span></td></tr>
+                <tr><td><span>District Officials</span></td><td><span style="color:white;">{{ deo_count }}</span></td></tr>
+                <tr><td><span>Total Teachers</span>:</td><td> <span style="color:white;">{{ total_teacher_count }}</span></td></tr>
+                <tr><td><span>Expected reporters</span>: </td><td><span style="color: white;">{{ expected_reporters }}</span></td></tr>
+                </table>
                 </p>
                 <div style="float:right;">
                     <span>**All Reporters</span>: <span style="color:white; font-size: 1.3em;">{{ all_reporters }}</span>
