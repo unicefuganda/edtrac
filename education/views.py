@@ -1426,8 +1426,7 @@ def female_teacher_attendance(req):
 
         data_to_render = []
         for school in schools:
-            data = poll_response_sum(
-                Poll.objects.get(name="edtrac_f_teachers_attendance"),month_filter='weekly',location=school.location)
+            data = poll_response_sum("edtrac_f_teachers_attendance" , month_filter='weekly', school=school)
             data_to_render.append([school, school.location, data])
         return render_to_response(
             'education/partials/female_teachers_attendance.html',
@@ -1462,8 +1461,7 @@ def male_teacher_attendance(req):
 
         data_to_render = []
         for school in schools:
-            data = poll_response_sum(
-                Poll.objects.get(name="edtrac_m_teachers_attendance"),month_filter='weekly',location=school.location)
+            data = poll_response_sum("edtrac_m_teachers_attendance", month_filter='weekly', school=school)
             data_to_render.append([school, school.location, data])
         return render_to_response(
             'education/partials/male_teachers_attendance.html',
