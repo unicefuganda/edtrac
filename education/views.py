@@ -264,6 +264,10 @@ def dashboard(request):
 
 # generate context vars
 def generate_dashboard_vars(location=None):
+    """
+    An overly ambitious function that generates context variables for a location if provided
+    This gets populated in the dashboard.
+    """
     locations = []
     if location.name == "Uganda":
         # get locations from active districts only
@@ -552,10 +556,12 @@ def generate_dashboard_vars(location=None):
         m_head_t_class = "zero"
         m_head_t_data = 'data-white'
 
-    school_to_date = School.objects.filter(pk__in=EmisReporter.objects.values_list('schools__pk', flat=True)).count()
+    school_to_date = School.objects.filter(pk__in=EmisReporter.objects.filter(reporting_location__in = locations).values_list('schools__pk', flat=True)).count()
 
     try:
-        school_reporters = EmisReporter.objects.filter(groups__name__in=["Head Teachers", "Teachers"], connection__in=Message.objects.\
+        school_reporters = EmisReporter.objects.filter(
+            reporting_location__in = locations,
+            groups__name__in=["Head Teachers", "Teachers"], connection__in=Message.objects.\
             filter(date__range = get_week_date(number=1)[1]).values_list('connection', flat = True)).\
             exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
         school_active = (100 * School.objects.filter(pk__in = school_reporters.values_list('schools__pk', flat=True)).\
