@@ -41,6 +41,7 @@ p{line-height: 14px;}
 #title-bar{height:70px; padding: 32px 0 0 0; border-bottom: 1px solid #0a2b41;}
 #edutrac-logo {float:left;}
 #edutrac-logo span {font-size: 40px; color:#FFF; font-weight: bold;}
+#ministry-logo{float:right;}
 #unicef-logo{float:right;}
 #unicef-logo img{width:140px; height:35px; border: none;}
 #main-content .inner-content{border-top:1px solid #286c97; padding:5px 0 0 0;}
@@ -808,11 +809,48 @@ div.stats span{
     padding: 5px;
 }
 
-div.district-stats{
-    margin-top: 20px;
-}
 
 div.report-stickie{
     margin-top: 5px;
     padding:10px;
+}
+
+
+div.district-stats{
+    margin-top: 20px;
+    width:inherit;
+}
+
+div.district-stats div.cap-container{
+    width:150px;
+    float:left;
+}
+
+
+div.highcharts-container{
+    height:200px;
+}
+
+div.stats .accordion{
+    margin-bottom: 18px;
+}
+
+div.stats .accordion .accordion-group{
+    margin-bottom: 2px;
+    border: 1px solid #e5e5e5;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    border-radius: 4px;
+}
+
+.accordion-heading{
+    border-bottom: 0;
+}
+.accordion-heading, .accordion-toggle{
+    display: block;
+    padding: 8px 15px;
+}
+.accordion-inner{
+    /*padding:5px 15px;*/
+    border-top: 1px solid #e5e5e5;
 }

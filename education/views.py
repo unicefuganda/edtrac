@@ -772,7 +772,10 @@ class CapitationGrants(TemplateView):
 
 
         context['districts'] = [
-            (Location.objects.filter(type="district")[0], [('yes',60), ('No', 40)])
+            (Location.objects.filter(type="district")[0], [('yes',60), ('No', 40)]),
+            (Location.objects.filter(type="district")[1], [('yes',60), ('No', 40)]),
+            (Location.objects.filter(type="district")[2], [('yes',60), ('No', 40)]),
+            (Location.objects.filter(type="district")[3], [('yes',60), ('No', 40)])
         ]
         return context
 
