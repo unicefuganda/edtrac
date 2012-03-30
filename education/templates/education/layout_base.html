@@ -48,12 +48,13 @@
         <div id="main-content">
             <div id="title-bar">
                 {% block logo %}
-                <div id="edutrac-logo">
-                    <a href="{% url rapidsms-dashboard %}"><img src="{{MEDIA_URL }}education/icons/web_logo_without_slogan.jpg" alt="EduTrac"></a>
+                <div id="edutrac-logo" style="margin-top:20px;">
+                    <a href="{% url rapidsms-dashboard %}"><img src="{{MEDIA_URL }}education/icons/web_logo.png" alt="EduTrac"></a>
                 </div>
-                <div id="ministry-logo">
+                <div style="float:right;">
                     <a href="{% url rapidsms-dashboard %}"><img src="{{ MEDIA_URL }}education/icons/coat_of_arms.png"/></a>
                 </div>
+
                 {% endblock %}
             </div>
             {% block content %}{% endblock %}

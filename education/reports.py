@@ -727,7 +727,7 @@ def poll_response_sum(poll_name, **kwargs):
 
             if not kwargs.has_key('months'):
                 for location in locations:
-                    to_ret[location.__unicode__()] = get_numeric_report_data_2(
+                    to_ret[location.__unicode__()] = get_numeric_report_data(
                         poll_name, location=location, time_range = get_month_day_range(now), to_ret='sum')
             else:
                 # only use this in views that expect date ranges greater than one month
@@ -822,6 +822,20 @@ def poll_response_sum(poll_name, **kwargs):
                 poll_name, time_range = date_week, school=school, to_ret = 'sum', belongs_to = 'schools'
             )
 
+            if response_sum == 0:
+                return '--'
+            else:
+               return response_sum
+        #another hail mary shot
+        if kwargs.get('monthly_filter') == 'monthly' and kwargs.has_key('school'):
+            school = kwargs.get('school')
+            response_sum = get_numeric_report_data(
+                poll_name,
+                time_range = kwargs.get('month_range'),
+                school = school,
+                to_ret = kwargs.get('to_ret'),
+                belongs_to = 'schools'
+            )
             if response_sum == 0:
                 return '--'
             else:
@@ -1055,6 +1069,25 @@ def get_responses_to_polls(**kwargs):
             return responses #can be used as context variable too
 
 
+def return_absent_month(poll_name, enrollment, month_range, school=None):
+
+    # enrollment is the name of Enrollment poll
+    if school:
+        avg = poll_response_sum(poll_name,
+                monthly_filter = 'monthly',
+                month_range = month_range,
+                school = school, to_ret = 'avg')
+
+        current_enrollment = poll_responses_term(enrollment, school=school, belongs_to='schools')
+
+        print avg, current_enrollment
+        if avg == '--':
+            return '--'
+        else:
+            try:
+                return (100 * avg) / current_enrollment
+            except TypeError, ZeroDivisionError:
+                return 0
 
 def return_absent(poll_name, enrollment, locations=None, school=None):
     """

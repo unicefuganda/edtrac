@@ -1730,10 +1730,28 @@ def school_detail(request, school_id):
     school = School.objects.get(id=school_id)
     today = date.today()
     month_ranges = get_month_day_range(today, depth=today.month)
+    month_ranges.reverse()
+
+    slug_list = ['girlsp3', 'boysp3', 'girlsp6', 'boysp6']
+
+    monthly_data = []
+    for month_range in month_ranges:
+        monthly_data.append(
+            [
+                return_absent_month(
+                    'edtrac_'+ '%s'%slug + '_attendance',
+                    'edtrac_'+ '%s'%slug + '_enrollment',
+                    month_range = month_range,
+                    school = school)
+                for slug in slug_list
+            ]
+        )
+
     #monthly_violence =
     return render_to_response("education/school_detail.html", {\
         'school_name': school.name,
-        'months' : [dt for dt, dx in month_ranges],
+        'months' : [d_start for d_start, d_end in month_ranges],
+        'monthly_data' : monthly_data
         }, RequestContext(request))
 
 # analytics specific for emis {copy, but adjust to suit your needs}
