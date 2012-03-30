@@ -218,12 +218,13 @@ class UserForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ("username","first_name","last_name", "groups","password1","password2")
+        fields = ("username","first_name","last_name", "email", "groups","password1","password2")
     def __init__(self, *args, **kwargs):
-        self.edit= kwargs.pop('edit',None)
+        self.edit= kwargs.pop('edit', None)
         super(UserForm, self).__init__(*args, **kwargs)
         self.fields['groups'].help_text=""
         self.fields['groups'].required=True
+        self.fields['email'].help_text = "Optional field"
 
 
 
