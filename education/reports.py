@@ -334,20 +334,27 @@ def school_last_xformsubmission(request, school_id):
     return {'xforms':xforms, 'scripted_polls':scripted_polls}
 
 def messages(request):
-    user_location = get_location(request)
-    messages = Message.objects.exclude(
-        connection__identity__in = getattr(settings, 'MODEM_NUMBERS')
-    ).filter(direction='I', connection__contact__emisreporter__reporting_location__in=user_location.get_descendants(include_self=True).all())
+    if request.user.get_profile().is_member_of('Admins'):
+        messages = Message.objects.exclude(
+            connection__identity__in = getattr(settings, 'MODEM_NUMBERS')
+        ).filter(direction='I',
+            connection__contact__emisreporter__reporting_location__in =\
+            Location.objects.get(name="Uganda").get_descendants(include_self=True).all()
+        )
+    else:
+        user_location = get_location(request)
+        messages = Message.objects.exclude(
+            connection__identity__in = getattr(settings, 'MODEM_NUMBERS')
+            ).filter(direction='I', connection__contact__emisreporter__reporting_location__in=\
+            user_location.get_descendants(include_self=True).all())
+
     if request.GET.get('error_msgs'):
         #Get only messages handled by rapidsms_xforms and the polls app (this exludes opt in and opt out messages)
         messages = messages.filter(Q(application=None) | Q(application__in=['rapidsms_xforms', 'poll']))
-
         #Exclude XForm submissions
         messages = messages.exclude(pk__in=XFormSubmission.objects.exclude(message=None).filter(has_errors=False).values_list('message__pk', flat=True))
-
         # Exclude Poll responses
         return messages.exclude(pk__in=Response.objects.exclude(message=None).filter(has_errors=False).values_list('message__pk', flat=True))
-
     else:
         return messages
 
@@ -371,9 +378,15 @@ def othermessages(request, district_id=None):
     return messages
 
 def reporters(request, district_id=None):
-    user_location = get_location(request)
-    return EmisReporter.objects.exclude(connection__in=Blacklist.objects.all().values_list('connection', flat=True)).filter(reporting_location__in=\
-        user_location.get_descendants(include_self=True)).distinct()
+    if request.user.get_profile().is_member_of('Admins'):
+        return EmisReporter.objects.exclude(
+                    connection__in=Blacklist.objects.all().values_list('connection', flat=True),
+                    connection__identity__in = getattr(settings, 'MODEM_NUMBERS')
+            ).exclude(reporting_location = None).distinct()
+    else:
+        user_location = get_location(request)
+        return EmisReporter.objects.exclude(connection__in=Blacklist.objects.all().values_list('connection', flat=True)).filter(reporting_location__in=\
+            user_location.get_descendants(include_self=True)).distinct()
 
 def schools(request, district_id=None):
     user_location = get_location(request)

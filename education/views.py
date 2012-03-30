@@ -668,7 +668,7 @@ class MealsMinistryDetails(TemplateView):
 ##########################################################################################################
 @login_required
 def admin_dashboard(request):
-    if request.user.get_profile().is_member_of('Ministry Officials'):
+    if request.user.get_profile().is_member_of('Ministry Officials') or request.user.get_profile().is_member_of('Admins'):
         location = Location.objects.get(name="Uganda")
     else:
         location = request.user.get_profile().location
