@@ -622,6 +622,7 @@ def get_week_date(number=None):
 
 
 def get_numeric_report_data(poll_name, location=None, time_range=None, to_ret=None, **kwargs):
+
     poll = Poll.objects.get(name=poll_name)
 
     if time_range:
@@ -828,6 +829,7 @@ def poll_response_sum(poll_name, **kwargs):
                return response_sum
         #another hail mary shot
         if kwargs.get('monthly_filter') == 'monthly' and kwargs.has_key('school'):
+            import pdb; pdb.set_trace()
             school = kwargs.get('school')
             response_sum = get_numeric_report_data(
                 poll_name,
@@ -922,12 +924,12 @@ def poll_responses_term(poll_name, **kwargs):
     """
     Function to get the results of a poll between now and beginning of term (this is a broad spectrum poll)
 
-    >>> poll_response_term(Poll.objects.get(name="some_poll"), belongs_to='location', locations=Location.objects.all())
+    >>> poll_response_term(poll_name, belongs_to='location', locations=Location.objects.all())
     >>> ... returns responses that are broad
 
     Another example:
 
-    >>> poll_response_term(Poll.objects.get(name="some_poll"), belongs_to="schools", school_id=5)
+    >>> poll_response_term(poll_name, belongs_to="schools", school_id=5)
     >>> ... returns responses coming in from reporters in a particular school
 
     """
@@ -939,8 +941,14 @@ def poll_responses_term(poll_name, **kwargs):
             [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')], to_ret='sum')
 
     elif kwargs.get('belongs_to') == 'schools':
-        return get_numeric_report_data(poll_name, school=kwargs.get('school'), time_range=\
-                    [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')], to_ret='sum')
+        if kwargs.has_key('to_ret'):
+            return get_numeric_report_data(poll_name, school=kwargs.get('school'), time_range=\
+                    [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')],
+                    to_ret=kwargs.get('to_ret'))
+        else:
+            # default to sum
+            return get_numeric_report_data(poll_name, school=kwargs.get('school'), time_range=\
+                [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')], to_ret='sum')
 
 
 def curriculum_progress_list(poll_name, **kwargs):
@@ -1073,21 +1081,18 @@ def return_absent_month(poll_name, enrollment, month_range, school=None):
 
     # enrollment is the name of Enrollment poll
     if school:
-        avg = poll_response_sum(poll_name,
-                monthly_filter = 'monthly',
-                month_range = month_range,
-                school = school, to_ret = 'avg')
-
+        avg = get_numeric_report_data(poll_name, time_range=month_range, to_ret='avg', school = school)
         current_enrollment = poll_responses_term(enrollment, school=school, belongs_to='schools')
 
         print avg, current_enrollment
+
         if avg == '--':
             return '--'
         else:
             try:
                 return (100 * avg) / current_enrollment
-            except TypeError, ZeroDivisionError:
-                return 0
+            except ZeroDivisionError:
+                return 0.0
 
 def return_absent(poll_name, enrollment, locations=None, school=None):
     """
