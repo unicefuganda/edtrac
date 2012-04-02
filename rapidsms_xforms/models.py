@@ -562,7 +562,11 @@ class XForm(models.Model):
 
             # check that all fields actually have values
             if field.command in value_dict and value_dict[field.command] is None:
-                errors.append(ValidationError("Expected a value for %s, none given." % field.name))
+                if getattr(settings, 'USE_DEFAULT_VALIDATION_ERROR', True):
+                        errors.append(ValidationError("Expected a value for %s, none given." % field.name))
+                else:
+                        errors.append("Error. There is a mistake in this report. Please check carefully, only send one SMS report at a time and resend.")
+
 
         # no errors?  wahoo
         if not errors:
