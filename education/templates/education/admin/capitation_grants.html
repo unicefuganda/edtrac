@@ -35,31 +35,34 @@
 
     <p>Click over a district to view</p>
 
-    <div class="accordion" id="accordion2">
-       {% for district, responses in districts %}
-        <div class="accordion-group">
-            <div class="accordion-heading">
-                <a class="accordion-toggle" data-toggle="collapse" data-target="#district-{{ district.id }}" href="#collapse{{ district.id }}" data-parent="accordion2">{{ district }}</a>
-            </div>
-            <div class="accordion-body in" style="height:auto;" id="#collapse{{ district.id }}">
-                <div class="collapse accordion-inner" id="capitation-{{ district.id }}">something</div>
-                <!--<script type="text/javascript">-->
-                    <!--$(document).ready(function(){-->
-                        <!--pie('{{ responses|reorganize_data|join:"," }}', "", "",-->
-                                <!--"capitation-{{ district.id }}", " responded", true);-->
-                    <!--});-->
-                <!--</script>-->
-            </div>
-        </div>
-       {% endfor %}
-    </div>
-</div>
+    <div class="districts">
+        {% paginate 2 districts %}
+        {% for district, responses in districts %}
+            <div id="capitation-{{ district.id }}"></div>
+            <script type="text/javascript">
+                $(document).ready(function(){
+                    pie('{{ responses|reorganize_data|join:"," }}', "{{ district }}", "",
+                            "capitation-{{ district.id }}", " responded", true);
+                });
+                </script>
 
+       {% endfor %}
+        <div style="text-align: center; padding:10px;">
+            <style>
+                span a{
+                    background-color: white;
+                }
+            </style>
+        {% show_pages %}
+        </div>
+    </div>
+    </div>
 </div>
 {% endblock %}
 
 {% block javascripts %}
         {{ block.super }}
+        <!--<script src="{{ MEDIA_URL }}education/javascripts/endless.js" charset="utf-8"></script>-->
         <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-collapse.js"></script>
         <script>
             $(document).ready(

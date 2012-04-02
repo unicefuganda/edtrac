@@ -807,21 +807,57 @@ class NationalStatistics(TemplateView):
 class CapitationGrants(TemplateView):
     template_name = 'education/admin/capitation_grants.html'
     #TODO include SMC replies to question on whether grant chat is displayed publicly in schools visited
+
+    # handy function for % computation
+    def compute_percent(self, x, y):
+        try:
+            return (100 * x) / y
+        except ZeroDivisionError:
+            return 0
+
+    def extract_info(self, list):
+        to_ret = []
+        for item in list:
+            to_ret.append(
+                [item.get('category__name'), item.get('value')]
+            )
+        final_ret = {}
+        for li in to_ret:
+            final_ret[li[0]] = li[1]
+
+        total = sum(filter(None, final_ret.values()))
+        # recompute and return as percentages
+
+        for key in final_ret.keys():
+            final_ret[key] = self.compute_percent(final_ret.get(key), total)
+
+        return final_ret
+
     def get_context_data(self, **kwargs):
         context = super(CapitationGrants, self).get_context_data(**kwargs)
-
         cg = Poll.objects.get(name="edtrac_upe_grant")
         head_teacher_count = EmisReporter.objects.filter(groups__name = "Head Teachers").exclude(schools=None).count()
         responses = cg.responses_by_category(location=Location.tree.root_nodes()[0])
         all_responses = cg.responses_by_category()
+        location_ids = Location.objects.filter(
+            type="district", pk__in = \
+                EmisReporter.objects.exclude(connection__in=Blacklist.objects.\
+                    values_list('connection', flat=True), schools=None).filter(groups__name="Head Teachers").\
+                    values_list('reporting_location__pk',flat=True)).values_list('id',flat=True)
 
-        location_ids = Location.objects.filter(type="district", pk__in = EmisReporter.objects.exclude(connection__in=Blacklist.objects.\
-            values_list('connection', flat=True), schools=None).filter(groups__name="Head Teachers").\
-            values_list('reporting_location__pk',flat=True)).distinct().values_list('id',flat=True)
+        locs = Location.objects.filter(id__in = location_ids)
 
-        to_ret = [
+        districts_to_ret = []
+        for location in locs:
+            head_teacher_count = EmisReporter.objects.exclude(schools = None, connection__in =\
+                Blacklist.objects.values_list('connection', flat = True)).filter(reporting_location=location,
+                    groups__name = 'Head Teachers').count()
+            other_responses = list(cg.responses_by_category(location = location, for_map=False))
 
-        ]
+            info = self.extract_info(other_responses)
+
+            districts_to_ret.append(( location, info.items()))
+
 
         context['capitation_location_data'] = responses
 
@@ -831,21 +867,21 @@ class CapitationGrants(TemplateView):
             ht_no = 0
 
         try:
+            ht_unknown = (100 * all_responses.get(category__name = 'unknown').get('value')) / head_teacher_count
+        except ZeroDivisionError:
+            ht_unknown = 0
+
+        try:
             ht_yes = (100 * all_responses.get(category__name = 'yes').get('value')) / head_teacher_count
         except ZeroDivisionError:
             ht_yes = 0
 
-        context['national_responses'] = [('Yes', ht_yes), ('No', ht_no)]
+        context['national_responses'] = [('Yes', ht_yes), ('No', ht_no), ('unknown',ht_unknown)]
         context['head_teacher_count'] = 100 * (head_teacher_count / EmisReporter.objects.exclude(schools=None,\
             connection__in = Blacklist.objects.values_list('connection', flat=True)).count())
 
+        context['districts'] = districts_to_ret
 
-        context['districts'] = [
-            (Location.objects.filter(type="district")[0], [('yes',60), ('No', 40)]),
-            (Location.objects.filter(type="district")[1], [('yes',60), ('No', 40)]),
-            (Location.objects.filter(type="district")[2], [('yes',60), ('No', 40)]),
-            (Location.objects.filter(type="district")[3], [('yes',60), ('No', 40)])
-        ]
         return context
 
 # Details views... specified by ROLES
@@ -972,29 +1008,6 @@ class AttendanceAdminDetails(TemplateView):
         context['headings'] = headings
         context['week'] = datetime.datetime.now()
         context['location'] = profile.location
-#        location_data_container = []
-#        for loc in locations:
-#            location_data_container.append(
-#                [loc,
-#                 return_absent('edtrac_boysp3_attendance', 'edtrac_boysp3_enrollment', locations=[loc]),
-#                 return_absent('edtrac_boysp6_attendance', 'edtrac_boysp6_enrollment', locations=[loc]),
-#                 return_absent('edtrac_girlsp3_attendance', 'edtrac_girlsp3_enrollment', locations=[loc]),
-#                 return_absent('edtrac_girlsp6_attendance', 'edtrac_girlsp6_enrollment', locations=[loc]),
-#                 return_absent('edtrac_f_teachers_attendance', 'edtrac_f_teachers_deployment', locations=[loc]),
-#                 return_absent('edtrac_m_teachers_attendance', 'edtrac_m_teachers_deployment', locations=[loc]),
-#                 poll_response_sum("edtrac_boysp3_attendance", month_filter='weekly', location=loc),
-#                 poll_response_sum("edtrac_boysp6_attendance", month_filter='weekly', location=loc),
-#                 poll_response_sum("edtrac_girlsp3_attendance", month_filter='weekly', location=loc),
-#                 poll_response_sum("edtrac_girlsp3_attendance", month_filter='weekly', location=loc),
-#                 poll_response_sum("edtrac_f_teachers_attendance", month_filter='weekly', location=loc),
-#                 poll_response_sum("edtrac_m_teachers_attendance", month_filter='weekly', location=loc),
-#                 poll_response_sum("edtrac_head_teachers_attendance", month_filter="weekly", location=loc),
-#                 poll_response_sum("edtrac_head_teachers_attendance", month_filter="weekly", location=loc)
-#                ]
-#            )
-#
-#        context['location_data'] = location_data_container
-
         return context
         
 
