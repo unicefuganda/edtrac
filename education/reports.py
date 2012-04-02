@@ -1084,8 +1084,6 @@ def return_absent_month(poll_name, enrollment, month_range, school=None):
         avg = get_numeric_report_data(poll_name, time_range=month_range, to_ret='avg', school = school)
         current_enrollment = poll_responses_term(enrollment, school=school, belongs_to='schools')
 
-        print avg, current_enrollment
-
         if avg == '--':
             return '--'
         else:

@@ -211,7 +211,7 @@ urlpatterns = patterns('',
     url(r'^edtrac/dash_violence/$', dash_violence, {}, name="emis-dash-violence"),
     url(r'^edtrac/dash_meals/$', dash_meals, {}, name="emis-dash-meals"),
     url(r'^edtrac/dash_meetings/$', dash_meetings, {}, name="emis-dash-meetings"),
-    url(r'^edtrac/dash_capitation/$', dash_capitation, {}, name="emis-dash-capitation"),
+
 
     # attendance views for all roles ---> data prepopulated by location
     url(r'^edtrac/dash/boys-p3/attendance/$', boys_p3_attendance, {}, name="boys-p3"),
@@ -244,7 +244,6 @@ urlpatterns = patterns('',
     url(r'^edtrac/dash_ministry_violence/$', dash_ministry_violence, {}, name="emis-ministry-dash-violence"),
     url(r'^edtrac/dash_ministry_meals/$', dash_ministry_meals, {}, name="emis-ministry-dash-meals"),
     url(r'^edtrac/dash_ministry_meetings/$', dash_ministry_meetings, {}, name="emis-ministry-dash-meetings"),
-    url(r'^edtrac/dash_ministry_capitation/$', dash_ministry_capitation, {}, name="emis-ministry-dash-capitation"),
     # to find out about the meals in a district
     url(r'^edtrac/meals/district/(?P<pk>\d+)/$', DistrictMealsDetails.as_view(template_name =\
     "education/dashboard/district_meal_detail.html"), name="district-meal"),
@@ -256,7 +255,6 @@ urlpatterns = patterns('',
     url(r'^edtrac/dash_deo_violence/$', dash_deo_violence, {}, name="emis-deo-dash-violence"),
     url(r'^edtrac/dash_deo_meals/$', dash_deo_meals, {}, name="emis-deo-dash-meals"),
     url(r'^edtrac/dash_deo_meetings/$', dash_deo_meetings, {}, name="emis-deo-dash-meetings"),
-    url(r'^edtrac/dash_deo_capitation/$', dash_deo_capitation, {}, name="emis-deo-dash-capitation"),
 
     #National statistics
     url(r'^edtrac/national-stats/$', NationalStatistics.as_view(), name="emis-national-stats"),

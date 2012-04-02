@@ -230,24 +230,6 @@ def dash_ministry_meetings(req):
 def dash_deo_meetings(req):
     return render_to_response('education/deo/meetings.html', {}, RequestContext(req))
 
-#BEGIN Capitation
-
-def dash_capitation(request):
-    #to_ret = YES, NO, I don't know
-    to_ret = zip(['Yes','No', "Unknown"],[30, 30, 40])
-    return render_to_response('education/dashboard/capitation.html', {'responses':to_ret}, RequestContext(request))
-
-def dash_ministry_capitation(req):
-    to_ret = zip(['Yes','No', "Unknown"],[30, 30, 40])
-    return render_to_response('education/dashboard/capitation.html', {'responses':to_ret}, RequestContext(req))
-
-def dash_deo_capitation(req):
-    to_ret = zip(['Yes','No', "Unknown"],[30, 30, 40])
-    return render_to_response('education/dashboard/capitation.html', {'responses':to_ret}, RequestContext(req))
-
-
-
-
 # Dashboard specific view functions
 
 @login_required
@@ -837,11 +819,20 @@ class CapitationGrants(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(CapitationGrants, self).get_context_data(**kwargs)
         cg = Poll.objects.get(name="edtrac_upe_grant")
-        authorized_users = ['Admin', 'Ministry Officials', 'UNICEF Officials']
 
-        if self.request.user.groups.values_list('name', flat=True)[0] in authorized_users:
+        # correspond with group names
+        authorized_users = ['Admins', 'Ministry Officials', 'UNICEF Officials']
 
-            context['authorized_user'] = true
+        authorized_user = False
+
+        for auth_user in authorized_users:
+            if self.request.user.get_profile().is_member_of(auth_user):
+                authorized_user = True
+                break
+
+        context['authorized_user'] = authorized_user
+
+        if authorized_user:
 
             head_teacher_count = EmisReporter.objects.filter(groups__name = "Head Teachers").exclude(schools=None).count()
             responses = cg.responses_by_category(location=Location.tree.root_nodes()[0])
@@ -894,8 +885,6 @@ class CapitationGrants(TemplateView):
         else:
 
             location = self.request.user.get_profile().location
-            context['authorized_user'] = False
-
             responses = cg.responses_by_category(
                 location = location,
                 for_map = False
