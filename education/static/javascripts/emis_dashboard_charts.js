@@ -116,6 +116,20 @@ function pie(data, chart_title, series_title, selector_id, tooltip_text, showLeg
         x = d[i].split('-');
         data_array.push([x[0], parseInt(x[1])]);
     }
+
+
+
+
+    Highcharts.theme = {
+      chart : {
+          backgroundColor: '#f3efff',
+          borderWidth: 0,
+          plotBackgroundColor: '#f8efff',
+          plotShadow:false,
+          plotBorderWidth: 0
+      }
+    };
+
     var chart;
 
     chart = new Highcharts.Chart({
@@ -280,3 +294,4 @@ function load_column(title, selector, yLabel, xLabel, category, data_list){
         ]
     });
 }
+

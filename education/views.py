@@ -837,7 +837,7 @@ class CapitationGrants(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(CapitationGrants, self).get_context_data(**kwargs)
         cg = Poll.objects.get(name="edtrac_upe_grant")
-        authorized_users = ['Admins', 'Ministry Officials', 'UNICEF Officials']
+        authorized_users = ['Admin', 'Ministry Officials', 'UNICEF Officials']
 
         if self.request.user.groups.values_list('name', flat=True)[0] in authorized_users:
 
