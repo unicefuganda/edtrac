@@ -117,6 +117,7 @@ function pie(data, chart_title, series_title, selector_id, tooltip_text, showLeg
         data_array.push([x[0], parseInt(x[1])]);
     }
     var chart;
+
     chart = new Highcharts.Chart({
         chart: {
             //renderTo: 'lunch',
