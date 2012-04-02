@@ -808,6 +808,7 @@ class CapitationGrants(TemplateView):
     template_name = 'education/admin/capitation_grants.html'
     #TODO include SMC replies to question on whether grant chat is displayed publicly in schools visited
 
+
     # handy function for % computation
     def compute_percent(self, x, y):
         try:
@@ -836,53 +837,90 @@ class CapitationGrants(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(CapitationGrants, self).get_context_data(**kwargs)
         cg = Poll.objects.get(name="edtrac_upe_grant")
-        head_teacher_count = EmisReporter.objects.filter(groups__name = "Head Teachers").exclude(schools=None).count()
-        responses = cg.responses_by_category(location=Location.tree.root_nodes()[0])
-        all_responses = cg.responses_by_category()
-        location_ids = Location.objects.filter(
-            type="district", pk__in = \
-                EmisReporter.objects.exclude(connection__in=Blacklist.objects.\
-                    values_list('connection', flat=True), schools=None).filter(groups__name="Head Teachers").\
-                    values_list('reporting_location__pk',flat=True)).values_list('id',flat=True)
+        authorized_users = ['Admins', 'Ministry Officials', 'UNICEF Officials']
 
-        locs = Location.objects.filter(id__in = location_ids)
+        if self.request.user.groups.values_list('name', flat=True)[0] in authorized_users:
 
-        districts_to_ret = []
-        for location in locs:
-            head_teacher_count = EmisReporter.objects.exclude(schools = None, connection__in =\
-                Blacklist.objects.values_list('connection', flat = True)).filter(reporting_location=location,
-                    groups__name = 'Head Teachers').count()
-            other_responses = list(cg.responses_by_category(location = location, for_map=False))
+            context['authorized_user'] = true
 
-            info = self.extract_info(other_responses)
+            head_teacher_count = EmisReporter.objects.filter(groups__name = "Head Teachers").exclude(schools=None).count()
+            responses = cg.responses_by_category(location=Location.tree.root_nodes()[0])
+            all_responses = cg.responses_by_category()
+            location_ids = Location.objects.filter(
+                type="district", pk__in = \
+                    EmisReporter.objects.exclude(connection__in=Blacklist.objects.\
+                        values_list('connection', flat=True), schools=None).filter(groups__name="Head Teachers").\
+                        values_list('reporting_location__pk',flat=True)).values_list('id',flat=True)
 
-            districts_to_ret.append(( location, info.items()))
+            locs = Location.objects.filter(id__in = location_ids)
+
+            districts_to_ret = []
+            for location in locs:
+                head_teacher_count = EmisReporter.objects.exclude(schools = None, connection__in =\
+                    Blacklist.objects.values_list('connection', flat = True)).filter(reporting_location=location,
+                        groups__name = 'Head Teachers').count()
+                other_responses = list(cg.responses_by_category(location = location, for_map=False))
+
+                info = self.extract_info(other_responses)
+
+                districts_to_ret.append(( location, info.items()))
 
 
-        context['capitation_location_data'] = responses
+            context['capitation_location_data'] = responses
 
-        try:
-            ht_no = (100 * all_responses.get(category__name = 'no').get('value')) / head_teacher_count
-        except ZeroDivisionError:
-            ht_no = 0
+            try:
+                ht_no = (100 * all_responses.get(category__name = 'no').get('value')) / head_teacher_count
+            except ZeroDivisionError:
+                ht_no = 0
 
-        try:
-            ht_unknown = (100 * all_responses.get(category__name = 'unknown').get('value')) / head_teacher_count
-        except ZeroDivisionError:
-            ht_unknown = 0
+            try:
+                ht_unknown = (100 * all_responses.get(category__name = 'unknown').get('value')) / head_teacher_count
+            except ZeroDivisionError:
+                ht_unknown = 0
 
-        try:
-            ht_yes = (100 * all_responses.get(category__name = 'yes').get('value')) / head_teacher_count
-        except ZeroDivisionError:
-            ht_yes = 0
+            try:
+                ht_yes = (100 * all_responses.get(category__name = 'yes').get('value')) / head_teacher_count
+            except ZeroDivisionError:
+                ht_yes = 0
 
-        context['national_responses'] = [('Yes', ht_yes), ('No', ht_no), ('unknown',ht_unknown)]
-        context['head_teacher_count'] = 100 * (head_teacher_count / EmisReporter.objects.exclude(schools=None,\
-            connection__in = Blacklist.objects.values_list('connection', flat=True)).count())
+            context['national_responses'] = [('Yes', ht_yes), ('No', ht_no), ('unknown',ht_unknown)]
+            context['head_teacher_count'] = 100 * (head_teacher_count / EmisReporter.objects.exclude(schools=None,\
+                connection__in = Blacklist.objects.values_list('connection', flat=True)).count())
 
-        context['districts'] = districts_to_ret
+            context['districts'] = districts_to_ret
 
-        return context
+            return context
+
+        else:
+
+            location = self.request.user.get_profile().location
+            context['authorized_user'] = False
+
+            responses = cg.responses_by_category(
+                location = location,
+                for_map = False
+            )
+            htc = EmisReporter.objects.exclude(schools = None, connection__in =\
+                    Blacklist.objects.values_list('connection', flat = True)).filter(groups__name = 'Head Teachers',\
+                    reporting_location = location).count()
+            try:
+
+                htc_p = (100 *  cg.responses.filter(contact__reporting_location = location, contact__connection__in =\
+                            EmisReporter.objects.exclude(schools = None, connection__id__in =\
+                                Blacklist.objects.values_list('connection', flat = True)).filter(groups__name = 'Head Teachers',\
+                                reporting_location = location).values_list('connection__id', flat=True)).count()) / htc
+
+            except ZeroDivisionError:
+                htc_p = 0
+
+            context['head_teacher_count'] = htc_p
+
+
+            info = self.extract_info(list(responses))
+            context['district'] = location
+            context['district_info'] = info.items()
+            return context
+
 
 # Details views... specified by ROLES
 class ViolenceAdminDetails(TemplateView):

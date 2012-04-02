@@ -9,7 +9,7 @@
 </div>
 <div class="general">
 
-
+{% if authorized_user %}
 <div id="capitation_container" style="margin-bottom: 20px;">
     <div class="stats"><h3>UPE Capitation Received on time across Uganda</h3></div>
     <div id="capitation">
@@ -58,6 +58,20 @@
     </div>
     </div>
 </div>
+
+{% else %}
+
+        <div id="capitation"></div>
+        <script type="text/javascript">
+            $(document).ready(function(){
+                pie('{{ district_info|reorganize_data|join:"," }}', "{{ district }}", "", "capitation", " responded", true);
+                $('#capitation').append("<div class='report-stickie'><span style='margin-top:10px;' class='alert-message'>Report based on {{ head_teacher_count|floatformat }}% of Total Reporters</span></div>");
+            });
+        </script>
+        {{ districts }}
+{% endif %}
+
+
 {% endblock %}
 
 {% block javascripts %}
