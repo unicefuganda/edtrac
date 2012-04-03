@@ -1447,23 +1447,15 @@ def boys_p6_attendance(req):
             RequestContext(req)
         )
 
-def boys_p6_attd_admin(req, **kwargs):
+def boys_p6_attd_admin(req, locations=None):
     """
     Helper function to get differences in absenteeism across districts for P6 boys.
     """
     # P6 attendance /// what to show an admin or Ministry official
-    locations = kwargs.get('locations')
-    to_ret = []
-    for school in schools:
-        temp = [school]
-        temp.extend(return_absent('edtrac_boysp6_attendance', 'edtrac_boysp6_enrollment', school = school))
-        to_ret.append(temp)
+    to_ret = return_absent('edtrac_boysp6_attendance', 'edtrac_boysp6_enrollment', locations=locations)
 
-    to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
-
-    return  render_to_response('education/partials/boys_p3_attendance.html',
-            {'week':datetime.datetime.now(), 'headings':['School', 'District', 'Number'], 'location_data': to_ret,
-            'location':location}, RequestContext(req))
+    return render_to_response('education/partials/boys_p6_attd_admin.html',
+            {'location_data':to_ret,'headings':HEADINGS,'week':datetime.datetime.now()}, RequestContext(req))
 
 def girls_p3_attendance(req):
     location = req.user.get_profile().location
