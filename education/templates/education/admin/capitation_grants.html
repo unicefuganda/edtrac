@@ -32,32 +32,40 @@
 
 <div class="districts-stats">
 <div class="stats"><h3>UPE Capitation Grants Received by District</h3></div>
-
+<div style="padding:10px;">
     <p>Click over a district to view</p>
-
-    <div class="districts">
-        {% paginate 2 districts %}
-        {% for district, responses in districts %}
-            <div id="capitation-{{ district.id }}"></div>
-            <script type="text/javascript">
-                $(document).ready(function(){
-                    pie('{{ responses|reorganize_data|join:"," }}', "{{ district }}", "",
-                            "capitation-{{ district.id }}", " responded", true);
-                });
-                </script>
-
-       {% endfor %}
-        <div style="text-align: center; padding:10px;">
-            <style>
-                span a{
-                    background-color: white;
-                }
-            </style>
-        {% show_pages %}
-        </div>
-    </div>
-    </div>
 </div>
+    <div id="placeholder" style="float:right; clear:both;"></div>
+    <table class="classy" style="width:200px;" border='1'>
+        <tr>
+            <th>District</th>
+            <th>Response Count</th>
+        </tr>
+        {% for district, responses in districts %}
+        <tr>
+            <td><a href="" id="response-{{district.id}}">{{ district }}</a></td>
+            <td>
+                <table>
+
+                    {% for x,y in responses %}
+                        <tr><td>{{ x }}</td><td>{{ y|floatformat }}</td></tr>
+                    {% endfor %}
+                </table>
+            </td>
+        </tr>
+        <script type="text/javascript">
+            $(document).ready(function(){
+                $('a#response-{{ district.id }}').click(
+                        function(event){
+                            $('#placeholder').fadeIn('slow');
+                            pie('{{ responses|reorganize_data|join:"," }}', "{{ district }}", "", "placeholder", " responded", true);
+                            event.preventDefault();
+                        });
+            });
+        </script>
+        {% endfor %}
+    </table>
+
 
 {% else %}
 

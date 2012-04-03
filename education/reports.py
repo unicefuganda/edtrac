@@ -567,58 +567,77 @@ def get_month_day_range(date, **kwargs):
         return to_ret
 
 
-def set_thur_wed_range(day):
+def set_thur_wed_range(thursday):
     """
     Function that sets today { a thursday } range
     """
-    THURSDAY = 3
-    year = day.year
-    day = day.day
+    # thursday to wednesday
+    # however we want to change the weeknumber a bit to get a `new` thursday
+    # move thursday to last week
+    thursday = thursday - datetime.timedelta(days = 7)
 
-    new_date = datetime.datetime(year, THURSDAY, day)
-    to_ret_week = [new_date-datetime.timedelta(days=7), new_date-datetime.timedelta(days=1)]
+    to_ret_week = [thursday, thursday+datetime.timedelta(days=6)]
     return to_ret_week
 
+
 def get_day_range(today):
-    # Day range when a Thursday range is expected
-    #refactor
-    if today.weekday() == 3:
+
+    #how many days is it to this Thursday
+    if today.weekday() >= 3:
+        # offest today by a week from this Thursday
+        today = (today - datetime.timedelta(days = today.weekday() - 3 )) + datetime.timedelta(days = 7)
         return set_thur_wed_range(today)
+
     else:
-        # reduce week number
-        index = 0
-        while index <= 6:
-            day = today - datetime.timedelta(days=index)
-            if day.weekday() == 3:
-                break
-            index += 1
-        return set_thur_wed_range(day)
+        # if day is a little earlier in the week
+        new_date = today + datetime.timedelta(days = 3 - today.weekday())
+        return set_thur_wed_range(new_date)
 
 
-def get_week_days(year, week):
-    #TODO -> get a datetime instance and call the .isocalendar() method (preferably the 1st element in the list)
-    d = date(year, 1, 1)
-    if d.weekday() > 3:
-        d = d + timedelta(7 - d.weekday())
+#def get_week_days(year, week):
+#    #TODO -> get a datetime instance and call the .isocalendar() method (preferably the 1st element in the list)
+#    # implicitly set month?
+#    return [
+#        get_day_range(curr_week),
+#        get_day_range(prev_week)
+#    ]
+
+
+def get_week_date(depth=None):
+    """
+    get_week_date returns a range of weekly dates from today. When a `depth` is password, it can back trace
+    dates to get ranges that can be drilled down through the year
+    """
+    now = datetime.datetime.now()
+
+    if depth:
+        """
+        Suppose you want a depth of 3 weeks worth of day
+        """
+
+        passing_date = None
+
+        if now.weekday() >= 3:
+            passing_date = now - datetime.timedelta(days = now.weekday() - 3)
+        else:
+            passing_date = now + datetime.timedelta(days = 3 - now.weekday())
+
+        date_collection = []
+
+        passing_date = passing_date - datetime.timedelta(days = 7) # go back a week earlier
+
+        try:
+            for wk in range(depth):
+                date_collection.append(
+                    passing_date - datetime.timedelta(days = wk * 7 )
+                )
+
+            to_ret = map(get_day_range, date_collection)
+            return to_ret
+        except NoneTypeError:
+            print "error"
     else:
-        d = d - timedelta(d.weekday())
-    dlt = timedelta(days = (week - 1) * 7)
-    return [
-        get_day_range(d + dlt),
-        get_day_range(d + dlt + timedelta(days=6))
-    ]
-
-
-def get_week_date(number=None):
-    #TODO: scope out how well to get ``number`` generic
-    #FIXTHIS
-    if number:
-        now = datetime.datetime.now()
-        return get_week_days(
-            now.year,
-            now.isocalendar()[1]
-        )
-    return
+        return get_day_range(now)
 
 
 def get_numeric_report_data(poll_name, location=None, time_range=None, to_ret=None, **kwargs):
@@ -807,7 +826,7 @@ def poll_response_sum(poll_name, **kwargs):
 
         #date_week = [datetime.datetime.now()-datetime.timedelta(days=7), datetime.datetime.now()]
 
-        date_week = get_week_date(number=1)[0]
+        date_week = get_week_date(depth = 1)[0]
         if kwargs.get('month_filter')=='weekly' and kwargs.has_key('location'):
             # return just one figure/sum without all the list stuff
             return get_numeric_report_data(
@@ -884,15 +903,19 @@ def poll_responses_past_week_sum(poll_name, **kwargs):
         >>> #returns poll for current week
         >>> poll_response_past_week_sum(Poll.objects.get(name="edtrac_boysp3_attendance"))
         >>> (23,6)
-
-        >>>> # this returns sums of responses for a number of weeks while returning them as ranges
+        ###############################################################################################################
+        # This returns sums of responses for a number of weeks while returning them as ranges
+        # NOTE: if you are looking to getting data that reflects 2 different weeks, then you have to set it up as 2
+        ###############################################################################################################
         >>> poll_responses_past_week_sum(Poll.objects.get(name="edtrac_boysp3_attendance"),
-        .... location="Kampala", weeks=1)
+        .... location="Kampala", weeks = 2)
+
+
         >>> (34, 23)
     """
 
     if kwargs:
-        first_quota, second_quota = get_week_date(number=kwargs.get('weeks'))
+        first_quota, second_quota = get_week_date(depth=kwargs.get('weeks'))
         #narrowing to location
         if kwargs.has_key('locations'):
             # week_before would refer to the week before week that passed
@@ -914,7 +937,7 @@ def poll_responses_past_week_sum(poll_name, **kwargs):
 
     else:
         # getting country wide statistics
-        first_quota, second_quota = get_week_date(number=1) # default week range to 1
+        first_quota, second_quota = get_week_date(depth = 1) # default week range to 1
         sum_of_poll_responses_week_before = get_numeric_report_data(poll_name, time_range=first_quota, to_ret = 'sum')
         sum_of_poll_responses_past_week = get_numeric_report_data(poll_name, time_range=second_quota, to_ret = 'sum')
         return sum_of_poll_responses_past_week, sum_of_poll_responses_week_before
@@ -959,7 +982,7 @@ def curriculum_progress_list(poll_name, **kwargs):
                 poll_name,
                 to_ret = 'q',
                 location=kwarg.get('location'),
-                time_range=get_week_date(number=1)
+                time_range=get_week_date(depth = 1)
             ))
     else:
         x = list(get_numeric_report_data(poll_name, to_ret = 'q').values_list('value_float', flat=True))
@@ -1011,16 +1034,16 @@ def generate_deo_report(location_name = None):
 
 
     attendance_boysp3_past_week, attendance_boysp3_week_before = get_sum_of_poll_response_past_week(Poll.objects.get(name=\
-    "edtrac_boysp3_attendance"), location_name = location_name, weeks=1)
+    "edtrac_boysp3_attendance"), location_name = location_name, weeks=2)
 
     attendance_boysp6_past_week, attendance_boysp6_week_before = get_sum_of_poll_response_past_week(Poll.objects.get(name=\
-    "edtrac_boysp6_attendance"), location_name = location_name, weeks=1)
+    "edtrac_boysp6_attendance"), location_name = location_name, weeks=2)
 
     attendance_girlsp3_past_week, attendance_girlsp3_week_before = get_sum_of_poll_response_past_week(Poll.objects.get(name=\
-    "edtrac_girlsp3_attendance"), location_name = location_name, weeks=1)
+    "edtrac_girlsp3_attendance"), location_name = location_name, weeks=2)
 
     attendance_girlsp6_past_week, attendance_girlsp6_week_before = get_sum_of_poll_response_past_week(Poll.objects.get(name=\
-    "edtrac_girlsp6_attendance"), location_name = location_name, weeks=1)
+    "edtrac_girlsp6_attendance"), location_name = location_name, weeks=2)
 
 
 
@@ -1101,13 +1124,12 @@ def return_absent(poll_name, enrollment, locations=None, school=None):
     Value returned:
             [<location>, <some_value1>, <some_value2>, <some_difference>]
     """
-
     to_ret = []
     if locations:
         for loc in locations:
             pre_ret = []
             pre_ret.append(loc)
-            now, before = poll_responses_past_week_sum(poll_name, weeks=1, locations=[loc])
+            now, before = poll_responses_past_week_sum(poll_name, weeks=2, locations=[loc])
             current_enrollment = poll_responses_term(enrollment, locations=[loc], belongs_to="location")
             # computing absenteism
             try:
@@ -1135,8 +1157,8 @@ def return_absent(poll_name, enrollment, locations=None, school=None):
         return to_ret
 
     if school:
-        now, before = poll_responses_past_week_sum(poll_name, weeks=1, school=school)
-        current_enrollment = poll_responses_term(poll_name, school=school, belongs_to='schools')
+        now, before = poll_responses_past_week_sum(poll_name, weeks=2, school=school)
+        current_enrollment = poll_responses_term(enrollment, school=school, belongs_to='schools')
         try:
             now_percentage = 100 * (current_enrollment - now) / current_enrollment
         except exceptions.ZeroDivisionError:
@@ -1151,9 +1173,7 @@ def return_absent(poll_name, enrollment, locations=None, school=None):
             diff = now_percentage - before_percentage
         except TypeError:
             diff = '--'
-        return [
-            now_percentage, before_percentage, diff, "%s, %s, %s" % (current_enrollment, now, before)
-        ]
+        return [now_percentage, before_percentage, diff]
 
 #### Excel reporting
 

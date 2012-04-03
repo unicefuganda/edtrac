@@ -189,6 +189,12 @@ def dash_ministry_progress(request):
 
 def dash_admin_progress(req):
     c_list = list(curriculum_progress_list("edtrac_p3curriculum_progress"))
+
+    on_schedule = 'green'
+    behind_schedule = 'orange'
+    way_behind_schedule = 'red'
+
+
     mode = curriculum_progress_mode(c_list)
 
     return render_to_response('education/progress/admin_progress_details.html', {'mode':curriculum_progress_mode(c_list)}, RequestContext(req))
@@ -271,7 +277,7 @@ def generate_dashboard_vars(location=None):
         violence_change_data = "data-white"
 
     # CSS class (dynamic icon)
-    x, y = poll_responses_past_week_sum("edtrac_boysp3_attendance", locations=locations, weeks=1)
+    x, y = poll_responses_past_week_sum("edtrac_boysp3_attendance", locations=locations, weeks=2)
     enrol = poll_responses_term("edtrac_boysp3_enrollment", belongs_to="location", locations=locations)
     try:
         boysp3 = 100*(enrol - x ) / enrol
@@ -296,7 +302,7 @@ def generate_dashboard_vars(location=None):
         boysp3_class = 'zero'
         boysp3_data = 'data-white'
 
-    x, y  = poll_responses_past_week_sum("edtrac_boysp6_attendance", locations=locations, weeks=1)
+    x, y  = poll_responses_past_week_sum("edtrac_boysp6_attendance", locations=locations, weeks=2)
     enrol = poll_responses_term("edtrac_boysp6_enrollment", belongs_to="location", locations=locations)
     try:
         boysp6 = 100*(enrol - x ) / enrol
@@ -320,7 +326,7 @@ def generate_dashboard_vars(location=None):
         boysp6_class = 'zero'
         boysp6_data = 'data-white'
 
-    x, y = poll_responses_past_week_sum("edtrac_girlsp3_attendance",locations=locations, weeks=1)
+    x, y = poll_responses_past_week_sum("edtrac_girlsp3_attendance",locations=locations, weeks=2)
     enrol = poll_responses_term("edtrac_girlsp3_enrollment", belongs_to="location", locations=locations)
     try:
         girlsp3 = 100*(enrol - x ) / enrol
@@ -344,7 +350,7 @@ def generate_dashboard_vars(location=None):
         girlsp3_class = "zero"
         girlsp3_data = 'data-white'
 
-    x, y = poll_responses_past_week_sum("edtrac_girlsp6_attendance", locations=locations, weeks=1)
+    x, y = poll_responses_past_week_sum("edtrac_girlsp6_attendance", locations=locations, weeks=2)
     enrol = poll_responses_term("edtrac_girlsp6_enrollment", belongs_to="location", locations=locations)
 
     try:
@@ -370,7 +376,7 @@ def generate_dashboard_vars(location=None):
         girlsp6_data = 'data-white'
         girlsp6_class = "zero"
 
-    x, y = poll_responses_past_week_sum("edtrac_f_teachers_attendance",locations=locations, weeks=1)
+    x, y = poll_responses_past_week_sum("edtrac_f_teachers_attendance",locations=locations, weeks=2)
     deploy = poll_responses_term("edtrac_f_teachers_deployment", belongs_to="location", locations=locations)
     try:
         female_teachers = 100*(deploy - x ) / deploy
@@ -394,7 +400,7 @@ def generate_dashboard_vars(location=None):
         female_teachers_data = "data-white"
         female_teachers_class = "zero"
 
-    x, y = poll_responses_past_week_sum("edtrac_m_teachers_attendance", weeks=1, locations=locations)
+    x, y = poll_responses_past_week_sum("edtrac_m_teachers_attendance", weeks = 2, locations=locations)
     deploy = poll_responses_term("edtrac_m_teachers_deployment", belongs_to="location", locations=locations)
     try:
         male_teachers = 100*(deploy - x ) / deploy
@@ -464,7 +470,7 @@ def generate_dashboard_vars(location=None):
 
 
 
-    d1, d2 = get_week_date(number = 1)
+    d1, d2 = get_week_date(depth = 2)
     resp_d1_female = Poll.objects.get(name="edtrac_head_teachers_attendance").responses_by_category().filter(
         response__contact__in = EmisReporter.objects.filter(reporting_location__in = locations, schools__pk__in=\
         female_head_teachers.values_list('schools__pk', flat=True)),
@@ -572,7 +578,7 @@ def generate_dashboard_vars(location=None):
         school_reporters = EmisReporter.objects.filter(
             reporting_location__in = locations,
             groups__name__in=["Head Teachers", "Teachers"], connection__in=Message.objects.\
-            filter(date__range = get_week_date(number=1)[1]).values_list('connection', flat = True)).\
+            filter(date__range = get_week_date(depth = 2)[1]).values_list('connection', flat = True)).\
             exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
         school_active = (100 * School.objects.filter(pk__in = school_reporters.values_list('schools__pk', flat=True)).\
             count()) / school_to_date
@@ -725,7 +731,7 @@ class NationalStatistics(TemplateView):
             # getting weekly system usage
             # reporters that sent messages in the past week.
             reps = EmisReporter.objects.filter(groups__name="Head Teachers", connection__in=Message.objects.\
-                filter(date__range = get_week_date(number=1)[1]).values_list('connection', flat = True)).\
+                filter(date__range = get_week_date(depth = 2)[1]).values_list('connection', flat = True)).\
                 exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
 
             district_active = [
@@ -766,7 +772,7 @@ class NationalStatistics(TemplateView):
             context['expected_reporters'] = len(schools) * 4
             # reporters that used EduTrac the past week
             school_reporters = EmisReporter.objects.filter(groups__name__in=["Head Teachers", "Teachers"], connection__in=Message.objects.\
-                filter(date__range = get_week_date(number=1)[1]).values_list('connection', flat = True)).\
+                filter(date__range = get_week_date(depth = 2)[1]).values_list('connection', flat = True)).\
                 exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
 
             school_active = [
@@ -1051,20 +1057,6 @@ def search_form(req):
         {'form': searchform},
         RequestContext(req)
     )
-#    query = req.POST[u'query']
-#    split_query = re.split(ur'(?u)\W', query)
-#    while u'' in split_query:
-#        split_query.remove(u'')
-#    results = []
-#    for word in split_query:
-#        for district in Location.objects.filter(type="district", name__icontains=word):
-#            if re.match(ur'(?ui)\b' + word + ur'\b'):
-#                entry = {
-#                    u'id':district.id,
-#                    u'name':district.name
-#                }
-#            if not entry in results:
-#                results.append(entry)
 
 class ProgressAdminDetails(TemplateView):
     template_name = "education/admin/admin_progress_details.html"
@@ -1148,69 +1140,6 @@ def control_panel(req):
     return render_to_response('education/partials/control_panel.html', {}, RequestContext(req))
 
 
-
-#District violence details (TODO: permission/rolebased viewing)
-class DistrictViolenceDetails(DetailView):
-    context_object_name = "district_violence"
-    model = Location
-
-    def get_context_data(self, **kwargs):
-        context = super(DistrictViolenceDetails, self).get_context_data(**kwargs)
-        location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk'))) or self.request.user.get_profile().location
-        schools = School.objects.filter(location=location)
-        school_case = []
-        for school in schools:
-            # optimize with value queries
-            school_case.append((school,
-                            poll_response_sum('edtrac_headteachers_abuse', school=school, time_range=get_month_day_range(datetime.datetime.now()))))
-
-        #schools and reports from a district
-
-        #reports = poll_response_sum("edtrac_headteachers_abuse", month_filter=True, months=1)
-        emis_reporters = EmisReporter.objects.exclude(connection__in=\
-            Blacklist.objects.values_list('connection')).filter(schools__in=schools)
-
-        context['location'] = location
-        context['school_vals'] = school_case
-#        context['school_count'] = School.objects.filter(location__in=EmisReporter.objects.exclude(connection__in=Blacklist.objects.values_list('connection').\
-#            values_list('reporting_location'))).count()
-        context['month'] = datetime.datetime.now()
-        return context
-
-class DistrictViolenceCommunityDetails(DetailView):
-    context_object_name = "district_violence"
-    model = Location
-
-    def get_context_data(self, **kwargs):
-        context = super(DistrictViolenceCommunityDetails, self).get_context_data(**kwargs)
-        location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk'))) or self.request.user.get_profile().location
-        #schools and reports from a district
-
-        #reports = poll_response_sum("edtrac_headteachers_abuse", month_filter=True, months=1)
-        emis_reporters = EmisReporter.objects.filter(groups__name="GEM", connection__in =\
-            Poll.objects.get(name="edtrac_gem_abuse").responses.values_list('contact__connection',flat=True))
-#
-#        Blacklist.objects.\
-#                values_list('connection', flat=True)).filter(reporting_location=location, groups__name="GEM")
-        context['location'] = location
-        context['reporters'] = emis_reporters
-        #        context['school_count'] = School.objects.filter(location__in=EmisReporter.objects.exclude(connection__in=Blacklist.objects.values_list('connection').\
-        #            values_list('reporting_location'))).count()
-        context['month'] = datetime.datetime.now()
-        return context
-
-
-# Progress happening in a district
-class DistrictProgressDetails(DetailView):
-    context_object_name = "district_progress"
-    model = Location
-    #TODO provide filters
-    def get_context_data(self, **kwargs):
-        context = super(DistrictProgressDetails, self).get_context_data(**kwargs)
-        location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk')))
-        context['location'] = location
-        return context
-
 # Meals being had at a district
 class DistrictMealsDetails(DetailView):
     context_object_name = "district_meals"
@@ -1229,7 +1158,7 @@ class DistrictMealsDetails(DetailView):
 ##########################################################################################################
 ##########################################################################################################
 
-HEADINGS = ['Location', 'Absent (%) This week', 'Absent (%) Last week', 'Change (%) for absenteeism from last week']
+HEADINGS = ['District', 'Absent (%) This week', 'Absent (%) Last week', 'Change (%) for absenteeism from last week']
 
 @login_required
 def boysp3_district_attd_detail(req, location_id):
@@ -1240,7 +1169,6 @@ def boysp3_district_attd_detail(req, location_id):
     schools = School.objects.filter(location=location)
     to_ret = []
     for school in schools:
-        #import pdb; pdb.set_trace()
         temp = [school]
         temp.extend(
             return_absent(
@@ -1249,11 +1177,12 @@ def boysp3_district_attd_detail(req, location_id):
         )
 
         to_ret.append(temp)
+    to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
+
     return render_to_response("education/boysp3_district_attd_detail.html", { 'location':location,\
-                                        'location_data':to_ret,\
-                                        'week':datetime.datetime.now(),\
-                                        'headings' : ['School', 'Current Week (%)', 'Week before (%)', 'Percentage change', 'Enrolled']
-                                        }, RequestContext(req))
+        'location_data':to_ret,
+        'week':datetime.datetime.now(),
+        'headings' : ['School', 'Current Week (%)', 'Week before (%)', 'Percentage change']}, RequestContext(req))
 
 @login_required
 def boysp6_district_attd_detail(req, location_id):
@@ -1264,12 +1193,16 @@ def boysp6_district_attd_detail(req, location_id):
     schools = School.objects.filter(location=location)
     to_ret = []
     for school in schools:
-        to_ret.append((
-            school, poll_response_sum("edtrac_boysp6_attendance", month_filter='weekly',school=school)
-            ))
+        temp = [school]
+        temp.extend(return_absent('edtrac_boysp6_attendance', 'edtrac_boysp6_enrollment', school = school))
+        to_ret.append(temp)
+
+    to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
+
+
     return render_to_response("education/boysp6_district_attd_detail.html", { 'week':datetime.datetime.now(),\
         'location':location,\
-        'headings':['School','Number'],\
+        'headings' : ['School', 'Current Week (%)', 'Week before (%)', 'Percentage change'],
         'location_data':to_ret },\
         RequestContext(req))
 
@@ -1279,30 +1212,41 @@ def girlsp3_district_attd_detail(req, location_id):
     """
     This gets the details about schools in a district, the people in attedance, etc.
     """
-    location = Location.objects.exclude(type="country").filter(type="district").get(id=location_id)
+    location = Location.objects.exclude(type="country").filter(type='district').get(id = location_id)
     schools = School.objects.filter(location=location)
     to_ret = []
     for school in schools:
-        to_ret.append((
-            school, poll_response_sum("edtrac_girlsp3_attendance", month_filter='weekly', school=school)
-            ))
-    return render_to_response("education/girlsp3_district_attd_detail.html", { 'location_data':to_ret,\
-                                                                               'headings':['School', "Number"],\
-                                                                               'location':location}, RequestContext(req))
+        temp = [school]
+        temp.extend(return_absent('edtrac_girlsp3_attendance', 'edtrac_girlsp3_enrollment', school = school))
+        to_ret.append(temp)
+
+    to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
+
+    return render_to_response("education/girlsp3_district_attd_detail.html", { 'week':datetime.datetime.now(),\
+        'location_data':to_ret,
+        'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
+        'location':location}, RequestContext(req))
 
 @login_required
 def girlsp6_district_attd_detail(req, location_id):
     """
     This gets the details about schools in a district, the people in attedance, etc.
     """
-    location = Location.objects.exclude(type="country").filter(type="district").get(id=location_id)
+    location = Location.objects.exclude(type="country").filter(type='district').get(id = location_id)
     schools = School.objects.filter(location=location)
     to_ret = []
     for school in schools:
-        to_ret.append((
-            school, poll_response_sum("edtrac_girlsp6_attendance", month_filter='weekly',school=school)
-            ))
-    return render_to_response("education/girlsp6_district_attd_detail.html", { 'location_data':to_ret }, RequestContext(req))
+        temp = [school]
+        temp.extend(return_absent('edtrac_girlsp3_attendance', 'edtrac_girlsp3_enrollment', school = school))
+        to_ret.append(temp)
+
+    to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
+
+    return render_to_response("education/girlsp6_district_attd_detail.html",
+            { 'week':datetime.datetime.now(),\
+               'location_data':to_ret,
+               'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
+               'location':location}, RequestContext(req))
 
 
 @login_required
@@ -1310,32 +1254,46 @@ def female_t_district_attd_detail(req, location_id):
     """
     This gets the details about schools in a district, the people in attedance, etc.
     """
-    location = Location.objects.exclude(type="country").filter(type="district").get(id=location_id)
+    location = Location.objects.exclude(type="country").filter(type='district').get(id = location_id)
     schools = School.objects.filter(location=location)
     to_ret = []
     for school in schools:
-        to_ret.append((
-            school, poll_response_sum('edtrac_boysp3_attendance', month_filter='weekly',school=school)
-            ))
-    return render_to_response("education/female_t_district_attd_detail.html", { 'location_data':to_ret }, RequestContext(req))
+        temp = [school]
+        temp.extend(return_absent('edtrac_f_teachers_attendance', 'edtrac_f_teachers_deployment', school = school))
+        to_ret.append(temp)
+
+    to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
+
+    return render_to_response("education/female_t_district_attd_detail.html",
+            { 'week':datetime.datetime.now(),\
+              'location_data':to_ret,
+              'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
+              'location':location}, RequestContext(req))
 
 @login_required
 def male_t_district_attd_detail(req, location_id):
     """
     This gets the details about schools in a district, the people in attedance, etc.
     """
-    location = Location.objects.exclude(type="country").filter(type="district").get(id=location_id)
+    location = Location.objects.exclude(type="country").filter(type='district').get(id = location_id)
     schools = School.objects.filter(location=location)
     to_ret = []
     for school in schools:
-        to_ret.append((
-            school, poll_response_sum("edtrac_boysp3_attendance", month_filter='weekly',school=school)
-            ))
-    return render_to_response("education/male_t_district_attd_detail.html", { 'location_data':to_ret }, RequestContext(req))
+        temp = [school]
+        temp.extend(return_absent('edtrac_m_teachers_attendance', 'edtrac_m_teachers_deployment', school = school))
+        to_ret.append(temp)
+
+    to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
+
+    return render_to_response("education/female_t_district_attd_detail.html",
+            { 'week':datetime.datetime.now(),\
+              'location_data':to_ret,
+              'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
+              'location':location}, RequestContext(req))
 
 def boys_p3_attendance(req):
-    location = req.user.get_profile().location
     profile = req.user.get_profile()
+    location = profile.location
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
         """
         This view shows data by district
@@ -1348,23 +1306,22 @@ def boys_p3_attendance(req):
     else:
         #DEO
         schools = School.objects.filter(location=location)
-        data_to_render = []
+
+        to_ret = []
         for school in schools:
-            data = poll_response_sum("edtrac_boysp3_attendance", month_filter='weekly', school=school)
-            data_to_render.append(
-                [
-                    school,
-                    school.location,
-                    data
-                ]
-            )
+            temp = [school]
+            temp.extend(return_absent('edtrac_boysp3_attendance', 'edtrac_boysp3_enrollment', school = school))
+            to_ret.append(temp)
+
+        to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
 
         return  render_to_response(
             'education/partials/boys_p3_attendance.html',
             {
                 'week':datetime.datetime.now(),
-                'headings':['School', 'District', 'Number'],
-                'location_data': data_to_render
+                'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
+                'location_data': to_ret,
+                'location':location
             },
             RequestContext(req))
 
@@ -1385,8 +1342,8 @@ def boys_p3_attd_admin(req, **kwargs):
 
 
 def boys_p6_attendance(req):
-    location = req.user.get_profile().location
     profile = req.user.get_profile()
+    location = profile.location
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
         locations = Location.objects.exclude(type="country").filter(type="district", name__in=\
             EmisReporter.objects.values_list('reporting_location__name', flat=True)).distinct().order_by("name")
@@ -1394,23 +1351,21 @@ def boys_p6_attendance(req):
     else:
         #DEO
         schools = School.objects.filter(location=location)
-        data_to_render = []
+        to_ret = []
         for school in schools:
-            data = poll_response_sum("edtrac_boysp6_attendance", month_filter='weekly', school=school)
-            data_to_render.append(
-                [
-                    school,
-                    school.location,
-                    data
-                ]
-            )
+            temp = [school]
+            temp.extend(return_absent('edtrac_boysp6_attendance', 'edtrac_boysp6_enrollment', school = school))
+            to_ret.append(temp)
+
+        to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
 
         return  render_to_response(
             'education/partials/boys_p6_attendance.html',
                 {
                 'week':datetime.datetime.now(),
-                'headings':['School', 'District', 'Number'],
-                'location_data': data_to_render
+                'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
+                'location_data': to_ret,
+                'location' : location
             },
             RequestContext(req)
         )
@@ -1421,14 +1376,17 @@ def boys_p6_attd_admin(req, **kwargs):
     """
     # P6 attendance /// what to show an admin or Ministry official
     locations = kwargs.get('locations')
-    to_ret = return_absent('edtrac_boysp6_attendance', 'edtrac_boysp6_enrollment', locations)
-    
-    return render_to_response(
-        'education/partials/boys_p6_attd_admin.html',
-        {'location_data':to_ret,
-            'headings': HEADINGS,
-            'week':datetime.datetime.now()}, RequestContext(req))            
+    to_ret = []
+    for school in schools:
+        temp = [school]
+        temp.extend(return_absent('edtrac_boysp6_attendance', 'edtrac_boysp6_enrollment', school = school))
+        to_ret.append(temp)
 
+    to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
+
+    return  render_to_response('education/partials/boys_p3_attendance.html',
+            {'week':datetime.datetime.now(), 'headings':['School', 'District', 'Number'], 'location_data': to_ret,
+            'location':location}, RequestContext(req))
 
 def girls_p3_attendance(req):
     location = req.user.get_profile().location
@@ -1440,15 +1398,23 @@ def girls_p3_attendance(req):
     else:
         #DEO
         schools = School.objects.filter(location=location)
-        data_to_render = []
+        to_ret = []
         for school in schools:
-            data = poll_response_sum("edtrac_girlsp3_attendance", month_filter='weekly', school=school)
-            data_to_render.append([school, school.location, data])
+            temp = [school]
+            temp.extend(return_absent('edtrac_girlsp3_attendance', 'edtrac_girlsp3_enrollment', school = school))
+            to_ret.append(temp)
 
-        return render_to_response('education/partials/girls_p3_attendance.html',{
-                                        'week':datetime.datetime.now(),
-                                        'headings':['School', 'District', 'Number'],
-                                        'location_data': data_to_render}, RequestContext(req))
+        to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
+
+        return  render_to_response(
+            'education/partials/girls_p3_attendance.html',
+                {
+                'week':datetime.datetime.now(),
+                'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
+                'location_data': to_ret,
+                'location' : location
+            },
+            RequestContext(req))
 
 def girls_p3_attd_admin(req, locations=None):
     """
@@ -1467,17 +1433,26 @@ def girls_p6_attendance(req):
             EmisReporter.objects.values_list('reporting_location__name', flat=True)).distinct().order_by("name")
         return girls_p6_attd_admin(req, locations=locations)
     else:
+
         #DEO
         schools = School.objects.filter(location=location)
-        data_to_render = []
+        to_ret = []
         for school in schools:
-            data = poll_response_sum("edtrac_girlsp6_attendance", month_filter='weekly', school=school)
-            data_to_render.append([school, school.location, data])
-        return render_to_response(
+            temp = [school]
+            temp.extend(return_absent('edtrac_girlsp6_attendance', 'edtrac_girlsp6_enrollment', school = school))
+            to_ret.append(temp)
+
+        to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
+
+        return  render_to_response(
             'education/partials/girls_p6_attendance.html',
-                {'week':datetime.datetime.now(),
-                'headings':['School', 'District', 'Number'],
-                'location_data': data_to_render}, RequestContext(req))
+                {
+                'week':datetime.datetime.now(),
+                'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
+                'location_data': to_ret,
+                'location' : location
+            },
+            RequestContext(req))
 
 def girls_p6_attd_admin(req, locations=None):
     """
@@ -1497,20 +1472,23 @@ def female_teacher_attendance(req):
     else:
         #DEO
         schools = School.objects.filter(location=location)
-
-        data_to_render = []
+        to_ret = []
         for school in schools:
-            data = poll_response_sum("edtrac_f_teachers_attendance" , month_filter='weekly', school=school)
-            data_to_render.append([school, school.location, data])
-        return render_to_response(
+            temp = [school]
+            temp.extend(return_absent('edtrac_f_teachers_attendance', 'edtrac_f_teachers_deployment', school = school))
+            to_ret.append(temp)
+
+        to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
+
+        return  render_to_response(
             'education/partials/female_teachers_attendance.html',
                 {
                 'week':datetime.datetime.now(),
-                'headings':['School', 'District', 'Number'],
-                'location_data': data_to_render
+                'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
+                'location_data': to_ret,
+                'location' : location
             },
-            RequestContext(req)
-        )
+            RequestContext(req))
 
 def female_teacher_attd_admin(req, locations=None):
     """
@@ -1532,20 +1510,23 @@ def male_teacher_attendance(req):
     else:
         #DEO
         schools = School.objects.filter(location=location)
-
-        data_to_render = []
+        to_ret = []
         for school in schools:
-            data = poll_response_sum("edtrac_m_teachers_attendance", month_filter='weekly', school=school)
-            data_to_render.append([school, school.location, data])
-        return render_to_response(
+            temp = [school]
+            temp.extend(return_absent('edtrac_m_teachers_attendance', 'edtrac_m_teachers_deployment', school = school))
+            to_ret.append(temp)
+
+        to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
+
+        return  render_to_response(
             'education/partials/male_teachers_attendance.html',
                 {
                 'week':datetime.datetime.now(),
-                'headings':['School', 'Location', 'Number'],
-                'location_data': data_to_render
+                'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
+                'location_data': to_ret,
+                'location' : location
             },
-            RequestContext(req)
-        )
+            RequestContext(req))
 
 def male_teacher_attd_admin(req, locations=None):
     """

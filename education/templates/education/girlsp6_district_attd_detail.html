@@ -5,7 +5,7 @@
     <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">← Back to the EduTrac Home Page</a></p>
 </div>
 <div class="attendance">
-    <h2 class="block-header">Absenteeism of P6 Girls by {{ location }} (week: {{ week|date:"D d M Y" }})</h2>
+    <h2 class="block-header">Absenteeism of P6 Girls for {{ location }} (week: {{ week|date:"D d M Y" }})</h2>
 
     <div class="top">
         {% paginate location_data %}
@@ -19,10 +19,40 @@
 
             </thead>
             <tbody>
-            {% for school, value in location_data %}
+            {% for school, current_week, week_before, diff in location_data %}
             <tr>
-                <td><a href="{% url school-detail school.id %}">{{ school }}</a></td>
-                <td>{{ value }}</td>
+                <td><a href="{% url school-detail school.id %}">{{ school.name }}</a></td>
+                <td>
+                    {% if current_week == '--' %}
+                    {{ current_week }}
+                    {% else %}
+                    {{ current_week|floatformat }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if week_before == '--' %}
+                    {{ week_before }}
+                    {% else %}
+                    {{ week_before|floatformat }}
+                    {% endif %}
+                </td>
+                {% if diff == '--' %}
+                <td></td>
+                {% else %}
+                <td class="
+                    {% if diff > 0.0 %}
+                        positive
+                    {% endif %}
+
+                    {% if diff < 0.0 %}
+                        negative
+                    {% endif %}
+
+                    {% if diff == 0.0 %}
+                        zero
+                    {% endif %}">
+                    {{ diff|floatformat }}</td>
+                {% endif %}
             </tr>
             {% endfor %}
             </tbody>
@@ -33,16 +63,5 @@
     </div>
 
 </div>
-<!--
-<script>
-    $(function(){
-        $(".tabulated-data").tablesorter({sortList: [
-            [0,0],
-            [1,0]
-        ]});
-    });
-</script>
--->
-
 
 {% endblock %}
