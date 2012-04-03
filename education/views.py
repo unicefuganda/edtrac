@@ -1057,6 +1057,20 @@ def search_form(req):
         {'form': searchform},
         RequestContext(req)
     )
+#    query = req.POST[u'query']
+#    split_query = re.split(ur'(?u)\W', query)
+#    while u'' in split_query:
+#        split_query.remove(u'')
+#    results = []
+#    for word in split_query:
+#        for district in Location.objects.filter(type="district", name__icontains=word):
+#            if re.match(ur'(?ui)\b' + word + ur'\b'):
+#                entry = {
+#                    u'id':district.id,
+#                    u'name':district.name
+#                }
+#            if not entry in results:
+#                results.append(entry)
 
 class ProgressAdminDetails(TemplateView):
     template_name = "education/admin/admin_progress_details.html"
@@ -1139,6 +1153,69 @@ class ProgressDeoDetails(TemplateView):
 def control_panel(req):
     return render_to_response('education/partials/control_panel.html', {}, RequestContext(req))
 
+
+
+#District violence details (TODO: permission/rolebased viewing)
+class DistrictViolenceDetails(DetailView):
+    context_object_name = "district_violence"
+    model = Location
+
+    def get_context_data(self, **kwargs):
+        context = super(DistrictViolenceDetails, self).get_context_data(**kwargs)
+        location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk'))) or self.request.user.get_profile().location
+        schools = School.objects.filter(location=location)
+        school_case = []
+        for school in schools:
+            # optimize with value queries
+            school_case.append((school,
+                            poll_response_sum('edtrac_headteachers_abuse', school=school, time_range=get_month_day_range(datetime.datetime.now()))))
+
+        #schools and reports from a district
+
+        #reports = poll_response_sum("edtrac_headteachers_abuse", month_filter=True, months=1)
+        emis_reporters = EmisReporter.objects.exclude(connection__in=\
+            Blacklist.objects.values_list('connection')).filter(schools__in=schools)
+
+        context['location'] = location
+        context['school_vals'] = school_case
+#        context['school_count'] = School.objects.filter(location__in=EmisReporter.objects.exclude(connection__in=Blacklist.objects.values_list('connection').\
+#            values_list('reporting_location'))).count()
+        context['month'] = datetime.datetime.now()
+        return context
+
+class DistrictViolenceCommunityDetails(DetailView):
+    context_object_name = "district_violence"
+    model = Location
+
+    def get_context_data(self, **kwargs):
+        context = super(DistrictViolenceCommunityDetails, self).get_context_data(**kwargs)
+        location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk'))) or self.request.user.get_profile().location
+        #schools and reports from a district
+
+        #reports = poll_response_sum("edtrac_headteachers_abuse", month_filter=True, months=1)
+        emis_reporters = EmisReporter.objects.filter(groups__name="GEM", connection__in =\
+            Poll.objects.get(name="edtrac_gem_abuse").responses.values_list('contact__connection',flat=True))
+#
+#        Blacklist.objects.\
+#                values_list('connection', flat=True)).filter(reporting_location=location, groups__name="GEM")
+        context['location'] = location
+        context['reporters'] = emis_reporters
+        #        context['school_count'] = School.objects.filter(location__in=EmisReporter.objects.exclude(connection__in=Blacklist.objects.values_list('connection').\
+        #            values_list('reporting_location'))).count()
+        context['month'] = datetime.datetime.now()
+        return context
+
+
+# Progress happening in a district
+class DistrictProgressDetails(DetailView):
+    context_object_name = "district_progress"
+    model = Location
+    #TODO provide filters
+    def get_context_data(self, **kwargs):
+        context = super(DistrictProgressDetails, self).get_context_data(**kwargs)
+        location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk')))
+        context['location'] = location
+        return context
 
 # Meals being had at a district
 class DistrictMealsDetails(DetailView):
