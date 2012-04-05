@@ -510,7 +510,10 @@ class XForm(models.Model):
                         cleaned = field.clean_submission(value, submission_type)
                         values.append(dict(name=field.command, value=cleaned))
                     except ValidationError as err:
-                        errors.append(err)
+                        if getattr(settings, 'USE_DEFAULT_VALIDATION_ERROR', True):
+                            errors.append(err)
+                        else:
+                            errors.append("Error. There is a mistake in this report. Please check carefully, only send one SMS report at a time and resend.")
 
         # now do any pull parsing
         for field in self.fields.all():
@@ -525,7 +528,10 @@ class XForm(models.Model):
                         cleaned = field.clean_submission(value, submission_type)
                         values.append(dict(name=field.command, value=cleaned))
                 except ValidationError as err:
-                    errors.append(err)
+                    if getattr(settings, 'USE_DEFAULT_VALIDATION_ERROR', True):
+                        errors.append(err)
+                    else:
+                        errors.append("Error. There is a mistake in this report. Please check carefully, only send one SMS report at a time and resend.")
 
         # build a map of the number of values we have for each included field
         # TODO: for the love of god, someone show me how to do this in one beautiful Python 
@@ -540,7 +546,11 @@ class XForm(models.Model):
             # if we already have a value for this field
             if name in value_count:
                 # add an error and remove the duplicate
-                errors.append(ValidationError("Expected one value for %s, more than one was given." % name))
+                #errors.append(ValidationError("Expected one value for %s, more than one was given." % name))
+                if getattr(settings, 'USE_DEFAULT_VALIDATION_ERROR', True):
+                    errors.append(ValidationError("Expected one value for %s, more than one was given." % name))
+                else:
+                    errors.append("Error. There is a mistake in this report. Please check carefully, only send one SMS report at a time and resend.")
                 values.remove(value_pair)
             else:
                 value_count[name] = 1
