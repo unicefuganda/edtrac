@@ -1,0 +1,15 @@
+{% load stats_extras %}
+<div id="meals" style="margin-bottom: 5px;"></div>
+<script type="text/javascript">
+    $(document).ready(function(){
+        var line_chart;
+        //load_line_graph('Meals', null, 'meals', 'Schools that have reporterd in terms of percentages', 'Months of the year');
+        column_stacked(
+                '{{ location }}',
+                'Meal consumption',
+                'meals',
+                ['Jan', 'Feb', 'Mar', 'Apr'],
+                '{{ school_meals_reports|reorganize_nested_data|join:";" }}'
+        );
+    });
+</script>

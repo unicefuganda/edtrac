@@ -12,9 +12,7 @@
 {% if authorized_user %}
 <div id="capitation_container" style="margin-bottom: 20px;">
     <div class="stats"><h3>UPE Capitation Received on time across Uganda</h3></div>
-    <div id="capitation">
-
-    </div>
+    <div id="capitation"></div>
     <script type="text/javascript">
         $(document).ready(function(){
             pie("{{ national_responses|reorganize_data|join:"," }}",
@@ -39,25 +37,24 @@
     <table class="classy" style="width:200px;" border='1'>
         <tr>
             <th>District</th>
-            <th>Response Count</th>
+            <!--<th>Response Count</th>-->
         </tr>
         {% for district, responses in districts %}
         <tr>
             <td><a href="" id="response-{{district.id}}">{{ district }}</a></td>
-            <td>
-                <table>
+            <!--<td>-->
+                <!--<table>-->
 
-                    {% for x,y in responses %}
-                        <tr><td>{{ x }}</td><td>{{ y|floatformat }}</td></tr>
-                    {% endfor %}
-                </table>
-            </td>
+                    <!--{% for x,y in responses %}-->
+                        <!--<tr><td>{{ x }}</td><td>{{ y|floatformat }}</td></tr>-->
+                    <!--{% endfor %}-->
+                <!--</table>-->
+            <!--</td>-->
         </tr>
         <script type="text/javascript">
             $(document).ready(function(){
                 $('a#response-{{ district.id }}').click(
                         function(event){
-                            $('#placeholder').fadeIn('slow');
                             pie('{{ responses|reorganize_data|join:"," }}', "{{ district }}", "", "placeholder", " responded", true);
                             event.preventDefault();
                         });
@@ -88,4 +85,5 @@
         <!--<script src="{{ MEDIA_URL }}education/javascripts/endless.js" charset="utf-8"></script>-->
         <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-collapse.js"></script>
         <script type="text/javascript"></script>
+    </div>
 {% endblock %}

@@ -1062,27 +1062,68 @@ def generate_deo_report(location_name = None):
             }
             )
         )
+def compute_report_percent(actual_reports, expected_reports):
+    try:
+        return 100 * (actual_reports / expected_reports)
+    except ZeroDivisionError:
+        return 0
 
-def get_count_response_to_polls(poll_queryset, **kwargs):
-    if kwargs.has_key('month_filter') and kwargs.get('month_filter') and not kwargs.has_key('location') and kwargs.has_key('choices'):
+def get_count_response_to_polls(poll_queryset, location_name = None,  **kwargs):
+
+    if kwargs:
         # when no location is provided { worst case scenario }
         #choices = [0, 25, 50, 75, 100 ] <-- percentage
         choices = kwargs.get('choices')
         #initialize to_ret dict with empty lists
         to_ret = {}
-        for location in Location.objects.filter(type="district", name__in=\
-            EmisReporter.objects.exclude(reporting_location=None).values_list('reporting_location__name',flat=True).distinct()):
+        if location_name:
+            catchment_area_pk = [Location.objects.filter(type='district').get(name = location_name).pk] # as list
+        else:
+            catchment_area_pk = Location.objects.filter(type="district", name__in=\
+                EmisReporter.objects.exclude(reporting_location=None).values_list('reporting_location__name',\
+                    flat=True).distinct()).values_list('pk', flat=True)
+
+        for location in Location.objects.filter(pk__in = catchment_area_pk):
             to_ret[location.__unicode__()] = []
 
-        for key in to_ret.keys():
-            resps = poll_queryset.responses.filter(contact__in=\
-            Contact.objects.filter(reporting_location=Location.objects.filter(type="district").get(name=key)),
-                date__range = get_month_day_range(datetime.datetime.now())
-            )
-            resp_values = [r.eav.poll_number_value for r in resps]
-            for choice in choices:
-                to_ret[key].append((choice, resp_values.count(choice)))
-        return to_ret
+        if kwargs.get('with_range') and kwargs.get('with_percent'):
+            today = datetime.datetime.now()
+            month_ranges = get_month_day_range(today, depth=today.month)
+            month_ranges.reverse()
+
+            final_ret = []
+
+            for month_range in month_ranges:
+                temp = []
+                location = Location.objects.filter(type="district").get(name=to_ret.keys()[0])
+                expected_reports = School.objects.filter(pk__in = EmisReporter.objects.exclude(schools = None).\
+                    filter(reporting_location = location).values_list('schools__pk', flat=True)).count()
+                resps = poll_queryset.responses.filter(contact__in=\
+                    Contact.objects.filter(reporting_location= location),
+                        date__range = month_range)
+
+                resp_values = [r.eav.poll_number_value for r in resps]
+
+                for choice in choices:
+                    temp.append((choice, compute_report_percent(resp_values.count(choice), expected_reports)))
+                # final_ret is a collection of monthly data
+                final_ret.append(temp)
+
+            return final_ret
+
+        else:
+            for key in to_ret.keys():
+                resps = poll_queryset.responses.filter(contact__in=\
+                    Contact.objects.filter(reporting_location=Location.objects.filter(type="district").get(name=key)),
+                    date__range = get_month_day_range(datetime.datetime.now())
+                )
+                resp_values = [r.eav.poll_number_value for r in resps]
+                expected_reports = School.objects.filter(pk__in = EmisReporter.objects.exclude(schools = None).\
+                    filter(reporting_location = Location.objects.filter(type="district").get(name=key)).\
+                    values_list('schools__pk', flat=True)).count()
+                for choice in choices:
+                    to_ret[key].append((choice,compute_report_percent(resp_values.count(choice), expected_reports)))
+            return to_ret
 
 def get_responses_to_polls(**kwargs):
     #TODO with filter() we can pass extra arguments

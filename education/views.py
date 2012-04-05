@@ -1092,18 +1092,62 @@ class ProgressAdminDetails(TemplateView):
         )
         return context
 
-
+CHOICES = [0, 25, 50, 75, 100]
 class MealsAdminDetails(TemplateView):
     template_name = "education/admin/admin_meals_details.html"
+
     def get_context_data(self, **kwargs):
-        choices=[0, 25, 50, 75, 100]
+        choices = CHOICES
         context = super(MealsAdminDetails, self).get_context_data(**kwargs)
         context['school_meals_reports'] = get_count_response_to_polls(Poll.objects.get(name="edtrac_headteachers_meals"),\
             month_filter=True, choices=choices)
 
         context['community_meals_reports'] = get_count_response_to_polls(Poll.objects.get(name="edtrac_smc_meals"),
-            month_filter=True, choices=choices)
+            month_filter=True, choices=choices, with_percent=True)
+        districts = Location.objects.filter(type="district", id__in =\
+                EmisReporter.objects.exclude(reporting_location = None).\
+                    values_list('reporting_location__id', flat=True)).order_by('name').\
+                        values_list('name', flat=True)
+        # basic filtering for CSS
+        districts = [[d, False] for d in districts]
+        districts[0][1] = True
+
+        context['districts'] = districts
+
         return context
+
+# Meals being had at a district
+class DistrictMealsDetails(DetailView):
+    template_name = "education/admin/district_meal.html"
+
+    context_object_name = "district_meals"
+
+    model = Location
+
+    def get_object(self):
+        return self.model.objects.filter(type="district").get(name = self.kwargs.get('name'))
+
+    def get_context_data(self, **kwargs):
+        context = super(DistrictMealsDetails, self).get_context_data(**kwargs)
+        location = self.get_object()
+        choices = CHOICES
+
+        school_meal_reports = get_count_response_to_polls(
+            Poll.objects.get(name="edtrac_headteachers_meals"),
+            location_name = location.name,
+            month_filter=True,
+            choices=choices,
+            with_range = True,
+            with_percent = True
+            )
+
+        context['school_meals_reports'] = school_meal_reports
+
+        context['location'] = location
+
+        return context
+
+
 
 
 ##########################################################################################################
@@ -1217,16 +1261,6 @@ class DistrictProgressDetails(DetailView):
         context['location'] = location
         return context
 
-# Meals being had at a district
-class DistrictMealsDetails(DetailView):
-    context_object_name = "district_meals"
-    model = Location
-
-    def get_context_data(self, **kwargs):
-        context = super(DistrictMealsDetails, self).get_context_data(**kwargs)
-        location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk')))
-        context['location'] = location
-        return context
 
 
 ##########################################################################################################
