@@ -69,9 +69,16 @@
 	}
 	
 	function submitForm(link, resultDiv) {
+        console.log(resultDiv);
+        ajax_loading(resultDiv);
+       
 	    form = $(link).parents("form");
         form_data = form.serializeArray();
-        $(resultDiv).load(form.attr("action"), form_data);
+        $(resultDiv).load(form.attr("action"), form_data,function() {
+            $('.ajax_loading').remove();
+
+        });
+
 	}
 	
 	// Trap our ajax errors and put them where we can see them
