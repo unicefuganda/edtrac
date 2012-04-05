@@ -8,6 +8,7 @@ import httplib
 import logging
 import psycopg2
 import re
+import time
 from datetime import datetime
 from datetime import timedelta
 from urllib import urlencode
@@ -73,8 +74,8 @@ TEMPLATES = {
             'QOS_SEND_BODY_LINIE1':'Hi,\nJennifer sent SMS from the following networks:\nSENDER                         | RECIPIENT\n',
             'QOS_SEND_INNER_BODY':'%s(%s)%s| %s\n',
             'QOS_RECV_ALL_SUBJ':'QOS Messages Received within:',
-            'QOS_ALARM_SUBJ':'QOS Monitor Alert',
-            'QOS_RECV_BODY_LINE1':'Hi,\nJennifer received SMS from all networks:',
+            'QOS_ALARM_SUBJ':'QOS Monitor Alert at: %s',
+            'QOS_RECV_BODY_LINE1':'Hi,\nWoooooow!!!\nJennifer received SMS from all networks:',
             'QOS_RECV_BODY_LINE2':'----------------------------------------------------\n',
             'QOS_ALARM_BODY_LINE1':'Hello %s,\nJenifer didn\'t get a reply for the following networks:\n',
             'QOS_ALARM_INNER_BODY':'%s -Tested with %s(%s)\n',
@@ -309,9 +310,11 @@ class SendQosMessages:
                         }
                 with db.transaction():
                     log_message(db, log_message_dict)
+                logging.debug("[%s] Sent SMS [SMSC: %s] [from: %s] [to: %s] [msg: %s]"%('/send',
+                    modem['smsc_name'], modem['identity'], shortcode['identity'], msg))
         logging.debug("[%s] Sent QOS messages using %s: Failed = %s"%('/send', list(set(applied_modems)), list(set(failed_modems))))
         rpt_body += "\n%s %s\n"%(TEMPLATES['QOS_TIME_LINE'],testing_time) + TEMPLATES['QOS_FOOTER']
-        send_email(SETTINGS['DEFAULT_EMAIL_SENDER'], 'sekiskylink@gmail.com', rpt_subject, rpt_body)
+        send_email(SETTINGS['DEFAULT_EMAIL_SENDER'], [email for name,email in QOS_RECIPIENTS], rpt_subject, rpt_body)
         return "Done!"
 
 class MonitorQosMessages:
@@ -328,7 +331,7 @@ class MonitorQosMessages:
         rpt_body = TEMPLATES['QOS_RECV_BODY_LINE1']
         rpt_body += TEMPLATES['QOS_RECV_BODY_LINE2']
         rpt_body2 = ""
-        subject = TEMPLATES['QOS_ALARM_SUBJ']
+        subject = TEMPLATES['QOS_ALARM_SUBJ'] % time.strftime('%F %H')
         monitor_msg = ('Hello %s,\nJenifer didn\'t get a reply for the following networks:\n')
         monitor_msg +=("----------------------------------------------------\n")
         there_is_an_alert = False
@@ -340,10 +343,18 @@ class MonitorQosMessages:
                             " AND backend_id = %s AND destination = '%s'")
                 query = t_query % (time_offset, modem['id'], shortcode['identity'])
                 res = db.query(query)
+                #check if message was previously sent successfully from modem
+                t_query = ("SELECT id FROM messages WHERE msg_out = '%s' AND backend_id = %s AND status_out = '%s'")
+                res_sent = db.query(t_query % (time.strftime('%F %H'), modem['id'], 'S'))
+
                 if not res:
-                    there_is_an_alert = True
-                    monitor_msg += TEMPLATES['QOS_ALARM_INNER_BODY'] %(modem['name']+(' '*(9-len(modem['name']))), shortcode['identity'], shortcode['smsc_name'])
-                    logging.warning("[%s] No response from %s for %s"%('/monitor', shortcode['identity'], modem['name']))
+                    if res_sent:
+                        there_is_an_alert = True
+                        monitor_msg += TEMPLATES['QOS_ALARM_INNER_BODY'] %(modem['name']+(' '*(9-len(modem['name']))), shortcode['identity'], shortcode['smsc_name'])
+                        logging.warning("[%s] No response from %s for %s"%('/monitor', shortcode['identity'], modem['name']))
+                    else:
+                        # modem was down
+                        pass
                 else:
                     rpt_body2 += TEMPLATES['QOS_ALARM_INNER_BODY'] %(modem['name'], shortcode['identity'],shortcode['smsc_name'])
 
@@ -353,7 +364,7 @@ class MonitorQosMessages:
                 send_email(SETTINGS['DEFAULT_EMAIL_SENDER'],recipient, subject, the_msg)
         else:
             rpt_body += rpt_body2 + "\n%s %s\n"%(TEMPLATES['QOS_TIME_LINE'],testing_time) + TEMPLATES['QOS_FOOTER']
-            send_email(SETTINGS['DEFAULT_EMAIL_SENDER'], 'sekiskylink@gmail.com', rpt_subject, rpt_body)
+            send_email(SETTINGS['DEFAULT_EMAIL_SENDER'], [email for name,email in QOS_RECIPIENTS], rpt_subject, rpt_body)
         logging.debug("[%s] Stopped Mornitoring"%('/monitor'))
         return "Done!"
 
