@@ -1144,6 +1144,11 @@ class DistrictMealsDetails(DetailView):
         context['school_meals_reports'] = school_meal_reports
 
         context['location'] = location
+        now = datetime.datetime.now()
+        ranges = get_month_day_range(now, depth = now.month)
+        ranges.reverse()
+
+        context['date_ranges'] = ranges
 
         return context
 

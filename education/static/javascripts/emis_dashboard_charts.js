@@ -208,9 +208,9 @@ function column_stacked(title, yTitle, selector, categories, data){
     } // end iteration to put values of monthly data
 
     var category_container = [];
-    for (var j=0; j < categories.length; j++) {
+    for (var j=0; j < categories.split(',').length; j++) {
         // categories => ['Jan', 'Feb', 'Mar', etc...]
-        category_container.push(categories[j]);
+        category_container.push(categories.split(',')[j]);
     }
 
     var chart;

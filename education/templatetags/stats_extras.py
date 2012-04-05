@@ -9,6 +9,7 @@ from django.utils.safestring import mark_safe
 import calendar
 import time
 import re
+from education.reports import get_month_day_range
 
 def get_section(path):
     pos = path.split('/')
@@ -265,9 +266,14 @@ def reorganize_nested_data(obj):
         new_ret.append('%d,%s' %  (label, '-'.join([str(i) for i in value])))
     return new_ret
 
-def make_date(obj):
+def make_date_range_month(obj):
+    to_ret = []
 
-    pass
+    for r_1, _ in obj:
+        to_ret.append(r_1.strftime('%B'))
+
+    return ",".join(to_ret)
+
 
 
 def get_district_pk(name):
@@ -290,6 +296,7 @@ register.filter('submissions', submissions)
 register.filter('headteacher',headteacher)
 register.filter('parse_gemvalues', parse_gemvalues)
 register.filter('reorganize_data', reorganize_data)
+register.filter('make_date_range_month', make_date_range_month)
 register.filter('reorganize_nested_data', reorganize_nested_data)
 register.filter('get_district_data', get_district_pk)
 register.filter('termly', termly)
