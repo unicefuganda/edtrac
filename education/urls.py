@@ -82,6 +82,7 @@ urlpatterns = patterns('',
         'sort_ascending':False,
         }, name="emis-messagelog"),
     url(r'^edtrac/control-panel/$',control_panel, name="control-panel"),
+    url(r'^edtrac/audit-trail/$',AuditTrail.as_view(), name="emis-audittrail"),
     #reporters
     url(r'^edtrac/reporter/$', login_required(generic), {
         'model':EmisReporter,
@@ -234,8 +235,7 @@ urlpatterns = patterns('',
     url(r'^edtrac/attendance-admin-details/$', AttendanceAdminDetails.as_view(), name="attendance-admin-details"),
     url(r'^edtrac/attd_admin_details/search$', search_form, name="attendance-search"),
     # to find out about violence in a district
-    url(r'^edtrac/violence/district/(?P<pk>\d+)/$', DistrictViolenceDetails.as_view(template_name =\
-        "education/dashboard/district_violence_detail.html"), name="district-violence"),
+    url(r'^edtrac/violence/district/(?P<pk>\d+)/$', DistrictViolenceDetails.as_view(), name="district-violence"),
     url(r'^edtrac/violence-community/district/(?P<pk>\d+)/$', DistrictViolenceCommunityDetails.as_view(template_name =\
     "education/dashboard/district_violence_community_detail.html"), name="district-violence-community"),
     url(r'^edtrac/violence_deo_details/$', ViolenceDeoDetails.as_view(), name="violence-deo-details"),

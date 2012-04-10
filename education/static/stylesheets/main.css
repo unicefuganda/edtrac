@@ -801,7 +801,7 @@ div.actionform tr{
     height: 0;
 }
 
-div.stats{
+div.stats, div.nice{
     background-color:#333;
     color: #caff7a;
     padding:20px;
