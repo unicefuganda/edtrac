@@ -1244,27 +1244,45 @@ class ProgressDeoDetails(TemplateView):
 ##########################################################################################################
 ##########################################################################################################
 
-## management controll panel
+## management control panel
 
 def control_panel(req):
     return render_to_response('education/partials/control_panel.html', {}, RequestContext(req))
+
+class AuditTrail(TemplateView):
+    template_name = "education/admin/audit_trail.html"
 
 
 
 #District violence details (TODO: permission/rolebased viewing)
 class DistrictViolenceDetails(DetailView):
+    template_name = "education/dashboard/district_violence_detail.html"
     context_object_name = "district_violence"
     model = Location
 
     def get_context_data(self, **kwargs):
         context = super(DistrictViolenceDetails, self).get_context_data(**kwargs)
+
         location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk'))) or self.request.user.get_profile().location
-        schools = School.objects.filter(location=location)
+
+        schools = School.objects.filter(
+            pk__in = EmisReporter.objects.filter(reporting_location=location).values_list('schools__pk', flat=True))
+
         school_case = []
+
         for school in schools:
             # optimize with value queries
+            month_now, month_before = get_month_day_range(datetime.datetime.now(), depth=2)
+
             school_case.append((school,
-                            poll_response_sum('edtrac_headteachers_abuse', school=school, time_range=get_month_day_range(datetime.datetime.now()))))
+                            poll_response_sum('edtrac_headteachers_abuse',
+                                school=school,
+                                month_filter = 'monthly',
+                                month_range=month_now),
+                            poll_response_sum('edtrac_headteachers_abuse',
+                                school=school,
+                                month_filter = 'monthly',
+                                month_range=month_before)))
 
         #schools and reports from a district
 
