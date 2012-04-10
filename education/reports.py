@@ -576,7 +576,18 @@ def set_thur_wed_range(thursday):
     # move thursday to last week
     thursday = thursday - datetime.timedelta(days = 7)
 
-    to_ret_week = [thursday, thursday+datetime.timedelta(days=6)]
+    # set times
+    # 0800hrs EAT
+    thursday = datetime.datetime(thursday.year, thursday.month, thursday.day, 8, 0 )
+
+    diff = thursday+datetime.timedelta(days = 6)
+
+    # 1900hrs
+    diff = datetime.datetime(diff.year, diff.month, diff.day, 19, 0)
+
+
+    to_ret_week = [thursday, diff]
+
     return to_ret_week
 
 
@@ -611,6 +622,8 @@ def get_week_date(depth=None):
     now = datetime.datetime.now()
 
     if depth:
+
+        # a depth of zero defaults to what you'd get in `get_day_range(now)`
         """
         Suppose you want a depth of 3 weeks worth of day
         """
@@ -671,7 +684,7 @@ def get_numeric_report_data(poll_name, location=None, time_range=None, to_ret=No
                     entity_id__in=poll.responses.filter(date__range=time_range,\
                         contact__in=kwargs.get('school').emisreporter_set.all())).values('entity_ct')
 
-            elif len(locations) == 1:
+            elif kwargs.has_key('locations') and len(locations) == 1:
                 q = Value.objects.filter(attribute__slug='poll_number_value',\
                     entity_ct=ContentType.objects.get_for_model(Response),\
                     entity_id__in=poll.responses.filter(date__range=time_range, contact__reporting_location=locations[0])).values('entity_ct')            
@@ -684,9 +697,10 @@ def get_numeric_report_data(poll_name, location=None, time_range=None, to_ret=No
         q = Value.objects.filter(attribute__slug='poll_number_value',\
             entity_ct=ContentType.objects.get_for_model(Response), entity_id__in=poll.responses.all()).values('entity_ct')
 
-
     if to_ret:
-        if q:
+        if not q:
+            return 0
+        else:
             if to_ret == 'sum':
                 return q.annotate(Sum('value_float'))[0]['value_float__sum']
             elif to_ret == 'avg':
@@ -699,8 +713,6 @@ def get_numeric_report_data(poll_name, location=None, time_range=None, to_ret=No
                 return q.annotate(Min('value_float'))[0]['value_float__min']
             elif to_ret == 'q':
                 return q
-        else:
-            return 0
     else:
         return q.annotate(Sum('value_float'), Count('value_float'), Avg('value_float'),\
             StdDev('value_float'), Max('value_float'), Min('value_float'))
@@ -848,7 +860,6 @@ def poll_response_sum(poll_name, **kwargs):
                return response_sum
         #another hail mary shot
         if kwargs.get('monthly_filter') == 'monthly' and kwargs.has_key('school'):
-            import pdb; pdb.set_trace()
             school = kwargs.get('school')
             response_sum = get_numeric_report_data(
                 poll_name,
@@ -919,27 +930,28 @@ def poll_responses_past_week_sum(poll_name, **kwargs):
         #narrowing to location
         if kwargs.has_key('locations'):
             # week_before would refer to the week before week that passed
-            sum_of_poll_responses_week_before = get_numeric_report_data(poll_name, locations=kwargs.get('locations'), time_range=first_quota, to_ret = 'sum')
-            sum_of_poll_responses_past_week = get_numeric_report_data(poll_name, locations=kwargs.get('locations'), time_range=second_quota, to_ret = 'sum')
+            sum_of_poll_responses_past_week = get_numeric_report_data(poll_name, locations=kwargs.get('locations'), time_range=first_quota, to_ret = 'sum')
+            sum_of_poll_responses_week_before = get_numeric_report_data(poll_name, locations=kwargs.get('locations'), time_range=second_quota, to_ret = 'sum')
             return [sum_of_poll_responses_past_week, sum_of_poll_responses_week_before]
+
         elif kwargs.has_key('location'):
-            sum_of_poll_responses_week_before = get_numeric_report_data(poll_name, location=kwargs.get('location'), time_range=first_quota, to_ret = 'sum')
-            sum_of_poll_responses_past_week = get_numeric_report_data(poll_name, location=kwargs.get('location'), time_range=second_quota, to_ret = 'sum')
+            sum_of_poll_responses_past_week = get_numeric_report_data(poll_name, location=kwargs.get('location'), time_range=first_quota, to_ret = 'sum')
+            sum_of_poll_responses_week_before = get_numeric_report_data(poll_name, location=kwargs.get('location'), time_range=second_quota, to_ret = 'sum')
             return [sum_of_poll_responses_past_week, sum_of_poll_responses_week_before]
 
         elif kwargs.has_key('school'):
-            sum_of_poll_responses_week_before = get_numeric_report_data(poll_name, belongs_to='schools',\
-                school=kwargs.get('school'), time_range=first_quota, to_ret = 'sum')
             sum_of_poll_responses_past_week = get_numeric_report_data(poll_name, belongs_to = 'schools',\
+                school=kwargs.get('school'), time_range=first_quota, to_ret = 'sum')
+            sum_of_poll_responses_week_before = get_numeric_report_data(poll_name, belongs_to='schools',\
                 school=kwargs.get('school'), time_range=second_quota, to_ret = 'sum')
             return [sum_of_poll_responses_past_week, sum_of_poll_responses_week_before]
 
 
     else:
         # getting country wide statistics
-        first_quota, second_quota = get_week_date(depth = 1) # default week range to 1
-        sum_of_poll_responses_week_before = get_numeric_report_data(poll_name, time_range=first_quota, to_ret = 'sum')
-        sum_of_poll_responses_past_week = get_numeric_report_data(poll_name, time_range=second_quota, to_ret = 'sum')
+        first_quota, second_quota = get_week_date(depth = 2) # default week range to 1
+        sum_of_poll_responses_past_week = get_numeric_report_data(poll_name, time_range=first_quota, to_ret = 'sum')
+        sum_of_poll_responses_week_before = get_numeric_report_data(poll_name, time_range=second_quota, to_ret = 'sum')
         return sum_of_poll_responses_past_week, sum_of_poll_responses_week_before
 
 def poll_responses_term(poll_name, **kwargs):
@@ -977,13 +989,21 @@ def poll_responses_term(poll_name, **kwargs):
 def curriculum_progress_list(poll_name, **kwargs):
     from .utils import themes
     if kwargs:
+
         if kwargs.has_key('location'):
-            return list(get_numeric_report_data(
+            return get_numeric_report_data(
                 poll_name,
                 to_ret = 'q',
-                location=kwarg.get('location'),
-                time_range=get_week_date(depth = 1)
-            ))
+                location=kwargs.get('location'),
+                time_range=get_week_date()#default to just the week running Thursday through Wednesday, the next week
+            ).values_list('value_float',flat=True)
+
+        elif kwargs.get('time_range'):
+            return  list(get_numeric_report_data(
+                poll_name,
+                to_ret = 'q',
+                time_range=get_week_date()
+            ).values_list('value_float',flat=True))
     else:
         x = list(get_numeric_report_data(poll_name, to_ret = 'q').values_list('value_float', flat=True))
         return x
@@ -991,8 +1011,9 @@ def curriculum_progress_list(poll_name, **kwargs):
 def curriculum_progress_mode(list):
     stats = Statistics(list)
     mode = stats.mode
+    if len(mode) == 0:
+        return
     return mode[0][0]
-
 
 
 

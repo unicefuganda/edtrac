@@ -22,6 +22,8 @@ from urllib2 import urlopen
 from rapidsms.views import login, logout
 import  re, datetime, operator, xlwt, exceptions
 from datetime import date
+#from decimal import getcontext, Decimal
+from .utils import themes
 
 
 Num_REG = re.compile('\d+')
@@ -184,20 +186,52 @@ def dash_progress(request):
     p3_response = 34
     return render_to_response('education/dashboard/progress.html', {'p3':p3_response}, RequestContext(request))
 
-def dash_ministry_progress(request):
-    pass
 
 def dash_admin_progress(req):
-    c_list = list(curriculum_progress_list("edtrac_p3curriculum_progress"))
+    # correspond with group names
+    authorized_users = ['Admins', 'Ministry Officials', 'UNICEF Officials']
 
+    authorized_user = False
+
+    profile = req.user.get_profile()
+
+    for auth_user in authorized_users:
+        if profile.is_member_of(auth_user):
+            authorized_user = True
+            break
     on_schedule = 'green'
     behind_schedule = 'orange'
     way_behind_schedule = 'red'
 
+    if authorized_user:
+        locations = Location.objects.filter(
+            type = "district",
+            pk__in = EmisReporter.objects.exclude(
+                reporting_location = None,
+                schools = None,\
+                connection__in = Blacklist.objects.values_list('connection', flat=True)).\
+                values_list('reporting_location__pk', flat=True))
+        print locations
+        loc_data = []
+        for location in locations:
+            try:
+                c_list = list(
+                    curriculum_progress_list("edtrac_p3curriculum_progress", location=location)
+                )
+                loc_data.append([location, curriculum_progress_mode(c_list)])
+            except TypeError:
+                loc_data.append([location, 0])
 
-    mode = curriculum_progress_mode(c_list)
+        return render_to_response('education/progress/admin_progress_details.html',
+                {'location_data': loc_data}, RequestContext(req))
+    else:
+        location = profile.location
 
-    return render_to_response('education/progress/admin_progress_details.html', {'mode':curriculum_progress_mode(c_list)}, RequestContext(req))
+
+
+def dash_ministry_progress(request):
+    pass
+
 
 # Meetings
 """
@@ -275,6 +309,7 @@ def generate_dashboard_vars(location=None):
     else:
         violence_change_class = "zero"
         violence_change_data = "data-white"
+
 
     # CSS class (dynamic icon)
     x, y = poll_responses_past_week_sum("edtrac_boysp3_attendance", locations=locations, weeks=2)
@@ -424,20 +459,34 @@ def generate_dashboard_vars(location=None):
         male_teachers_class = "zero"
         male_teachers_data = 'data-white'
 
-    responses_to_meals = poll_response_sum("edtrac_headteachers_meals",
-        month_filter='biweekly', locations=locations)
-    # percentage change in meals missed
-    meal_change = cleanup_sums(responses_to_meals)
-    if meal_change > 0:
-        meal_change_class = "increase"
-        meal_change_data = "data-green"
-    elif meal_change < 0:
-        meal_change_class = "decrease"
-        meal_change_data = "data-red"
-    else:
-        meal_change_class = "zero"
-        meal_change_data = "data-white"
 
+    try:
+        c_list = list(curriculum_progress_list("edtrac_p3curriculum_progress", time_range = True))
+        mode = curriculum_progress_mode(c_list)
+    except exceptions.TypeError:
+        # shouldn't really reach this state (unless data isn't there)
+        mode = 0
+
+    response_to_meals = get_count_response_to_polls(Poll.objects.get(name = "edtrac_headteachers_meals"),
+        time_range = get_week_date()[0], choices = [0])
+
+    p = sorted(response_to_meals.items(), key=lambda(k,v):(v[0][1], k))
+
+    worst_meal = p[len(p)-1]
+
+#    responses_to_meals = poll_response_sum("edtrac_headteachers_meals",
+#        month_filter='biweekly', locations=locations)
+    # percentage change in meals missed
+#    meal_change = cleanup_sums(responses_to_meals)
+#    if meal_change > 0:
+#        meal_change_class = "increase"
+#        meal_change_data = "data-green"
+#    elif meal_change < 0:
+#        meal_change_class = "decrease"
+#        meal_change_data = "data-red"
+#    else:
+#        meal_change_class = "zero"
+#        meal_change_data = "data-white"
 
 #    responses_to_smc_meetings_poll = poll_response_sum("edtrac_smc_meetings",
 #        month_filter = True, location=locations, ret_type=list)
@@ -599,12 +648,14 @@ def generate_dashboard_vars(location=None):
     return {
 #        'top_three_violent_districts':top_three_violent_districts,
 #        'top_three_hungry_districts':top_three_hungry_districts,
+        'worst_meal' : worst_meal,
+        'c_mode' : mode,
         'violence_change' : violence_change,
         'violence_change_class' : violence_change_class,
         'violence_change_data' : violence_change_data,
-        'meal_change' : meal_change,
-        'meal_change_class': meal_change_class,
-        'meal_change_data' : meal_change_data,
+#        'meal_change' : meal_change,
+#        'meal_change_class': meal_change_class,
+#        'meal_change_data' : meal_change_data,
         'male_teachers' : male_teachers,
         'male_teachers_past' : male_teachers_past,
         'male_teachers_diff' : male_teachers_diff,
@@ -1073,23 +1124,19 @@ def search_form(req):
 #                results.append(entry)
 
 class ProgressAdminDetails(TemplateView):
-    template_name = "education/admin/admin_progress_details.html"
+    template_name = "education/progress/admin_progress_details.html"
 
     def get_context_data(self, **kwargs):
-        from .utils import themes
         context = super(ProgressAdminDetails, self).get_context_data(**kwargs)
         ##context['some_key'] = <some_list_of_response>
         # we get all violence cases ever reported
         #TODO: filtering by ajax and time
-        context['progress'] = list_poll_responses(Poll.objects.get(name="edtrac_p3curriculum_progress"))
+        context['progress'] = list_poll_responses(Poll.objects.get(name="edtrac_p3ccurriculum_progress"))
         # decimal module used to work with really floats with more than 2 decimal places
-        from decimal import getcontext, Decimal
         getcontext().prec = 1
         context['progress_figures'] = get_count_response_to_polls(Poll.objects.get(name="edtrac_p3curriculum_progress"),\
             location=self.request.user.get_profile().location,
-            choices = [Decimal(str(key)) for key in themes.keys()],
-            poll_type="numeric"
-        )
+            choices = [Decimal(str(key)) for key in themes.keys()])
         return context
 
 CHOICES = [0, 25, 50, 75, 100]

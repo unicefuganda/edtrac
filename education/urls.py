@@ -206,7 +206,6 @@ urlpatterns = patterns('',
     #TODO protect views here...
 
     url(r'^edtrac/dash_map/$', dash_map, {}, name="emis-dash-map"),
-    url(r'^edtrac/progress/$', dash_progress, {}, name="emis-dash-progress"),
     url(r'^edtrac/dash_attdance/$', dash_attdance, {}, name="emis-dash-attdance"),
     url(r'^edtrac/dash_violence/$', dash_violence, {}, name="emis-dash-violence"),
     url(r'^edtrac/dash_meals/$', dash_meals, {}, name="emis-dash-meals"),
@@ -228,8 +227,8 @@ urlpatterns = patterns('',
 
     url(r'^edtrac/dash_admin_meetings/$', dash_admin_meetings, {}, name="emis-dash-admin-meetings"),
     url(r'^edtrac/dash_ministry_map/$', dash_ministry_map, {}, name="emis-ministry-dash-map"),
-    url(r'^edtrac/dash_ministry_progress/$', dash_ministry_progress, {}, name="emis-ministry-curriculum-progress"),
-    url(r'^edtrac/dash_admin_progress/$', dash_admin_progress, {}, name="emis-admin-curriculum-progress"),
+    url(r'^edtrac/dash-ministry-progress/$', dash_ministry_progress, {}, name="emis-ministry-curriculum-progress"),
+    url(r'^edtrac/dash-admin-progress/$', dash_admin_progress, {}, name="emis-admin-curriculum-progress"),
 
     url(r'^edtrac/violence-admin-details/$', ViolenceAdminDetails.as_view(), name="violence-admin-details"),
     url(r'^edtrac/attendance-admin-details/$', AttendanceAdminDetails.as_view(), name="attendance-admin-details"),
@@ -259,7 +258,7 @@ urlpatterns = patterns('',
     url('^edtrac/progress/district/(?P<pk>\d+)/$', DistrictProgressDetails.as_view(template_name=\
     "education/dashboard/district_progress_detail.html"), name="district-progress"),
     url(r'^edtrac/dash_ministry_progress_details/$', ProgressMinistryDetails.as_view(), name="ministry-progress-details"),
-    url(r'^edtrac/dash_admin_progress_details/$', ProgressAdminDetails.as_view(), name="admin-progress-details"),
+    url(r'^edtrac/dash-admin-progress-details/$', ProgressAdminDetails.as_view(), name="admin-progress-details"),
     url(r'^edtrac/dash-admin-meals-details/$', MealsAdminDetails.as_view(), name="admin-meals-details"),
     # to find out about the meals in a district
     url(r'^edtrac/meals/district/(?P<name>\w+)/$', DistrictMealsDetails.as_view(), name="district-meal"),
