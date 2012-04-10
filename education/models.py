@@ -503,6 +503,10 @@ Poll.register_poll_type('date', 'Date Response', parse_date_value, db_type=Attri
 
 reversion.register(School)
 reversion.register(EmisReporter)
+reversion.register(UserProfile)
+reversion.register(User)
+
+
 
 script_progress_was_completed.connect(edtrac_autoreg, weak=False)
 script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)

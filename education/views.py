@@ -1067,6 +1067,45 @@ class ViolenceAdminDetails(TemplateView):
 
         return context
 
+#District violence details (TODO: permission/rolebased viewing)
+class DistrictViolenceDetails(TemplateView):
+    template_name = "education/dashboard/district_violence_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(DistrictViolenceDetails, self).get_context_data(**kwargs)
+
+        location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk'))) or self.request.user.get_profile().location
+
+        schools = School.objects.filter(
+            pk__in = EmisReporter.objects.filter(reporting_location=location).values_list('schools__pk', flat=True))
+
+        school_case = []
+        month_now, month_before = get_month_day_range(datetime.datetime.now(), depth=2)
+        for school in schools:
+            # optimize with value queries
+            now_data = get_numeric_report_data( 'edtrac_headteachers_abuse', time_range = month_now, school = school,
+                to_ret = 'sum', belongs_to = 'schools')
+
+            before_data = get_numeric_report_data('edtrac_headteachers_abuse', time_range = month_before, school = school,\
+                to_ret = 'sum', belongs_to = 'schools')
+            # sieve out only schools with either value of violence cases being shown
+            if now_data > 0 or before_data > 0:
+                school_case.append((school, now_data, before_data))
+
+        #reports = poll_response_sum("edtrac_headteachers_abuse", month_filter=True, months=1)
+        emis_reporters = EmisReporter.objects.exclude(connection__in=\
+            Blacklist.objects.values_list('connection')).filter(schools__in=schools)
+
+        context['location'] = location
+        context['school_vals'] = school_case
+        #        context['school_count'] = School.objects.filter(location__in=EmisReporter.objects.exclude(connection__in=Blacklist.objects.values_list('connection').\
+        #            values_list('reporting_location'))).count()
+        context['month_now'] = month_now[0]
+        context['month_before'] = month_before[0]
+
+        return context
+
+
 class AttendanceAdminDetails(TemplateView):
     template_name = "education/admin/attendance_details.html"
 
@@ -1252,50 +1291,6 @@ def control_panel(req):
 class AuditTrail(TemplateView):
     template_name = "education/admin/audit_trail.html"
 
-
-
-#District violence details (TODO: permission/rolebased viewing)
-class DistrictViolenceDetails(DetailView):
-    template_name = "education/dashboard/district_violence_detail.html"
-    context_object_name = "district_violence"
-    model = Location
-
-    def get_context_data(self, **kwargs):
-        context = super(DistrictViolenceDetails, self).get_context_data(**kwargs)
-
-        location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk'))) or self.request.user.get_profile().location
-
-        schools = School.objects.filter(
-            pk__in = EmisReporter.objects.filter(reporting_location=location).values_list('schools__pk', flat=True))
-
-        school_case = []
-
-        for school in schools:
-            # optimize with value queries
-            month_now, month_before = get_month_day_range(datetime.datetime.now(), depth=2)
-
-            school_case.append((school,
-                            poll_response_sum('edtrac_headteachers_abuse',
-                                school=school,
-                                month_filter = 'monthly',
-                                month_range=month_now),
-                            poll_response_sum('edtrac_headteachers_abuse',
-                                school=school,
-                                month_filter = 'monthly',
-                                month_range=month_before)))
-
-        #schools and reports from a district
-
-        #reports = poll_response_sum("edtrac_headteachers_abuse", month_filter=True, months=1)
-        emis_reporters = EmisReporter.objects.exclude(connection__in=\
-            Blacklist.objects.values_list('connection')).filter(schools__in=schools)
-
-        context['location'] = location
-        context['school_vals'] = school_case
-#        context['school_count'] = School.objects.filter(location__in=EmisReporter.objects.exclude(connection__in=Blacklist.objects.values_list('connection').\
-#            values_list('reporting_location'))).count()
-        context['month'] = datetime.datetime.now()
-        return context
 
 class DistrictViolenceCommunityDetails(DetailView):
     context_object_name = "district_violence"

@@ -654,7 +654,6 @@ def get_week_date(depth=None):
 
 
 def get_numeric_report_data(poll_name, location=None, time_range=None, to_ret=None, **kwargs):
-
     poll = Poll.objects.get(name=poll_name)
 
     if time_range:
