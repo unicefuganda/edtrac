@@ -828,12 +828,36 @@ def poll_response_sum(poll_name, **kwargs):
 #            ]
 
 
-        if kwargs.get('month_filter')=='monthly' and kwargs.has_key('locations'):
+        if kwargs.get('month_filter')=='monthly' and kwargs.has_key('locations') or kwargs.get('month_20to19'):
             if kwargs.get('month_20to19'):
+            #                nxt_month = datetime.datetime(now.year, now.month+1, now.day)
                 now = datetime.datetime.now()
-                nxt_month = datetime.datetime(now.year, now.month+1, now.day)
-                next_month, current_month, month_before = get_month_day_range(nxt_month, depth=2)
-                pass
+
+                current_month, month_before, month_before_before = get_month_day_range(now, depth=3)
+
+                # 20th of last month
+                c_month_q_start = datetime.datetime(month_before[0].year,
+                    month_before[0].month, month_before[0].day+19, 8) # set for 8 o'clock in the morning
+
+                # 19th of this month
+                c_month_q_end = datetime.datetime(current_month[0].year,
+                    current_month[0].month, current_month[0].day+18, 19) # set for 7 o'clock in the evening
+
+
+                # the month before last month's 20th
+                p_month_q_start = datetime.datetime(month_before_before[0].year,
+                    month_before_before[0].month, month_before_before[0].day+19, 8) # set for 8 o'clock in the morning
+                # previous month's 19th
+                p_month_q_end = datetime.datetime(month_before[0].year,
+                    month_before[0].month, month_before[0].day+18, 19) # set for 7 o'clock in the evening
+
+                current_month_quota = [c_month_q_start, c_month_q_end]
+
+                previous_month_quota = [p_month_q_start, p_month_q_end]
+
+                # set `current_month` and `previous month`
+                current_month, previous_month = current_month_quota, previous_month_quota
+
             else:# return just one figure/sum without all the list stuff
                 current_month, previous_month = get_month_day_range(datetime.datetime.now(), depth=2)
 
