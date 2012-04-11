@@ -829,8 +829,14 @@ def poll_response_sum(poll_name, **kwargs):
 
 
         if kwargs.get('month_filter')=='monthly' and kwargs.has_key('locations'):
-            # return just one figure/sum without all the list stuff
-            current_month, previous_month = get_month_day_range(datetime.datetime.now(), depth=2)
+            if kwargs.get('month_20to19'):
+                now = datetime.datetime.now()
+                nxt_month = datetime.datetime(now.year, now.month+1, now.day)
+                next_month, current_month, month_before = get_month_day_range(nxt_month, depth=2)
+                pass
+            else:# return just one figure/sum without all the list stuff
+                current_month, previous_month = get_month_day_range(datetime.datetime.now(), depth=2)
+
             return [
                 get_numeric_report_data(poll_name, locations=kwargs.get('locations'), time_range=current_month, to_ret='sum'),
                 get_numeric_report_data(poll_name, locations=kwargs.get('locations'), time_range=previous_month, to_ret='sum')
