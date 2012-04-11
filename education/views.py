@@ -278,8 +278,12 @@ def dash_admin_progress_district(req, district_pk):
             loc_data.append([school, 'missing'])
         # clean up
         loc_data = sorted(loc_data, key=operator.itemgetter(1))
+        temp = [item for item in loc_data if item[1] == 'missing' or item[1] == 'incorrect response']
+        temp_2 = [item for item in loc_data if item not in temp]
+        temp_2 = sorted(temp_2, key=operator.itemgetter(1), reverse=True)
+        loc_data = temp_2 + temp
 
-    return render_to_response('education/progress/district_progress_details.html',
+    return render_to_response('education/progress/district_progress_admin_details.html',
             {'location_data':loc_data, 'location':location}, RequestContext(req))
 
 
@@ -351,7 +355,7 @@ def generate_dashboard_vars(location=None):
     else:
         locations.append(location)
 
-    responses_to_violence = poll_response_sum("edtrac_headteachers_abuse",month_filter = 'monthly', locations = locations)
+    responses_to_violence = poll_response_sum("edtrac_headteachers_abuse", month_filter = 'monthly', locations = locations)
     # percentage change in violence from previous month
     violence_change = cleanup_sums(responses_to_violence)
     if violence_change > 0:
