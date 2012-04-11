@@ -1020,12 +1020,17 @@ def curriculum_progress_list(poll_name, **kwargs):
     if kwargs:
 
         if kwargs.has_key('location'):
-            return get_numeric_report_data(
-                poll_name,
-                to_ret = 'q',
-                location=kwargs.get('location'),
-                time_range=get_week_date()#default to just the week running Thursday through Wednesday, the next week
-            ).values_list('value_float',flat=True)
+            try:
+
+                to_ret = get_numeric_report_data(
+                    poll_name,
+                    to_ret = 'q',
+                    location=kwargs.get('location'),
+                    time_range=get_week_date()#default to just the week running Thursday through Wednesday, the next week
+                ).values_list('value_float',flat=True)
+                return to_ret
+            except AttributeError:
+                return 0
 
         elif kwargs.has_key("school"):
             return get_numeric_report_data(

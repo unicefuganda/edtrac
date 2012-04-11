@@ -16,7 +16,7 @@ class Command(BaseCommand):
     )
     def handle(self, **options):
 
-        if not options['date']:
+        if not options['date']reports
             date = raw_input('Date when questions should be sent out -- YYYY-MM-DD:')
         else:
             date = options['date']

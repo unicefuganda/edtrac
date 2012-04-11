@@ -520,13 +520,18 @@ def generate_dashboard_vars(location=None):
 
     try:
         if len(locations) == 1:
-
-            c_list = list(curriculum_progress_list("edtrac_p3curriculum_progress", time_range = True,\
-                location=locations[0]))
+            progress_list =curriculum_progress_list("edtrac_p3curriculum_progress", time_range = True, location=locations[0])
+            if progress_list == 0:
+                c_list = 0
+            else:
+                c_list = list(progress_list)
         else:
             c_list = list(curriculum_progress_list("edtrac_p3curriculum_progress", time_range = True))
 
-        mode = curriculum_progress_mode(c_list)
+        if c_list == 0:
+            mode = 0
+        else:
+            mode = curriculum_progress_mode(c_list)
 
     except exceptions.TypeError:
         # shouldn't really reach this state (unless data isn't there)
