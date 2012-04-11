@@ -230,6 +230,8 @@ urlpatterns = patterns('',
     url(r'^edtrac/dash_ministry_map/$', dash_ministry_map, {}, name="emis-ministry-dash-map"),
     url(r'^edtrac/dash-ministry-progress/$', dash_ministry_progress, {}, name="emis-ministry-curriculum-progress"),
     url(r'^edtrac/dash-admin-progress/$', dash_admin_progress, {}, name="emis-admin-curriculum-progress"),
+    url(r'^edtrac/dash-admin-progress/district/(?P<district_pk>\d+)/$', dash_admin_progress_district, {},
+        name="emis-admin-curriculum-progress-district"),
 
     url(r'^edtrac/violence-admin-details/$', ViolenceAdminDetails.as_view(), name="violence-admin-details"),
     url(r'^edtrac/attendance-admin-details/$', AttendanceAdminDetails.as_view(), name="attendance-admin-details"),

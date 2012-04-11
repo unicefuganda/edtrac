@@ -25,20 +25,14 @@
                     </tr>
 
                     {% for district, mode in location_data %}
-                        <tr><td>{{ district }}</td><td>{{ mode }}</td></tr>
+                        <tr>
+                            <td>
+                                <a href="{% url emis-admin-curriculum-progress-district district.pk %}">
+                                    {{ district }}
+                                </a>
+                            </td>
+                            <td>{{ mode }}</td></tr>
                     {% endfor %}
-                    <!--<tr>-->
-                        <!--<td>Kampala</td><td>1.3 People in our subcounty/Division</td><td>75%</td><td style="color:green;">On Schedule</td>-->
-                    <!--</tr>-->
-                    <!--<tr>-->
-                        <!--<td>Kotido</td><td>1.2 Physical features of our sub-county/Division</td><td>90%</td><td style="color:orange;">1 week behind schedule</td>-->
-                    <!--</tr>-->
-                    <!--<tr>-->
-                        <!--<td>Kyegegwa</td><td>1.1 Name and location of our Sub-county/Division</td><td>90%</td><td style="color:red;">2 weeks behind schedule</td>-->
-                    <!--</tr>-->
-                    <!--<tr>-->
-                        <!--<td>Kabarole</td><td>2.1 Occupations of people in our Sub-county</td><td>51%</td><td>1 week ahead of schedule</td>-->
-                    <!--</tr>-->
                 </table>
             </div>
         </div>

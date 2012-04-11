@@ -655,7 +655,6 @@ def get_week_date(depth=None):
 
 def get_numeric_report_data(poll_name, location=None, time_range=None, to_ret=None, **kwargs):
     poll = Poll.objects.get(name=poll_name)
-
     if time_range:
         if location:
         # time filters
@@ -669,7 +668,9 @@ def get_numeric_report_data(poll_name, location=None, time_range=None, to_ret=No
                     q = Value.objects.filter(attribute__slug='poll_number_value',\
                         entity_ct=ContentType.objects.get_for_model(Response),\
                         entity_id__in=poll.responses.filter(date__range=time_range,\
-                            contact__in=kwargs.get('school').emisreporter_set.all())).values('entity_ct')
+                            contact__in=kwargs.get('school').emisreporter_set.all(),
+                            contact__reporting_location = kwargs.get('school').location
+                        )).values('entity_ct')
                 else:
                     q = Value.objects.filter(attribute__slug='poll_number_value',\
                         entity_ct=ContentType.objects.get_for_model(Response),\
@@ -986,7 +987,6 @@ def poll_responses_term(poll_name, **kwargs):
 
 
 def curriculum_progress_list(poll_name, **kwargs):
-    from .utils import themes
     if kwargs:
 
         if kwargs.has_key('location'):
@@ -997,12 +997,20 @@ def curriculum_progress_list(poll_name, **kwargs):
                 time_range=get_week_date()#default to just the week running Thursday through Wednesday, the next week
             ).values_list('value_float',flat=True)
 
+        elif kwargs.has_key("school"):
+            return get_numeric_report_data(
+                poll_name,
+                to_ret='q',
+                belongs_to = 'schools',
+                school = kwargs.get('school')
+            ).values_list('value_float', flat=True)
+
         elif kwargs.get('time_range'):
-            return  list(get_numeric_report_data(
+            return  get_numeric_report_data(
                 poll_name,
                 to_ret = 'q',
                 time_range=get_week_date()
-            ).values_list('value_float',flat=True))
+            ).values_list('value_float',flat=True)
     else:
         x = list(get_numeric_report_data(poll_name, to_ret = 'q').values_list('value_float', flat=True))
         return x

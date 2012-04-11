@@ -211,7 +211,6 @@ def dash_admin_progress(req):
                 schools = None,\
                 connection__in = Blacklist.objects.values_list('connection', flat=True)).\
                 values_list('reporting_location__pk', flat=True))
-        print locations
         loc_data = []
         for location in locations:
             try:
@@ -225,8 +224,59 @@ def dash_admin_progress(req):
         return render_to_response('education/progress/admin_progress_details.html',
                 {'location_data': loc_data}, RequestContext(req))
     else:
-        location = profile.location
+        schools = School.objects.filter(pk__in = EmisReporter.objects.filter(reporting_location=profile.location).values_list('schools__pk', flat=True))
+        loc_data = []
+        p = Poll.objects.get(name='edtrac_p3curriculum_progress')
+        for school in schools:
+            response_dates = p.responses.filter(contact__connection__in = school.emisreporter_set.\
+                values_list('connection',flat=True)).values_list('date', flat=True)
+            response = [r.eav.poll_number_value for r in p.responses.\
+                filter(contact__connection__in = school.emisreporter_set.values_list('connection',flat=True))]
+            response_sieve = zip(response_dates, response)
+            response_sieve = sorted(response_sieve, reverse=True)
+            try:
+                if response_sieve[0][1] is None:
+                    loc_data.append([school, 'incorrect response'])
+                else:
+                    loc_data.append([school, response_sieve[0][1]])
+            except IndexError:
+                # no or missing data
+                loc_data.append([school, 'missing'])
+                # clean up
+        loc_data = sorted(loc_data, key=operator.itemgetter(1), reverse=True)
 
+        return render_to_response('education/progress/district_progress_details.html',
+            {'location_data':loc_data, 'location':profile.location}, RequestContext(req))
+
+def dash_admin_progress_district(req, district_pk):
+    location = Location.objects.filter(type="district").get(pk=district_pk)
+
+    schools = School.objects.filter(pk__in = EmisReporter.objects.filter(reporting_location=location).\
+        values_list('schools__pk', flat=True)).order_by('name')
+    loc_data = []
+
+    p = Poll.objects.get(name='edtrac_p3curriculum_progress')
+    for school in schools:
+        response_dates = p.responses.filter(contact__connection__in = school.emisreporter_set.\
+            values_list('connection',flat=True)).values_list('date', flat=True)
+
+        response = [r.eav.poll_number_value for r in p.responses.\
+            filter(contact__connection__in = school.emisreporter_set.values_list('connection',flat=True))]
+        response_sieve = zip(response_dates, response)
+        response_sieve = sorted(response_sieve, reverse=True)
+        try:
+            if response_sieve[0][1] is None:
+                loc_data.append([school, 'incorrect response'])
+            else:
+                loc_data.append([school, response_sieve[0][1]])
+        except IndexError:
+            # no or missing data
+            loc_data.append([school, 'missing'])
+        # clean up
+        loc_data = sorted(loc_data, key=operator.itemgetter(1))
+
+    return render_to_response('education/progress/district_progress_details.html',
+            {'location_data':loc_data, 'location':location}, RequestContext(req))
 
 
 def dash_ministry_progress(request):
@@ -461,46 +511,29 @@ def generate_dashboard_vars(location=None):
 
 
     try:
-        c_list = list(curriculum_progress_list("edtrac_p3curriculum_progress", time_range = True))
+        if len(locations) == 1:
+
+            c_list = list(curriculum_progress_list("edtrac_p3curriculum_progress", time_range = True,\
+                location=locations[0]))
+        else:
+            c_list = list(curriculum_progress_list("edtrac_p3curriculum_progress", time_range = True))
+
         mode = curriculum_progress_mode(c_list)
+
     except exceptions.TypeError:
         # shouldn't really reach this state (unless data isn't there)
         mode = 0
 
-    response_to_meals = get_count_response_to_polls(Poll.objects.get(name = "edtrac_headteachers_meals"),
-        time_range = get_week_date()[0], choices = [0])
+    if len(locations) == 1:
+        response_to_meals = get_count_response_to_polls(Poll.objects.get(name = "edtrac_headteachers_meals"),
+            time_range = get_week_date()[0], choices = [0], location_name = locations[0].name)
+    else:
+        response_to_meals = get_count_response_to_polls(Poll.objects.get(name = "edtrac_headteachers_meals"),
+            time_range = get_week_date()[0], choices = [0])
 
     p = sorted(response_to_meals.items(), key=lambda(k,v):(v[0][1], k))
 
     worst_meal = p[len(p)-1]
-
-#    responses_to_meals = poll_response_sum("edtrac_headteachers_meals",
-#        month_filter='biweekly', locations=locations)
-    # percentage change in meals missed
-#    meal_change = cleanup_sums(responses_to_meals)
-#    if meal_change > 0:
-#        meal_change_class = "increase"
-#        meal_change_data = "data-green"
-#    elif meal_change < 0:
-#        meal_change_class = "decrease"
-#        meal_change_data = "data-red"
-#    else:
-#        meal_change_class = "zero"
-#        meal_change_data = "data-white"
-
-#    responses_to_smc_meetings_poll = poll_response_sum("edtrac_smc_meetings",
-#        month_filter = True, location=locations, ret_type=list)
-#
-#    responses_to_grants_received = poll_response_sum("edtrac_smc_upe_grant",
-#        month_filter=True, location=locations, ret_type=list)
-#
-#    sorted_violence_list = responses_to_violence
-#    sorted_hungry_list = responses_to_meals
-#    #sorted list...
-#
-#    top_three_violent_districts = sorted_violence_list[:3]
-#    #can make a dictionary
-#    top_three_hungry_districts = sorted_hungry_list[:3]
 
     # ideally head teachers match the number of SMCs in eductrac
 
@@ -646,16 +679,11 @@ def generate_dashboard_vars(location=None):
         grant_percent = 0
 
     return {
-#        'top_three_violent_districts':top_three_violent_districts,
-#        'top_three_hungry_districts':top_three_hungry_districts,
         'worst_meal' : worst_meal,
         'c_mode' : mode,
         'violence_change' : violence_change,
         'violence_change_class' : violence_change_class,
         'violence_change_data' : violence_change_data,
-#        'meal_change' : meal_change,
-#        'meal_change_class': meal_change_class,
-#        'meal_change_data' : meal_change_data,
         'male_teachers' : male_teachers,
         'male_teachers_past' : male_teachers_past,
         'male_teachers_diff' : male_teachers_diff,
