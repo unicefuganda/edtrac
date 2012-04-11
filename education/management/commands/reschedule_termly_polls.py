@@ -12,12 +12,17 @@ class Command(BaseCommand):
     
     option_list = BaseCommand.option_list + (
         make_option("-d", "--date", dest="date"),
+        make_option("-g", "--group", dest="group"),
     )
     def handle(self, **options):
         if not options['date']:
             date = raw_input('Date when questions should be sent out -- YYYY-MM-DD:')
         else:
             date = options['date']
-        reschedule_termly_polls(date)
+        if not options['group']:
+            group = raw_input('Group -- SMC or Head Teachers:')
+        else:
+            group = 'all'
+        reschedule_termly_polls(group, date)
         self.stdout.write('')
         self.stdout.write('done!')
