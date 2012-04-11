@@ -474,12 +474,13 @@ def reschedule_termly_polls(grp = 'all', date=None):
     """
     manually reschedule all termly polls or for a specified group
     """
+
     termly_scripts = Script.objects.filter(slug__endswith='_termly')
     if not grp == 'all':
         slg_start = 'edtrac_%s'%grp.replace(' ','_').lower()
         termly_scripts = termly_scripts.filter(slug__startswith=slg_start)
         ScriptProgress.objects.filter(script__in=termly_scripts)\
-        .filter(connection__contact__emisreporter__groups__name__iexact=grp).delete()
+            .filter(connection__contact__emisreporter__groups__name__iexact=grp).delete()
     else:
         ScriptProgress.objects.filter(script__in=termly_scripts).delete()
 
