@@ -150,7 +150,7 @@ class ExcelResponse(HttpResponse):
     from a form.
     """
 
-    def __init__(self, data, output_name='excel_report', headers=None, write_to_file=False, force_csv=False,
+    def __init__(self, data, output_name='excel_report.xls', headers=None, write_to_file=False, force_csv=False,
                  encoding='utf8'):
         # Make sure we've got the right type of data to work with
         valid_data = False
@@ -169,8 +169,11 @@ class ExcelResponse(HttpResponse):
         # Excel has a limit on number of rows; if we have more than that, make a csv
         use_xls = False
         mimetype = 'application/vnd.ms-excel'
-        file_ext = 'xls'
-        if len(data) <= MAX_SHEET_LENGTH :
+        if len(output_name.rsplit('.'))>1:
+            file_ext = output_name.rsplit('.')[1]
+        else:
+            file_ext="xls"
+        if len(data) <= MAX_SHEET_LENGTH or file_ext =="xls":
             book = create_workbook(data, encoding)
             if write_to_file:
                 book.save(output_name)
@@ -196,9 +199,6 @@ class ExcelResponse(HttpResponse):
                 zipped_file.write(handle, handle.rsplit("/")[-1])
                 start = end
                 end = end + MAX_SHEET_LENGTH
-
-
-
 
 
 
