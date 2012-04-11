@@ -32,13 +32,15 @@
                             </td>
                             <td>
                                     {% if mode == 'missing' %}
-                                        <span style="color:red; font-size: 0.8em;">{{ mode }}</span>
+                                        <span style="color:red; font-size: 0.8em;">missing</span>
                                     {% endif %}
                                     {% if mode == 'incorrect response' %}
-                                        <span style="color:orange; font-size: 0.8em;">{{ mode }}</span>
+                                        <span style="color:orange; font-size: 0.8em;">incorrect response</span>
                                     {% endif %}
                                     {% if mode >= 0.0 %}
-                                        {{ mode|floatformat }}
+                                            {% if mode > 12.3 %}
+                                                <span style="color:red; font-size: 0.7em;">Wrong:</span>
+                                            {% endif %} {{ mode|floatformat }}
                                     {% endif %}
                             </td>
                         </tr>

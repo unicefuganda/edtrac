@@ -243,8 +243,12 @@ def dash_admin_progress(req):
                 # no or missing data
                 loc_data.append([school, 'missing'])
                 # clean up
-        loc_data = sorted(loc_data, key=operator.itemgetter(1), reverse=True)
+        loc_data = sorted(loc_data, key=operator.itemgetter(1))
 
+        temp = [item for item in loc_data if item[1] == 'missing' or item[1] == 'incorrect response']
+        temp_2 = [item for item in loc_data if item not in temp]
+        temp_2 = sorted(temp_2, key=operator.itemgetter(1), reverse=True)
+        loc_data = temp_2 + temp
         return render_to_response('education/progress/district_progress_details.html',
             {'location_data':loc_data, 'location':profile.location}, RequestContext(req))
 
