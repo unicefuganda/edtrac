@@ -21,7 +21,10 @@ function smc_meetings(schools, meetings) {
                 allowPointSelect: true,
                 cursor: 'pointer',
                 dataLabels: {
-                    enabled: true
+                    enabled: true,
+                    formatter: function(){
+                        return '<b>'+ this.point.name + '</b>: '+this.percentage + '%';
+                    }
                 },
                 showInLegend: false
             }
@@ -41,6 +44,7 @@ function smc_meetings(schools, meetings) {
 
 
 function violence_cases(xVals, yVals, title){
+    var x_vals;
     var x_vals = xVals.split("','");
     var b = yVals.split(",");
     var violence = [];
@@ -108,16 +112,18 @@ function violence_cases(xVals, yVals, title){
 }
 
 
-//pie chart
-function pie(data, chart_title, series_title, selector_id, tooltip_text) {
 
+
+//pie chart
+function pie(data, chart_title, series_title, selector_id, tooltip_text, showLegend) {
     var d = data.split(",");
     var data_array = [];
-    for(i=0;i<d.length; i++){
+    for(i=0; i < d.length; i++){
         x = d[i].split('-');
         data_array.push([x[0], parseInt(x[1])]);
     }
     var chart;
+
     chart = new Highcharts.Chart({
         chart: {
             //renderTo: 'lunch',
@@ -129,10 +135,18 @@ function pie(data, chart_title, series_title, selector_id, tooltip_text) {
         title: {
             text: chart_title
         },
+        legend:{
+          layout: 'vertical',
+            align: 'right',
+            verticalAlign: 'top',
+            x : -10,
+            y: 100,
+            borderWidth:0
+        },
         tooltip: {
             formatter: function() {
                 //return this.percentage +' % \n didn\'t have meals';
-                return this.percentage + ' % \n' + tooltip_text;
+                return this.percentage.toFixed(1) + '%'+ tooltip_text;
             }
         },
         plotOptions: {
@@ -140,9 +154,13 @@ function pie(data, chart_title, series_title, selector_id, tooltip_text) {
                 allowPointSelect: true,
                 cursor: 'pointer',
                 dataLabels: {
-                    enabled: true
+                    enabled: true,
+                    formatter: function() {
+                        //return this.percentage +' % \n didn\'t have meals';
+                        return this.percentage.toFixed(1) + '%'+ tooltip_text;
+                    }
                 },
-                showInLegend:false
+                showInLegend:showLegend
             }
         },
         series: [{
@@ -152,6 +170,84 @@ function pie(data, chart_title, series_title, selector_id, tooltip_text) {
             data: data_array
         }]
     });
+}
+
+// column stacked percent
+
+function column_stacked(title, yTitle, selector, categories, data){
+    // title of graph
+    // yTitle is the tile of the y-axis
+    // selector is the area that graph is rendered to
+    // categories {e.g. months}
+    // data is an array of month-based data
+    var d = data.split(';');
+    var series_data_array = []; // where a dictionary is placed
+    var split_data = [];
+    var split_labels = []; // labels
+    for (var i = 0; i < d.length; i++) {
+        var x = d[i].split(',');
+        var data_array = [];
+        var label = x[0];
+        var value = x[1]; // a string that looks like 0-2-3
+        var data_split = value.split('-');
+        split_data.push(data_split);
+        split_labels.push(label);
+    }
+
+    for (var i = 0; i < split_labels.length; i++) {
+        var series_data = {};
+        series_data['name'] = split_labels[i].toString() + '%';
+        var data_buffer = [];
+        var s_data = split_data[i];
+        for (var k=0; k < s_data.length; k++) {
+            data_buffer.push(parseFloat(s_data[k]));
+        }
+        series_data['data'] = data_buffer;
+
+        series_data_array.push(series_data);
+    } // end iteration to put values of monthly data
+
+    var category_container = [];
+    for (var j=0; j < categories.split(',').length; j++) {
+        // categories => ['Jan', 'Feb', 'Mar', etc...]
+        category_container.push(categories.split(',')[j]);
+    }
+
+    var chart;
+
+    chart = new Highcharts.Chart(
+        {
+            chart : {
+                renderTo : selector,
+                type : 'column'
+            },
+            title : {
+                text : title
+            },
+            xAxis : {
+                categories : category_container
+            },
+            yAxis : {
+                min: 0,
+                title : {
+                    text: yTitle
+                }
+            },
+            tooltip : {
+                formatter : function(){
+                    //formerly this.y reflected the number
+                    //return this.series.name + ' pupils that had meals: ' + this.y + ' (' + Math.round(this.percentage) + '%)';
+                    return this.series.name + ' quota:' + Math.round(this.y) + '%';
+                }
+            },
+            plotOptions : {
+                column : {
+                    stacking : 'percent'
+                }
+            },
+            series : series_data_array
+        }
+    );
 }
 
 function load_progress_chart(value){
@@ -207,12 +303,14 @@ function load_line_graph(title, subtitle, selector, yLabel, xLabel){
           },
           series: [{
              name: 'Kaboong',
-             data: [7.0, 6.9, 9.5, 14.5, 18.4, 21.5, 25.2, 26.5, 23.3, 18.3, 13.9, 9.6]
+             data: [0, 0,0,0,0,0,0,0,0,0,0,0]
           }]
        });
 }
 
-function load_column(title, selector, yLabel, xLabel, category, data_list){
+function load_column(title, selector, yLabel, xLabel, category, data_array){
+
+
     var category_array =  [];
     var data_array = [];
     for (i=0; i<category.length; i++){

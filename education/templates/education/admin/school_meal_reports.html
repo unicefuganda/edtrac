@@ -1,0 +1,29 @@
+<div class="school_reports" style="clear: both;">
+    <table class="classy tabulated-data">
+        <thead>
+        <tr>
+            <th>Districts</th>
+            <th>No pupils had meals</th>
+            <th>A quarter of pupils had a meal</th>
+            <th>Half the pupils had a meal</th>
+            <th>Three quarters of pupils had a meal</th>
+            <th>All pupils had meals</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        {% if school_meals_reports %}
+        {% for name, list in school_meals_reports.items %}
+        <tr>
+            <td>{{ name }}</td>
+            {% for tupple_item in list %}
+            <td>{{ tupple_item.1 }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr><td colspan="6" style="text-align: center;">No data</td> </tr>
+        {% endif %}
+        </tbody>
+    </table>
+</div>

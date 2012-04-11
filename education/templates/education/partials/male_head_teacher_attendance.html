@@ -1,6 +1,12 @@
 {% extends "education/admin/admin_dashboard.html" %}
 {% load endless %}
+{% block title %}
+        Absenteeism of Male Head Teachers -- {{ block.super }}
+{% endblock %}
 {% block content %}
+<div class="back_link">
+    <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">← Back to the EduTrac Home Page</a></p>
+</div>
 <div class="attendance">
     <h2 class="block-header">Attendance Records for Male Head Teachers (week: {{ week|date:"D d M Y" }})</h2>
     <div class="top">

@@ -1,44 +1,69 @@
 {% extends "education/admin/admin_dashboard.html" %}
 {% load endless %}
+{% block title %}
+Absenteeism of P3 Boys -- {{ block.super }}
+{% endblock %}
 {% block content %}
-<div class="attendance">
-    <h2 class="block-header">Attendance Records for P3 boys (week: {{ week|date:"D d M Y" }})</h2>
-    <div class="top">
-        {% paginate location_data %}
-        <table id="boyTable" class="tabulated-data tablesorter">
-            <thead>
-            <tr>
-                {% for heading in headings %}
-                <th>{{ heading }}</th>
-                {% endfor %}
-            </tr>
-
-            </thead>
-            <tbody>
-            {% for a, b, c in location_data %}
-            <tr>
-                <td><a href="{% url school-detail a.id %}">{{ a }}</a></td>
-                <td>{{ b|floatformat }}</td>
-                <td>{{ c|floatformat }}</td>
-            </tr>
-            {% endfor %}
-
-            </tbody>
-        </table>
-    </div>
-
-    <div class="paginator">
-        {% show_pages %}
-    </div>
+<div class="back_link">
+    <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">← Back to the EduTrac Home Page</a></p>
 </div>
-<script>
-    $(function(){
-        $("#boyTable").tablesorter({sortList: [
-                [0,0],
-                [1,0]
-        ]});
-    });
-</script>
+    <div class="attendance">
+        <h2 class="block-header">Absenteeism of P3 Boys in {{ location }} (week: {{ week|date:"D d M Y" }})</h2>
 
+        <div class="top">
+            {% paginate location_data %}
+            <table class="tabulated-data">
+                <thead>
+                <tr>
+                    {% for heading in headings %}
+                    <th>{{ heading }}</th>
+                    {% endfor %}
+                </tr>
+
+                </thead>
+                <tbody>
+                {% for school, current_week, week_before, diff in location_data %}
+                <tr>
+                    <td><a href="{% url school-detail school.id %}">{{ school.name }}</a></td>
+                    <td>
+                        {% if current_week == '--' %}
+                        {{ current_week }}
+                        {% else %}
+                        {{ current_week|floatformat }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if week_before == '--' %}
+                        {{ week_before }}
+                        {% else %}
+                        {{ week_before|floatformat }}
+                        {% endif %}
+                    </td>
+                    {% if diff == '--' %}
+                    <td></td>
+                    {% else %}
+                    <td class="
+                    {% if diff > 0.0 %}
+                        positive
+                    {% endif %}
+
+                    {% if diff < 0.0 %}
+                        negative
+                    {% endif %}
+
+                    {% if diff == 0.0 %}
+                        zero
+                    {% endif %}">
+                        {{ diff|floatformat }}</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="paginator">
+            {% show_pages %}
+        </div>
+</div>
 
 {% endblock %}

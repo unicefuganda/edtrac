@@ -1,96 +1,130 @@
 {% extends "education/admin/admin_dashboard.html" %}
+
+{% block title %} Meals -- {{ block.super }} {% endblock %}
+
 {% block content %}
-        <div class="general">
-<p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; line-height: inherit;">← Back to EdTrac Home Page</a></p>
-        <div>
-        <div id="meals" style="float:left;"></div>
-        <script type="text/javascript">
-            $(document).ready(function(){
-                var line_chart;
-                load_line_graph('Meals', null, 'meals', 'Schools that have reporterd in terms of percentages', 'Months of the year');
-            });
-        </script>
-            <div class="choose" style="float:right;">
-                <span style="font-size: 1em;">Choose level of meals had at school</span>
-                <form action="" method="post">
-                    <p>
-                        <label for="meal_0percent">0% of children had meals</label>
-                    </p>
-                    <p>
-                        <label for="meal_25percent">25% of children had meals</label>
-                    </p>
-                    <p>
-                        <label for="meal_50percent">50% of children had meals</label>
-                    </p>
-                    <p>
-                        <label for="meal_75percent">75% of children had meals</label>
-                    </p>
-                    <p>
-                        <label for="meal_100percent">100% of children had meals</label>
-                    </p>
-                </form>
+<div class="back_link">
+    <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">← Back to the EduTrac Home Page</a></p>
+</div>
+<div class="general">
+
+        <div style="margin-bottom: 10px;">
+            <div>
+                <div style="padding: 10px; float:left;">
+                <p style="font-style: oblique; font-weight: bold; width:200px; margin-top: 20px;">Select a District to view chart</p>
+
+                <select name="districts" multiple="multiple" style="margin: 24px 0 0 24px;">
+                    {% for district, selected in districts %}
+                        {% if selected %}
+                        <option selected="selected">{{ district }}</option>
+                        {% else %}
+                        <option>{{ district }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                </div>
+
+                <div id="selectable" style="width:640px; float:right;"></div>
+                <script>
+                    $('select').change(function(){
+                        var str = '';
+                        $('select option:selected').each(function(){
+                            str += $(this).text();
+                        });
+                        $('#selectable').load('/edtrac/meals/district/'+str);
+                    }).change();
+                </script>
             </div>
         </div>
-        <div class="school_reports" style="clear: both;">
-            <table class="classy">
-                <thead>
-                <tr>
-                    <th>Districts</th>
-                    <th>No pupils had meals</th>
-                    <th>A quarter of pupils had a meal</th>
-                    <th>Half the pupils had a meal</th>
-                    <th>Three quarters of pupils had a meal</th>
-                    <th>All pupils had meals</th>
-                </tr>
-                </thead>
-                <tbody>
 
-                {% if school_meals_reports %}
-                {% for name, list in school_meals_reports.items %}
-                <tr>
-                    <td>{{ name }}</td>
-                    {% for tupple_item in list %}
-                    <td>{{ tupple_item.1 }}</td>
+
+        <div style="padding:10px; background: white; clear:both; margin-bottom: 5px;">
+            <span style="font-size: 1em; font-style: oblique; font-weight: bold;">Click to view data</span>
+            <ul>
+                <li><a href="" id="community-reports">Show community reports</a></li>
+                <li><a href="" id="school-reports">Show School Meal reports</a></li>
+            </ul>
+
+
+        </div>
+
+            <div class="school_reports">
+                <h3>Reports by school reporters</h3>
+                <table class="classy tabulated-data">
+                    <thead>
+                    <tr>
+                        <th>Districts</th>
+                        <th>No pupils had meals</th>
+                        <th>A quarter of pupils had a meal</th>
+                        <th>Half the pupils had a meal</th>
+                        <th>Three quarters of pupils had a meal</th>
+                        <th>All pupils had meals</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    {% if school_meals_reports %}
+                    {% for name, list in school_meals_reports.items %}
+                    <tr>
+                        <td>{{ name }}</td>
+                        {% for tupple_item in list %}
+                        <td>{{ tupple_item.1|floatformat }}%</td>
+                        {% endfor %}
+                    </tr>
                     {% endfor %}
-                </tr>
-                {% endfor %}
-                {% else %}
-                <tr><td colspan="6" style="text-align: center;">No data</td> </tr>
-                {% endif %}
-                </tbody>
-            </table>
-        </div>
+                    {% else %}
+                    <tr><td colspan="6" style="text-align: center;">No data</td> </tr>
+                    {% endif %}
+                    </tbody>
+                </table>
+            </div>
 
-        <div class="community_reports">
-            <h3>Reports by community reporters</h3>
-            <table class="classy">
-                <thead>
-                <tr>
-                    <th>Districts</th>
-                    <th>No pupils had meals</th>
-                    <th>A quarter of pupils had a meal</th>
-                    <th>Half the pupils had a meal</th>
-                    <th>Three quarters of pupils had a meal</th>
-                    <th>All pupils had meals</th>
-                </tr>
-                </thead>
-                <tbody>
 
-                {% if community_meals_reports %}
-                {% for name, list in community_meals_reports.items %}
-                <tr>
-                    <td>{{ name }}</td>
-                    {% for tupple_item in list %}
-                    <td>{{ tupple_item.1 }}</td>
+            <div class="community_reports">
+                <h3>Reports by community reporters</h3>
+                <table class="classy tabulated-data">
+                    <thead>
+                    <tr>
+                        <th>Districts</th>
+                        <th>No pupils had meals</th>
+                        <th>A quarter of pupils had a meal</th>
+                        <th>Half the pupils had a meal</th>
+                        <th>Three quarters of pupils had a meal</th>
+                        <th>All pupils had meals</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    {% if community_meals_reports %}
+                    {% for name, list in community_meals_reports.items %}
+                    <tr>
+                        <td>{{ name }}</td>
+                        {% for tupple_item in list %}
+                        <td>{{ tupple_item.1|floatformat }}%</td>
+                        {% endfor %}
+                    </tr>
                     {% endfor %}
-                </tr>
-                {% endfor %}
-                {% else %}
-                <tr><td colspan="6" style="text-align: center;">No data</td> </tr>
-                {% endif %}
-                </tbody>
-            </table>
+                    {% else %}
+                    <tr><td colspan="6" style="text-align: center;">No data</td> </tr>
+                    {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-        </div>
-        </div>
+        <script>
+            $(document).ready(function(){
+                $('.community_reports').hide();
+                $('a#community-reports').click(function(event){
+                    event.preventDefault()
+                    $('.school_reports').hide();
+                    $('.community_reports').show();
+                });
+                $('a#school-reports').click(function(event){
+                    event.preventDefault()
+                    $('.community_reports').hide();
+                    $('.school_reports').show();
+                });
+            });
+        </script>
 {% endblock %}

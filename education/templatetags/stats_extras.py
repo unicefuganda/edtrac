@@ -9,6 +9,7 @@ from django.utils.safestring import mark_safe
 import calendar
 import time
 import re
+from education.reports import get_month_day_range
 
 def get_section(path):
     pos = path.split('/')
@@ -242,10 +243,42 @@ def parse_gemvalues(obj):
 
 def reorganize_data(obj):
     to_ret = []
-    print obj
     for label, val in obj:
-        to_ret.append("%s-%d"%(label,val))
+        to_ret.append("%s-%d" % (label, val))
     return to_ret
+
+def reorganize_nested_data(obj):
+    to_ret = {}
+
+    for data_set in obj:
+        # set all labels
+        for label, val in data_set:
+            to_ret[label] = []
+
+    for label in to_ret.keys():
+        for data_set in obj:
+            for l, v in data_set:
+                if l == label:
+                    to_ret[label].append(v)
+    new_ret = []
+    for p in to_ret.items():
+        label, value = p
+        new_ret.append('%d,%s' %  (label, '-'.join([str(i) for i in value])))
+    return new_ret
+
+def make_date_range_month(obj):
+    to_ret = []
+
+    for r_1, _ in obj:
+        to_ret.append(r_1.strftime('%B'))
+
+    return ",".join(to_ret)
+
+
+
+def get_district_pk(name):
+    location = Location.objects.filter(type="district").get(name = name)
+    return location.pk
 
 def termly(obj):
     return obj.slug.endswith('_termly')
@@ -263,6 +296,9 @@ register.filter('submissions', submissions)
 register.filter('headteacher',headteacher)
 register.filter('parse_gemvalues', parse_gemvalues)
 register.filter('reorganize_data', reorganize_data)
+register.filter('make_date_range_month', make_date_range_month)
+register.filter('reorganize_nested_data', reorganize_nested_data)
+register.filter('get_district_data', get_district_pk)
 register.filter('termly', termly)
 register.filter('headteacher_connection',headteacher_connection)
 register.filter('hash', hash)

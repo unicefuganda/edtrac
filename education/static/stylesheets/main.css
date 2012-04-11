@@ -207,6 +207,11 @@ div.data{
     background-position: right center;
     color: #bf1226;
 }
+
+.data-green span, .data-red span, .data-white span{
+    padding:20px;
+}
+
 .data-white{
     background-color: #fff1d9;
 }
@@ -407,6 +412,7 @@ div#footer a{
 }
 div.back_link{
     padding:20px;
+    background-color: #333;
 }
 
 div.bottom_part{
@@ -721,4 +727,134 @@ div.actionform a, div.actionform a:active{
 }
 div.actionform tr{
     margin-bottom: 10px;
+}
+
+
+
+
+.modal-open .tooltip{
+    z-index: 2070;
+}
+.tooltip{
+    position: absolute;
+    z-index: 1020;
+    display: block;
+    visibility: visible;
+    padding: 5px;
+    font-size: 11px;
+    opacity: 0;
+    filter: alpha(opacity=0)
+}
+.tooltip.in {opacity:0.8; filter:alpha(opacity=80);}
+.tooltip.top {
+    margin-top: -2px;
+}
+.tooltip.right{
+    margin-left: 2px;
+}
+.tooltip.bottom{
+    margin-top:-2px;
+}
+.tooltip.top .tooltip-arrow{
+    bottom:0;
+    left:50%;
+    margin-left: -5px;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top:5px solid #000000;
+}
+
+.tooltip.bottom .tooltip-arrow {
+    top: 0;
+    left: 50%;
+    margin-left: -5px;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 5px solid #000000;
+}
+
+.tooltip.right .tooltip-arrow {
+    top: 50%;
+    left: 0;
+    margin-top: -5px;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-right: 5px solid #000000;
+}
+
+
+.tooltip-inner {
+    max-width: 200px;
+    padding: 3px 8px;
+    color: #ffffff;
+    text-align: center;
+    text-decoration: none;
+    background-color: #000000;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+}
+
+.tooltip-arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+}
+
+div.stats, div.nice{
+    background-color:#333;
+    color: #caff7a;
+    padding:20px;
+    margin: 10px;
+}
+div.stats span{
+    font-size: 1.2em;
+    margin-bottom: 5px;
+    padding: 5px;
+}
+
+
+div.report-stickie{
+    margin-top: 5px;
+    padding:10px;
+}
+
+
+div.district-stats{
+    margin-top: 20px;
+    width:inherit;
+}
+
+div.district-stats div.cap-container{
+    width:150px;
+    float:left;
+}
+
+
+div.highcharts-container{
+    height:200px;
+}
+
+div.stats .accordion{
+    margin-bottom: 18px;
+}
+
+div.stats .accordion .accordion-group{
+    margin-bottom: 2px;
+    border: 1px solid #e5e5e5;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    border-radius: 4px;
+}
+
+.accordion-heading{
+    border-bottom: 0;
+}
+.accordion-heading, .accordion-toggle{
+    display: block;
+    padding: 8px 15px;
+}
+.accordion-inner{
+    /*padding:5px 15px;*/
+    border-top: 1px solid #e5e5e5;
 }

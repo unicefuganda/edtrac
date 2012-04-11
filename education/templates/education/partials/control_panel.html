@@ -13,30 +13,41 @@
         <tr>
             <td>Messages</td>
             <td>A page showing messages coming into EduTrac; you can send and receive messages using this.</td>
-            <td><a href="{%url emis-messagelog %}">Link</a></td>
+            <td><a href="{%url emis-messagelog %}">message management...</a></td>
         </tr>
         
         <tr>
             <td>Other Messages</td>
             <td>Manage other messages sent into the system. e.g. Unsolicited messages</td>
-            <td><a href="{% url emis-other-messages %}">Link</a></td>
+            <td><a href="{% url emis-other-messages %}">message management (others)...</a></td>
         </tr>
         
         <tr>
             <td>Reporters</td>
             <td>Manage reporters on EduTrac</td>
-            <td><a href="{%url emis-contact %}">Link</a></td>
+            <td><a href="{%url emis-contact %}">repoter management...</a></td>
+        </tr>
+        <tr>
+            <td>Users</td>
+            <td>Manage user accounts on EduTrac</td>
+            <td><a href="{% url emis-users %}">user management...</a> </td>
         </tr>
         <tr>
             <td>Schools</td>
             <td>Manage schools in EduTrac</td>
-            <td><a href="{%url emis-schools %}">Link</a></td>
+            <td><a href="{%url emis-schools %}">schools management...</a></td>
         </tr>
 
         <tr>
             <td>Scripts</td>
             <td>Manage scripts scheduling; e.g. set dates to send out polls, activate polls, etc.</td>
-            <td><a href="{% url emis-scripts %}">Link</a></td>
+            <td><a href="{% url emis-scripts %}">script management...</a></td>
+        </tr>
+        
+        <tr>
+            <td>Changelog</td>
+            <td>Audit trail shows what changes have been made to EduTrac by users; and allows one to revert.</td>
+            <td><a href="{% url emis-audittrail %}">audit trail</a></td>
         </tr>
         </tbody>
     </table>

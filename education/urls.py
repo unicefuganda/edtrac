@@ -82,6 +82,7 @@ urlpatterns = patterns('',
         'sort_ascending':False,
         }, name="emis-messagelog"),
     url(r'^edtrac/control-panel/$',control_panel, name="control-panel"),
+    url(r'^edtrac/audit-trail/$',AuditTrail.as_view(), name="emis-audittrail"),
     #reporters
     url(r'^edtrac/reporter/$', login_required(generic), {
         'model':EmisReporter,
@@ -134,6 +135,7 @@ urlpatterns = patterns('',
             ('School ID', False, 'emis_id', None,),
             ('Head Teacher', False, 'emisreporter', None,),
             ('Reporters', False, 'emisreporter', None,),
+            ('', False, '', None,)
         ],
         'sort_column':'date',
         'sort_ascending':False,
@@ -182,7 +184,7 @@ urlpatterns = patterns('',
     url(r'^edtrac/users/(\d+)/edit/', edit_user, name='edit_user'),
     url(r'^edtac/users/add/', edit_user, name='add_user'),
 
-            url(r'^edtrac/user/$', super_user_required(generic), {
+    url(r'^edtrac/user/$', super_user_required(generic), {
         'model':User,
         'objects_per_page':25,
         'partial_row':'education/partials/user_row.html',
@@ -205,12 +207,11 @@ urlpatterns = patterns('',
     #TODO protect views here...
 
     url(r'^edtrac/dash_map/$', dash_map, {}, name="emis-dash-map"),
-    url(r'^edtrac/progress/$', dash_progress, {}, name="emis-dash-progress"),
     url(r'^edtrac/dash_attdance/$', dash_attdance, {}, name="emis-dash-attdance"),
     url(r'^edtrac/dash_violence/$', dash_violence, {}, name="emis-dash-violence"),
     url(r'^edtrac/dash_meals/$', dash_meals, {}, name="emis-dash-meals"),
     url(r'^edtrac/dash_meetings/$', dash_meetings, {}, name="emis-dash-meetings"),
-    url(r'^edtrac/dash_capitation/$', dash_capitation, {}, name="emis-dash-capitation"),
+
 
     # attendance views for all roles ---> data prepopulated by location
     url(r'^edtrac/dash/boys-p3/attendance/$', boys_p3_attendance, {}, name="boys-p3"),
@@ -227,25 +228,23 @@ urlpatterns = patterns('',
 
     url(r'^edtrac/dash_admin_meetings/$', dash_admin_meetings, {}, name="emis-dash-admin-meetings"),
     url(r'^edtrac/dash_ministry_map/$', dash_ministry_map, {}, name="emis-ministry-dash-map"),
-    url(r'^edtrac/dash_ministry_progress/$', dash_ministry_progress, {}, name="emis-ministry-curriculum-progress"),
-    url(r'^edtrac/dash_admin_progress/$', dash_admin_progress, {}, name="emis-admin-curriculum-progress"),
+    url(r'^edtrac/dash-ministry-progress/$', dash_ministry_progress, {}, name="emis-ministry-curriculum-progress"),
+    url(r'^edtrac/dash-admin-progress/$', dash_admin_progress, {}, name="emis-admin-curriculum-progress"),
+    url(r'^edtrac/dash-admin-progress/district/(?P<district_pk>\d+)/$', dash_admin_progress_district, {},
+        name="emis-admin-curriculum-progress-district"),
 
     url(r'^edtrac/violence-admin-details/$', ViolenceAdminDetails.as_view(), name="violence-admin-details"),
     url(r'^edtrac/attendance-admin-details/$', AttendanceAdminDetails.as_view(), name="attendance-admin-details"),
     url(r'^edtrac/attd_admin_details/search$', search_form, name="attendance-search"),
     # to find out about violence in a district
-    url(r'^edtrac/violence/district/(?P<pk>\d+)/$', DistrictViolenceDetails.as_view(template_name =\
-        "education/dashboard/district_violence_detail.html"), name="district-violence"),
+    url(r'^edtrac/violence/district/(?P<pk>\d+)/$', DistrictViolenceDetails.as_view(), name="district-violence"),
+    url(r'^edtrac/violence-community/district/(?P<pk>\d+)/$', DistrictViolenceCommunityDetails.as_view(template_name =\
+    "education/dashboard/district_violence_community_detail.html"), name="district-violence-community"),
     url(r'^edtrac/violence_deo_details/$', ViolenceDeoDetails.as_view(), name="violence-deo-details"),
     url(r'^edtrac/dash_ministry_attdance/$', dash_attdance, {}, name="emis-ministry-dash-attdance"),
     url(r'^edtrac/dash_ministry_violence/$', dash_ministry_violence, {}, name="emis-ministry-dash-violence"),
     url(r'^edtrac/dash_ministry_meals/$', dash_ministry_meals, {}, name="emis-ministry-dash-meals"),
     url(r'^edtrac/dash_ministry_meetings/$', dash_ministry_meetings, {}, name="emis-ministry-dash-meetings"),
-    url(r'^edtrac/dash_ministry_capitation/$', dash_ministry_capitation, {}, name="emis-ministry-dash-capitation"),
-    # to find out about the meals in a district
-    url(r'^edtrac/meals/district/(?P<pk>\d+)/$', DistrictMealsDetails.as_view(template_name =\
-    "education/dashboard/district_meal_detail.html"), name="district-meal"),
-
     #DEO dashboard
     url(r'^edtrac/dash_deo_map/$', dash_ministry_map, {}, name="emis-deo-dash-map"),
     url(r'^edtrac/deo_progress/$', dash_ministry_progress, {}, name="emis-deo-curriculum-progress"),
@@ -253,15 +252,18 @@ urlpatterns = patterns('',
     url(r'^edtrac/dash_deo_violence/$', dash_deo_violence, {}, name="emis-deo-dash-violence"),
     url(r'^edtrac/dash_deo_meals/$', dash_deo_meals, {}, name="emis-deo-dash-meals"),
     url(r'^edtrac/dash_deo_meetings/$', dash_deo_meetings, {}, name="emis-deo-dash-meetings"),
-    url(r'^edtrac/dash_deo_capitation/$', dash_deo_capitation, {}, name="emis-deo-dash-capitation"),
 
-
+    #National statistics
+    url(r'^edtrac/national-stats/$', NationalStatistics.as_view(), name="emis-national-stats"),
+    url(r'^edtrac/capitation-grants/$', CapitationGrants.as_view(), name = "emis-grants"),
     #PROGRESS views
     url('^edtrac/progress/district/(?P<pk>\d+)/$', DistrictProgressDetails.as_view(template_name=\
     "education/dashboard/district_progress_detail.html"), name="district-progress"),
     url(r'^edtrac/dash_ministry_progress_details/$', ProgressMinistryDetails.as_view(), name="ministry-progress-details"),
-    url(r'^edtrac/dash_admin_progress_details/$', ProgressAdminDetails.as_view(), name="admin-progress-details"),
+    url(r'^edtrac/dash-admin-progress-details/$', ProgressAdminDetails.as_view(), name="admin-progress-details"),
     url(r'^edtrac/dash-admin-meals-details/$', MealsAdminDetails.as_view(), name="admin-meals-details"),
+    # to find out about the meals in a district
+    url(r'^edtrac/meals/district/(?P<name>\w+)/$', DistrictMealsDetails.as_view(), name="district-meal"),
     url(r'^edtrac/reporters/$', EdtracReporter.as_view()), #/page(?P<page>[0-9]+)/$', ListView.as_view(
 #    url(r'^edtrac/reporters/create/$', EdtracReporterCreateView.as_view()),
 #    url(r'^edtrac/reporters/connection/create/$', EdtracReporterCreateConnection.as_view(), name="new-connection"),

@@ -1,42 +1,160 @@
-{% extends "education/index.html" %}
+{% extends "education/admin/admin_dashboard.html" %}
 {% load humanize %}
+{% block title %}
+{{ school_name }} report -- {{ block.super }}
+{% endblock %}
 {% block content %}
-    <div class="module">
-        <h2>Last Submissions from {{ school }}</h2>
-        <p> 
-        	<table width="100%" cellpadding="5" cellspacing="0" class="school_detail" border="1">
-        	    <thead>
-        	        <tr>
-        	            <th>Category/Poll</th>
-        	            <th>Value</th>
-        	            <th>Reporter</th>
-        	            <th>Submission Date</th>
-        	        </tr>
-        	    </thead>
-        	    <tbody>
-        	        {% for xform, values in last_submissions.xforms %}
-        	        {{ xforms }}
-        	        <tr>
-        	            <td>{{ xform.name }}</td>
-        	            {% for value in values %}
-            	            <td>{% if value.value_int__sum %}{{ value.value_int__sum }}{% else %}&nbsp;{% endif %}</td>
-            	            <td>{{ value.submission.connection.contact.name }}</td>
-            	            <td>{{ value.submission.created|date:"d-m-Y"}}</td>
-            	         {% endfor %}
-        	        </tr>
-        	        {% endfor %}
-        	        {% for poll, values in last_submissions.scripted_polls %}
-                    <tr>
-                        <td width="50%">{{ poll.question }}</td>
-                        {% for value in values %}
-                            <td>{{ value.message.text }}</td>
-                            <td>{{ value.message.connection.contact.name }}</td>
-                            <td>{{ value.message.date|date:"d-m-Y" }}</td>
+<div class="back_link">
+    <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">← Back to the EduTrac Home Page</a></p>
+</div>
+
+        <div class="general">
+
+            <p>
+            <h3 style="background-color:black; color:white; margin-bottom:5px; padding:10px;">
+                {{ school_name }}
+            </h3>
+            </p>
+
+
+
+            <h2>Absenteeism of Pupils</h2>
+            <table class="tabulated-data">
+                <tbody>
+                <tr><td colspan="1"></td>
+                    {% for month in months %}
+                    <th>{{ month|date }}</th>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td>
+                        <table>
+                            <tr><td>P3 Girls</td></tr>
+                            <tr><td>P3 Boys</td></tr>
+                            <tr><td>P6 Girls</td></tr>
+                            <tr><td>P6 Boys</td></tr>
+                        </table>
+                    </td>
+                    {% for month_data in monthly_data %}
+                        <td>
+                            <table>
+                                <tr><td>{{ month_data.0 }}</td></tr>
+                                <tr><td>{{ month_data.1 }}</td></tr>
+                                <tr><td>{{ month_data.2 }}</td></tr>
+                                <tr><td>{{ month_data.3 }}</td></tr>
+                            </table>
+                        </td>
+                    {% endfor %}
+                </tr>
+                </tbody>
+            </table>
+            <br/><br/>
+            <h2>Attendance of Teachers</h2>
+            <table class="tabulated-data">
+                <tbody>
+                <tr><td colspan="1"></td>
+                    {% for month in months %}
+                    <th>{{ month|date }}</th>
+                    {% endfor %}
+                </tr>
+
+                <tr>
+                    <td>
+                        <table>
+                            <tr><td>Female</td></tr>
+                            <tr><td>Male</td></tr>
+                        </table>
+                    </td>
+                    {% for month_data in monthly_data_teachers %}
+                    <td>
+                        <table>
+                            <tr><td>{{ month_data.0 }}</td></tr>
+                            <tr><td>{{ month_data.1 }}</td></tr>
+                        </table>
+                    </td>
+                    {% endfor %}
+                </tr>
+                </tbody>
+            </table>
+
+            <br/><br/>
+            <h2>Attendance of Head Teachers</h2>
+            <table class="tabulated-data">
+                <tbody>
+                <tr>
+                    {% for month in months %}
+                    <th>{{ month|date }}</th>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    {% for month_data in monthly_data_head_teachers %}
+                    <td>{{ month_data }}</td>
+                    {% endfor %}
+                </tr>
+                </tbody>
+            </table>
+
+            <br/><br/>
+            <hr>
+            <div class="module">
+                <h2>Monthly and Term Reports from {{ school_name }}</h2>
+            </div>
+            <div class="top">
+                <table class="tabulated-data">
+                    <tbody>
+                    <tr><td colspan="1"></td>
+                        {% for month in months %}
+                        <th>{{ month|date }}</th>
                         {% endfor %}
                     </tr>
-                    {% endfor %}    
-        	    </tbody>
-        	</table>
-        </p>
-	</div>
+                    <tr>
+                        <td>Violence</td>
+                    </tr>
+                    <tr>
+                        <td>Meals</td>
+                    </tr>
+                    </tbody>
+                </table>
+                <br/><br/><hr>
+            <h2>Termly</h2>
+                <table class="tabulated-data">
+                    <tbody>
+                    <tr><td colspan="1"></td>
+
+                        <th>Term 1</th>
+                        <th>Term 2</th>
+                        <th>Term 3</th>
+                    </tr>
+
+                    <tr>
+                        <th>Enrollment</th>
+                    </tr>
+                    <tr>
+                        <td>P3 Girls</td>
+                    </tr>
+                    <tr><td>P3 Boys</td></tr>
+                    <tr><td>P6 Girls</td></tr>
+                    <tr><td>P6 Boys</td></tr>
+                    <tr>
+                        <th>Teachers</th>
+                    </tr>
+                    <tr><td>Female</td></tr>
+                    <tr><td>Male</td></tr>
+                    <tr>
+                        <th>UPE Grant</th>
+                    </tr>
+
+                    <tr>
+                        <th>SMC Meeting</th>
+                    </tr>
+
+                    <tr>
+                        <th>SMC Meeting</th>
+                    </tr>
+                    </tbody>
+                </table>
+
+
+            </div>
+    	</div>
 {% endblock %}

@@ -675,7 +675,7 @@
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
-            "question": "How many abuse cases were recorded in the record book this month?", 
+            "question": "How many violence cases were recorded in the record book this month?",
             "sites": [
                 5
             ], 

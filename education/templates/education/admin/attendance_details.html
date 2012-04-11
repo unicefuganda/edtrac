@@ -1,76 +1,39 @@
 {% extends "education/admin/admin_dashboard.html" %}
+{% block title %} Absenteeism Records for Uganda {{ block.super }} {% endblock %}
 {% block content %}
-<!--
-<div class="viz-wrapper">
-    <div id="map" style="width:inherit; height:inherit; float:left;"></div>
-    <div style="float: right">test</div>
+<div class="back_link">
+    <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">← Back to EdTrac Home Page</a></p>
 </div>
-
-
-<script>
-    $(document).ready(function(){
-        $('#map').load("{% url attendance-visualization %}");
-    });
-</script>
-
--->
-
         <div class="page-header">
-            <h2>Attendance Records for {{ location }}</h2><br/>
+            <h2>Absenteism Records for {{ location }}</h2><br/>
+            {% ifequal role_name "Admins" %}
             <p>Total districts: {{ total_districts }}</p>
+            {% endifequal %}
         </div>
 
-
-
-<div class="search-form">
-    <span>Search District:</span><br/><br/>
-    <form action="search/{{ district.id }}" method="post">
-        <input type="search"/>
-
-        <button>Load Statistics</button>
-    </form>
-</div>
-
-        
 <div class="attendance">
-    <h2 class="block-header">Attendance Records (week: {{ week|date:"D d M Y" }})</h2>
-    <div class="top">
-        <table class="tabulated-data">
-            <tbody>
-            <tr>
-                {% for heading in headings %}
-                <th>{{ heading }}</th>
-                {% endfor %}
-            </tr>
-
-
-                {% for a, b, c, d, e, f, g, h, i in location_data %}
-            <tr>
-                <td><a href="#">{{ a }}</a></td>
-                <td>{{ b }}</td>
-                <td>{{ c }}</td>
-                <td>{{ d }}</td>
-                <td>{{ e }}</td>
-                <td>{{ f }}</td>
-                <td>{{ g }}</td>
-                <td>{{ h }}</td>
-                <td>{{ i }}</td>
-            </tr>
-                {% endfor %}
-
-
-            </tbody>
-        </table>
+    <style>
+        ul > li{
+            margin-bottom: 5px;
+        }
+    </style>
+    <h2 class="block-header">Absenteeism recorded as of(week: {{ week|date:"D d M Y" }})</h2>
+    <div style="background-color:whitesmoke;">
+        <ul style="list-style: circle; margin-left:20px; font-size:1.2em; padding:20px;">
+            <li><a href="{% url boys-p3 %}" rel="tooltip" title="Absenteeism record for P3 Boys">Boys P3 Absenteeism</a></li>
+            <li><a href="{% url boys-p6 %}" rel='tooltip' title="Absenteeism record for P6 Boys">Boys P6 Absenteeism</a></li>
+            <li><a href="{% url girls-p3 %}" rel='tooltip' title="Absenteeism record for P3 Girls">Girls P3 Absenteeism</a></li>
+            <li><a href="{% url girls-p6 %}" rel='tooltip' title="Absenteeism record for P6 Girls">Girls P6 Absenteeism</a></li>
+            <li><a href="{% url f-teachers %}" rel='tooltip' title="Absenteeism record for Female teachers">Female Teachers Absenteeism</a></li>
+            <li><a href="{% url m-teachers %}" rel='tooltip' title="Absenteeism record for Male teachers">Male Teachers Absenteeism</a></li>
+        </ul>
     </div>
 </div>
 
 
 <script>
     $(document).ready(function(){
-        $('.search-form button').click(function(){
-            alert('hello');
-        });
-
+        $("[rel=tooltip]").tooltip();
     });
 </script>
 

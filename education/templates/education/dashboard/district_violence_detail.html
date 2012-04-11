@@ -1,17 +1,19 @@
 {% extends "education/admin/admin_dashboard.html" %}
 {% load humanize %}
-
+{% block title %} Violence in Schools in {{ location }} -- {{ block.super }} {% endblock %}
 {% block content %}
 
-<div class="attendance">
-    <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; line-height: inherit;">← Back to EdTrac Home Page</a></p
-    <div class="top-welcome">
-        <span style="font-size:1.2em;">{{ location }}</span>
-        <span>There are a total of {{ school_count }} schools in this district</span>
-    </div>
+<div class="back_link">
+    <p><a href="{% url violence-admin-details %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">
+        ← Back to the Violence Dashboard
+    </a></p>
+</div>
+    <div class="top general">
+        <h3 style="background-color:black; color:white; margin-bottom:5px; padding:10px;">
+            Violence in Schools
+        </h3>
 
 
-    <div class="top">
         <h2 class="block-header">Violence Records (for past 2 months)</h2>
         <table class="tabulated-data">
             <thead>
@@ -20,20 +22,22 @@
                     School
                 </th>
                 <th>
-                    Numbers of Cases this {{ month|date:"M Y" }}
+                    Number of Cases in {{ month_now|date:"M Y" }}
+                </th>
+                <th>
+                    Number of cases in {{ month_before|date:"M Y" }}
                 </th>
             </tr>
             </thead>
             <tbody>
-            {% for school,val in school_vals %}
+            {% for school, val1, val2 in school_vals %}
                 {% if val == 0 %}
                 {% else %}
-                <tr><td><a href="{% url school-detail school.pk %}">{{ school }}</a></td><td>{{ val }}</td></tr>
+                <tr><td><a href="{% url school-detail school.pk %}">{{ school.name }}</a></td><td>{{ val1 }}</td><td>{{ val2 }}</td></tr>
                 {% endif %}
             {% endfor %}
             </tbody>
         </table>
     </div>
-</div>
 
 {% endblock %}

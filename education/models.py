@@ -12,7 +12,7 @@ from rapidsms.contrib.locations.models import Location
 from script.signals import script_progress_was_completed, script_progress
 from script.models import *
 from script.utils.handling import find_best_response, find_closest_match
-import re, calendar, datetime, time
+import re, calendar, datetime, time, reversion
 
 
 class School(models.Model):
@@ -500,9 +500,12 @@ def schedule_weekly_report(grp='DEO'):
 Poll.register_poll_type('date', 'Date Response', parse_date_value, db_type=Attribute.TYPE_OBJECT)
 
 
-import reversion
+
 reversion.register(School)
 reversion.register(EmisReporter)
+reversion.register(UserProfile)
+reversion.register(User)
+
 
 
 script_progress_was_completed.connect(edtrac_autoreg, weak=False)
