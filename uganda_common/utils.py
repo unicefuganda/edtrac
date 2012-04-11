@@ -326,7 +326,7 @@ def total_attribute_value(attribute_slug_list, start_date, end_date, location, g
             'pk', flat=True))))
     else:
         location_children_where = 'T8.id = %d' % location.get_children()[0].pk
-    return XFormSubmissionValue.objects.filter(
+    return XFormSubmissionValue.objects.exclude(submission__connection__contact=None).filter(
         submission__has_errors=False,
         attribute__slug__in=attribute_slug_list,
         submission__created__lte=end_date,
