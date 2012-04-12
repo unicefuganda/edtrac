@@ -1508,7 +1508,7 @@ def male_t_district_attd_detail(req, location_id):
 
     to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
 
-    return render_to_response("education/female_t_district_attd_detail.html",
+    return render_to_response("education/male_t_district_attd_detail.html",
             { 'week':datetime.datetime.now(),\
               'location_data':to_ret,
               'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],

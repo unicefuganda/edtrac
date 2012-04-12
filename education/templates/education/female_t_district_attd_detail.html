@@ -5,7 +5,8 @@ Absenteeism of Female Teachers in {{ location }} -- {{ block.super }}
 {% endblock %}
 {% block content %}
 <div class="back_link">
-    <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">← Back to the EduTrac Home Page</a></p>
+    <p><a href="{% url f-teachers %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">
+        ← Back to the Female Teachers District view</a></p>
 </div>
 <div class="attendance">
     <h2 class="block-header">Absenteeism of Female Teachers for {{ location }} (week: {{ week|date:"D d M Y" }})</h2>

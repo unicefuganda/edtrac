@@ -5,7 +5,9 @@ Absenteeism of Male Teachers in {{ location }} -- {{ block.super }}
 {% endblock %}
 {% block content %}
 <div class="back_link">
-    <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">← Back to the EduTrac Home Page</a></p>
+    <p><a href="{% url m-teachers %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">
+        ← Back to the Male Teachers district view
+    </a></p>
 </div>
 <div class="attendance">
     <h2 class="block-header">Absenteeism of Male Teachers for {{ location }} (week: {{ week|date:"D d M Y" }})</h2>
@@ -42,18 +44,7 @@ Absenteeism of Male Teachers in {{ location }} -- {{ block.super }}
                 {% if diff == '--' %}
                 <td></td>
                 {% else %}
-                <td class="
-                    {% if diff > 0.0 %}
-                        positive
-                    {% endif %}
-
-                    {% if diff < 0.0 %}
-                        negative
-                    {% endif %}
-
-                    {% if diff == 0.0 %}
-                        zero
-                    {% endif %}">
+                <td class="{% if diff > 0.0 %}positive{% endif %}{% if diff < 0.0 %}negative{% endif %}{% if diff == 0.0 %}zero{% endif %}">
                     {{ diff|floatformat }}</td>
                 {% endif %}
             </tr>
@@ -66,17 +57,5 @@ Absenteeism of Male Teachers in {{ location }} -- {{ block.super }}
     </div>
 
 </div>
-
-<!--
-<script>
-    $(function(){
-        $(".tabulated-data").tablesorter({sortList: [
-            [0,0],
-            [1,0]
-        ]});
-    });
-</script>
--->
-
 
 {% endblock %}
