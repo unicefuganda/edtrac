@@ -1021,7 +1021,6 @@ def curriculum_progress_list(poll_name, **kwargs):
 
         if kwargs.has_key('location'):
             try:
-
                 to_ret = get_numeric_report_data(
                     poll_name,
                     to_ret = 'q',
@@ -1033,19 +1032,25 @@ def curriculum_progress_list(poll_name, **kwargs):
                 return 0
 
         elif kwargs.has_key("school"):
-            return get_numeric_report_data(
-                poll_name,
-                to_ret='q',
-                belongs_to = 'schools',
-                school = kwargs.get('school')
-            ).values_list('value_float', flat=True)
+            try:
+                return get_numeric_report_data(
+                    poll_name,
+                    to_ret='q',
+                    belongs_to = 'schools',
+                    school = kwargs.get('school')
+                    ).values_list('value_float', flat=True)
+            except AttributeError:
+                return 0
 
         elif kwargs.get('time_range'):
-            return  get_numeric_report_data(
-                poll_name,
-                to_ret = 'q',
-                time_range=get_week_date()
-            ).values_list('value_float',flat=True)
+            try:                
+                return  get_numeric_report_data(
+                    poll_name,
+                    to_ret = 'q',
+                    time_range=get_week_date()
+                    ).values_list('value_float',flat=True)
+            except AttributeError:
+                return 0
     else:
         x = list(get_numeric_report_data(poll_name, to_ret = 'q').values_list('value_float', flat=True))
         return x
