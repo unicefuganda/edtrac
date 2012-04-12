@@ -537,6 +537,11 @@ def generate_dashboard_vars(location=None):
         # shouldn't really reach this state (unless data isn't there)
         mode = 0
 
+    try:
+        mode_progress = (100 * sorted(themes.keys()).index(mode)+1) / float(len(themes.keys())) # offset zero-based index by 1
+    except ValueError:
+        mode_progress = 0 # when no values are recorded
+
     if len(locations) == 1:
         response_to_meals = get_count_response_to_polls(Poll.objects.get(name = "edtrac_headteachers_meals"),
             time_range = get_week_date()[0], choices = [0], location_name = locations[0].name)
@@ -694,6 +699,7 @@ def generate_dashboard_vars(location=None):
     return {
         'worst_meal' : worst_meal,
         'c_mode' : mode,
+        'mode_progress' : mode_progress,
         'violence_change' : violence_change,
         'violence_change_class' : violence_change_class,
         'violence_change_data' : violence_change_data,
