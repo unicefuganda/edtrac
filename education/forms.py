@@ -287,7 +287,7 @@ class MassTextForm(ActionForm):
     def perform(self, request, results):
         if results is None or len(results) == 0:
             return ('A message must have one or more recipients!', 'error')
-	    import pdb; pdb.set_trace()
+
         if request.user and request.user.has_perm('auth.add_message'):
             connections = \
                 list(Connection.objects.filter(contact__in=results).distinct())
