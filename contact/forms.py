@@ -23,7 +23,7 @@ from django.forms.util import ErrorList
 class FlaggedMessageForm(forms.ModelForm):
     class Meta:
         model = Flag
-        fields = ('name','rule','words',)
+        fields = ('name', 'rule', 'words',)
 
 
 class ReplyForm(forms.Form):
@@ -126,7 +126,7 @@ class FreeSearchTextForm(FilterForm):
     """ concrete implementation of filter form """
 
     search = forms.CharField(max_length=100, required=True, label="Free-form search",
-                             help_text="Use 'or' to search for multiple names",
+                             #help_text="Use 'or' to search for multiple names",
                              widget=forms.TextInput(attrs={'class':'itext', 'size':14}))
 
     def filter(self, request, queryset):
@@ -153,15 +153,16 @@ class DistictFilterForm(FilterForm):
 
     """ filter cvs districs on their districts """
 
-    district = forms.ChoiceField(choices=(('', '-----'), (-1,
+    district2 = forms.ChoiceField(label="District", choices=(('', '-----'), (-1,
                                  'No District')) + tuple([(int(d.pk),
                                  d.name) for d in
                                  Location.objects.filter(type__slug='district'
-                                 ).order_by('name')]), required=False)
+                                 ).order_by('name')]), required=False,
+                                 widget=forms.Select({'onchange':'update_district2(this)'}))
 
 
     def filter(self, request, queryset):
-        district_pk = self.cleaned_data['district']
+        district_pk = self.cleaned_data['district2']
         if district_pk == '':
             return queryset
         elif int(district_pk) == -1:
@@ -176,6 +177,21 @@ class DistictFilterForm(FilterForm):
                 return queryset.filter(reporting_location__in=district.get_descendants(include_self=True))
             else:
                 return queryset
+class RolesFilter(FilterForm):
+    role = forms.ChoiceField(choices=(('', '----'),) + tuple(
+                            [(int(g.id), g.name) for g in Group.objects.all().order_by('name')]), required=False)
+    def filter(self, request, queryset):
+        group_pk = self.cleaned_data['role']
+        if group_pk == '':
+            return queryset
+        else:
+            try:
+                grp = Group.objects.get(pk=group_pk)
+            except Group.DoesNotExist:
+                grp = None
+            if grp:
+                return queryset.filter(groups__pk__in=[grp.pk])
+            return queryset
 
 class MultipleDistictFilterForm(FilterForm):
 
@@ -397,7 +413,3 @@ class AgeFilterForm(FilterForm):
             return queryset.exclude(birthdate=None).filter(birthdate__range=(start, end))
         else:
             return queryset.filter(birthdate=None)
-
-
-
-
