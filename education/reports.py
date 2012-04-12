@@ -607,7 +607,8 @@ def get_week_date(depth=None):
 
         # a depth of zero defaults to what you'd get in `get_day_range(now)`
         """
-        Suppose you want a depth of 3 weeks worth of day
+        Suppose you want a depth of 3 weeks worth of weekly ranges, all you need to do is set the depth
+        >>> get_week_date(depth = 3)
         """
         if now.weekday() >= 3:
             passing_date = now - datetime.timedelta(days = now.weekday() - 3)
