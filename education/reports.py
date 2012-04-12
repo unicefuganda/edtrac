@@ -575,44 +575,26 @@ def set_thur_wed_range(thursday):
     # however we want to change the weeknumber a bit to get a `new` thursday
     # move thursday to last week
     thursday = thursday - datetime.timedelta(days = 7)
-
     # set times
     # 0800hrs EAT
     thursday = datetime.datetime(thursday.year, thursday.month, thursday.day, 8, 0 )
-
     diff = thursday+datetime.timedelta(days = 6)
-
     # 1900hrs
     diff = datetime.datetime(diff.year, diff.month, diff.day, 19, 0)
-
-
     to_ret_week = [thursday, diff]
-
     return to_ret_week
 
 
 def get_day_range(today):
-
     #how many days is it to this Thursday
     if today.weekday() >= 3:
         # offest today by a week from this Thursday
         today = (today - datetime.timedelta(days = today.weekday() - 3 )) + datetime.timedelta(days = 7)
         return set_thur_wed_range(today)
-
     else:
         # if day is a little earlier in the week
         new_date = today + datetime.timedelta(days = 3 - today.weekday())
         return set_thur_wed_range(new_date)
-
-
-#def get_week_days(year, week):
-#    #TODO -> get a datetime instance and call the .isocalendar() method (preferably the 1st element in the list)
-#    # implicitly set month?
-#    return [
-#        get_day_range(curr_week),
-#        get_day_range(prev_week)
-#    ]
-
 
 def get_week_date(depth=None):
     """
@@ -627,17 +609,12 @@ def get_week_date(depth=None):
         """
         Suppose you want a depth of 3 weeks worth of day
         """
-
-        passing_date = None
-
         if now.weekday() >= 3:
             passing_date = now - datetime.timedelta(days = now.weekday() - 3)
         else:
             passing_date = now + datetime.timedelta(days = 3 - now.weekday())
 
         date_collection = []
-
-        passing_date = passing_date - datetime.timedelta(days = 7) # go back a week earlier
 
         try:
             for wk in range(depth):
@@ -936,6 +913,7 @@ def cleanup_differences_on_poll(responses):
     return percent
 
 def poll_responses_past_week_sum(poll_name, **kwargs):
+
     """
     Function to the total number of responses in between this current week and the pastweek
      get the sum, find its total; add up values excluding NoneTypes
