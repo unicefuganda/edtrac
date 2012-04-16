@@ -1339,7 +1339,11 @@ class ProgressDeoDetails(TemplateView):
 ## management control panel
 
 def control_panel(req):
-    return render_to_response('education/partials/control_panel.html', {}, RequestContext(req))
+    profile = req.user.get_profile()
+    if profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):        
+        return render_to_response('education/partials/control_panel.html', {}, RequestContext(req))
+    else:
+        return render_to_response('education/partials/control_panel_dist.html',{}, RequestContext(req))
 
 class AuditTrail(TemplateView):
     template_name = "education/admin/audit_trail.html"
