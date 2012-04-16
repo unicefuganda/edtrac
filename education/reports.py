@@ -378,7 +378,8 @@ def othermessages(request, district_id=None):
     return messages
 
 def reporters(request, district_id=None):
-    if request.user.get_profile().is_member_of('Admins'):
+    profile = request.user.get_profile()
+    if profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
         return EmisReporter.objects.exclude(
                     connection__in=Blacklist.objects.all().values_list('connection', flat=True),
                     connection__identity__in = getattr(settings, 'MODEM_NUMBERS')
