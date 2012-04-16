@@ -571,9 +571,6 @@ div#violence_form{
 
 div.attendance div.top, div.general{
     background-color:#e0ccef;
-    border-radius: 10px;
-    -webkit-border-radius: 10px;
-    -moz-border-radius: 10px;
 }
 
 div.general{

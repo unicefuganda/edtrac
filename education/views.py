@@ -782,7 +782,7 @@ class MealsMinistryDetails(TemplateView):
 @login_required
 def admin_dashboard(request):
     if request.user.get_profile().is_member_of('Ministry Officials') or request.user.get_profile().is_member_of('Admins')\
-    or request.user.get_profile().is_member_of('UNICEF Officials'):
+        or request.user.get_profile().is_member_of('UNICEF Officials'):
         location = Location.objects.get(name="Uganda")
     else:
         location = request.user.get_profile().location
@@ -812,7 +812,7 @@ class NationalStatistics(TemplateView):
         context = super(NationalStatistics, self).get_context_data(**kwargs)
 
         profile = self.request.user.get_profile()
-        if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
+        if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
             districts = Location.objects.filter(type="district").\
                 filter(name__in=EmisReporter.objects.exclude(connection__in=Blacklist.objects.values_list('connection',flat=True))\
                     .values_list('reporting_location__name', flat=True))
@@ -1026,7 +1026,7 @@ class ViolenceAdminDetails(TemplateView):
         context = super(ViolenceAdminDetails, self).get_context_data(**kwargs)
         #TODO: filtering by ajax and time
 
-        if self.request.user.get_profile().is_member_of('Ministry Officials'):
+        if self.request.user.get_profile().is_member_of('Ministry Officials') or self.request.user.get_profile().is_member_of('UNICEF Officials'):
             location = Location.objects.get(name="Uganda")
         else:
             location = self.request.user.get_profile().location
@@ -1170,7 +1170,7 @@ class AttendanceAdminDetails(TemplateView):
 
         profile = self.request.user.get_profile()
         context['role_name'] = profile.role.name
-        if profile.is_member_of("Admins") or profile.is_member_of("Ministry Officials"):
+        if profile.is_member_of("Admins") or profile.is_member_of("Ministry Officials") or profile.is_member_of('UNICEF Officials'):
             names = list(set(EmisReporter.objects.exclude(reporting_location=None).filter(reporting_location__type="district").\
                         values_list('reporting_location__name',flat=True)))
             locations = Location.objects.filter(name__in=names).order_by("name")
@@ -1523,7 +1523,7 @@ def male_t_district_attd_detail(req, location_id):
 def boys_p3_attendance(req):
     profile = req.user.get_profile()
     location = profile.location
-    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
+    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
         """
         This view shows data by district
         """
@@ -1573,7 +1573,7 @@ def boys_p3_attd_admin(req, **kwargs):
 def boys_p6_attendance(req):
     profile = req.user.get_profile()
     location = profile.location
-    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
+    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
         locations = Location.objects.exclude(type="country").filter(type="district", name__in=\
             EmisReporter.objects.values_list('reporting_location__name', flat=True)).distinct().order_by("name")
         return boys_p6_attd_admin(req, locations=locations)
@@ -1612,7 +1612,7 @@ def boys_p6_attd_admin(req, locations=None):
 def girls_p3_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
-    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
+    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
         locations = Location.objects.exclude(type="country").filter(type="district", name__in=\
             EmisReporter.objects.values_list('reporting_location__name', flat=True)).distinct().order_by("name")
         return girls_p3_attd_admin(req, locations=locations)
@@ -1649,7 +1649,7 @@ def girls_p3_attd_admin(req, locations=None):
 def girls_p6_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
-    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
+    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
         locations = Location.objects.exclude(type="country").filter(type="district", name__in=\
             EmisReporter.objects.values_list('reporting_location__name', flat=True)).distinct().order_by("name")
         return girls_p6_attd_admin(req, locations=locations)
@@ -1686,7 +1686,7 @@ def girls_p6_attd_admin(req, locations=None):
 def female_teacher_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
-    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
+    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
         locations = Location.objects.exclude(type="country").filter(type="district", name__in=\
             EmisReporter.objects.distinct().values_list('reporting_location__name',flat=True)).order_by("name")
         return female_teacher_attd_admin(req, locations=locations)
@@ -1724,7 +1724,7 @@ def female_teacher_attd_admin(req, locations=None):
 def male_teacher_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
-    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
+    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
         locations = Location.objects.exclude(type="country").filter(type="district", name__in=\
             EmisReporter.objects.distinct().values_list('reporting_location__name',flat=True)).order_by("name")
         return male_teacher_attd_admin(req, locations=locations)
@@ -1762,7 +1762,7 @@ def male_teacher_attd_admin(req, locations=None):
 def male_head_teacher_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
-    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
+    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
         schools = School.objects.filter(location__name__in=EmisReporter.objects.distinct().\
         filter(reporting_location__type = 'district').values_list('reporting_location__name', flat=True))
     else:
@@ -1792,7 +1792,7 @@ def male_head_teacher_attendance(req):
 def female_head_teacher_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
-    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
+    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
         schools = School.objects.filter(location__name__in= EmisReporter.objects.distinct().\
             filter(reporting_location__type = 'district').values_list('reporting_location__name', flat=True))
 
