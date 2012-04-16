@@ -64,11 +64,8 @@ class ReporterFreeSearchForm(FilterForm):
 class SchoolFilterForm(FilterForm):
     """ filter form for emis schools """
     school = forms.ChoiceField(choices=(('', '-----'), (-1, 'Has No School'),) +\
-                                       tuple(School.objects.filter(location__in =\
-                                       EmisReporter.objects.exclude(schools=None).values_list('reporting_location',\
-                                           flat=True)).values_list('pk', 'name').order_by('name')))
-
-
+                                       tuple(School.objects.filter(location__name__in=\
+                                       EmisReporter.objects.values_list('reporting_location__name',flat=True)).values_list('pk', 'name').order_by('name')))
     def filter(self, request, queryset):
         school_pk = self.cleaned_data['school']
         if school_pk == '':
@@ -88,9 +85,7 @@ class EditReporterForm(forms.ModelForm):
            self.fields['reporting_location'] = TreeNodeChoiceField(queryset=self.fields['reporting_location'].queryset, level_indicator=u'.')
            self.fields['schools'].required = False
            self.fields['gender'].required = False
-           self.fields['schools'].queryset = School.objects.filter(
-               location__pk__in = EmisReporter.objects.exclude( schools = None ).values_list('reporting_location__pk', flat=True)
-           ).order_by('location__name', 'name')
+           self.fields['schools'].queryset = School.objects.filter(location__name__in=EmisReporter.objects.values_list('reporting_location__name',flat=True)).order_by('location__name','name')
            self.fields['grade'].required = False
 
     class Meta:
