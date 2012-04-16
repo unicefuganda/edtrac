@@ -3,13 +3,12 @@
 {% block title %} Curriculum Progress P3 -- {{ block.super }} {% endblock %}
 {% block content %}
 {% load endless %}
-<div class="back_link">
-    <p>
-        <a href="{% url emis-admin-curriculum-progress %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">
-        ← Back to the Curriculumn Progress in Districts
-        </a>
-    </p>
-</div>
+
+
+<ul class='breadcrumb'>
+	<li><a href="{% url rapidsms-dashboard %}">Dashboard Home</a><span class="divider">/</span></li>
+	<li><a href="{% url emis-admin-curriculum-progress %}">Back to the Curriculum Progress in Districts</a></li>
+</ul>    
 <div class="general">
     <div class="stats"><h3>Curriculum Progress in {{ location }} &harr; P3</h3></div>
     <div class="top_row">

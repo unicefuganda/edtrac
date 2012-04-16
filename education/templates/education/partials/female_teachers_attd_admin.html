@@ -4,9 +4,11 @@
 Absenteeism of Female teachers by District -- {{ block.super }}
 {% endblock %}
 {% block content %}
-<div class="back_link">
-    <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">← Back to the EduTrac Home Page</a></p>
-</div>
+<ul class='breadcrumb'>
+	<li>
+		<a href="{% url rapidsms-dashboard %}">
+   Dashboard Home</a>
+	</li></ul>
 <div class="attendance">
     <h2 class="block-header">Absenteeism of Female teachers by District (week: {{ week|date:"D d M Y" }})</h2>
 

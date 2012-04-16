@@ -4,12 +4,18 @@
 Absenteeism of P6 boys in {{ location }} -- {{ block.super }}
 {% endblock %}
 {% block content %}
-<div class="back_link">
-    <p>
-        <a href="{% url boys-p6 %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">
-            ← Back to the District view for P6 Boys</a>
-    </p>
-</div>
+<ul class='breadcrumb'>
+	<li>
+		<a href="{% url rapidsms-dashboard %}">
+   Dashboard Home</a>
+<span class="divider">/</span>
+</li>
+<li>
+<a href="{% url boys-p6 %}">
+    Back to the District view for P6 Boys
+</a>
+</li>
+</ul>
 <div class="attendance">
     <h2 class="block-header">Attendance Records for P6 Boys for {{ location }} (week: {{ week|date:"D d M Y" }})</h2>
     <div class="top">

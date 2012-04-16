@@ -333,14 +333,12 @@ def dash_deo_meetings(req):
 @login_required
 def dashboard(request):
     profile = request.user.get_profile()
-    if profile.is_member_of('DEO'):
+    if profile.is_member_of('DEO') or profile.is_member_of('DFO'):
         return deo_dashboard(request)
-#    elif profile.is_member_of('Ministry Officials'):
-#        return ministry_dashboard(request)
-    elif profile.is_member_of('Admins') or profile.is_member_of('Ministry Officials'):
+    elif profile.is_member_of('Admins') or profile.is_member_of('Ministry Officials') or profile.is_member_of('UNICEF Officials'):
         return admin_dashboard(request)
     else:
-        return testindex(request)
+        return HttpResponseRedirect('/')
 
 # generate context vars
 def generate_dashboard_vars(location=None):
@@ -563,6 +561,7 @@ def generate_dashboard_vars(location=None):
 
     male_head_teachers = EmisReporter.objects.filter(reporting_location__in =\
         locations, groups__name="Head Teachers", gender='M').exclude(schools = None)
+
     male_head_t_deploy = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
         male_head_teachers.values_list('schools', flat=True),
             groups__name = 'SMC').distinct().count()
@@ -782,7 +781,8 @@ class MealsMinistryDetails(TemplateView):
 ##########################################################################################################
 @login_required
 def admin_dashboard(request):
-    if request.user.get_profile().is_member_of('Ministry Officials') or request.user.get_profile().is_member_of('Admins'):
+    if request.user.get_profile().is_member_of('Ministry Officials') or request.user.get_profile().is_member_of('Admins')\
+    or request.user.get_profile().is_member_of('UNICEF Officials'):
         location = Location.objects.get(name="Uganda")
     else:
         location = request.user.get_profile().location
@@ -813,19 +813,21 @@ class NationalStatistics(TemplateView):
 
         profile = self.request.user.get_profile()
         if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins'):
-            districts = Location.objects.filter(type="district", pk__in=EmisReporter.objects.exclude(connection__in=\
-                Blacklist.objects.values_list('connection',flat=True)).values_list('reporting_location__pk', flat=True))
-
+            districts = Location.objects.filter(type="district").\
+                filter(name__in=EmisReporter.objects.exclude(connection__in=Blacklist.objects.values_list('connection',flat=True))\
+                    .values_list('reporting_location__name', flat=True))
             district_schools = [
-                (district, School.objects.filter(location=district).count())
+                (district,
+                School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).\
+                    filter(reporting_location__name = district.name).distinct().values_list('schools__pk',flat=True)).count())
                 for district in districts
             ]
+            #School.objects.filter(pk__in=\
+            #    EmisReporter.objects.filter(reporting_location=district).exclude(schools = None).values_list('schools__pk',flat=True)).count())            
             context['total_districts'] = districts.count()
             context['district_schools'] = district_schools
-            context['school_count'] = School.objects.filter(
-                       pk__in = EmisReporter.objects.exclude(schools = None,
-                    connection__in= Blacklist.objects.values_list('connection',flat=True)).values_list('schools__pk', flat=True)
-                ).count()
+            context['school_count'] = School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).\
+                exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).distinct().values_list('schools__pk',flat=True)).count()
             # getting weekly system usage
             # reporters that sent messages in the past week.
             reps = EmisReporter.objects.filter(groups__name="Head Teachers", connection__in=Message.objects.\
@@ -877,6 +879,7 @@ class NationalStatistics(TemplateView):
                 (school, self.compute_percent(school_reporters.filter(schools__pk=school.pk), groups=['Head Teachers', 'Teachers']))
                 for school in schools
                 ]
+
             school_active.sort(key=operator.itemgetter(1), reverse=True)
             context['school_active_count'] = School.objects.filter(pk__in = school_reporters.values_list('schools__pk', flat=True)).count()
             context['school_active'] = school_active[:3]
@@ -1032,6 +1035,9 @@ class ViolenceAdminDetails(TemplateView):
             location=location, month_filter=True, months=2, ret_type=list)
 
         violence_cases_gem = poll_response_sum('edtrac_gem_abuse', location=location, month_filter=True, months=2, ret_type=list)
+
+        general_violence = []
+        general_violence = get_numeric_report_data('edtrac_headteachers_abuse', location=location)
 
         school_total = [] # total violence cases reported by school
         for name, list_val in violence_cases_schools:
@@ -1997,25 +2003,33 @@ def school_detail(request, school_id):
     month_ranges.reverse()
 
     slug_list = ['girlsp3', 'boysp3', 'girlsp6', 'boysp6']
+    slug_list_tr = ['f_teachers', 'm_teachers']
 
     monthly_data = []
+    monthly_data_teachers = []
+
     for month_range in month_ranges:
         monthly_data.append(
-            [
-                return_absent_month(
+            [return_absent_month(
                     'edtrac_'+ '%s'%slug + '_attendance',
                     'edtrac_'+ '%s'%slug + '_enrollment',
                     month_range = month_range,
                     school = school)
-                for slug in slug_list
-            ]
-        )
+                for slug in slug_list])
+        monthly_data_teachers.append(
+            [return_absent_month(
+                'edtrac_'+'%s'%slug + '_attendance',
+                'edtrac_'+'%s'%slug + '_deployment', month_range = month_range, school=school) for slug in slug_list_tr])
+
+    reporters = school.emisreporter_set.all()
 
     #monthly_violence =
     return render_to_response("education/school_detail.html", {\
         'school_name': school.name,
         'months' : [d_start for d_start, d_end in month_ranges],
-        'monthly_data' : monthly_data
+        'monthly_data' : monthly_data,
+        'monthly_data_teachers' : monthly_data_teachers,
+        'reporters' : reporters
         }, RequestContext(request))
 
 # analytics specific for emis {copy, but adjust to suit your needs}
@@ -2155,11 +2169,9 @@ def edit_user(request, user_pk=None):
             try:
                 profile=UserProfile.objects.get(user=user)
                 profile.location=user_form.cleaned_data['location']
-                profile.role=Role.objects.get(pk=user.groups.all()[0].pk)
+                profile.role=Role.objects.get(name=user_form.cleaned_data['groups'][0].name)
                 profile.save()
             except UserProfile.DoesNotExist:
-
-
                 UserProfile.objects.create(name=user.first_name,user=user,role=Role.objects.get(pk=user_form.cleaned_data['groups'][0].pk),location=user_form.cleaned_data['location'])
 
             return HttpResponseRedirect(reverse("emis-users"))

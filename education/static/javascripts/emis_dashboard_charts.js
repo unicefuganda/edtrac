@@ -45,6 +45,8 @@ function smc_meetings(schools, meetings) {
 
 function violence_cases(xVals, yVals, title){
     var x_vals;
+    console.log(xVals);
+    console.log(yVals);
     var x_vals = xVals.split("','");
     var b = yVals.split(",");
     var violence = [];
@@ -55,7 +57,7 @@ function violence_cases(xVals, yVals, title){
     violence_chart = new Highcharts.Chart(
         {
             chart: {
-                renderTo:'violence',
+                renderTo:'violence-graph',
                 defaultSeriesType:'column',
                 margin:[50,50,100,80]
             },

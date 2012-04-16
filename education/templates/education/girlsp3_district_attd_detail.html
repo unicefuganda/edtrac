@@ -1,12 +1,17 @@
 {% extends "education/admin/admin_dashboard.html" %}
 {% load endless %}
 {% block content %}
-<div class="back_link">
-    <p><a href="{% url girls-p3 %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">
-        ← Back to the District view for P3 Girls
-    </a></p>
+<ul class='breadcrumb'>
+	<li>
+		<a href="{% url rapidsms-dashboard %}">Dashboard Home</a>
+	<span class="divider">/</span>
+	</li>
+	<li>
+    <a href="{% url girls-p3 %}">
+        Back to the District view for P3 Girls
+    </a></li>
+</ul>
 
-</div>
 <div class="attendance">
     <h2 class="block-header">Absenteeism of P3 Girls for {{ location }} (week: {{ week|date:"D d M Y" }})</h2>
 

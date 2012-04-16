@@ -4,26 +4,23 @@
 {{ school_name }} report -- {{ block.super }}
 {% endblock %}
 {% block content %}
-<div class="back_link">
-    <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">← Back to the EduTrac Home Page</a></p>
-</div>
-
+<ul class='breadcrumb'>
+	<li><a href="{% url rapidsms-dashboard %}">Dashboard Home</a></li>
+</ul>
         <div class="general">
 
             <p>
             <h3 style="background-color:black; color:white; margin-bottom:5px; padding:10px;">
-                {{ school_name }}
+                {{ school_name }} Report Card
             </h3>
             </p>
-
-
 
             <h2>Absenteeism of Pupils</h2>
             <table class="tabulated-data">
                 <tbody>
-                <tr><td colspan="1"></td>
+                <tr><td></td>
                     {% for month in months %}
-                    <th>{{ month|date }}</th>
+                    <th>{{ month|date:"M" }}</th>
                     {% endfor %}
                 </tr>
                 <tr>
@@ -37,19 +34,30 @@
                     </td>
                     {% for month_data in monthly_data %}
                         <td>
-                            <table>
-                                <tr><td>{{ month_data.0 }}</td></tr>
-                                <tr><td>{{ month_data.1 }}</td></tr>
-                                <tr><td>{{ month_data.2 }}</td></tr>
-                                <tr><td>{{ month_data.3 }}</td></tr>
+                            <table class="month_data">
+                                <tr><td style="text-align: center;">{{ month_data.0|floatformat }}</td></tr>
+                                <tr><td style="text-align: center;">{{ month_data.1|floatformat }}</td></tr>
+                                <tr><td style="text-align: center;">{{ month_data.2|floatformat }}</td></tr>
+                                <tr><td style="text-align: center;">{{ month_data.3|floatformat }}</td></tr>
                             </table>
                         </td>
                     {% endfor %}
                 </tr>
                 </tbody>
             </table>
+
+            <div class="stats">
+                <span>Reporters</span><br/><br/>
+            </div>
+            <div class="reporter_school_report">
+            <ul>
+                {% for reporter in reporters %}<li>{{ reporter }} | <span style="font-style: italic;">{{ reporter.groups.all.0 }}</em></li>{% endfor %}
+            </ul>
+            </div>
+
+
             <br/><br/>
-            <h2>Attendance of Teachers</h2>
+            <h2>Absenteism of Teachers</h2>
             <table class="tabulated-data">
                 <tbody>
                 <tr><td colspan="1"></td>
@@ -68,8 +76,8 @@
                     {% for month_data in monthly_data_teachers %}
                     <td>
                         <table>
-                            <tr><td>{{ month_data.0 }}</td></tr>
-                            <tr><td>{{ month_data.1 }}</td></tr>
+                            <tr><td>{% if month_data.0 == '--' %} {{ month_data.0 }} {% else %} {{ month_data.0|floatformat }}{% endif %}</td></tr>
+                            <tr><td>{% if month_data.1 == '--' %} {{ month_data.1 }} {% else %} {{ month_data.1|floatformat }}{% endif %}</td></tr>
                         </table>
                     </td>
                     {% endfor %}

@@ -1,11 +1,22 @@
 {% extends "education/layout_base.html" %}
 {% block title %} Violence Cases -- {{ block.super }}{% endblock %}
 {% block content %}
-<div class="back_link">
-<p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">← Back to EdTrac Home Page</a></p>
-</div>
+<ul class='breadcrumb'>
+	<li><a href="{% url rapidsms-dashboard %}">Dashboard Home</a></li>
+</ul>
 
 <div class="general">
+    <div id="violence-graph"></div>
+    <script>
+        $(document).ready(function(){
+            violence_cases("'Mar','Feb','May'","100,23,4", title = "Violence in Uganda");
+        });
+    </script>
+
+
+    <a href="#" id="show-table">Show Violence data</a> | <a href="#" id="hide-table">Hide Violence data</a>
+
+    <div class="viol">
     <h2 class="block-header">Violence cases reported by schools</h2>
     <div class="top">
         <table class="tabulated-data">
@@ -85,4 +96,22 @@
         <p class="report alert-message block-message">Results based on {{ gem_reporting_percentage }}% of Total Reporters</p>
     </div>
 </div>
+    </div>
+
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('.viol').hide();
+        $('a#show-table').click(function(event){
+            $('.viol').show();
+        });
+        $('a#hide-table').click(function(event){
+            $('.viol').hide();
+            event.preventDefault();
+        })
+    });
+</script>
+
+
+
 {% endblock %}

@@ -4,11 +4,20 @@
 Absenteeism of Female Teachers in {{ location }} -- {{ block.super }}
 {% endblock %}
 {% block content %}
-<div class="back_link">
-    <p><a href="{% url f-teachers %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">
-        ← Back to the Female Teachers District view</a></p>
-</div>
 <div class="attendance">
+	<ul class='breadcrumb'>
+		<li>
+    		<a href="{% url rapidsms-dashboard %}">
+       Dashboard Home</a>
+	<span class="divider">/</span>
+	</li>
+	<li>
+    <a href="{% url f-teachers %}">
+        Back to the Female Teachers District view
+    </a>
+	</li>
+	</ul>    
+
     <h2 class="block-header">Absenteeism of Female Teachers for {{ location }} (week: {{ week|date:"D d M Y" }})</h2>
 
     <div class="top">
