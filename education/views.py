@@ -15,6 +15,7 @@ from rapidsms.contrib.locations.models import Location
 from generic.views import generic
 from generic.sorters import SimpleSorter
 from poll.models import Poll
+from reversion.models import Version
 from .reports import *
 from .utils import *
 from .utils import _schedule_monthly_script, _schedule_termly_script, _schedule_weekly_scripts
@@ -1347,6 +1348,11 @@ def control_panel(req):
 
 class AuditTrail(TemplateView):
     template_name = "education/admin/audit_trail.html"
+    
+    def context_data(self, **kwargs):
+        context = super(AuditTrail, self).get_context_data(**kwargs)
+        context['versions'] = Version.objects.all()
+        return context
 
 
 class DistrictViolenceCommunityDetails(DetailView):
