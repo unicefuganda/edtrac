@@ -2,12 +2,11 @@
 {% load humanize %}
 {% block title %} Violence in Schools in {{ location }} -- {{ block.super }} {% endblock %}
 {% block content %}
+    <ul class="breadcrumb">
+        <li><a href="{% url rapidsms-dashboard %}">Dashboard Home</a><span class="divider">\</span></li>
+        <li><a href="{% url violence-admin-details %}">District Violence Dashboard</a></li>
+    </ul>
 
-<div class="back_link">
-    <p><a href="{% url violence-admin-details %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">
-        ← Back to the Violence Dashboard
-    </a></p>
-</div>
     <div class="top general">
         <h3 style="background-color:black; color:white; margin-bottom:5px; padding:10px;">
             Violence in Schools
