@@ -1301,7 +1301,6 @@ class DistrictMealsDetails(DetailView):
             with_range = True,
             with_percent = True
             )
-        import pdb; pdb.set_trace()
         context['school_meals_reports'] = school_meal_reports
 
         context['location'] = location
