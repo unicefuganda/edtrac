@@ -18,7 +18,7 @@
     <div id="violence-graph"></div>
     <script>
         $(document).ready(function(){
-            violence_cases('{{ monthly_data_gem }}', title = "Violence in Uganda");
+            violence_cases('{{ monthly_data_gem }}', title = "Violence in Uganda (GEM Report)");
             $('a#headteachers').click(function(event){
                violence_cases(
                        '{{ monthly_data_h_teach }}',
