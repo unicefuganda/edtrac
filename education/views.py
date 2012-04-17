@@ -1348,12 +1348,16 @@ def control_panel(req):
 
 class AuditTrail(TemplateView):
     template_name = "education/admin/audit_trail.html"
-    
+
     def context_data(self, **kwargs):
         context = super(AuditTrail, self).get_context_data(**kwargs)
-        context['versions'] = Version.objects.all()
+#        context['versions'] = Version.objects.all()
+#        context['test'] = reversion.get_for_model(UserProfile)
         return context
 
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(AuditTrail, self).dispatch(*args, **kwargs)
 
 class DistrictViolenceCommunityDetails(DetailView):
     context_object_name = "district_violence"
