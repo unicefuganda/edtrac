@@ -1037,7 +1037,6 @@ class ViolenceAdminDetails(TemplateView):
 
         violence_cases_gem = poll_response_sum('edtrac_gem_abuse', location=location, month_filter=True, months=2, ret_type=list)
 
-        general_violence = []
         general_violence = get_numeric_report_data('edtrac_headteachers_abuse', location=location)
 
         school_total = [] # total violence cases reported by school
