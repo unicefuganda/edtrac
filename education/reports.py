@@ -540,12 +540,12 @@ def get_month_day_range(date, **kwargs):
     """
     handy function to give as a date range
     """
-    #import pdb; pdb.set_trace()
     if not kwargs:
         last_day = date + relativedelta(day = 1, months =+ 1, days =- 1)
         first_day = date + relativedelta(day = 1)
         #return a tuple in the list
-        return [first_day, last_day]
+        return [datetime.datetime(first_day.year, first_day.month, first_day.day, 8),
+                datetime.datetime(last_day.year, last_day.month, last_day.day, 19)]
     else:
         """
         There are times we want to get a set of date ranges to work with
@@ -563,7 +563,9 @@ def get_month_day_range(date, **kwargs):
             last_day = d + relativedelta(day = 1, months =+ 1, days =- 1)
             d += relativedelta(months=-1)
             i+=1
-            to_ret.append([first_day, last_day])
+            to_ret.append([
+                datetime.datetime(first_day.year, first_day.month, first_day.day, 8),
+                datetime.datetime(last_day.year, last_day.month, last_day.day, 19)])
 
         return to_ret
 

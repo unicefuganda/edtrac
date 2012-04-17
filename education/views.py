@@ -21,7 +21,7 @@ from .utils import *
 from .utils import _schedule_monthly_script, _schedule_termly_script, _schedule_weekly_scripts
 from urllib2 import urlopen
 from rapidsms.views import login, logout
-import  re, datetime, operator, xlwt, exceptions
+import  re, datetime, operator, xlwt, exceptions, copy
 from datetime import date
 #from decimal import getcontext, Decimal
 from .utils import themes
@@ -1026,11 +1026,11 @@ class ViolenceAdminDetails(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ViolenceAdminDetails, self).get_context_data(**kwargs)
         #TODO: filtering by ajax and time
-
-        if self.request.user.get_profile().is_member_of('Ministry Officials') or self.request.user.get_profile().is_member_of('UNICEF Officials'):
+        profile = self.request.user.get_profile()
+        if profile.is_member_of('Ministry Officials') or profile.is_member_of('UNICEF Officials') or profile.is_member_of('Admins'):
             location = Location.objects.get(name="Uganda")
         else:
-            location = self.request.user.get_profile().location
+            location = profile.location
 
         violence_cases_schools = poll_response_sum("edtrac_headteachers_abuse",
             location=location, month_filter=True, months=2, ret_type=list)
@@ -1118,6 +1118,28 @@ class ViolenceAdminDetails(TemplateView):
                 depth=2))) * gem_report_count))
         except ZeroDivisionError:
             context['gem_reporting_percentage'] = 0
+
+        now = datetime.datetime.now()
+        month_ranges = get_month_day_range(now, depth=now.month)
+        month_ranges.sort()
+
+
+        h_teach_month = []
+        h_teach_data = []
+        gem_data = []
+
+        for month_range in month_ranges:
+            h_teach_month.append(month_range[0].strftime('%B'))
+            h_teach_data.append(get_numeric_report_data('edtrac_headteachers_abuse',time_range=month_range, to_ret = 'sum'))
+            gem_data.append(get_numeric_report_data('edtrac_gem_abuse',time_range=month_range, to_ret = 'sum'))
+
+        monthly_data_h_teachers = ';'.join([str(item[0])+'-'+str(item[1]) for item in zip(h_teach_month, h_teach_data)])
+
+        gem_month = copy.deepcopy(h_teach_month)
+        monthly_data_gem = ';'.join([str(item[0])+'-'+str(item[1]) for item in zip(gem_month, gem_data)])
+
+        context['monthly_data_gem'] = monthly_data_gem
+        context['monthly_data_h_teach'] = monthly_data_h_teachers
 
         return context
 
@@ -1280,7 +1302,7 @@ class DistrictMealsDetails(DetailView):
             with_range = True,
             with_percent = True
             )
-
+        import pdb; pdb.set_trace()
         context['school_meals_reports'] = school_meal_reports
 
         context['location'] = location

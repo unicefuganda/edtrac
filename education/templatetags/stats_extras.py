@@ -248,23 +248,28 @@ def reorganize_data(obj):
     return to_ret
 
 def reorganize_nested_data(obj):
-    to_ret = {}
+    if isinstance(obj, dict):
+        to_ret = obj
+        '%s,%d' %(label, value)
+    else:
+        to_ret = {}
 
-    for data_set in obj:
-        # set all labels
-        for label, val in data_set:
-            to_ret[label] = []
-
-    for label in to_ret.keys():
         for data_set in obj:
-            for l, v in data_set:
-                if l == label:
-                    to_ret[label].append(v)
-    new_ret = []
-    for p in to_ret.items():
-        label, value = p
-        new_ret.append('%d,%s' %  (label, '-'.join([str(i) for i in value])))
-    return new_ret
+            # set all labels
+            for label, val in data_set:
+                to_ret[label] = []
+
+        for label in to_ret.keys():
+            for data_set in obj:
+                for l, v in data_set:
+                    if l == label:
+                        to_ret[label].append(v)
+        new_ret = []
+        for p in to_ret.items():
+            label, value = p
+            new_ret.append('%d,%s' %  (label, '-'.join([str(i) for i in value])))
+        return new_ret
+
 
 def make_date_range_month(obj):
     to_ret = []

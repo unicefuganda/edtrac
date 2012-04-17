@@ -43,17 +43,18 @@ function smc_meetings(schools, meetings) {
 }
 
 
-function violence_cases(xVals, yVals, title){
-    var x_vals;
-    console.log(xVals);
-    console.log(yVals);
-    var x_vals = xVals.split("','");
-    var b = yVals.split(",");
-    var violence = [];
-    for(i=0; i<b.length; i++){
-        violence.push(parseFloat(b[i]));
+function violence_cases(monthly_data, title){
+    var monthly_data_collection = monthly_data.split(';');
+    var violence_case = [];
+    var x_vals = [];
+    for(var i=0; i < monthly_data_collection.length; i++){
+        var split_data = monthly_data_collection[i].split('-');
+        x_vals.push(split_data[0]);
+        violence_case.push(parseFloat(split_data[1]));
     }
+
     var violence_chart;
+
     violence_chart = new Highcharts.Chart(
         {
             chart: {
@@ -92,7 +93,7 @@ function violence_cases(xVals, yVals, title){
             series:[
                 {
                     name: 'Numbers',
-                    data : violence,
+                    data : violence_case,
                     dataLabels:{
                         enabled:true,
                         rotation:-90,

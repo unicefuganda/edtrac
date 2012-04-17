@@ -1,4 +1,5 @@
 {% extends "education/layout_base.html" %}
+{% load stats_extras %}
 {% block title %} Violence Cases -- {{ block.super }}{% endblock %}
 {% block content %}
 <ul class='breadcrumb'>
@@ -6,10 +7,30 @@
 </ul>
 
 <div class="general">
+
+    <ul class='breadcrumb' style="background-color: #e0ccef">
+        <li>
+            <a href="#" id="gem">Reports by GEM</a>
+            <span class="divider">|</span>
+        </li>
+        <li><a href="#" id="headteachers">Reports by Head Teachers</a></li>
+    </ul>
     <div id="violence-graph"></div>
     <script>
         $(document).ready(function(){
-            violence_cases("'Mar','Feb','May'","100,23,4", title = "Violence in Uganda");
+            violence_cases('{{ monthly_data_gem }}', title = "Violence in Uganda");
+            $('a#headteachers').click(function(event){
+               violence_cases(
+                       '{{ monthly_data_h_teach }}',
+                       title = "Violence in Uganda (Head Teacher report)"
+               );
+            });
+            $('a#gem').click(function(event){
+                violence_cases(
+                        '{{ monthly_data_gem }}',
+                        title = "Violence in Uganda (GEM reports)"
+                );
+            });
         });
     </script>
 
