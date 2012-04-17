@@ -3,7 +3,7 @@
 {% load extra_tags %}
 <td>
     <span class="textmessage">
-    {% if user.is_authenticated and user.is_superuser %}
+    {% if user.is_authenticated %}
         {{ object.text }}
         {% ifequal object.direction "I" %}
                 {% ifequal object.connection.backend.name "yo6200" %}
