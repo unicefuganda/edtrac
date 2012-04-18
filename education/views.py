@@ -367,7 +367,7 @@ def generate_dashboard_vars(location=None):
         violence_change_class = "zero"
         violence_change_data = "data-white"
 
-
+    import pdb; pdb.set_trace()
     # CSS class (dynamic icon)
     x, y = poll_responses_past_week_sum("edtrac_boysp3_attendance", locations=locations, weeks=2)
     enrol = poll_responses_term("edtrac_boysp3_enrollment", belongs_to="location", locations=locations)
