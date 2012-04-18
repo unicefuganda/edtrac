@@ -212,8 +212,6 @@ urlpatterns = patterns('',
     url(r'^edtrac/dash_attdance/$', dash_attdance, {}, name="emis-dash-attdance"),
     url(r'^edtrac/dash_violence/$', dash_violence, {}, name="emis-dash-violence"),
     url(r'^edtrac/dash_meals/$', dash_meals, {}, name="emis-dash-meals"),
-    url(r'^edtrac/dash_meetings/$', dash_meetings, {}, name="emis-dash-meetings"),
-
 
     # attendance views for all roles ---> data prepopulated by location
     url(r'^edtrac/dash/boys-p3/attendance/$', boys_p3_attendance, {}, name="boys-p3"),
@@ -226,11 +224,9 @@ urlpatterns = patterns('',
     url(r'^edtrac/dash/head-teacher-female/attendance/$', female_head_teacher_attendance, {}, name="f-h-teachers"),
     # end attendance views
 
-
-
-    url(r'^edtrac/dash_admin_meetings/$', dash_admin_meetings, {}, name="emis-dash-admin-meetings"),
+    url(r'^edtrac/dash-admin-meetings/$', dash_admin_meetings, {}, name="emis-dash-admin-meetings"),
+    url(r'^edtrac/dash-district-meetings/(?P<district_name>\w+)/$', dash_district_meetings, {}, name="emis-district-meetings"),
     url(r'^edtrac/dash_ministry_map/$', dash_ministry_map, {}, name="emis-ministry-dash-map"),
-    url(r'^edtrac/dash-ministry-progress/$', dash_ministry_progress, {}, name="emis-ministry-curriculum-progress"),
     url(r'^edtrac/dash-admin-progress/$', dash_admin_progress, {}, name="emis-admin-curriculum-progress"),
     url(r'^edtrac/dash-admin-progress/district/(?P<district_pk>\d+)/$', dash_admin_progress_district, {},
         name="emis-admin-curriculum-progress-district"),
@@ -246,14 +242,12 @@ urlpatterns = patterns('',
     url(r'^edtrac/dash_ministry_attdance/$', dash_attdance, {}, name="emis-ministry-dash-attdance"),
     url(r'^edtrac/dash_ministry_violence/$', dash_ministry_violence, {}, name="emis-ministry-dash-violence"),
     url(r'^edtrac/dash_ministry_meals/$', dash_ministry_meals, {}, name="emis-ministry-dash-meals"),
-    url(r'^edtrac/dash_ministry_meetings/$', dash_ministry_meetings, {}, name="emis-ministry-dash-meetings"),
+
     #DEO dashboard
     url(r'^edtrac/dash_deo_map/$', dash_ministry_map, {}, name="emis-deo-dash-map"),
-    url(r'^edtrac/deo_progress/$', dash_ministry_progress, {}, name="emis-deo-curriculum-progress"),
     url(r'^edtrac/dash_deo_attdance/$', dash_attdance, {}, name="emis-deo-dash-attdance"),
     url(r'^edtrac/dash_deo_violence/$', dash_deo_violence, {}, name="emis-deo-dash-violence"),
     url(r'^edtrac/dash_deo_meals/$', dash_deo_meals, {}, name="emis-deo-dash-meals"),
-    url(r'^edtrac/dash_deo_meetings/$', dash_deo_meetings, {}, name="emis-deo-dash-meetings"),
 
     #National statistics
     url(r'^edtrac/national-stats/$', NationalStatistics.as_view(), name="emis-national-stats"),

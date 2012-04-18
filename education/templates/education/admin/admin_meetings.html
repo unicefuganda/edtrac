@@ -1,7 +1,12 @@
 {% extends "education/admin/admin_dashboard.html" %}
-
+{% block title %} SMC Meetings -- {{ block.super }} {% endblock %}
 {% block content %}
-<p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; line-height: inherit;">← Back to EdTrac Home Page</a></p>
+<ul class="breadcrumb">
+    <li>
+        <a href="{% url rapidsms-dashboard %}" style="text-decoration: none; line-height: inherit;">← Back to EdTrac Home Page</a>
+    </li>
+</ul>
+
 <div id="smc_meetings_container">
     <div id="smc_meetings"></div>
     <script type="text/javascript">
@@ -13,45 +18,24 @@
 </div>
 
 <div>
-    <h1>SMC Meetings
-        <table class="classy smc_meetings">
+    <div class="stats"><h1>SMC Meetings</h1></div>
+        <table class="tabulated-data classy smc_meetings">
             <tr>
-                <thead>
-                <td>Districts</td>
-                <td>No meetings were held</td>
-                <td>1 meetings was held</td>
-                <td>2 meetings were held</td>
-                <td>3 meetings were held</td>
-                </thead>
+                <th>Districts</th>
+                <th>No meetings were held</th>
+                <th>1 meeting was held</th>
+                <th>2 meetings were held</th>
+                <th>3 meetings were held</th>
             </tr>
+            {% for item in meeting_count %}
             <tr>
-                <td>Kabarole</td>
-                <td>25%</td>
-                <td>70%</td>
-                <td>1%</td>
-                <td>0%</td>
+                <td><a href="{% url emis-district-meetings item.0 %}">{{ item.0 }}</a></td>
+                <td>{{ item.1.0.1|floatformat }}%</td>
+                <td>{{ item.1.1.1|floatformat }}%</td>
+                <td>{{ item.1.2.1|floatformat }}%</td>
+                <td>{{ item.1.3.1|floatformat }}%</td>
             </tr>
-            <tr>
-                <td>Kyegegwa</td>
-                <td>45%</td>
-                <td>20%</td>
-                <td>2%</td>
-                <td>0.5%</td>
-            </tr>
-            <tr>
-                <td>Kotido</td>
-                <td>12%</td>
-                <td>60%</td>
-                <td>1%</td>
-                <td>0%</td>
-            </tr>
-            <tr>
-                <td>Kaabongo</td>
-                <td>23%</td>
-                <td>30%</td>
-                <td>3%</td>
-                <td>0%</td>
-            </tr>
+            {% endfor %}
         </table>
 </div>
 

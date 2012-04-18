@@ -288,10 +288,6 @@ def dash_admin_progress_district(req, district_pk):
             {'location_data':loc_data, 'location':location}, RequestContext(req))
 
 
-def dash_ministry_progress(request):
-    pass
-
-
 # Meetings
 """
 code to implement meetings
@@ -309,25 +305,68 @@ def dash_meetings(request):
     return render_to_response('education/dashboard/meetings.html', {}, RequestContext(request))
 
 def dash_admin_meetings(req):
-    return render_to_response("education/admin/admin_meetings.html",{}, RequestContext(req))
+    profile = req.user.get_profile()
+    location = profile.location
+    if location.name == 'Uganda':
+        locations = Location.objects.filter(type='district')
+    else:
+        locations = [location]
+
+    p = Poll.objects.get(name = 'edtrac_smc_meetings')
+
+    schools_to_date = School.objects.filter(pk__in=EmisReporter.objects.\
+        filter(reporting_location__in = locations).values_list('schools__pk', flat=True)).count()
+
+    if profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials') or profile.is_member_of('Ministry Officials'):
+        meeting_count = get_count_response_to_polls(p,
+            choices = [0, 1, 2, 3], # number of meetings
+            with_percent = True #percentage counted based on number of schools
+        )
+
+        return render_to_response("education/admin/admin_meetings.html",{
+            'meeting_count': meeting_count.items()
+        }, RequestContext(req))
+    else:
+        meeting_count = get_count_response_to_polls(p,
+            location_name = location.name,
+            choices = [0, 1, 2, 3], # number of meetings
+            with_percent = True #percentage counted based on number of schools
+        )
+        return render_to_response('education/admin/other_meetings.html',
+                {'meeting_count':meeting_count.items(), 'location_name':location.name}, RequestContext(req))
 
 
-def dash_ministry_meetings(req):
-    #this is what gets rendered to viewers on the ministry level
-    #TODO: use utility functions and compute this figure from other total EMIS reporters
-    message_ids = [poll_response['message_id'] for poll_response in Poll.objects.get(name="emis_meetings").responses.values()]
-    all_messages =[msg.text for msg in Message.objects.filter(id__in=message_ids)]
-    try:
-        to_ret = {}
-        set_messages = set(all_messages)
-        for msg in set_messages:
-            to_ret[int(msg)] = all_messages.count(int(msg))
-    except ValueError:
-        print "some non numeric values were provided"
-    return render_to_response('education/dashboard/meetings.html', {}, RequestContext(req))
+def preprocess_response(resp):
+    """
+    reprocess the response values and return just one value
+    """
+    if not resp:
+        return '--'
+    elif None in resp:
+        return 'wrong response'
+    else:
+        return resp[0] # assumption only one SMC is attached to that school
 
-def dash_deo_meetings(req):
-    return render_to_response('education/deo/meetings.html', {}, RequestContext(req))
+def dash_district_meetings(req, district_name):
+    district = Location.objects.filter(type="district").get(name = district_name)
+
+    p = Poll.objects.get(name = 'edtrac_smc_meetings')
+
+    schools_data = EmisReporter.objects.exclude(connection__in = Blacklist.objects.values_list('connection')).\
+        filter(groups__name = 'SMC', reporting_location = district).exclude(schools = None).order_by('schools__name').\
+        values_list('schools__name','schools__id','connection__pk')
+
+    school_container = {}
+    for school_name, school_id, smc_connection in schools_data:
+        school_container[(school_name, school_id)] = preprocess_response([r.eav.poll_number_value for r in p.responses.filter(contact__connection__pk = smc_connection,
+            date__range =[getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
+        )])
+
+    #TODO -> sort the school container items
+
+    return render_to_response(
+        'education/admin/district_meetings.html',
+            {'location_name':district_name, 'meeting_count':school_container.items()}, RequestContext(req))
 
 # Dashboard specific view functions
 
@@ -695,9 +734,25 @@ def generate_dashboard_vars(location=None):
     except ZeroDivisionError:
         grant_percent = 0
 
+    # SMC meetings are count based
+    smc_meeting_poll = Poll.objects.get(name = 'edtrac_smc_meetings')
+    meetings = [r.eav.poll_number_value
+                for r in smc_meeting_poll.responses.filter(
+                contact__reporting_location__in=locations,
+                date__range =\
+                [getattr(settings, 'SCHOOL_TERM_START'),
+                 getattr(settings, 'SCHOOL_TERM_END')]) if r.eav.poll_number_value is not None]
+    zero_count = meetings.count(0)
+
+    try:
+        total_meetings = 100 * (len(meetings) - zero_count) / school_to_date
+    except ZeroDivisionError:
+        total_meetings = 0
+
     return {
         'worst_meal' : worst_meal,
         'c_mode' : mode,
+        'smc_meetings' : total_meetings,
         'mode_progress' : mode_progress,
         'violence_change' : violence_change,
         'violence_change_class' : violence_change_class,
@@ -789,10 +844,9 @@ def admin_dashboard(request):
     return render_to_response("education/admin/admin_dashboard.html", generate_dashboard_vars(location=location),
         RequestContext(request))
 
+
 class NationalStatistics(TemplateView):
     template_name = "education/admin/national_statistics.html"
-
-
     #simple helper function
     def compute_percent(self, reps, groups = []):
         if groups:
@@ -865,8 +919,6 @@ class NationalStatistics(TemplateView):
             context['all_reporters'] = EmisReporter.objects.exclude(schools=None, connection__in = Blacklist.objects.\
             values_list('connection', flat = True)).count()
 
-
-
             schools = School.objects.filter(pk__in = EmisReporter.objects.exclude(schools=None, connection__in=\
                 Blacklist.objects.values_list('connection',flat=True)).values_list('schools__pk', flat=True))
             context['expected_reporters'] = len(schools) * 4
@@ -884,12 +936,8 @@ class NationalStatistics(TemplateView):
             context['school_active_count'] = School.objects.filter(pk__in = school_reporters.values_list('schools__pk', flat=True)).count()
             context['school_active'] = school_active[:3]
             context['school_less_active'] = school_active[-3:]
-
-
             return context
-
         else:
-
             return self.render_to_response(dashboard(self.request))
 
 
@@ -1310,9 +1358,6 @@ class DistrictMealsDetails(DetailView):
         context['date_ranges'] = ranges
 
         return context
-
-
-
 
 ##########################################################################################################
 ##########################################################################################################

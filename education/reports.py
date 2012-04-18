@@ -961,7 +961,7 @@ def poll_responses_past_week_sum(poll_name, **kwargs):
         sum_of_poll_responses_week_before = get_numeric_report_data(poll_name, time_range=second_quota, to_ret = 'sum')
         return sum_of_poll_responses_past_week, sum_of_poll_responses_week_before
 
-def poll_responses_term(poll_name, **kwargs):
+def poll_responses_term(poll_name, to_ret=None, **kwargs):
 
     """
     Function to get the results of a poll between now and beginning of term (this is a broad spectrum poll)
@@ -979,8 +979,12 @@ def poll_responses_term(poll_name, **kwargs):
     #TODO -> numeric polls, categorical polls
 
     if kwargs.get('belongs_to') == 'location':
-        return get_numeric_report_data(poll_name, locations=kwargs.get('locations'), time_range=\
-            [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')], to_ret='sum')
+        if to_ret:
+            return get_numeric_report_data(poll_name, locations=kwargs.get('locations'), time_range=\
+            [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')], to_ret=to_ret)
+        else:
+            return get_numeric_report_data(poll_name, locations=kwargs.get('locations'), time_range=\
+                [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')], to_ret='sum')
 
     elif kwargs.get('belongs_to') == 'schools':
         if kwargs.has_key('to_ret'):

@@ -146,7 +146,7 @@ Dashboard -- {{ block.super }}
             <div class="container">
                 <div class="top">
                     <div class="div-1">
-                        <div class="data data-zero"><span class="value zero">0%</span></span></div>
+                        <div class="data data-zero"><span class="value zero">{{ smc_meetings|floatformat }}%</span></span></div>
                         <p>of School Management Commitees held a meeting this term</p>
                     </div>
                     <div class="div-2">
@@ -156,7 +156,7 @@ Dashboard -- {{ block.super }}
                     <div class="clear"></div>
 
                 <div class="actions" style="float:left; margin-left: 190px;">
-                    <a class="button button-purple" href="#"><span class="details">View Details</span></a>
+                    <a class="button button-purple" href="{% url emis-dash-admin-meetings %}"><span class="details">View Details</span></a>
                 </div>
                 <div class="actions">
                     <a class="button button-purple" href="{% url emis-grants %}"><span class="details">View Details</span></a>

@@ -1,0 +1,46 @@
+{% extends "education/admin/admin_dashboard.html" %}
+{% block title %} SMC Meetings -- {{ block.super }} {% endblock %}
+{% block content %}
+
+<ul class="breadcrumb">
+    <li>
+        <a href="{% url rapidsms-dashboard %}" style="text-decoration: none; line-height: inherit;">← Back to EdTrac Home Page</a>
+    </li>
+</ul>
+
+<div id="smc_meetings_container">
+    <div id="smc_meetings"></div>
+    <script type="text/javascript">
+        $(document).ready(function(){smc_meetings();});
+    </script>
+    <div class="alert-message" style="width:150px;">
+        <p>Report based on 22% of Total Reporters (Schools)</p>
+    </div>
+</div>
+
+<div>
+    <div class="stats"><h1>SMC Meetings in {{ location_name }}</h1></div>
+    <table class="tabulated-data classy smc_meetings">
+        <tr>
+            <th>No meetings were held</th>
+            <th>1 meeting was held</th>
+            <th>2 meetings were held</th>
+            <th>3 meetings were held</th>
+        </tr>
+        {% for item in meeting_count %}
+        <tr>
+            <td>{{ item.1.0.1|floatformat }}%</td>
+            <td>{{ item.1.1.1|floatformat }}%</td>
+            <td>{{ item.1.2.1|floatformat }}%</td>
+            <td>{{ item.1.3.1|floatformat }}%</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+
+    <div class="stats"><h1>Schools</h1></div>
+
+
+</div>
+
+{% endblock %}
