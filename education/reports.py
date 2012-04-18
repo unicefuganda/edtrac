@@ -590,7 +590,7 @@ def set_thur_wed_range(thursday):
 
 def get_day_range(today):
     #how many days is it to this Thursday
-    if today.weekday() >= 3:
+    if today.weekday() > 3:
         # offest today by a week from this Thursday
         today = (today - datetime.timedelta(days = today.weekday() - 3 )) + datetime.timedelta(days = 7)
         return set_thur_wed_range(today)
@@ -605,28 +605,23 @@ def get_week_date(depth=None):
     dates to get ranges that can be drilled down through the year
     """
     now = datetime.datetime.now()
-
     if depth:
-
-        # a depth of zero defaults to what you'd get in `get_day_range(now)`
         """
         Suppose you want a depth of 3 weeks worth of weekly ranges, all you need to do is set the depth
 
+        A depth of zero defaults to what you'd get in `get_day_range(now)`
         """
-        if now.weekday() >= 3:
-            passing_date = now - datetime.timedelta(days = now.weekday() - 3)
-        else:
-            passing_date = now + datetime.timedelta(days = 3 - now.weekday())
 
         date_collection = []
 
         try:
             for wk in range(depth):
                 date_collection.append(
-                    passing_date - datetime.timedelta(days = wk * 7 )
+                    now - datetime.timedelta(days = wk * 7 )
                 )
 
             to_ret = map(get_day_range, date_collection)
+
             return to_ret
         except NoneTypeError:
             print "error"

@@ -9,13 +9,14 @@
 </ul>
         <div class="general">
 
-            <p>
-            <h3 style="background-color:black; color:white; margin-bottom:5px; padding:10px;">
+            <div class="stats">
+            <h1 style="color:white; margin-bottom:5px; padding:10px;">
                 {{ school_name }} Report Card
-            </h3>
-            </p>
+            </h1>
+            </div>
 
-            <h2>Absenteeism of Pupils</h2>
+            <div class="stats" style="width: 350px;"><h2>Absenteeism of Pupils</h2></div>
+
             <table class="tabulated-data">
                 <tbody>
                 <tr><td></td>
@@ -35,10 +36,10 @@
                     {% for month_data in monthly_data %}
                         <td>
                             <table class="month_data">
-                                <tr><td style="text-align: center;">{{ month_data.0|floatformat }}</td></tr>
-                                <tr><td style="text-align: center;">{{ month_data.1|floatformat }}</td></tr>
-                                <tr><td style="text-align: center;">{{ month_data.2|floatformat }}</td></tr>
-                                <tr><td style="text-align: center;">{{ month_data.3|floatformat }}</td></tr>
+                                <tr><td style="text-align: center;">{{ month_data.0|floatformat }}%</td></tr>
+                                <tr><td style="text-align: center;">{{ month_data.1|floatformat }}%</td></tr>
+                                <tr><td style="text-align: center;">{{ month_data.2|floatformat }}%</td></tr>
+                                <tr><td style="text-align: center;">{{ month_data.3|floatformat }}%</td></tr>
                             </table>
                         </td>
                     {% endfor %}
@@ -46,8 +47,8 @@
                 </tbody>
             </table>
 
-            <div class="stats">
-                <span>Reporters</span><br/><br/>
+            <div class="stats" style="width: 350px;">
+                <span>Reporters</span>
             </div>
             <div class="reporter_school_report">
             <ul>
@@ -55,9 +56,7 @@
             </ul>
             </div>
 
-
-            <br/><br/>
-            <h2>Absenteism of Teachers</h2>
+            <div class="stats" style="width: 350px;"><h2>Absenteism of Teachers</h2></div>
             <table class="tabulated-data">
                 <tbody>
                 <tr><td colspan="1"></td>
@@ -76,8 +75,8 @@
                     {% for month_data in monthly_data_teachers %}
                     <td>
                         <table>
-                            <tr><td>{% if month_data.0 == '--' %} {{ month_data.0 }} {% else %} {{ month_data.0|floatformat }}{% endif %}</td></tr>
-                            <tr><td>{% if month_data.1 == '--' %} {{ month_data.1 }} {% else %} {{ month_data.1|floatformat }}{% endif %}</td></tr>
+                            <tr><td>{% if month_data.0 == '--' %} {{ month_data.0 }} {% else %} {{ month_data.0|floatformat }}%{% endif %}</td></tr>
+                            <tr><td>{% if month_data.1 == '--' %} {{ month_data.1 }} {% else %} {{ month_data.1|floatformat }}%{% endif %}</td></tr>
                         </table>
                     </td>
                     {% endfor %}
@@ -85,8 +84,7 @@
                 </tbody>
             </table>
 
-            <br/><br/>
-            <h2>Attendance of Head Teachers</h2>
+            <div class="stats" style="width: 350px;"><h2>Absenteism of Head Teachers</h2></div>
             <table class="tabulated-data">
                 <tbody>
                 <tr>
@@ -104,8 +102,8 @@
 
             <br/><br/>
             <hr>
-            <div class="module">
-                <h2>Monthly and Term Reports from {{ school_name }}</h2>
+            <div class="stats" style="width:350px;">
+                <h1>Monthly Reports</h1>
             </div>
             <div class="top">
                 <table class="tabulated-data">
@@ -123,8 +121,9 @@
                     </tr>
                     </tbody>
                 </table>
-                <br/><br/><hr>
-            <h2>Termly</h2>
+                <div class="stats" style="width: 350px;">
+                    <h1>Termly Reports</h1>
+                </div>
                 <table class="tabulated-data">
                     <tbody>
                     <tr><td colspan="1"></td>
