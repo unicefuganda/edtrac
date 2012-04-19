@@ -1293,8 +1293,15 @@ class AuditTrail(TemplateView):
 
     def context_data(self, **kwargs):
         context = super(AuditTrail, self).get_context_data(**kwargs)
-#        context['versions'] = Version.objects.all()
-#        context['test'] = reversion.get_for_model(UserProfile)
+        context['versions'] = Version.objects.all()
+
+        # get a list of deleted user profiles, schools
+        school_deleted_list = reversion.get_deleted(School)
+        #TODO -> put up superadmin restriction
+        user_profile_deleted_list = reversion.get_deleted(UserProfile) # Super Admins can revert this
+        reporter_deleted_list = reversion.get_deleted(EmisReporter)
+
+        context['test'] = reversion.get_for_model(UserProfile)
         return context
 
     @method_decorator(login_required)
@@ -1834,6 +1841,7 @@ def delete_connection(request, connection_id):
     return render_to_response("education/partials/connection_view.html", {'object':connection.contact }, context_instance=RequestContext(request))
 
 @login_required
+@reversion.create_revision
 def delete_reporter(request, reporter_pk):
     reporter = get_object_or_404(EmisReporter, pk=reporter_pk)
     if request.method == 'POST':
@@ -1841,6 +1849,7 @@ def delete_reporter(request, reporter_pk):
     return HttpResponse(status=200)
 
 @login_required
+@reversion.create_revision()
 def edit_reporter(request, reporter_pk):
     reporter = get_object_or_404(EmisReporter, pk=reporter_pk)
     reporter_group_name = reporter.groups.all()[0].name
@@ -1893,14 +1902,19 @@ def add_schools(request):
             names = filter(None, request.POST.getlist('name'))
             locations = request.POST.getlist('location')
             emis_ids = request.POST.getlist('emis_id')
+            import pdb; pdb.set_trace()
             if len(names) > 0:
                 for i, name in enumerate(names):
                     location = Location.objects.get(pk=int(locations[i]))
                     emis_id = emis_ids[i]
-                    name, created = School.objects.get_or_create(name=name, location=location, emis_id=emis_id)
+                    with reversion.create_revision():
+                        name, created = School.objects.get_or_create(name=name, location=location, emis_id=emis_id)
+                        reversion.set_user(request.user)
+                        reversion.set_comment('added %s'%name.name)
                     schools.append(name)
 
-                return render_to_response('education/partials/addschools_row.html', {'object':schools, 'selectable':False}, RequestContext(request))
+                return render_to_response('education/partials/addschools_row.html',
+                        {'object':schools, 'selectable':False}, RequestContext(request))
     else:
         form = SchoolForm()
     return render_to_response('education/deo/add_schools.html',
