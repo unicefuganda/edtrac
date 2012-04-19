@@ -1,17 +1,16 @@
 {% extends "education/admin/admin_dashboard.html" %}
 {% block title %} Absenteeism Records for Uganda {{ block.super }} {% endblock %}
 {% block content %}
-<div class="back_link">
-    <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">← Back to EdTrac Home Page</a></p>
-</div>
-        <div class="page-header">
-            <h2>Absenteism Records for {{ location }}</h2><br/>
-            {% ifequal role_name "Admins" %}
-            <p>Total districts: {{ total_districts }}</p>
-            {% endifequal %}
-        </div>
-
+<ul class="breadcrumb"><li><a href="{% url rapidsms-dashboard %}">← Back to the EduTrac Home Page</a></li></ul>
+<div class="general">
 <div class="attendance">
+    <div class="stats page-header">
+        <h2>Absenteism Records for {{ location }}</h2><br/>
+        {% ifequal role_name "Admins" %}
+        <p>Total districts: {{ total_districts }}</p>
+        {% endifequal %}
+    </div>
+
     <style>
         ul > li{
             margin-bottom: 5px;
@@ -30,13 +29,10 @@
     </div>
 </div>
 
-
+</div>
 <script>
     $(document).ready(function(){
         $("[rel=tooltip]").tooltip();
     });
 </script>
-
-
-
 {% endblock %}

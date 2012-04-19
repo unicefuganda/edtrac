@@ -3,9 +3,7 @@
 {% block title %} Curriculum Progress P3 -- {{ block.super }} {% endblock %}
 {% block content %}
 {% load endless %}
-<div class="back_link">
-    <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">← Back to the EduTrac Home Page</a></p>
-</div>
+<ul class="breadcrumb"><li><a href="{% url rapidsms-dashboard %}">← Back to the EduTrac Home Page</a></li></ul>
 <div class="general">
     <div class="stats"><h3>Curriculum Progress in {{ location }} &harr; P3</h3></div>
     <div class="top_row">

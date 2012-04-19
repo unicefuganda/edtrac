@@ -4,9 +4,7 @@
 Absenteeism of Male Teachers -- {{ block.super }}
 {% endblock %}
 {% block content %}
-<div class="back_link">
-    <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">← Back to the EduTrac Home Page</a></p>
-</div>
+<ul class="breadcrumb"><li><a href="{% url rapidsms-dashboard %}">← Back to the EduTrac Home Page</a></li></ul>
 <div class="attendance">
     <h2 class="block-header">Absenteeism of Male Teachers in {{ location }} (week: {{ week|date:"D d M Y" }})</h2>
 

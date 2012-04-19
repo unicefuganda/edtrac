@@ -109,86 +109,10 @@ def dash_attdance(request):
         'male_teachers_present' : male_teachers_present, 'male_teachers_absent' : male_teachers_absent
     } , RequestContext(request))
 
-#TODO provide an attendance view for ministry officials
-
-
-#VIOLENCE
-"""
-functions to generate violence specific data to different roles (deo, admin, ministry and others)
-"""
-
-def dash_violence(request):
-    violence_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
-    # this should be equal
-    districts = violence_to_ret.keys()
-    district_violence_cases = [23, 56, 23, 66]
-
-    return render_to_response('education/dashboard/violence.html',{\
-        'x_vals':districts,\
-        'y_vals':district_violence_cases
-    }, RequestContext(request))
-
-def dash_ministry_violence(request):
-    #NOTE: violence and abuse almost similar
-    violence = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
-    districts = violence.keys()
-    #assumption is still 4 districts
-    #dummy data
-    district_violence_cases = [23,56, 23, 66]
-    dicty = dict(zip(districts, district_violence_cases))
-    return render_to_response('education/dashboard/violence.html',
-            {'x_vals':districts, 'y_vals' : district_violence_cases, 'dicty' : dicty, 'chart_title':'Violence Cases Recorded'},
-        RequestContext(request)
-    )
-
-
-def dash_deo_violence(request):
-    #TODO: use months for the x-values
-    #filter only values in the district
-    location = request.user.get_profile().location
-    violence = get_sum_of_poll_response(Poll.objects.get(name="emis_headteachers_abuse"),
-        location=location)
-
-    months = ["Jan", "Feb", "March"]
-    district_violence = [343,234,64]
-    return render_to_response('education/dashboard/violence.html',
-            {'x_vals' : months, 'y_vals' : district_violence, 'chart_title':'Violence Cases Recorded'},
-        RequestContext(request)
-    )
-
-#MEALS
-"""
-We want to easily populate graphs for deo, admin and ministry roles
-"""
-
-def dash_meals(request):
-    meal_poll_to_ret = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))
-    # this should be equal
-    districts = meal_poll_to_ret.keys()
-    lunches_to_ret = zip(districts, [20, 30, 40, 10])
-    return render_to_response('education/dashboard/meals.html', {\
-        'lunches':lunches_to_ret,\
-        }, RequestContext(request))
-
-def dash_ministry_meals(req):
-    meal_poll_responses = list_poll_responses(Poll.objects.get(name="emis_headteachers_meals"))
-    districts = meal_poll_responses.keys()
-    lunches_to_ret = zip(districts, [10, 20, 30, 40])
-    return render_to_response('education/dashboard/meals.html', {
-        'lunches':lunches_to_ret}, RequestContext(req))
-
-def dash_deo_meals(req):
-    return render_to_response('education/dashboard/meals.html', {}, RequestContext(req))
-
-# Progress code
-
-def dash_progress(request):
-    #curriculum progress for p6 and p3
-    p3_response = 34
-    return render_to_response('education/dashboard/progress.html', {'p3':p3_response}, RequestContext(request))
-
-
 def dash_admin_progress(req):
+    """
+    Curriculum progress
+    """
     # correspond with group names
     authorized_users = ['Admins', 'Ministry Officials', 'UNICEF Officials']
 
@@ -289,20 +213,6 @@ def dash_admin_progress_district(req, district_pk):
 
 
 # Meetings
-"""
-code to implement meetings
-"""
-def dash_meetings(request):
-    message_ids = [poll_response['message_id'] for poll_response in Poll.objects.get(name="emis_meetings").responses.values()]
-    all_messages =[msg.text for msg in Message.objects.filter(id__in=message_ids)]
-    try:
-        to_ret = {}
-        set_messages = set(all_messages)
-        for msg in set_messages:
-            to_ret[int(msg)] = all_messages.count(int(msg))
-    except ValueError:
-        print "some non numeric values were provided"
-    return render_to_response('education/dashboard/meetings.html', {}, RequestContext(request))
 
 def dash_admin_meetings(req):
     profile = req.user.get_profile()
@@ -372,13 +282,7 @@ def dash_district_meetings(req, district_name):
 
 @login_required
 def dashboard(request):
-    profile = request.user.get_profile()
-    if profile.is_member_of('DEO') or profile.is_member_of('DFO'):
-        return deo_dashboard(request)
-    elif profile.is_member_of('Admins') or profile.is_member_of('Ministry Officials') or profile.is_member_of('UNICEF Officials'):
-        return admin_dashboard(request)
-    else:
-        return HttpResponseRedirect('/')
+    return admin_dashboard(request)
 
 # generate context vars
 def generate_dashboard_vars(location=None):
@@ -801,33 +705,6 @@ def generate_dashboard_vars(location=None):
         'grant_percent' : grant_percent
     }
 
-##########################################################################################################
-##########################################################################################################
-############################ Ministry Dashboard #############################################################
-##########################################################################################################
-##########################################################################################################
-@login_required
-def ministry_dashboard(request):
-    location = request.user.get_profile().location
-    return render_to_response("education/ministry/ministry_dashboard.html", generate_dashboard_vars(location=location),
-        RequestContext(request))
-
-
-class ProgressMinistryDetails(TemplateView):
-    template_name = "education/ministry/ministry_progress_details.html"
-    @method_decorator(login_required)
-    def get_context_data(self, **kwargs):
-        context = super(ProgressMinistryDetails, self).get_context_data(**kwargs)
-        return context
-
-class MealsMinistryDetails(TemplateView):
-    template_name = "education/ministry/ministry_meals_details.html"
-    #TODO open this up with more data variables
-    def get_context_data(self, **kwargs):
-        context = super(MealsMinistryDetails, self).get_context_data(**kwargs)
-        ##context['some_key'] = <some_list_of_response>
-        return context
-
 
 ##########################################################################################################
 ##########################################################################################################
@@ -841,6 +718,7 @@ def admin_dashboard(request):
         location = Location.objects.get(name="Uganda")
     else:
         location = request.user.get_profile().location
+
     return render_to_response("education/admin/admin_dashboard.html", generate_dashboard_vars(location=location),
         RequestContext(request))
 

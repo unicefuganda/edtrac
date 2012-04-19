@@ -210,8 +210,6 @@ urlpatterns = patterns('',
 
     url(r'^edtrac/dash_map/$', dash_map, {}, name="emis-dash-map"),
     url(r'^edtrac/dash_attdance/$', dash_attdance, {}, name="emis-dash-attdance"),
-    url(r'^edtrac/dash_violence/$', dash_violence, {}, name="emis-dash-violence"),
-    url(r'^edtrac/dash_meals/$', dash_meals, {}, name="emis-dash-meals"),
 
     # attendance views for all roles ---> data prepopulated by location
     url(r'^edtrac/dash/boys-p3/attendance/$', boys_p3_attendance, {}, name="boys-p3"),
@@ -240,14 +238,10 @@ urlpatterns = patterns('',
     "education/dashboard/district_violence_community_detail.html"), name="district-violence-community"),
     url(r'^edtrac/violence_deo_details/$', ViolenceDeoDetails.as_view(), name="violence-deo-details"),
     url(r'^edtrac/dash_ministry_attdance/$', dash_attdance, {}, name="emis-ministry-dash-attdance"),
-    url(r'^edtrac/dash_ministry_violence/$', dash_ministry_violence, {}, name="emis-ministry-dash-violence"),
-    url(r'^edtrac/dash_ministry_meals/$', dash_ministry_meals, {}, name="emis-ministry-dash-meals"),
 
     #DEO dashboard
     url(r'^edtrac/dash_deo_map/$', dash_ministry_map, {}, name="emis-deo-dash-map"),
     url(r'^edtrac/dash_deo_attdance/$', dash_attdance, {}, name="emis-deo-dash-attdance"),
-    url(r'^edtrac/dash_deo_violence/$', dash_deo_violence, {}, name="emis-deo-dash-violence"),
-    url(r'^edtrac/dash_deo_meals/$', dash_deo_meals, {}, name="emis-deo-dash-meals"),
 
     #National statistics
     url(r'^edtrac/national-stats/$', NationalStatistics.as_view(), name="emis-national-stats"),
@@ -255,7 +249,6 @@ urlpatterns = patterns('',
     #PROGRESS views
     url('^edtrac/progress/district/(?P<pk>\d+)/$', DistrictProgressDetails.as_view(template_name=\
     "education/dashboard/district_progress_detail.html"), name="district-progress"),
-    url(r'^edtrac/dash_ministry_progress_details/$', ProgressMinistryDetails.as_view(), name="ministry-progress-details"),
     url(r'^edtrac/dash-admin-progress-details/$', ProgressAdminDetails.as_view(), name="admin-progress-details"),
     url(r'^edtrac/dash-admin-meals-details/$', MealsAdminDetails.as_view(), name="admin-meals-details"),
     # to find out about the meals in a district
