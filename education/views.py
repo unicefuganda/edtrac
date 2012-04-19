@@ -1308,18 +1308,10 @@ class DistrictViolenceCommunityDetails(DetailView):
     def get_context_data(self, **kwargs):
         context = super(DistrictViolenceCommunityDetails, self).get_context_data(**kwargs)
         location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk'))) or self.request.user.get_profile().location
-        #schools and reports from a district
-
-        #reports = poll_response_sum("edtrac_headteachers_abuse", month_filter=True, months=1)
         emis_reporters = EmisReporter.objects.filter(groups__name="GEM", connection__in =\
             Poll.objects.get(name="edtrac_gem_abuse").responses.values_list('contact__connection',flat=True))
-#
-#        Blacklist.objects.\
-#                values_list('connection', flat=True)).filter(reporting_location=location, groups__name="GEM")
         context['location'] = location
         context['reporters'] = emis_reporters
-        #        context['school_count'] = School.objects.filter(location__in=EmisReporter.objects.exclude(connection__in=Blacklist.objects.values_list('connection').\
-        #            values_list('reporting_location'))).count()
         context['month'] = datetime.datetime.now()
         return context
 
@@ -1355,11 +1347,7 @@ def boysp3_district_attd_detail(req, location_id):
     to_ret = []
     for school in schools:
         temp = [school]
-        temp.extend(
-            return_absent(
-                'edtrac_boysp3_attendance','edtrac_boysp3_enrollment', school=school
-            )
-        )
+        temp.extend(return_absent('edtrac_boysp3_attendance','edtrac_boysp3_enrollment', school=school))
 
         to_ret.append(temp)
     to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
@@ -1383,7 +1371,6 @@ def boysp6_district_attd_detail(req, location_id):
         to_ret.append(temp)
 
     to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
-
 
     return render_to_response("education/boysp6_district_attd_detail.html", { 'week':datetime.datetime.now(),\
         'location':location,\
@@ -2027,86 +2014,6 @@ def excel_reports(req):
 #    from .utils import produce_curated_data
 #    queryset = produce_curated_data()
 #    template_name = "education/emis_chart.html"
-
-@login_required
-def attendance_chart(req): #consider passing date function nicely and use of slugs to pick specific data
-    categories = "P1 P2 P3 P4 P5 P6 P7".split()
-    boyslugs = ["boys_%s"%g for g in "p1 p2 p3 p4 p5 p6 p7".split()]
-    girlslugs = ["girls_%s"%g for g in "p1 p2 p3 p4 p5 p6 p7".split()]
-    from .reports import get_location, previous_calendar_week
-    #user_location = get_location(request, district_id)
-    user_location = Location.objects.get(pk=1)
-
-    ## Limited number of schools by 25
-    schools = School.objects.filter(location__in=user_location.get_descendants(include_self=True).all())[:25]
-    #    date_tup = previous_calendar_week()
-    #    kw = ('start','end')
-    #    dates = dict(zip(kw,date_tup))
-
-    #monthly diagram
-
-    #TODO include date filtering for more than 1week {need a use-case}
-
-    def value_gen(slug, dates, schools):
-        toret = XFormSubmissionValue.objects.exclude(submission__has_errors=True)\
-        .filter(attribute__slug__in=slug)\
-        .filter(created__range=(dates.get('start'),dates.get('end')))\
-        .filter(submission__connection__contact__emisreporter__schools__in=schools)\
-        .values('submission__connection__contact__emisreporter__schools__name')\
-        .values_list('submission__connection__contact__emisreporter__schools__name','value_int')
-        return toret
-
-    boy_values = value_gen(boyslugs,dates,schools)
-    girl_values = value_gen(girlslugs,dates,schools)
-
-    def cleanup(values):
-        index = 0
-        clean_val = []
-        while index < len(values):
-            school_values = []
-            #school_values.append(values[index][0])
-            school_values.append(values[index][1])
-            for i in range(index,(index+6)):
-                try:
-                    school_values.append(values[i][1])
-                except IndexError:
-                    school_values.append(0)
-                    # cleanup
-                school_values.reverse()
-            index += 6
-            clean_val.append(school_values)
-        return clean_val
-
-    schools = [school_name.name for school_name in schools]
-    boy_attendance = {}
-    girl_attendance = {}
-
-    clean_boy_values = cleanup(boy_values)
-    clean_girl_values = cleanup(girl_values)
-
-    for school_name, school_boy_value_list, school_girl_value_list in zip(schools, clean_boy_values, clean_girl_values):
-        boy_attendance[school_name]  = school_boy_value_list
-        girl_attendance[school_name] = school_girl_value_list
-
-    """
-    #uncomment; WIP for chunked
-    new_date = previous_calendar_month_week_chunks() #iterate for these 4 weeks
-    new_date_named = zip(['wk1', 'wk2', 'wk3', 'wk4'],new_date)
-    data_by_week = []
-    for week in new_date:
-        dates = dict(zip(['start', 'end'],[week[0],week[1]]))
-        #boys + girls
-        all_data = value_gen(slugs,dates,schools)
-        data_by_week.append(compute_total(all_data))
-
-    """
-
-    # use attendance dicts to populate attendance of folks in school
-    return render_to_response('education/emis_chart.html',{
-        'boy_attendance':boy_attendance.items(),
-        'girl_attendance':girl_attendance.items(),
-        'categories':categories,
-        },RequestContext(req))
 
 
 @super_user_required

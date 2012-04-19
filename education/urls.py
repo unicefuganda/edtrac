@@ -168,15 +168,8 @@ urlpatterns = patterns('',
         'sort_ascending':False,
         }, name="emis-othermessages"),
 
-    #statisctical views #TODO WIP
-    #    url(r'^emis/stats/$',include(FullReport().as_urlpatterns(name="full-report"))),
-    #
-    #    url(r'^emis/attendance/$',include(AttendanceReportr().as_urlpatterns(name='attendance-report'))),
-
     # Excel Reports
     url(r'^edtrac/excelreports/$',excel_reports),
-    #url(r'^emis/charts/$',ChartView.as_view()),#for demo purposes
-    url(r'^edtrac/charts/$',attendance_chart),#for demo purposes
     #users and permissions
     url(r'^edtrac/toexcel/$',to_excel, name="to-excel"),
     url(r'^edtrac/schoolexcel/$', school_reporters_to_excel, name="school_report_excel"),
