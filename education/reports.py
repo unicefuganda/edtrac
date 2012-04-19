@@ -577,6 +577,7 @@ def set_thur_wed_range(thursday):
     # thursday to wednesday
     # however we want to change the weeknumber a bit to get a `new` thursday
     # move thursday to last week
+
     thursday = thursday - datetime.timedelta(days = 7)
     # set times
     # 0800hrs EAT
@@ -594,10 +595,12 @@ def get_day_range(today):
         # offest today by a week from this Thursday
         today = (today - datetime.timedelta(days = today.weekday() - 3 )) + datetime.timedelta(days = 7)
         return set_thur_wed_range(today)
-    else:
+    elif today.weekday() < 3:
         # if day is a little earlier in the week
         new_date = today + datetime.timedelta(days = 3 - today.weekday())
         return set_thur_wed_range(new_date)
+    else: # when today is Thursday
+        return set_thur_wed_range(today + datetime.timedelta(days = 7))
 
 def get_week_date(depth=None):
     """
