@@ -135,9 +135,6 @@ class Command(BaseCommand, LoggerMixin):
                         if to_process.count():
                             self.debug("found batch message %d with Queued messages to send" % batch.pk)
                             self.send_all(router_url, to_process)
-                            #this batch should change its status to S its been sent!
-                            batch.status = 'S'
-                            batch.save()
                         elif batch.messages.using(db).filter(status__in=['S', 'C']).count() == batch.messages.using(db).count():
                             self.info("found batch message %d ready to be closed" % batch.pk)
                             batch.status = 'S'
