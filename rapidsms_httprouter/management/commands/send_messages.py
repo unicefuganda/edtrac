@@ -131,8 +131,6 @@ class Command(BaseCommand, LoggerMixin):
                     to_process = MessageBatch.objects.using(db).filter(status='Q')
                     self.debug("looking for batch messages to process")
                     if to_process.count():
-                        if to_process.count() == 1:
-                            self.info("found %s" % to_process)
                         self.info("found %d batches in %s to process" % (to_process.count(), db))
                         try:
                             iterator = iter(to_process)
