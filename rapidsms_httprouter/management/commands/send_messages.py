@@ -110,6 +110,9 @@ class Command(BaseCommand, LoggerMixin):
 
 
     def handle(self, **options):
+        """
+
+        """
         DBS = settings.DATABASES.keys()
         #DBS.remove('default') # skip the dummy -we now check default DB as well
         CHUNK_SIZE = getattr(settings, 'MESSAGE_CHUNK_SIZE', 400)
@@ -127,9 +130,15 @@ class Command(BaseCommand, LoggerMixin):
                     self.db = db
                     to_process = MessageBatch.objects.using(db).filter(status='Q')
                     self.debug("looking for batch messages to process")
-                    if to_process.count() > 0:
+                    if to_process.count():
+                        if to_process.count() == 1:
+                            self.info("found %s" % to_process)
                         self.info("found %d batches in %s to process" % (to_process.count(), db))
-                        batch = to_process[0]
+                        try:
+                            iterator = iter(to_process)
+                            batch = to_process[0]
+                        except TypeError:
+                            batch = to_process
                         to_process = batch.messages.using(db).filter(direction='O',
                                       status__in=['Q']).order_by('priority', 'status', 'connection__backend__name')[:CHUNK_SIZE]
                         if to_process.count():
