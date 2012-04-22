@@ -122,11 +122,13 @@ class Command(BaseCommand, LoggerMixin):
             for db in DBS:
                 try:
                     self.debug("servicing db '%s'" % db)
+                    self.info("servicing db '%s'" % db)
                     router_url = settings.DATABASES[db]['ROUTER_URL']
                     transaction.enter_transaction_management(using=db)
                     self.db = db
                     to_process = MessageBatch.objects.using(db).filter(status='Q')
                     self.debug("looking for batch messages to process")
+                    self.info("looking for batch messages to process")
                     if to_process.count():
                         self.info("%s batches found in %s" (to_process.count(), db))
                         batch = to_process[0]
