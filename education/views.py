@@ -15,14 +15,14 @@ from rapidsms.contrib.locations.models import Location
 from generic.views import generic
 from generic.sorters import SimpleSorter
 from poll.models import Poll
-from reversion.models import Version
 from .reports import *
 from .utils import *
 from .utils import _schedule_monthly_script, _schedule_termly_script, _schedule_weekly_scripts
 from urllib2 import urlopen
 from rapidsms.views import login, logout
-import  re, datetime, operator, xlwt, exceptions, copy
+import  re, datetime, operator, xlwt, exceptions, copy, reversion
 from datetime import date
+from reversion.models import Revision
 #from decimal import getcontext, Decimal
 from .utils import themes
 
@@ -630,8 +630,8 @@ def generate_dashboard_vars(location=None):
 
     # capitation grants
     cg = Poll.objects.get(name="edtrac_upe_grant")
-    yeses_cg = cg.responses_by_category().get(category__name = "yes").get('value')
-    nos_cg = cg.responses_by_category().get(category__name = 'no').get('value')
+    yeses_cg = cg.responses_by_category().filter(response__contact__reporting_location__in = locations).get(category__name = "yes").get('value')
+    nos_cg = cg.responses_by_category().filter(response__contact__reporting_location__in = locations).get(category__name = 'no').get('value')
     # percent of those that received grants
     try:
         grant_percent = 100 * yeses_cg / (yeses_cg + nos_cg)
@@ -1288,25 +1288,24 @@ def control_panel(req):
     else:
         return render_to_response('education/partials/control_panel_dist.html',{}, RequestContext(req))
 
-class AuditTrail(TemplateView):
-    template_name = "education/admin/audit_trail.html"
 
-    def context_data(self, **kwargs):
-        context = super(AuditTrail, self).get_context_data(**kwargs)
-        context['versions'] = Version.objects.all()
+def audit_trail(req):
+    revisions = Revision.objects.order_by('-date_created').values_list('user__username','comment','date_created')
+    return render_to_response('education/admin/audit_trail.html',{'revisions':revisions}, RequestContext(req))
 
-        # get a list of deleted user profiles, schools
-        school_deleted_list = reversion.get_deleted(School)
-        #TODO -> put up superadmin restriction
-        user_profile_deleted_list = reversion.get_deleted(UserProfile) # Super Admins can revert this
-        reporter_deleted_list = reversion.get_deleted(EmisReporter)
-
-        context['test'] = reversion.get_for_model(UserProfile)
-        return context
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(AuditTrail, self).dispatch(*args, **kwargs)
+#class AuditTrail(TemplateView):
+#    template_name = "education/admin/audit_trail.html"
+#
+#    def context_data(self, **kwargs):
+#        import pdb; pdb.set_trace()
+#        context = super(AuditTrail, self).get_context_data(**kwargs)
+#        context['revisions'] = Revision.objects.order_by('-date_created').\
+#            values_list('user__username','comment','date_created')
+#        return context
+#
+#    @method_decorator(login_required)
+#    def dispatch(self, *args, **kwargs):
+#        return super(AuditTrail, self).dispatch(*args, **kwargs)
 
 class DistrictViolenceCommunityDetails(DetailView):
     context_object_name = "district_violence"
@@ -1841,15 +1840,16 @@ def delete_connection(request, connection_id):
     return render_to_response("education/partials/connection_view.html", {'object':connection.contact }, context_instance=RequestContext(request))
 
 @login_required
-@reversion.create_revision
 def delete_reporter(request, reporter_pk):
     reporter = get_object_or_404(EmisReporter, pk=reporter_pk)
+    reporter_name = reporter.name
     if request.method == 'POST':
-        reporter.delete()
+        with reversion.create_revision():
+            reversion.set_comment('deleted %s'%reporter_name)
+            reporter.delete()
     return HttpResponse(status=200)
 
 @login_required
-@reversion.create_revision()
 def edit_reporter(request, reporter_pk):
     reporter = get_object_or_404(EmisReporter, pk=reporter_pk)
     reporter_group_name = reporter.groups.all()[0].name
@@ -1858,7 +1858,10 @@ def edit_reporter(request, reporter_pk):
         reporter_form = EditReporterForm(instance=reporter,
             data=request.POST)
         if reporter_form.is_valid():
-            reporter_form.save()
+            with reversion.create_revision():
+                reporter_form.save()
+                reversion.set_comment('edited %s details' % reporter.name)
+
             saved_reporter_grp = EmisReporter.objects.get(pk=reporter_pk).groups.all()[0].name
             if reporter.default_connection and reporter.groups.count() > 0:
                 # remove from other scripts
@@ -1902,7 +1905,6 @@ def add_schools(request):
             names = filter(None, request.POST.getlist('name'))
             locations = request.POST.getlist('location')
             emis_ids = request.POST.getlist('emis_id')
-            import pdb; pdb.set_trace()
             if len(names) > 0:
                 for i, name in enumerate(names):
                     location = Location.objects.get(pk=int(locations[i]))
@@ -1922,21 +1924,33 @@ def add_schools(request):
              }, context_instance=RequestContext(request))
 
 @login_required
+@reversion.create_revision()
 def delete_school(request, school_pk):
     school = get_object_or_404(School, pk=school_pk)
+    school_name = school.name
+
     if request.method == 'POST':
-        school.delete()
+        with reversion.create_revision():
+            school.delete()
+            reversion.set_user(request.user)
+            reversion.set_comment("%s deleted %s"%(request.user.username, school_name))
+
     return HttpResponse(status=200)
 
 @login_required
+@reversion.create_revision()
 def edit_school(request, school_pk):
     school = get_object_or_404(School, pk=school_pk)
     school_form = SchoolForm(instance=school)
+    school_name = school.name
     if request.method == 'POST':
         school_form = SchoolForm(instance=school,
             data=request.POST)
         if school_form.is_valid():
-            school_form.save()
+            with reversion.create_revision():
+                school_form.save()
+                reversion.set_user(request.user)
+                reversion.set_comment('%s edited %s' % (request.user.username, school_name))
         else:
             return render_to_response('education/partials/edit_school.html'
                 , {'school_form': school_form, 'school'
@@ -2029,8 +2043,9 @@ def excel_reports(req):
 #    queryset = produce_curated_data()
 #    template_name = "education/emis_chart.html"
 
-
+##NOTE --> people that edit users must be super users
 @super_user_required
+@reversion.create_revision()
 def edit_user(request, user_pk=None):
     title=""
     user=User()
@@ -2039,17 +2054,21 @@ def edit_user(request, user_pk=None):
             user = get_object_or_404(User, pk=user_pk)
         user_form = UserForm(request.POST,instance=user,edit=True)
         if user_form.is_valid():
-            user = user_form.save()
-            if user.groups.count() == 0:
-                group = Group.objects.get(pk=user_form.cleaned_data['groups'][0].pk)
-                user.groups.add(group)
-            try:
-                profile=UserProfile.objects.get(user=user)
-                profile.location=user_form.cleaned_data['location']
-                profile.role=Role.objects.get(name=user_form.cleaned_data['groups'][0].name)
-                profile.save()
-            except UserProfile.DoesNotExist:
-                UserProfile.objects.create(name=user.first_name,user=user,role=Role.objects.get(pk=user_form.cleaned_data['groups'][0].pk),location=user_form.cleaned_data['location'])
+            with reversion.create_revision():
+                user = user_form.save()
+                if user.groups.count() == 0:
+                    group = Group.objects.get(pk=user_form.cleaned_data['groups'][0].pk)
+                    user.groups.add(group)
+                try:
+                    profile=UserProfile.objects.get(user=user)
+                    profile.location=user_form.cleaned_data['location']
+                    profile.role=Role.objects.get(name=user_form.cleaned_data['groups'][0].name)
+                    profile.save()
+                except UserProfile.DoesNotExist:
+                    UserProfile.objects.create(name=user.first_name,user=user,role=Role.objects.get(pk=user_form.cleaned_data['groups'][0].pk),location=user_form.cleaned_data['location'])
+
+                reversion.set_user(request.user)
+                reversion.set_comment('edited %s' % user.username)
 
             return HttpResponseRedirect(reverse("emis-users"))
 

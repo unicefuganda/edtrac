@@ -7,13 +7,12 @@ from eav.models import Attribute
 from education.utils import _schedule_weekly_scripts, _schedule_monthly_script, _schedule_termly_script,\
     _schedule_weekly_report, _schedule_monthly_report
 from rapidsms_httprouter.models import mass_text_sent
-from rapidsms.models import Contact
+from rapidsms.models import Contact, ContactBase
 from rapidsms.contrib.locations.models import Location
 from script.signals import script_progress_was_completed, script_progress
 from script.models import *
 from script.utils.handling import find_best_response, find_closest_match
 import re, calendar, datetime, time, reversion
-
 
 class School(models.Model):
     name = models.CharField(max_length=160)
@@ -501,10 +500,11 @@ def schedule_weekly_report(grp='DEO'):
 
 Poll.register_poll_type('date', 'Date Response', parse_date_value, db_type=Attribute.TYPE_OBJECT)
 
+
 reversion.register(School)
-reversion.register(EmisReporter)
-reversion.register(UserProfile)
-reversion.register(User)
+reversion.register(UserProfile)#, follow = ['location', 'role', 'user'])
+reversion.register(EmisReporter, follow=['schools'])#, follow = ['contact_ptr'])
+
 
 script_progress_was_completed.connect(edtrac_autoreg, weak=False)
 script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)

@@ -390,8 +390,12 @@ def reporters(request, district_id=None):
             user_location.get_descendants(include_self=True)).distinct()
 
 def schools(request, district_id=None):
-    user_location = get_location(request)
-    return School.objects.filter(location__in=user_location.get_descendants(include_self=True).all())
+    profile = request.user.get_profile()
+    if profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials') or profile.is_member_of('Ministry Officials'):
+        return School.objects.all() # should we include all schools???
+    else:
+        user_location = get_location(request)
+        return School.objects.filter(location__in=user_location.get_descendants(include_self=True).all())
 
 #excel reports
 def raw_data(request, district_id, dates, slugs, teachers=False):

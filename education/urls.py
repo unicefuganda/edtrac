@@ -82,7 +82,7 @@ urlpatterns = patterns('',
         'sort_ascending':False,
         }, name="emis-messagelog"),
     url(r'^edtrac/control-panel/$',control_panel, name="control-panel"),
-    url(r'^edtrac/audit-trail/$',AuditTrail.as_view(), name="emis-audittrail"),
+    url(r'^edtrac/audit-trail/$', audit_trail, name="emis-audittrail"), #AuditTrail.as_view(), name="emis-audittrail"),
     #reporters
     url(r'^edtrac/reporter/$', login_required(generic), {
         'model':EmisReporter,
@@ -149,7 +149,7 @@ urlpatterns = patterns('',
     url(r'^edtrac/(\d+)/school_detail/', school_detail, {}, name='school-detail'),
     url(r'^edtrac/add_schools/', login_required(add_schools), {}, name='add-schools'),
     url(r'^edtrac/school/(\d+)/edit/', edit_school, name='edit-school'),
-    url(r'^edtrac/school/(\d+)/delete/', delete_school, name='delete-school'),
+    url(r'^edtrac/school/(?P<pk>\d+)/delete/', delete_school, name='delete-school'),
     url(r'^edtrac/school/(?P<pk>\d+)/show', generic_row, {'model':School, 'partial_row':'education/partials/school_row.html'}, name='show-school'),
 
     url(r'^edtrac/othermessages/$', login_required(generic), {

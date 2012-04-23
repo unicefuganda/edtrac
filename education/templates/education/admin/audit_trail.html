@@ -1,4 +1,5 @@
 {% extends "education/admin/admin_dashboard.html"%}
+{% load endless %}
 {% block title %} Audit Trail - {{ block.super }} {% endblock %}
 {% block content %}
 <ul class="breadcrumb">
@@ -6,13 +7,24 @@
 </ul>
 <div class="nice"><h3>Audit Trail</h3></div>
 <div class='general'>
-
     <div>
-        {% for date, action, obj in audit_trail_objects %}
-        <div class="row">
-            {{ date }}  <span>{{ action }}</span> <span>{{ obj }}</span>
-        </div>
-        {% endfor %}
+        <table class="tabular-data classy">
+            <tr>
+                <th>User</th>
+                <th>comment</th>
+                <th>Date</th>
+            </tr>
+            {% paginate revisions %}
+            {% for user, comment, date_created in revisions %}
+            <tr>
+                <td> {{ user }} </td>
+                <td>{% if comment %} {{ comment }} {% else %} -- {% endif %}</td>
+                <td>{{ date_created }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% show_pages %}
+
     </div>
 
 </div>
