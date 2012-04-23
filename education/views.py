@@ -1916,7 +1916,6 @@ def add_schools(request):
              }, context_instance=RequestContext(request))
 
 @login_required
-@reversion.create_revision()
 def delete_school(request, school_pk):
     school = get_object_or_404(School, pk=school_pk)
     school_name = school.name
@@ -1924,13 +1923,11 @@ def delete_school(request, school_pk):
     if request.method == 'POST':
         with reversion.create_revision():
             school.delete()
-            reversion.set_user(request.user)
             reversion.set_comment("%s deleted %s"%(request.user.username, school_name))
 
     return HttpResponse(status=200)
 
 @login_required
-@reversion.create_revision()
 def edit_school(request, school_pk):
     school = get_object_or_404(School, pk=school_pk)
     school_form = SchoolForm(instance=school)
@@ -1941,8 +1938,7 @@ def edit_school(request, school_pk):
         if school_form.is_valid():
             with reversion.create_revision():
                 school_form.save()
-                reversion.set_user(request.user)
-                reversion.set_comment('%s edited %s' % (request.user.username, school_name))
+                reversion.set_comment('edited %s' %  school_name)
         else:
             return render_to_response('education/partials/edit_school.html'
                 , {'school_form': school_form, 'school'
