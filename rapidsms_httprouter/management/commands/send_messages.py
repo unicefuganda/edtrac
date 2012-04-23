@@ -133,9 +133,9 @@ class Command(BaseCommand, LoggerMixin):
                     if to_process.count():
                         self.info("found %d batches in %s to process" % (to_process.count(), db))
                         try:
-                            iterator = iter(to_process)
                             batch = to_process[0]
-                        except TypeError:
+                        except IndexError:
+                            self.info("%s is returning index error"% to_process)
                             batch = to_process
                         to_process = batch.messages.using(db).filter(direction='O',
                                       status__in=['Q']).order_by('priority', 'status', 'connection__backend__name')[:CHUNK_SIZE]
