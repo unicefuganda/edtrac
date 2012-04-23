@@ -2044,7 +2044,7 @@ def edit_user(request, user_pk=None):
                 except UserProfile.DoesNotExist:
                     UserProfile.objects.create(name=user.first_name,user=user,role=Role.objects.get(pk=user_form.cleaned_data['groups'][0].pk),location=user_form.cleaned_data['location'])
 
-                reversion.set_comment('edited %s' % user.username)
+                reversion.set_comment("edited %s's profile" % user.username)
 
             return HttpResponseRedirect(reverse("emis-users"))
 
