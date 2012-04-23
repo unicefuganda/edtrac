@@ -2022,18 +2022,7 @@ def school_reporters_to_excel(req):
 def excel_reports(req):
     return render_to_response('education/excelreports/excel_dashboard.html',{},RequestContext(req))
 
-#visualization
-#TODO add to dashboards or stats views {work on generic views}
-#class ChartView(TemplateView):
-#    # boys and girls attendance
-#    context_object_name = "girl_boy_list"
-#    from .utils import produce_curated_data
-#    queryset = produce_curated_data()
-#    template_name = "education/emis_chart.html"
-
-##NOTE --> people that edit users must be super users
 @super_user_required
-@reversion.create_revision()
 def edit_user(request, user_pk=None):
     title=""
     user=User()
@@ -2055,7 +2044,6 @@ def edit_user(request, user_pk=None):
                 except UserProfile.DoesNotExist:
                     UserProfile.objects.create(name=user.first_name,user=user,role=Role.objects.get(pk=user_form.cleaned_data['groups'][0].pk),location=user_form.cleaned_data['location'])
 
-                reversion.set_user(request.user)
                 reversion.set_comment('edited %s' % user.username)
 
             return HttpResponseRedirect(reverse("emis-users"))
