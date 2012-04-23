@@ -1288,24 +1288,16 @@ def control_panel(req):
     else:
         return render_to_response('education/partials/control_panel_dist.html',{}, RequestContext(req))
 
-
+@login_required
 def audit_trail(req):
-    revisions = Revision.objects.order_by('-date_created').values_list('user__username','comment','date_created')
+    profile = req.user.get_profile()
+    if profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
+        # aparently the only places where comments are made is functions that involve editing users, reporters, etc.
+        revisions = Revision.objects.exclude(comment='').order_by('-date_created').values_list('user__username','comment','date_created')
+    else:
+        revisions = Revision.objects.exclude(user__username = 'admin', comment='').\
+            order_by('-date_created').values_list('user__username','comment','date_created')
     return render_to_response('education/admin/audit_trail.html',{'revisions':revisions}, RequestContext(req))
-
-#class AuditTrail(TemplateView):
-#    template_name = "education/admin/audit_trail.html"
-#
-#    def context_data(self, **kwargs):
-#        import pdb; pdb.set_trace()
-#        context = super(AuditTrail, self).get_context_data(**kwargs)
-#        context['revisions'] = Revision.objects.order_by('-date_created').\
-#            values_list('user__username','comment','date_created')
-#        return context
-#
-#    @method_decorator(login_required)
-#    def dispatch(self, *args, **kwargs):
-#        return super(AuditTrail, self).dispatch(*args, **kwargs)
 
 class DistrictViolenceCommunityDetails(DetailView):
     context_object_name = "district_violence"
