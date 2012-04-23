@@ -1982,13 +1982,27 @@ def school_detail(request, school_id):
 
     reporters = school.emisreporter_set.all()
 
+    boys_p3_enrolled = poll_responses_term('edtrac_boysp3_enrollment', belongs_to='schools', school = school)
+    boys_p6_enrolled = poll_responses_term('edtrac_boysp6_enrollment', belongs_to='schools', school = school)
+    girls_p3_enrolled = poll_responses_term('edtrac_girlsp3_enrollment', belongs_to='schools', school = school)
+    girls_p6_enrolled = poll_responses_term('edtrac_girlsp6_enrollment', belongs_to='schools', school = school)
+    m_teachers_deployed = poll_responses_term('edtrac_m_teachers_deployment', belongs_to = 'schools', school = school)
+    f_teachers_deployed = poll_responses_term('edtrac_f_teachers_deployment', belongs_to = 'schools', school = school)
+
+
     #monthly_violence =
     return render_to_response("education/school_detail.html", {\
         'school_name': school.name,
         'months' : [d_start for d_start, d_end in month_ranges],
         'monthly_data' : monthly_data,
         'monthly_data_teachers' : monthly_data_teachers,
-        'reporters' : reporters
+        'reporters' : reporters,
+        'boys_p3_enrolled': boys_p3_enrolled,
+        'boys_p6_enrolled': boys_p6_enrolled,
+        'girls_p3_enrolled' : girls_p3_enrolled,
+        'girls_p6_enrolled' : girls_p6_enrolled,
+        'm_teachers_deployed': m_teachers_deployed,
+        'f_teachers_deployed': f_teachers_deployed
         }, RequestContext(request))
 
 # analytics specific for emis {copy, but adjust to suit your needs}
