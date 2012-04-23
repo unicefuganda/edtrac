@@ -2,3 +2,4 @@
 .idea/
 *.pyc
 localsettings.py
+edtrac_projects/media
