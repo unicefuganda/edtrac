@@ -135,6 +135,7 @@ class Command(BaseCommand, LoggerMixin):
                         batch = to_process[0]
                         to_process = batch.messages.using(db).filter(direction='O',
                                       status__in=['Q']).order_by('priority', 'status', 'connection__backend__name')[:CHUNK_SIZE]
+                        self.info("%d chunk of messages found in %s" % (to_process.count(), db))
                         if to_process.count():
                             self.debug("found batch message %d with Queued messages to send" % batch.pk)
                             self.send_all(router_url, to_process)
