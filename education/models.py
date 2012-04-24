@@ -44,6 +44,7 @@ class EmisReporter(Contact):
     def schools_list(self):
         return self.schools.values_list('name', flat=True)
 
+
 class Role(Group):
     class Meta:
         proxy = True
@@ -87,6 +88,48 @@ def parse_gender(gender):
         return list(gender[0])[0]
     except:
         return None
+
+
+
+class ReportComment(models.Model):
+    user = models.ForeignKey(User)
+
+    commentable_choices = (
+        ('abs', 'Absenteeism'),
+        ('viol', 'Violence'),
+        ('cp', 'Curriculum Progress'),
+        ('mm', 'Missed Meals'),
+        ('smc', 'School Management Committee Meetings'),
+        ('upge', 'UPE Capitation Grants')
+        )
+
+    comment = models.TextField(null=False)
+
+    commentable = models.CharField(max_length=10, choices=commentable_choices, blank=False)
+
+    reporting_period_choices = (
+        ('wk', 'Weekly'),
+        ('mo', 'Monthly'),
+        ('t', 'Termly')
+        )
+
+    reporting_period = models.CharField(max_length=2, choices=reporting_period_choices, blank=False)
+
+    """
+    `report_date` is populated when user saves this comment; it will be based on
+    the last reporting date. You should be able to sort comments by their ``commentable_choices`` and define that the
+    date is based on weekly, monthly, or termly basis.
+    """
+    report_date = models.DateTimeField(blank=False)
+
+    def __unicode__(self):
+        return self.comment
+
+    def set_report_date(self, reporting_date):
+        self.report_date = reporting_date
+
+
+
 
 def parse_grade(grade):
     grade = get_close_matches(grade, ['P 3', 'P3','p3', 'P 6', 'P6', 'p6', 'primary three', 'primary six'], 1, 0.6)
@@ -504,7 +547,7 @@ Poll.register_poll_type('date', 'Date Response', parse_date_value, db_type=Attri
 reversion.register(School)
 reversion.register(UserProfile)#, follow = ['location', 'role', 'user'])
 reversion.register(EmisReporter, follow=['schools'])#, follow = ['contact_ptr'])
-
+reversion.register(ReportComment)
 
 script_progress_was_completed.connect(edtrac_autoreg, weak=False)
 script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)

@@ -608,8 +608,7 @@ def get_day_range(today):
 
 def get_week_date(depth=None):
     """
-    get_week_date returns a range of weekly dates from today. When a `depth` is password, it can back trace
-    dates to get ranges that can be drilled down through the year
+    get_week_date returns a range of weekly dates from today
     """
     now = datetime.datetime.now()
     if depth:
@@ -1290,3 +1289,11 @@ def write_to_xls(sheet_name, headings, data):
                 except:
                     pass
                 sheet.write(rowx, colx, value)
+
+def get_range_on_date(reporting_period, report_comment):
+    if reporting_period == 'wk':
+        return get_week_date(depth=2)[0]
+    elif reporting_period == 't':
+        return [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
+    elif reporting_period == 'mo':
+        return get_month_day_range(report_comment.report_date)

@@ -1831,6 +1831,65 @@ def delete_connection(request, connection_id):
     _reload_whitelists()
     return render_to_response("education/partials/connection_view.html", {'object':connection.contact }, context_instance=RequestContext(request))
 
+
+@login_required
+def comments(req):
+    profile = req.user.get_profile()
+    if profile.is_member_of('Admins') or profile.is_member_of('Ministry Officials') or profile.is_member_of('UNICEF Officials'):
+        comments = [(r.get_commentable_display(), r.comment, r.user, r.get_reporting_period_display(),
+                     get_range_on_date(r.reporting_period, r) )
+                    for r in ReportComment.objects.order_by('-report_date')]
+    else:
+        # DFO/DEO should get only information on their districts
+        comments = [(r.get_commentable_display(), r.comment, r.user, r.get_reporting_period_display(),
+                     get_range_on_date(r.reporting_period, r))
+                    for r in ReportComment.objects.filter(user__profile__location=profile.location).order_by('-report_date')]
+
+    return render_to_response('education/partials/comments.html', {'data_set':comments}, RequestContext(req))
+
+@login_required
+def new_comment(req):
+    report_comment_form = ReportCommentForm(initial = {'user':req.user.pk})
+    if req.method == 'POST':
+        report_comment_form = ReportCommentForm(req.POST)
+        if report_comment_form.is_valid():
+            with reversion.create_revision():
+                report_comment_form.save()
+                reversion.set_comment('wrote a comment')
+            return HttpResponseRedirect(reverse('comments'))
+        else:
+            return render_to_response('education/partials/new_comment.html',
+                    {'form':report_comment_form}, RequestContext(req))
+    else:
+        return render_to_response('education/partials/new_comment.html',{'form':report_comment_form}, RequestContext(req))
+
+@login_required
+def edit_comment(req, report_comment_pk):
+    report_comment = get_object_or_404(ReportComment, pk=report_comment_pk)
+    report_comment_form = ReportCommentForm(instance=report_comment)
+    if req.method == 'POST':
+        report_comment_form = ReportCommentForm(instance=report_comment, data=req.POST)
+        if report_comment_form.is_valid():
+            with reversion.create_revision():
+                report_comment_form.save()
+                reversion.set_comment('edited comment')
+            return HttpResponseRedirect(reverse('comments'))
+        else:
+            return render_to_response('education/partials/edit_comment.html', {'form':report_comment_form},
+                RequestContext(req))
+    else:
+        return render_to_response('education/partials/edit_comment.html', {'form':report_comment_form},
+            RequestContext(req))
+
+@login_required
+def delete_comment(req, report_comment_pk):
+    report_comment = get_object_or_404(ReportComment, pk=report_comment_pk)
+    if req.method == 'POST':
+        with reversion.create_revision():
+            report_comment.delete()
+            reversion.set_comment('deleted comment')
+        return HttpResponse(status=200)
+
 @login_required
 def delete_reporter(request, reporter_pk):
     reporter = get_object_or_404(EmisReporter, pk=reporter_pk)
@@ -2230,6 +2289,7 @@ def edit_scripts(request):
 
     return render_to_response('education/partials/edit_script.html', {'forms': forms},
         context_instance=RequestContext(request))
+
 
 #TODO work on forms
 def choose_level(request):

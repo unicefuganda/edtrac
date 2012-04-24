@@ -1,0 +1,28 @@
+{% extends 'education/admin/admin_dashboard.html' %}
+{% block title %} Comments on Data -- {{ block.super }} {% endblock %}
+{% block content %}
+
+        <div class="general">
+            <ul class='breadcrumb'>
+                <li>
+                    <a href="{% url rapidsms-dashboard %}">
+                        Dashboard Home</a>
+                </li>
+            </ul>
+            <form action="" method="post">
+                <table>
+                    {{ form.user }}
+                    <tr><td>Indicator</td><td>{{ form.commentable }}</td></tr>
+                    <tr><td>Reporting Period</td><td>{{ form.reporting_period }}</td></tr>
+                    <tr>
+                        <td>Add Comment</td><td colspan="1"></td>
+                        </tr>
+                    <tr>
+                        <td>{{ form.comment }}</td><td colspan="1"></td>
+                    </tr>
+
+                </table>
+                <input type="submit" value="Comment">
+            </form>
+        </div>
+{% endblock %}

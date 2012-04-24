@@ -1,0 +1,34 @@
+{% extends 'education/admin/admin_dashboard.html' %}
+{% load endless %}
+{% block title %} Comments on Data -- {{ block.super }} {% endblock %}
+{% block content %}
+<div class="general">
+
+    <ul class='breadcrumb'>
+        <li>
+            <a href="{% url rapidsms-dashboard %}">
+                Dashboard Home</a>
+            <span class="divider">\</span>
+        </li>
+        <li>
+            <a href="{% url new-comment %}">New comment</a>
+        </li>
+    </ul>
+    {% paginate data_set %}
+    <table class="tabular-data classy">
+        <tr><th>Indicator</th><th>Comment</th><th>Author (DEO)</th><th>Reporting Period</th><th>Date Range</th></tr>
+        {% for indicator, comment, user, reporting_period, date_range in data_set %}
+
+        <tr>
+            <td>{{ indicator }}</td>
+            <td>{{ comment }}</td>
+            <td>{{ user }}</td>
+            <td>{{ reporting_period }}</td>
+            <td>{{ date_range.0|date }} - {{ date_range.1|date }}</td></tr>
+        {% endfor %}
+    </table>
+    <div>
+        <a href="{% url new-comment %}">New comment</a>
+    </div>
+</div>
+{% endblock %}

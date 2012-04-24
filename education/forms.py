@@ -7,7 +7,8 @@ from generic.forms import ActionForm, FilterForm, ModuleForm
 from mptt.forms import TreeNodeChoiceField
 from rapidsms.contrib.locations.models import Location
 from rapidsms.models import Backend
-from .models import School, EmisReporter
+from .reports import get_week_date, get_month_day_range
+from .models import School, EmisReporter, ReportComment
 from rapidsms_xforms.models import XFormSubmissionValue
 from django.contrib.auth.models import Group, User
 from django.db.models import Q
@@ -91,6 +92,7 @@ class EditReporterForm(forms.ModelForm):
     class Meta:
         model = EmisReporter
         fields = ('name', 'gender', 'grade', 'reporting_location', 'groups', 'schools')
+
 
 class DistrictFilterForm(forms.Form):
     """ filter form for districts """
@@ -203,6 +205,43 @@ class SchoolDistictFilterForm(FilterForm):
                 return queryset.filter(location__in=district.get_descendants(include_self=True))
             else:
                 return queryset
+
+
+class ReportCommentForm(forms.ModelForm):
+    user = forms.ModelChoiceField(queryset=User.objects.filter(groups__name = 'DEO'), widget = forms.HiddenInput())
+    class Meta:
+        model = ReportComment
+    def __init__(self, *args, **kwargs):
+        super(ReportCommentForm, self).__init__(*args, **kwargs)
+        self.fields['report_date'].required = False
+        self.fields['reporting_period'].required = False
+
+
+
+    def save(self, commit=True):
+        # do all that funky saving
+        report_comment = super(ReportCommentForm, self).save(commit=False)
+        reporting_period = self.cleaned_data.get('reporting_period','')
+        today = datetime.datetime.now()
+
+        if reporting_period == 'wk':
+            report_comment.set_report_date(
+                get_week_date(depth=2)[0][0]
+            )
+        elif reporting_period == 'mo':
+            report_comment.set_report_date(
+                get_month_day_range(today)[0]
+            )
+        elif reporting_period == 't':
+            #TODO how best to set termly comments
+            pass
+
+        if commit:
+            report_comment.save()
+        return report_comment
+
+
+
 
 class UserForm(forms.ModelForm):
    

@@ -32,7 +32,7 @@ class ModelTest(TestCase): #pragma: no cover
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
             site_id = getattr(settings, 'SITE_ID', 5)
             Site.objects.get_or_create(pk=site_id, defaults={'domain':'rapidemis.com'})
-            #        fixtures = ['initial_data.json']
+            fixtures = ['initial_data.json']
         User.objects.get_or_create(username='admin')
         self.backend = Backend.objects.create(name='test')
         self.connection = Connection.objects.create(identity='8675309', backend=self.backend)
