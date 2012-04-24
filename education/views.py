@@ -1856,7 +1856,7 @@ def new_comment(req):
             with reversion.create_revision():
                 report_comment_form.save()
                 reversion.set_comment('wrote a comment')
-            return HttpResponseRedirect(reverse('comments'))
+                return HttpResponseRedirect(reverse('comments'))
         else:
             return render_to_response('education/partials/new_comment.html',
                     {'form':report_comment_form}, RequestContext(req))

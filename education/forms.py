@@ -208,7 +208,7 @@ class SchoolDistictFilterForm(FilterForm):
 
 
 class ReportCommentForm(forms.ModelForm):
-    user = forms.ModelChoiceField(queryset=User.objects.filter(groups__name = 'DEO'), widget = forms.HiddenInput())
+    user = forms.ModelChoiceField(queryset=User.objects.all(), widget = forms.HiddenInput())
     class Meta:
         model = ReportComment
     def __init__(self, *args, **kwargs):
