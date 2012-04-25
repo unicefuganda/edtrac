@@ -630,8 +630,17 @@ def generate_dashboard_vars(location=None):
 
     # capitation grants
     cg = Poll.objects.get(name="edtrac_upe_grant")
-    yeses_cg = cg.responses_by_category().filter(response__contact__reporting_location__in = locations).get(category__name = "yes").get('value')
-    nos_cg = cg.responses_by_category().filter(response__contact__reporting_location__in = locations).get(category__name = 'no').get('value')
+
+    resp_category = cg.responses_by_category()
+
+    responses = resp_category.filter(response__contact__reporting_location__in = locations)
+    if not responses:
+        yeses_cg = 0
+        nos_cg = 0
+    else:
+        yeses_cg = responses.get(category__name = "yes").get('value')
+        nos_cg = responses.get(category__name = "no").get('value')
+
     # percent of those that received grants
     try:
         grant_percent = 100 * yeses_cg / (yeses_cg + nos_cg)
