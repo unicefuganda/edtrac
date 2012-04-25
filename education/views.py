@@ -1905,6 +1905,7 @@ def edit_reporter(request, reporter_pk):
     reporter = get_object_or_404(EmisReporter, pk=reporter_pk)
     reporter_group_name = reporter.groups.all()[0].name
     reporter_form = EditReporterForm(instance=reporter)
+
     if request.method == 'POST':
         reporter_form = EditReporterForm(instance=reporter,
             data=request.POST)

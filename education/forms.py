@@ -81,17 +81,32 @@ class NewConnectionForm(forms.Form):
 
 class EditReporterForm(forms.ModelForm):
 
+    schools = forms.ModelChoiceField(queryset=School.objects.filter(location__name__in=\
+            EmisReporter.objects.values_list('reporting_location__name',flat=True)).order_by('location__name','name'))
+    class Meta:
+        model = EmisReporter
+        fields = ('name', 'gender', 'grade', 'reporting_location', 'groups', 'schools')
+
     def __init__(self, *args, **kwargs):
            super(EditReporterForm, self).__init__(*args, **kwargs)
            self.fields['reporting_location'] = TreeNodeChoiceField(queryset=self.fields['reporting_location'].queryset, level_indicator=u'.')
            self.fields['schools'].required = False
            self.fields['gender'].required = False
-           self.fields['schools'].queryset = School.objects.filter(location__name__in=EmisReporter.objects.values_list('reporting_location__name',flat=True)).order_by('location__name','name')
            self.fields['grade'].required = False
 
-    class Meta:
-        model = EmisReporter
-        fields = ('name', 'gender', 'grade', 'reporting_location', 'groups', 'schools')
+    def save(self, commit=True):
+        reporter_form = super(EditReporterForm, self).save(commit=False)
+
+        school = self.cleaned_data['schools']
+        if school:
+            schools = School.objects.filter(pk = school.pk)
+            reporter_form.schools = schools
+        else:
+            # remove all schools associated with this reporter
+            [reporter_form.schools.remove(sch) for sch in reporter_form.schools.all()]
+
+        if commit:
+            reporter_form.save()
 
 
 class DistrictFilterForm(forms.Form):
@@ -410,7 +425,6 @@ class ScriptsForm(forms.ModelForm):
             'enabled':forms.CheckboxInput(attrs={'onclick':'check_clicked(this);'})
         }
 
-
 class SearchForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(SearchForm, self).__init__(*args, **kwargs)
@@ -418,42 +432,3 @@ class SearchForm(forms.ModelForm):
     class Meta:
         model = Location
         fields = ('name',)
-
-
-
-#class ReporterForm(forms.ModelForm):
-#
-#    connection_set = forms.ModelMultipleChoiceField(queryset=Connection.objects.order_by('identity'), required=False)
-#    #TODO --> from simple_autocomplete.widgets import AutoCompleteMultipleWidget
-#    #connection_set = forms.ModelChoiceField(queryset = Connection.objects.order_by('identity'))
-#
-#    def __init__(self, *args, **kwargs):
-#        super(ReporterForm, self).__init__(*args, **kwargs)
-#        if self.instance:
-#            self.fields['connection_set'].initial = [str(conn.pk) for conn in self.instance.connection_set.all()]
-#            self.fields['reporting_location'].queryset = Location.objects.exclude(type__name="county").order_by("name")
-#            self.fields['schools'].queryset = School.objects.order_by('name')
-#
-#        for key, field in self.fields.iteritems():
-#            self.fields[key].required = False
-#
-#    def save(self, *args, **kwargs):
-#        kwargs.pop('commit', None)
-#        edtrac_reporter = super(ReporterForm, self).save(*args, **kwargs)
-#        # create a connection object if it doesn't exist
-#        edtrac_reporter.connection_set.add(*self.cleaned_data['connection_set'])
-#        return edtrac_reporter
-#
-#    class Meta:
-#        model = EmisReporter
-#
-#        exclude = ('user', 'birthdate', 'user_permissions', 'village_name', 'village', 'language',)
-
-
-
-#class ConnectionFormQuick(forms.Form):
-#    telephone_number = forms.CharField()
-#    def clean(self):
-#        cleaned_data = self.cleaned_data
-#        cleaned_data['telephone_number'] = str(cleaned_data['telephone_number'])
-#        return cleaned_data
