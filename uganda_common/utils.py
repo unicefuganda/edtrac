@@ -173,7 +173,7 @@ class ExcelResponse(HttpResponse):
             file_ext = output_name.rsplit('.')[1]
         else:
             file_ext="xls"
-        if file_ext !="zip" or len(data) <= MAX_SHEET_LENGTH :
+        if file_ext !="zip" and len(data) <= MAX_SHEET_LENGTH :
             book = create_workbook(data, encoding)
             if write_to_file:
                 book.save(output_name)
