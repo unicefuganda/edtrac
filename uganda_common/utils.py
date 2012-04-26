@@ -199,6 +199,7 @@ class ExcelResponse(HttpResponse):
                 zipped_file.write(handle, handle.rsplit("/")[-1])
                 start = end
                 end = end + MAX_SHEET_LENGTH
+            zipped_file.close()
 
 
 
