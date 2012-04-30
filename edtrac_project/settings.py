@@ -249,14 +249,6 @@ ROOT_URLCONF = "urls"
 MAP_KEY = "ABQIAAAAmd7V71yw9ZddA0s8Z3wSKBS0unaJrFIrP1vn6ZXHpuhFyvYAGhQprSjp88j18w-K_X23JU31jBikVg"
 COUNTRY = "UG"
 MESSAGELOG_APP = 'rapidsms_httprouter'
-LOGISTICS_CONFIG = 'static.uganda.config'
-LOGISTICS_AGGRESSIVE_SOH_PARSING = False
-
-LOGISTICS_ALERT_GENERATORS = [
-    'logistics.alerts.non_reporting_facilities',
-    'logistics.alerts.facilities_without_reporters',
-    'logistics.alerts.facilities_without_reminders',
-]
 
 import os
 import tempfile
