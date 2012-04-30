@@ -687,3 +687,8 @@ def extract_key_count(list, key=None):
                 return dict.get('value')
     else:
         return 0
+
+
+def poll_to_xform_submissions(message):
+    pass
+    return True

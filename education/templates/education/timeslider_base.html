@@ -1,19 +1,61 @@
-{% extends "generic/base.html" %}
-{% block stylesheets %}
-    {{ block.super }}
-        <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}generic/stylesheets/jquery-ui-1.7.3.custom.css"/>
+{% extends "education/admin/admin_dashboard.html" %}
+{% load endless %}
+{% block title %}
+{{ title }} -- {{ block.super }}
 {% endblock %}
+{% block content %}
+<ul class='breadcrumb'>
+    <li>
+        <a href="{% url rapidsms-dashboard %}">
+            Dashboard Home</a>
+        <span class="divider">\</span>
+    </li>
+    <li>
+        <a href="{% url attendance-admin-details %}">Details view</a>
+    </li>
+</ul>
+        <div class="general" style="min-height: 200px;">
 
-{% block javascripts %}
-    {{ block.super }}
-        <script type="text/javascript" src="{{ MEDIA_URL }}generic/javascripts/slider.js"></script>
-        <script type="text/javascript" src="{{ MEDIA_URL }}generic/javascripts/selectToUiSlider.jquery.js"></script>
-        <script type="text/javascript" src="{{ MEDIA_URL }}generic/javascripts/jquery-ui-1.7.3.custom.min.js"></script>
-        <script type="text/javascript" src="{{MEDIA_URL}}education/javascripts/emis_schools.js" type="text/javascript"></script>
-{% endblock %}
+            <div>
+                <form action="" method="post" class="selector">
+                    From {{ form.from_date }} to {{ form.to_date }}
+                    <button>Search</button>
+                </form>
+            </div>
 
-{% block filters %}
-    {{ block.super }}
-    <input type="hidden" id="drill_key" name="drill_key"/>
-    {% include "generic/partials/time_slider.html" %}
+            <script>
+                $(function(){
+                    $('#id_from_date').datepicker();
+                    $('#id_to_date').datepicker();
+                });
+            </script>
+
+            {% if dataset %}
+                <table class="tabulated-data classy">
+                    <tr>
+                        <th>District</th>
+                        <th>Percentage Absenteism</th>
+                    </tr>
+                    {% for location, figure in dataset %}
+                    <tr>
+                        <td>{{ location }}</td>
+                        <td>
+                            {% if figure == '--' %}
+                                {{ figure }}
+                            {% else %}
+                                {{ figure|floatformat }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+
+            {% else %}
+            <div class="alert-message">Please click the text boxes to select date range for data</div>
+            {% endif %}
+
+
+        </div>
+
+
 {% endblock %}

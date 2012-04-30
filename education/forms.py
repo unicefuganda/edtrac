@@ -432,3 +432,7 @@ class SearchForm(forms.ModelForm):
     class Meta:
         model = Location
         fields = ('name',)
+
+class ResultForm(forms.Form):
+    from_date = forms.DateTimeField()
+    to_date = forms.DateTimeField()

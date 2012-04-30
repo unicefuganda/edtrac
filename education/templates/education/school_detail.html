@@ -50,10 +50,14 @@
             <div class="stats" style="width: 350px;">
                 <span>Reporters</span>
             </div>
-            <div class="reporter_school_report">
-            <ul>
-                {% for reporter in reporters %}<li>{{ reporter }} | <span style="font-style: italic;">{{ reporter.groups.all.0 }}</em></li>{% endfor %}
-            </ul>
+            <div>
+                <table class="classy tabulated-data">
+                    <tr><th>Name</th><th>Role</th></tr>
+                    {% for reporter in reporters %}
+                    <tr><td>{{ reporter }} </td><td><span style="font-style: italic;">{{ reporter.groups.all.0 }}</td></tr>
+                    {% endfor %}
+                </table>
+
             </div>
 
             <div class="stats" style="width: 350px;"><h2>Absenteism of Teachers</h2></div>

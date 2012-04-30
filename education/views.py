@@ -1771,6 +1771,168 @@ def female_head_teacher_attendance(req):
         RequestContext(req)
     )
 
+
+def time_range_boysp3(req):
+    time_range_form = ResultForm()
+    locations = Location.objects.filter(type='district').filter(pk__in = EmisReporter.objects.values_list('reporting_location__pk',flat=True))
+    if req.method == 'POST':
+        time_range_form = ResultForm(data=req.POST)
+        to_ret = []
+        if time_range_form.is_valid():
+            for location in locations:
+                enrolled = poll_responses_term('edtrac_boysp3_enrollment', belongs_to='location', locations=[location])
+                attendance = get_numeric_report_data('edtrac_boysp3_attendance', locations=[location], time_range=[
+                    time_range_form.cleaned_data['from_date'],
+                    time_range_form.cleaned_data['to_date']
+                ], to_ret = 'avg')
+                try:
+                    percentage = (enrolled - attendance) * 100 / enrolled
+                except ZeroDivisionError:
+                    percentage = '--'
+
+                to_ret.append([location, percentage])
+            return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
+                                                                         'title':'P3 Boys Absenteeism'}, RequestContext(req))
+        else:
+            return render_to_response('education/timeslider_base.html', {'form':time_range_form,'title':'P3 Boys Absenteeism'}, RequestContext(req))
+    return render_to_response('education/timeslider_base.html', {'form':time_range_form,'title':'P3 Boys Absenteeism'}, RequestContext(req))
+
+
+
+def time_range_boysp6(req):
+    time_range_form = ResultForm()
+    locations = Location.objects.filter(type='district').filter(pk__in = EmisReporter.objects.values_list('reporting_location__pk',flat=True))
+    if req.method == 'POST':
+        time_range_form = ResultForm(data=req.POST)
+        to_ret = []
+        if time_range_form.is_valid():
+            for location in locations:
+                enrolled = poll_responses_term('edtrac_boysp6_enrollment', belongs_to='location', locations=[location])
+                attendance = get_numeric_report_data('edtrac_boysp6_attendance', locations=[location], time_range=[
+                    time_range_form.cleaned_data['from_date'],
+                    time_range_form.cleaned_data['to_date']
+                ], to_ret = 'avg')
+                try:
+                    percentage = (enrolled - attendance) * 100 / enrolled
+                except ZeroDivisionError:
+                    percentage = '--'
+
+                to_ret.append([location, percentage])
+            return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
+                                                                         'title':'P6 Boys Absenteeism'}, RequestContext(req))
+        else:
+            return render_to_response('education/timeslider_base.html', {'form':time_range_form,
+                                                                         'title':'P6 Boys Absenteeism'}, RequestContext(req))
+    return render_to_response('education/timeslider_base.html', {'form':time_range_form,
+                                                                 'title':'P6 Boys Absenteeism'}, RequestContext(req))
+
+
+def time_range_girlsp3(req):
+    time_range_form = ResultForm()
+    locations = Location.objects.filter(type='district').filter(pk__in = EmisReporter.objects.values_list('reporting_location__pk',flat=True))
+    if req.method == 'POST':
+        time_range_form = ResultForm(data=req.POST)
+        to_ret = []
+        if time_range_form.is_valid():
+            for location in locations:
+                enrolled = poll_responses_term('edtrac_girlsp3_enrollment', belongs_to='location', locations=[location])
+                attendance = get_numeric_report_data('edtrac_girlsp3_attendance', locations=[location], time_range=[
+                    time_range_form.cleaned_data['from_date'],
+                    time_range_form.cleaned_data['to_date']
+                ], to_ret = 'avg')
+                try:
+                    percentage = (enrolled - attendance) * 100 / enrolled
+                except ZeroDivisionError:
+                    percentage = '--'
+
+                to_ret.append([location, percentage])
+            return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
+                                                                         'title':'P3 Girls Absenteeism'}, RequestContext(req))
+        else:
+            return render_to_response('education/timeslider_base.html', {'form':time_range_form}, RequestContext(req))
+    return render_to_response('education/timeslider_base.html', {'form':time_range_form}, RequestContext(req))
+
+def time_range_girlsp6(req):
+    time_range_form = ResultForm()
+    locations = Location.objects.filter(type='district').filter(pk__in = EmisReporter.objects.values_list('reporting_location__pk',flat=True))
+    if req.method == 'POST':
+        time_range_form = ResultForm(data=req.POST)
+        to_ret = []
+        if time_range_form.is_valid():
+            for location in locations:
+                enrolled = poll_responses_term('edtrac_girlsp6_enrollment', belongs_to='location', locations=[location])
+                attendance = get_numeric_report_data('edtrac_girlsp6_attendance', locations=[location], time_range=[
+                    time_range_form.cleaned_data['from_date'],
+                    time_range_form.cleaned_data['to_date']
+                ], to_ret = 'avg')
+                try:
+                    percentage = (enrolled - attendance) * 100 / enrolled
+                except ZeroDivisionError:
+                    percentage = '--'
+
+                to_ret.append([location, percentage])
+            return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
+                                                                         'title':'P6 Girls Absenteeism'}, RequestContext(req))
+        else:
+            return render_to_response('education/timeslider_base.html', {'form':time_range_form,
+                                                                         'title':'P6 Girls Absenteeism'}, RequestContext(req))
+    return render_to_response('education/timeslider_base.html', {'form':time_range_form,
+                                                                 'title':'P6 Girls Absenteeism'}, RequestContext(req))
+
+def time_range_teachers_m(req):
+    time_range_form = ResultForm()
+    locations = Location.objects.filter(type='district').filter(pk__in = EmisReporter.objects.values_list('reporting_location__pk',flat=True))
+    if req.method == 'POST':
+        time_range_form = ResultForm(data=req.POST)
+        to_ret = []
+        if time_range_form.is_valid():
+            for location in locations:
+                enrolled = poll_responses_term('edtrac_m_teachers_deployment', belongs_to='location', locations=[location])
+                attendance = get_numeric_report_data('edtrac_m_teachers_attendance', locations=[location], time_range=[
+                    time_range_form.cleaned_data['from_date'],
+                    time_range_form.cleaned_data['to_date']
+                ], to_ret = 'avg')
+                try:
+                    percentage = (enrolled - attendance) * 100 / enrolled
+                except ZeroDivisionError:
+                    percentage = '--'
+
+                to_ret.append([location, percentage])
+            return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
+                                                                         'title':'Male Teachers Absenteeism'}, RequestContext(req))
+        else:
+            return render_to_response('education/timeslider_base.html', {'form':time_range_form,
+                                                                         'title':'Male Teachers Absenteeism'}, RequestContext(req))
+    return render_to_response('education/timeslider_base.html', {'form':time_range_form,
+                                                                 'title':'Male Teachers Absenteeism'}, RequestContext(req))
+
+def time_range_teachers_f(req):
+    time_range_form = ResultForm()
+    locations = Location.objects.filter(type='district').filter(pk__in = EmisReporter.objects.values_list('reporting_location__pk',flat=True))
+    if req.method == 'POST':
+        time_range_form = ResultForm(data=req.POST)
+        to_ret = []
+        if time_range_form.is_valid():
+            for location in locations:
+                enrolled = poll_responses_term('edtrac_f_teachers_deployment', belongs_to='location', locations=[location])
+                attendance = get_numeric_report_data('edtrac_f_teachers_attendance', locations=[location], time_range=[
+                    time_range_form.cleaned_data['from_date'],
+                    time_range_form.cleaned_data['to_date']
+                ], to_ret = 'avg')
+                try:
+                    percentage = (enrolled - attendance) * 100 / enrolled
+                except ZeroDivisionError:
+                    percentage = '--'
+
+                to_ret.append([location, percentage])
+            return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
+                                                                         'title':'Female Teachers Absenteeism'}, RequestContext(req))
+        else:
+            return render_to_response('education/timeslider_base.html', {'form':time_range_form,
+                                                                         'title':'Female Teachers Absenteeism'}, RequestContext(req))
+    return render_to_response('education/timeslider_base.html', {'form':time_range_form,
+                                                                 'title':'Female Teachers Absenteeism'}, RequestContext(req))
+
 def whitelist(request):
     numbers = []
     for c in Connection.objects.exclude(backend__name='yo6200'):

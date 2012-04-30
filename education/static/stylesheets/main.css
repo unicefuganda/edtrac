@@ -9,7 +9,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-a, a:visited, a:link {text-decoration:none; color: #cf5d79;}
+a, a:visited, a:link {text-decoration:none; color: #371c37;}
 h1{
     font-size: 150%;
     font-weight: bold;
@@ -903,4 +903,30 @@ div.stats .accordion .accordion-group{
 }
 .breadcrumb .active a {
   color: #333333;
+}
+
+/* slider styling */
+
+.white-slider{
+    color: white;
+    font-size: 1em;
+    background: url(../icons/nav-link-bg.png) repeat-x;
+    padding: 3px 0px 13px 3px;
+}
+.white-slider a{
+    border:1px solid white;
+    padding: 5px;
+    border-radius: 4px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    margin:2px;
+    color:blue;
+    background-color: white;
+}
+p.white-slider{
+    margin-bottom: 25px;
+}
+dt > span{
+    color: blue;
+    background-color: white;
 }

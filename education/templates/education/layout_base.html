@@ -13,16 +13,19 @@
     </title>
     {% block stylesheets %}
     <link rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/reset.css"/>
+    <link rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/jquery-ui-1.8.19.custom.css"/>
     <link rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/main.css"/>
     <!--[if lt IE 8 ]>
     <link rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/ie8-below.css"/>
     <![endif]-->
     <!--[if IE]>
     <link rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/ie-only.css"/>
+
     <![endif]-->
     {% endblock %}
     {% block javascripts %}
     <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-ui-1.8.19.custom.min.js"></script>
     <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-tooltip.js"></script>
     <!-- TODO: setup table sorting -->
     <!-- <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery.tablesorter.min.js"></script> -->

@@ -389,6 +389,30 @@ def reporters(request, district_id=None):
         return EmisReporter.objects.exclude(connection__in=Blacklist.objects.all().values_list('connection', flat=True)).filter(reporting_location__in=\
             user_location.get_descendants(include_self=True)).distinct()
 
+
+# time slider based work
+def education_responses_bp3(request, dates=None):
+    """
+    -> district, figures
+    """
+    locations = Location.objects.filter(type='district').filter(pk__in =\
+        EmisReporter.objects.values_list('reporting_location__pk',flat=True))
+    to_ret = []
+    if dates:
+        date_dict = dates(request)
+        start = date_dict.get('start')
+        end = date_dict.get('end')
+        for location in locations:
+            to_ret.append([location, get_numeric_report_data('edtrac_boysp6_attendance',
+                locations=[location], time_range=[start, end], to_ret = 'sum')])
+        return to_ret
+    else:
+        for location in locations:
+            to_ret.append([location, get_numeric_report_data('edtrac_boysp6_attendance',
+                locations=[location],time_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')],
+                to_ret = 'sum')])
+        return to_ret
+
 def schools(request, district_id=None):
     profile = request.user.get_profile()
     if profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials') or profile.is_member_of('Ministry Officials'):
@@ -634,6 +658,58 @@ def get_week_date(depth=None):
     else:
         return get_day_range(now)
 
+def month19to20(**kwargs):
+    now = datetime.datetime.now()
+
+    if kwargs:
+        if kwargs.has_key('depth'):
+            month_clustor = get_month_day_range(now, depth=now.month)
+            i = 0
+            collectible = []
+            while i < len(month_clustor):
+                first_month_range = month_clustor[i]  # first month range range ( current month on first iteration)
+                first_month = first_month_range[0]
+
+                if i+1 >= len(month_clustor):
+                    second_month = datetime.datetime(first_month.year-1, 12, 20)
+                else:
+                    second_month_range = month_clustor[i+1] # the month before this first one
+                    second_month = second_month_range[0]
+
+                collectible.append(
+                    [
+                        datetime.datetime(second_month.year, second_month.month, 19, 8),
+                        datetime.datetime(first_month.year, first_month.month, 20, 19)
+                    ]
+                )
+                i += 1
+            return collectible
+    else:
+
+        current_month, month_before, month_before_before = get_month_day_range(now, depth=3)
+
+        # 20th of last month
+        c_month_q_start = datetime.datetime(month_before[0].year, month_before[0].month, month_before[0].day+19, 8) # set for 8 o'clock in the morning
+
+        # 19th of this month
+        c_month_q_end = datetime.datetime(current_month[0].year, current_month[0].month, current_month[0].day+18, 19) # set for 7 o'clock in the evening
+
+
+        # the month before last month's 20th
+        p_month_q_start = datetime.datetime(month_before_before[0].year,
+            month_before_before[0].month, month_before_before[0].day+19, 8) # set for 8 o'clock in the morning
+        # previous month's 19th
+        p_month_q_end = datetime.datetime(month_before[0].year,
+            month_before[0].month, month_before[0].day+18, 19) # set for 7 o'clock in the evening
+
+        current_month_quota = [c_month_q_start, c_month_q_end]
+
+        previous_month_quota = [p_month_q_start, p_month_q_end]
+
+        # set `current_month` and `previous month`
+        current_month, previous_month = current_month_quota, previous_month_quota
+
+        return [current_month, previous_month]
 
 def get_numeric_report_data(poll_name, location=None, time_range=None, to_ret=None, **kwargs):
     poll = Poll.objects.get(name=poll_name)
@@ -813,32 +889,7 @@ def poll_response_sum(poll_name, **kwargs):
         if kwargs.get('month_filter')=='monthly' and kwargs.has_key('locations') or kwargs.get('month_20to19'):
             if kwargs.get('month_20to19'):
             #                nxt_month = datetime.datetime(now.year, now.month+1, now.day)
-                now = datetime.datetime.now()
-
-                current_month, month_before, month_before_before = get_month_day_range(now, depth=3)
-
-                # 20th of last month
-                c_month_q_start = datetime.datetime(month_before[0].year,
-                    month_before[0].month, month_before[0].day+19, 8) # set for 8 o'clock in the morning
-
-                # 19th of this month
-                c_month_q_end = datetime.datetime(current_month[0].year,
-                    current_month[0].month, current_month[0].day+18, 19) # set for 7 o'clock in the evening
-
-
-                # the month before last month's 20th
-                p_month_q_start = datetime.datetime(month_before_before[0].year,
-                    month_before_before[0].month, month_before_before[0].day+19, 8) # set for 8 o'clock in the morning
-                # previous month's 19th
-                p_month_q_end = datetime.datetime(month_before[0].year,
-                    month_before[0].month, month_before[0].day+18, 19) # set for 7 o'clock in the evening
-
-                current_month_quota = [c_month_q_start, c_month_q_end]
-
-                previous_month_quota = [p_month_q_start, p_month_q_end]
-
-                # set `current_month` and `previous month`
-                current_month, previous_month = current_month_quota, previous_month_quota
+                current_month, previous_month = month19to20()
 
             else:# return just one figure/sum without all the list stuff
                 current_month, previous_month = get_month_day_range(datetime.datetime.now(), depth=2)

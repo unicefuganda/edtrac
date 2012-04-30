@@ -4,13 +4,16 @@ from script.models import Script, ScriptProgress
 from django.conf import settings
 from unregister.models import Blacklist
 from uganda_common.utils import handle_dongle_sms
-
+from education.utils import poll_to_xform_submissions
 class App (AppBase):
 
     def handle (self, message):
 
         if handle_dongle_sms(message):
             return True
+
+        if poll_to_xform_submissions(message):
+            return False
 
         if message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_OUT_WORDS', ['quit'])]:
 
