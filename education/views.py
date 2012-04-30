@@ -1771,7 +1771,7 @@ def female_head_teacher_attendance(req):
         RequestContext(req)
     )
 
-
+@login_required
 def time_range_boysp3(req):
     time_range_form = ResultForm()
     locations = Location.objects.filter(type='district').filter(pk__in = EmisReporter.objects.values_list('reporting_location__pk',flat=True))
@@ -1798,7 +1798,7 @@ def time_range_boysp3(req):
     return render_to_response('education/timeslider_base.html', {'form':time_range_form,'title':'P3 Boys Absenteeism'}, RequestContext(req))
 
 
-
+@login_required
 def time_range_boysp6(req):
     time_range_form = ResultForm()
     locations = Location.objects.filter(type='district').filter(pk__in = EmisReporter.objects.values_list('reporting_location__pk',flat=True))
@@ -1826,7 +1826,7 @@ def time_range_boysp6(req):
     return render_to_response('education/timeslider_base.html', {'form':time_range_form,
                                                                  'title':'P6 Boys Absenteeism'}, RequestContext(req))
 
-
+@login_required
 def time_range_girlsp3(req):
     time_range_form = ResultForm()
     locations = Location.objects.filter(type='district').filter(pk__in = EmisReporter.objects.values_list('reporting_location__pk',flat=True))
@@ -1852,6 +1852,7 @@ def time_range_girlsp3(req):
             return render_to_response('education/timeslider_base.html', {'form':time_range_form}, RequestContext(req))
     return render_to_response('education/timeslider_base.html', {'form':time_range_form}, RequestContext(req))
 
+@login_required
 def time_range_girlsp6(req):
     time_range_form = ResultForm()
     locations = Location.objects.filter(type='district').filter(pk__in = EmisReporter.objects.values_list('reporting_location__pk',flat=True))
@@ -1878,7 +1879,7 @@ def time_range_girlsp6(req):
                                                                          'title':'P6 Girls Absenteeism'}, RequestContext(req))
     return render_to_response('education/timeslider_base.html', {'form':time_range_form,
                                                                  'title':'P6 Girls Absenteeism'}, RequestContext(req))
-
+@login_required
 def time_range_teachers_m(req):
     time_range_form = ResultForm()
     locations = Location.objects.filter(type='district').filter(pk__in = EmisReporter.objects.values_list('reporting_location__pk',flat=True))
@@ -1905,7 +1906,7 @@ def time_range_teachers_m(req):
                                                                          'title':'Male Teachers Absenteeism'}, RequestContext(req))
     return render_to_response('education/timeslider_base.html', {'form':time_range_form,
                                                                  'title':'Male Teachers Absenteeism'}, RequestContext(req))
-
+@login_required
 def time_range_teachers_f(req):
     time_range_form = ResultForm()
     locations = Location.objects.filter(type='district').filter(pk__in = EmisReporter.objects.values_list('reporting_location__pk',flat=True))
