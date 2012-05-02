@@ -94,8 +94,7 @@ INSTALLED_APPS = [
     "django.contrib.humanize",
     "script",
     "poll",
-    "education",
-
+    "education", 
     # the rapidsms contrib apps.
     "rapidsms.contrib.default",
     "eav",
