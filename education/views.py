@@ -2076,7 +2076,10 @@ def delete_reporter(request, reporter_pk):
 def edit_reporter(request, reporter_pk):
     reporter = get_object_or_404(EmisReporter, pk=reporter_pk)
     reporter_group_name = reporter.groups.all()[0].name
-    reporter_form = EditReporterForm(instance=reporter)
+    if reporter.schools.exists():        
+        reporter_form = EditReporterForm(instance=reporter, initial={'schools':reporter.schools.all()[0]})
+    else:
+        reporter_form = EditReporterForm(instance=reporter)
 
     if request.method == 'POST':
         reporter_form = EditReporterForm(instance=reporter,

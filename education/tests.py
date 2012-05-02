@@ -24,7 +24,7 @@ from unregister.models import Blacklist
 from education.utils import _next_thursday, _date_of_monthday, _next_midterm, _next_term_question_date
 from poll.models import ResponseCategory
 import difflib
-
+import ipdb
 
 class ModelTest(TestCase): #pragma: no cover
     # Model tests
@@ -144,6 +144,7 @@ class ModelTest(TestCase): #pragma: no cover
         return ss
 
     def register_reporter(self, grp, phone=None):
+        ipdb.set_trace()
         connection = Connection.objects.create(identity=phone, backend=self.backend) if phone else self.connection
         self.fake_incoming('join', connection)
         script_prog = ScriptProgress.objects.filter(script__slug='edtrac_autoreg').order_by('-time')[0]
@@ -169,6 +170,8 @@ class ModelTest(TestCase): #pragma: no cover
         self.fake_script_dialog(script_prog, connection, param_list)
 
     def testBasicAutoReg(self):
+        import ipdb; ipdb.set_trace()
+        Script.objects.filter(slug='edtrac_autoreg').update(enabled=True)
         self.register_reporter('teacher')
         self.assertEquals(EmisReporter.objects.count(), 1)
         contact = EmisReporter.objects.all()[0]
