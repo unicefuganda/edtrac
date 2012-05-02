@@ -712,7 +712,7 @@ def month19to20(**kwargs):
         return [current_month, previous_month]
 
 def get_numeric_report_data(poll_name, location=None, time_range=None, to_ret=None, **kwargs):
-    poll = Poll.objects.get(name=poll_name)
+    poll = Poll.objects.get(name=poll_name)    
     if time_range:
         if location:
         # time filters
