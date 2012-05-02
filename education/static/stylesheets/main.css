@@ -11,6 +11,12 @@ body {
 
 a, a:visited, a:link {text-decoration:none; color: #600E66;}
 .attendance.tabulated-data a,.attendance.tabulated-data a:visited, .attendance .tabulated-data a:link {text-decoration:underline; color: #600E66;}
+div.filterform a{
+    padding:3px;
+    border:1px solid #ccc;
+    background-color:white;
+    margin-top: 3px;
+}
 h1{
     font-size: 150%;
     font-weight: bold;
