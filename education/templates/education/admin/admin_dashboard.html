@@ -137,8 +137,6 @@ Dashboard -- {{ block.super }}
                     </div>
 
                 </div>
-
-
             </div>
         </div>
         <div class="section this-term">
@@ -187,20 +185,25 @@ Dashboard -- {{ block.super }}
                 </div>
                 {% endif %}
             </div>
-            <div class="item">
-            <a href="{% url emis-messagelog %}" class="button button-blue"><span class="messages">View All Messages</span></a>
-            <div class="clear"></div>
-            </div>
-            <div class="item" style="margin-top: 10px;">
-            <a href="{% url control-panel %}" class="button button-blue"><span class="control">Control Panel</span></a>
-            <div class="clear"></div>
-            </div>
-            <div class="item" style="margin-top: 10px;">
-                <a href="{% url new-comment %}" class="button button-blue"><span class="control">Comment on Data</span></a>
+            <div class="items">
+                <div class="">
+                <a href="{% url emis-messagelog %}" class="button button-blue"><span class="messages">View All Messages</span></a>
                 <div class="clear"></div>
             </div>
 
-
+                <div class="items">
+                    <div class="" style="margin-top: 10px;">
+                    <a href="{% url control-panel %}" class="button button-blue" style="width:inherit;"><span class="control">Control Panel</span></a>
+                    <div class="clear"></div>
+                    </div>
+                </div>
+                <div class="items">
+                    <div class="" style="margin-top: 10px;">
+                    <a href="{% url new-comment %}" class="button button-blue"><span class="control">Comment on Data</span></a>
+                    <div class="clear"></div>
+                </div>
+            </div>
+            </div>
         </div>
     </div>
 </div>
