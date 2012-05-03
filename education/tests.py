@@ -24,7 +24,6 @@ from unregister.models import Blacklist
 from education.utils import _next_thursday, _date_of_monthday, _next_midterm, _next_term_question_date
 from poll.models import ResponseCategory
 import difflib
-import ipdb
 
 class ModelTest(TestCase): #pragma: no cover
     # Model tests
@@ -616,7 +615,8 @@ class ModelTest(TestCase): #pragma: no cover
         prog = ScriptProgress.objects.get(script__slug='edtrac_smc_weekly', connection=self.connection)
         check_progress(prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_smc_weekly').steps.get(order=0).poll.question)
-        self.fake_incoming('y')
+        self.fake_incoming('yes')
+        check_progress(prog.script)
         poll = Script.objects.get(slug='edtrac_smc_weekly').steps.get(order=0).poll
         yes_category = poll.categories.filter(name='yes')
         response = poll.responses.all().order_by('-date')[0]

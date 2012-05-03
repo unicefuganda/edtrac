@@ -155,7 +155,23 @@
             "slug": "poll_text_value", 
             "name": "Text"
         }
-    }, 
+    },
+    {
+        "pk": 100,
+        "model": "eav.attribute",
+        "fields": {
+            "description": "A response value for a Poll with expected location-based responses",
+            "created": "2011-08-03 11:17:02",
+            "datatype": "object",
+            "enum_group": null,
+            "required": false,
+            "site": 5,
+            "modified": "2011-08-03 11:17:02",
+            "type": null,
+            "slug": "poll_location_value",
+            "name": "Location"
+        }
+    },
     {
         "pk": 545, 
         "model": "poll.poll", 
