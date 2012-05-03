@@ -94,12 +94,10 @@ INSTALLED_APPS = [
     "django.contrib.humanize",
     "script",
     "poll",
-    "rapidsms_xforms",
     "education", 
     # the rapidsms contrib apps.
     "rapidsms.contrib.default",
     "eav",
-
     "auth",
     "rapidsms_httprouter",
     "uganda_common",
@@ -108,7 +106,7 @@ INSTALLED_APPS = [
     "contact",
     "unregister",
     "rapidsms",
-
+    "rapidsms_xforms",
     "reversion",
     "geoserver",
     "endless_pagination",
