@@ -8,7 +8,11 @@
     </span>
 	{% endif %}
     <span class="textmessage">
-    {{ object.text }}
+    {% if object.text|length >= 40 %}
+    	{{ object.text|slice:":40" }}...
+    {% else %}
+    	{{ object.text }}
+    {% endif %}
     </span>
 </td>
 <td><span class="small">
