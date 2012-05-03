@@ -313,26 +313,36 @@ def generate_dashboard_vars(location=None):
     # CSS class (dynamic icon)
     x, y = poll_responses_past_week_sum("edtrac_boysp3_attendance", locations=locations, weeks=2)
     enrol = poll_responses_term("edtrac_boysp3_enrollment", belongs_to="location", locations=locations)
+
     try:
         boysp3 = 100*(enrol - x ) / enrol
     except ZeroDivisionError:
         boysp3 = 0
+    except:
+        boysp3 = '--'
 
     try:
         # boys in the past week
         boysp3_past = 100*(enrol - y ) / enrol
     except ZeroDivisionError:
         boysp3_past = 0
+    except:
+        boysp3_past = '--'
 
-    boysp3_diff = boysp3 - boysp3_past
+    try:
+        boysp3_diff = boysp3 - boysp3_past
 
-    if boysp3_diff > 0:
-        boysp3_class = 'increase'
-        boysp3_data = 'data-red'
-    elif boysp3_diff < 0:
-        boysp3_class = 'decrease'
-        boysp3_data = 'data-green'
-    else:
+        if boysp3_diff > 0:
+            boysp3_class = 'increase'
+            boysp3_data = 'data-red'
+        elif boysp3_diff < 0:
+            boysp3_class = 'decrease'
+            boysp3_data = 'data-green'
+        else:
+            boysp3_class = 'zero'
+            boysp3_data = 'data-white'
+    except:
+        boysp3_diff = '--'
         boysp3_class = 'zero'
         boysp3_data = 'data-white'
 
@@ -342,21 +352,30 @@ def generate_dashboard_vars(location=None):
         boysp6 = 100*(enrol - x ) / enrol
     except ZeroDivisionError:
         boysp6 = 0
+    except:
+        boysp6 = '--'
 
     try:
         boysp6_past = 100*(enrol - y ) / enrol
     except ZeroDivisionError:
         boysp6_past = 0
+    except:
+        boysp6_past = '--'
 
-    boysp6_diff = boysp6 - boysp6_past
+    try:
+        boysp6_diff = boysp6 - boysp6_past
 
-    if boysp6_diff > 0:
-        boysp6_class = 'increase'
-        boysp6_data = 'data-red'
-    elif boysp6_diff < 0:
-        boysp6_class = 'decrease'
-        boysp6_data = 'data-green'
-    else:
+        if boysp6_diff > 0:
+            boysp6_class = 'increase'
+            boysp6_data = 'data-red'
+        elif boysp6_diff < 0:
+            boysp6_class = 'decrease'
+            boysp6_data = 'data-green'
+        else:
+            boysp6_class = 'zero'
+            boysp6_data = 'data-white'
+    except:
+        boysp6_diff = '--'
         boysp6_class = 'zero'
         boysp6_data = 'data-white'
 
@@ -366,22 +385,31 @@ def generate_dashboard_vars(location=None):
         girlsp3 = 100*(enrol - x ) / enrol
     except ZeroDivisionError:
         girlsp3 = 0
+    except:
+        girlsp3 = '--'
 
     try:
         girlsp3_past = 100*(enrol - y ) / enrol
     except ZeroDivisionError:
         girlsp3_past = 0
+    except:
+        girlsp3_past = '--'
 
-    girlsp3_diff = girlsp3 - girlsp3_past
+    try:
+        girlsp3_diff = girlsp3 - girlsp3_past
 
-    if girlsp3_diff > 0:
-        girlsp3_class = "increase"
-        girlsp3_data = 'data-red'
-    elif girlsp3_diff < 0:
-        girlsp3_class = "decrease"
-        girlsp3_data = 'data-green'
-    else:
-        girlsp3_class = "zero"
+        if girlsp3_diff > 0:
+            girlsp3_class = "increase"
+            girlsp3_data = 'data-red'
+        elif girlsp3_diff < 0:
+            girlsp3_class = "decrease"
+            girlsp3_data = 'data-green'
+        else:
+            girlsp3_class = "zero"
+            girlsp3_data = 'data-white'
+    except:
+        girlsp3_diff = '--'
+        girlsp3_class = 'zero'
         girlsp3_data = 'data-white'
 
     x, y = poll_responses_past_week_sum("edtrac_girlsp6_attendance", locations=locations, weeks=2)
@@ -391,22 +419,31 @@ def generate_dashboard_vars(location=None):
         girlsp6 = 100*(enrol - x ) / enrol
     except ZeroDivisionError:
         girlsp6 = 0
+    except:
+        girlsp6 = '--'
 
     try:
         girlsp6_past = 100*(enrol - y ) / enrol
     except ZeroDivisionError:
         girlsp6_past = 0
+    except:
+        girlsp6_past = '--'
 
-    girlsp6_diff = girlsp6 - girlsp6_past
+    try:
+        girlsp6_diff = girlsp6 - girlsp6_past
 
-    if girlsp6_diff > 0:
-        girlsp6_class = "increase"
-        girlsp6_data = 'data-red'
+        if girlsp6_diff > 0:
+            girlsp6_class = "increase"
+            girlsp6_data = 'data-red'
 
-    elif girlsp6_diff < 0:
-        girlsp6_class = 'decrease'
-        girlsp6_data = 'data-green'
-    else:
+        elif girlsp6_diff < 0:
+            girlsp6_class = 'decrease'
+            girlsp6_data = 'data-green'
+        else:
+            girlsp6_data = 'data-white'
+            girlsp6_class = "zero"
+    except:
+        girlsp6_diff = '--'
         girlsp6_data = 'data-white'
         girlsp6_class = "zero"
 
@@ -416,21 +453,30 @@ def generate_dashboard_vars(location=None):
         female_teachers = 100*(deploy - x ) / deploy
     except ZeroDivisionError:
         female_teachers = 0
+    except:
+        female_teachers = '--'
 
     try:
         female_teachers_past = 100*(deploy - y ) / deploy
     except ZeroDivisionError:
         female_teachers_past = 0
+    except:
+        female_teachers_past = '--'
 
-    female_teachers_diff = female_teachers - female_teachers_past
+    try:
+        female_teachers_diff = female_teachers - female_teachers_past
 
-    if female_teachers_diff > 0:
-        female_teachers_class = "increase"
-        female_teachers_data = 'data-red'
-    elif female_teachers_diff < 0:
-        female_teachers_class = "decrease"
-        female_teachers_data = 'data-green'
-    else:
+        if female_teachers_diff > 0:
+            female_teachers_class = "increase"
+            female_teachers_data = 'data-red'
+        elif female_teachers_diff < 0:
+            female_teachers_class = "decrease"
+            female_teachers_data = 'data-green'
+        else:
+            female_teachers_data = "data-white"
+            female_teachers_class = "zero"
+    except:
+        female_teachers_diff = '--'
         female_teachers_data = "data-white"
         female_teachers_class = "zero"
 
@@ -440,24 +486,32 @@ def generate_dashboard_vars(location=None):
         male_teachers = 100*(deploy - x ) / deploy
     except ZeroDivisionError:
         male_teachers = 0
+    except:
+        male_teachers = '--'
 
     try:
         male_teachers_past = 100*(deploy - y ) / deploy
     except ZeroDivisionError:
         male_teachers_past = 0
+    except:
+        male_teachers_past = '--'
 
-    male_teachers_diff = male_teachers - male_teachers_past
+    try:
+        male_teachers_diff = male_teachers - male_teachers_past
 
-    if male_teachers_diff < 0:
-        male_teachers_class = "decrease"
-        male_teachers_data = 'data-green'
-    elif male_teachers_diff > 0:
-        male_teachers_class = "increase"
-        male_teachers_data = 'data-red'
-    else:
+        if male_teachers_diff < 0:
+            male_teachers_class = "decrease"
+            male_teachers_data = 'data-green'
+        elif male_teachers_diff > 0:
+            male_teachers_class = "increase"
+            male_teachers_data = 'data-red'
+        else:
+            male_teachers_class = "zero"
+            male_teachers_data = 'data-white'
+    except:
+        male_teachers_diff = '--'
         male_teachers_class = "zero"
         male_teachers_data = 'data-white'
-
 
     try:
         if len(locations) == 1:

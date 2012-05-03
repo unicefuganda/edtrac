@@ -632,7 +632,7 @@ def get_day_range(today):
 
 def get_week_date(depth=None):
     """
-    get_week_date returns a range of weekly dates from today
+    get_week_date returns a range of weekly dates from today when not in holiday
     """
     now = datetime.datetime.now()
     if depth:
@@ -968,6 +968,13 @@ def cleanup_differences_on_poll(responses):
         percent = 0
     return percent
 
+
+def is_holiday(date1, dates):
+    for date_start, date_end in dates:
+        if date1 >= date_start and date1 <= date_end:
+            return True
+        return False
+
 def poll_responses_past_week_sum(poll_name, **kwargs):
 
     """
@@ -994,28 +1001,61 @@ def poll_responses_past_week_sum(poll_name, **kwargs):
         #narrowing to location
         if kwargs.has_key('locations'):
             # week_before would refer to the week before week that passed
-            sum_of_poll_responses_past_week = get_numeric_report_data(poll_name, locations=kwargs.get('locations'), time_range=first_quota, to_ret = 'sum')
-            sum_of_poll_responses_week_before = get_numeric_report_data(poll_name, locations=kwargs.get('locations'), time_range=second_quota, to_ret = 'sum')
+            if is_holiday(first_quota[0], getattr(settings, 'SCHOOL_HOLIDAYS')):
+                sum_of_poll_responses_past_week = '--'
+            else:
+                sum_of_poll_responses_past_week = get_numeric_report_data(poll_name, locations=kwargs.get('locations'), time_range=first_quota, to_ret = 'sum')
+            if is_holiday(second_quota[0], getattr(settings, 'SCHOOL_HOLIDAYS')):
+                sum_of_poll_responses_week_before = '--'
+            else:
+                sum_of_poll_responses_week_before = get_numeric_report_data(poll_name, locations=kwargs.get('locations'), time_range=second_quota, to_ret = 'sum')
+
             return [sum_of_poll_responses_past_week, sum_of_poll_responses_week_before]
 
         elif kwargs.has_key('location'):
-            sum_of_poll_responses_past_week = get_numeric_report_data(poll_name, location=kwargs.get('location'), time_range=first_quota, to_ret = 'sum')
-            sum_of_poll_responses_week_before = get_numeric_report_data(poll_name, location=kwargs.get('location'), time_range=second_quota, to_ret = 'sum')
+
+            if is_holiday(first_quota[0], getattr(settings, 'SCHOOL_HOLIDAYS')):
+                sum_of_poll_responses_past_week = '--'
+            else:
+                sum_of_poll_responses_past_week = get_numeric_report_data(poll_name, location=kwargs.get('location'), time_range=first_quota, to_ret = 'sum')
+
+            if is_holiday(second_quota[0], getattr(settings, 'SCHOOL_HOLIDAYS')):
+                sum_of_poll_responses_week_before = '--'
+            else:
+                sum_of_poll_responses_week_before = get_numeric_report_data(poll_name, location=kwargs.get('location'), time_range=second_quota, to_ret = 'sum')
+
             return [sum_of_poll_responses_past_week, sum_of_poll_responses_week_before]
 
         elif kwargs.has_key('school'):
-            sum_of_poll_responses_past_week = get_numeric_report_data(poll_name, belongs_to = 'schools',\
-                school=kwargs.get('school'), time_range=first_quota, to_ret = 'sum')
-            sum_of_poll_responses_week_before = get_numeric_report_data(poll_name, belongs_to='schools',\
-                school=kwargs.get('school'), time_range=second_quota, to_ret = 'sum')
+
+            if is_holiday(first_quota[0], getattr(settings, 'SCHOOL_HOLIDAYS')):
+                sum_of_poll_responses_past_week = '--'
+            else:
+                sum_of_poll_responses_past_week = get_numeric_report_data(poll_name, belongs_to = 'schools',\
+                    school=kwargs.get('school'), time_range=first_quota, to_ret = 'sum')
+
+            if is_holiday(second_quota[0], getattr(settings, 'SCHOOL_HOLIDAYS')):
+                sum_of_poll_responses_week_before = '--'
+            else:
+                sum_of_poll_responses_week_before = get_numeric_report_data(poll_name, belongs_to='schools',\
+                    school=kwargs.get('school'), time_range=second_quota, to_ret = 'sum')
+
             return [sum_of_poll_responses_past_week, sum_of_poll_responses_week_before]
 
 
     else:
         # getting country wide statistics
         first_quota, second_quota = get_week_date(depth = 2) # default week range to 1
-        sum_of_poll_responses_past_week = get_numeric_report_data(poll_name, time_range=first_quota, to_ret = 'sum')
-        sum_of_poll_responses_week_before = get_numeric_report_data(poll_name, time_range=second_quota, to_ret = 'sum')
+        if is_holiday(first_quota[0], getattr(settings, 'SCHOOL_HOLIDAYS')):
+            sum_of_poll_responses_past_week = '--'
+        else:
+            sum_of_poll_responses_past_week = get_numeric_report_data(poll_name, time_range=first_quota, to_ret = 'sum')
+
+        if is_holiday(second_quota[0], getattr(settings, 'SCHOOL_HOLIDAYS')):
+            sum_of_poll_responses_week_before = '--'
+        else:
+            sum_of_poll_responses_week_before = get_numeric_report_data(poll_name, time_range=second_quota, to_ret = 'sum')
+
         return sum_of_poll_responses_past_week, sum_of_poll_responses_week_before
 
 def poll_responses_term(poll_name, to_ret=None, **kwargs):
@@ -1283,10 +1323,14 @@ def return_absent(poll_name, enrollment, locations=None, school=None):
                 percent_absent_now = 100 * (current_enrollment - now) / current_enrollment
             except exceptions.ZeroDivisionError:
                 percent_absent_now = '--'
+            except:
+                percent_absent_now = '--'
 
             try:
                 percent_absent_before = 100 * (current_enrollment - before) / current_enrollment
             except exceptions.ZeroDivisionError:
+                percent_absent_before = '--'
+            except:
                 percent_absent_before = '--'
 
             pre_ret.extend([percent_absent_now, percent_absent_before])
@@ -1310,10 +1354,14 @@ def return_absent(poll_name, enrollment, locations=None, school=None):
             now_percentage = 100 * (current_enrollment - now) / current_enrollment
         except exceptions.ZeroDivisionError:
             now_percentage = '--'
+        except:
+            now_percentage = '--'
 
         try:
             before_percentage = 100 * (current_enrollment - before) / current_enrollment
         except exceptions.ZeroDivisionError:
+            before_percentage = '--'
+        except:
             before_percentage = '--'
 
         try:

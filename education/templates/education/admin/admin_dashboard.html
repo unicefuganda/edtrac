@@ -16,51 +16,73 @@ Dashboard -- {{ block.super }}
                         <tr><th>Group</th><th>Absent (%) This week</th><th>Absent (%) Last week</th><th>Weekly Change</th></tr>
                         <tr>
                             <td><a href="{% url boys-p3 %}">Boys P3</a></td>
-                            <td>{{ boysp3|floatformat }}%</td>
+                            <td>{% if boysp3 == '--' %} {{ boysp3 }} {% else %} {{ boysp3|floatformat }}% {% endif %}</td>
                             <td>
-                                {{ boysp3_past|floatformat }}%
+                                {% if boysp3_past == '--' %} {{ boysp3_past }} {% else %} {{ boysp3_past|floatformat }}% {% endif %}
                             </td>
 
                             <td class="{{ boysp3_data }}">
-                                <span class="{{ boysp3_class  }}">{{ boysp3_diff|floatformat }}%</span>
+                                <span class="{{ boysp3_class  }}">
+                                    {% if boysp3_diff == '--' %}
+                                    {{ boysp3_diff }}
+                                    {% else %}
+                                    {{ boysp3_diff|floatformat }}%
+                                    {% endif %}
+                                </span>
                             </td>
                         </tr>
                         <tr>
                             <td><a href="{% url girls-p3 %}">Girls P3</a></td>
-                            <td>{{ girlsp3|floatformat }}%</td>
-                            <td>{{ girlsp3_past|floatformat }}%</td>
-                            <td class="{{ girlsp3_data }}"><span class="{{ girlsp3_class }}">{{ girlsp3_diff|floatformat }}%</span></td>
+                            <td>{% if girlsp3 == '--' %} {{ girlsp3 }} {% else %}{{ girlsp3|floatformat }}%{% endif %}</td>
+                            <td>{% if girlsp3_past == '--' %} {{ girlsp3_past }} {% else %}{{ girlsp3_past|floatformat }}%{% endif %}</td>
+                            <td class="{{ girlsp3_data }}"><span class="{{ girlsp3_class }}">
+                                {% if girlsp3_diff == '--' %}
+                                {{ girlsp3_diff }}
+                                {% else %}
+                                {{ girlsp3_diff|floatformat }}%
+                                {% endif %}
+                            </span></td>
                         </tr>
                         <tr>
                             <td><a href="{% url boys-p6 %}">Boys P6</a></td>
-                            <td>{{ boysp6|floatformat }}%</td>
-                            <td>{{ boysp6_past|floatformat }}%</td>
+                            <td>{% if boysp6 == '--' %} {{ boysp6 }} {% else %} {{ boysp6|floatformat }}%{% endif %}</td>
+                            <td>{% if boysp6_past == '--' %} {{ boysp6_past }} {% else %}{{ boysp6_past|floatformat }}%{% endif %}</td>
                             <td class="{{ boysp6_data }}">
-                                <span class="{{ boysp6_class }}">{{ boysp6_diff|floatformat }}%</span>
+                                <span class="{{ boysp6_class }}">{% if boysp6_diff == '--' %} {{ boysp6_diff }} {% else %}
+                                    {{ boysp6_diff|floatformat }}%{% endif %}</span>
                             </td>
                         </tr>
                         <tr>
                             <td><a href="{% url girls-p6 %}">Girls P6</a></td>
-                            <td>{{ girlsp6|floatformat }}%</td>
-                            <td>{{ girlsp6_past|floatformat }}%</td>
+                            <td>{% if girlsp6 == '--' %}{{ girlsp6 }} {% else %}{{ girlsp6|floatformat }}%{% endif %}</td>
+                            <td>{% if girlsp6_past == '--' %}{{ girlsp6_past }} {% else %}{{ girlsp6_past|floatformat }}%{% endif %}</td>
                             <td class="{{ girlsp6_data }}">
-                                <span class="{{ girlsp6_class }}">{{ girlsp6_diff|floatformat }}%</span>
+                                <span class="{{ girlsp6_class }}">
+                                    {% if girlsp6_diff == '--' %}
+                                        {{ girlsp6_diff }}
+                                    {% else %}
+                                        {{ girlsp6_diff|floatformat }}%
+                                    {% endif %}
+                                </span>
                             </td>
                         </tr>
                         <tr>
                             <td><a href="{% url f-teachers %}">Female Teachers</a></td>
-                            <td>{{ female_teachers|floatformat }}%</td>
-                            <td>{{ female_teachers_past|floatformat }}%</td>
+                            <td>{% if female_teachers == '--' %} {{ female_teachers }} {% else %} {{ female_teachers|floatformat }}%{% endif %}</td>
+                            <td>{% if female_teachers_past == '--' %} {{ female_teachers_past }} {% else %}
+                                {{ female_teachers_past|floatformat }}%{% endif %}</td>
                             <td class="{{ female_teachers_data }}">
-                                <span class="{{ female_teachers_class }}">{{ female_teachers_diff|floatformat }}%</span>
+                                <span class="{{ female_teachers_class }}">
+                                    {% if female_teachers_diff == '--' %} {{ female_teachers_diff }} {% else %}{{ female_teachers_diff|floatformat }}%{% endif %}</span>
                             </td>
                         </tr>
                         <tr>
                             <td><a href="{% url m-teachers %}">Male Teachers</a></td>
-                            <td>{{ male_teachers|floatformat }}%</td>
-                            <td>{{ male_teachers_past|floatformat }}%</td>
+                            <td>{% if male_teachers == '--' %} {{ male_teachers }} {% else %} {{ male_teachers|floatformat }}%{% endif %}</td>
+                            <td>{% if male_teachers_past == '--' %} {{ male_teachers_past }} {% else %} {{ male_teachers_past|floatformat }}%{% endif %}</td>
                             <td class="{{ male_teachers_data }}">
-                                <span class="{{ male_teachers_class }}"> {{ male_teachers_diff|floatformat }}%</span>
+                                <span class="{{ male_teachers_class }}">{% if male_teachers_diff == '--' %} {{ male_teachers_diff }}
+                                    {% else %} {{ male_teachers_diff|floatformat }}%{% endif %}</span>
                             </td>
                         </tr>
                         <tr>
