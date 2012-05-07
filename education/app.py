@@ -5,6 +5,8 @@ from django.conf import settings
 from unregister.models import Blacklist
 from uganda_common.utils import handle_dongle_sms
 from education.utils import poll_to_xform_submissions
+from rapidsms_xforms.models import xform_received
+
 class App (AppBase):
 
     def handle (self, message):

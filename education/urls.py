@@ -108,6 +108,9 @@ urlpatterns = patterns('',
             ('', False, '', None,)],
         }, name="emis-contact"),
 
+    url(r'^edtrac/sys-report-dist/$', sys_report_dist, name="emis-sys-report-dist"),
+    url(r'^edtrac/sys-report/$', sys_report, name="emis-sys-report"),
+
     url(r'^edtrac/new-comment/$', new_comment, name='new-comment'),
     url(r'^edtrac/comments/$', comments, name='comments'),
     url(r'^edtrac/reporter/(\d+)/edit/', edit_reporter, name='edit-reporter'),

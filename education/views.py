@@ -2333,6 +2333,7 @@ def edit_user(request, user_pk=None):
         if user_pk:
             user = get_object_or_404(User, pk=user_pk)
         user_form = UserForm(request.POST,instance=user,edit=True)
+
         if user_form.is_valid():
             with reversion.create_revision():
                 user = user_form.save()
@@ -2360,6 +2361,16 @@ def edit_user(request, user_pk=None):
 
     return render_to_response('education/partials/edit_user.html', {'user_form': user_form,'title':title},
         context_instance=RequestContext(request))
+
+
+@login_required
+def sys_report_dist(req):
+    return render_to_response("education/partials/sys_report_dist.html", {}, RequestContext(req))
+
+@login_required
+def sys_report(req):
+    return render_to_response("education/partials/sys_report.html", {}, RequestContext(req))
+
 
 @login_required
 def alerts_detail(request, alert, district_id=None):
