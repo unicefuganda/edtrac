@@ -104,6 +104,14 @@
         }
     },
     {
+        "pk": 116,
+        "model": "auth.group",
+        "fields": {
+            "name": "MEO",
+            "permissions": []
+        }
+    },
+    {
         "pk": 1, 
         "model": "auth.user", 
         "fields": {

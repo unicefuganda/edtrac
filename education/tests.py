@@ -307,6 +307,28 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptProgress.objects.filter(connection=self.connection).count(), 2)
         self.assertListEqual(list(ScriptProgress.objects.filter(connection=self.connection).values_list('script__slug', flat=True)), ['edtrac_autoreg', 'edtrac_gem_monthly'])
 
+
+
+    def testMeoAutoReg(self):
+        self.fake_incoming('join')
+        self.assertEquals(ScriptProgress.objects.count(), 1)
+        script_prog = ScriptProgress.objects.all()[0]
+        self.assertEquals(script_prog.script.slug, 'edtrac_autoreg')
+
+        self.fake_script_dialog(script_prog, self.connection, [\
+            ('edtrac_role', 'meo'),\
+            ('edtrac_district', 'kampala'),\
+            ('edtrac_name', 'testy mctesterton'),\
+        ])
+        self.assertEquals(EmisReporter.objects.count(), 1)
+        contact = EmisReporter.objects.all()[0]
+        self.assertEquals(contact.name, 'Testy Mctesterton')
+        self.assertEquals(contact.reporting_location, self.kampala_district)
+        self.assertEquals(contact.groups.all()[0].name, 'MEO')
+        self.assertEquals(ScriptProgress.objects.filter(connection=self.connection).count(), 1)
+        self.assertListEqual(list(ScriptProgress.objects.filter(connection=self.connection).values_list('script__slug', flat=True)), ['edtrac_autoreg'])
+
+
     def testTeacherAutoregProgression(self):
         Script.objects.filter(slug='edtrac_autoreg').update(enabled=True)
         self.fake_incoming('join')
