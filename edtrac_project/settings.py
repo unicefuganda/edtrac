@@ -125,7 +125,7 @@ SMS_APPS = [
     "education",
     "script",
     "poll",
-    "rapidsms_xforms"
+    #"rapidsms_xforms"
 ]
 
 # this rapidsms-specific setting defines which views are linked by the
