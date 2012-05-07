@@ -125,7 +125,7 @@ SMS_APPS = [
     "education",
     "script",
     "poll",
-#    "rapidsms_xforms"
+    "rapidsms_xforms"
 ]
 
 # this rapidsms-specific setting defines which views are linked by the
@@ -243,7 +243,7 @@ TEMPLATE_LOADERS = (
 
 # the project-level url patterns
 ROOT_URLCONF = "urls"
-
+XFORMS_HOST = 'edutrac.unicefuganda.org:8000'
 MAP_KEY = "ABQIAAAAmd7V71yw9ZddA0s8Z3wSKBS0unaJrFIrP1vn6ZXHpuhFyvYAGhQprSjp88j18w-K_X23JU31jBikVg"
 COUNTRY = "UG"
 MESSAGELOG_APP = 'rapidsms_httprouter'
