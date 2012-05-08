@@ -166,7 +166,7 @@ class DistictFilterForm(FilterForm):
         if district_pk == '':
             return queryset
         elif int(district_pk) == -1:
-            return queryset.filter(reporting_location=None)
+            return queryset.filter(reporting_location__in=Location.objects.filter(type__in=['country', 'region']))
         else:
 
             try:
