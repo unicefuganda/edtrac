@@ -528,9 +528,9 @@ def handle_excel_file(file, group, fields):
                     gender = parse_gender(row, worksheet, cols) if 'gender' in fields else None
                     if district:
                         contact['reporting_location'] = find_closest_match(district,
-                                                                           Area.objects.filter(kind__name='district'))
+                                                                           Location.objects.filter(kind__name='district'))
                     if village:
-                        contact['village'] = find_closest_match(village, Area.objects)
+                        contact['village'] = find_closest_match(village, Location.objects)
                     if birthdate:
                         contact['birthdate'] = birthdate
                     if gender:
