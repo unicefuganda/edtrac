@@ -12,6 +12,7 @@ from rapidsms.contrib.locations.models import Location
 from script.signals import script_progress_was_completed, script_progress
 from script.models import *
 from script.utils.handling import find_best_response, find_closest_match
+from rapidsms_xforms.models import xform_received
 import re, calendar, datetime, time, reversion
 
 class School(models.Model):
@@ -540,6 +541,14 @@ def schedule_weekly_report(grp='DEO'):
     _schedule_report_sending()
 
 
+#def xform_received_handler(sender, **kwargs):
+#    xform = kwargs['xform']
+#    submission = kwargs['submission']
+#
+#    if submission.has_errors:
+#        return
+
+
 Poll.register_poll_type('date', 'Date Response', parse_date_value, db_type=Attribute.TYPE_OBJECT)
 
 
@@ -553,3 +562,4 @@ script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)
 script_progress.connect(edtrac_autoreg_transition, weak=False)
 script_progress.connect(edtrac_attendance_script_transition, weak=False)
 #script_progress.connect(edtrac_scriptrun_schedule, weak=False)
+#xform_received.connect(xform_received_handler, weak=True)
