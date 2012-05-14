@@ -102,12 +102,12 @@
             "name": "UNICEF Officials", 
             "permissions": []
         }
-    },
+    }, 
     {
-        "pk": 116,
-        "model": "auth.group",
+        "pk": 116, 
+        "model": "auth.group", 
         "fields": {
-            "name": "MEO",
+            "name": "MEO", 
             "permissions": []
         }
     },
@@ -133,34 +133,34 @@
         }
     },
     {
-        "pk": 98, 
-        "model": "eav.attribute", 
+        "pk": 98,
+        "model": "eav.attribute",
         "fields": {
-            "description": "A response value for a Poll with expected numeric responses", 
-            "created": "2011-08-03 11:17:01", 
-            "datatype": "float", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:02", 
-            "type": null, 
-            "slug": "poll_number_value", 
+            "description": "A response value for a Poll with expected numeric responses",
+            "created": "2011-08-03 11:17:01",
+            "datatype": "float",
+            "enum_group": null,
+            "required": false,
+            "site": 5,
+            "modified": "2011-08-03 11:17:02",
+            "type": null,
+            "slug": "poll_number_value",
             "name": "Number"
         }
     },
     {
-        "pk": 99, 
-        "model": "eav.attribute", 
+        "pk": 99,
+        "model": "eav.attribute",
         "fields": {
-            "description": "A response value for a Poll with expected text responses", 
-            "created": "2011-08-03 11:17:02", 
-            "datatype": "text", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 5, 
-            "modified": "2011-08-03 11:17:02", 
-            "type": null, 
-            "slug": "poll_text_value", 
+            "description": "A response value for a Poll with expected text responses",
+            "created": "2011-08-03 11:17:02",
+            "datatype": "text",
+            "enum_group": null,
+            "required": false,
+            "site": 5,
+            "modified": "2011-08-03 11:17:02",
+            "type": null,
+            "slug": "poll_text_value",
             "name": "Text"
         }
     },
@@ -322,7 +322,7 @@
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
-            "question": "Thank you for participating in EduTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM, DEO, MEO",
+            "question": "Thank you for participating in EduTrac. What is your role? Choose ONE: Teacher, Head Teacher, SMC, GEM, DEO, MEO", 
             "sites": [
                 5
             ], 
@@ -569,7 +569,7 @@
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
-            "question": "What percentage of children do you think had lunch month? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%",
+            "question": "What percentage of children do you think had lunch month? Reply with ONE of the following; 0%, 25%, 50%, 75% or 100%", 
             "sites": [
                 5
             ], 
@@ -751,7 +751,7 @@
         }
     }, 
     {
-        "pk": 489, 
+        "pk": 486, 
         "model": "poll.category", 
         "fields": {
             "error_category": false, 
@@ -759,7 +759,7 @@
             "color": "", 
             "priority": null, 
             "default": false, 
-            "poll": 1002, 
+            "poll": 999, 
             "response": null
         }
     }, 
@@ -777,7 +777,7 @@
         }
     }, 
     {
-        "pk": 492, 
+        "pk": 495, 
         "model": "poll.category", 
         "fields": {
             "error_category": false, 
@@ -790,20 +790,7 @@
         }
     }, 
     {
-        "pk": 486, 
-        "model": "poll.category", 
-        "fields": {
-            "error_category": false, 
-            "name": "no", 
-            "color": "", 
-            "priority": null, 
-            "default": false, 
-            "poll": 999, 
-            "response": null
-        }
-    }, 
-    {
-        "pk": 490, 
+        "pk": 496, 
         "model": "poll.category", 
         "fields": {
             "error_category": true, 
@@ -842,20 +829,7 @@
         }
     }, 
     {
-        "pk": 493, 
-        "model": "poll.category", 
-        "fields": {
-            "error_category": true, 
-            "name": "unknown", 
-            "color": "", 
-            "priority": null, 
-            "default": true, 
-            "poll": 1002, 
-            "response": null
-        }
-    }, 
-    {
-        "pk": 488, 
+        "pk": 494, 
         "model": "poll.category", 
         "fields": {
             "error_category": false, 
@@ -864,19 +838,6 @@
             "priority": null, 
             "default": false, 
             "poll": 1002, 
-            "response": null
-        }
-    }, 
-    {
-        "pk": 485, 
-        "model": "poll.category", 
-        "fields": {
-            "error_category": false, 
-            "name": "yes", 
-            "color": "", 
-            "priority": null, 
-            "default": false, 
-            "poll": 999, 
             "response": null
         }
     }, 
@@ -894,7 +855,7 @@
         }
     }, 
     {
-        "pk": 491, 
+        "pk": 485, 
         "model": "poll.category", 
         "fields": {
             "error_category": false, 
@@ -902,7 +863,7 @@
             "color": "", 
             "priority": null, 
             "default": false, 
-            "poll": 1002, 
+            "poll": 999, 
             "response": null
         }
     }, 
@@ -947,21 +908,21 @@
         }
     }, 
     {
-        "pk": 268, 
+        "pk": 270, 
         "model": "poll.rule", 
         "fields": {
             "regex": "^\\s*(yes|yeah|yep|yay|y)(\\s|[^a-zA-Z]|$)", 
-            "category": 488, 
+            "category": 494, 
             "rule_string": "^\\s*(yes|yeah|yep|yay|y)(\\s|[^a-zA-Z]|$)", 
             "rule_type": "r"
         }
     }, 
     {
-        "pk": 269, 
+        "pk": 271, 
         "model": "poll.rule", 
         "fields": {
             "regex": "^\\s*(no|nope|nah|nay|n)(\\s|[^a-zA-Z]|$)", 
-            "category": 489, 
+            "category": 495, 
             "rule_string": "^\\s*(no|nope|nah|nay|n)(\\s|[^a-zA-Z]|$)", 
             "rule_type": "r"
         }
