@@ -66,7 +66,7 @@ def generic(request,
         results = forms.ModelMultipleChoiceField(queryset=object_list, widget=forms.CheckboxSelectMultiple())
 
     class_dict = {}
-    p=None
+    p = None
     action_form_instances = []
     for action_class in action_forms:
         form_instance = action_class(**{'request':request})
@@ -131,7 +131,7 @@ def generic(request,
             except ValueError:
                 pass
 
-            everything_selected = request.POST.get('select_everything', None)
+            everything_selected = request.POST.get('select_everythingx', None)
             results = []
             if everything_selected:
                 results = filtered_list
@@ -182,7 +182,7 @@ def generic(request,
     if paginated:
         paginator = Paginator(filtered_list, objects_per_page)
         if p and p <= paginator.num_pages:
-            page=p
+            page = p
         # If page request is out of range, deliver last page of results.
         try:
             filtered_list = paginator.page(page).object_list
