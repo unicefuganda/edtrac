@@ -563,9 +563,6 @@ def generate_dashboard_vars(location=None):
         male_head_teachers.values_list('schools', flat=True),
             groups__name = 'SMC').distinct().count()
 
-
-
-
     d1, d2 = get_week_date(depth = 2)
     resp_d1_female = Poll.objects.get(name="edtrac_head_teachers_attendance").responses_by_category().filter(
         response__contact__in = EmisReporter.objects.filter(reporting_location__in = locations, schools__pk__in=\
@@ -2130,10 +2127,6 @@ def delete_reporter(request, reporter_pk):
 def edit_reporter(request, reporter_pk):
     reporter = get_object_or_404(EmisReporter, pk=reporter_pk)
     reporter_group_name = reporter.groups.all()[0].name
-    if reporter.schools.exists():        
-        reporter_form = EditReporterForm(instance=reporter, initial={'schools':reporter.schools.all()[0]})
-    else:
-        reporter_form = EditReporterForm(instance=reporter)
 
     if request.method == 'POST':
         reporter_form = EditReporterForm(instance=reporter,
@@ -2163,6 +2156,11 @@ def edit_reporter(request, reporter_pk):
                     _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_head_teachers_termly', ['Head Teachers'])
 
         else:
+            if reporter.schools.exists():
+                reporter_form = EditReporterForm(instance=reporter, initial={'schools':reporter.schools.all()[0]})
+            else:
+                reporter_form = EditReporterForm(instance=reporter)
+
             return render_to_response('education/partials/reporters/edit_reporter.html',
                     {'reporter_form': reporter_form,
                      'reporter': reporter},
@@ -2172,6 +2170,10 @@ def edit_reporter(request, reporter_pk):
                  'selectable':True},
             context_instance=RequestContext(request))
     else:
+        if reporter.schools.exists():
+            reporter_form = EditReporterForm(instance=reporter, initial={'schools':reporter.schools.all()[0]})
+        else:
+            reporter_form = EditReporterForm(instance=reporter)
         return render_to_response('education/partials/reporters/edit_reporter.html',
                 {'reporter_form': reporter_form,
                  'reporter': reporter},

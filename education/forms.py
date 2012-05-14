@@ -105,6 +105,14 @@ class EditReporterForm(forms.ModelForm):
             # remove all schools associated with this reporter
             [reporter_form.schools.remove(sch) for sch in reporter_form.schools.all()]
 
+        groups = self.cleaned_data['groups']
+        # django-auth has many to many relation on groups
+        if groups:
+            groups = Group.objects.filter(pk = groups[0].pk) # queryset (pick first)
+            reporter_form.groups = groups
+        else:
+            [reporter_form.groups.remove(grp) for grp in reporter_form.groups.all()]
+
         if commit:
             reporter_form.save()
 
