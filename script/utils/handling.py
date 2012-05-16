@@ -31,7 +31,7 @@ def find_closest_match(value, model, match_exact=False):
         model_names = model.values_list('name', flat=True)
         model_names_lower = [ai.lower() for ai in model_names]
         model_names_matches = difflib.get_close_matches(name_str.lower(), model_names_lower)
-        print "model names lower = %s" % model_names_lower
+        #print "model names lower = %s" % model_names_lower
         if model_names_matches:
             toret = model.get(name__iexact=model_names_matches[0])
             return toret
