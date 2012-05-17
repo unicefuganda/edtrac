@@ -5,14 +5,13 @@ from django.db import models
 from django.forms import ValidationError
 from eav.models import Attribute
 from education.utils import _schedule_weekly_scripts, _schedule_monthly_script, _schedule_termly_script,\
-    _schedule_weekly_report, _schedule_monthly_report
+    _schedule_weekly_report, _schedule_monthly_report, _schedule_special_scripts
 from rapidsms_httprouter.models import mass_text_sent
 from rapidsms.models import Contact, ContactBase
 from rapidsms.contrib.locations.models import Location
 from script.signals import script_progress_was_completed, script_progress
 from script.models import *
 from script.utils.handling import find_best_response, find_closest_match
-from rapidsms_xforms.models import xform_received
 import re, calendar, datetime, time, reversion
 
 class School(models.Model):
@@ -372,6 +371,23 @@ def edtrac_reschedule_script(**kwargs):
         _schedule_termly_script(group, connection, 'edtrac_smc_termly', ['SMC'])
 
 
+def edtrac_reschedule_special_script(**kwargs):
+    connection = kwargs['connection']
+    progress = kwargs['sender']
+    #TODO: test whether connection isn't being duplicated into a progress??
+    slug = progress.script.slug
+    if not progress.script.slug.startswith('edtrac_') or progress.script.slug == 'edtrac_autoreg':
+        return
+    if not connection.contact:
+        return
+    if not connection.contact.groups.count():
+        return
+    group = connection.contact.groups.all()[0]
+    if slug in ["edtrac_%s" % g.lower().replace(' ', '_') + '_weekly' for g in ['Teachers', 'Head Teachers', 'SMC']] or\
+       progress.script.exists(slug__icontains="_weekly_"):
+        _schedule_special_scripts(group, connection, ['Teachers', 'Head Teachers', 'SMC'])
+
+
 def edtrac_autoreg_transition(**kwargs):
 
     connection = kwargs['connection']
@@ -405,9 +421,6 @@ def edtrac_autoreg_transition(**kwargs):
                 progress.step = progress.script.steps.get(order=progress.step.order + 1)
                 progress.save()
                 break
-
-
-
 
 def edtrac_attendance_script_transition(**kwargs):
     connection = kwargs['connection']
@@ -541,14 +554,6 @@ def schedule_weekly_report(grp='DEO'):
     _schedule_report_sending()
 
 
-#def xform_received_handler(sender, **kwargs):
-#    xform = kwargs['xform']
-#    submission = kwargs['submission']
-#
-#    if submission.has_errors:
-#        return
-
-
 Poll.register_poll_type('date', 'Date Response', parse_date_value, db_type=Attribute.TYPE_OBJECT)
 
 
@@ -559,7 +564,7 @@ reversion.register(ReportComment)
 
 script_progress_was_completed.connect(edtrac_autoreg, weak=False)
 script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)
+#script_progress_was_completed.connect(edtrac_reschedule_special_script, weak=False)
 script_progress.connect(edtrac_autoreg_transition, weak=False)
 script_progress.connect(edtrac_attendance_script_transition, weak=False)
 #script_progress.connect(edtrac_scriptrun_schedule, weak=False)
-#xform_received.connect(xform_received_handler, weak=True)

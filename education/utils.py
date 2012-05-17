@@ -262,6 +262,12 @@ def _next_midterm():
                 d = d + datetime.timedelta((0 - d.weekday()) % 7)
     return d
 
+def _schedule_special_scripts(group, connection, grps):
+    if group.name in grps:
+        script_slug = 'edtrac_%s_%s' % (group.name.lower().replace(' ', '_')+ '_weekly', connection.identity)
+        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
+        sp.set_time(datetime.datetime.now()) # TODO -> allow setting dates uhmm...
+
 def _schedule_weekly_scripts(group, connection, grps):
     """
     This method is called within a loop over several connections or for an individual connection
