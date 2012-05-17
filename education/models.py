@@ -564,6 +564,7 @@ reversion.register(ReportComment)
 
 script_progress_was_completed.connect(edtrac_autoreg, weak=False)
 script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)
+#TODO -> setup signal to work on special scripts
 #script_progress_was_completed.connect(edtrac_reschedule_special_script, weak=False)
 script_progress.connect(edtrac_autoreg_transition, weak=False)
 script_progress.connect(edtrac_attendance_script_transition, weak=False)
