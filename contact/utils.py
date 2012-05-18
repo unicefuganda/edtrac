@@ -5,7 +5,10 @@ from poll.models import Poll
 def get_messages(**kwargs):
     request = kwargs.pop('request')
     if request.user.is_authenticated():
-        return Message.objects.filter(direction='I', connection__contact__groups__in=request.user.groups.all()).distinct()
+        if request.user.is_staff:
+            return Message.objects.filter(direction='I').distinct()
+        else:
+            return Message.objects.filter(direction='I', connection__contact__groups__in=request.user.groups.all()).distinct()
 
     return Message.objects.filter(direction='I')
 
