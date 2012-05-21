@@ -112,7 +112,6 @@ INSTALLED_APPS = [
     "endless_pagination",
     "simple_autocomplete",
     "monitor",
-#    "django_digest",
     #leave south at the end of this list
     "south",
 
@@ -125,8 +124,7 @@ SMS_APPS = [
     "monitor",
     "education",
     "script",
-    "poll",
-#    "rapidsms_xforms"
+    "poll"
 ]
 
 # this rapidsms-specific setting defines which views are linked by the
