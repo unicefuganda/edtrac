@@ -202,6 +202,23 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptProgress.objects.filter(connection=self.connection).count(), 2)
         self.assertListEqual(list(ScriptProgress.objects.filter(connection=self.connection).values_list('script__slug', flat=True)), ['edtrac_autoreg', 'edtrac_teachers_weekly'])
 
+    def testBasicAutoRegHeadTeacher(self):
+        #individual test (keep answers simple)
+        Script.objects.filter(slug='edtrac_autoreg').update(enabled=True)
+        self.register_reporter('headteacher')
+        self.assertEquals(EmisReporter.objects.count(), 1)
+        contact = EmisReporter.objects.all()[0]
+        self.assertEquals(contact.name, 'Testy Mctesterton')
+        self.assertEquals(contact.reporting_location, self.kampala_subcounty)
+        self.assertEquals(contact.schools.all()[0], self.kampala_school)
+        self.assertEquals(contact.groups.all()[0].name, 'Head Teachers')
+        self.assertEquals(contact.grade, None)
+        self.assertEquals(contact.gender, 'Male')
+        self.assertEquals(contact.default_connection, self.connection)
+        self.assertEquals(ScriptProgress.objects.filter(connection=self.connection).count(), 2)
+        self.assertListEqual(list(ScriptProgress.objects.filter(connection=self.connection).values_list('script__slug', flat=True)), ['edtrac_autoreg', 'edtrac_head_teachers_weekly'])
+
+
     def testBadAutoReg(self):
         """
         Crummy answers
@@ -386,44 +403,6 @@ class ModelTest(TestCase): #pragma: no cover
         script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 3601)
         call_command('check_script_progress', e=8, l=24)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_autoreg').steps.get(order=7).message)
-
-    def testHeadTeacherAutoregProgression(self):
-        Script.objects.filter(slug='edtrac_autoreg').update(enabled=True)
-        self.fake_incoming('join')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
-        self.elapseTime2(script_prog, 3601)
-        check_progress(script_prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_autoreg').steps.get(order=0).poll.question)
-        self.fake_incoming('Head Teacher')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
-        self.elapseTime2(script_prog, 3601)
-        check_progress(script_prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_autoreg').steps.get(order=1).poll.question)
-        self.fake_incoming('Male')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
-        self.elapseTime2(script_prog, 3601)
-        check_progress(script_prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_autoreg').steps.get(order=3).poll.question)
-        self.fake_incoming('Kampala')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
-        self.elapseTime2(script_prog, 3601)
-        check_progress(script_prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_autoreg').steps.get(order=4).poll.question)
-        self.fake_incoming('Kampala')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
-        self.elapseTime2(script_prog, 3601)
-        check_progress(script_prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_autoreg').steps.get(order=5).poll.question)
-        self.fake_incoming('St. Marys')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
-        self.elapseTime2(script_prog, 3601)
-        check_progress(script_prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_autoreg').steps.get(order=6).poll.question)
-        self.fake_incoming('test mctester')
-        script_prog = ScriptProgress.objects.get(connection=self.connection, script__slug='edtrac_autoreg')
-        self.elapseTime2(script_prog, 3601)
-        check_progress(script_prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_autoreg').steps.get(order=7).message)
 
     def testSMCAutoregProgression(self):
