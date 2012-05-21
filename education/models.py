@@ -60,6 +60,7 @@ class Role(Group):
             ("can_verify_one_district", "Access to edit his/her district specific info"),
             ("can_export_one_district", "Access to export his/her district specific info"),
             ("can_export_all", "Access to export all data"),
+            ("can_schedule_special_script", "can send schedule special scripts")
 
             )
 
