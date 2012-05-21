@@ -1,5 +1,16 @@
 {% extends "education/partials/partial_header.html" %}
 {% block toprow %}
 	<div id="add_contact_form"></div>
-    <div id="add_contact_anchor_row"><a href="javascript:void(0)" onclick="newConnection(this, '{% url education.views.add_connection %}')" style="color:white; padding:10px; font-size: 1.2em; background-color:gray;">Add Reporter</a><p></p></div>
+    <div id="add_contact_anchor_row">
+        <a href="javascript:void(0)" onClick="newConnection(this, '{% url education.views.add_connection %}')" style="color:white; padding:10px; font-size: 1.2em; background-color:gray;">Add Reporter</a><p></p>
+    </div>
+
+    <div id="schedule_special_script"></div>
+    <div id="schedule_special_script_form">
+        <a id="special_script">Schedule Special Script</a>
+        <script type="text/javascript">
+            $('a#special_script').click(function(evt){
+           });
+        </script>
+    </div>
 {% endblock %}
