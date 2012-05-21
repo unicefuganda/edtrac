@@ -342,6 +342,7 @@ class MassTextForm(ActionForm):
         return text
 
     def perform(self, request, results):
+
         if results is None or len(results) == 0:
             return ('A message must have one or more recipients!', 'error')
 
@@ -366,7 +367,27 @@ class MassTextForm(ActionForm):
             return ('Message successfully sent to %d numbers' % len(connections), 'success',)
         else:
             return ("You don't have permission to send messages!", 'error',)
-        
+
+
+class SpecialScriptForm(ActionForm):
+
+    #text = forms.CharField(max_length=160, required=True, widget=SMSInput())
+    action_label = 'Schedule Special Script'
+
+    def perform(self, request, results):
+        if results is None or len(results) == 0:
+            return ('To schedule special script, please select one or more reporters!', 'error')
+
+        if request.user or request.user.has_perm('auth.can_schedule_special_script'): #TODO -> setup permissions
+            connections =\
+            list(Connection.objects.filter(contact__in=results).distinct())
+
+            return ('Script has been shceduled for %d reporter(s)' % len(connections), 'success',)
+        else:
+            return ("You don't have permission to schedle this script!", 'error',)
+
+
+
 class SchoolMassTextForm(ActionForm):
 
     text = forms.CharField(max_length=160, required=True, widget=SMSInput())
