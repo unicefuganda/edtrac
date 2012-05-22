@@ -202,23 +202,6 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptProgress.objects.filter(connection=self.connection).count(), 2)
         self.assertListEqual(list(ScriptProgress.objects.filter(connection=self.connection).values_list('script__slug', flat=True)), ['edtrac_autoreg', 'edtrac_teachers_weekly'])
 
-    def testBasicAutoRegHeadTeacher(self):
-        #individual test (keep answers simple)
-        Script.objects.filter(slug='edtrac_autoreg').update(enabled=True)
-        self.register_reporter('headteacher')
-        self.assertEquals(EmisReporter.objects.count(), 1)
-        contact = EmisReporter.objects.all()[0]
-        self.assertEquals(contact.name, 'Testy Mctesterton')
-        self.assertEquals(contact.reporting_location, self.kampala_subcounty)
-        self.assertEquals(contact.schools.all()[0], self.kampala_school)
-        self.assertEquals(contact.groups.all()[0].name, 'Head Teachers')
-        self.assertEquals(contact.grade, None)
-        self.assertEquals(contact.gender, 'Male')
-        self.assertEquals(contact.default_connection, self.connection)
-        self.assertEquals(ScriptProgress.objects.filter(connection=self.connection).count(), 2)
-        self.assertListEqual(list(ScriptProgress.objects.filter(connection=self.connection).values_list('script__slug', flat=True)), ['edtrac_autoreg', 'edtrac_head_teachers_weekly'])
-
-
     def testBadAutoReg(self):
         """
         Crummy answers
