@@ -278,7 +278,17 @@ def _schedule_weekly_scripts(group, connection, grps):
         script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
         sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
         d = _next_thursday()
-        sp.set_time(d)
+        #if reporter is a teacher set in the script session only if this reporter has a grade
+        if connection.contact.emisreporter.groups.all()[0].name == 'Teachers':
+            if connection.contact.emisreporter.grade:
+                sp.set_time(d)
+            else:
+                pass # do nothing, jump to next iteration
+        elif connection.contact.emisreporter.groups.all()[0].name in  ["Head Teachers", "SMC", "GEM"]:
+            sp.set_time(d)
+        else:
+            pass # do nothing if reporter has no recognizable group. e.g. Other Reporters or unessential sms receiver groups like DEO/MEO, UNICEF Officials, etc.
+
 
 def _schedule_weekly_report(group, connection, grps):
     if group.name in grps:
