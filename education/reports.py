@@ -381,13 +381,13 @@ def reporters(request, district_id=None):
     profile = request.user.get_profile()
     if profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
         return EmisReporter.objects.exclude(
-                    connection__id__in=Blacklist.objects.all().values_list('connection__id', flat=True),
+                    connection__id__in=Blacklist.objects.values_list('connection__id', flat=True),
                     connection__identity__in = getattr(settings, 'MODEM_NUMBERS')
             ).exclude(reporting_location = None)
     else:
         user_location = get_location(request)
         return EmisReporter.objects.exclude(\
-            connection__id__in=Blacklist.objects.all().values_list('connection__id', flat=True)).\
+            connection__id__in=Blacklist.objects.values_list('connection__id', flat=True)).\
             filter(reporting_location__in= user_location.get_descendants(include_self=True))
 
 # time slider based work

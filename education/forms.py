@@ -19,6 +19,7 @@ from django.contrib.sites.models import Site
 from contact.models import MassText
 from rapidsms.models import Connection, Contact
 from script.models import Script
+from unregister.models import Blacklist
 
 date_range_choices = (('w', 'Previous Calendar Week'), ('m', 'Previous Calendar Month'), ('q', 'Previous calendar quarter'),)
 
@@ -56,7 +57,8 @@ class ReporterFreeSearchForm(FilterForm):
                 search = search[3:]
             elif search[:1] == '0':
                 search = search[1:]
-            queryset = queryset.filter(Q(name__icontains=search) |\
+            queryset = queryset.exclude(connection__identity__in=\
+                Blacklist.objects.values_list('connection__identity',flat=True)).filter(Q(name__icontains=search) |\
                                        Q(reporting_location__name__icontains=search) |\
                                        Q(connection__identity__icontains=search) |\
                                        Q(schools__name__icontains=search)).distinct()
