@@ -271,8 +271,9 @@ def edtrac_autoreg(**kwargs):
         rep_location = Location.tree.root_nodes()[0]
     try:
         contact = connection.contact or EmisReporter.objects.get(name=name,\
-            reporting_location=rep_location,\
-            groups=grp,\
+            reporting_location=rep_location,
+            groups=grp,
+            connection=connection
         )
         if connection.contact:
             contact = EmisReporter.objects.get(pk=connection.contact.pk)
