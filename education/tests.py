@@ -202,6 +202,12 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptProgress.objects.filter(connection=self.connection).count(), 2)
         self.assertListEqual(list(ScriptProgress.objects.filter(connection=self.connection).values_list('script__slug', flat=True)), ['edtrac_autoreg', 'edtrac_teachers_weekly'])
 
+    def testAutoRegDuplicates(self):
+        Script.objects.filter(slug='edtrac_autoreg').update(enabled=True)
+        self.register_reporter('teacher',phone='2343')
+        self.register_reporter('teacher',phone='2344')
+        self.assertEquals(EmisReporter.objects.count(), 2)
+
     def testBadAutoReg(self):
         """
         Crummy answers
