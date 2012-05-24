@@ -280,12 +280,15 @@ def _schedule_weekly_scripts(group, connection, grps):
         #if reporter is a teacher set in the script session only if this reporter has a grade
         if connection.contact.emisreporter.groups.filter(name='Teachers').exists():
             if connection.contact.emisreporter.grade:
+                # get rid of any existing script progress; this is a one time thing
+                ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug=script_slug)).delete()
                 sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
                 sp.set_time(d)
             else:
                 pass # do nothing, jump to next iteration
         elif connection.contact.emisreporter.groups.filter(name__in = ["Head Teachers", "SMC", "GEM"]).exists() and \
              connection.contact.emisreporter.groups.filter(name__in = ["Head Teachers", "SMC", "GEM"]).count()==1:
+            ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug=script_slug)).delete()
             sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
             sp.set_time(d)
         else:
