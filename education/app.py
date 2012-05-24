@@ -25,6 +25,7 @@ class App (AppBase):
                     return True
 
                 Blacklist.objects.create(connection=message.connection)
+                ScriptProgress.objects.exclude(script__slug="edtrac_autoreg").filter(connection=message.connection).delete() # delete other script progress only place reporter to right one
                 if (message.connection.contact):
                     message.connection.contact.active = False
                     message.connection.contact.save()
