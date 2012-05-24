@@ -274,7 +274,6 @@ def _schedule_weekly_scripts(group, connection, grps):
     and it sets the start time for a script to _next_thursday() relative to either current date
     or the date that is currently in ScriptProgress
     """
-    import ipdb; ipdb.set_trace()
     if group.name in grps:
         script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
         d = _next_thursday()
