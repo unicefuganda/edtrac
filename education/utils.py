@@ -278,13 +278,14 @@ def _schedule_weekly_scripts(group, connection, grps):
         script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
         d = _next_thursday()
         #if reporter is a teacher set in the script session only if this reporter has a grade
-        if connection.contact.emisreporter.groups.all()[0].name == 'Teachers':
+        if connection.contact.emisreporter.groups.filter(name='Teachers').exists():
             if connection.contact.emisreporter.grade:
                 sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
                 sp.set_time(d)
             else:
                 pass # do nothing, jump to next iteration
-        elif connection.contact.emisreporter.groups.all()[0].name in  ["Head Teachers", "SMC", "GEM"]:
+        elif connection.contact.emisreporter.groups.filter(name__in = ["Head Teachers", "SMC", "GEM"]).exists() and \
+             connection.contact.emisreporter.groups.filter(name__in = ["Head Teachers", "SMC", "GEM"]).count()==1:
             sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
             sp.set_time(d)
         else:
