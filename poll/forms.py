@@ -130,3 +130,10 @@ class RuleForm(forms.ModelForm):
 
         # Always return the full collection of cleaned data.
         return cleaned_data
+
+
+class RuleForm2(forms.ModelForm):
+    class Meta:
+        model = Rule
+        fields = ('rule', 'rule_string')
+

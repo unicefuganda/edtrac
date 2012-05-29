@@ -343,6 +343,8 @@ class Poll(models.Model):
         db_message = None
         if hasattr(message, 'db_message'):
             db_message = message.db_message
+        else:
+            db_message=message
         resp = Response.objects.create(poll=self, message=db_message, contact=db_message.connection.contact, date=db_message.date)
         outgoing_message = self.default_response
         if (self.type == Poll.TYPE_LOCATION):
@@ -622,6 +624,11 @@ class Rule(models.Model):
     one or more rules to belong to a category.
     """
 
+    contains_all_of=1
+    contains_one_of=2
+
+
+
     TYPE_STARTSWITH = 'sw'
     TYPE_CONTAINS = 'c'
     TYPE_REGEX = 'r'
@@ -640,6 +647,36 @@ class Rule(models.Model):
     category = models.ForeignKey(Category, related_name='rules')
     rule_type = models.CharField(max_length=2, choices=RULE_CHOICES)
     rule_string = models.CharField(max_length=256, null=True)
+    rule=models.IntegerField(max_length=10,choices=((contains_all_of,"contains_all_of"),(contains_one_of,"contains_one_of"),),null=True)
+
+    def get_regex(self):
+        """
+           create a regular expression from the input
+        """
+        words=self.rule_string.replace(','," ").split()
+
+        if self.rule == 1:
+            all_template=r"(?=.*\b%s\b)"
+            w_regex=r""
+            for word in words:
+                w_regex=w_regex+all_template%re.escape(word)
+            return w_regex
+
+        elif self.rule == 2:
+            one_template=r"(\b%s\b)"
+            w_regex=r""
+            for word in words:
+                if len(w_regex):
+                    w_regex=w_regex+r"|"+one_template%re.escape(word)
+                else:
+                    w_regex=w_regex+one_template%re.escape(word)
+
+            return w_regex
+
+    def save(self,*args,**kwargs):
+        if self.rule:
+            self.regex = self.get_regex()
+        super(Rule,self).save()
 
     @property
     def rule_type_friendly(self):
