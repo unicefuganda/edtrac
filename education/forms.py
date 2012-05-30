@@ -9,6 +9,7 @@ from rapidsms.contrib.locations.models import Location
 from rapidsms.models import Backend
 from .reports import get_week_date, get_month_day_range
 from .models import School, EmisReporter, ReportComment
+from .utils import _schedule_special_scripts
 from rapidsms_xforms.models import XFormSubmissionValue
 from django.contrib.auth.models import Group, User
 from django.db.models import Q
@@ -372,22 +373,18 @@ class MassTextForm(ActionForm):
 
 
 class SpecialScriptForm(ActionForm):
-
-    #text = forms.CharField(max_length=160, required=True, widget=SMSInput())
-    action_label = 'Schedule Special Script'
-
+    action_label = 'Schedule Special Poll'
     def perform(self, request, results):
         if results is None or len(results) == 0:
-            return ('To schedule special script, please select one or more reporters!', 'error')
-
-        if request.user or request.user.has_perm('auth.can_schedule_special_script'): #TODO -> setup permissions
-            connections =\
-            list(Connection.objects.filter(contact__in=results).distinct())
-
-            return ('Script has been shceduled for %d reporter(s)' % len(connections), 'success',)
+            return ('Please select at least one reporter', 'error')
+        if request.user:
+            connections = list(Connection.objects.filter(contact__in=results).distinct())
+            for connection in connections:
+                if connection.contact.emisreporter.groups.exists():
+                    _schedule_special_scripts(connection.contact.emisreporter.groups.values_list('name',flat=True)[0], connection, ['Teachers', 'Head Teachers', 'SMC'])
+            return ('Poll scheduled for %d numbers; only scheduled for Teachers, Head Teachers, and SMCs'% len(connections), 'success')
         else:
-            return ("You don't have permission to schedle this script!", 'error',)
-
+            return ("You don't have permission to schedule polls", "error")
 
 
 class SchoolMassTextForm(ActionForm):
