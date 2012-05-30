@@ -22,6 +22,7 @@ from django.conf import settings
 from uganda_common.utils import *
 from django.db.models import Avg
 from unregister.models import Blacklist
+from time import strftime
 
 def previous_calendar_week(t=None):
     """
@@ -266,9 +267,23 @@ def _next_midterm():
 def _schedule_special_scripts(group_name, connection, grps):
     if group_name in grps:
 #        script_slug = 'edtrac_%s_%s' % (group_name.lower().replace(' ', '_')+ '_weekly', connection.identity)
-        script_slug = 'edtrac_%s_weekly' % (group_name.lower().replace(' ','_'))
-        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
+#        time_stamp = strftime('%Y_%m_%d_%h%m%s')
+#        script_slug = 'edtrac_%s_weekly_%s' % (group_name.lower().replace(' ','_'), time_stamp) # timestamped
+        script_slug_dup = 'edtrac_%s_weekly' % group_name.lower().replace(' ','_') # script items being duplicated
+        # create script on the fly; post signal sent to delete such a script after it expires.
+#        script =Script.objects.create(slug=script_slug, name=script_slug)
+#        for site in Script.objects.get(slug=script_slug_dup).sites.all():
+#            script.sites.add(site)
+#
+#        for step in Script.objects.get(slug=script_slug_dup).steps.all():
+#            script.steps.add(step)
+#        script.enabled=True
+#        script.save()
+        #TODO -> discussions we had mentioned use of a time stamp; @Alfred, thoughts here??
+#        sp, _ = ScriptProgress.objects.get_or_create(connection=connection, script=script)
+        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug_dup))
         sp.set_time(datetime.datetime.now()) # TODO -> allow setting dates uhmm...
+#        return time_stamp # needed in test
 
 def _schedule_weekly_scripts(group, connection, grps):
     """
@@ -281,7 +296,7 @@ def _schedule_weekly_scripts(group, connection, grps):
         d = _next_thursday()
         #if reporter is a teacher set in the script session only if this reporter has a grade
         if connection.contact.emisreporter.groups.filter(name='Teachers').exists():
-            if connection.contact.emisreporter.grade:
+            if connection.contact.emisreporter.grade and connection.contact.emisreporter.schools.exists():
                 # get rid of any existing script progress; this is a one time thing
                 ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug=script_slug)).delete()
                 sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
