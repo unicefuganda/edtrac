@@ -343,8 +343,6 @@ def edtrac_autoreg(**kwargs):
         _schedule_termly_script(group, connection, 'edtrac_head_teachers_termly', ['Head Teachers'])
         _schedule_termly_script(group, connection, 'edtrac_smc_termly', ['SMC'])
 
-
-
 def edtrac_reschedule_script(**kwargs):
     connection = kwargs['connection']
     progress = kwargs['sender']
@@ -369,25 +367,10 @@ def edtrac_reschedule_script(**kwargs):
         _schedule_monthly_script(group, connection, 'edtrac_gem_monthly', 20, ['GEM'])
     elif slug == 'edtrac_head_teachers_termly':
         _schedule_termly_script(group, connection, 'edtrac_head_teachers_termly', ['Head Teachers'])
-    else:
+    elif slug == 'edtrac_smc_termly':
         _schedule_termly_script(group, connection, 'edtrac_smc_termly', ['SMC'])
-
-
-def edtrac_reschedule_special_script(**kwargs):
-    connection = kwargs['connection']
-    progress = kwargs['sender']
-    #TODO: test whether connection isn't being duplicated into a progress??
-    slug = progress.script.slug
-    if not progress.script.slug.startswith('edtrac_') or progress.script.slug == 'edtrac_autoreg':
-        return
-    if not connection.contact:
-        return
-    if not connection.contact.groups.count():
-        return
-    group = connection.contact.groups.all()[0]
-    if slug in ["edtrac_%s" % g.lower().replace(' ', '_') + '_weekly' for g in ['Teachers', 'Head Teachers', 'SMC']] or\
-       progress.script.exists(slug__icontains="_weekly_"):
-        _schedule_special_scripts(group, connection, ['Teachers', 'Head Teachers', 'SMC'])
+    else:
+        print "special script"
 
 
 def edtrac_autoreg_transition(**kwargs):
@@ -566,8 +549,6 @@ reversion.register(ReportComment)
 
 script_progress_was_completed.connect(edtrac_autoreg, weak=False)
 script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)
-#TODO -> setup signal to work on special scripts
-#script_progress_was_completed.connect(edtrac_reschedule_special_script, weak=False)
 script_progress.connect(edtrac_autoreg_transition, weak=False)
 script_progress.connect(edtrac_attendance_script_transition, weak=False)
 #script_progress.connect(edtrac_scriptrun_schedule, weak=False)
