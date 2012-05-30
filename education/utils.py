@@ -21,6 +21,7 @@ from django.contrib.auth.models import Group
 from django.conf import settings
 from uganda_common.utils import *
 from django.db.models import Avg
+from unregister.models import Blacklist
 
 def previous_calendar_week(t=None):
     """
@@ -262,9 +263,10 @@ def _next_midterm():
                 d = d + datetime.timedelta((0 - d.weekday()) % 7)
     return d
 
-def _schedule_special_scripts(group, connection, grps):
-    if group.name in grps:
-        script_slug = 'edtrac_%s_%s' % (group.name.lower().replace(' ', '_')+ '_weekly', connection.identity)
+def _schedule_special_scripts(group_name, connection, grps):
+    if group_name in grps:
+#        script_slug = 'edtrac_%s_%s' % (group_name.lower().replace(' ', '_')+ '_weekly', connection.identity)
+        script_slug = 'edtrac_%s_weekly' % (group_name.lower().replace(' ','_'))
         sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
         sp.set_time(datetime.datetime.now()) # TODO -> allow setting dates uhmm...
 
@@ -287,7 +289,8 @@ def _schedule_weekly_scripts(group, connection, grps):
             else:
                 pass # do nothing, jump to next iteration
         elif connection.contact.emisreporter.groups.filter(name__in = ["Head Teachers", "SMC", "GEM"]).exists() and \
-             connection.contact.emisreporter.groups.filter(name__in = ["Head Teachers", "SMC", "GEM"]).count()==1:
+             connection.contact.emisreporter.groups.filter(name__in = ["Head Teachers", "SMC", "GEM"]).count()==1 and \
+            not Blacklist.objects.filter(connection=connection).exists():
             ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug=script_slug)).delete()
             sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
             sp.set_time(d)
