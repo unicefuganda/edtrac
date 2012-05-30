@@ -13,6 +13,7 @@ from django.conf import settings
 from script.utils.outgoing import check_progress
 from script.models import Script, ScriptProgress, ScriptSession, ScriptResponse, ScriptStep
 from education.management import *
+from education.utils import _schedule_special_scripts
 from rapidsms_httprouter.router import get_router
 from script.signals import script_progress_was_completed, script_progress
 from poll.management import create_attributes
@@ -479,6 +480,53 @@ class ModelTest(TestCase): #pragma: no cover
         check_progress(prog.script)
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.date(), _next_thursday().date())
+
+    def testWeeklyTeacherSpecialPolls(self):
+        self.register_reporter('teacher')
+        Script.objects.filter(slug__in=['edtrac_teachers_weekly', 'edtrac_teachers_monthly']).update(enabled=True)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly', connection=self.connection)
+        seconds_to_thursday = self.total_seconds(_next_thursday() - datetime.datetime.now())
+        self.elapseTime2(prog, seconds_to_thursday+(1*60*60)) #seconds to thursday + one hour
+        prog = ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly', connection=self.connection)
+        check_progress(prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_teachers_weekly').steps.get(order=0).poll.question)
+        self.fake_incoming('40')
+        self.assertEquals(Script.objects.get(slug='edtrac_teachers_weekly').steps.get(order=0).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 40)
+        self.elapseTime2(prog, 61)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly', connection=self.connection)
+        check_progress(prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_teachers_weekly').steps.get(order=2).poll.question)
+        self.fake_incoming('55girls')
+        self.assertEquals(Script.objects.get(slug='edtrac_teachers_weekly').steps.get(order=2).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 55)
+        self.elapseTime2(prog, 61)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly', connection=self.connection)
+        check_progress(prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_teachers_weekly').steps.get(order=4).poll.question)
+        self.fake_incoming('3')
+        self.assertEquals(Script.objects.get(slug='edtrac_teachers_weekly').steps.get(order=4).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 3)
+        self.elapseTime2(prog, 61)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly', connection=self.connection)
+        check_progress(prog.script)
+        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
+        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.date(), _next_thursday().date())
+
+        # EduTrac monitor realizes that this information might actually be wrong
+        # create a script on the fly with similar properties to duplicated script?? -> poll responses will be updated.
+        grps = ['Teachers', 'Head Teachers', 'SMC']
+        ts = _schedule_special_scripts(self.connection.contact.emisreporter.groups.all()[0].name, self.connection, grps)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly_%s' % ts, connection=self.connection)
+        self.elapseTime2(prog, self.playTimeTrick(prog))
+        prog = ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly_%s' % ts, connection=self.connection)
+        check_progress(prog.script); check_progress(prog.script)
+        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
+        # current date/time
+        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.date(), datetime.datetime.now().date())
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_teachers_weekly_%s' % ts).steps.get(order=0).poll.question)
+
+    def playTimeTrick(self, progress):
+        time = progress.time
+        now = datetime.datetime.now()
+        return self.total_seconds(time - now)
 
 
     def testWeeklyHeadTeacherPolls(self):
