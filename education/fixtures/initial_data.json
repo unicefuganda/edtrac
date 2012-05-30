@@ -436,7 +436,7 @@
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
-            "question": "Has UPE capitation grant been displayed on the school notice board? Answer YES or NO or I dont't know", 
+            "question": "Has UPE capitation grant been displayed on the school notice board? Answer YES or NO or I don't know",
             "sites": [
                 5
             ], 
@@ -531,7 +531,7 @@
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
-            "question": "How many abuse cases were recorded in the record book this month?", 
+            "question": "How many violence cases were recorded in the record book this month?",
             "sites": [
                 5
             ], 
