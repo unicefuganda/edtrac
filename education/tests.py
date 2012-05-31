@@ -468,7 +468,9 @@ class ModelTest(TestCase): #pragma: no cover
         check_progress(prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_teachers_weekly').steps.get(order=2).poll.question)
         self.fake_incoming('55girls')
+        self.fake_incoming('65girls') # proof that the last instantaneous response is not equal to 65
         self.assertEquals(Script.objects.get(slug='edtrac_teachers_weekly').steps.get(order=2).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 55)
+        self.assertNotEquals(Script.objects.get(slug='edtrac_teachers_weekly').steps.get(order=2).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 65)
         self.elapseTime2(prog, 61)
         prog = ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly', connection=self.connection)
         check_progress(prog.script)
