@@ -268,8 +268,8 @@ def _schedule_special_scripts(group_name, connection, grps):
     if group_name in grps:
 #        script_slug = 'edtrac_%s_%s' % (group_name.lower().replace(' ', '_')+ '_weekly', connection.identity)
 #        time_stamp = strftime('%Y_%m_%d_%h%m%s')
-#        script_slug = 'edtrac_%s_weekly_%s' % (group_name.lower().replace(' ','_'), time_stamp) # timestamped
-        script_slug_dup = 'edtrac_%s_weekly' % group_name.lower().replace(' ','_') # script items being duplicated
+#        script_slug = 'edtrac_%s_monthly_%s' % (group_name.lower().replace(' ','_'), time_stamp) # timestamped
+        script_slug_dup = 'edtrac_%s_monthly' % group_name.lower().replace(' ','_') # script items being duplicated
         # create script on the fly; post signal sent to delete such a script after it expires.
 #        script =Script.objects.create(slug=script_slug, name=script_slug)
 #        for site in Script.objects.get(slug=script_slug_dup).sites.all():
