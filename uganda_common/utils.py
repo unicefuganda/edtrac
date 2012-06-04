@@ -85,6 +85,8 @@ def assign_backend(number):
 
     if number.startswith('0'):
         number = '%s%s' % (country_code, number[1:])
+    elif number.startswith('+'):
+        number = '%s' % number[1:]
     elif number[:len(country_code)] != country_code:
         number = '%s%s' % (country_code, number)
     backendobj = None
