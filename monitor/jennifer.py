@@ -2,6 +2,7 @@
 # -*- coding: utf8 -*-
 # Author: Samuel Sekiwere <sekiskylink@gmail.com>
 
+import os
 import web
 import urllib
 import httplib
@@ -13,13 +14,21 @@ from datetime import datetime
 from datetime import timedelta
 from urllib import urlencode
 from urllib import urlopen
+from web.contrib.template import render_mako
+from pagination import *
 
 class AppURLopener(urllib.FancyURLopener):
 	version = "QOS /0.1"
 
 urllib._urlopener = AppURLopener()
 
-render = web.template.render('/var/www/qos')
+#render = web.template.render('/var/www/qos')
+#render = web.template.render('templates')
+render = render_mako(
+        directories=[os.path.join(os.path.dirname(__file__), 'templates').replace('\\','/'),],
+        input_encoding='utf-8',
+        output_encoding='utf-8',
+        )
 
 logging.basicConfig( format='%(asctime)s:%(levelname)s:%(message)s', filename='/var/log/jennifer/jennifer.log',
 		datefmt='%Y-%m-%d %I:%M:%S', level=logging.DEBUG)
@@ -41,6 +50,9 @@ urls = (
         "info", "Info",
         "/manage_shortcode", "ManageShortcode",
         "/test", "Test",
+        "/reports", "Reports",
+        "/logs", "JenniferLog",
+        "/stats", "Stats",
         )
 
 #web.config.smtp_server = 'mail.mydomain.com'
@@ -68,6 +80,7 @@ SETTINGS = {
     'DEFAULT_EMAIL_SENDER': 'root@uganda.rapidsms.org',
     'KANNEL_STATUS_URL': 'http://localhost:13000/status',
     'LANGUAGE': 'en',
+    'PAGE_LIMIT': 15,
     }
 TEMPLATES = {
             'QOS_SEND_SUBJ':'QOS Messages Sent at: ',
@@ -84,6 +97,15 @@ TEMPLATES = {
         }
 QOS_INTERVAL = {'hours':1, 'minutes':0, 'offset':5}
 ## Helper Classes and Functions
+def lit(**keywords):
+    return keywords
+
+def default(*args):
+        p = [i for i in args if i or i==0]
+        if p.__len__(): return p[0]
+        if args.__len__(): return args[args.__len__()-1]
+        return None
+
 class GetBackends(object):
     """Returns backends of a given type"""
     def __init__(self,db,btype='s',active='t'):
@@ -157,7 +179,6 @@ class Settings(object):
             for template in res:
                 TEMPLATES['%s'%template['name']] = template['%s'%('%s_txt'%getattr(SETTINGS,'LANGUAGE','en'))]
 
-
 # Load Settings from DB
 Settings(db)
 
@@ -177,11 +198,32 @@ def sendsms(frm, to, msg,smsc):
     return ret[:]
 
 # Logs Sent Message to out message table
+def update_field(dbconn, dic):
+    query = ("UPDATE %(table)s SET %(col)s ='%(val)s' WHERE %(idfield)s = '%(idvalue)s'")
+    dbconn.query(query % dic)
+
+def update_fields(dic):
+    #dic = lit(table='gwe', update_dict=lit(field1=4, field2='9'), where_dict=lit(id=1))
+    set_str = ', '.join(["%s = %r"%(i[0],i[1]) for i in dic['update_dict'].items()])
+    where_str = ' AND '.join(["%s = %r"%(i[0],i[1]) for i in dic['where_dict'].items()])
+    query = "UPDATE %s SET %s WHERE %s"%(dic['table'],set_str, where_str)
+    return query
+
 def log_message(dbconn,msg_dict):
     """Log sent message to messages table"""
     dbconn.insert('messages',backend_id=msg_dict['backend_id'], msg_out=msg_dict['msg_out'],
             status_out=msg_dict['status_out'], destination=msg_dict['destination'])
 
+def log_to_stats_matrix(dbconn,msg_dict):
+    query = ("SELECT id FROM statistics WHERE idate='%(idate)s' AND backend_id=%(backend_id)s "
+            "AND destination='%(destination)s'")
+    r = dbconn.query(query % msg_dict)
+    if r:
+        idx = r[0]['id']
+        db.query("UPDATE statistics SET sent_count= sent_count + 1 WHERE id = %r"%idx)
+    else:
+        dbconn.insert('statistics', idate=msg_dict['idate'], backend_id=msg_dict['backend_id'],
+                destination=msg_dict['destination'])
 
 def send_email(_from, recipient, subject, msg):
     """Sends email"""
@@ -239,8 +281,21 @@ class HandleReceivedQosMessage:
         backend_id = [b['id'] for b in modems if b['smsc_name'] == params.backend][0]
         msg_in = msg
         with db.transaction():
-            db.update('messages', msg_in=msg_in, ldate=datetime.now(),
-                    where=web.db.sqlwhere({'msg_out':msg, 'backend_id':backend_id, 'destination':params.sender}))
+            query = ("UPDATE messages SET ldate = '%s', msg_in='%s' WHERE msg_out='%s' AND backend_id = %s AND destination = '%s'"
+                    "RETURNING round((EXTRACT(EPOCH FROM ldate - cdate))::numeric,3) AS diff, cdate::date as xdate")
+            query = query % (datetime.now(), msg_in, msg, backend_id, params.sender)
+            res = db.query(query)
+            #db.update('messages', msg_in=msg_in, ldate=datetime.now(),
+            #        where=web.db.sqlwhere({'msg_out':msg, 'backend_id':backend_id, 'destination':params.sender}))
+            #update stats
+            if res:
+                r = res[0]
+                delay = r['diff']
+                idate = r['xdate']
+                query = ("UPDATE statistics SET receive_count=receive_count +1, "
+                        "delay_matrix = array_append(delay_matrix, %s) "
+                        "WHERE idate='%s' AND backend_id=%s AND destination='%s'")
+                db.query(query % (delay, idate,backend_id,params.sender))
             logging.debug("[%s] Received SMS [SMSC: %s] [from: %s] [to: %s] [msg: %s]"%('/qos',
                 params.backend, params.sender, params.receiver, msg))
         return "Done!"
@@ -291,6 +346,9 @@ class SendQosMessages:
                     res = ' '.join(res)
                 if res.find('Accept') <> -1:
                     status = 'S'
+                    #best place to record statistics
+                    dic = lit(idate=datetime.now().strftime('%Y-%m-%d'), backend_id=backend_id,destination=shortcode['identity'],)
+                    log_to_stats_matrix(dbconn,dic)
                 elif res.find('Error') <> -1:
                     status = 'E'
                 else:
@@ -384,6 +442,7 @@ class CheckModems:
         status = 'offline'
         toret = ""
         smscs = [z['smsc_name'] for z in modem_backends]
+        res = {}
         for l in p:
             if not l.strip():
                 continue
@@ -392,8 +451,10 @@ class CheckModems:
                 if pattern.match(l.strip()):
                     status = l.strip().split()[2].replace('(','')
                     toret += "%s is %s\n"%(smsc, status)
+                    res[smsc] = status
         logging.debug("[%s] Checked status for %s"%('/check', smscs))
-        return toret
+        return render.status(res=res)
+        #return toret
 
 class DisableEnableBackend:
     """Disable or enable a given backend"""
@@ -492,6 +553,38 @@ class Test:
         #sendsms()
 
         return "It works!!"
+
+class MessageLog(object):
+    pass
+class JenniferLog:
+    def GET(self):
+        s = os.popen("tail -n 30 /var/log/jennifer/jennifer.log")
+        logs = s.readlines()
+        l = locals(); del l['self']
+        return render.log(**l)
+
+class Stats:
+    def GET(self):
+        l = locals(); del l['self']
+        return render.stats(**l)
+
+class Reports:
+    def GET(self):
+        params = web.input(page=1)
+        try:
+            page = int(params.page)
+        except: page = 1
+
+        limit = SETTINGS['PAGE_LIMIT']
+        start = (page -1) * limit if page > 0 else 0
+
+        dic = lit(relations='message_view', fields="*", criteria="", limit=limit,offset=start)
+        res = doquery(db,dic)
+        count = countquery(db, dic)
+        pagination_str = getPaginationString(default(page,0),count,limit,2,"/reports","?page=")
+
+        l = locals(); del l['self']
+        return render.reports(**l)
 
 if __name__ == "__main__":
       app.run()

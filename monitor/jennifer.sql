@@ -53,6 +53,21 @@ CREATE TABLE templates(
         cdate TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE statistics(
+    id BIGSERIAL PRIMARY KEY,
+    idate DATE NOT NULL,
+    backend_id INTEGER NOT NULL REFERENCES backends,
+    destination TEXT NOT NULL,
+    sent_count NUMERIC NOT NULL DEFAULT 1,
+    receive_count NUMERIC NOT NULL DEFAULT 0,
+    delay_matrix NUMERIC[] NOT NULL DEFAULT ARRAY[]::NUMERIC[],
+    cdate TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(idate, backend_id, destination)
+);
+CREATE INDEX stats_idx1 ON statistics(idate);
+CREATE INDEX stats_idx2 ON statistics(backend_id);
+CREATE INDEX stats_idx3 ON statistics(destination);
+
 -- Sample data
 INSERT INTO users (firstname, lastname, email, utype, active)
 VALUES
@@ -174,3 +189,8 @@ CREATE VIEW shortcode_modems AS
     SELECT a.shortcode_id, b.name, a.allowedlist FROM shortcode_allowed_modems a, backends b
     WHERE a.shortcode_id =  b.id;
 END;
+CREATE VIEW message_view AS
+    SELECT a.name, b.msg_out, to_char(b.cdate, 'yyyy-mm-dd HH24:MI:SS'::text) AS send_date,
+        b.msg_in, to_char(b.ldate, 'yyyy-mm-dd HH24:MI:SS'::text) AS receive_date, b.destination AS recipient
+    FROM backends a, messages b
+    WHERE a.id = b.backend_id ORDER BY b.id DESC;
