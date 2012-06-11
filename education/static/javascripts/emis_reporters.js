@@ -32,6 +32,15 @@ function newConnection(elem, link) {
     $('#add_contact_anchor_row').hide();
 }
 
+function scheduleSpecialScriptTermly(elem, link){
+    $('#myModal').modal('show');
+}
+
+function scheduleSpecialScriptMonthly(elem, link){
+    alert('hello');
+}
+
+
 function addNumbers(elem, action) {
     form = $(elem).parents("form");
     form_data = form.serializeArray();
