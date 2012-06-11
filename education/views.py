@@ -2564,8 +2564,6 @@ def emis_scripts_special(req):
     return render_to_response('education/partials/reporters/special_scripts.html',{'forms':forms}, RequestContext(req))
 
 def reschedule_scripts(request, script_slug):
-#    import subprocess
-#    from django.core.management import call_command
     grp = get_script_grp(script_slug)
     if script_slug.endswith('_weekly'):
 #        call_command('reschedule_weekly_polls', grp)
