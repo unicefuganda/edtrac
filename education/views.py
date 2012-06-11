@@ -2548,6 +2548,9 @@ def choose_level(request):
 def  schedule_special_script(req):
     pass
 
+def emis_scripts_special_launch(req):
+    pass
+
 def emis_scripts_special(req):
     forms = []
     for script in Script.objects.exclude(slug__icontains='weekly').exclude(slug='edtrac_autoreg').order_by('slug'):
