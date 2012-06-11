@@ -1,0 +1,27 @@
+{% extends "education/admin/admin_dashboard.html" %}
+{% load endless %}
+{% block title %} EduTrac Quitters -- {{ block.super }} {% endblock %}
+{% block content %}
+<ul class="breadcrumb">
+    <li>
+        <a href="{% url rapidsms-dashboard %}" style="text-decoration: none; line-height: inherit;">← Back to EdTrac Home Page</a>
+    </li>
+</ul>
+<div class="general">
+        <table class="classy">
+            <tr>
+                <th>Name</th>
+                <th>Number</th>
+            </tr>
+            {% paginate quitters %}
+            {% for reporter in quitters %}
+            <tr>
+                <td>{{ reporter }}</td>
+                <td>{{ reporter.default_connection }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% show_pages %}
+
+    </div>
+{% endblock %}
