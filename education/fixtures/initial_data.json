@@ -303,7 +303,7 @@
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
-            "question": "How many violence cases were reported to you in this month?", 
+            "question": "How many violence cases were reported to you this month?",
             "sites": [
                 5
             ], 
