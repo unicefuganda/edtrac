@@ -665,12 +665,13 @@ def generate_dashboard_vars(location=None):
         m_head_t_class = 'zero'
         m_head_t_data = 'data-white'
 
-    school_to_date = School.objects.filter(pk__in=EmisReporter.objects.filter(reporting_location__in = locations).values_list('schools__pk', flat=True)).count()
+    school_to_date = School.objects.filter(pk__in=EmisReporter.objects.filter(reporting_location__in = locations).\
+        values_list('schools__pk', flat=True)).count()
 
     try:
         school_reporters = EmisReporter.objects.filter(
             reporting_location__in = locations,
-            groups__name__in=["Head Teachers", "Teachers"], connection__in=Message.objects.\
+            groups__name__in=["Head Teachers", "Teachers"], connection__in=Message.objects.exclude(application='script').\
             filter(date__range = get_week_date(depth = 2)[1]).values_list('connection', flat = True)).\
             exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
         school_active = (100 * School.objects.filter(pk__in = school_reporters.values_list('schools__pk', flat=True)).\
@@ -861,7 +862,8 @@ class NationalStatistics(TemplateView):
                 Blacklist.objects.values_list('connection',flat=True)).values_list('schools__pk', flat=True))
             context['expected_reporters'] = len(schools) * 4
             # reporters that used EduTrac the past week
-            school_reporters = EmisReporter.objects.filter(groups__name__in=["Head Teachers", "Teachers"], connection__in=Message.objects.\
+            school_reporters = EmisReporter.objects.filter(groups__name__in=["Head Teachers", "Teachers"],\
+                connection__in=Message.objects.exclude(application='script').\
                 filter(date__range = get_week_date(depth = 2)[1]).values_list('connection', flat = True)).\
                 exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
 
@@ -1307,6 +1309,10 @@ def deo_dashboard(req):
     location = req.user.get_profile().location
     return render_to_response("education/deo/deo_dashboard.html", generate_dashboard_vars(location=location), RequestContext(req))
 
+@login_required
+def quitters(req):
+    quitters = EmisReporter.objects.filter(connection__identity__in=Blacklist.objects.values_list('connection__identity',flat=True))
+    return render_to_response('education/partials/reporters/quitters.html',{'quitters':quitters}, RequestContext(req))
 
 class ViolenceDeoDetails(TemplateView):
     template_name = "education/deo/deo_violence_details.html"
@@ -2539,6 +2545,20 @@ def choose_level(request):
     forms = []
     pass
 
+def  schedule_special_script(req):
+    pass
+
+def emis_scripts_special(req):
+    forms = []
+    for script in Script.objects.exclude(slug__icontains='weekly').exclude(slug='edtrac_autoreg').order_by('slug'):
+        forms.append((script, script_steps, SpecialScriptsForm(instance=script)))
+
+    if req.method == 'POST':
+        script_form = SpecialScriptsForm(req.POST, instance=Script.objects.get(slug=request.POST.get('slug')))
+        if script_form.is_valid():
+            script_form.save()
+
+    return render_to_response('education/partials/reporters/special_scripts.html',{'forms':forms}, RequestContext(req))
 
 def reschedule_scripts(request, script_slug):
 #    import subprocess

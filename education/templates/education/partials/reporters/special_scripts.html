@@ -1,0 +1,29 @@
+{% load stats_extras %}
+    {% for script, script_form in forms %}
+    <div>
+        <form action="" method="post">
+            {{ script_form.slug }}
+            <table width="100%" cellpadding="5" cellspacing="0" border=1 style="border-collapse:collapse;">
+                <tr>
+                    <td width="10%"><label for="name">Script Name:</label></td>
+                    <td>{{ script_form.name }}</td>
+                    <td><label for="enabled">Enabled:</label></td>
+
+                </tr>
+                <tr>
+                    <td><h4 style="padding:5px;">Polls</h4></td>
+                    <td colspan="2">
+                        <br/>
+                            {% for step in script.steps.all %}
+                            {% if step.message %}
+                                {{ step.message }}</br>
+                            {% else %}
+                                <input type="checkbox"/>{{ step.poll.question }}</br>
+                            {% endif %}
+                            {% endfor %}
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+    {% endfor %}
