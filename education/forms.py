@@ -372,21 +372,6 @@ class MassTextForm(ActionForm):
             return ("You don't have permission to send messages!", 'error',)
 
 
-class SpecialScriptForm(ActionForm):
-    action_label = 'Schedule Special Poll'
-    def perform(self, request, results):
-        if results is None or len(results) == 0:
-            return ('Please select at least one reporter', 'error')
-        if request.user:
-            connections = list(Connection.objects.filter(contact__in=results).distinct())
-            for connection in connections:
-                if connection.contact.emisreporter.groups.exists():
-                    _schedule_special_scripts(connection.contact.emisreporter.groups.values_list('name',flat=True)[0], connection, ['Teachers', 'Head Teachers', 'SMC'])
-            return ('Poll scheduled for %d numbers; only scheduled for Teachers, Head Teachers, and SMCs'% len(connections), 'success')
-        else:
-            return ("You don't have permission to schedule polls", "error")
-
-
 class SchoolMassTextForm(ActionForm):
 
     text = forms.CharField(max_length=160, required=True, widget=SMSInput())
@@ -452,6 +437,23 @@ class ScriptsForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'size': 60}),
             'enabled':forms.CheckboxInput(attrs={'onclick':'check_clicked(this);'})
         }
+
+class SpecialScriptsForm(forms.ModelForm):
+    class Meta:
+        model = Script
+        field = ('slug', 'name','steps')
+
+        widgets = {
+            'slug':forms.HiddenInput()
+        }
+
+    def save(self, commit = True):
+        special_script = super(SpecialScriptsForm, self).save(commit=False)
+
+        if commit:
+            special_script.save()
+class SS(forms.Form):
+    pass
 
 class SearchForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
