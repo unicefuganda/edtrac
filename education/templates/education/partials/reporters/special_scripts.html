@@ -1,15 +1,18 @@
 {% load stats_extras %}
-    {% for script, script_form in forms %}
-    <div>
-        <form action="" method="post">
-            {{ script_form.slug }}
-            <table width="100%" cellpadding="5" cellspacing="0" border=1 style="border-collapse:collapse;">
-                <tr>
-                    <td width="10%"><label for="name">Script Name:</label></td>
-                    <td>{{ script_form.name }}</td>
-                    <td><label for="enabled">Enabled:</label></td>
+<div>
+    <form action="{% url emis-special-scripts %}" method="post" id="special_script_form">
+        <div id="selected_reporters"></div>
+        {% csrf_token %}
+    {% for script in scripts %}
 
-                </tr>
+        {{ script.name }}
+        <table width="100%" cellpadding="5" cellspacing="0" border=1 style="border-collapse:collapse;">
+            <tr>
+                <td width="10%"><label for="name">Script Name:</label></td>
+                <td>{{ script.name }}</td>
+                <td><label for="enabled">Enabled:</label></td>
+
+            </tr>
                 <tr>
                     <td><h4 style="padding:5px;">Polls</h4></td>
                     <td colspan="2">
@@ -18,12 +21,18 @@
                             {% if step.message %}
                                 {{ step.message }}</br>
                             {% else %}
-                                <input type="checkbox"/>{{ step.poll.question }}</br>
+                                <input type="checkbox" name="poll_questions" value="{{step.poll.id}}-{{step.script.slug}}" />{{ step.poll.question }}</br>
                             {% endif %}
                             {% endfor %}
                     </td>
                 </tr>
             </table>
+        {% endfor %}
+        <a href="#" id="submit" class="btn btn-primary">Schedule script</a>
         </form>
     </div>
-    {% endfor %}
+        <script>
+            $("a#submit").click(function(evt){
+                $('form#special_script_form').submit();
+            });
+        </script>
