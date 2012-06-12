@@ -2547,8 +2547,6 @@ def emis_scripts_special(req):
 
         checked_numbers = req.POST.getlist('checked_numbers')
         poll_questions = req.POST.getlist('poll_questions')
-        #TODO -> extra reporters, check what group they are in
-        #TODO -> using poll questions, determine from existing script what group to set this reporter to
         poll_scripts = [pq.split('-') for pq in poll_questions] #(poll_id, script_slug)
 
         for reporter in EmisReporter.objects.filter(id__in=checked_numbers).exclude(connection=None):
