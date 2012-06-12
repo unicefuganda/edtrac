@@ -264,27 +264,6 @@ def _next_midterm():
                 d = d + datetime.timedelta((0 - d.weekday()) % 7)
     return d
 
-def _schedule_special_scripts(group_name, connection, grps):
-    if group_name in grps:
-#        script_slug = 'edtrac_%s_%s' % (group_name.lower().replace(' ', '_')+ '_weekly', connection.identity)
-#        time_stamp = strftime('%Y_%m_%d_%h%m%s')
-#        script_slug = 'edtrac_%s_monthly_%s' % (group_name.lower().replace(' ','_'), time_stamp) # timestamped
-        script_slug_dup = 'edtrac_%s_monthly' % group_name.lower().replace(' ','_') # script items being duplicated
-        # create script on the fly; post signal sent to delete such a script after it expires.
-#        script =Script.objects.create(slug=script_slug, name=script_slug)
-#        for site in Script.objects.get(slug=script_slug_dup).sites.all():
-#            script.sites.add(site)
-#
-#        for step in Script.objects.get(slug=script_slug_dup).steps.all():
-#            script.steps.add(step)
-#        script.enabled=True
-#        script.save()
-        #TODO -> discussions we had mentioned use of a time stamp; @Alfred, thoughts here??
-#        sp, _ = ScriptProgress.objects.get_or_create(connection=connection, script=script)
-        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug_dup))
-        sp.set_time(datetime.datetime.now()) # TODO -> allow setting dates uhmm...
-#        return time_stamp # needed in test
-
 def _schedule_weekly_scripts(group, connection, grps):
     """
     This method is called within a loop over several connections or for an individual connection
