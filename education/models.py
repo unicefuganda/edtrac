@@ -5,7 +5,7 @@ from django.db import models
 from django.forms import ValidationError
 from eav.models import Attribute
 from education.utils import _schedule_weekly_scripts, _schedule_monthly_script, _schedule_termly_script,\
-    _schedule_weekly_report, _schedule_monthly_report, _schedule_special_scripts
+    _schedule_weekly_report, _schedule_monthly_report
 from rapidsms_httprouter.models import mass_text_sent
 from rapidsms.models import Contact, ContactBase
 from rapidsms.contrib.locations.models import Location
