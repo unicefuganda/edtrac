@@ -111,9 +111,7 @@ urlpatterns = patterns('',
 
     url(r'^edtrac/sys-report-dist/$', sys_report_dist, name="emis-sys-report-dist"),
     url(r'^edtrac/sys-report/$', sys_report, name="emis-sys-report"),
-    url(r'^edtrac/schedule-special-script/$', schedule_special_script, name='schedule-special-modal'),
     url(r'^edtrac/scripts-special/$', emis_scripts_special, name='emis-special-scripts'),
-    url(r'^edtrac/launch-scripts-special/$', emis_scripts_special_launch, name='launch-special-script'),
 
     url(r'^edtrac/new-comment/$', new_comment, name='new-comment'),
     url(r'^edtrac/comments/$', comments, name='comments'),
