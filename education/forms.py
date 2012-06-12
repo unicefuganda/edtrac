@@ -9,7 +9,6 @@ from rapidsms.contrib.locations.models import Location
 from rapidsms.models import Backend
 from .reports import get_week_date, get_month_day_range
 from .models import School, EmisReporter, ReportComment
-from .utils import _schedule_special_scripts
 from rapidsms_xforms.models import XFormSubmissionValue
 from django.contrib.auth.models import Group, User
 from django.db.models import Q
@@ -437,23 +436,6 @@ class ScriptsForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'size': 60}),
             'enabled':forms.CheckboxInput(attrs={'onclick':'check_clicked(this);'})
         }
-
-class SpecialScriptsForm(forms.ModelForm):
-    class Meta:
-        model = Script
-        field = ('slug', 'name','steps')
-
-        widgets = {
-            'slug':forms.HiddenInput()
-        }
-
-    def save(self, commit = True):
-        special_script = super(SpecialScriptsForm, self).save(commit=False)
-
-        if commit:
-            special_script.save()
-class SS(forms.Form):
-    pass
 
 class SearchForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
