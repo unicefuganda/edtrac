@@ -5,7 +5,7 @@
         <button class="btn"><a href="javascript:void(0)" onClick="newConnection(this, '{% url education.views.add_connection %}')">Add Reporter</a></button><p></p>
     </div>
 <div id="special_script">
-    <button class="btn"><a href="javascript:void(0)" onClick="scheduleSpecialScriptTermly(this, '{% url education.views.add_connection %}')">Schedule special poll</a></button><p></p>
+    <button class="btn"><a href="javascript:void(0)" onClick="scheduleSpecialScript(this, '{% url education.views.add_connection %}')">Schedule special poll</a></button><p></p>
 </div>
 
 <div class="modal hide fade" id="myModal">
@@ -22,7 +22,7 @@
     </div>
     <div class="modal-footer">
         <a href="#" class="btn" data-dismiss="modal">Close</a>
-        <a href="{% url launch-special-script %}" class="btn btn-primary">Save changes</a>
+        <!--<a href="{% url emis-special-scripts %}" class="btn btn-primary">Save changes</a>-->
     </div>
 </div>
 <script type="text/javascript">
