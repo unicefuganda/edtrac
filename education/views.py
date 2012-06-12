@@ -15,6 +15,7 @@ from rapidsms.contrib.locations.models import Location
 from generic.views import generic
 from generic.sorters import SimpleSorter
 from poll.models import Poll
+from script.models import ScriptStep, Script
 from .reports import *
 from .utils import *
 from .utils import _schedule_monthly_script, _schedule_termly_script, _schedule_weekly_scripts
@@ -25,7 +26,7 @@ from datetime import date
 from reversion.models import Revision
 #from decimal import getcontext, Decimal
 from .utils import themes
-
+from time import strftime
 
 Num_REG = re.compile('\d+')
 
@@ -807,7 +808,7 @@ class NationalStatistics(TemplateView):
         profile = self.request.user.get_profile()
         if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
             districts = Location.objects.filter(type="district").\
-                filter(name__in=EmisReporter.objects.exclude(connection__in=Blacklist.objects.values_list('connection',flat=True))\
+                filter(name__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in=Blacklist.objects.values_list('connection',flat=True))\
                     .values_list('reporting_location__name', flat=True))
             district_schools = [
                 (district,
@@ -2539,29 +2540,49 @@ def edit_scripts(request):
     return render_to_response('education/partials/edit_script.html', {'forms': forms},
         context_instance=RequestContext(request))
 
-
-#TODO work on forms
-def choose_level(request):
-    forms = []
-    pass
-
-def  schedule_special_script(req):
-    pass
-
-def emis_scripts_special_launch(req):
-    pass
-
 def emis_scripts_special(req):
-    forms = []
-    for script in Script.objects.exclude(slug__icontains='weekly').exclude(slug='edtrac_autoreg').order_by('slug'):
-        forms.append((script, script_steps, SpecialScriptsForm(instance=script)))
+    scripts = Script.objects.exclude(slug__icontains='weekly').exclude(slug='edtrac_autoreg').order_by('slug')
 
     if req.method == 'POST':
-        script_form = SpecialScriptsForm(req.POST, instance=Script.objects.get(slug=request.POST.get('slug')))
-        if script_form.is_valid():
-            script_form.save()
 
-    return render_to_response('education/partials/reporters/special_scripts.html',{'forms':forms}, RequestContext(req))
+        checked_numbers = req.POST.getlist('checked_numbers')
+        poll_questions = req.POST.getlist('poll_questions')
+        #TODO -> extra reporters, check what group they are in
+        #TODO -> using poll questions, determine from existing script what group to set this reporter to
+        poll_scripts = [pq.split('-') for pq in poll_questions] #(poll_id, script_slug)
+
+        for reporter in EmisReporter.objects.filter(id__in=checked_numbers).exclude(connection=None):
+            _poll_scripts = []
+            if reporter.groups.exists():
+                reporter_group_name = reporter.groups.all()[0].name.lower().replace(' ', '_')
+
+            for id, script_slug in poll_scripts:
+                if re.search(reporter_group_name, script_slug):
+                    _poll_scripts.append((id, script_slug))
+            for i, li in enumerate(_poll_scripts):
+                poll_id, script_slug = li
+                s = Script.objects.get(slug=script_slug) #script
+                _script = Script.objects.create(slug="%s_%s"%(s.slug, strftime('%Y_%m_%d_%h%m%s')), name=s.name)
+
+                _script.steps.add(ScriptStep.objects.create(
+                        script=_script,
+                        poll=Poll.objects.get(id=poll_id),
+                        order=i, # using index for different order???
+                        rule=ScriptStep.RESEND_MOVEON,
+                        num_tries=1,
+                        start_offset=60,
+                        retry_offset=86400,
+                        giveup_offset=86400,
+                    ))
+                _script.save()
+                sp = ScriptProgress.objects.create(connection=reporter.default_connection, script=_script)
+                sp.set_time(datetime.datetime.now()+datetime.timedelta(seconds=90)) # 30s after default cron wait time
+                sp.save()
+        
+        return HttpResponseRedirect(reverse('emis-contact'))
+    else:
+        return render_to_response('education/partials/reporters/special_scripts.html',{'scripts':scripts}, RequestContext(req))
+
 
 def reschedule_scripts(request, script_slug):
     grp = get_script_grp(script_slug)
