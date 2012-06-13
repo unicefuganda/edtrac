@@ -2544,35 +2544,38 @@ def emis_scripts_special(req):
     scripts = Script.objects.exclude(slug__icontains='weekly').exclude(slug='edtrac_autoreg').order_by('slug')
 
     if req.method == 'POST':
-
         checked_numbers = req.POST.getlist('checked_numbers')
+        checked_numbers = [n for n in checked_numbers if re.match(r'\d+', n)]
         poll_questions = req.POST.getlist('poll_questions')
         poll_scripts = [pq.split('-') for pq in poll_questions] #(poll_id, script_slug)
 
+        _script = Script.objects.create(slug="edtrac_%s"%(strftime('%Y_%m_%d_%h%m%s')), name="Special Script")
+
+        _poll_scripts = []
+        # make sure that the poll/script to sent to just one group not a mixture of groups.
+        reporter_group_name = EmisReporter.objects.get(id=checked_numbers[0]).groups.all()[0].name.\
+            lower().replace(' ', '_')
+        for id, script_slug in poll_scripts:
+            if re.search(reporter_group_name, script_slug):
+                _poll_scripts.append((id, script_slug))
+
+        for i, li in enumerate(_poll_scripts):
+            poll_id, script_slug = li
+#            s = Script.objects.get(slug = script_slug) #script
+            _script.steps.add(ScriptStep.objects.create(
+                script = _script,
+                poll = Poll.objects.get(id = poll_id),
+                order = i, # using index for different order???
+                rule = ScriptStep.RESEND_MOVEON,
+                num_tries = 1,
+                start_offset = 60,
+                retry_offset = 86400,
+                giveup_offset = 86400,
+            ))
+            _script.save()
+
         for reporter in EmisReporter.objects.filter(id__in=checked_numbers).exclude(connection=None):
-            _poll_scripts = []
             if reporter.groups.exists():
-                reporter_group_name = reporter.groups.all()[0].name.lower().replace(' ', '_')
-
-            for id, script_slug in poll_scripts:
-                if re.search(reporter_group_name, script_slug):
-                    _poll_scripts.append((id, script_slug))
-            for i, li in enumerate(_poll_scripts):
-                poll_id, script_slug = li
-                s = Script.objects.get(slug=script_slug) #script
-                _script = Script.objects.create(slug="%s_%s"%(s.slug, strftime('%Y_%m_%d_%h%m%s')), name=s.name)
-
-                _script.steps.add(ScriptStep.objects.create(
-                        script=_script,
-                        poll=Poll.objects.get(id=poll_id),
-                        order=i, # using index for different order???
-                        rule=ScriptStep.RESEND_MOVEON,
-                        num_tries=1,
-                        start_offset=60,
-                        retry_offset=86400,
-                        giveup_offset=86400,
-                    ))
-                _script.save()
                 sp = ScriptProgress.objects.create(connection=reporter.default_connection, script=_script)
                 sp.set_time(datetime.datetime.now()+datetime.timedelta(seconds=90)) # 30s after default cron wait time
                 sp.save()
