@@ -5,7 +5,7 @@
         <button class="btn"><a href="javascript:void(0)" onClick="newConnection(this, '{% url education.views.add_connection %}')">Add Reporter</a></button><p></p>
     </div>
 <div id="special_script">
-    <button class="btn"><a href="javascript:void(0)" onClick="scheduleSpecialScript(this, '{% url education.views.add_connection %}')">Schedule special poll</a></button><p></p>
+    <button class="btn"><a href="javascript:void(0)" onClick="scheduleSpecialScript(this)">Schedule special poll</a></button><p></p>
 </div>
 
 <div class="modal hide fade" id="myModal">
@@ -16,9 +16,10 @@
     <div class="modal-body">
         <p class="scripts"></p>
         <script type="text/javascript">
-            $('p.scripts').load('{% url emis-special-scripts %}');
+            $(document).ready(function(){
+                $('p.scripts').load('{% url emis-special-scripts %}');
+            });
         </script>
-
     </div>
     <div class="modal-footer">
         <a href="#" class="btn" data-dismiss="modal">Close</a>
@@ -26,7 +27,9 @@
     </div>
 </div>
 <script type="text/javascript">
-    $("div#myModal").hide();
+    $(document).ready(function(){
+        $('div#myModal').hide();
+    });
 </script>
 
 
