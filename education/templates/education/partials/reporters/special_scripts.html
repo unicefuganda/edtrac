@@ -32,7 +32,21 @@
         </form>
     </div>
         <script>
-            $("a#submit").click(function(evt){
-                $('form#special_script_form').submit();
+            $(document).ready(function(){
+                if ($('div#selected_reporters > input[type=hidden]').length == 0 && $('input[type=checkbox]:checked').length > 0){
+                    checked_boxes = new Array();
+                    checked = $('input[type=checkbox]:checked');
+                    tmp_var = '';
+                    checked.each(function(index) {
+                        checked_boxes = $(this).val();
+                        //tmp_var += '<input type="hidden" name="checked_' + checked_boxes +'" value="'+checked_boxes +'"/>'
+                        tmp_var += '<input type="hidden" name="checked_numbers" value="'+checked_boxes +'"/>';
+                        $('div#selected_reporters').html(tmp_var);
+
+                    });
+                }
+                $("a#submit").click(function(evt){
+                    $('form#special_script_form').submit();
+                });
             });
         </script>
