@@ -32,28 +32,27 @@ function newConnection(elem, link) {
     $('#add_contact_anchor_row').hide();
 }
 
-function scheduleSpecialScript(elem, link){
-    var atLeastOneIsChecked = $('input[name="results"]:checked').length > 0
-    var allChecked = $('input[id=input_select_all]:checked').length > 0
-    if (allChecked || atLeastOneIsChecked){
-        if(allChecked){
-            checked = 'all'
-        }else if(atLeastOneIsChecked){
-            // checked = $('input[name="results"]:checked');
-            checked_boxes = new Array()
-            checked = $('input[type=checkbox]:checked')
-            tmp_var = ''
-            checked.each(function(index) {
-                checked_boxes = $(this).val()
-                //tmp_var += '<input type="hidden" name="checked_' + checked_boxes +'" value="'+checked_boxes +'"/>'
-                tmp_var += '<input type="hidden" name="checked_numbers" value="'+checked_boxes +'"/>'
-                $('div#selected_reporters').html(tmp_var)
-            })
-
-        }
-        $('#myModal').modal('show') // show modal when all validated
+function scheduleSpecialScript(elem){
+    var atLeastOneIsChecked = $('input[name="results"]:checked').length > 0;
+    var allChecked = $('input[id=input_select_all]:checked').length > 0;
+    if(allChecked){
+        checked = 'all';
+    }else if(atLeastOneIsChecked){
+        // checked = $('input[name="results"]:checked');
+        checked_boxes = new Array();
+        checked = $('input[type=checkbox]:checked');
+        tmp_var = '';
+        checked.each(function(index) {
+            checked_boxes = $(this).val();
+            //tmp_var += '<input type="hidden" name="checked_' + checked_boxes +'" value="'+checked_boxes +'"/>'
+            tmp_var += '<input type="hidden" name="checked_numbers" value="'+checked_boxes +'"/>';
+            $('div#selected_reporters').html(tmp_var);
+        });
     }else{
-        alert("Select at least one reporter before clicking this button!")
+        alert("Select at least one reporter before clicking this button!");
+    }
+    if (allChecked || atLeastOneIsChecked) {
+        $('#myModal').modal('show'); // show modal when all validated
     }
 }
 
