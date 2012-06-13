@@ -538,9 +538,16 @@ def schedule_weekly_report(grp='DEO'):
     from .utils import _schedule_report_sending
     _schedule_report_sending()
 
+def edtrac_special_script(**kwargs):
+#    connection = kwargs['connection']
+    progress = kwargs['sender']
+    #TO DO ; check if progress.script.slug name has timestamp in it
+    if re.search(r"\d+", progress.script.slug): # currently that is any slug with figures in it.
+        Script.objects.get(id = progress.script.id).delete()
+    else:
+        return
 
 Poll.register_poll_type('date', 'Date Response', parse_date_value, db_type=Attribute.TYPE_OBJECT)
-
 
 reversion.register(School)
 reversion.register(UserProfile)#, follow = ['location', 'role', 'user'])
@@ -549,6 +556,7 @@ reversion.register(ReportComment)
 
 script_progress_was_completed.connect(edtrac_autoreg, weak=False)
 script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)
+script_progress_was_completed.connect(edtrac_special_script, weak=False)
 script_progress.connect(edtrac_autoreg_transition, weak=False)
 script_progress.connect(edtrac_attendance_script_transition, weak=False)
 #script_progress.connect(edtrac_scriptrun_schedule, weak=False)
