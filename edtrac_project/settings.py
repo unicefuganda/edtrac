@@ -117,6 +117,13 @@ INSTALLED_APPS = [
 
 ]
 
+INSTALLED_APPS += ['celery', "djcelery"]
+
+import djcelery
+djcelery.setup_loader()
+CELERY_ALWAYS_EAGER = True
+TEST_RUNNER = 'djcelery.contrib.test_runner.CeleryTestSuiteRunner'
+BROKER_URL = "amqp://guest:guest@localhost:5672"
 SIMPLE_AUTOCOMPLETE_MODELS = ('rapidsms.models.Connection')
 
 
