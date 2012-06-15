@@ -539,7 +539,7 @@ def schedule_weekly_report(grp='DEO'):
     _schedule_report_sending()
 
 def edtrac_special_script(**kwargs):
-#    connection = kwargs['connection']
+    #connection = kwargs['connection']
     progress = kwargs['sender']
     #TO DO ; check if progress.script.slug name has timestamp in it
     if re.search(r"\d+", progress.script.slug): # currently that is any slug with figures in it.
