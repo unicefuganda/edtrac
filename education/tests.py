@@ -485,6 +485,8 @@ class ModelTest(TestCase): #pragma: no cover
     def testTermlyHeadTeacherSpecialPolls(self):
         self.testTermlyHeadTeacherPolls()
 
+        #TODO add testing for special script poll
+
     def testAddCelery(self):
         from education.tasks import add
         res = add.delay(3, 4)
