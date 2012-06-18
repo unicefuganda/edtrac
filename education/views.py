@@ -2549,7 +2549,7 @@ def emis_scripts_special(req):
         poll_questions = req.POST.getlist('poll_questions')
         poll_scripts = [pq.split('-') for pq in poll_questions] #(poll_id, script_slug)
 
-        _script = Script.objects.create(slug="edtrac_%s"%(strftime('%Y_%m_%d_%h%m%s')), name="Special Script")
+        _script = Script.objects.create(slug="edtrac_%s"%(strftime('%Y-%m-%d_%h%m%s')), name="Special Script")
 
         _poll_scripts = []
         # make sure that the poll/script to sent to just one group not a mixture of groups.
