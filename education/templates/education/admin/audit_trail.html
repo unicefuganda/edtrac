@@ -14,7 +14,7 @@
                 <th>comment</th>
                 <th>Date</th>
             </tr>
-            {% paginate revisions %}
+            {% paginate 50 revisions %}
             {% for user, comment, date_created in revisions %}
             <tr>
                 <td> {{ user }} </td>

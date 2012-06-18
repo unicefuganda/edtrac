@@ -21,7 +21,7 @@ Absenteeism of Female Teachers in {{ location }} -- {{ block.super }}
     <h2 class="block-header">Absenteeism of Female Teachers for {{ location }} (week: {{ week|date:"D d M Y" }})</h2>
 
     <div class="top">
-        {% paginate location_data %}
+        {% paginate 25 location_data %}
         <table class="tabulated-data">
             <thead>
             <tr>

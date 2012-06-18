@@ -12,7 +12,7 @@ Absenteeism of P6 Boys by District -- {{ block.super }}
     <h2 class="block-header">Absenteesim of P6 Boys by District (week: {{ week|date:"D d M Y" }})</h2>
 
     <div class="top">
-        {% paginate location_data %}
+        {% paginate 25 location_data %}
         <table class="tabulated-data">
             <thead>
             <tr>

@@ -17,7 +17,7 @@
     <h2 class="block-header">Absenteeism of P3 Girls for {{ location }} (week: {{ week|date:"D d M Y" }})</h2>
 
     <div class="top">
-        {% paginate location_data %}
+        {% paginate 25 location_data %}
         <table class="tabulated-data">
             <thead>
             <tr>

@@ -19,7 +19,7 @@ Absenteeism of P6 boys in {{ location }} -- {{ block.super }}
 <div class="attendance">
     <h2 class="block-header">Attendance Records for P6 Boys for {{ location }} (week: {{ week|date:"D d M Y" }})</h2>
     <div class="top">
-        {% paginate location_data %}
+        {% paginate 25 location_data %}
         <table class="tabulated-data">
             <thead>
             <tr>

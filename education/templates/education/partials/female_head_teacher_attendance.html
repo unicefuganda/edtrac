@@ -10,7 +10,7 @@
 <div class="attendance">
     <h2 class="block-header">Absenteeims of Female Head Teachers (week: {{ week|date:"D d M Y" }})</h2>
     <div class="top">
-        {% paginate location_data %}
+        {% paginate 25 location_data %}
         <table class="tabulated-data">
             <tbody>
             <tr>
