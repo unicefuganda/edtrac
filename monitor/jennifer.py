@@ -347,8 +347,8 @@ class SendQosMessages:
                 if res.find('Accept') <> -1:
                     status = 'S'
                     #best place to record statistics
-                    dic = lit(idate=datetime.now().strftime('%Y-%m-%d'), backend_id=backend_id,destination=shortcode['identity'],)
-                    log_to_stats_matrix(dbconn,dic)
+                    dic = lit(idate=datetime.now().strftime('%Y-%m-%d'), backend_id=modem['id'],destination=shortcode['identity'],)
+                    log_to_stats_matrix(db,dic)
                 elif res.find('Error') <> -1:
                     status = 'E'
                 else:
