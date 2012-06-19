@@ -541,8 +541,8 @@ def schedule_weekly_report(grp='DEO'):
 def edtrac_special_script(**kwargs):
     #connection = kwargs['connection']
     progress = kwargs['sender']
-    #TO DO ; check if progress.script.slug name has timestamp in it
-    if re.search(r"\d+", progress.script.slug): # currently that is any slug with figures in it.
+    #check if progress.script.slug name has timestamp in it (after 9999 years, change add a \d)
+    if re.search(r'\d\d\d\d-\d+-\d+ \d+\:\d+\:\d+',progress.script.slug): # currently that is any slug with figures in it.
 #        Script.objects.get(pk = progress.script.pk).delete()
         progress.delete()
     else:
