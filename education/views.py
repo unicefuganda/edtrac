@@ -694,6 +694,7 @@ def generate_dashboard_vars(location=None):
         yeses_cg = responses.get(category__name = "yes").get('value')
         nos_cg = responses.get(category__name = "no").get('value')
 
+
     # percent of those that received grants
     try:
         grant_percent = 100 * yeses_cg / (yeses_cg + nos_cg)
@@ -2548,8 +2549,9 @@ def emis_scripts_special(req):
         checked_numbers = [n for n in checked_numbers if re.match(r'\d+', n)]
         poll_questions = req.POST.getlist('poll_questions')
         poll_scripts = [pq.split('-') for pq in poll_questions] #(poll_id, script_slug)
-
-        _script = Script.objects.create(slug="edtrac_%s"%(strftime('%Y-%m-%d_%h%m%s')), name="Special Script")
+        d = datetime.datetime.now()
+        _script = Script.objects.create(slug=\
+            "edtrac_%s-%s-%s %s:%s:%s"%(d.year,d.month,d.day,d.hour, d.minute, d.second), name="Special Script")
 
         _poll_scripts = []
         # make sure that the poll/script to sent to just one group not a mixture of groups.
