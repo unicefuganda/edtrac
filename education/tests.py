@@ -636,7 +636,6 @@ class ModelTest(TestCase): #pragma: no cover
 #        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.time().minute, d.time().minute)
 
     def testWeeklySMCPolls(self):
-        import ipdb; ipdb.set_trace()
         self.register_reporter('smc')
         Script.objects.filter(slug__in=['edtrac_smc_weekly', 'edtrac_smc_monthly', 'edtrac_smc_termly']).update(enabled=True)
         prog = ScriptProgress.objects.get(script__slug='edtrac_smc_weekly', connection=self.connection)
