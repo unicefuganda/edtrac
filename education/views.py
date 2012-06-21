@@ -14,7 +14,7 @@ from uganda_common.utils import *
 from rapidsms.contrib.locations.models import Location
 from generic.views import generic
 from generic.sorters import SimpleSorter
-from poll.models import Poll
+from poll.models import Poll, ResponseCategory
 from script.models import ScriptStep, Script
 from .reports import *
 from .utils import *
@@ -299,7 +299,10 @@ def generate_dashboard_vars(location=None):
         locations.append(location)
 
     responses_to_violence = poll_response_sum("edtrac_headteachers_abuse", month_filter = 'monthly', locations = locations, month_20to19=True)
-    # percentage change in violence from previous month
+
+    """
+    Percentage change in violance from the prvious month
+    """
     violence_change = cleanup_sums(responses_to_violence)
     if violence_change > 0:
         violence_change_class = "decrease"
@@ -311,7 +314,9 @@ def generate_dashboard_vars(location=None):
         violence_change_class = "zero"
         violence_change_data = "data-white"
 
-    # CSS class (dynamic icon)
+    """
+    Attendance of P3 Pupils; this gets the absenteeism
+    """
     x, y = poll_responses_past_week_sum("edtrac_boysp3_attendance", locations=locations, weeks=2)
     enrol = poll_responses_term("edtrac_boysp3_enrollment", belongs_to="location", locations=locations)
 
@@ -551,11 +556,6 @@ def generate_dashboard_vars(location=None):
 
     # ideally head teachers match the number of SMCs in eductrac
 
-    female_head_teachers = EmisReporter.objects.filter(reporting_location__in =\
-        locations, groups__name="Head Teachers", gender='F').exclude(schools = None)
-    female_head_t_deploy = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
-        female_head_teachers.values_list('schools', flat=True),
-        groups__name = 'SMC').distinct().count()
 
     male_head_teachers = EmisReporter.objects.filter(reporting_location__in =\
         locations, groups__name="Head Teachers", gender='M').exclude(schools = None)
@@ -564,7 +564,23 @@ def generate_dashboard_vars(location=None):
         male_head_teachers.values_list('schools', flat=True),
             groups__name = 'SMC').distinct().count()
 
+
     d1, d2 = get_week_date(depth = 2)
+    head_teacher_poll = Poll.objects.get(name = 'edtrac_head_teachers_attendance')
+
+    female_head_teachers = EmisReporter.objects.filter(reporting_location__in =\
+        locations, groups__name="Head Teachers", gender='F').exclude(schools = None)
+
+    female_head_t_deploy = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
+        female_head_teachers.values_list('schools', flat=True), groups__name = 'SMC').distinct()
+    f_head_t_count = female_head_t_deploy.count() # this count is based off just SMCs that have schools attached to them.
+    # female head teachers
+    import pdb; pdb.set_trace()
+    yes_fht_d1 = ResponseCategory.objects.filter(category__name = 'yes', response__in=poll.responses.filter(date__range = d1, contact__reporting_location__in=locations))
+    yes_fht_d2 = ResponseCategory.objects.filter(category__name = 'yes', response__in=poll.responses.filter(date__range = d2, contact__reporting_location__in=locations))
+    no_fht_d1 = ResponseCategory.objects.filter(category__name = 'no', response__in=poll.responses.filter(date__range = d1, contact__reporting_location__in=locations))
+    no_fht_d2 = ResponseCategory.objects.filter(category__name = 'no', response__in=poll.responses.filter(date__range = d2, contact__reporting_location__in=locations))
+
     resp_d1_female = Poll.objects.get(name="edtrac_head_teachers_attendance").responses_by_category().filter(
         response__contact__in = EmisReporter.objects.filter(reporting_location__in = locations, schools__pk__in=\
         female_head_teachers.values_list('schools__pk', flat=True)),
