@@ -646,9 +646,6 @@ class ModelTest(TestCase): #pragma: no cover
         prog = ScriptProgress.objects.get(script__slug='edtrac_smc_weekly', connection=self.connection)
         check_progress(prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_smc_weekly').steps.get(order=0).poll.question)
-#        import ipdb;ipdb.set_trace()
-#        prog = ScriptProgress.objects.get(script__slug='edtrac_smc_weekly', connection=self.connection)
-#        self.elapseTime2(prog, (60*60)) # one hour later
         self.fake_incoming('yes')
         check_progress(prog.script)
         poll = Script.objects.get(slug='edtrac_smc_weekly').steps.get(order=0).poll
