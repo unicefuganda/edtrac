@@ -2623,5 +2623,4 @@ def attendance_visualization(req):
             {
             'geoserver_url':getattr(settings, 'GEOSERVER_URL', 'http://localhost/geoserver')
         },
-        context_instance = RequestContext(req)
-    )
+        context_instance = RequestContext(req))
