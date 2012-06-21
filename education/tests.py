@@ -51,7 +51,9 @@ class ModelTest(TestCase): #pragma: no cover
         if connection is None:
             connection = self.connection
         router = get_router()
-        return router.handle_incoming(connection.backend.name, connection.identity, message)
+        handled = router.handle_incoming(connection.backend.name, connection.identity, message)
+        return handled
+#        return router.handle_incoming(connection.backend.name, connection.identity, message)
 #        form = XForm.find_form(message)
 #        incoming_message = IncomingMessage(connection, message)
 #        incoming_message.db_message = Message.objects.create(direction="I", connection=connection, text=message)
@@ -644,18 +646,21 @@ class ModelTest(TestCase): #pragma: no cover
         prog = ScriptProgress.objects.get(script__slug='edtrac_smc_weekly', connection=self.connection)
         check_progress(prog.script)
         self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_smc_weekly').steps.get(order=0).poll.question)
+#        import ipdb;ipdb.set_trace()
+#        prog = ScriptProgress.objects.get(script__slug='edtrac_smc_weekly', connection=self.connection)
+#        self.elapseTime2(prog, (60*60)) # one hour later
         self.fake_incoming('yes')
         check_progress(prog.script)
         poll = Script.objects.get(slug='edtrac_smc_weekly').steps.get(order=0).poll
         yes_category = poll.categories.filter(name='yes')
-        response = poll.responses.all().order_by('-date')[0]
+        response = poll.responses.all().order_by('-pk')[0]
         self.assertEquals(ResponseCategory.objects.get(response__poll__name=poll.name,  category=yes_category).response, response)
         prog = ScriptProgress.objects.get(script__slug='edtrac_smc_weekly', connection=self.connection)
         self.elapseTime2(prog, 61)
         prog = ScriptProgress.objects.get(script__slug='edtrac_smc_weekly', connection=self.connection)
         check_progress(prog.script)
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
-        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.date(), _next_thursday(prog).date())
+        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.date(), _next_thursday().date())
 
     def testMonthlySMCPolls(self):
         self.register_reporter('smc')

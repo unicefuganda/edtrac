@@ -1039,7 +1039,7 @@
             "message": "", 
             "poll": 1002, 
             "order": 0, 
-            "giveup_offset": 0
+            "giveup_offset": 86400
         }
     }, 
     {
