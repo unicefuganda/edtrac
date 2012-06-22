@@ -556,15 +556,6 @@ def generate_dashboard_vars(location=None):
 
     # ideally head teachers match the number of SMCs in eductrac
 
-
-    male_head_teachers = EmisReporter.objects.filter(reporting_location__in =\
-        locations, groups__name="Head Teachers", gender='M').exclude(schools = None)
-
-    male_head_t_deploy = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
-        male_head_teachers.values_list('schools', flat=True),
-            groups__name = 'SMC').distinct().count()
-
-
     d1, d2 = get_week_date(depth = 2)
     head_teacher_poll = Poll.objects.get(name = 'edtrac_head_teachers_attendance')
 
@@ -574,46 +565,73 @@ def generate_dashboard_vars(location=None):
     female_head_t_deploy = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
         female_head_teachers.values_list('schools', flat=True), groups__name = 'SMC').distinct()
     f_head_t_count = female_head_t_deploy.count() # this count is based off just SMCs that have schools attached to them.
+
     # female head teachers
-    import pdb; pdb.set_trace()
-    yes_fht_d1 = ResponseCategory.objects.filter(category__name = 'yes', response__in=poll.responses.filter(date__range = d1, contact__reporting_location__in=locations))
-    yes_fht_d2 = ResponseCategory.objects.filter(category__name = 'yes', response__in=poll.responses.filter(date__range = d2, contact__reporting_location__in=locations))
-    no_fht_d1 = ResponseCategory.objects.filter(category__name = 'no', response__in=poll.responses.filter(date__range = d1, contact__reporting_location__in=locations))
-    no_fht_d2 = ResponseCategory.objects.filter(category__name = 'no', response__in=poll.responses.filter(date__range = d2, contact__reporting_location__in=locations))
-
-    resp_d1_female = Poll.objects.get(name="edtrac_head_teachers_attendance").responses_by_category().filter(
-        response__contact__in = EmisReporter.objects.filter(reporting_location__in = locations, schools__pk__in=\
-        female_head_teachers.values_list('schools__pk', flat=True)),
-        response__date__range = d1
-    )
-
-    resp_d2_female = Poll.objects.get(name="edtrac_head_teachers_attendance").responses_by_category().filter(
-        response__contact__in = EmisReporter.objects.filter(reporting_location__in = locations, schools__pk__in=\
-            female_head_teachers.values_list('schools__pk', flat=True)),
-            response__date__range = d2
-        )
+    yes_fht_d1 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
+        filter(date__range = d1, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
+    yes_fht_d2 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
+        filter(date__range = d2, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
+    no_fht_d1 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
+        filter(date__range = d1, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
+    no_fht_d2 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
+        filter(date__range = d2, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
 
     # get the count for female head teachers present in the last 3 days
 
-    female_d1 = extract_key_count(resp_d1_female, 'yes')
-    if female_d1 is not None:
-        try:
-            female_d1 = 100 * (female_d1 / female_head_t_deploy)
-        except ZeroDivisionError, TypeError:
-            female_d1 = 0
+    female_d1_yes = yes_fht_d1.count()
+    female_d1_no = no_fht_d1.count()
+    if (female_d1_yes + female_d1_no) > 0:
+        female_d1 = female_d1_no * 100 / sum([female_d1_no, female_d1_yes]) # messing with ya! :D
     else:
         female_d1 = '--'
 
-    female_d2 = extract_key_count(resp_d2_female, 'yes')
-    if female_d2 is not None:
-        try:
-            female_d2 = 100 * (female_d2 / female_head_t_deploy)
-        except ZeroDivisionError, TypeError:
-            female_d2 = 0
+    female_d2_yes = yes_fht_d2.count()
+    female_d2_no = no_fht_d2.count()
+    if (female_d2_yes + female_d2_no) > 0:
+        female_d2 = female_d2_no * 100 / sum([female_d2_no, female_d2_yes]) # messing with ya! :D
     else:
         female_d2 = '--'
 
-    if not female_d2 and not female_d1:
+    male_head_teachers = EmisReporter.objects.filter(reporting_location__in =\
+        locations, groups__name="Head Teachers", gender='M').exclude(schools = None)
+    male_head_t_deploy = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
+        male_head_teachers.values_list('schools', flat=True), groups__name = 'SMC').distinct()
+    m_head_t_count = male_head_t_deploy.count() # how many male head teachers are available
+
+    yes_mht_d1 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
+        filter(date__range = d1, contact__reporting_location__in=locations,
+            contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
+
+    yes_mht_d2 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
+        filter(date__range = d2, contact__reporting_location__in=locations,
+            contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
+
+    no_mht_d1 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
+        filter(date__range = d1, contact__reporting_location__in=locations,
+            contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
+
+    no_mht_d2 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
+        filter(date__range = d2, contact__reporting_location__in=locations,
+            contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
+
+
+    # get the count for female head teachers present in the last 3 days
+
+    male_d1_yes = yes_mht_d1.count()
+    male_d1_no = no_mht_d1.count()
+    if (male_d1_yes + male_d1_no) > 0:
+        male_d1 = male_d1_no * 100 / sum([male_d1_no, male_d1_yes]) # messing with ya! :D
+    else:
+        male_d1 = '--'
+
+    male_d2_yes = yes_mht_d2.count()
+    male_d2_no = no_mht_d2.count()
+    if (male_d2_yes + male_d2_no) > 0:
+        male_d2 = male_d2_no * 100 / sum([male_d2_no, male_d2_yes]) # messing with ya! :D
+    else:
+        male_d2 = '--'
+
+    if isinstance(female_d2, int) and female_d2 >= 0 and female_d1 >= 0 and isintance(female_d1, int):
 
         f_head_diff = female_d2 - female_d1
 
@@ -628,43 +646,10 @@ def generate_dashboard_vars(location=None):
             f_head_t_data = 'data-white'
     else:
         f_head_diff = '--'
-        f_head_t_class = 'zeror'
+        f_head_t_class = 'zero'
         f_head_t_data = 'data-white'
 
-    #TODO -> extract data on head teachers.
-    resp_d1_male = Poll.objects.get(name="edtrac_head_teachers_attendance").responses_by_category().filter(
-        response__contact__in = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
-            male_head_teachers.values_list('schools', flat=True)),
-        response__date__range = d1
-    )
-
-    resp_d2_male = Poll.objects.get(name="edtrac_head_teachers_attendance").responses_by_category().filter(
-        response__contact__in = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
-            male_head_teachers.values_list('schools', flat=True)),
-        response__date__range = d2
-    )
-    # get the count for female head teachers present in the last 3 days
-
-    male_d1 = extract_key_count(resp_d1_male, 'yes')
-    if male_d1 is not None:
-        try:
-            male_d1 = 100 * (male_d1 / male_head_t_deploy)
-        except ZeroDivisionError, TypeError:
-            male_d1 = 0
-    else:
-        male_d1 = '--'
-
-
-    male_d2 = extract_key_count(resp_d2_male, 'yes')
-    if male_d2 is not None:
-        try:
-            male_d2 = 100 * (male_d2 / male_head_t_deploy)
-        except ZeroDivisionError, TypeError:
-            male_d2 = 0
-    else:
-        male_d2 = '--'
-
-    if not male_d2 and not male_d1:
+    if isinstance(male_d2, int) and male_d2 >= 0 and male_d1 >= 0 and isintance(male_d1, int):
 
         m_head_diff = male_d2 - male_d1
 
