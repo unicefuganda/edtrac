@@ -2556,8 +2556,7 @@ def emis_scripts_special(req):
 
         _poll_scripts = []
         # make sure that the poll/script to sent to just one group not a mixture of groups.
-        reporter_group_name = EmisReporter.objects.get(id=checked_numbers[0]).groups.all()[0].name.\
-            lower().replace(' ', '_')
+        reporter_group_name = EmisReporter.objects.get(id=checked_numbers[0]).groups.all()[0].name.lower().replace(' ', '_')
         for id, script_slug in poll_scripts:
             if re.search(reporter_group_name, script_slug):
                 _poll_scripts.append((id, script_slug))
@@ -2576,12 +2575,54 @@ def emis_scripts_special(req):
                 giveup_offset = 86400,
             ))
             _script.save()
-
-        for reporter in EmisReporter.objects.filter(id__in=checked_numbers).exclude(connection=None):
-            if reporter.groups.exists():
+        # Hack!! When manager wants to select all (otherwise default will be all folks in group selected)
+        #for reporter in EmisReporter.objects.filter(id__in=checked_numbers).exclude(connection=None):
+        if len(checked_numbers) < 25 and len(checked_numbers) > 0:
+            # assuming that "all" is not checked
+            for reporter in EmisReporter.objects.filter(id__in=checked_numbers).exclude(connection=None):
                 sp = ScriptProgress.objects.create(connection=reporter.default_connection, script=_script)
                 sp.set_time(datetime.datetime.now()+datetime.timedelta(seconds=90)) # 30s after default cron wait time
                 sp.save()
+        else:
+            # what if the reporting location is different? Would you instead want to poll the different districts?
+            single_reporter_location = None # flag
+            reporter_location = EmisReporter.objects.filter(id__in=checked_numbers).\
+                exclude(reporting_location=None).values_list('reporting_location__name', flat=True)
+            if reporter_location.count() > 0 and len(set(reporter_location)) > 1:
+                single_reporter_location = False
+                reporter_location = EmisReporter.objects.filter(reporting_location__type = 'district').\
+                    values_list('reporting_location__name',flat=True)
+            else:
+                single_reporter_location = True
+                reporter_location = EmisReporter.objects.filter(reporting_location__type='district').\
+                    filter(reporting_location__name = reporter_location[0]).values_list('reporting_location__name',flat=True)
+
+            single_school = None
+            reporter_schools = EmisReporter.objects.filter(id__in=checked_numbers).\
+                exclude(schools=None).values_list('schools__name', flat=True)
+            if reporter_schools.count() > 0 and len(set(reporter_schools)) > 1:
+                single_school = False
+                reporter_schools = EmisReporter.objects.values_list('schools__name',flat=True)
+            else:
+                single_school = True
+                reporter_schools = EmisReporter.objects.filter(schools__name=reporter_schools[0]).values_list(
+                    'schools__name', flat=True
+                )
+
+            if single_reporter_location or single_school:
+                for reporter in EmisReporter.objects.filter(schools__name__in=reporter_schools,
+                    reporting_location__name__in = reporter_location, groups__name =\
+                        ' '.join([i.capitalize() for i in reporter_group_name.replace('_',' ').split()])).\
+                    exclude(connection=None):
+                    sp = ScriptProgress.objects.create(connection=reporter.default_connection, script=_script)
+                    sp.set_time(datetime.datetime.now()+datetime.timedelta(seconds=90)) # 30s after default cron wait time
+                    sp.save()
+            else:
+                for reporter in EmisReporter.objects.filter(groups__name =\
+                    ' '.join([i.capitalize() for i in reporter_group_name.replace('_',' ').split()])).exclude(connection=None):
+                    sp = ScriptProgress.objects.create(connection=reporter.default_connection, script=_script)
+                    sp.set_time(datetime.datetime.now()+datetime.timedelta(seconds=90)) # 30s after default cron wait time
+                    sp.save()
         
         return HttpResponseRedirect(reverse('emis-contact'))
     else:
