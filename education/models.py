@@ -542,7 +542,7 @@ def edtrac_special_script(**kwargs):
     progress = kwargs['sender']
     #check if progress.script.slug name has timestamp in it (after 9999 years, change add a \d)
     if re.search(r'\d\d\d\d-\d+-\d+ \d+\:\d+\:\d+',progress.script.slug) and not Script.objects.get(slug=progress.script.slug).scriptprogress_set.exists():
-        Script.objects.get(slug = progress.script.slug).delete()
+        Script.objects.get(name="Special Script", slug = progress.script.slug).delete()
     else:
         return
 
