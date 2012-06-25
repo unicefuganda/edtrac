@@ -383,7 +383,7 @@ def reporters(request, district_id=None):
         return EmisReporter.objects.exclude(
                     connection__id__in=Blacklist.objects.values_list('connection__id', flat=True),
                     connection__identity__in = getattr(settings, 'MODEM_NUMBERS')
-            ).exclude(reporting_location = None)
+            ).exclude(reporting_location = None).exclude(connection=None)
     else:
         user_location = get_location(request)
         return EmisReporter.objects.exclude(\
