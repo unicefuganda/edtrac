@@ -2585,7 +2585,7 @@ def emis_scripts_special(req):
                 sp.save()
         else:
             # what if the reporting location is different? Would you instead want to poll the different districts?
-            single_reporter_location = None # flag
+            single_reporter_location = True # flag
             reporter_location = EmisReporter.objects.filter(id__in=checked_numbers).\
                 exclude(reporting_location=None).values_list('reporting_location__name', flat=True)
             if reporter_location.count() > 0 and len(set(reporter_location)) > 1:
@@ -2593,18 +2593,16 @@ def emis_scripts_special(req):
                 reporter_location = EmisReporter.objects.filter(reporting_location__type = 'district').\
                     values_list('reporting_location__name',flat=True)
             else:
-                single_reporter_location = True
                 reporter_location = EmisReporter.objects.filter(reporting_location__type='district').\
                     filter(reporting_location__name = reporter_location[0]).values_list('reporting_location__name',flat=True)
 
-            single_school = None
+            single_school = True
             reporter_schools = EmisReporter.objects.filter(id__in=checked_numbers).\
                 exclude(schools=None).values_list('schools__name', flat=True)
             if reporter_schools.count() > 0 and len(set(reporter_schools)) > 1:
                 single_school = False
                 reporter_schools = EmisReporter.objects.values_list('schools__name',flat=True)
             else:
-                single_school = True
                 reporter_schools = EmisReporter.objects.filter(schools__name=reporter_schools[0]).values_list(
                     'schools__name', flat=True
                 )
