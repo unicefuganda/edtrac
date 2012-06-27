@@ -105,7 +105,7 @@ class Command(BaseCommand):
             group_name = raw_input('Name of group: ')
         if not options['script_slug']:
             script_slug = raw_input('Script slug: ')
-
+        
         try:
             poll = Poll.objects.get(name = poll_name)
             script = Script.objects.get(slug = script_slug)
@@ -113,14 +113,25 @@ class Command(BaseCommand):
                 filter(connection__identity__in=ScriptSession.objects.filter(script=script, end_time=None).\
                     values_list('connection__identity',flat=True)).\
                     values_list('connection__identity',flat=True)
-            count = Message.objects.filter(connection__identity__in=conns, direction='I').\
-                exclude(application='autoreg').count()
-            for m in Message.objects.filter(connection__identity__in=conns, direction='I').\
-                exclude(application='autoreg'):
-                count -= 1
-                _incoming_message = IncomingMessage(m.connection, m.text, received_at=m.date)
-                self.process_response(poll, _incoming_message, m)
-                self.stdout.write('\n%r - %r - %r (%r left) ' % (m.text, m.connection.identity, m.date, count))
+
+            count = Message.objects.filter(direction='I', poll__responses=None,connection__identity__in=conns).count()
+
+            reg_no = '^\\s*(no|nope|nah|nay|n)(\\s|[^a-zA-Z]|$)'
+            regex_no = re.compile(reg_no, re.IGNORECASE)
+            reg_yes = '^\\s*(yes|yeah|yep|yay|y)(\\s|[^a-zA-Z]|$)'
+            regex_yes = re.compile(reg_yes, re.IGNORECASE)
+
+
+            for m in Message.objects.filter(direction='I', poll__responses=None,connection__identity__in=conns):
+
+                if regex_no.search(m.text.lower()) or regex_yes.search(m.text.lower()): # brutally make sure YES or No is some variant of text
+                    _incoming_message = IncomingMessage(m.connection, m.text, received_at=m.date)
+                    self.process_response(poll, _incoming_message, m)
+                    count -= 1
+                    if count%20 == 0:
+                        #just for reporting purposes in terminal
+                        self.stdout.write('\n%r - %r - %r (%r left) ' % (m.text, m.connection.identity, m.date, count))
+
 
             self.stdout.write('\ndone correcting the response!!!')
         except MultipleObjectsReturned, DoesNotExist:
