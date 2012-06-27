@@ -1,0 +1,139 @@
+from django.core.exceptions import MultipleObjectsReturned
+
+from django.core.management.base import BaseCommand
+from education.models import reschedule_termly_polls
+from optparse import OptionParser, make_option
+from poll.models import Poll, Response, ResponseCategory
+from education.models import EmisReporter
+from script.models import ScriptSession, Script
+from rapidsms_httprouter.models import Message
+from rapidsms.messages.incoming import IncomingMessage
+from rapidsms.contrib.locations.models import Location
+
+class Command(BaseCommand):
+
+    option_list = BaseCommand.option_list + (make_option("-p", "--poll_name", dest="poll_name"),
+                                             make_option("-g", "--group_name", dest="group_name"),
+                                             make_option("-s", "--script_slug", dest="script_slug"))
+
+    def process_response(self, poll, incoming_message_instance, message_instance): # not nice names.
+        db_message = None
+        if hasattr(incoming_message_instance, 'db_message'):
+            db_message = incoming_message_instance.db_message
+        else:
+            db_message=incoming_message_instance
+
+        resp = Response.objects.create(poll=poll, message=message_instance, contact=db_message.connection.contact, date=db_message.date)
+
+        outgoing_message = poll.default_response
+        if (poll.type == Poll.TYPE_LOCATION):
+            location_template = STARTSWITH_PATTERN_TEMPLATE % '[a-zA-Z]*'
+            regex = re.compile(location_template, re.IGNORECASE)
+            if regex.search(incoming_message_instance.text):
+                spn = regex.search(incoming_message_instance.text).span()
+                location_str = incoming_message_instance.text[spn[0]:spn[1]]
+                area = None
+                area_names = Location.objects.all().values_list('name', flat=True)
+                area_names_lower = [ai.lower() for ai in area_names]
+                area_names_matches = difflib.get_close_matches(location_str.lower(), area_names_lower)
+                if area_names_matches:
+                    area = Location.objects.filter(name__iexact=area_names_matches[0])[0]
+                    resp.eav.poll_location_value = area
+                    resp.save()
+                else:
+                    resp.has_errors = True
+
+            else:
+                resp.has_errors = True
+
+        elif (poll.type == Poll.TYPE_NUMERIC):
+            try:
+                regex = re.compile(r"(-?\d+(\.\d+)?)")
+                #split the text on number regex. if the msg is of form
+                #'19'or '19 years' or '19years' or 'age19'or 'ugx34.56shs' it returns a list of length 4
+                msg_parts = regex.split(incoming_message_instance.text)
+                if len(msg_parts) == 4 :
+                    resp.eav.poll_number_value = float(msg_parts[1])
+                else:
+                    resp.has_errors = True
+            except IndexError:
+                resp.has_errors = True
+
+        elif ((poll.type == Poll.TYPE_TEXT) or (poll.type == Poll.TYPE_REGISTRATION)):
+            resp.eav.poll_text_value = incoming_message_instance.text
+            if poll.categories:
+                for category in poll.categories.all():
+                    for rule in category.rules.all():
+                        regex = re.compile(rule.regex, re.IGNORECASE)
+                        if regex.search(incoming_message_instance.text.lower()):
+                            rc = ResponseCategory.objects.create(response=resp, category=category)
+                            resp.categories.add(rc)
+                            if category.error_category:
+                                resp.has_errors = True
+                                outgoing_message = category.response
+                            break
+
+        elif poll.type in Poll.TYPE_CHOICES:
+            typedef = Poll.TYPE_CHOICES[poll.type]
+            try:
+                cleaned_value = typedef['parser'](incoming_message_instance.text)
+                if typedef['db_type'] == Attribute.TYPE_TEXT:
+                    resp.eav.poll_text_value = cleaned_value
+                elif typedef['db_type'] == Attribute.TYPE_FLOAT or\
+                     typedef['db_type'] == Attribute.TYPE_INT:
+                    resp.eav.poll_number_value = cleaned_value
+                elif typedef['db_type'] == Attribute.TYPE_OBJECT:
+                    resp.eav.poll_location_value = cleaned_value
+            except ValidationError as e:
+                resp.has_errors = True
+                if getattr(e, 'messages', None):
+                    outgoing_message = str(e.messages[0])
+                else:
+                    outgoing_message = None
+
+        if not resp.categories.all().count() and poll.categories.filter(default=True).count():
+            resp.categories.add(ResponseCategory.objects.create(response=resp, category=poll.categories.get(default=True)))
+            if poll.categories.get(default=True).error_category:
+                resp.has_errors = True
+                outgoing_message = poll.categories.get(default=True).response
+
+        if (not resp.has_errors or not outgoing_message):
+            for respcategory in resp.categories.order_by('category__priority'):
+                if respcategory.category.response:
+                    outgoing_message = respcategory.category.response
+                    break
+        resp.save()
+        if not outgoing_message:
+            return (resp, None,)
+        else:
+            if db_message.connection.contact and  db_message.connection.contact.language:
+                outgoing_message = gettext_db(language=db_message.connection.contact.language, field=outgoing_message)
+
+            return (resp, outgoing_message,)
+
+
+    def handle(self, **options):
+
+        if not options['poll_name']:
+            poll_name = raw_input('Name of poll: ')
+        if not options['group_name']:
+            group_name = raw_input('Name of group: ')
+        if not options['script_slug']:
+            script_slug = raw_input('Script slug: ')
+
+        try:
+            poll = Poll.objects.get(name = poll_name)
+            script = Script.objects.get(slug = script_slug)
+            conns = EmisReporter.objects.filter(groups__name=group_name).\
+            filter(connection__identity__in=ScriptSession.objects.filter(script=script, end_time=None).\
+                values_list('connection__identity',flat=True)).\
+                values_list('connection__identity',flat=True)
+
+            for m in Message.objects.filter(connection__identity__in=conns, direction='I').\
+                exclude(application='autoreg'):
+                _incoming_message = IncomingMessage(m.connection, m.text, received_at=m.date)
+#                poll.process_response(_incoming_message)
+                self.process_response(poll, _incoming_message, m)
+            self.stdout.write('\ndone correcting the response!!!')
+        except MultipleObjectsReturned, DoesNotExist:
+            raise DoesNotExist
