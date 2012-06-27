@@ -9,6 +9,7 @@ from script.models import ScriptSession, Script
 from rapidsms_httprouter.models import Message
 from rapidsms.messages.incoming import IncomingMessage
 from rapidsms.contrib.locations.models import Location
+import re
 
 class Command(BaseCommand):
 
@@ -25,7 +26,6 @@ class Command(BaseCommand):
 
         resp = Response.objects.create(poll=poll, message=message_instance, contact=db_message.connection.contact, date=db_message.date)
 
-        outgoing_message = poll.default_response
         if (poll.type == Poll.TYPE_LOCATION):
             location_template = STARTSWITH_PATTERN_TEMPLATE % '[a-zA-Z]*'
             regex = re.compile(location_template, re.IGNORECASE)
@@ -70,7 +70,6 @@ class Command(BaseCommand):
                             resp.categories.add(rc)
                             if category.error_category:
                                 resp.has_errors = True
-                                outgoing_message = category.response
                             break
 
         elif poll.type in Poll.TYPE_CHOICES:
@@ -86,30 +85,16 @@ class Command(BaseCommand):
                     resp.eav.poll_location_value = cleaned_value
             except ValidationError as e:
                 resp.has_errors = True
-                if getattr(e, 'messages', None):
-                    outgoing_message = str(e.messages[0])
-                else:
-                    outgoing_message = None
 
         if not resp.categories.all().count() and poll.categories.filter(default=True).count():
             resp.categories.add(ResponseCategory.objects.create(response=resp, category=poll.categories.get(default=True)))
             if poll.categories.get(default=True).error_category:
                 resp.has_errors = True
-                outgoing_message = poll.categories.get(default=True).response
 
-        if (not resp.has_errors or not outgoing_message):
-            for respcategory in resp.categories.order_by('category__priority'):
-                if respcategory.category.response:
-                    outgoing_message = respcategory.category.response
-                    break
         resp.save()
+        outgoing_message = None # disabled any outgoining message
         if not outgoing_message:
             return (resp, None,)
-        else:
-            if db_message.connection.contact and  db_message.connection.contact.language:
-                outgoing_message = gettext_db(language=db_message.connection.contact.language, field=outgoing_message)
-
-            return (resp, outgoing_message,)
 
 
     def handle(self, **options):
@@ -125,15 +110,18 @@ class Command(BaseCommand):
             poll = Poll.objects.get(name = poll_name)
             script = Script.objects.get(slug = script_slug)
             conns = EmisReporter.objects.filter(groups__name=group_name).\
-            filter(connection__identity__in=ScriptSession.objects.filter(script=script, end_time=None).\
-                values_list('connection__identity',flat=True)).\
-                values_list('connection__identity',flat=True)
-
+                filter(connection__identity__in=ScriptSession.objects.filter(script=script, end_time=None).\
+                    values_list('connection__identity',flat=True)).\
+                    values_list('connection__identity',flat=True)
+            count = Message.objects.filter(connection__identity__in=conns, direction='I').\
+                exclude(application='autoreg').count()
             for m in Message.objects.filter(connection__identity__in=conns, direction='I').\
                 exclude(application='autoreg'):
+                count -= 1
                 _incoming_message = IncomingMessage(m.connection, m.text, received_at=m.date)
-#                poll.process_response(_incoming_message)
                 self.process_response(poll, _incoming_message, m)
+                self.stdout.write('\n%r - %r - %r (%r left) ' % (m.text, m.connection.identity, m.date, count))
+
             self.stdout.write('\ndone correcting the response!!!')
         except MultipleObjectsReturned, DoesNotExist:
             raise DoesNotExist
