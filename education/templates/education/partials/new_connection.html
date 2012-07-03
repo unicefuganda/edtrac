@@ -7,8 +7,9 @@
         </tr>
         <tr>
             <td colspan="6">
-                <a href="javascript:void(0)" onclick="addNumbers(this, '{% url education.views.add_connection %}');$('#add_contact_anchor_row').show();">Add</a> | 
-                <a href="javascript:void(0)" onclick="$('#add_contact_form').html('');$('#add_contact_anchor_row').show();">Cancel</a>
+                <button class="btn">
+                    <a href="javascript:void(0)" onclick="addNumbers(this, '{% url education.views.add_connection %}');$('#add_contact_anchor_row').show();">Add</a> </button>| 
+                <button class="btn"><a href="javascript:void(0)" onclick="$('#add_contact_form').html('');$('#add_contact_anchor_row').show();">Cancel</a></button>
             </td>
         </tr>
     </table>
