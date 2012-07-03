@@ -105,7 +105,6 @@ class Command(BaseCommand):
             group_name = raw_input('Name of group: ')
         if not options['script_slug']:
             script_slug = raw_input('Script slug: ')
-            
         try:
             poll = Poll.objects.get(name = poll_name)
             script = Script.objects.get(slug = script_slug)
