@@ -819,7 +819,7 @@ class NationalStatistics(TemplateView):
                 for district in districts
             ]
             #School.objects.filter(pk__in=\
-            #    EmisReporter.objects.filter(reporting_location=district).exclude(schools = None).values_list('schools__pk',flat=True)).count())            
+            #    EmisReporter.objects.filter(reporting_location=district).exclude(schools = None).values_list('schools__pk',flat=True)).count())
             context['total_districts'] = districts.count()
             context['district_schools'] = district_schools
             context['school_count'] = School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).\
@@ -1010,129 +1010,127 @@ class CapitationGrants(TemplateView):
 
 
 # Details views... specified by ROLES
-class ViolenceAdminDetails(TemplateView):
-    template_name = "education/admin/admin_violence_details.html"
-    #TODO open this up with more data variables
-    def get_context_data(self, **kwargs):
-        context = super(ViolenceAdminDetails, self).get_context_data(**kwargs)
-        #TODO: filtering by ajax and time
-        profile = self.request.user.get_profile()
-        if profile.is_member_of('Ministry Officials') or profile.is_member_of('UNICEF Officials') or profile.is_member_of('Admins'):
-            location = Location.objects.get(name="Uganda")
+def violence_details_dash(req):
+    profile = req.user.get_profile()
+    context_vars = {}
+    if profile.is_member_of('Minstry Officials') or profile.is_member_of('UNICEF Officials') or profile.is_member_of('Admins'):
+        location = Location.objects.get(name = 'Uganda')
+    else:
+        location = profile.location
+
+    violence_cases_schools = poll_response_sum("edtrac_headteachers_abuse", location=location, month_filter=True, months=2, ret_type=list)
+
+    violence_cases_gem = poll_response_sum('edtrac_gem_abuse', location=location, month_filter=True, months=2, ret_type=list)
+
+    general_violence = get_numeric_report_data('edtrac_headteachers_abuse', location=location)
+
+    school_total = [] # total violence cases reported by school
+    for name, list_val in violence_cases_schools:
+        try:
+            diff = (list_val[0] - list_val[1]) / list_val[0]
+        except ZeroDivisionError:
+            diff = '--'
+        school_total.append((list_val[0], list_val[1], diff))
+        list_val.append(diff)
+
+    context_vars['violence_cases_reported_by_schools'] = violence_cases_schools
+
+    first_col, second_col, third_col = [],[],[]
+    for first, second, third in school_total:
+        first_col.append(first), second_col.append(second), third_col.append(third)
+    first_col = [i for i in first_col if i != '--']
+    second_col = [i for i in second_col if i != '--']
+    third_col = [i for i in third_col if i != '--']
+
+    context_vars['school_totals'] = [sum(first_col), sum(second_col), sum(third_col)]
+
+    gem_total = [] # total violence cases reported by school
+    for name, list_val in violence_cases_gem:
+        try:
+            diff = (list_val[0] - list_val[1]) / list_val[0]
+        except ZeroDivisionError:
+            diff = '--'
+        gem_total.append((list_val[0], list_val[1], diff))
+        list_val.append(diff)
+
+    context_vars['violence_cases_reported_by_gem'] = violence_cases_gem
+
+    first_col, second_col, third_col = [],[],[]
+    for first, second, third in gem_total:
+        first_col.append(first), second_col.append(second), third_col.append(third)
+    first_col = [i for i in first_col if i != '--']
+    second_col = [i for i in second_col if i != '--']
+    third_col = [i for i in third_col if i != '--']
+    context_vars['gem_totals'] = [sum(first_col), sum(second_col), sum(third_col)]
+
+
+    # depth of 2 months
+    context_vars['report_dates'] = [start for start, end in get_month_day_range(datetime.datetime.now(), depth=2)]
+    school_report_count = 0
+    gem_report_count = 0
+    #TODO
+    # -> 100 * (reports-that-are-sent-to-edtrac / reports-that-should-have-come-edtrac a.k.a. all schools)
+    #
+    # Assumes every administrator's location is the root location Uganda
+    for dr in get_month_day_range(datetime.datetime.now(), depth=2):
+
+        if profile.location.type.name == 'country':
+            contacts = Contact.objects.filter(reporting_location__in=profile.\
+                location.get_descendants().filter(type="district"))
         else:
-            location = profile.location
+            contacts = Contact.objects.filter(reporting_location=profile.location)
 
-        violence_cases_schools = poll_response_sum("edtrac_headteachers_abuse",
-            location=location, month_filter=True, months=2, ret_type=list)
+        school_resp_count = Poll.objects.get(name="edtrac_headteachers_abuse").responses.filter(
+            contact__in = contacts,
+            date__range = dr).count()
 
-        violence_cases_gem = poll_response_sum('edtrac_gem_abuse', location=location, month_filter=True, months=2, ret_type=list)
+        gem_resp_count = Poll.objects.get(name="edtrac_gem_abuse").responses.filter(
+            contact__in = contacts,
+            date__range = dr).count()
 
-        general_violence = get_numeric_report_data('edtrac_headteachers_abuse', location=location)
+        school_report_count += school_resp_count
+        gem_report_count += gem_resp_count
 
-        school_total = [] # total violence cases reported by school
-        for name, list_val in violence_cases_schools:
-            try:
-                diff = (list_val[0] - list_val[1]) / list_val[0]
-            except ZeroDivisionError:
-                diff = '--'
-            school_total.append((list_val[0], list_val[1], diff))
-            list_val.append(diff)
+    try:
+        context_vars['sch_reporting_percentage'] = 100 * ( school_report_count / (float(len(get_month_day_range(datetime.datetime.now(),
+            depth=2))) * school_report_count))
+    except ZeroDivisionError:
+        context_vars['sch_reporting_percentage'] = 0
 
-        context['violence_cases_reported_by_schools'] = violence_cases_schools
+    try:
+        context_vars['gem_reporting_percentage'] = 100 * ( gem_report_count / (float(len(get_month_day_range(datetime.datetime.now(),
+            depth=2))) * gem_report_count))
+    except ZeroDivisionError:
+        context_vars['gem_reporting_percentage'] = 0
 
-        first_col, second_col, third_col = [],[],[]
-        for first, second, third in school_total:
-            first_col.append(first), second_col.append(second), third_col.append(third)
-        first_col = [i for i in first_col if i != '--']
-        second_col = [i for i in second_col if i != '--']
-        third_col = [i for i in third_col if i != '--']
-
-        context['school_totals'] = [sum(first_col), sum(second_col), sum(third_col)]
-
-        gem_total = [] # total violence cases reported by school
-        for name, list_val in violence_cases_gem:
-            try:
-                diff = (list_val[0] - list_val[1]) / list_val[0]
-            except ZeroDivisionError:
-                diff = '--'
-            gem_total.append((list_val[0], list_val[1], diff))
-            list_val.append(diff)
-
-        context['violence_cases_reported_by_gem'] = violence_cases_gem
-
-        first_col, second_col, third_col = [],[],[]
-        for first, second, third in gem_total:
-            first_col.append(first), second_col.append(second), third_col.append(third)
-        first_col = [i for i in first_col if i != '--']
-        second_col = [i for i in second_col if i != '--']
-        third_col = [i for i in third_col if i != '--']
-        context['gem_totals'] = [sum(first_col), sum(second_col), sum(third_col)]
+    now = datetime.datetime.now()
+    month_ranges = get_month_day_range(now, depth=now.month)
+    month_ranges.sort()
 
 
-        # depth of 2 months
-        context['report_dates'] = [start for start, end in get_month_day_range(datetime.datetime.now(), depth=2)]
-        school_report_count = 0
-        gem_report_count = 0
-        #TODO
-        # -> 100 * (reports-that-are-sent-to-edtrac / reports-that-should-have-come-edtrac a.k.a. all schools)
-        #
-        # Assumes every administrator's location is the root location Uganda
-        for dr in get_month_day_range(datetime.datetime.now(), depth=2):
+    h_teach_month = []
+    h_teach_data = []
+    gem_data = []
 
-            if self.request.user.get_profile().location.type.name == 'country':
-                contacts = Contact.objects.filter(reporting_location__in=self.request.user.get_profile().\
-                    location.get_descendants().filter(type="district"))
-            else:
-                contacts = Contact.objects.filter(reporting_location=self.request.user.get_profile().location)
+    for month_range in month_ranges:
+        h_teach_month.append(month_range[0].strftime('%B'))
+        h_teach_data.append(get_numeric_report_data('edtrac_headteachers_abuse',time_range=month_range, to_ret = 'sum'))
+        gem_data.append(get_numeric_report_data('edtrac_gem_abuse',time_range=month_range, to_ret = 'sum'))
 
-            school_resp_count = Poll.objects.get(name="edtrac_headteachers_abuse").responses.filter(
-                contact__in = contacts,
-                date__range = dr).count()
+    monthly_data_h_teachers = ';'.join([str(item[0])+'-'+str(item[1]) for item in zip(h_teach_month, h_teach_data)])
 
-            gem_resp_count = Poll.objects.get(name="edtrac_gem_abuse").responses.filter(
-                contact__in = contacts,
-                date__range = dr).count()
+    gem_month = copy.deepcopy(h_teach_month)
+    monthly_data_gem = ';'.join([str(item[0])+'-'+str(item[1]) for item in zip(gem_month, gem_data)])
 
-            school_report_count += school_resp_count
-            gem_report_count += gem_resp_count
+    context_vars['monthly_data_gem'] = monthly_data_gem
+    context_vars['monthly_data_h_teach'] = monthly_data_h_teachers
 
-        try:
-            context['sch_reporting_percentage'] = 100 * ( school_report_count / (float(len(get_month_day_range(datetime.datetime.now(),
-                depth=2))) * school_report_count))
-        except ZeroDivisionError:
-            context['sch_reporting_percentage'] = 0
+    if profile.is_member_of('Minstry Officials') or profile.is_member_of('UNICEF Officials') or profile.is_member_of('Admins'):
+        return render_to_response('education/admin/admin_violence_details.html', context_vars, RequestContext(req))
+    elif profile.is_member_of('DEO'):
+        context_vars['location_name'] = profile.location
+        return render_to_response('education/deo/deo2_violence_details.html', context_vars, RequestContext(req))
 
-        try:
-            context['gem_reporting_percentage'] = 100 * ( gem_report_count / (float(len(get_month_day_range(datetime.datetime.now(),
-                depth=2))) * gem_report_count))
-        except ZeroDivisionError:
-            context['gem_reporting_percentage'] = 0
-
-        now = datetime.datetime.now()
-        month_ranges = get_month_day_range(now, depth=now.month)
-        month_ranges.sort()
-
-
-        h_teach_month = []
-        h_teach_data = []
-        gem_data = []
-
-        for month_range in month_ranges:
-            h_teach_month.append(month_range[0].strftime('%B'))
-            h_teach_data.append(get_numeric_report_data('edtrac_headteachers_abuse',time_range=month_range, to_ret = 'sum'))
-            gem_data.append(get_numeric_report_data('edtrac_gem_abuse',time_range=month_range, to_ret = 'sum'))
-
-        monthly_data_h_teachers = ';'.join([str(item[0])+'-'+str(item[1]) for item in zip(h_teach_month, h_teach_data)])
-
-        gem_month = copy.deepcopy(h_teach_month)
-        monthly_data_gem = ';'.join([str(item[0])+'-'+str(item[1]) for item in zip(gem_month, gem_data)])
-
-        context['monthly_data_gem'] = monthly_data_gem
-        context['monthly_data_h_teach'] = monthly_data_h_teachers
-
-        return context
-
-#District violence details (TODO: permission/rolebased viewing)
 class DistrictViolenceDetails(TemplateView):
     template_name = "education/dashboard/district_violence_detail.html"
 
@@ -1197,7 +1195,7 @@ class AttendanceAdminDetails(TemplateView):
         context['week'] = datetime.datetime.now()
         context['location'] = profile.location
         return context
-        
+
 
 # search functionality
 def search_form(req):
@@ -1652,7 +1650,7 @@ def girls_p3_attd_admin(req, locations=None):
     Helper function to get differences in absenteeism across districts for P3 girls
     """
     to_ret = return_absent('edtrac_girlsp3_attendance', 'edtrac_girlsp3_enrollment', locations=locations)
-    return render_to_response('education/partials/girls_p3_attd_admin.html', 
+    return render_to_response('education/partials/girls_p3_attd_admin.html',
         {'location_data':to_ret,'headings':HEADINGS,'week':datetime.datetime.now()}, RequestContext(req))
 
 
@@ -2621,7 +2619,7 @@ def emis_scripts_special(req):
                     sp = ScriptProgress.objects.create(connection=reporter.default_connection, script=_script)
                     sp.set_time(datetime.datetime.now()+datetime.timedelta(seconds=90)) # 30s after default cron wait time
                     sp.save()
-        
+
         return HttpResponseRedirect(reverse('emis-contact'))
     else:
         return render_to_response('education/partials/reporters/special_scripts.html',{'scripts':scripts}, RequestContext(req))
