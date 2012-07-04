@@ -2334,7 +2334,7 @@ def school_reporters_to_excel(req):
 def excel_reports(req):
     return render_to_response('education/excelreports/excel_dashboard.html',{},RequestContext(req))
 
-@super_user_required
+@login_required
 def edit_user(request, user_pk=None):
     title=""
     user=User()
