@@ -193,7 +193,7 @@ urlpatterns = patterns('',
     url(r'^edtrac/users/(\d+)/edit/', edit_user, name='edit_user'),
     url(r'^edtac/users/add/', edit_user, name='add_user'),
 
-    url(r'^edtrac/user/$', super_user_required(generic), {
+    url(r'^edtrac/user/$', generic, {
         'model':User,
         'objects_per_page':25,
         'partial_row':'education/partials/user_row.html',
