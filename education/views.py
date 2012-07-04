@@ -136,7 +136,7 @@ def dash_admin_progress(req):
                 reporting_location = None,
                 schools = None,\
                 connection__in = Blacklist.objects.values_list('connection', flat=True)).\
-                values_list('reporting_location__pk', flat=True))
+            values_list('reporting_location__pk', flat=True))
         loc_data = []
         for location in locations:
             try:
@@ -155,9 +155,9 @@ def dash_admin_progress(req):
         p = Poll.objects.get(name='edtrac_p3curriculum_progress')
         for school in schools:
             response_dates = p.responses.filter(contact__connection__in = school.emisreporter_set.\
-                values_list('connection',flat=True)).values_list('date', flat=True)
+            values_list('connection',flat=True)).values_list('date', flat=True)
             response = [r.eav.poll_number_value for r in p.responses.\
-                filter(contact__connection__in = school.emisreporter_set.values_list('connection',flat=True))]
+            filter(contact__connection__in = school.emisreporter_set.values_list('connection',flat=True))]
             response_sieve = zip(response_dates, response)
             response_sieve = sorted(response_sieve, reverse=True)
             try:
@@ -176,22 +176,22 @@ def dash_admin_progress(req):
         temp_2 = sorted(temp_2, key=operator.itemgetter(1), reverse=True)
         loc_data = temp_2 + temp
         return render_to_response('education/progress/district_progress_details.html',
-            {'location_data':loc_data, 'location':profile.location}, RequestContext(req))
+                {'location_data':loc_data, 'location':profile.location}, RequestContext(req))
 
 def dash_admin_progress_district(req, district_pk):
     location = Location.objects.filter(type="district").get(pk=district_pk)
 
     schools = School.objects.filter(pk__in = EmisReporter.objects.filter(reporting_location=location).\
-        values_list('schools__pk', flat=True)).order_by('name')
+    values_list('schools__pk', flat=True)).order_by('name')
     loc_data = []
 
     p = Poll.objects.get(name='edtrac_p3curriculum_progress')
     for school in schools:
         response_dates = p.responses.filter(contact__connection__in = school.emisreporter_set.\
-            values_list('connection',flat=True)).values_list('date', flat=True)
+        values_list('connection',flat=True)).values_list('date', flat=True)
 
         response = [r.eav.poll_number_value for r in p.responses.\
-            filter(contact__connection__in = school.emisreporter_set.values_list('connection',flat=True))]
+        filter(contact__connection__in = school.emisreporter_set.values_list('connection',flat=True))]
         response_sieve = zip(response_dates, response)
         response_sieve = sorted(response_sieve, reverse=True)
         try:
@@ -202,7 +202,7 @@ def dash_admin_progress_district(req, district_pk):
         except IndexError:
             # no or missing data
             loc_data.append([school, 'missing'])
-        # clean up
+            # clean up
         loc_data = sorted(loc_data, key=operator.itemgetter(1))
         temp = [item for item in loc_data if item[1] == 'missing' or item[1] == 'incorrect response']
         temp_2 = [item for item in loc_data if item not in temp]
@@ -226,7 +226,7 @@ def dash_admin_meetings(req):
     p = Poll.objects.get(name = 'edtrac_smc_meetings')
 
     schools_to_date = School.objects.filter(pk__in=EmisReporter.objects.\
-        filter(reporting_location__in = locations).values_list('schools__pk', flat=True)).count()
+    filter(reporting_location__in = locations).values_list('schools__pk', flat=True)).count()
 
     if profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials') or profile.is_member_of('Ministry Officials'):
         meeting_count = get_count_response_to_polls(p,
@@ -264,8 +264,8 @@ def dash_district_meetings(req, district_name):
     p = Poll.objects.get(name = 'edtrac_smc_meetings')
 
     schools_data = EmisReporter.objects.exclude(connection__in = Blacklist.objects.values_list('connection')).\
-        filter(groups__name = 'SMC', reporting_location = district).exclude(schools = None).order_by('schools__name').\
-        values_list('schools__name','schools__id','connection__pk')
+    filter(groups__name = 'SMC', reporting_location = district).exclude(schools = None).order_by('schools__name').\
+    values_list('schools__name','schools__id','connection__pk')
 
     school_container = {}
     for school_name, school_id, smc_connection in schools_data:
@@ -560,21 +560,21 @@ def generate_dashboard_vars(location=None):
     head_teacher_poll = Poll.objects.get(name = 'edtrac_head_teachers_attendance')
 
     female_head_teachers = EmisReporter.objects.filter(reporting_location__in =\
-        locations, groups__name="Head Teachers", gender='F').exclude(schools = None)
+    locations, groups__name="Head Teachers", gender='F').exclude(schools = None)
 
     female_head_t_deploy = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
-        female_head_teachers.values_list('schools', flat=True), groups__name = 'SMC').distinct()
+    female_head_teachers.values_list('schools', flat=True), groups__name = 'SMC').distinct()
     f_head_t_count = female_head_t_deploy.count() # this count is based off just SMCs that have schools attached to them.
 
     # female head teachers
     yes_fht_d1 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
-        filter(date__range = d1, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
+    filter(date__range = d1, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
     yes_fht_d2 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
-        filter(date__range = d2, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
+    filter(date__range = d2, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
     no_fht_d1 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
-        filter(date__range = d1, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
+    filter(date__range = d1, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
     no_fht_d2 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
-        filter(date__range = d2, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
+    filter(date__range = d2, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
 
     # get the count for female head teachers present in the last 3 days
 
@@ -593,26 +593,26 @@ def generate_dashboard_vars(location=None):
         female_d2 = '--'
 
     male_head_teachers = EmisReporter.objects.filter(reporting_location__in =\
-        locations, groups__name="Head Teachers", gender='M').exclude(schools = None)
+    locations, groups__name="Head Teachers", gender='M').exclude(schools = None)
     male_head_t_deploy = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
-        male_head_teachers.values_list('schools', flat=True), groups__name = 'SMC').distinct()
+    male_head_teachers.values_list('schools', flat=True), groups__name = 'SMC').distinct()
     m_head_t_count = male_head_t_deploy.count() # how many male head teachers are available
 
     yes_mht_d1 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
-        filter(date__range = d1, contact__reporting_location__in=locations,
-            contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
+    filter(date__range = d1, contact__reporting_location__in=locations,
+        contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
 
     yes_mht_d2 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
-        filter(date__range = d2, contact__reporting_location__in=locations,
-            contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
+    filter(date__range = d2, contact__reporting_location__in=locations,
+        contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
 
     no_mht_d1 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
-        filter(date__range = d1, contact__reporting_location__in=locations,
-            contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
+    filter(date__range = d1, contact__reporting_location__in=locations,
+        contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
 
     no_mht_d2 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
-        filter(date__range = d2, contact__reporting_location__in=locations,
-            contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
+    filter(date__range = d2, contact__reporting_location__in=locations,
+        contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
 
 
     # get the count for female head teachers present in the last 3 days
@@ -668,16 +668,16 @@ def generate_dashboard_vars(location=None):
         m_head_t_data = 'data-white'
 
     school_to_date = School.objects.filter(pk__in=EmisReporter.objects.filter(reporting_location__in = locations).\
-        values_list('schools__pk', flat=True)).count()
+    values_list('schools__pk', flat=True)).count()
 
     try:
         school_reporters = EmisReporter.objects.filter(
             reporting_location__in = locations,
             groups__name__in=["Head Teachers", "Teachers"], connection__in=Message.objects.exclude(application='script').\
             filter(date__range = get_week_date(depth = 2)[1]).values_list('connection', flat = True)).\
-            exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
+        exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
         school_active = (100 * School.objects.filter(pk__in = school_reporters.values_list('schools__pk', flat=True)).\
-            count()) / school_to_date
+        count()) / school_to_date
     except ZeroDivisionError:
         school_active = 0
 
@@ -706,10 +706,10 @@ def generate_dashboard_vars(location=None):
     smc_meeting_poll = Poll.objects.get(name = 'edtrac_smc_meetings')
     meetings = [r.eav.poll_number_value
                 for r in smc_meeting_poll.responses.filter(
-                contact__reporting_location__in=locations,
-                date__range =\
-                [getattr(settings, 'SCHOOL_TERM_START'),
-                 getattr(settings, 'SCHOOL_TERM_END')]) if r.eav.poll_number_value is not None]
+        contact__reporting_location__in=locations,
+        date__range =\
+        [getattr(settings, 'SCHOOL_TERM_START'),
+         getattr(settings, 'SCHOOL_TERM_END')]) if r.eav.poll_number_value is not None]
     zero_count = meetings.count(0)
 
     try:
@@ -778,7 +778,7 @@ def generate_dashboard_vars(location=None):
 @login_required
 def admin_dashboard(request):
     if request.user.get_profile().is_member_of('Ministry Officials') or request.user.get_profile().is_member_of('Admins')\
-        or request.user.get_profile().is_member_of('UNICEF Officials'):
+    or request.user.get_profile().is_member_of('UNICEF Officials'):
         location = Location.objects.get(name="Uganda")
     else:
         location = request.user.get_profile().location
@@ -793,10 +793,10 @@ class NationalStatistics(TemplateView):
     def compute_percent(self, reps, groups = []):
         if groups:
             all_reporters = EmisReporter.objects.filter(groups__name__in=groups).exclude(connection__in=\
-                Blacklist.objects.values_list('connection',flat=True))
+            Blacklist.objects.values_list('connection',flat=True))
         else:
             all_reporters = EmisReporter.objects.exclude(connection__in=\
-                Blacklist.objects.values_list('connection',flat=True))
+            Blacklist.objects.values_list('connection',flat=True))
 
         try:
             return 100 * reps.count() / all_reporters.count()
@@ -810,31 +810,31 @@ class NationalStatistics(TemplateView):
         profile = self.request.user.get_profile()
         if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
             districts = Location.objects.filter(type="district").\
-                filter(name__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in=Blacklist.objects.values_list('connection',flat=True))\
-                    .values_list('reporting_location__name', flat=True))
+            filter(name__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in=Blacklist.objects.values_list('connection',flat=True))\
+            .values_list('reporting_location__name', flat=True))
             district_schools = [
-                (district,
-                School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).\
-                    filter(reporting_location__name = district.name).distinct().values_list('schools__pk',flat=True)).count())
-                for district in districts
+            (district,
+             School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).\
+             filter(reporting_location__name = district.name).distinct().values_list('schools__pk',flat=True)).count())
+            for district in districts
             ]
             #School.objects.filter(pk__in=\
             #    EmisReporter.objects.filter(reporting_location=district).exclude(schools = None).values_list('schools__pk',flat=True)).count())
             context['total_districts'] = districts.count()
             context['district_schools'] = district_schools
             context['school_count'] = School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).\
-                exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).distinct().values_list('schools__pk',flat=True)).count()
+            exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).distinct().values_list('schools__pk',flat=True)).count()
             # getting weekly system usage
             # reporters that sent messages in the past week.
             reps = EmisReporter.objects.filter(groups__name="Head Teachers", connection__in=Message.objects.\
-                filter(date__range = get_week_date(depth = 2)[1]).values_list('connection', flat = True)).\
-                exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
+            filter(date__range = get_week_date(depth = 2)[1]).values_list('connection', flat = True)).\
+            exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
 
             district_active = [
-                    (
-                    district, self.compute_percent(reps.filter(reporting_location__pk=district.pk), groups=['Head Teachers'])
-                    )
-                for district in districts
+            (
+                district, self.compute_percent(reps.filter(reporting_location__pk=district.pk), groups=['Head Teachers'])
+                )
+            for district in districts
             ]
             district_active.sort(key=operator.itemgetter(1), reverse=True)
             context['district_active'] = district_active[:3]
@@ -842,15 +842,15 @@ class NationalStatistics(TemplateView):
 
             context['head_teacher_count'] = reps.count()
             context['smc_count'] = EmisReporter.objects.exclude(schools=None).exclude(connection__in = Blacklist.objects.\
-                values_list('connection', flat = True)).filter(groups__name = "SMC").count()
+            values_list('connection', flat = True)).filter(groups__name = "SMC").count()
 
             context['p6_teacher_count'] = EmisReporter.objects.exclude(schools=None, connection__in = Blacklist.objects.\
-                values_list('connection', flat = True)).filter(groups__name = "Teachers", grade = "P6").count()
+            values_list('connection', flat = True)).filter(groups__name = "Teachers", grade = "P6").count()
 
             context['p3_teacher_count'] = EmisReporter.objects.exclude(schools=None, connection__in = Blacklist.objects.\
-                values_list('connection', flat = True)).filter(groups__name = "Teachers", grade = "P3").count()
+            values_list('connection', flat = True)).filter(groups__name = "Teachers", grade = "P3").count()
             context['total_teacher_count'] = EmisReporter.objects.exclude(schools=None, connection__in = Blacklist.objects.\
-                values_list('connection', flat = True)).filter(groups__name="Teachers").count()
+            values_list('connection', flat = True)).filter(groups__name="Teachers").count()
 
             context['deo_count'] = EmisReporter.objects.exclude(schools=None, connection__in = Blacklist.objects.\
             values_list('connection', flat = True)).filter(groups__name="DEO").count()
@@ -862,18 +862,18 @@ class NationalStatistics(TemplateView):
             values_list('connection', flat = True)).count()
 
             schools = School.objects.filter(pk__in = EmisReporter.objects.exclude(schools=None, connection__in=\
-                Blacklist.objects.values_list('connection',flat=True)).values_list('schools__pk', flat=True))
+            Blacklist.objects.values_list('connection',flat=True)).values_list('schools__pk', flat=True))
             context['expected_reporters'] = len(schools) * 4
             # reporters that used EduTrac the past week
             school_reporters = EmisReporter.objects.filter(groups__name__in=["Head Teachers", "Teachers"],\
                 connection__in=Message.objects.exclude(application='script').\
                 filter(date__range = get_week_date(depth = 2)[1]).values_list('connection', flat = True)).\
-                exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
+            exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
 
             school_active = [
-                (school, self.compute_percent(school_reporters.filter(schools__pk=school.pk), groups=['Head Teachers', 'Teachers']))
-                for school in schools
-                ]
+            (school, self.compute_percent(school_reporters.filter(schools__pk=school.pk), groups=['Head Teachers', 'Teachers']))
+            for school in schools
+            ]
 
             school_active.sort(key=operator.itemgetter(1), reverse=True)
             context['school_active_count'] = School.objects.filter(pk__in = school_reporters.values_list('schools__pk', flat=True)).count()
@@ -936,18 +936,18 @@ class CapitationGrants(TemplateView):
             responses = cg.responses_by_category(location=Location.tree.root_nodes()[0])
             all_responses = cg.responses_by_category()
             location_ids = Location.objects.filter(
-                type="district", pk__in = \
-                    EmisReporter.objects.exclude(connection__in=Blacklist.objects.\
-                        values_list('connection', flat=True), schools=None).filter(groups__name="Head Teachers").\
-                        values_list('reporting_location__pk',flat=True)).values_list('id',flat=True)
+                type="district", pk__in =\
+                EmisReporter.objects.exclude(connection__in=Blacklist.objects.\
+                values_list('connection', flat=True), schools=None).filter(groups__name="Head Teachers").\
+                values_list('reporting_location__pk',flat=True)).values_list('id',flat=True)
 
             locs = Location.objects.filter(id__in = location_ids)
 
             districts_to_ret = []
             for location in locs:
                 head_teacher_count = EmisReporter.objects.exclude(schools = None, connection__in =\
-                    Blacklist.objects.values_list('connection', flat = True)).filter(reporting_location=location,
-                        groups__name = 'Head Teachers').count()
+                Blacklist.objects.values_list('connection', flat = True)).filter(reporting_location=location,
+                    groups__name = 'Head Teachers').count()
                 other_responses = list(cg.responses_by_category(location = location, for_map=False))
 
                 info = self.extract_info(other_responses)
@@ -988,14 +988,14 @@ class CapitationGrants(TemplateView):
                 for_map = False
             )
             htc = EmisReporter.objects.exclude(schools = None, connection__in =\
-                    Blacklist.objects.values_list('connection', flat = True)).filter(groups__name = 'Head Teachers',\
-                    reporting_location = location).count()
+            Blacklist.objects.values_list('connection', flat = True)).filter(groups__name = 'Head Teachers',\
+                reporting_location = location).count()
             try:
 
                 htc_p = (100 *  cg.responses.filter(contact__reporting_location = location, contact__connection__in =\
-                            EmisReporter.objects.exclude(schools = None, connection__id__in =\
-                                Blacklist.objects.values_list('connection', flat = True)).filter(groups__name = 'Head Teachers',\
-                                reporting_location = location).values_list('connection__id', flat=True)).count()) / htc
+                EmisReporter.objects.exclude(schools = None, connection__id__in =\
+                Blacklist.objects.values_list('connection', flat = True)).filter(groups__name = 'Head Teachers',\
+                    reporting_location = location).values_list('connection__id', flat=True)).count()) / htc
 
             except ZeroDivisionError:
                 htc_p = 0
@@ -1076,7 +1076,7 @@ def violence_details_dash(req):
 
         if profile.location.type.name == 'country':
             contacts = Contact.objects.filter(reporting_location__in=profile.\
-                location.get_descendants().filter(type="district"))
+            location.get_descendants().filter(type="district"))
         else:
             contacts = Contact.objects.filter(reporting_location=profile.location)
 
@@ -1157,7 +1157,7 @@ class DistrictViolenceDetails(TemplateView):
 
         #reports = poll_response_sum("edtrac_headteachers_abuse", month_filter=True, months=1)
         emis_reporters = EmisReporter.objects.exclude(connection__in=\
-            Blacklist.objects.values_list('connection')).filter(schools__in=schools)
+        Blacklist.objects.values_list('connection')).filter(schools__in=schools)
 
         context['location'] = location
         context['school_vals'] = school_case
@@ -1182,7 +1182,7 @@ class AttendanceAdminDetails(TemplateView):
         context['role_name'] = profile.role.name
         if profile.is_member_of("Admins") or profile.is_member_of("Ministry Officials") or profile.is_member_of('UNICEF Officials'):
             names = list(set(EmisReporter.objects.exclude(reporting_location=None).filter(reporting_location__type="district").\
-                        values_list('reporting_location__name',flat=True)))
+            values_list('reporting_location__name',flat=True)))
             locations = Location.objects.filter(name__in=names).order_by("name")
             #locations = Location.objects.get(name="Uganda").get_descendants().filter(type="district").order_by("name")
             #context['total_districts'] = Location.objects.get(name="Uganda").get_descendants().filter(type="district").count()
@@ -1206,8 +1206,8 @@ def search_form(req):
         if searchform.is_valid():
             searchform.save()
     return render_to_response(
-            'education/partials/search-form.html',
-        {'form': searchform},
+        'education/partials/search-form.html',
+            {'form': searchform},
         RequestContext(req)
     )
 #    query = req.POST[u'query']
@@ -1254,9 +1254,9 @@ class MealsAdminDetails(TemplateView):
         context['community_meals_reports'] = get_count_response_to_polls(Poll.objects.get(name="edtrac_smc_meals"),
             month_filter=True, choices=choices, with_percent=True)
         districts = Location.objects.filter(type="district", id__in =\
-                EmisReporter.objects.exclude(reporting_location = None).\
-                    values_list('reporting_location__id', flat=True)).order_by('name').\
-                        values_list('name', flat=True)
+        EmisReporter.objects.exclude(reporting_location = None).\
+        values_list('reporting_location__id', flat=True)).order_by('name').\
+        values_list('name', flat=True)
         # basic filtering for CSS
         districts = [[d, False] for d in districts]
         districts[0][1] = True
@@ -1288,7 +1288,7 @@ class DistrictMealsDetails(DetailView):
             choices=choices,
             with_range = True,
             with_percent = True
-            )
+        )
         context['school_meals_reports'] = school_meal_reports
 
         context['location'] = location
@@ -1363,7 +1363,7 @@ def audit_trail(req):
         revisions = Revision.objects.exclude(comment='').order_by('-date_created').values_list('user__username','comment','date_created')
     else:
         revisions = Revision.objects.exclude(user__username = 'admin', comment='').\
-            order_by('-date_created').values_list('user__username','comment','date_created')
+        order_by('-date_created').values_list('user__username','comment','date_created')
     return render_to_response('education/admin/audit_trail.html',{'revisions':revisions}, RequestContext(req))
 
 class DistrictViolenceCommunityDetails(DetailView):
@@ -1374,7 +1374,7 @@ class DistrictViolenceCommunityDetails(DetailView):
         context = super(DistrictViolenceCommunityDetails, self).get_context_data(**kwargs)
         location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk'))) or self.request.user.get_profile().location
         emis_reporters = EmisReporter.objects.filter(groups__name="GEM", connection__in =\
-            Poll.objects.get(name="edtrac_gem_abuse").responses.values_list('contact__connection',flat=True))
+        Poll.objects.get(name="edtrac_gem_abuse").responses.values_list('contact__connection',flat=True))
         context['location'] = location
         context['reporters'] = emis_reporters
         context['month'] = datetime.datetime.now()
@@ -1418,9 +1418,9 @@ def boysp3_district_attd_detail(req, location_id):
     to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
 
     return render_to_response("education/boysp3_district_attd_detail.html", { 'location':location,\
-        'location_data':to_ret,
-        'week':datetime.datetime.now(),
-        'headings' : ['School', 'Current Week (%)', 'Week before (%)', 'Percentage change']}, RequestContext(req))
+                                                                              'location_data':to_ret,
+                                                                              'week':datetime.datetime.now(),
+                                                                              'headings' : ['School', 'Current Week (%)', 'Week before (%)', 'Percentage change']}, RequestContext(req))
 
 @login_required
 def boysp6_district_attd_detail(req, location_id):
@@ -1438,9 +1438,9 @@ def boysp6_district_attd_detail(req, location_id):
     to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
 
     return render_to_response("education/boysp6_district_attd_detail.html", { 'week':datetime.datetime.now(),\
-        'location':location,\
-        'headings' : ['School', 'Current Week (%)', 'Week before (%)', 'Percentage change'],
-        'location_data':to_ret },\
+                                                                              'location':location,\
+                                                                              'headings' : ['School', 'Current Week (%)', 'Week before (%)', 'Percentage change'],
+                                                                              'location_data':to_ret },\
         RequestContext(req))
 
 
@@ -1460,9 +1460,9 @@ def girlsp3_district_attd_detail(req, location_id):
     to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
 
     return render_to_response("education/girlsp3_district_attd_detail.html", { 'week':datetime.datetime.now(),\
-        'location_data':to_ret,
-        'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
-        'location':location}, RequestContext(req))
+                                                                               'location_data':to_ret,
+                                                                               'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
+                                                                               'location':location}, RequestContext(req))
 
 @login_required
 def girlsp6_district_attd_detail(req, location_id):
@@ -1481,9 +1481,9 @@ def girlsp6_district_attd_detail(req, location_id):
 
     return render_to_response("education/girlsp6_district_attd_detail.html",
             { 'week':datetime.datetime.now(),\
-               'location_data':to_ret,
-               'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
-               'location':location}, RequestContext(req))
+              'location_data':to_ret,
+              'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
+              'location':location}, RequestContext(req))
 
 
 @login_required
@@ -1536,7 +1536,7 @@ def boys_p3_attendance(req):
         This view shows data by district
         """
         locations = Location.objects.exclude(type="country").filter(type="district", name__in=\
-            EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True)).order_by("name")
+        EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True)).order_by("name")
         # return view that will give shool-based views
         # --> ref function just below this <---
         return boys_p3_attd_admin(req, locations=locations)
@@ -1554,7 +1554,7 @@ def boys_p3_attendance(req):
 
         return  render_to_response(
             'education/partials/boys_p3_attendance.html',
-            {
+                {
                 'week':datetime.datetime.now(),
                 'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
                 'location_data': to_ret,
@@ -1572,9 +1572,9 @@ def boys_p3_attd_admin(req, **kwargs):
     to_ret = return_absent('edtrac_boysp3_attendance', 'edtrac_boysp3_enrollment', locations)
     return render_to_response(
         'education/partials/boys_p3_attd_admin.html',
-        {'location_data':to_ret,
-         'headings': HEADINGS,
-         'week':datetime.datetime.now()}, RequestContext(req)
+            {'location_data':to_ret,
+             'headings': HEADINGS,
+             'week':datetime.datetime.now()}, RequestContext(req)
     )
 
 
@@ -1583,7 +1583,7 @@ def boys_p6_attendance(req):
     location = profile.location
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
         locations = Location.objects.exclude(type="country").filter(type="district", name__in=\
-            EmisReporter.objects.values_list('reporting_location__name', flat=True)).distinct().order_by("name")
+        EmisReporter.objects.values_list('reporting_location__name', flat=True)).distinct().order_by("name")
         return boys_p6_attd_admin(req, locations=locations)
     else:
         #DEO
@@ -1622,7 +1622,7 @@ def girls_p3_attendance(req):
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
         locations = Location.objects.exclude(type="country").filter(type="district", name__in=\
-            EmisReporter.objects.values_list('reporting_location__name', flat=True)).distinct().order_by("name")
+        EmisReporter.objects.values_list('reporting_location__name', flat=True)).distinct().order_by("name")
         return girls_p3_attd_admin(req, locations=locations)
     else:
         #DEO
@@ -1651,7 +1651,7 @@ def girls_p3_attd_admin(req, locations=None):
     """
     to_ret = return_absent('edtrac_girlsp3_attendance', 'edtrac_girlsp3_enrollment', locations=locations)
     return render_to_response('education/partials/girls_p3_attd_admin.html',
-        {'location_data':to_ret,'headings':HEADINGS,'week':datetime.datetime.now()}, RequestContext(req))
+            {'location_data':to_ret,'headings':HEADINGS,'week':datetime.datetime.now()}, RequestContext(req))
 
 
 def girls_p6_attendance(req):
@@ -1659,7 +1659,7 @@ def girls_p6_attendance(req):
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
         locations = Location.objects.exclude(type="country").filter(type="district", name__in=\
-            EmisReporter.objects.values_list('reporting_location__name', flat=True)).distinct().order_by("name")
+        EmisReporter.objects.values_list('reporting_location__name', flat=True)).distinct().order_by("name")
         return girls_p6_attd_admin(req, locations=locations)
     else:
 
@@ -1689,14 +1689,14 @@ def girls_p6_attd_admin(req, locations=None):
     """
     to_ret = return_absent('edtrac_girlsp6_attendance', 'edtrac_girlsp6_enrollment', locations=locations)
     return render_to_response('education/partials/girls_p6_attd_admin.html',
-        {'location_data':to_ret, 'headings':HEADINGS, 'week':datetime.datetime.now()}, RequestContext(req))
+            {'location_data':to_ret, 'headings':HEADINGS, 'week':datetime.datetime.now()}, RequestContext(req))
 
 def female_teacher_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
         locations = Location.objects.exclude(type="country").filter(type="district", name__in=\
-            EmisReporter.objects.distinct().values_list('reporting_location__name',flat=True)).order_by("name")
+        EmisReporter.objects.distinct().values_list('reporting_location__name',flat=True)).order_by("name")
         return female_teacher_attd_admin(req, locations=locations)
     else:
         #DEO
@@ -1734,7 +1734,7 @@ def male_teacher_attendance(req):
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
         locations = Location.objects.exclude(type="country").filter(type="district", name__in=\
-            EmisReporter.objects.distinct().values_list('reporting_location__name',flat=True)).order_by("name")
+        EmisReporter.objects.distinct().values_list('reporting_location__name',flat=True)).order_by("name")
         return male_teacher_attd_admin(req, locations=locations)
     else:
         #DEO
@@ -1802,7 +1802,7 @@ def female_head_teacher_attendance(req):
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
         schools = School.objects.filter(location__name__in= EmisReporter.objects.distinct().\
-            filter(reporting_location__type = 'district').values_list('reporting_location__name', flat=True))
+        filter(reporting_location__type = 'district').values_list('reporting_location__name', flat=True))
 
     else:
         #DEO
@@ -2068,12 +2068,12 @@ def comments(req):
     if profile.is_member_of('Admins') or profile.is_member_of('Ministry Officials') or profile.is_member_of('UNICEF Officials'):
         comments = [(r.get_commentable_display(), r.comment, r.user, r.get_reporting_period_display(),
                      get_range_on_date(r.reporting_period, r) )
-                    for r in ReportComment.objects.order_by('-report_date')]
+        for r in ReportComment.objects.order_by('-report_date')]
     else:
         # DFO/DEO should get only information on their districts
         comments = [(r.get_commentable_display(), r.comment, r.user, r.get_reporting_period_display(),
                      get_range_on_date(r.reporting_period, r))
-                    for r in ReportComment.objects.filter(user__profile__location=profile.location).order_by('-report_date')]
+        for r in ReportComment.objects.filter(user__profile__location=profile.location).order_by('-report_date')]
 
     return render_to_response('education/partials/comments.html', {'data_set':comments}, RequestContext(req))
 
@@ -2268,11 +2268,11 @@ def school_detail(request, school_id):
     for month_range in month_ranges:
         monthly_data.append(
             [return_absent_month(
-                    'edtrac_'+ '%s'%slug + '_attendance',
-                    'edtrac_'+ '%s'%slug + '_enrollment',
-                    month_range = month_range,
-                    school = school)
-                for slug in slug_list])
+                'edtrac_'+ '%s'%slug + '_attendance',
+                'edtrac_'+ '%s'%slug + '_enrollment',
+                month_range = month_range,
+                school = school)
+             for slug in slug_list])
         monthly_data_teachers.append(
             [return_absent_month(
                 'edtrac_'+'%s'%slug + '_attendance',
@@ -2301,7 +2301,7 @@ def school_detail(request, school_id):
         'girls_p6_enrolled' : girls_p6_enrolled,
         'm_teachers_deployed': m_teachers_deployed,
         'f_teachers_deployed': f_teachers_deployed
-        }, RequestContext(request))
+    }, RequestContext(request))
 
 # analytics specific for emis {copy, but adjust to suit your needs}
 @login_required
@@ -2338,7 +2338,7 @@ def excel_reports(req):
 def edit_user(request, user_pk=None):
     title=""
     user=User()
-    if request.method == 'POST':
+    if request.method == 'POST' and request.user.get_profile().role_id == Role.objects.get(name = 'Admins').id:
         if user_pk:
             user = get_object_or_404(User, pk=user_pk)
         user_form = UserForm(request.POST,instance=user,edit=True)
@@ -2550,7 +2550,7 @@ def emis_scripts_special(req):
         poll_scripts = [pq.split('-') for pq in poll_questions] #(poll_id, script_slug)
         d = datetime.datetime.now()
         _script = Script.objects.create(slug=\
-            "edtrac_%s-%s-%s %s:%s:%s"%(d.year,d.month,d.day,d.hour, d.minute, d.second), name="Special Script")
+        "edtrac_%s-%s-%s %s:%s:%s"%(d.year,d.month,d.day,d.hour, d.minute, d.second), name="Special Script")
 
         _poll_scripts = []
         # make sure that the poll/script to sent to just one group not a mixture of groups.
@@ -2561,7 +2561,7 @@ def emis_scripts_special(req):
 
         for i, li in enumerate(_poll_scripts):
             poll_id, script_slug = li
-#            s = Script.objects.get(slug = script_slug) #script
+            #            s = Script.objects.get(slug = script_slug) #script
             _script.steps.add(ScriptStep.objects.create(
                 script = _script,
                 poll = Poll.objects.get(id = poll_id),
@@ -2573,7 +2573,7 @@ def emis_scripts_special(req):
                 giveup_offset = 86400,
             ))
             _script.save()
-        # Hack!! When manager wants to select all (otherwise default will be all folks in group selected)
+            # Hack!! When manager wants to select all (otherwise default will be all folks in group selected)
         #for reporter in EmisReporter.objects.filter(id__in=checked_numbers).exclude(connection=None):
         if len(checked_numbers) < 25 and len(checked_numbers) > 0:
             # assuming that "all" is not checked
@@ -2585,18 +2585,18 @@ def emis_scripts_special(req):
             # what if the reporting location is different? Would you instead want to poll the different districts?
             single_reporter_location = True # flag
             reporter_location = EmisReporter.objects.filter(id__in=checked_numbers).\
-                exclude(reporting_location=None).values_list('reporting_location__name', flat=True)
+            exclude(reporting_location=None).values_list('reporting_location__name', flat=True)
             if reporter_location.count() > 0 and len(set(reporter_location)) > 1:
                 single_reporter_location = False
                 reporter_location = EmisReporter.objects.filter(reporting_location__type = 'district').\
-                    values_list('reporting_location__name',flat=True)
+                values_list('reporting_location__name',flat=True)
             else:
                 reporter_location = EmisReporter.objects.filter(reporting_location__type='district').\
-                    filter(reporting_location__name = reporter_location[0]).values_list('reporting_location__name',flat=True)
+                filter(reporting_location__name = reporter_location[0]).values_list('reporting_location__name',flat=True)
 
             single_school = True
             reporter_schools = EmisReporter.objects.filter(id__in=checked_numbers).\
-                exclude(schools=None).values_list('schools__name', flat=True)
+            exclude(schools=None).values_list('schools__name', flat=True)
             if reporter_schools.count() > 0 and len(set(reporter_schools)) > 1:
                 single_school = False
                 reporter_schools = EmisReporter.objects.values_list('schools__name',flat=True)
@@ -2608,14 +2608,14 @@ def emis_scripts_special(req):
             if single_reporter_location or single_school:
                 for reporter in EmisReporter.objects.filter(schools__name__in=reporter_schools,
                     reporting_location__name__in = reporter_location, groups__name =\
-                        ' '.join([i.capitalize() for i in reporter_group_name.replace('_',' ').split()])).\
-                    exclude(connection=None):
+                    ' '.join([i.capitalize() for i in reporter_group_name.replace('_',' ').split()])).\
+                exclude(connection=None):
                     sp = ScriptProgress.objects.create(connection=reporter.default_connection, script=_script)
                     sp.set_time(datetime.datetime.now()+datetime.timedelta(seconds=90)) # 30s after default cron wait time
                     sp.save()
             else:
                 for reporter in EmisReporter.objects.filter(groups__name =\
-                    ' '.join([i.capitalize() for i in reporter_group_name.replace('_',' ').split()])).exclude(connection=None):
+                ' '.join([i.capitalize() for i in reporter_group_name.replace('_',' ').split()])).exclude(connection=None):
                     sp = ScriptProgress.objects.create(connection=reporter.default_connection, script=_script)
                     sp.set_time(datetime.datetime.now()+datetime.timedelta(seconds=90)) # 30s after default cron wait time
                     sp.save()
@@ -2628,7 +2628,7 @@ def emis_scripts_special(req):
 def reschedule_scripts(request, script_slug):
     grp = get_script_grp(script_slug)
     if script_slug.endswith('_weekly'):
-#        call_command('reschedule_weekly_polls', grp)
+    #        call_command('reschedule_weekly_polls', grp)
         reschedule_weekly_polls(grp)
     elif script_slug.endswith('_monthly'):
         reschedule_monthly_polls(grp)
