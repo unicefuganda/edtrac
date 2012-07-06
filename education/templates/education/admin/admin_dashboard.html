@@ -89,13 +89,13 @@ Dashboard -- {{ block.super }}
                             <td><a href="#">Female H Teachers</a></td>
                             <td>{% if f_head_t_week == '--' %} {{ f_head_t_week }} {% else %} {{ f_head_t_week|floatformat }}%{% endif %}</td>
                             <td>{% if f_head_t_week_before == '--' %}{{ f_head_t_week_before }} {% else %} {{ f_head_t_week_before|floatformat }}%{% endif %}</td>
-                            <td class="{{ f_head_t_class }}">{% if f_head_diff == '--' %}{{ f_head_diff }}{% else %} {{ f_head_diff|floatformat }}%{% endif %}</td>
+                            <td class="{{ f_head_t_data }}"><span class="{{ f_head_t_class }}">{% if f_head_diff == '--' %}{{ f_head_diff }}{% else %} {{ f_head_diff|floatformat }}%{% endif %}</span></td>
                         </tr>
                         <tr>
                             <td><a href="#">Male H Teachers</a></td>
                             <td>{% if m_head_t_week == '--' %} {{ m_head_t_week }} {% else %} {{ m_head_t_week|floatformat }}%{% endif %}</td>
                             <td>{% if m_head_t_week_before == '--' %}{{ m_head_t_week_before }} {% else %} {{ m_head_t_week_before|floatformat }}%{% endif %}</td>
-                            <td class="{{ m_head_t_class }}">{% if m_head_diff == '--' %}{{ m_head_diff }}{% else %} {{ m_head_diff|floatformat }}%{% endif %}</td>
+                            <td class="{{ m_head_t_data }}"><span class="{{ m_head_t_class }}">{% if m_head_diff == '--' %}{{ m_head_diff }}{% else %} {{ m_head_diff|floatformat }}%{% endif %}</span></td>
                         </tr>
                     </table>
                 </div>
