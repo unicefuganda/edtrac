@@ -627,7 +627,6 @@ def head_teachers_female(locations):
         filter(date__range = d2, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
 
     # get the count for female head teachers present in the last 3 days
-    import pdb; pdb.set_trace()
     female_d1_yes = yes_fht_d1.count()
     female_d1_no = no_fht_d1.count()
     if (female_d1_yes + female_d1_no) > 0:
