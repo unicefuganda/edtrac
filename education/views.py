@@ -285,24 +285,35 @@ def dash_district_meetings(req, district_name):
 def dashboard(request):
     return admin_dashboard(request)
 
-# generate context vars
-def generate_dashboard_vars(location=None):
-    """
-    An overly ambitious function that generates context variables for a location if provided
-    This gets populated in the dashboard.
-    """
-    locations = []
-    if location.name == "Uganda":
-        # get locations from active districts only
-        locations = Location.objects.filter(pk__in=EmisReporter.objects.values_list('reporting_location__pk', flat=True)).distinct()
+def capitation_grants(locations):
+    # capitation grants
+    cg = Poll.objects.get(name="edtrac_upe_grant")
+
+    resp_category = cg.responses_by_category()
+
+    responses = resp_category.filter(response__contact__reporting_location__in = locations)
+    if not responses:
+        yeses_cg = 0
+        nos_cg = 0
     else:
-        locations.append(location)
+        yeses_cg = responses.get(category__name = "yes").get('value')
+        nos_cg = responses.get(category__name = "no").get('value')
 
-    responses_to_violence = poll_response_sum("edtrac_headteachers_abuse", month_filter = 'monthly', locations = locations, month_20to19=True)
 
+    # percent of those that received grants
+    try:
+        grant_percent = 100 * yeses_cg / (yeses_cg + nos_cg)
+    except ZeroDivisionError:
+        grant_percent = 0
+
+    return {'grant_percent': grant_percent}
+
+def violence_changes(locations):
     """
-    Percentage change in violance from the prvious month
+    Percentage change in violance from the previous month
     """
+    responses_to_violence = poll_response_sum("edtrac_headteachers_abuse", month_filter = 'monthly',\
+        locations = locations, month_20to19=True)
     violence_change = cleanup_sums(responses_to_violence)
     if violence_change > 0:
         violence_change_class = "decrease"
@@ -313,7 +324,13 @@ def generate_dashboard_vars(location=None):
     else:
         violence_change_class = "zero"
         violence_change_data = "data-white"
+    return {
+            'violence_change' : violence_change,
+            'violence_change_class' : violence_change_class,
+            'violence_change_data' : violence_change_data
+    }
 
+def p3_absent_boys(locations):
     """
     Attendance of P3 Pupils; this gets the absenteeism
     """
@@ -335,6 +352,7 @@ def generate_dashboard_vars(location=None):
     except:
         boysp3_past = '--'
 
+
     try:
         boysp3_diff = boysp3 - boysp3_past
 
@@ -352,6 +370,10 @@ def generate_dashboard_vars(location=None):
         boysp3_class = 'zero'
         boysp3_data = 'data-white'
 
+    return {'boysp3' : boysp3, 'boysp3_past' : boysp3_past, 'boysp3_class' : boysp3_class,
+                    'boysp3_diff' : boysp3_diff, 'boysp3_data' : boysp3_data}
+
+def p6_boys_absent(locations):
     x, y  = poll_responses_past_week_sum("edtrac_boysp6_attendance", locations=locations, weeks=2)
     enrol = poll_responses_term("edtrac_boysp6_enrollment", belongs_to="location", locations=locations)
     try:
@@ -385,6 +407,10 @@ def generate_dashboard_vars(location=None):
         boysp6_class = 'zero'
         boysp6_data = 'data-white'
 
+    return {'boysp6' : boysp6, 'boysp6_past' : boysp6_past, 'boysp6_class' : boysp6_class,
+            'boysp6_diff' : boysp6_diff, 'boysp6_data' : boysp6_data}
+
+def p3_absent_girls(locations):
     x, y = poll_responses_past_week_sum("edtrac_girlsp3_attendance",locations=locations, weeks=2)
     enrol = poll_responses_term("edtrac_girlsp3_enrollment", belongs_to="location", locations=locations)
     try:
@@ -418,6 +444,10 @@ def generate_dashboard_vars(location=None):
         girlsp3_class = 'zero'
         girlsp3_data = 'data-white'
 
+    return {'girlsp3' : girlsp3, 'girlsp3_past' : girlsp3_past, 'girlsp3_class': girlsp3_class,
+                    'girlsp3_diff' : girlsp3_diff, 'girlsp3_data' : girlsp3_data}
+
+def p6_girls_absent(locations):
     x, y = poll_responses_past_week_sum("edtrac_girlsp6_attendance", locations=locations, weeks=2)
     enrol = poll_responses_term("edtrac_girlsp6_enrollment", belongs_to="location", locations=locations)
 
@@ -453,6 +483,10 @@ def generate_dashboard_vars(location=None):
         girlsp6_data = 'data-white'
         girlsp6_class = "zero"
 
+    return {'girlsp6' : girlsp6, 'girlsp6_past' : girlsp6_past,'girlsp6_diff' : girlsp6_diff,
+                    'girlsp6_class' : girlsp6_class,'girlsp6_data' : girlsp6_data}
+
+def f_teachers_absent(locations):
     x, y = poll_responses_past_week_sum("edtrac_f_teachers_attendance",locations=locations, weeks=2)
     deploy = poll_responses_term("edtrac_f_teachers_deployment", belongs_to="location", locations=locations)
     try:
@@ -486,6 +520,11 @@ def generate_dashboard_vars(location=None):
         female_teachers_data = "data-white"
         female_teachers_class = "zero"
 
+    return {'female_teachers_class' : female_teachers_class,
+            'female_teachers' :female_teachers,'female_teachers_past' : female_teachers_past,
+            'female_teachers_diff' : female_teachers_diff,'female_teachers_data' : female_teachers_data}
+
+def m_teachers_absent(locations):
     x, y = poll_responses_past_week_sum("edtrac_m_teachers_attendance", weeks = 2, locations=locations)
     deploy = poll_responses_term("edtrac_m_teachers_deployment", belongs_to="location", locations=locations)
     try:
@@ -519,6 +558,12 @@ def generate_dashboard_vars(location=None):
         male_teachers_class = "zero"
         male_teachers_data = 'data-white'
 
+    return {'male_teachers' : male_teachers, 'male_teachers_past' : male_teachers_past,
+            'male_teachers_diff' : male_teachers_diff, 'male_teachers_class' : male_teachers_class,
+            'male_teachers_data' : male_teachers_data,}
+
+
+def p3_curriculum(locations):
     try:
         if len(locations) == 1:
             progress_list =curriculum_progress_list("edtrac_p3curriculum_progress", time_range = True, location=locations[0])
@@ -543,6 +588,9 @@ def generate_dashboard_vars(location=None):
     except ValueError:
         mode_progress = 0 # when no values are recorded
 
+    return {'mode_progress' : mode_progress, 'c_mode' : mode}
+
+def meals_missed(locations):
     if len(locations) == 1:
         response_to_meals = get_count_response_to_polls(Poll.objects.get(name = "edtrac_headteachers_meals"),
             time_range = get_week_date()[0], choices = [0], location_name = locations[0].name)
@@ -554,30 +602,32 @@ def generate_dashboard_vars(location=None):
 
     worst_meal = p[len(p)-1]
 
-    # ideally head teachers match the number of SMCs in eductrac
+    return {'worst_meal' : worst_meal}
 
+def head_teachers_female(locations):
+    # ideally head teachers match the number of SMCs in eductrac
     d1, d2 = get_week_date(depth = 2)
     head_teacher_poll = Poll.objects.get(name = 'edtrac_head_teachers_attendance')
 
     female_head_teachers = EmisReporter.objects.filter(reporting_location__in =\
-    locations, groups__name="Head Teachers", gender='F').exclude(schools = None)
+        locations, groups__name="Head Teachers", gender='F').exclude(schools = None)
 
     female_head_t_deploy = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
-    female_head_teachers.values_list('schools', flat=True), groups__name = 'SMC').distinct()
+        female_head_teachers.values_list('schools', flat=True), groups__name = 'SMC').distinct()
     f_head_t_count = female_head_t_deploy.count() # this count is based off just SMCs that have schools attached to them.
 
     # female head teachers
     yes_fht_d1 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
-    filter(date__range = d1, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
+        filter(date__range = d1, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
     yes_fht_d2 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
-    filter(date__range = d2, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
+        filter(date__range = d2, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
     no_fht_d1 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
-    filter(date__range = d1, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
+        filter(date__range = d1, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
     no_fht_d2 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
-    filter(date__range = d2, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
+        filter(date__range = d2, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
 
     # get the count for female head teachers present in the last 3 days
-
+    import pdb; pdb.set_trace()
     female_d1_yes = yes_fht_d1.count()
     female_d1_no = no_fht_d1.count()
     if (female_d1_yes + female_d1_no) > 0:
@@ -592,46 +642,7 @@ def generate_dashboard_vars(location=None):
     else:
         female_d2 = '--'
 
-    male_head_teachers = EmisReporter.objects.filter(reporting_location__in =\
-    locations, groups__name="Head Teachers", gender='M').exclude(schools = None)
-    male_head_t_deploy = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
-    male_head_teachers.values_list('schools', flat=True), groups__name = 'SMC').distinct()
-    m_head_t_count = male_head_t_deploy.count() # how many male head teachers are available
-
-    yes_mht_d1 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
-    filter(date__range = d1, contact__reporting_location__in=locations,
-        contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
-
-    yes_mht_d2 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
-    filter(date__range = d2, contact__reporting_location__in=locations,
-        contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
-
-    no_mht_d1 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
-    filter(date__range = d1, contact__reporting_location__in=locations,
-        contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
-
-    no_mht_d2 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
-    filter(date__range = d2, contact__reporting_location__in=locations,
-        contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
-
-
-    # get the count for female head teachers present in the last 3 days
-
-    male_d1_yes = yes_mht_d1.count()
-    male_d1_no = no_mht_d1.count()
-    if (male_d1_yes + male_d1_no) > 0:
-        male_d1 = male_d1_no * 100 / sum([male_d1_no, male_d1_yes]) # messing with ya! :D
-    else:
-        male_d1 = '--'
-
-    male_d2_yes = yes_mht_d2.count()
-    male_d2_no = no_mht_d2.count()
-    if (male_d2_yes + male_d2_no) > 0:
-        male_d2 = male_d2_no * 100 / sum([male_d2_no, male_d2_yes]) # messing with ya! :D
-    else:
-        male_d2 = '--'
-
-    if isinstance(female_d2, int) and female_d2 >= 0 and female_d1 >= 0 and isintance(female_d1, int):
+    if isinstance(female_d2, float) and female_d2 >= 0 and female_d1 >= 0 and isinstance(female_d1, float):
 
         f_head_diff = female_d2 - female_d1
 
@@ -649,7 +660,49 @@ def generate_dashboard_vars(location=None):
         f_head_t_class = 'zero'
         f_head_t_data = 'data-white'
 
-    if isinstance(male_d2, int) and male_d2 >= 0 and male_d1 >= 0 and isintance(male_d1, int):
+    return {'f_head_t_week' : female_d2, 'f_head_t_week_before' : female_d1, 'f_head_diff' : f_head_diff,
+            'f_head_t_class' : f_head_t_class, 'f_head_t_data':f_head_t_data}
+
+def head_teachers_male(locations):
+    d1, d2 = get_week_date(depth = 2)
+    male_head_teachers = EmisReporter.objects.filter(reporting_location__in =\
+    locations, groups__name="Head Teachers", gender='M').exclude(schools = None)
+    male_head_t_deploy = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
+    male_head_teachers.values_list('schools', flat=True), groups__name = 'SMC').distinct()
+    m_head_t_count = male_head_t_deploy.count() # how many male head teachers are available
+    head_teacher_poll = Poll.objects.get(name = 'edtrac_head_teachers_attendance')
+    yes_mht_d1 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
+    filter(date__range = d1, contact__reporting_location__in=locations,
+        contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
+
+    yes_mht_d2 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
+    filter(date__range = d2, contact__reporting_location__in=locations,
+        contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
+
+    no_mht_d1 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
+    filter(date__range = d1, contact__reporting_location__in=locations,
+        contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
+
+    no_mht_d2 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
+    filter(date__range = d2, contact__reporting_location__in=locations,
+        contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
+
+    # get the count for female head teachers present in the last 3 days
+    male_d1_yes = yes_mht_d1.count()
+    male_d1_no = no_mht_d1.count()
+    if (male_d1_yes + male_d1_no) > 0:
+        male_d1 = male_d1_no * 100 / sum([male_d1_no, male_d1_yes]) # messing with ya! :D
+    else:
+        male_d1 = '--'
+
+    male_d2_yes = yes_mht_d2.count()
+    male_d2_no = no_mht_d2.count()
+    if (male_d2_yes + male_d2_no) > 0:
+        male_d2 = float(male_d2_no * 100 / sum([male_d2_no, male_d2_yes])) # messing with ya! :D
+    else:
+        male_d2 = '--'
+
+    if isinstance(male_d2, float) and male_d2 >= 0 and male_d1 >= 0 and isinstance(male_d1, float):
 
         m_head_diff = male_d2 - male_d1
 
@@ -667,42 +720,34 @@ def generate_dashboard_vars(location=None):
         m_head_t_class = 'zero'
         m_head_t_data = 'data-white'
 
-    school_to_date = School.objects.filter(pk__in=EmisReporter.objects.filter(reporting_location__in = locations).\
-    values_list('schools__pk', flat=True)).count()
+    return {'m_head_t_week' : male_d2, 'm_head_t_data':m_head_t_data, 'm_head_t_week_before' : male_d1, 'm_head_diff' : m_head_diff,
+            'm_head_t_class' : m_head_t_class}
 
+
+def schools_active(locations):
     try:
+        school_to_date = School.objects.filter(pk__in=EmisReporter.objects.filter(reporting_location__in = locations).\
+            values_list('schools__pk', flat=True)).count()
+
         school_reporters = EmisReporter.objects.filter(
             reporting_location__in = locations,
             groups__name__in=["Head Teachers", "Teachers"], connection__in=Message.objects.exclude(application='script').\
             filter(date__range = get_week_date(depth = 2)[1]).values_list('connection', flat = True)).\
-        exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
+            exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
+
         school_active = (100 * School.objects.filter(pk__in = school_reporters.values_list('schools__pk', flat=True)).\
-        count()) / school_to_date
+            count()) / school_to_date
+
     except ZeroDivisionError:
         school_active = 0
 
+    return {'school_active': school_active}
 
-    # capitation grants
-    cg = Poll.objects.get(name="edtrac_upe_grant")
-
-    resp_category = cg.responses_by_category()
-
-    responses = resp_category.filter(response__contact__reporting_location__in = locations)
-    if not responses:
-        yeses_cg = 0
-        nos_cg = 0
-    else:
-        yeses_cg = responses.get(category__name = "yes").get('value')
-        nos_cg = responses.get(category__name = "no").get('value')
-
-
-    # percent of those that received grants
-    try:
-        grant_percent = 100 * yeses_cg / (yeses_cg + nos_cg)
-    except ZeroDivisionError:
-        grant_percent = 0
-
+def smc_meetings(locations):
     # SMC meetings are count based
+    school_to_date = School.objects.filter(pk__in=EmisReporter.objects.filter(reporting_location__in = locations).\
+        values_list('schools__pk', flat=True)).count()
+
     smc_meeting_poll = Poll.objects.get(name = 'edtrac_smc_meetings')
     meetings = [r.eav.poll_number_value
                 for r in smc_meeting_poll.responses.filter(
@@ -717,57 +762,67 @@ def generate_dashboard_vars(location=None):
     except ZeroDivisionError:
         total_meetings = 0
 
-    return {
-        'worst_meal' : worst_meal,
-        'c_mode' : mode,
-        'smc_meetings' : total_meetings,
-        'mode_progress' : mode_progress,
-        'violence_change' : violence_change,
-        'violence_change_class' : violence_change_class,
-        'violence_change_data' : violence_change_data,
-        'male_teachers' : male_teachers,
-        'male_teachers_past' : male_teachers_past,
-        'male_teachers_diff' : male_teachers_diff,
-        'male_teachers_class' : male_teachers_class,
-        'male_teachers_data' : male_teachers_data,
-        'female_teachers_class' : female_teachers_class,
-        'female_teachers' :female_teachers,
-        'female_teachers_past' : female_teachers_past,
-        'female_teachers_diff' : female_teachers_diff,
-        'female_teachers_data' : female_teachers_data,
-        'girlsp3' : girlsp3,
-        'girlsp3_past' : girlsp3_past,
-        'girlsp3_class': girlsp3_class,
-        'girlsp3_diff' : girlsp3_diff,
-        'girlsp3_data' : girlsp3_data,
-        'girlsp6' : girlsp6,
-        'girlsp6_past' : girlsp6_past,
-        'girlsp6_diff' : girlsp6_diff,
-        'girlsp6_class' : girlsp6_class,
-        'girlsp6_data' : girlsp6_data,
-        'boysp3' : boysp3,
-        'boysp3_past': boysp3_past,
-        'boysp3_class' : boysp3_class,
-        'boysp3_diff' : boysp3_diff,
-        'boysp3_data' : boysp3_data,
-        'boysp6' : boysp6,
-        'boysp6_past' : boysp6_past,
-        'boysp6_class' : boysp6_class,
-        'boysp6_diff' : boysp6_diff,
-        'boysp6_data' : boysp6_data,
-        'f_head_t_week' : female_d2,
-        'f_head_t_week_before' : female_d1,
-        'f_head_diff' : f_head_diff,
-        'm_head_t_week' : male_d2,
-        'm_head_t_week_before' : male_d1,
-        'm_head_diff' : m_head_diff,
-        'f_head_t_class' : f_head_t_class,
-        'm_head_t_class' : m_head_t_class,
-        'month':datetime.datetime.now(),
-        'schools_to_date': school_to_date,
-        'school_active' : school_active,
-        'grant_percent' : grant_percent
-    }
+    return {'smc_meetings' : total_meetings, 'schools_to_date': school_to_date}
+
+# generate context vars
+def generate_dashboard_vars(location=None):
+    """
+    An overly ambitious function that generates context variables for a location if provided
+    This gets populated in the dashboard.
+    """
+    context_vars = {}
+    locations = []
+    if location.name == "Uganda":
+        # get locations from active districts only
+        locations = Location.objects.filter(pk__in=EmisReporter.objects.values_list('reporting_location__pk', flat=True)).distinct()
+    else:
+        locations.append(location)
+
+    context_vars.update(violence_changes(locations))
+
+    # capitations grants
+    context_vars.update(capitation_grants(locations))
+
+    #active schools
+    context_vars.update(schools_active(locations))
+
+    #SMC meetings
+    context_vars.update(smc_meetings(locations))
+
+    #female head teachers that missed school
+    context_vars.update(head_teachers_female(locations))
+
+    #male head teachers that missed school
+    context_vars.update(head_teachers_male(locations))
+
+    # time stamps
+    context_vars.update({'month':datetime.datetime.now()})
+
+    # progress
+    context_vars.update(p3_curriculum(locations))
+
+    # Female teachers
+    context_vars.update(f_teachers_absent(locations))
+
+    # P3 teachers male
+    context_vars.update(m_teachers_absent(locations))
+
+    # P3 boys
+    context_vars.update(p3_absent_boys(locations))
+
+    # P3 Girls
+    context_vars.update(p3_absent_girls(locations))
+
+    # P6 Girls
+    context_vars.update(p6_girls_absent(locations))
+
+    # P6 Boys
+    context_vars.update(p6_boys_absent(locations))
+
+    #Meals
+    context_vars.update(meals_missed(locations))
+
+    return context_vars
 
 
 ##########################################################################################################
