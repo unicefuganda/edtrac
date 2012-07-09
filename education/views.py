@@ -2604,7 +2604,7 @@ def emis_scripts_special(req):
         poll_scripts = [pq.split('-') for pq in poll_questions] #(poll_id, script_slug)
         d = datetime.datetime.now()
         _script = Script.objects.create(slug=\
-        "edtrac_%s-%s-%s %s:%s:%s"%(d.year,d.month,d.day,d.hour, d.minute, d.second), name="Special Script")
+        "edtrac_%s %s %s %s:%s:%s"%(d.year,d.month,d.day,d.hour, d.minute, d.second), name="Special Script")
 
         _poll_scripts = []
         # make sure that the poll/script to sent to just one group not a mixture of groups.
