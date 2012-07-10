@@ -4,6 +4,7 @@ from rapidsms.apps.base import AppBase
 from .models import Blacklist
 from django.conf import settings
 import re
+from rapidsms_httprouter.models import Message
 class App (AppBase):
 
     def handle (self, message):
@@ -18,7 +19,8 @@ class App (AppBase):
             return True
         elif msg_txt in getattr(settings,'OPT_OUT_WORDS',[]):
             Blacklist.objects.create(connection=message.connection)
-            message.respond(getattr(settings,'OPT_OUT_CONFIRMATION',''))
+#            message.respond(getattr(settings,'OPT_OUT_CONFIRMATION',''))
+            Message.objects.create(text=getattr(settings,'OPT_OUT_CONFIRMATION',''), connection=message.connection, status='Q')
             return True
         return False
 
