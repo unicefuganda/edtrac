@@ -20,7 +20,7 @@ class App (AppBase):
         elif msg_txt in getattr(settings,'OPT_OUT_WORDS',[]):
             Blacklist.objects.create(connection=message.connection)
 #            message.respond(getattr(settings,'OPT_OUT_CONFIRMATION',''))
-            Message.objects.create(text=getattr(settings,'OPT_OUT_CONFIRMATION',''), connection=message.connection, status='Q')
+            Message.objects.create(text=getattr(settings,'OPT_OUT_CONFIRMATION',''), direction='O', connection=message.connection, status='Q')
             return True
         return False
 
