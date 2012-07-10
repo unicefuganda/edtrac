@@ -2583,7 +2583,7 @@ def meals(request, district_id=None):
 def edit_scripts(request):
 
     forms = []
-    for script in Script.objects.all().order_by('slug'):
+    for script in Script.objects.exclude(name = 'Special Script').order_by('slug'):
         forms.append((script, ScriptsForm(instance=script)))
 
     if request.method == 'POST':
@@ -2595,7 +2595,7 @@ def edit_scripts(request):
         context_instance=RequestContext(request))
 
 def emis_scripts_special(req):
-    scripts = Script.objects.exclude(slug__icontains='weekly').exclude(slug='edtrac_autoreg').order_by('slug')
+    scripts = Script.objects.exclude(slug__icontains='weekly').exclude(name='Special Script').exclude(slug='edtrac_autoreg').order_by('slug')
 
     if req.method == 'POST':
         checked_numbers = req.POST.getlist('checked_numbers')
