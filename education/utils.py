@@ -61,12 +61,13 @@ def next_relativedate(day_offset, month_offset=0):
         d = datetime.datetime(d.year, d.month, 1, d.hour, d.minute, d.second, d.microsecond)
     return d + datetime.timedelta(day)
 
-def _next_thursday(sp=None):
+def _next_thursday(sp=None, **kwargs):
     """
     Next Thursday is the very next Thursday of the week which is not a school holiday
     """
     holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
-    d = sp.time if sp else datetime.datetime.now()
+    time_schedule = kwargs.get('time_set') if kwargs.has_key('time_set') else datetime.datetime.now()
+    d = sp.time if sp else time_schedule
     if d.weekday() == 3:
         d = d + datetime.timedelta(7)
     else: 
@@ -268,7 +269,8 @@ def _schedule_weekly_scripts(group, connection, grps):
     """
     if group.name in grps:
         script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
-        d = _next_thursday()
+        now = datetime.datetime.now()
+        d = _next_thursday(time_set=now if now.hour == 10 else now - datetime.timedelta(hours = now.hour - 10 if now.hour > 10 else  10 - now.hour))
         #if reporter is a teacher set in the script session only if this reporter has a grade
         if connection.contact.emisreporter.groups.filter(name='Teachers').exists():
             if connection.contact.emisreporter.grade and connection.contact.emisreporter.schools.exists():
