@@ -21,6 +21,7 @@ from rapidsms.models import Connection
 from rapidsms_httprouter.models import Message
 from django.db.models import Q
 from poll.models import Response
+from healthmodels.models.HealthFacility import HealthFacility
 import xlwt
 import zipfile
 import math
@@ -169,11 +170,11 @@ class ExcelResponse(HttpResponse):
         # Excel has a limit on number of rows; if we have more than that, make a csv
         use_xls = False
         mimetype = 'application/vnd.ms-excel'
-        if len(output_name.rsplit('.'))>1:
+        if len(output_name.rsplit('.')) > 1:
             file_ext = output_name.rsplit('.')[1]
         else:
-            file_ext="xls"
-        if file_ext !="zip" and len(data) <= MAX_SHEET_LENGTH :
+            file_ext = "xls"
+        if file_ext != "zip" and len(data) <= MAX_SHEET_LENGTH :
             book = create_workbook(data, encoding)
             if write_to_file:
                 book.save(output_name)
@@ -586,3 +587,19 @@ def handle_dongle_sms(message):
                                            status='Q', connection=message.connection)
         return True
     return False
+def get_districts_for_user(user):
+    if user:
+        ret = Location.objects.filter(name__icontains=user.username, type__name='district')
+        if ret:
+            return ret
+        else:
+            return Location.objects.filter(type__name='district').order_by('name')
+    return Location.objects.filter(type__name='district').order_by('name')
+def get_user_district_facilities(user):
+    if user:
+        loc = Location.objects.filter(name__icontains=user.username, type__name='district')
+        if loc:
+            return HealthFacility.objects.filter(catchment_areas__in=loc[0].\
+                                                 get_descendants(include_self=True)).distinct().\
+                                                 values('pk', 'name', 'type__name').order_by('name')
+    return HealthFacility.objects.all().values('pk', 'name', 'type__name').order_by('name')
