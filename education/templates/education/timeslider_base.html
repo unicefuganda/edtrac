@@ -16,11 +16,14 @@
 </ul>
         <div class="general" style="min-height: 200px;">
 
-            <div>
+            <div style="padding:20px; margin-bottom: 30px;">
                 <form action="" method="post" class="selector">
                     From {{ form.from_date }} to {{ form.to_date }}
                     <button>Search</button>
                 </form>
+                <div style="float:right; clear:both;" class="alert-message">
+                    {{ title }} - Percentage
+                </div>
             </div>
 
             <script>
@@ -34,11 +37,14 @@
                 <table class="tabulated-data classy">
                     <tr>
                         <th>District</th>
-                        <th>Percentage Absenteism</th>
+                        {% for date1, date2 in date_batch %}
+                        <th style="font-size: .7em;">{{ date1|date }}</th>
+                        {% endfor %}
                     </tr>
-                    {% for location, figure in dataset %}
+                    {% for location, figure_list in dataset %}
                     <tr>
                         <td>{{ location }}</td>
+                        {% for figure in figure_list %}
                         <td>
                             {% if figure == '--' %}
                                 {{ figure }}
@@ -46,16 +52,55 @@
                                 {{ figure|floatformat }}
                             {% endif %}
                         </td>
+                        {% endfor %}
                     </tr>
                     {% endfor %}
                 </table>
-
             {% else %}
-            <div class="alert-message">Please click the text boxes to select date range for data</div>
+                <div class="alert-message">Please click the text boxes to select date range for data</div>
+
+
+            <div class="attendance">
+                <h2>Bi-weekly Absenteeism {{ title }} {{ week|date:"D d M Y" }}</h2>
+
+                <div class="top">
+                    {% paginate 25 location_data %}
+                    <table class="tabulated-data">
+                        <thead>
+                        <tr>
+                            {% for heading in headings %}
+                            <th>{{ heading }}</th>
+                            {% endfor %}
+                        </tr>
+
+                        </thead>
+                        <tbody>
+                        {% for district, cur_value, prev_value, diff in location_data %}
+                        <tr>
+                            <td><a href="{% url boysp3-district-attd-detail district.id %}">{{ district }}</a>
+                            <td>{% if cur_value == '--' or cur_value == 0%} {{ cur_value }} {% else %} {{ cur_value|floatformat }} {% endif %}</td>
+                            <td>{% if prev_value == '--' or prev_value == 0%} {{ prev_value }} {% else %} {{ prev_value|floatformat }} {% endif %}</td>
+                            <td>{% if diff == '--' or diff == 0 %} {{ diff }} {% else %} {{ diff|floatformat }}{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="paginator">
+                    {% show_pages %}
+                </div>
+
+            </div>
+            <!--
+            <script>
+                $(function(){
+                    $(".tabulated-data").tablesorter({sortList: [
+                        [0,0],
+                        [1,0]
+                    ]});
+                });
+            </script>
+            -->
             {% endif %}
-
-
         </div>
-
-
 {% endblock %}
