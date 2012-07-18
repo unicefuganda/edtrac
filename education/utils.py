@@ -28,7 +28,7 @@ def previous_calendar_week(t=None):
     """
     To education monitoring, a week runs between Thursdays, 
     Thursday marks the beginning of a new week of data submission
-    Data for a new week is accepted until Wednesday evenning of the following week
+    Data for a new week is accepted until Wednesday evening of the following week
     """
     d = t if t else datetime.datetime.now()
     if not d.weekday() == 3:
@@ -36,7 +36,7 @@ def previous_calendar_week(t=None):
         last_thursday = d + (datetime.timedelta((3-d.weekday())%7) - (datetime.timedelta(days=7)))
     else:
         last_thursday = d
-    end_date = last_thursday + datetime.timedelta(days=7)
+    end_date = last_thursday + datetime.timedelta(days=6)
     return (last_thursday.date(), end_date)
 
 def is_weekend(date):
@@ -188,11 +188,7 @@ def _next_term_question_date(rght=None):
     """
     The termly questions are sent out on the 12th day of each term and computed based on the beginning of term date
     """
-#    import pdb;pdb.set_trace()
-#    delta = datetime.timedelta(days=12)
-#    delta_smc = datetime.timedelta(days=68)
-#    if rght:
-#        delta = delta_smc
+
     delta = datetime.timedelta(days=68) if rght else datetime.timedelta(12)
     first_term_qn_date = getattr(settings, 'FIRST_TERM_BEGINS', datetime.datetime.now()) + delta
     second_term_qn_date = getattr(settings, 'SECOND_TERM_BEGINS', datetime.datetime.now()) + delta
