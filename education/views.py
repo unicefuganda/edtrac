@@ -628,6 +628,7 @@ def head_teachers_female(locations):
     # get the count for female head teachers present in the last 3 days
     female_d1_yes = yes_fht_d1.count()
     female_d1_no = no_fht_d1.count()
+
     if (female_d1_yes + female_d1_no) > 0:
         female_d1 = female_d1_no * 100 / sum([female_d1_no, female_d1_yes]) # messing with ya! :D
     else:
@@ -688,6 +689,7 @@ def head_teachers_male(locations):
     # get the count for female head teachers present in the last 3 days
     male_d1_yes = yes_mht_d1.count()
     male_d1_no = no_mht_d1.count()
+
     if (male_d1_yes + male_d1_no) > 0:
         male_d1 = male_d1_no * 100 / sum([male_d1_no, male_d1_yes]) # messing with ya! :D
     else:
