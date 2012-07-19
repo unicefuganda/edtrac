@@ -1901,12 +1901,15 @@ def time_range_boysp3(req):
 
             return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
                                                                          'title':'P3 Boys Absenteeism',
+                                                                         'url_name':"boysp3-district-attd-detail",
                                                                          'date_batch':date_weeks}, RequestContext(req))
         else:
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form,'title':'P3 Boys Absenteeism'}, RequestContext(req))
+            return render_to_response('education/timeslider_base.html', {'form':time_range_form,
+                                                                         'url_name':"boysp3-district-attd-detail",
+                                                                         'title':'P3 Boys Absenteeism'}, RequestContext(req))
     else:
         context_vars = boys_p3_attendance(req)
-        context_vars.update({'form':time_range_form,'title':'P3 Boys Absenteeism'})
+        context_vars.update({'form':time_range_form,'title':'P3 Boys Absenteeism', 'url_name':"boysp3-district-attd-detail"})
         return render_to_response('education/timeslider_base.html', context_vars, RequestContext(req))
 
 
@@ -1949,12 +1952,15 @@ def time_range_boysp6(req):
                 to_ret.append([location, temp])
             return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
                                                                          'title':'P6 Boys Absenteeism',
+                                                                         'url_name':"boysp6-district-attd-detail",
                                                                          'date_batch':date_weeks}, RequestContext(req))
         else:
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form,'title':'P6 Boys Absenteeism'}, RequestContext(req))
+            return render_to_response('education/timeslider_base.html', {'form':time_range_form,
+                                                                         'url_name':"boysp6-district-attd-detail",
+                                                                         'title':'P6 Boys Absenteeism'}, RequestContext(req))
     else:
         context_vars = boys_p6_attendance(req)
-        context_vars.update({'form':time_range_form,'title':'P6 Boys Absenteeism'})
+        context_vars.update({'form':time_range_form,'title':'P6 Boys Absenteeism', 'url_name':"boysp6-district-attd-detail"})
         return render_to_response('education/timeslider_base.html', context_vars, RequestContext(req))
 
 @login_required
@@ -1996,12 +2002,14 @@ def time_range_girlsp3(req):
                 to_ret.append([location, temp])
             return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
                                                                          'title':'P3 Girls Absenteeism',
+                                                                         'url_name':"girlsp3-district-attd-detail",
                                                                          'date_batch':date_weeks}, RequestContext(req))
         else:
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form,'title':'P3 Girls Absenteeism'}, RequestContext(req))
+            return render_to_response('education/timeslider_base.html', {'form':time_range_form,'title':'P3 Girls Absenteeism',
+                                                                         'url_name':"girlsp3-district-attd-detail"}, RequestContext(req))
     else:
         context_vars = girls_p3_attendance(req)
-        context_vars.update({'form':time_range_form,'title':'P3 Girls Absenteeism'})
+        context_vars.update({'form':time_range_form,'title':'P3 Girls Absenteeism', 'url_name':"girlsp3-district-attd-detail"})
         return render_to_response('education/timeslider_base.html', context_vars, RequestContext(req))
 
 @login_required
@@ -2043,12 +2051,14 @@ def time_range_girlsp6(req):
                 to_ret.append([location, temp])
             return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
                                                                          'title':'P6 Girls Absenteeism',
+                                                                         'url_name':"girlsp6-district-attd-detail",
                                                                          'date_batch':date_weeks}, RequestContext(req))
         else:
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form,'title':'P6 Girls Absenteeism'}, RequestContext(req))
+            return render_to_response('education/timeslider_base.html', {'url_name':"girlsp6-district-attd-detail",
+                                                                         'form':time_range_form,'title':'P6 Girls Absenteeism'}, RequestContext(req))
     else:
         context_vars = girls_p6_attendance(req)
-        context_vars.update({'form':time_range_form,'title':'P6 Girls Absenteeism'})
+        context_vars.update({'form':time_range_form,'title':'P6 Girls Absenteeism','url_name':"girlsp6-district-attd-detail"})
         return render_to_response('education/timeslider_base.html', context_vars, RequestContext(req))
 
 @login_required
@@ -2092,12 +2102,15 @@ def time_range_teachers_m(req):
 
             return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
                                                                          'title':'Male Teachers Absenteeism',
+                                                                        'url_name':'male-teacher-district-attd-detail',
                                                                          'date_batch':date_weeks}, RequestContext(req))
         else:
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form,'title':'Male Teachers Absenteeism'}, RequestContext(req))
+            return render_to_response('education/timeslider_base.html', {'form':time_range_form,
+                                                                         'url_name':'male-teacher-district-attd-detail',
+                                                                         'title':'Male Teachers Absenteeism'}, RequestContext(req))
     else:
         context_vars = male_teacher_attendance(req)
-        context_vars.update({'form':time_range_form,'title':'Male Teachers Absenteeism'})
+        context_vars.update({'form':time_range_form,'title':'Male Teachers Absenteeism','url_name':'male-teacher-district-attd-detail'})
         return render_to_response('education/timeslider_base.html', context_vars, RequestContext(req))
 
 @login_required
@@ -2141,12 +2154,14 @@ def time_range_teachers_f(req):
 
             return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
                                                                          'title':'Female Teachers Absenteeism',
+                                                                         'url_name':"female-teacher-district-attd-detail",
                                                                          'date_batch':date_weeks}, RequestContext(req))
         else:
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form,'title':'Female Teachers Absenteeism'}, RequestContext(req))
+            return render_to_response('education/timeslider_base.html', {'url_name':"female-teacher-district-attd-detail",
+                                                                         'form':time_range_form,'title':'Female Teachers Absenteeism'}, RequestContext(req))
     else:
         context_vars = female_teacher_attendance(req)
-        context_vars.update({'form':time_range_form,'title':'Female Teachers Absenteeism'})
+        context_vars.update({'form':time_range_form,'title':'Female Teachers Absenteeism', 'url_name':"female-teacher-district-attd-detail"})
         return render_to_response('education/timeslider_base.html', context_vars, RequestContext(req))
 
 def whitelist(request):
