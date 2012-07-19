@@ -1587,7 +1587,7 @@ def male_t_district_attd_detail(req, location_id):
               'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
               'location':location}, RequestContext(req))
 
-def boys_p3_attendance(req):
+def boys_p3_attendance(req, **kwargs):
     profile = req.user.get_profile()
     location = profile.location
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
@@ -1601,6 +1601,7 @@ def boys_p3_attendance(req):
         return boys_p3_attd_admin(req, locations=locations)
     else:
         #DEO
+        dates = kwargs.get('dates')
         schools = School.objects.filter(location=location)
 
         to_ret = []
@@ -1610,9 +1611,6 @@ def boys_p3_attendance(req):
             to_ret.append(temp)
 
         to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
-
-#        return  render_to_response(
-#            'education/partials/boys_p3_attendance.html',
         return {
                 'week':datetime.datetime.now(),
                 'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
@@ -1880,21 +1878,27 @@ def time_range_boysp3(req):
                 while from_date <= to_date:
                     date_weeks.append([dateutils.month_start(from_date),dateutils.month_end(from_date)])
                     from_date += datetime.timedelta(months = 1)
+            if req.user.get_profile().is_member_of('Ministry Officials') or\
+                req.user.get_profile().is_member_of('Admins') or req.user.get_profile().is_member_of('UNICEF Officials'):
 
-            for location in locations:
-                enrolled = poll_responses_term('edtrac_boysp3_enrollment', belongs_to='location', locations=[location])
-                temp = []
-                for d in date_weeks:
-                    attendance = get_numeric_report_data('edtrac_boysp3_attendance', locations=[location],
-                        time_range=list(d), to_ret = 'avg')
-                    try:
-                        percentage = (enrolled - attendance) * 100 / enrolled
-                    except ZeroDivisionError:
-                        percentage = '--'
+                for location in locations:
+                    enrolled = poll_responses_term('edtrac_boysp3_enrollment', belongs_to='location', locations=[location])
+                    temp = []
+                    for d in date_weeks:
+                        attendance = get_numeric_report_data('edtrac_boysp3_attendance', locations=[location],
+                            time_range=list(d), to_ret = 'avg')
+                        try:dels.py
+                            percentage = (enrolled - attendance) * 100 / enrolled
+                        except ZeroDivisionError:
+                            percentage = '--'
 
-                    temp.append(percentage)
+                        temp.append(percentage)
 
-                to_ret.append([location, temp])
+                    to_ret.append([location, temp])
+
+            else:
+                to_ret = boys_p3_attendance(req, dates = date_weeks) # TODO refactor function
+
             return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
                                                                          'title':'P3 Boys Absenteeism',
                                                                          'date_batch':date_weeks}, RequestContext(req))
