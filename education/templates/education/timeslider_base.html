@@ -1,17 +1,19 @@
 {% extends "education/admin/admin_dashboard.html" %}
 {% load endless %}
+{% comment %} using url from future to pass context vars {% endcomment %}
+{% load url from future %}
 {% block title %}
 {{ title }} -- {{ block.super }}
 {% endblock %}
 {% block content %}
 <ul class='breadcrumb'>
     <li>
-        <a href="{% url rapidsms-dashboard %}">
+        <a href="{% url 'rapidsms-dashboard' %}">
             Dashboard Home</a>
         <span class="divider">\</span>
     </li>
     <li>
-        <a href="{% url attendance-admin-details %}">Details view</a>
+        <a href="{% url 'attendance-admin-details' %}">Details view</a>
     </li>
 </ul>
         <div class="general" style="min-height: 200px;">
@@ -76,8 +78,7 @@
                         </thead>
                         <tbody>
                         {% for district, cur_value, prev_value, diff in location_data %}
-                        <tr>
-                            <td><a href="{% url boysp3-district-attd-detail district.id %}">{{ district }}</a>
+                            <td><a href="{% url url_name district.id %}">{{ district }}</a>
                             <td>{% if cur_value == '--' or cur_value == 0%} {{ cur_value }} {% else %} {{ cur_value|floatformat }} {% endif %}</td>
                             <td>{% if prev_value == '--' or prev_value == 0%} {{ prev_value }} {% else %} {{ prev_value|floatformat }} {% endif %}</td>
                             <td>{% if diff == '--' or diff == 0 %} {{ diff }} {% else %} {{ diff|floatformat }}{% endif %}</td>
