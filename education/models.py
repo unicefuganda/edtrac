@@ -4,7 +4,7 @@ from django.contrib.auth.models import Group, User
 from django.db import models
 from django.forms import ValidationError
 from eav.models import Attribute
-from education.utils import _schedule_weekly_scripts, _schedule_monthly_script, _schedule_termly_script,\
+from education.utils import _schedule_weekly_scripts, _schedule_weekly_scripts_now, _schedule_monthly_script, _schedule_termly_script,\
     _schedule_weekly_report, _schedule_monthly_report
 from rapidsms_httprouter.models import mass_text_sent
 from rapidsms.models import Contact, ContactBase
@@ -469,6 +469,25 @@ def reschedule_weekly_polls(grp=None):
     if grp:
         slg_start = 'edtrac_%s'%grp.replace(' ','_').lower()
         weekly_scripts = weekly_scripts.filter(slug__startswith=slg_start)
+        ScriptProgress.objects.filter(script__in=weekly_scripts).filter(connection__contact__emisreporter__groups__name__iexact=grp).delete()
+    else:
+        ScriptProgress.objects.filter(script__in=weekly_scripts).delete()
+    Script.objects.filter(slug__in=weekly_scripts.values_list('slug', flat=True)).update(enabled=True)
+    grps = Group.objects.filter(name__iexact=grp) if grp else Group.objects.filter(name__in=['Teachers', 'Head Teachers', 'SMC'])
+    # get active reporters
+    reps = EmisReporter.objects.filter(groups__in=grps)
+    for rep in reps:
+        if rep.default_connection and rep.groups.count() > 0:
+            _schedule_weekly_scripts(rep.groups.all()[0], rep.default_connection, ['Teachers', 'Head Teachers', 'SMC'])
+
+def reschedule_weekly_polls_now(grp=None):
+    """
+    manually reschedule all weekly polls or for a specified group
+    """
+    weekly_scripts = Script.objects.filter(slug__endswith='_weekly')
+    if grp:
+        slg_start = 'edtrac_%s'%grp.replace(' ','_').lower()
+        weekly_scripts = weekly_scripts.filter(slug__startswith=slg_start)
         ScriptProgress.objects.filter(script__in=weekly_scripts)\
         .filter(connection__contact__emisreporter__groups__name__iexact=grp).delete()
     else:
@@ -479,7 +498,8 @@ def reschedule_weekly_polls(grp=None):
     reps = EmisReporter.objects.filter(groups__in=grps)
     for rep in reps:
         if rep.default_connection and rep.groups.count() > 0:
-            _schedule_weekly_scripts(rep.groups.all()[0], rep.default_connection, ['Teachers', 'Head Teachers', 'SMC'])
+            _schedule_weekly_scripts_now(rep.groups.all()[0], rep.default_connection, ['Teachers', 'Head Teachers', 'SMC'])
+
 
 def reschedule_monthly_polls(grp=None):
     """
