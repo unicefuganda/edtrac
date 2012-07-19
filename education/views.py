@@ -295,8 +295,16 @@ def capitation_grants(locations):
         yeses_cg = 0
         nos_cg = 0
     else:
-        yeses_cg = responses.get(category__name = "yes").get('value')
-        nos_cg = responses.get(category__name = "no").get('value')
+        # more validations
+        if responses.filter(category__name = 'yes').exists():
+            yeses_cg = responses.get(category__name = "yes").get('value')
+        else:
+            yeses_cg = 0
+
+        if responses.filter(category__name = 'no').exists():
+            nos_cg = responses.get(category__name = "no").get('value')
+        else:
+            nos_cg = 0
 
 
     # percent of those that received grants
