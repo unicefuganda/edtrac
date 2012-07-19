@@ -1887,7 +1887,7 @@ def time_range_boysp3(req):
                     for d in date_weeks:
                         attendance = get_numeric_report_data('edtrac_boysp3_attendance', locations=[location],
                             time_range=list(d), to_ret = 'avg')
-                        try:dels.py
+                        try:
                             percentage = (enrolled - attendance) * 100 / enrolled
                         except ZeroDivisionError:
                             percentage = '--'
