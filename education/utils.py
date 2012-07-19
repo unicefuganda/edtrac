@@ -88,6 +88,39 @@ def _next_thursday(sp=None, **kwargs):
             d = d + datetime.timedelta(7)
     return d
 
+
+def _this_thursday(sp=None, **kwargs):
+    """
+    This Thursday of the week which is not a school holiday
+    """
+    holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
+    time_schedule = kwargs.get('time_set') if kwargs.has_key('time_set') else datetime.datetime.now()
+    d = sp.time if sp else time_schedule
+    if d.weekday() == 3:
+        d = d # no decrement
+    elif d.weekday() < 3:
+        d = d + datetime.timedelta(days = 3 - d.weekday())
+    else:
+        d = d - datetime.timedelta(days = d.weekday() - 3)
+    in_holiday = True
+    while in_holiday:
+        in_holiday = False
+        for start, end in holidays:
+            if type(end) == str:
+                if d.date() == start.date():
+                    in_holiday = True
+                    break
+            else:
+                if d >= start and d <= end:
+                    in_holiday = True
+                    break
+        if in_holiday:
+            d = d + datetime.timedelta(1) # try next day
+    return d
+
+
+
+
 def _next_wednesday(sp = None):
     """
     Next Wednesday is the very next Wednesday of the week which is not a school holiday
@@ -288,6 +321,37 @@ def _schedule_weekly_scripts(group, connection, grps):
             sp.set_time(d)
         else:
             pass # do nothing if reporter has no recognizable group. e.g. Other Reporters or unessential sms receiver groups like DEO/MEO, UNICEF Officials, etc.
+
+
+def _schedule_weekly_scripts_now(group, connection, grps):
+    """
+    This method is called within a loop over several connections or for an individual connection
+    and it sets the start time for a script to _next_thursday() relative to either current date
+    or the date that is currently in ScriptProgress
+    """
+    if group.name in grps:
+        script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
+        now = datetime.datetime.now()
+        d = _this_thursday(time_set=now if now.hour == 10 else now - datetime.timedelta(hours = now.hour - 10 if now.hour > 10 else  10 - now.hour))
+        #if reporter is a teacher set in the script session only if this reporter has a grade
+        if connection.contact.emisreporter.groups.filter(name='Teachers').exists():
+            if connection.contact.emisreporter.grade and connection.contact.emisreporter.schools.exists():
+                # get rid of any existing script progress; this is a one time thing
+                ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug=script_slug)).delete()
+                sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
+                sp.set_time(d)
+            else:
+                pass # do nothing, jump to next iteration
+        elif connection.contact.emisreporter.groups.filter(name__in = ["Head Teachers", "SMC", "GEM"]).exists() and\
+             connection.contact.emisreporter.groups.filter(name__in = ["Head Teachers", "SMC", "GEM"]).count()==1 and\
+             not Blacklist.objects.filter(connection=connection).exists():
+            ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug=script_slug)).delete()
+            sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
+            sp.set_time(d)
+        else:
+            pass # do nothing if reporter has no recognizable group. e.g. Other Reporters or unessential sms receiver groups like DEO/MEO, UNICEF Officials, etc.
+
+
 
 
 def _schedule_weekly_report(group, connection, grps):
