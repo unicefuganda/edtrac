@@ -530,7 +530,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.month, _next_thursday().month)
         # seconds are a little unpredictable, sticking to the hour for time.
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.hour, 10) #refactored _next_thursday() function, everything is 10.00 o'clock _next_thursday().hour)
-#        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.second, _next_thursday().second)
+        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.second, _next_thursday().second)
 
 
     def testMonthlyHeadTeacherPolls(self):
