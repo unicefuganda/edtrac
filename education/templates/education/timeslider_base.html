@@ -77,8 +77,8 @@
 
                         </thead>
                         <tbody>
-                        {% for district, cur_value, prev_value, diff in location_data %}
-                            <td><a href="{% url url_name district.id %}">{{ district }}</a>
+                        {% for entity_attribute, cur_value, prev_value, diff in location_data %}
+                            <td><a href="{% url url_name entity_attribute.id %}">{{ entity_attribute }}</a>
                             <td>{% if cur_value == '--' or cur_value == 0%} {{ cur_value }} {% else %} {{ cur_value|floatformat }} {% endif %}</td>
                             <td>{% if prev_value == '--' or prev_value == 0%} {{ prev_value }} {% else %} {{ prev_value|floatformat }} {% endif %}</td>
                             <td>{% if diff == '--' or diff == 0 %} {{ diff }} {% else %} {{ diff|floatformat }}{% endif %}</td>
