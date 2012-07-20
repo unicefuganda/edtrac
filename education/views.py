@@ -1917,7 +1917,13 @@ def time_range_boysp3(req):
                                                                          'title':'P3 Boys Absenteeism'}, RequestContext(req))
     else:
         context_vars = boys_p3_attendance(req)
-        context_vars.update({'form':time_range_form,'title':'P3 Boys Absenteeism', 'url_name':"boysp3-district-attd-detail"})
+        profile = req.user.get_profile()
+        if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
+            x = {'url_name':"boysp3-district-attd-detail"}
+        else:
+            x = {'url_name':"school-detail"}
+        context_vars.update({'form':time_range_form,'title':'P3 Boys Absenteeism'})
+        context_vars.update(x)
         return render_to_response('education/timeslider_base.html', context_vars, RequestContext(req))
 
 
@@ -1949,7 +1955,7 @@ def time_range_boysp6(req):
                 temp = []
                 for d in date_weeks:
                     attendance = get_numeric_report_data('edtrac_boysp6_attendance', locations=[location],
-                        time_range=list(d), to_ret = 'avg')
+                        time_range=list(d), to_ret = 'sum')
                     try:
                         percentage = (enrolled - attendance) * 100 / enrolled
                     except ZeroDivisionError:
@@ -1968,7 +1974,15 @@ def time_range_boysp6(req):
                                                                          'title':'P6 Boys Absenteeism'}, RequestContext(req))
     else:
         context_vars = boys_p6_attendance(req)
-        context_vars.update({'form':time_range_form,'title':'P6 Boys Absenteeism', 'url_name':"boysp6-district-attd-detail"})
+        profile = req.user.get_profile()
+        if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
+            x = {'url_name':"boysp6-district-attd-detail"}
+        else:
+            x = {'url_name':"school-detail"}
+
+        context_vars.update({'form':time_range_form,'title':'P6 Boys Absenteeism'})
+        context_vars.update(x)
+
         return render_to_response('education/timeslider_base.html', context_vars, RequestContext(req))
 
 @login_required
@@ -2017,7 +2031,14 @@ def time_range_girlsp3(req):
                                                                          'url_name':"girlsp3-district-attd-detail"}, RequestContext(req))
     else:
         context_vars = girls_p3_attendance(req)
-        context_vars.update({'form':time_range_form,'title':'P3 Girls Absenteeism', 'url_name':"girlsp3-district-attd-detail"})
+        profile = req.user.get_profile()
+        if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
+            x = {'url_name':"girlsp3-district-attd-detail"}
+        else:
+            x = {'url_name':"school-detail"}
+
+        context_vars.update({'form':time_range_form, 'title':'P3 Girls Absenteeism'})
+        context_vars.update(x)
         return render_to_response('education/timeslider_base.html', context_vars, RequestContext(req))
 
 @login_required
@@ -2066,7 +2087,15 @@ def time_range_girlsp6(req):
                                                                          'form':time_range_form,'title':'P6 Girls Absenteeism'}, RequestContext(req))
     else:
         context_vars = girls_p6_attendance(req)
-        context_vars.update({'form':time_range_form,'title':'P6 Girls Absenteeism','url_name':"girlsp6-district-attd-detail"})
+        profile = req.user.get_profile()
+        if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
+            x = {'url_name':"girlsp6-district-attd-detail"}
+        else:
+            x = {'url_name':"school-detail"}
+
+        context_vars.update({'form':time_range_form,'title':'P6 Girls Absenteeism'})
+        context_vars.update(x)
+
         return render_to_response('education/timeslider_base.html', context_vars, RequestContext(req))
 
 @login_required
@@ -2118,7 +2147,13 @@ def time_range_teachers_m(req):
                                                                          'title':'male teacher absenteeism'}, RequestContext(req))
     else:
         context_vars = male_teacher_attendance(req)
-        context_vars.update({'form':time_range_form,'title':'male teacher absenteeism','url_name':'male-teacher-district-attd-detail'})
+        profile = req.user.get_profile()
+        if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
+            x = {'url_name':'male-teacher-district-attd-detail'}
+        else:
+            x = {'url_name':"school-detail"}
+        context_vars.update(x)
+        context_vars.update({'form':time_range_form,'title':'male teacher absenteeism'})
         return render_to_response('education/timeslider_base.html', context_vars, RequestContext(req))
 
 @login_required
@@ -2169,7 +2204,13 @@ def time_range_teachers_f(req):
                                                                          'form':time_range_form,'title':'female teacher absenteeism'}, RequestContext(req))
     else:
         context_vars = female_teacher_attendance(req)
-        context_vars.update({'form':time_range_form,'title':'female teacher absenteeism', 'url_name':"female-teacher-district-attd-detail"})
+        profile = req.user.get_profile()
+        if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
+            x = {'url_name':"female-teacher-district-attd-detail"}
+        else:
+            x = {'url_name':"school-detail"}
+        context_vars.update(x)
+        context_vars.update({'form':time_range_form,'title':'female teacher absenteeism'})
         return render_to_response('education/timeslider_base.html', context_vars, RequestContext(req))
 
 def whitelist(request):
