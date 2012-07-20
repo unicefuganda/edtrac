@@ -635,6 +635,17 @@ def get_week_date(depth=None):
     get_week_date returns a range of weekly dates from today when not in holiday
     """
     now = datetime.datetime.now()
+    # clean the hour
+    now = now if now.second == 0 else now - datetime.timedelta(seconds = now.second)
+    now = now if now.minute == 0 else now - datetime.timedelta(minutes = now.minute)
+    now = now if now.microsecond == 0 else now - datetime.timedelta(microseconds = now.microsecond)
+    if now.hour == 8:
+        pass
+    elif now.hour > 8:
+        now = now - datetime.timedelta(hours = now.hour - 8)
+    else:
+        now = now + datetime.timedelta(hours = 8 - now.hour)
+
     if depth:
         """
         Suppose you want a depth of 3 weeks worth of weekly ranges, all you need to do is set the depth
