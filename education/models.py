@@ -357,8 +357,6 @@ def edtrac_reschedule_script(**kwargs):
     group = connection.contact.groups.all()[0]
     if slug in ["edtrac_%s" % g.lower().replace(' ', '_') + '_weekly' for g in ['Teachers', 'Head Teachers', 'SMC']]:
         _schedule_weekly_scripts(group, connection, ['Teachers', 'Head Teachers', 'SMC'])
-#    elif slug == 'edtrac_teachers_monthly':
-#        _schedule_monthly_script(group, connection, 'edtrac_teachers_monthly', 'last', ['Teachers'])
     elif slug == 'edtrac_head_teachers_monthly':
         _schedule_monthly_script(group, connection, 'edtrac_head_teachers_monthly', 'last', ['Head Teachers'])
     elif slug == 'edtrac_smc_monthly':
@@ -425,7 +423,7 @@ def edtrac_attendance_script_transition(**kwargs):
         progress.step = progress.script.steps.get(order=progress.step.order + 1)
         progress.save()
         return
-    
+
     skipsteps = {
         'edtrac_boysp3_attendance':['P3'],
         'edtrac_boysp6_attendance':['P6'],
