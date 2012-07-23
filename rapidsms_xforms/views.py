@@ -405,6 +405,7 @@ def edit_submission(req, submission_id):
 
         # no errors?  save and redirect
         if form.is_valid():
+
             # update our submission
             xform.update_submission_from_dict(submission, form.cleaned_data)
 
@@ -424,11 +425,11 @@ def edit_submission(req, submission_id):
         form = form_class(initial=form_vals)
 
     breadcrumbs = (('XForms', '/xforms/'), ('Submissions', '/xforms/%d/submissions/' % xform.pk), ('Edit Submission', ''))
-
+    back_url = getattr(settings, 'XFORM_CANCEL_BACKURL', '/hc/reports/')
     return render_to_response("xforms/submission_edit.html",
         { 'xform': xform, 'submission': submission,
         'fields': fields, 'values': values, 'form': form,
-        'breadcrumbs': breadcrumbs },
+        'breadcrumbs': breadcrumbs, 'back_url':back_url },
         context_instance=RequestContext(req))
 
 def view_field(req, form_id, field_id):

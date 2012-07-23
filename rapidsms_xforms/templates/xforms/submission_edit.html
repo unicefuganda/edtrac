@@ -22,7 +22,8 @@
 {{ form|as_uni_form }}
 
 <div class="buttons" style="float:left;margin-bottom:10px;margin-top:10px">
-  <a href="/xforms/{{ xform.pk }}/submissions" class="negative">
+  <!-- <a href="/xforms/{{ xform.pk }}/submissions" class="negative">-->
+  <a href="{{ back_url }}" class="negative">
     <img src="{{ MEDIA_URL }}rapidsms/icons/silk/decline.png" alt=""/> 
     Cancel
   </a>
