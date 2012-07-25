@@ -66,7 +66,7 @@ class HttpRouter(object, LoggerMixin):
         # create our connection
         #connection, created = Connection.objects.get_or_create(backend=backend, identity=contact)
         try:
-            connection = Connection.objects.get(identity=contact)
+            connection = Connection.objects.get(identity=contact, backend=backend)
         except Connection.DoesNotExist:
             connection = Connection.objects.create(backend=backend, identity=contact)
 
