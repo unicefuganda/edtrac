@@ -82,7 +82,7 @@ def assign_backend(number):
     assign a backend to a given number
     """
     country_code = getattr(settings, 'COUNTRY_CALLING_CODE', '256')
-    backends = getattr(settings, 'BACKEND_PREFIXES', [('75', 'zain'), ('71', 'utl'), ('', 'dmark')])
+    backends = getattr(settings, 'BACKEND_PREFIXES', [('75', 'zain'), ('71', 'dmark'), ('', 'dmark')])
 
     if number.startswith('0'):
         number = '%s%s' % (country_code, number[1:])
