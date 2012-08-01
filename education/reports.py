@@ -880,22 +880,6 @@ def poll_response_sum(poll_name, **kwargs):
             # return just one figure/sum without all the list stuff
             # TODO fix to work with biweekly data
             return [0, 0]
-#            return [sum(filter(None,
-#                [
-#                r.eav.poll_number_value for r in poll_queryset.responses.filter(
-#                    contact__in=Contact.objects.filter(reporting_location__in=kwargs.get('locations')),
-#                    date__range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
-#                )
-#                ])),
-#                    sum(filter(None,
-#                        [
-#                        r.eav.poll_number_value for r in poll_queryset.responses.filter(
-#                            contact__in=Contact.objects.filter(reporting_location__in=kwargs.get('locations')),
-#                            date__range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
-#                        )
-#                        ]))
-#            ]
-
 
         if kwargs.get('month_filter')=='monthly' and kwargs.has_key('locations') or kwargs.get('month_20to19'):
             if kwargs.get('month_20to19'):
@@ -925,7 +909,7 @@ def poll_response_sum(poll_name, **kwargs):
             school = kwargs.get('school')
             # return only sums of values from responses sent in by EMIS reporters in this school
             response_sum = get_numeric_report_data(
-                poll_name, time_range = date_week, school=school, to_ret = 'sum', belongs_to = 'schools'
+                poll_name, time_range = date_week if not kwargs.has_key('date_week') else list(kwargs.get('date_week')), school=school, to_ret = 'sum', belongs_to = 'schools'
             )
 
             if response_sum == 0:
@@ -1313,7 +1297,7 @@ def return_absent_month(poll_name, enrollment, month_range, school=None):
             except ZeroDivisionError:
                 return 0.0
 
-def return_absent(poll_name, enrollment, locations=None, school=None):
+def return_absent(poll_name, enrollment, locations=None, school=None, **kwargs):
     """
     Handy function to get weekly figures for enrollment/deployment to get absenteism percentages; 
     EMIS is about variances and differences, this not only returns values; it returns the percentage 
@@ -1327,6 +1311,13 @@ def return_absent(poll_name, enrollment, locations=None, school=None):
         for loc in locations:
             pre_ret = []
             pre_ret.append(loc)
+            enrollment_schools = enrollment.responses.\
+                values_list('contact__emisreporter__schools__name').\
+                exclude(contact__emisreporter__schools__name = None).\
+                filter(contact__reporting_location__name = location.name).values_list('contact__emisreporter__schools__pk', flat=True)
+            for school in enrollment_schools:
+                pass
+
             now, before = poll_responses_past_week_sum(poll_name, weeks=2, locations=[loc])
             current_enrollment = poll_responses_term(enrollment, locations=[loc], belongs_to="location")
             # computing absenteism
@@ -1358,7 +1349,17 @@ def return_absent(poll_name, enrollment, locations=None, school=None):
             to_ret.append(pre_ret)
         return to_ret
 
-    if school:
+    if school and kwargs.has_key('date_week'):
+        current_enrollment = poll_responses_term(enrollment, school=school, belongs_to='schools')
+        in_class = poll_response_sum(poll_name, month_filter='weekly', date_week=kwargs.get('date_week'), school = school)
+        print current_enrollment, in_class
+        try:
+            x = 100 * (current_enrollment - in_class) / current_enrollment
+        except Exception, e:
+            x = '--'
+        return [x]
+
+    else:
         now, before = poll_responses_past_week_sum(poll_name, weeks=2, school=school)
         current_enrollment = poll_responses_term(enrollment, school=school, belongs_to='schools')
         try:
@@ -1380,6 +1381,7 @@ def return_absent(poll_name, enrollment, locations=None, school=None):
         except TypeError:
             diff = '--'
         return [now_percentage, before_percentage, diff]
+
 
 #### Excel reporting
 
