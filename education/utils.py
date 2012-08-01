@@ -67,11 +67,35 @@ def _next_thursday(sp=None, **kwargs):
     """
     holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
     time_schedule = kwargs.get('time_set') if kwargs.has_key('time_set') else datetime.datetime.now()
-    d = sp.time if sp else time_schedule
-    if d.weekday() == 3:
-        d = d + datetime.timedelta(7)
-    else: 
-        d = d + datetime.timedelta((3 - d.weekday()) % 7)
+    if sp:
+        #time shaving
+        if sp.time.hour > 10:
+            d = sp.time - datetime.timedelta(hours = sp.time.hour - 10)
+        elif sp.time.hour < 10:
+            d = sp.time + datetime.timedelta(hours = 10 - sp.time.hour)
+        else:
+            d = sp.time
+        d = d if d.second == 0 else d - datetime.timedelta(seconds = d.second)
+        d = d if d.minute == 0 else d - datetime.timedelta(minutes = d.minute)
+        d = d if d.microsecond == 0 else d - datetime.timedelta(microseconds = d.microsecond)
+    else:
+        d = time_schedule
+        if d.hour > 10:
+            d = d - datetime.timedelta(hours = d.hour - 10)
+        elif d.hour < 10:
+            d = sp.time + datetime.timedelta(hours = 10 - sp.time.hour)
+        d = d if d.second == 0 else d - datetime.timedelta(seconds = d.second)
+        d = d if d.minute == 0 else d - datetime.timedelta(minutes = d.minute)
+        d = d if d.microsecond == 0 else d - datetime.timedelta(microseconds = d.microsecond)
+
+
+    if d.weekday() == 3: # if a thursday
+        d = d + datetime.timedelta(days = 7)
+    elif d.weekday() > 3:
+        d = d - datetime.timedelta(days = d.weekday()-3)
+    else:
+        d = d + datetime.timedelta(days = 3 - d.weekday())
+
     in_holiday = True
     while in_holiday:
         in_holiday = False
@@ -85,7 +109,7 @@ def _next_thursday(sp=None, **kwargs):
                     in_holiday = True
                     break
         if in_holiday:
-            d = d + datetime.timedelta(7)
+            d = d + datetime.timedelta(days = 7)
     return d
 
 
@@ -303,22 +327,38 @@ def _schedule_weekly_scripts(group, connection, grps):
     if group.name in grps:
         script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
         now = datetime.datetime.now()
-        d = _next_thursday(time_set=now if now.hour == 10 else now - datetime.timedelta(hours = now.hour - 10 if now.hour > 10 else  10 - now.hour))
+
+        if ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug=script_slug)).exists():
+            sp = ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug=script_slug))[0]
+            d = _next_thursday(sp=sp)
+        else:
+            d = _next_thursday(time_set=now)
+
         #if reporter is a teacher set in the script session only if this reporter has a grade
         if connection.contact.emisreporter.groups.filter(name='Teachers').exists():
             if connection.contact.emisreporter.grade and connection.contact.emisreporter.schools.exists():
                 # get rid of any existing script progress; this is a one time thing
-                ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug=script_slug)).delete()
-                sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-                sp.set_time(d)
+                #ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug=script_slug)).delete()
+                if not ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug=script_slug)).exists():
+                    #reschedule user only if their ScriptProgresses have been expired
+                    sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
+                    sp.set_time(d)
             else:
                 pass # do nothing, jump to next iteration
         elif connection.contact.emisreporter.groups.filter(name__in = ["Head Teachers", "SMC", "GEM"]).exists() and \
              connection.contact.emisreporter.groups.filter(name__in = ["Head Teachers", "SMC", "GEM"]).count()==1 and \
             not Blacklist.objects.filter(connection=connection).exists():
-            ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug=script_slug)).delete()
-            sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-            sp.set_time(d)
+
+            if ScriptProgress.objects.filter(connection=connection,
+                time__lte=datetime.datetime.now(),
+                script=Script.objects.get(slug = script_slug)).exists():
+                # if by today, the script hasn't been expired, delete it and set it up
+                ScriptProgress.objects.filter(connection=connection, script=Script.objects.get(slug = script_slug)).delete()
+
+            if not ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug=script_slug)).exists():
+                # set user to new script only if they have completed Script polls
+                sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
+                sp.set_time(d)
         else:
             pass # do nothing if reporter has no recognizable group. e.g. Other Reporters or unessential sms receiver groups like DEO/MEO, UNICEF Officials, etc.
 
@@ -332,7 +372,16 @@ def _schedule_weekly_scripts_now(group, connection, grps):
     if group.name in grps:
         script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
         now = datetime.datetime.now()
-        d = _this_thursday(time_set=now if now.hour == 10 else now - datetime.timedelta(hours = now.hour - 10 if now.hour > 10 else  10 - now.hour))
+        time_set = None
+        if now.hour > 10:
+            time_set = now - datetime.timedelta(hours = now.hour - 10)
+        elif now.hour < 10:
+            time_set = now + datetime.timedelta(hours = 10 - now.hour)
+        else:
+            time_set = now
+        time_set = time_set if time_set.second == 0 else time_set - datetime.timedelta(seconds = time_set.second)
+        time_set = time_set if time_set.minute == 0 else time_set - datetime.timedelta(minutes = time_set.minute)
+        d = _this_thursday(time_set=time_set)
         #if reporter is a teacher set in the script session only if this reporter has a grade
         if connection.contact.emisreporter.groups.filter(name='Teachers').exists():
             if connection.contact.emisreporter.grade and connection.contact.emisreporter.schools.exists():
