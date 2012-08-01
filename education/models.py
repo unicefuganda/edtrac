@@ -435,8 +435,7 @@ def edtrac_attendance_script_transition(**kwargs):
     while grade and skipped:
         skipped = False
         for step_name, grades in skipsteps.items():
-            if  progress.step.poll and\
-                progress.step.poll.name == step_name and grade not in grades:
+            if  progress.step.poll and progress.step.poll.name == step_name and not grade in grades:
                 skipped = True
                 if progress.last_step():
                     progress.giveup()
