@@ -21,7 +21,6 @@ from rapidsms.models import Connection
 from rapidsms_httprouter.models import Message
 from django.db.models import Q
 from poll.models import Response
-from healthmodels.models.HealthFacility import HealthFacility
 import xlwt
 import zipfile
 import math
@@ -597,11 +596,3 @@ def get_districts_for_user(user):
         else:
             return Location.objects.filter(type__name='district').order_by('name')
     return Location.objects.filter(type__name='district').order_by('name')
-def get_user_district_facilities(user):
-    if user:
-        loc = Location.objects.filter(name__icontains=user.username, type__name='district')
-        if loc:
-            return HealthFacility.objects.filter(catchment_areas__in=loc[0].\
-                                                 get_descendants(include_self=True)).distinct().\
-                                                 values('pk', 'name', 'type__name').order_by('name')
-    return HealthFacility.objects.all().values('pk', 'name', 'type__name').order_by('name')
