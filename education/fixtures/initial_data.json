@@ -246,7 +246,7 @@
             "end_date": null, 
             "contacts": [], 
             "messages": [], 
-            "question": "What is the name of your sub county?", 
+            "question": "What is the name of the sub county in which your school is found?", 
             "sites": [
                 5
             ], 
@@ -1313,7 +1313,7 @@
             "order": 5, 
             "giveup_offset": 86400
         }
-    }, 
+    , 
     {
         "pk": 1258, 
         "model": "script.scriptstep", 
