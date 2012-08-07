@@ -1313,7 +1313,7 @@
             "order": 5, 
             "giveup_offset": 86400
         }
-    , 
+    },
     {
         "pk": 1258, 
         "model": "script.scriptstep", 
