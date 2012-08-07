@@ -723,7 +723,7 @@ def month19to20(**kwargs):
         return [current_month, previous_month]
 
 def get_numeric_report_data(poll_name, location=None, time_range=None, to_ret=None, **kwargs):
-    poll = Poll.objects.get(name=poll_name)    
+    poll = Poll.objects.get(name=poll_name)
     if time_range:
         if location:
         # time filters
@@ -756,7 +756,7 @@ def get_numeric_report_data(poll_name, location=None, time_range=None, to_ret=No
             elif kwargs.has_key('locations') and len(locations) == 1:
                 q = Value.objects.filter(attribute__slug='poll_number_value',\
                     entity_ct=ContentType.objects.get_for_model(Response),\
-                    entity_id__in=poll.responses.filter(date__range=time_range, contact__reporting_location=locations[0])).values('entity_ct')            
+                    entity_id__in=poll.responses.filter(date__range=time_range, contact__reporting_location=locations[0])).values('entity_ct')
                 # use-case designed in views #TODO clean up
             else:
                 q = Value.objects.filter(attribute__slug='poll_number_value',\
@@ -990,7 +990,6 @@ def poll_responses_past_week_sum(poll_name, **kwargs):
 
         >>> (34, 23)
     """
-
     if kwargs:
         first_quota, second_quota = get_week_date(depth=kwargs.get('weeks'))
         #narrowing to location
@@ -1116,7 +1115,7 @@ def curriculum_progress_list(poll_name, **kwargs):
                 return 0
 
         elif kwargs.get('time_range'):
-            try:                
+            try:
                 return  get_numeric_report_data(
                     poll_name,
                     to_ret = 'q',
@@ -1297,10 +1296,17 @@ def return_absent_month(poll_name, enrollment, month_range, school=None):
             except ZeroDivisionError:
                 return 0.0
 
+
+def avg(list):
+    try:
+        return float(sum(list))/len(list)
+    except ZeroDivisionError:
+        return 0
+
 def return_absent(poll_name, enrollment, locations=None, school=None, **kwargs):
     """
-    Handy function to get weekly figures for enrollment/deployment to get absenteism percentages; 
-    EMIS is about variances and differences, this not only returns values; it returns the percentage 
+    Handy function to get weekly figures for enrollment/deployment to get absenteism percentages;
+    EMIS is about variances and differences, this not only returns values; it returns the percentage
     change too.
 
     Value returned:
@@ -1308,34 +1314,43 @@ def return_absent(poll_name, enrollment, locations=None, school=None, **kwargs):
     """
     to_ret = []
     if locations:
+        enrollment_poll = Poll.objects.select_related().get(name = enrollment)
+
         for loc in locations:
             pre_ret = []
             pre_ret.append(loc)
-            enrollment_schools = enrollment.responses.\
-                values_list('contact__emisreporter__schools__name').\
-                exclude(contact__emisreporter__schools__name = None).\
-                filter(contact__reporting_location__name = location.name).values_list('contact__emisreporter__schools__pk', flat=True)
-            for school in enrollment_schools:
-                pass
 
-            now, before = poll_responses_past_week_sum(poll_name, weeks=2, locations=[loc])
-            current_enrollment = poll_responses_term(enrollment, locations=[loc], belongs_to="location")
-            # computing absenteism
-            try:
-                percent_absent_now = 100 * (current_enrollment - now) / current_enrollment
-            except exceptions.ZeroDivisionError:
-                percent_absent_now = '--'
-            except:
-                percent_absent_now = '--'
+            enrollment_schools_pks = enrollment_poll.responses.\
+                filter(contact__reporting_location__name = loc.name).values_list('contact__emisreporter__schools__pk', flat=True)
+            school_filter = {}
+            for school in School.objects.filter(pk__in=enrollment_schools_pks):
+                week_now_temp, week_before_temp = poll_responses_past_week_sum(enrollment_poll.name, weeks = 2, school=school, to_ret='sum')
+                current_enrollment = poll_responses_term(enrollment_poll.name, belongs_to='schools', school=school)
+                print school, week_now_temp, week_before_temp, current_enrollment
+                try:
+                    percent_absent_now = 100 * (current_enrollment - week_now_temp) / current_enrollment
+                except ZeroDivisionError:
+                    percent_absent_now = '--'
+                except:
+                    percent_absent_now = '--'
 
-            try:
-                percent_absent_before = 100 * (current_enrollment - before) / current_enrollment
-            except exceptions.ZeroDivisionError:
-                percent_absent_before = '--'
-            except:
-                percent_absent_before = '--'
+                try:
+                    percent_absent_before = 100 * (current_enrollment - week_before_temp )  / current_enrollment
+                except ZeroDivisionError:
+                    percent_absent_before = '--'
+                except:
+                    percent_absent_before = '--'
+                school_filter[school] = (percent_absent_now, percent_absent_before)
+#            print loc, "schools", len(school_filter.values())
+            now, before = [],[]
+            for now_temp, before_temp in school_filter.values():
+                now.append(now_temp)
+                before.append(before_temp)
 
-            pre_ret.extend([percent_absent_now, percent_absent_before])
+            now = avg([x for x in now if x != '--'])
+            before = avg([x for x in before if x != '--'])
+
+            pre_ret.extend([now, before])
 
             x,y = pre_ret[-2:]
 
@@ -1355,8 +1370,9 @@ def return_absent(poll_name, enrollment, locations=None, school=None, **kwargs):
         print current_enrollment, in_class
         try:
             x = 100 * (current_enrollment - in_class) / current_enrollment
-        except Exception, e:
+        except Exception as e:
             x = '--'
+            print e
         return [x]
 
     else:
