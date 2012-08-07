@@ -28,10 +28,11 @@ import difflib
 class ModelTest(TestCase): #pragma: no cover
     # Model tests
     def setUp(self):
+        fixtures = ['initial_data.json', ]
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
             site_id = getattr(settings, 'SITE_ID', 5)
             Site.objects.get_or_create(pk=site_id, defaults={'domain':'rapidemis.com'})
-            fixtures = ['initial_data.json']
+
         User.objects.get_or_create(username='admin')
         self.backend = Backend.objects.create(name='test')
         self.connection = Connection.objects.create(identity='8675309', backend=self.backend)
@@ -561,21 +562,6 @@ class ModelTest(TestCase): #pragma: no cover
         seconds_to_nextprog = self.total_seconds(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time - datetime.datetime.now())
         seconds_to_monthday = self.total_seconds(_date_of_monthday('last') - datetime.datetime.now())
         self.assertEquals(seconds_to_nextprog, seconds_to_monthday)
-
-
-    #    def testTermlySMCPolls(self):
-    #        self.register_reporter('SMC')
-    #        Script.objects.filter(slug='edtrac_smc_termly').update(enabled=True)
-    #        prog = ScriptProgress.objects.get(script__slug="edtrac_smc_termly", connection=self.connection)
-    #        d = _next_term_question_date()
-    #        seconds_to_midterm = self.total_seconds(d - datetime.datetime.now())
-    #        self.elapseTime2(prog, seconds_to_midterm+(1*60*60))
-    #        prog = ScriptProgress.objects.get(script__slug="edtrac_smc_termly", connection=self.connection)
-    #        check_progress(prog.script)
-    #        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text,\
-    #            Script.objects.get(slug="edtrac_smc_termly").steps.get(order=0).poll.question)
-    #        self.fake_incoming('yes')
-    #        self.assertEquals(Message.objects.filter(direction="I").order_by('-date')[0].application, 'script')
 
 
     def testTermlyHeadTeacherPolls(self):
