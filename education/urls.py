@@ -165,7 +165,7 @@ urlpatterns = patterns('',
     url(r'^edtrac/attd/girls-p6$', time_range_girlsp6, name="girls-p6-range"),
     url(r'^edtrac/attd/m-teachers$', time_range_teachers_m, name="m-teachers-range"),
     url(r'^edtrac/attd/f-teachers$', time_range_teachers_f, name="f-teachers-range"),
-
+    url(r'^edtrac/attd/head-teachers$', time_range_head_teachers, name="head-teachers-range"),
 
     url(r'^edtrac/othermessages/$', login_required(generic), {
         'model':Message,
