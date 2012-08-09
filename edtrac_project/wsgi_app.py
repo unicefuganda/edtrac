@@ -14,3 +14,5 @@ print sys.path
 from django.core.handlers.wsgi import WSGIHandler
 
 application = WSGIHandler()
+import djcelery
+djcelery.setup_loader()
