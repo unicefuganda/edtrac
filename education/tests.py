@@ -486,14 +486,8 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.date(), _next_thursday().date())
 
     def testTermlyHeadTeacherSpecialPolls(self):
+        #TODO add testing for special script poll (views testing)
         self.testTermlyHeadTeacherPolls()
-
-        #TODO add testing for special script poll
-
-    def testAddCelery(self):
-        from education.tasks import add
-        res = add.delay(3, 4)
-        self.assertEquals(res.get(), 7)
 
     def playTimeTrick(self, progress):
         time = progress.time
