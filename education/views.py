@@ -836,6 +836,154 @@ def generate_dashboard_vars(location=None):
 
     return context_vars
 
+# view generator
+def view_generator(req,
+                   enrol_deploy_poll=None,
+                   attendance_poll=None,
+                   title=None,
+                   url_name_district=None,
+                   url_name_school = 'school-detail',
+                   template_name='education/timeslider_base.html'):
+    time_range_form = ResultForm()
+    profile = req.user.get_profile()
+    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins')\
+        or profile.is_member_of('UNICEF Officials'):
+        # high level officials will access all districts
+        locations = Location.objects.select_related().filter(type='district').filter(pk__in =\
+            EnrolledDeployedQuestionsAnswered.objects.select_related().values_list('school__location__pk',flat=True))
+    else:
+        # other officials will access individual districts
+        locations = [profile.location]
+
+    if req.method == 'POST':
+        time_range_form = ResultForm(data=req.POST)
+        to_ret = []
+        if time_range_form.is_valid():
+            from_date = time_range_form.cleaned_data['from_date']
+            to_date = time_range_form.cleaned_data['to_date']
+            month_delta = abs(from_date.month - to_date.month)
+
+            date_weeks = []
+            if month_delta <= 2: # same month get days in between
+                while from_date <= to_date:
+                    if from_date.weekday() == 3: #is to_day a Thursday?
+                        date_weeks.append(previous_calendar_week(t = from_date)) # get range from Wed to Thur.
+                    from_date += datetime.timedelta(days = 1)
+            else:
+                while from_date <= to_date:
+                    date_weeks.append([dateutils.month_start(from_date),dateutils.month_end(from_date)])
+                    from_date += datetime.timedelta(months = 1)
+
+            if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins')\
+                or profile.is_member_of('UNICEF Officials'):
+
+                schools_temp = School.objects.filter(pk__in = EnrolledDeployedQuestionsAnswered.objects.select_related().values_list('school__pk', flat=True))
+                for location in locations:
+                    temp = []
+                    # get schools in this location
+                    location_schools = schools_temp.filter(location = location)
+                    for d in date_weeks:
+                        total_attendance = 0 # per school
+                        total_enrollment = 0 # per school
+                        for school in location_schools:
+                            enrolled = poll_responses_term(enrol_deploy_poll, belongs_to='schools', school = school )
+                            attendance = get_numeric_report_data(attendance_poll, school = school,
+                                time_range=list(d), to_ret = 'sum')
+                            total_attendance += attendance
+                            total_enrollment += enrolled
+                        try:
+                            percentage = (total_enrollment - total_attendance) * 100 / total_enrollment
+                        except ZeroDivisionError:
+                            percentage = '--'
+                        temp.append(percentage)
+
+                    to_ret.append([location, temp])
+                return render_to_response(template_name, {'form':time_range_form, 'dataset':to_ret,
+                                                          'title': title,
+                                                          'url_name':url_name_district,
+                                                          'date_batch':date_weeks}, RequestContext(req))
+
+            else:
+                location_schools = School.objects.filter(pk__in = EnrolledDeployedQuestionsAnswered.objects.select_related().\
+                filter(school__location=locations[0]).values_list('school__pk', flat=True))
+                #Non admin types
+                date_weeks, to_ret = [], []
+                date_weeks.append(previous_calendar_week(t = datetime.datetime.now()))
+
+                for school in location_schools:
+                    for d in date_weeks:
+                        temp = []
+                        enrolled = poll_responses_term(enrol_deploy_poll, belongs_to='schools', school = school )
+                        attendance = get_numeric_report_data(attendance_poll, school = school,
+                            time_range=list(d), to_ret = 'sum')
+                        try:
+                            percentage = (enrollment - attendance) * 100 / enrollment
+                        except ZeroDivisionError:
+                            percentage = '--'
+                        temp.append(percentage)
+
+                    to_ret.append([school, temp])
+                return render_to_response(template_name, {'form':time_range_form, 'dataset':to_ret,
+                                                                             'title': title,
+                                                                             'url_name': url_name_school,
+                                                                             'date_batch':date_weeks}, RequestContext(req))
+        else:
+            return render_to_response(template_name, {'form':time_range_form,
+                                                                         'url_name':url_name_district,
+                                                                         'title':title}, RequestContext(req))
+
+    # NO POST data sent!
+    else:
+        date_weeks = []
+        location_data = []
+        date_weeks.append(previous_calendar_week())
+        temp_date = datetime.datetime(date_weeks[0][0].year, date_weeks[0][0].month, date_weeks[0][0].day) - datetime.timedelta(days = 1)
+        date_weeks.append(previous_calendar_week(t = temp_date))
+        schools_temp = School.objects.select_related().\
+            filter(pk__in =\
+                EnrolledDeployedQuestionsAnswered.objects.select_related().filter(school__location__in=locations).values_list('school__pk',flat=True))
+
+        context_vars = {}
+
+        if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins')\
+        or profile.is_member_of('UNICEF Officials'):
+            for location in locations:
+                temp = []
+                # get schools in this location
+                location_schools = schools_temp.filter(location = location)
+                for d in date_weeks:
+                    total_attendance = 0 # per school
+                    total_enrollment = 0 # per school
+                    for school in location_schools:
+                        enrolled = poll_responses_term(enrol_deploy_poll, belongs_to='schools', school = school )
+                        attendance = get_numeric_report_data(attendance_poll, school = school,
+                            time_range=list(d), to_ret = 'sum')
+                        total_attendance += attendance
+                        total_enrollment += enrolled
+                    try:
+                        percentage = (total_enrollment - total_attendance) * 100 / total_enrollment
+                    except ZeroDivisionError:
+                        percentage = '--'
+                    temp.append(percentage)
+                try:
+                    diff = temp[0] - temp[1]
+                except TypeError:
+                    diff = '--'
+
+                location_data.append([location, temp[0], temp[1], diff])
+            context_vars.update({'location_data':location_data})
+        else:
+            print
+
+
+        if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
+            x = {'url_name':url_name_district, 'headings':['District', 'Current week', 'Previous week', 'Percentage difference']}
+        else:
+            x = {'url_name':url_name_school, 'headings':['School', 'Current week', 'Previous week', 'Percentage difference']}
+        context_vars.update({'form':time_range_form,'title':title})
+        context_vars.update(x)
+        return render_to_response(template_name, context_vars, RequestContext(req))
+
 
 ##########################################################################################################
 ##########################################################################################################
@@ -1865,397 +2013,32 @@ def female_head_teacher_attendance(req):
 
 @login_required
 def time_range_boysp3(req):
-    time_range_form = ResultForm()
-    locations = Location.objects.filter(type='district').filter(pk__in = EmisReporter.objects.values_list('reporting_location__pk',flat=True))
-
-    if req.method == 'POST':
-        time_range_form = ResultForm(data=req.POST)
-        to_ret = []
-        if time_range_form.is_valid():
-            from_date = time_range_form.cleaned_data['from_date']
-            to_date = time_range_form.cleaned_data['to_date']
-            month_delta = abs(from_date.month - to_date.month)
-            date_weeks = []
-            if month_delta <= 2: # same month get days in between
-                while from_date <= to_date:
-                    if from_date.weekday() == 3: #is to_day a Thursday?
-                        date_weeks.append(previous_calendar_week(t = from_date)) # get range from Wed to Thur.
-                    from_date += datetime.timedelta(days = 1)
-            else:
-                while from_date <= to_date:
-                    date_weeks.append([dateutils.month_start(from_date),dateutils.month_end(from_date)])
-                    from_date += datetime.timedelta(months = 1)
-            if req.user.get_profile().is_member_of('Ministry Officials') or\
-                req.user.get_profile().is_member_of('Admins') or req.user.get_profile().is_member_of('UNICEF Officials'):
-                schools_temp = Poll.objects.get(name = 'edtrac_boysp3_enrollment').responses.\
-                    exclude(contact__emisreporter__schools__name = None)
-
-                for location in locations:
-                    temp = []
-                    # get schools in this location
-                    schools = schools_temp.filter(contact__reporting_location__name = location.name).\
-                        values_list('contact__emisreporter__schools__pk', flat=True)
-                    location_schools = School.objects.filter(pk__in = schools)
-                    for d in date_weeks:
-                        total_attendance = 0 # per school
-                        total_enrollment = 0 # per school
-                        for school in location_schools:
-                            enrolled = poll_responses_term('edtrac_boysp3_enrollment', belongs_to='schools', school = school )
-                            attendance = get_numeric_report_data('edtrac_boysp3_attendance', school = school,
-                                time_range=list(d), to_ret = 'sum')
-                            total_attendance += attendance
-                            total_enrollment += enrolled
-                        try:
-                            percentage = (total_enrollment - total_attendance) * 100 / total_enrollment
-                        except ZeroDivisionError:
-                            percentage = '--'
-                        temp.append(percentage)
-
-                    to_ret.append([location, temp])
-            else:
-                #Non admin types
-                to_ret = boys_p3_attendance(req, dates = date_weeks)
-                date_weeks, to_ret = [], []
-                date_weeks.append(previous_calendar_week(t = datetime.datetime.now()))
-                for location in locations:
-                    temp = []
-                    # get schools in this location
-                    schools = schools_temp.filter(contact__reporting_location__name = location.name).\
-                    values_list('contact__emisreporter__schools__pk', flat=True)
-                    location_schools = School.objects.filter(pk__in = schools)
-                    for d in date_weeks:
-                        total_attendance = 0 # per school
-                        total_enrollment = 0 # per school
-                        for school in location_schools:
-                            enrolled = poll_responses_term('edtrac_boysp3_enrollment', belongs_to='schools', school = school )
-                            attendance = get_numeric_report_data('edtrac_boysp3_attendance', school = school,
-                                time_range=list(d), to_ret = 'sum')
-                            total_attendance += attendance
-                            total_enrollment += enrolled
-                        try:
-                            percentage = (total_enrollment - total_attendance) * 100 / total_enrollment
-                        except ZeroDivisionError:
-                            percentage = '--'
-                        temp.append(percentage)
-
-                    to_ret.append([location, temp])
-
-
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
-                                                                         'title':'P3 Boys Absenteeism',
-                                                                         'url_name':"boysp3-district-attd-detail",
-                                                                         'date_batch':date_weeks}, RequestContext(req))
-        else:
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form,
-                                                                         'url_name':"boysp3-district-attd-detail",
-                                                                         'title':'P3 Boys Absenteeism'}, RequestContext(req))
-    else:
-        date_weeks = []
-        location_data = []
-        date_weeks.append(previous_calendar_week())
-        temp_date = datetime.datetime(date_weeks[0][0].year, date_weeks[0][0].month, date_weeks[0][0].day) - datetime.timedelta(days = 1)
-        date_weeks.append(previous_calendar_week(t = temp_date))
-        schools_temp = Poll.objects.get(name = 'edtrac_boysp3_enrollment').responses.\
-            exclude(contact__emisreporter__schools__name = None).select_related()
-        context_vars = {}
-        for location in locations:
-            temp = []
-            # get schools in this location
-            schools = schools_temp.filter(contact__reporting_location__name = location.name).\
-            values_list('contact__emisreporter__schools__pk', flat=True)
-            location_schools = School.objects.filter(pk__in = schools)
-            for d in date_weeks:
-                total_attendance = 0 # per school
-                total_enrollment = 0 # per school
-                for school in location_schools:
-                    enrolled = poll_responses_term('edtrac_boysp3_enrollment', belongs_to='schools', school = school )
-                    attendance = get_numeric_report_data('edtrac_boysp3_attendance', school = school,
-                        time_range=list(d), to_ret = 'sum')
-                    total_attendance += attendance
-                    total_enrollment += enrolled
-                try:
-                    percentage = (total_enrollment - total_attendance) * 100 / total_enrollment
-                except ZeroDivisionError:
-                    percentage = '--'
-                temp.append(percentage)
-            try:
-                diff = temp[0] - temp[1]
-            except TypeError:
-                diff = '--'
-
-            location_data.append([location, temp[0], temp[1], diff])
-        context_vars.update({'location_data':location_data})
-        profile = req.user.get_profile()
-        if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
-            x = {'url_name':"boysp3-district-attd-detail"}
-        else:
-            x = {'url_name':"school-detail"}
-        context_vars.update({'form':time_range_form,'title':'P3 Boys Absenteeism'})
-        context_vars.update(x)
-        return render_to_response('education/timeslider_base.html', context_vars, RequestContext(req))
-
+    return view_generator(req,
+        enrol_deploy_poll='edtrac_boysp3_enrollment',
+        attendance_poll='edtrac_boysp3_attendance',
+        title='P3 Boys Absenteeism',
+        url_name_district = "boysp3-district-attd-detail"
+    )
 
 @login_required
 def time_range_boysp6(req):
-    time_range_form = ResultForm()
-    locations = Location.objects.filter(type='district').filter(pk__in = EmisReporter.objects.values_list('reporting_location__pk',flat=True))
-
-    if req.method == 'POST':
-        time_range_form = ResultForm(data=req.POST)
-        to_ret = []
-        if time_range_form.is_valid():
-            from_date = time_range_form.cleaned_data['from_date']
-            to_date = time_range_form.cleaned_data['to_date']
-            month_delta = abs(from_date.month - to_date.month)
-            date_weeks = []
-            if month_delta <= 2: # same month get days in between
-                while from_date <= to_date:
-                    if from_date.weekday() == 3: #is to_day a Thursday?
-                        date_weeks.append(previous_calendar_week(t = from_date)) # get range from Wed to Thur.
-                    from_date += datetime.timedelta(days = 1)
-            else:
-                while from_date <= to_date:
-                    date_weeks.append([dateutils.month_start(from_date),dateutils.month_end(from_date)])
-                    from_date += datetime.timedelta(months = 1)
-            if req.user.get_profile().is_member_of('Ministry Officials') or\
-               req.user.get_profile().is_member_of('Admins') or req.user.get_profile().is_member_of('UNICEF Officials'):
-                schools_temp = Poll.objects.get(name = 'edtrac_boysp6_enrollment').responses.\
-                exclude(contact__emisreporter__schools__name = None)
-
-                for location in locations:
-                    temp = []
-                    # get schools in this location
-                    schools = schools_temp.filter(contact__reporting_location__name = location.name).\
-                    values_list('contact__emisreporter__schools__pk', flat=True)
-                    location_schools = School.objects.filter(pk__in = schools)
-                    for d in date_weeks:
-                        total_attendance = 0 # per school
-                        total_enrollment = 0 # per school
-                        for school in location_schools:
-                            enrolled = poll_responses_term('edtrac_boysp6_enrollment', belongs_to='schools', school = school )
-                            attendance = get_numeric_report_data('edtrac_boysp6_attendance', school = school,
-                                time_range=list(d), to_ret = 'sum')
-                            total_attendance += attendance
-                            total_enrollment += enrolled
-                        try:
-                            percentage = (total_enrollment - total_attendance) * 100 / total_enrollment
-                        except ZeroDivisionError:
-                            percentage = '--'
-                        temp.append(percentage)
-
-                    to_ret.append([location, temp])
-            else:
-                #Non admin types
-                to_ret = boys_p6_attendance(req, dates = date_weeks)
-                date_weeks, to_ret = [], []
-                date_weeks.append(previous_calendar_week(t = datetime.datetime.now()))
-                for location in locations:
-                    temp = []
-                    # get schools in this location
-                    schools = schools_temp.filter(contact__reporting_location__name = location.name).\
-                    values_list('contact__emisreporter__schools__pk', flat=True)
-                    location_schools = School.objects.filter(pk__in = schools)
-                    for d in date_weeks:
-                        total_attendance = 0 # per school
-                        total_enrollment = 0 # per school
-                        for school in location_schools:
-                            enrolled = poll_responses_term('edtrac_boysp6_enrollment', belongs_to='schools', school = school )
-                            attendance = get_numeric_report_data('edtrac_boysp6_attendance', school = school,
-                                time_range=list(d), to_ret = 'sum')
-                            total_attendance += attendance
-                            total_enrollment += enrolled
-                        try:
-                            percentage = (total_enrollment - total_attendance) * 100 / total_enrollment
-                        except ZeroDivisionError:
-                            percentage = '--'
-                        temp.append(percentage)
-
-                    to_ret.append([location, temp])
-
-
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
-                                                                         'title':'P6 Boys Absenteeism',
-                                                                         'url_name':"boysp6-district-attd-detail",
-                                                                         'date_batch':date_weeks}, RequestContext(req))
-        else:
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form,
-                                                                         'url_name':"boysp6-district-attd-detail",
-                                                                         'title':'P6 Boys Absenteeism'}, RequestContext(req))
-    else:
-        date_weeks = []
-        location_data = []
-        date_weeks.append(previous_calendar_week())
-        temp_date = datetime.datetime(date_weeks[0][0].year, date_weeks[0][0].month, date_weeks[0][0].day) - datetime.timedelta(days = 1)
-        date_weeks.append(previous_calendar_week(t = temp_date))
-        schools_temp = Poll.objects.select_related().get(name = 'edtrac_boysp6_enrollment').responses.\
-            exclude(contact__emisreporter__schools__name = None).select_related()
-        context_vars = {}
-        for location in locations:
-            temp = []
-            # get schools in this location
-            schools = schools_temp.filter(contact__reporting_location__name = location.name).\
-            values_list('contact__emisreporter__schools__pk', flat=True)
-            location_schools = School.objects.filter(pk__in = schools)
-            for d in date_weeks:
-                total_attendance = 0 # per school
-                total_enrollment = 0 # per school
-                for school in location_schools:
-                    enrolled = poll_responses_term('edtrac_boysp6_enrollment', belongs_to='schools', school = school )
-                    attendance = get_numeric_report_data('edtrac_boysp6_attendance', school = school,
-                        time_range=list(d), to_ret = 'sum')
-                    total_attendance += attendance
-                    total_enrollment += enrolled
-                try:
-                    percentage = (total_enrollment - total_attendance) * 100 / total_enrollment
-                except ZeroDivisionError:
-                    percentage = '--'
-                temp.append(percentage)
-            try:
-                diff = temp[0] - temp[1]
-            except TypeError:
-                diff = '--'
-
-            location_data.append([location, temp[0], temp[1], diff])
-        context_vars.update({'location_data':location_data})
-        profile = req.user.get_profile()
-        if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
-            x = {'url_name':"boysp6-district-attd-detail"}
-        else:
-            x = {'url_name':"school-detail"}
-        context_vars.update({'form':time_range_form,'title':'P6 Boys Absenteeism'})
-        context_vars.update(x)
-        return render_to_response('education/timeslider_base.html', context_vars, RequestContext(req))
+    return view_generator(
+        req,
+        enrol_deploy_poll='edtrac_boysp6_enrollment',
+        attendance_poll='edtrac_boysp3_attendance',
+        title = 'P6 Boys Absenteeism',
+        url_name_district = 'boysp6-district-attd-detail'
+    )
 
 @login_required
 def time_range_girlsp3(req):
-    time_range_form = ResultForm()
-    locations = Location.objects.filter(type='district').filter(pk__in = EmisReporter.objects.values_list('reporting_location__pk',flat=True))
-
-    if req.method == 'POST':
-        time_range_form = ResultForm(data=req.POST)
-        to_ret = []
-        if time_range_form.is_valid():
-            from_date = time_range_form.cleaned_data['from_date']
-            to_date = time_range_form.cleaned_data['to_date']
-            month_delta = abs(from_date.month - to_date.month)
-            date_weeks = []
-            if month_delta <= 2: # same month get days in between
-                while from_date <= to_date:
-                    if from_date.weekday() == 3: #is to_day a Thursday?
-                        date_weeks.append(previous_calendar_week(t = from_date)) # get range from Wed to Thur.
-                    from_date += datetime.timedelta(days = 1)
-            else:
-                while from_date <= to_date:
-                    date_weeks.append([dateutils.month_start(from_date),dateutils.month_end(from_date)])
-                    from_date += datetime.timedelta(months = 1)
-            if req.user.get_profile().is_member_of('Ministry Officials') or\
-               req.user.get_profile().is_member_of('Admins') or req.user.get_profile().is_member_of('UNICEF Officials'):
-                schools_temp = Poll.objects.get(name = 'edtrac_girlsp3_enrollment').responses.\
-                exclude(contact__emisreporter__schools__name = None)
-
-                for location in locations:
-                    temp = []
-                    # get schools in this location
-                    schools = schools_temp.filter(contact__reporting_location__name = location.name).\
-                    values_list('contact__emisreporter__schools__pk', flat=True)
-                    location_schools = School.objects.filter(pk__in = schools)
-                    for d in date_weeks:
-                        total_attendance = 0 # per school
-                        total_enrollment = 0 # per school
-                        for school in location_schools:
-                            enrolled = poll_responses_term('edtrac_girlsp3_enrollment', belongs_to='schools', school = school )
-                            attendance = get_numeric_report_data('edtrac_girlsp3_attendance', school = school,
-                                time_range=list(d), to_ret = 'sum')
-                            total_attendance += attendance
-                            total_enrollment += enrolled
-                        try:
-                            percentage = (total_enrollment - total_attendance) * 100 / total_enrollment
-                        except ZeroDivisionError:
-                            percentage = '--'
-                        temp.append(percentage)
-
-                    to_ret.append([location, temp])
-            else:
-                #Non admin types
-                to_ret = girls_p3_attendance(req, dates = date_weeks)
-                date_weeks, to_ret = [], []
-                date_weeks.append(previous_calendar_week(t = datetime.datetime.now()))
-                for location in locations:
-                    temp = []
-                    # get schools in this location
-                    schools = schools_temp.filter(contact__reporting_location__name = location.name).\
-                    values_list('contact__emisreporter__schools__pk', flat=True)
-                    location_schools = School.objects.filter(pk__in = schools)
-                    for d in date_weeks:
-                        total_attendance = 0 # per school
-                        total_enrollment = 0 # per school
-                        for school in location_schools:
-                            enrolled = poll_responses_term('edtrac_girlsp3_enrollment', belongs_to='schools', school = school )
-                            attendance = get_numeric_report_data('edtrac_girlsp3_attendance', school = school,
-                                time_range=list(d), to_ret = 'sum')
-                            total_attendance += attendance
-                            total_enrollment += enrolled
-                        try:
-                            percentage = (total_enrollment - total_attendance) * 100 / total_enrollment
-                        except ZeroDivisionError:
-                            percentage = '--'
-                        temp.append(percentage)
-
-                    to_ret.append([location, temp])
-
-
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
-                                                                         'title':'P3 Girls Absenteeism',
-                                                                         'url_name':"girlsp3-district-attd-detail",
-                                                                         'date_batch':date_weeks}, RequestContext(req))
-        else:
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form,
-                                                                         'url_name':"girlsp3-district-attd-detail",
-                                                                         'title':'P3 Girls Absenteeism'}, RequestContext(req))
-    else:
-        date_weeks = []
-        location_data = []
-        date_weeks.append(previous_calendar_week())
-        temp_date = datetime.datetime(date_weeks[0][0].year, date_weeks[0][0].month, date_weeks[0][0].day) - datetime.timedelta(days = 1)
-        date_weeks.append(previous_calendar_week(t = temp_date))
-        schools_temp = Poll.objects.get(name = 'edtrac_girlsp3_enrollment').responses.\
-        exclude(contact__emisreporter__schools__name = None).select_related()
-        context_vars = {}
-        for location in locations:
-            temp = []
-            # get schools in this location
-            schools = schools_temp.filter(contact__reporting_location__name = location.name).\
-            values_list('contact__emisreporter__schools__pk', flat=True)
-            location_schools = School.objects.filter(pk__in = schools)
-            for d in date_weeks:
-                total_attendance = 0 # per school
-                total_enrollment = 0 # per school
-                for school in location_schools:
-                    enrolled = poll_responses_term('edtrac_girlsp3_enrollment', belongs_to='schools', school = school )
-                    attendance = get_numeric_report_data('edtrac_girlsp3_attendance', school = school,
-                        time_range=list(d), to_ret = 'sum')
-                    total_attendance += attendance
-                    total_enrollment += enrolled
-                try:
-                    percentage = (total_enrollment - total_attendance) * 100 / total_enrollment
-                except ZeroDivisionError:
-                    percentage = '--'
-                temp.append(percentage)
-            try:
-                diff = temp[0] - temp[1]
-            except TypeError:
-                diff = '--'
-
-            location_data.append([location, temp[0], temp[1], diff])
-        context_vars.update({'location_data':location_data})
-        profile = req.user.get_profile()
-        if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
-            x = {'url_name':"girlsp3-district-attd-detail"}
-        else:
-            x = {'url_name':"school-detail"}
-        context_vars.update({'form':time_range_form,'title':'P3 Girls Absenteeism'})
-        context_vars.update(x)
-        return render_to_response('education/timeslider_base.html', context_vars, RequestContext(req))
+    return view_generator(
+        reg,
+        enrol_deploy_poll = 'edtrac_girlsp3_enrollement',
+        attendance_poll = 'edtrac_girlsp3_attendance',
+        title = 'P3 Girls Absenteeism',
+        url_name_district = 'girlsp3-district-attd-detail'
+    )
 
 @login_required
 def time_range_girlsp6(req):
@@ -2264,463 +2047,46 @@ def time_range_girlsp6(req):
     GET data. It also makes a difference between User groups so you different role players like DEO, Admins, UNICEF
     Officials
     """
+    return view_generator(
+        req,
+        enrol_deploy_poll = 'edtrac_girlsp6_enrollment',
+        attendance_poll = 'edtrac_girlsp6_attendance',
+        title = 'P6 Girls Absenteeism',
+        url_name_district = 'girlsp6-district-attd-detail'
+    )
 
-    time_range_form = ResultForm()
-    locations = Location.objects.filter(type='district').filter(pk__in = EmisReporter.objects.values_list('reporting_location__pk',flat=True))
-
-    if req.method == 'POST':
-        # handling of POST data
-        time_range_form = ResultForm(data=req.POST)
-        to_ret = []
-        if time_range_form.is_valid():
-            from_date = time_range_form.cleaned_data['from_date']
-            to_date = time_range_form.cleaned_data['to_date']
-            month_delta = abs(from_date.month - to_date.month)
-
-            # date_weeks holds the time splittings necessary to get time ranges
-            # if dates selected are under 2 months, then we populate only week ranges
-            # a week range starts on Thursday and ends on Wednesday of the next week.
-            date_weeks = []
-
-            if month_delta <= 2: # same month get days in between
-                while from_date <= to_date:
-                    if from_date.weekday() == 3: #is to_day a Thursday?
-                        date_weeks.append(previous_calendar_week(t = from_date)) # get range from Wed to Thur.
-                    from_date += datetime.timedelta(days = 1)
-            else:
-                # case for when more than 2 months is selected
-                while from_date <= to_date:
-                    #TODO refine data points
-                    date_weeks.append([dateutils.month_start(from_date),dateutils.month_end(from_date)])
-                    from_date += datetime.timedelta(months = 1)
-
-            # splitting the results by analysing membership of Officials accessing EduTrac
-            if req.user.get_profile().is_member_of('Ministry Officials') or\
-               req.user.get_profile().is_member_of('Admins') or req.user.get_profile().is_member_of('UNICEF Officials'):
-                schools_temp = Poll.objects.get(name = 'edtrac_girlsp6_enrollment').responses.\
-                exclude(contact__emisreporter__schools__name = None)
-
-                for location in locations:
-                    temp = []
-                    # get schools in this location
-                    schools = schools_temp.filter(contact__reporting_location__name = location.name).\
-                    values_list('contact__emisreporter__schools__pk', flat=True)
-                    location_schools = School.objects.filter(pk__in = schools)
-                    for d in date_weeks:
-                        total_attendance = 0 # per school
-                        total_enrollment = 0 # per school
-                        for school in location_schools:
-                            enrolled = poll_responses_term('edtrac_girlsp6_enrollment', belongs_to='schools', school = school )
-                            attendance = get_numeric_report_data('edtrac_girlsp6_attendance', school = school,
-                                time_range=list(d), to_ret = 'sum')
-                            total_attendance += attendance
-                            total_enrollment += enrolled
-                        try:
-                            percentage = (total_enrollment - total_attendance) * 100 / total_enrollment
-                        except ZeroDivisionError:
-                            percentage = '--'
-                        temp.append(percentage)
-
-                    to_ret.append([location, temp])
-            else:
-                #Non admin types
-                to_ret = girls_p6_attendance(req, dates = date_weeks)
-                date_weeks, to_ret = [], []
-                date_weeks.append(previous_calendar_week(t = datetime.datetime.now()))
-                for location in locations:
-                    temp = []
-                    # get schools in this location
-                    schools = schools_temp.filter(contact__reporting_location__name = location.name).\
-                    values_list('contact__emisreporter__schools__pk', flat=True)
-                    location_schools = School.objects.filter(pk__in = schools)
-                    for d in date_weeks:
-                        total_attendance = 0 # per school
-                        total_enrollment = 0 # per school
-                        for school in location_schools:
-                            enrolled = poll_responses_term('edtrac_girlsp6_enrollment', belongs_to='schools', school = school )
-                            attendance = get_numeric_report_data('edtrac_girlsp6_attendance', school = school,
-                                time_range=list(d), to_ret = 'sum')
-                            total_attendance += attendance
-                            total_enrollment += enrolled
-                        try:
-                            percentage = (total_enrollment - total_attendance) * 100 / total_enrollment
-                        except ZeroDivisionError:
-                            percentage = '--'
-                        temp.append(percentage)
-
-                    to_ret.append([location, temp])
-
-
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
-                                                                         'title':'P6 Girls Absenteeism',
-                                                                         'url_name':"girlsp6-district-attd-detail",
-                                                                         'date_batch':date_weeks}, RequestContext(req))
-        else:
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form,
-                                                                         'url_name':"girlsp6-district-attd-detail",
-                                                                         'title':'P6 Girls Absenteeism'}, RequestContext(req))
-    else:
-
-        # initial GET view is displays difference between 2 weeks of the attendance of pupils
-        date_weeks = []
-        location_data = []
-        # get current week
-        date_weeks.append(previous_calendar_week())
-        temp_date = datetime.datetime(date_weeks[0][0].year, date_weeks[0][0].month, date_weeks[0][0].day) - datetime.timedelta(days = 1)
-        # add previous week to date_weeks list
-        date_weeks.append(previous_calendar_week(t = temp_date))
-        # cache schools query in memory (these are Schools that have enrollment data)
-        schools_temp = Poll.objects.select_related().get(name = 'edtrac_girlsp6_enrollment').responses.\
-        exclude(contact__emisreporter__schools__name = None).select_related()
-        context_vars = {}
-        for location in locations:
-            temp = []
-            # get schools in this location
-            schools = schools_temp.filter(contact__reporting_location__name = location.name).\
-            values_list('contact__emisreporter__schools__pk', flat=True)
-            location_schools = School.objects.filter(pk__in = schools)
-            for d in date_weeks:
-                total_attendance = 0 # per school
-                total_enrollment = 0 # per school
-                for school in location_schools:
-                    enrolled = poll_responses_term('edtrac_girlsp6_enrollment', belongs_to='schools', school = school )
-                    attendance = get_numeric_report_data('edtrac_girlsp6_attendance', school = school,
-                        time_range=list(d), to_ret = 'sum')
-                    total_attendance += attendance
-                    total_enrollment += enrolled
-                try:
-                    percentage = (total_enrollment - total_attendance) * 100 / total_enrollment
-                except ZeroDivisionError:
-                    percentage = '--'
-                temp.append(percentage)
-            try:
-                diff = temp[0] - temp[1]
-            except TypeError:
-                diff = '--'
-
-            location_data.append([location, temp[0], temp[1], diff])
-        context_vars.update({'location_data':location_data})
-        profile = req.user.get_profile()
-        if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
-            x = {'url_name':"girlsp6-district-attd-detail"}
-        else:
-            x = {'url_name':"school-detail"}
-        context_vars.update({'form':time_range_form,'title':'P6 Girls Absenteeism'})
-        context_vars.update(x)
-        return render_to_response('education/timeslider_base.html', context_vars, RequestContext(req))
 
 @login_required
 def time_range_teachers_m(req):
-    """
-    Get a date-ranged page for Male teachers
-    """
-
     """
     A function that compute time-ranged data for male teachers. This function is split in two: handling of POST data and
     GET data. It also makes a difference between User groups so you different role players like DEO, Admins, UNICEF
     Officials
     """
 
-    time_range_form = ResultForm()
-    locations = Location.objects.filter(type='district').filter(pk__in = EmisReporter.objects.values_list('reporting_location__pk',flat=True))
-
-    if req.method == 'POST':
-        # handling of POST data
-        time_range_form = ResultForm(data=req.POST)
-        to_ret = []
-        if time_range_form.is_valid():
-            from_date = time_range_form.cleaned_data['from_date']
-            to_date = time_range_form.cleaned_data['to_date']
-            month_delta = abs(from_date.month - to_date.month)
-
-            # date_weeks holds the time splittings necessary to get time ranges
-            # if dates selected are under 2 months, then we populate only week ranges
-            # a week range starts on Thursday and ends on Wednesday of the next week.
-            date_weeks = []
-
-            if month_delta <= 2: # same month get days in between
-                while from_date <= to_date:
-                    if from_date.weekday() == 3: #is to_day a Thursday?
-                        date_weeks.append(previous_calendar_week(t = from_date)) # get range from Wed to Thur.
-                    from_date += datetime.timedelta(days = 1)
-            else:
-                # case for when more than 2 months is selected
-                while from_date <= to_date:
-                    #TODO refine data points
-                    date_weeks.append([dateutils.month_start(from_date),dateutils.month_end(from_date)])
-                    from_date += datetime.timedelta(months = 1)
-
-            # splitting the results by analysing membership of Officials accessing EduTrac
-            if req.user.get_profile().is_member_of('Ministry Officials') or\
-               req.user.get_profile().is_member_of('Admins') or req.user.get_profile().is_member_of('UNICEF Officials'):
-                schools_temp = Poll.objects.get(name = 'edtrac_m_teachers_deployment').responses.\
-                    exclude(contact__emisreporter__schools__name = None)
-
-                for location in locations:
-                    temp = []
-                    # get schools in this location
-                    schools = schools_temp.filter(contact__reporting_location__name = location.name).\
-                    values_list('contact__emisreporter__schools__pk', flat=True)
-                    location_schools = School.objects.filter(pk__in = schools)
-                    for d in date_weeks:
-                        total_attendance = 0 # per school
-                        total_deployment = 0 # per school
-                        for school in location_schools:
-                            deployed = poll_responses_term('edtrac_m_teachers_deployment', belongs_to='schools', school = school )
-                            attendance = get_numeric_report_data('edtrac_m_teachers_attendance', school = school,
-                                time_range=list(d), to_ret = 'sum')
-                            total_attendance += attendance
-                            total_deployment += deployed
-                        try:
-                            percentage = (total_deployment - total_attendance) * 100 / total_deployment
-                        except ZeroDivisionError:
-                            percentage = '--'
-                        temp.append(percentage)
-
-                    to_ret.append([location, temp])
-            else:
-                #Non admin types
-                date_weeks, to_ret = [], []
-                date_weeks.append(previous_calendar_week(t = datetime.datetime.now()))
-                for location in locations:
-                    temp = []
-                    # get schools in this location
-                    schools = schools_temp.filter(contact__reporting_location__name = location.name).\
-                    values_list('contact__emisreporter__schools__pk', flat=True)
-                    location_schools = School.objects.filter(pk__in = schools)
-                    for d in date_weeks:
-                        total_attendance = 0 # per school
-                        total_deployment = 0 # per school
-                        for school in location_schools:
-                            deployed = poll_responses_term('edtrac_m_teachers_deployment', belongs_to='schools', school = school )
-                            attendance = get_numeric_report_data('edtrac_m_teachers_attendance', school = school,
-                                time_range=list(d), to_ret = 'sum')
-                            total_attendance += attendance
-                            total_deployment += deployed
-                        try:
-                            percentage = (total_deployment - total_attendance) * 100 / total_deployment
-                        except ZeroDivisionError:
-                            percentage = '--'
-                        temp.append(percentage)
-
-                    to_ret.append([location, temp])
-
-
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
-                                                                         'title':'Male Teacher Absenteeism',
-                                                                         'url_name':"male-teacher-district-attd-detail",
-                                                                         'date_batch':date_weeks}, RequestContext(req))
-        else:
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form,
-                                                                         'url_name':"male-teacher-district-attd-detail",
-                                                                         'title':'Male Teacher Absenteeism'}, RequestContext(req))
-    else:
-
-        # initial GET view is displays difference between 2 weeks of the attendance of teaches as reported by the Head Teacher
-        date_weeks = []
-        location_data = []
-        # get current week
-        date_weeks.append(previous_calendar_week())
-        temp_date = datetime.datetime(date_weeks[0][0].year, date_weeks[0][0].month, date_weeks[0][0].day) - datetime.timedelta(days = 1)
-        # add previous week to date_weeks list
-        date_weeks.append(previous_calendar_week(t = temp_date))
-        # cache schools query in memory (these are Schools that have enrollment data)
-        schools_temp = Poll.objects.select_related().get(name = 'edtrac_m_teachers_deployment').responses.\
-            exclude(contact__emisreporter__schools__name = None).select_related()
-        context_vars = {}
-        for location in locations:
-            temp = []
-            # get schools in this location
-            schools = schools_temp.filter(contact__reporting_location__name = location.name).\
-            values_list('contact__emisreporter__schools__pk', flat=True)
-            location_schools = School.objects.filter(pk__in = schools)
-            for d in date_weeks:
-                total_attendance = 0 # per school
-                total_deployment = 0 # per school
-                for school in location_schools:
-                    deployed = poll_responses_term('edtrac_m_teachers_deployment', belongs_to='schools', school = school )
-                    attendance = get_numeric_report_data('edtrac_m_teachers_attendance', school = school,
-                        time_range=list(d), to_ret = 'sum')
-                    total_attendance += attendance
-                    total_deployment += deployed
-                try:
-                    percentage = (total_deployment - total_attendance) * 100 / total_deployment
-                except ZeroDivisionError:
-                    percentage = '--'
-                temp.append(percentage)
-            try:
-                diff = temp[0] - temp[1]
-            except TypeError:
-                diff = '--'
-
-            location_data.append([location, temp[0], temp[1], diff])
-        context_vars.update({'location_data':location_data})
-        profile = req.user.get_profile()
-        if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
-            x = {'url_name':"male-teacher-district-attd-detail"}
-        else:
-            x = {'url_name':"school-detail"}
-        context_vars.update({'form':time_range_form,'title':'Male Teachers Absenteeism'})
-        context_vars.update(x)
-        return render_to_response('education/timeslider_base.html', context_vars, RequestContext(req))
-
+    return view_generator(
+        req,
+        enrol_deploy_poll = 'edtrac_m_teachers_deployment',
+        attendance_poll = 'edtrac_m_teachers_attendance',
+        title = 'Male teachers absenteeism',
+        url_name_district = 'male-teacher-district-attd-detail'
+    )
 
 @login_required
 def time_range_teachers_f(req):
     """
-    Get a date-ranged page for female teachers
-    """
-
-    """
-    A function that compute time-ranged data for female teachers. This function is split in two: handling of POST data and
+    A function that compute time-ranged data for male teachers. This function is split in two: handling of POST data and
     GET data. It also makes a difference between User groups so you different role players like DEO, Admins, UNICEF
     Officials
     """
 
-    time_range_form = ResultForm()
-    locations = Location.objects.filter(type='district').filter(pk__in = EmisReporter.objects.values_list('reporting_location__pk',flat=True))
-
-    if req.method == 'POST':
-        # handling of POST data
-        time_range_form = ResultForm(data=req.POST)
-        to_ret = []
-        if time_range_form.is_valid():
-            from_date = time_range_form.cleaned_data['from_date']
-            to_date = time_range_form.cleaned_data['to_date']
-            month_delta = abs(from_date.month - to_date.month)
-
-            # date_weeks holds the time splittings necessary to get time ranges
-            # if dates selected are under 2 months, then we populate only week ranges
-            # a week range starts on Thursday and ends on Wednesday of the next week.
-            date_weeks = []
-
-            if month_delta <= 2: # same month get days in between
-                while from_date <= to_date:
-                    if from_date.weekday() == 3: #is to_day a Thursday?
-                        date_weeks.append(previous_calendar_week(t = from_date)) # get range from Wed to Thur.
-                    from_date += datetime.timedelta(days = 1)
-            else:
-                # case for when more than 2 months is selected
-                while from_date <= to_date:
-                    #TODO refine data points
-                    date_weeks.append([dateutils.month_start(from_date),dateutils.month_end(from_date)])
-                    from_date += datetime.timedelta(months = 1)
-
-            # splitting the results by analysing membership of Officials accessing EduTrac
-            if req.user.get_profile().is_member_of('Ministry Officials') or\
-               req.user.get_profile().is_member_of('Admins') or req.user.get_profile().is_member_of('UNICEF Officials'):
-                schools_temp = Poll.objects.get(name = 'edtrac_f_teachers_deployment').responses.\
-                exclude(contact__emisreporter__schools__name = None)
-
-                for location in locations:
-                    temp = []
-                    # get schools in this location
-                    schools = schools_temp.filter(contact__reporting_location__name = location.name).\
-                    values_list('contact__emisreporter__schools__pk', flat=True)
-                    location_schools = School.objects.filter(pk__in = schools)
-                    for d in date_weeks:
-                        total_attendance = 0 # per school
-                        total_deployment = 0 # per school
-                        for school in location_schools:
-                            deployed = poll_responses_term('edtrac_f_teachers_deployment', belongs_to='schools', school = school )
-                            attendance = get_numeric_report_data('edtrac_f_teachers_attendance', school = school,
-                                time_range=list(d), to_ret = 'sum')
-                            total_attendance += attendance
-                            total_deployment += deployed
-                        try:
-                            percentage = (total_deployment - total_attendance) * 100 / total_deployment
-                        except ZeroDivisionError:
-                            percentage = '--'
-                        temp.append(percentage)
-
-                    to_ret.append([location, temp])
-            else:
-                #Non admin types
-                date_weeks, to_ret = [], []
-                date_weeks.append(previous_calendar_week(t = datetime.datetime.now()))
-                for location in locations:
-                    temp = []
-                    # get schools in this location
-                    schools = schools_temp.filter(contact__reporting_location__name = location.name).\
-                        values_list('contact__emisreporter__schools__pk', flat=True)
-                    location_schools = School.objects.filter(pk__in = schools)
-                    for d in date_weeks:
-                        total_attendance = 0 # per school
-                        total_deployment = 0 # per school
-                        for school in location_schools:
-                            deployed = poll_responses_term('edtrac_f_teachers_deployment', belongs_to='schools', school = school )
-                            attendance = get_numeric_report_data('edtrac_f_teachers_attendance', school = school,
-                                time_range=list(d), to_ret = 'sum')
-                            total_attendance += attendance
-                            total_deployment += deployed
-                        try:
-                            percentage = (total_deployment - total_attendance) * 100 / total_deployment
-                        except ZeroDivisionError:
-                            percentage = '--'
-                        temp.append(percentage)
-
-                    to_ret.append([location, temp])
-
-
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
-                                                                         'title':'Female Teacher Absenteeism',
-                                                                         'url_name':"female-teacher-district-attd-detail",
-                                                                         'date_batch':date_weeks}, RequestContext(req))
-        else:
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form,
-                                                                         'url_name':"female-teacher-district-attd-detail",
-                                                                         'title':'Male Teacher Absenteeism'}, RequestContext(req))
-    else:
-
-        # initial GET view is displays difference between 2 weeks of the attendance of female teachers as reported by the Head Teacher
-        date_weeks = []
-        location_data = []
-        # get current week
-        date_weeks.append(previous_calendar_week())
-        temp_date = datetime.datetime(date_weeks[0][0].year, date_weeks[0][0].month, date_weeks[0][0].day) - datetime.timedelta(days = 1)
-        # add previous week to date_weeks list
-        date_weeks.append(previous_calendar_week(t = temp_date))
-        # cache schools query in memory (these are Schools that have enrollment data)
-        schools_temp = Poll.objects.select_related().get(name = 'edtrac_f_teachers_deployment').responses.\
-        exclude(contact__emisreporter__schools__name = None).select_related()
-        context_vars = {}
-        for location in locations:
-            temp = []
-            # get schools in this location
-            schools = schools_temp.filter(contact__reporting_location__name = location.name).\
-            values_list('contact__emisreporter__schools__pk', flat=True)
-            location_schools = School.objects.filter(pk__in = schools)
-            for d in date_weeks:
-                total_attendance = 0 # per school
-                total_deployment = 0 # per school
-                for school in location_schools:
-                    deployed = poll_responses_term('edtrac_f_teachers_deployment', belongs_to='schools', school = school )
-                    attendance = get_numeric_report_data('edtrac_f_teachers_attendance', school = school,
-                        time_range=list(d), to_ret = 'sum')
-                    total_attendance += attendance
-                    total_deployment += deployed
-                try:
-                    percentage = (total_deployment - total_attendance) * 100 / total_deployment
-                except ZeroDivisionError:
-                    percentage = '--'
-                temp.append(percentage)
-            try:
-                diff = temp[0] - temp[1]
-            except TypeError:
-                diff = '--'
-
-            location_data.append([location, temp[0], temp[1], diff])
-        context_vars.update({'location_data':location_data})
-        profile = req.user.get_profile()
-        if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
-            x = {'url_name':"female-teacher-district-attd-detail", "headings":["District", "Current Week", "Previous Week", "Percentage Change"]}
-        else:
-            x = {'url_name':"school-detail", "headings":["School", "Current Week", "Previous Week", "Percentage Change"]}
-        context_vars.update({'form':time_range_form,'title':'Female Teachers Absenteeism'})
-        context_vars.update(x)
-        return render_to_response('education/timeslider_base.html', context_vars, RequestContext(req))
-
-
+    return view_generator(
+        req,
+        enrol_deploy_poll = 'edtrac_f_teachers_deployment',
+        attendance_poll = 'edtrac_f_teachers_attendance',
+        title = 'Female teachers absenteeism',
+        url_name_district = 'female-teacher-district-attd-detail'
+    )
 
 @login_required
 def time_range_head_teachers(req):
@@ -3538,6 +2904,7 @@ def reschedule_scripts(request, script_slug):
         return response
     else:
         return HttpResponse("This script can't be rescheduled. Try again")
+
 
 # Reporters view
 
