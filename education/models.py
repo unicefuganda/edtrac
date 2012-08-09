@@ -1,4 +1,5 @@
 from difflib import get_close_matches
+from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.contrib.auth.models import Group, User
 from django.db import models
@@ -570,22 +571,27 @@ def create_record_enrolled_deployed_questions_answered(model=None):
         polls = Poll.objects.select_related().filter(Q(name__icontains="enrollment")|Q(name__icontains="deployment"))
         all_responses = []
         resp_dict = {}
+
         if model.objects.exists():
             # this runs on existing EnrolledDeployedQuestionsAnswered records
             erqa = model.objects.latest('sent_at')
             # get responses that came in after the time of latest `erqa` recorded created
 
             for poll in polls:
-                all_responses.extend(poll.responses.exclude(contact__emisreporter__schools=None).filter(date__gte = erqa.sent_at).select_related().values_list( 'poll__name', 'contact__emisreporter__schools__pk', 'date'))
                 resp_dict[poll.name] = []
+                all_responses.extend(poll.responses.exclude(contact__emisreporter__schools=None).\
+                    filter(date__gte = erqa.sent_at).select_related().\
+                    values_list( 'poll__name', 'contact__emisreporter__schools__pk', 'date'))
         else:
             now = datetime.datetime.now()
             # get responses that came in before now!!!
             for poll in polls:
-                all_responses.extend(poll.responses.exclude(contact__emisreporter__schools=None).filter(date__lte = now).select_related().values_list('poll__name', 'contact__emisreporter__schools__pk', 'date'))
                 resp_dict[poll.name] = []
+                all_responses.extend(
+                    poll.responses.exclude(contact__emisreporter__schools=None).filter(date__lte = now).\
+                        select_related().values_list('poll__name', 'contact__emisreporter__schools__pk', 'date'))
 
-
+        # populate the res_dict with school_pk and sent_at values as a list of lists
         for poll_name, school_pk, sent_at in all_responses:
             resp_dict[poll_name].append([school_pk, sent_at])
 
@@ -594,11 +600,13 @@ def create_record_enrolled_deployed_questions_answered(model=None):
                 poll = Poll.objects.select_related().get(name = poll_name)
                 other_responses = resp_dict[poll_name]
                 for school_pk, sent_at in other_responses:
+                    school = School.objects.select_related().get(pk = school_pk)
+                    print poll, school
                     model.objects.get_or_create(
                         poll = poll,
-                        school = School.objects.select_related().get(pk = school_pk),
+                        school = school,
                         sent_at = sent_at)
-            except DoesNotExist:
+            except ObjectDoesNotExist:
                 pass
             return
 
