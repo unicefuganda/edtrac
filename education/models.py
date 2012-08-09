@@ -9,6 +9,7 @@ from education.utils import _schedule_weekly_scripts, _schedule_weekly_scripts_n
 from rapidsms_httprouter.models import mass_text_sent
 from rapidsms.models import Contact, ContactBase
 from rapidsms.contrib.locations.models import Location
+from poll.models import Poll
 from script.signals import script_progress_was_completed, script_progress
 from script.models import *
 from script.utils.handling import find_best_response, find_closest_match
@@ -129,7 +130,13 @@ class ReportComment(models.Model):
     def set_report_date(self, reporting_date):
         self.report_date = reporting_date
 
+class EnrolledDeployedQuestionsAnswered(models.Model):
+    poll = models.ForeignKey(Poll)
+    school = models.ForeignKey(School)
+    sent_at = models.DateTimeField()
 
+    def __unicode__(self):
+        return self.school
 
 
 def parse_grade(grade):
