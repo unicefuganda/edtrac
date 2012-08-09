@@ -844,6 +844,9 @@ def view_generator(req,
                    url_name_district=None,
                    url_name_school = 'school-detail',
                    template_name='education/timeslider_base.html'):
+    """
+    A generic function to create views based on time ranges.
+    """
     time_range_form = ResultForm()
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins')\
@@ -913,7 +916,7 @@ def view_generator(req,
                 for school in location_schools:
                     for d in date_weeks:
                         temp = []
-                        enrolled = poll_responses_term(enrol_deploy_poll, belongs_to='schools', school = school )
+                        enrollment = poll_responses_term(enrol_deploy_poll, belongs_to='schools', school = school )
                         attendance = get_numeric_report_data(attendance_poll, school = school,
                             time_range=list(d), to_ret = 'sum')
                         try:
@@ -1685,7 +1688,7 @@ def girlsp6_district_attd_detail(req, location_id):
     This gets the details about schools in a district, the people in attedance, etc.
     """
     location = Location.objects.exclude(type="country").filter(type='district').get(id = location_id)
-    schools = School.objects.filter(location=location)
+    schools = School.objects.select_related().filter(location=location)
     to_ret = []
     for school in schools:
         temp = [school]
