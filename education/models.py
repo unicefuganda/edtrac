@@ -2,6 +2,7 @@ from difflib import get_close_matches
 from django.conf import settings
 from django.contrib.auth.models import Group, User
 from django.db import models
+from django.db.models import Q
 from django.forms import ValidationError
 from eav.models import Attribute
 from education.utils import _schedule_weekly_scripts, _schedule_weekly_scripts_now, _schedule_monthly_script, _schedule_termly_script,\
@@ -136,7 +137,7 @@ class EnrolledDeployedQuestionsAnswered(models.Model):
     sent_at = models.DateTimeField()
 
     def __unicode__(self):
-        return self.school
+        return self.school.name
 
 
 def parse_grade(grade):
@@ -562,6 +563,44 @@ def schedule_weekly_report(grp='DEO'):
     from .utils import _schedule_report_sending
     _schedule_report_sending()
 
+#more scheduled stuff
+def create_record_enrolled_deployed_questions_answered(model=None):
+    if model:
+        # query against the poll model
+        polls = Poll.objects.select_related().filter(Q(name__icontains="enrollment")|Q(name__icontains="deployment"))
+        all_responses = []
+        resp_dict = {}
+        if model.objects.exists():
+            # this runs on existing EnrolledDeployedQuestionsAnswered records
+            erqa = model.objects.latest('sent_at')
+            # get responses that came in after the time of latest `erqa` recorded created
+
+            for poll in polls:
+                all_responses.extend(poll.responses.exclude(contact__emisreporter__schools=None).filter(date__gte = erqa.sent_at).select_related().values_list( 'poll__name', 'contact__emisreporter__schools__pk', 'date'))
+                resp_dict[poll.name] = []
+        else:
+            now = datetime.datetime.now()
+            # get responses that came in before now!!!
+            for poll in polls:
+                all_responses.extend(poll.responses.exclude(contact__emisreporter__schools=None).filter(date__lte = now).select_related().values_list('poll__name', 'contact__emisreporter__schools__pk', 'date'))
+                resp_dict[poll.name] = []
+
+
+        for poll_name, school_pk, sent_at in all_responses:
+            resp_dict[poll_name].append([school_pk, sent_at])
+
+        for poll_name in resp_dict.keys():
+            try:
+                poll = Poll.objects.select_related().get(name = poll_name)
+                other_responses = resp_dict[poll_name]
+                for school_pk, sent_at in other_responses:
+                    model.objects.get_or_create(
+                        poll = poll,
+                        school = School.objects.select_related().get(pk = school_pk),
+                        sent_at = sent_at)
+            except DoesNotExist:
+                pass
+            return
 
 Poll.register_poll_type('date', 'Date Response', parse_date_value, db_type=Attribute.TYPE_OBJECT)
 
