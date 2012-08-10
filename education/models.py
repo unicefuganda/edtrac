@@ -568,7 +568,7 @@ def schedule_weekly_report(grp='DEO'):
 def create_record_enrolled_deployed_questions_answered(model=None):
     if model:
         # query against the poll model
-        polls = Poll.objects.select_related().filter(Q(name__icontains="enrollment")|Q(name__icontains="deployment"))
+        polls = Poll.objects.filter(Q(name__icontains="enrollment")|Q(name__icontains="deployment"))
         all_responses = []
         resp_dict = {}
 
@@ -597,12 +597,12 @@ def create_record_enrolled_deployed_questions_answered(model=None):
 
         for poll_name in resp_dict.keys():
             try:
-                poll = Poll.objects.select_related().get(name = poll_name)
+                poll = Poll.objects.get(name = poll_name)
                 other_responses = resp_dict[poll_name]
                 for school_pk, sent_at in other_responses:
                     school = School.objects.select_related().get(pk = school_pk)
                     print poll, school
-                    model.objects.get_or_create(
+                    model.objects.create(
                         poll = poll,
                         school = school,
                         sent_at = sent_at)
