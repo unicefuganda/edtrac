@@ -734,19 +734,19 @@ def head_teachers_male(locations):
 
 def schools_active(locations):
     try:
-        count_reps = EmisReporter.objects.filter(groups__name__in=['Head Teachers', 'Teachers'],
+        count_reps = EmisReporter.objects.select_related().filter(groups__name__in=['Head Teachers', 'Teachers', 'SMC'],
             reporting_location__in = locations).exclude(schools = None).exclude(
-                connection__identity__in=Blacklist.objects.values_list('connection__identity',flat=True)).\
+                connection__identity__in=Blacklist.objects.select_related().values_list('connection__identity',flat=True)).\
                     values_list('connection__identity').count()
 
-        resp_numbers = []
-        for p in Poll.objects.filter(name__icontains = 'attendance'):
-            resp_numbers.extend(p.responses.filter(
-                contact__reporting_location__in=locations,
-                contact__groups__name__in=['Head Teachers', 'Teachers'],
-                date__range = get_week_date(depth = 2)[1]).values_list('contact__connection__identity',flat=True).distinct())
-
-        count = len(list(set(resp_numbers)))
+        count = 0
+        for p in Poll.objects.select_related().filter(name__icontains = 'attendance'):
+            if len(locations) == 1:
+                count += p.responses.select_related().filter(
+                    contact__reporting_location__in = locations, date__range = get_week_date(depth = 2)[0]
+                ).distinct().count()
+            else:
+                count += p.responses.select_related().filter(date__range = get_week_date(depth=2)[0]).distinct().count()
 
         school_active = (100 * count) / count_reps
 
@@ -757,7 +757,8 @@ def schools_active(locations):
 
 def smc_meetings(locations):
     # SMC meetings are count based
-    school_to_date = School.objects.filter(pk__in=EmisReporter.objects.filter(reporting_location__in = locations).\
+    school_to_date = School.objects.filter(pk__in=EmisReporter.objects.select_related().\
+        filter(reporting_location__name__in = [loc.name for loc in locations]).\
         values_list('schools__pk', flat=True)).count()
 
     smc_meeting_poll = Poll.objects.get(name = 'edtrac_smc_meetings')
