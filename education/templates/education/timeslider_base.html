@@ -40,7 +40,11 @@
                     <tr>
                         <th>District</th>
                         {% for date1, date2 in date_batch %}
-                        <th style="font-size: .7em;">{{ date1|date }}</th>
+                        {% if mmonth_flag %}
+                            <th style="font-size: .7em;">{{ date1|date:"M" }}</th>
+                        {% else %}
+                            <th style="font-size: .7em;">{{ date1|date }}</th>
+                        {% endif %}
                         {% endfor %}
                     </tr>
                     {% for location, figure_list in dataset %}
