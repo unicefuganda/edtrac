@@ -16,7 +16,7 @@ from uganda_common.reports import PollNumericResultsColumn, PollCategoryResultsC
 from uganda_common.utils import total_submissions, reorganize_location, total_attribute_value, previous_calendar_month
 from uganda_common.utils import reorganize_dictionary
 from education.utils import previous_calendar_week, Statistics, StatisticsException
-from .models import EmisReporter, School
+from .models import EmisReporter, School, EnrolledDeployedQuestionsAnswered
 from poll.models import Response, Poll
 import datetime, dateutils
 from datetime import date, timedelta
@@ -1401,7 +1401,7 @@ def return_absent(poll_name, enrollment, locations=None, school=None, **kwargs):
 
 #### Excel reporting
 
-def write_to_xls(sheet_name, headings, data):
+def write_to_xls(sheet_name, headings, data, book=None):
     sheet = book.add_sheet(sheet_name)
     rowx = 0
     for colx, value in enumerate(headings):
@@ -1417,6 +1417,14 @@ def write_to_xls(sheet_name, headings, data):
                 except:
                     pass
                 sheet.write(rowx, colx, value)
+
+def system_report():
+    district_names = Location.objects.select_related().filter(type="districti", pk__in =\
+        EmisReporter.objects.values_list('reporting_location__pk',flat=True)).values_list('name',flat=True)
+
+    school_dates = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
+    schools = EnrolledDeployedQuestionsAnswered.objects.select_related().filter(sent_at__range = school_dates)
+    headings = ['Schools', schools.order_by('sent_at').values_list('sent_at',flat=True)]
 
 def get_range_on_date(reporting_period, report_comment):
     if reporting_period == 'wk':
