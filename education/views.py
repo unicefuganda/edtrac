@@ -868,15 +868,20 @@ def view_generator(req,
             month_delta = abs(from_date.month - to_date.month)
 
             date_weeks = []
+            month_flag = None
             if month_delta <= 2: # same month get days in between
+                month_flag = False # don't split data in months
                 while from_date <= to_date:
                     if from_date.weekday() == 3: #is to_day a Thursday?
                         date_weeks.append(previous_calendar_week(t = from_date)) # get range from Wed to Thur.
                     from_date += datetime.timedelta(days = 1)
             else:
+                month_flag = True # split data in months
                 while from_date <= to_date:
                     date_weeks.append([dateutils.month_start(from_date),dateutils.month_end(from_date)])
-                    from_date += datetime.timedelta(months = 1)
+                    from_date = dateutils.increment(from_date, months = 1)
+
+                date_weeks = [d.reverse() for d in date_weeks]
 
             if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins')\
                 or profile.is_member_of('UNICEF Officials'):
@@ -891,10 +896,18 @@ def view_generator(req,
                         total_enrollment = 0 # per school
                         for school in location_schools:
                             enrolled = poll_responses_term(enrol_deploy_poll, belongs_to='schools', school = school )
-                            attendance = get_numeric_report_data(attendance_poll, school = school,
-                                time_range=list(d), to_ret = 'sum')
-                            total_attendance += attendance
-                            total_enrollment += enrolled
+                            if enrolled > 0:
+                                if month_flag:
+                                    attendance = get_numeric_report_data(attendance_poll, school = school,
+                                        time_range=list(d), to_ret = 'avg') # use averages
+                                else:
+                                    attendance = get_numeric_report_data(attendance_poll, school = school,
+                                        time_range=list(d), to_ret = 'sum')
+
+                                print school, 'enrolled:', enrolled, 'attendance:', attendance
+                                total_attendance += attendance
+                                total_enrollment += enrolled
+
                         try:
                             percentage = (total_enrollment - total_attendance) * 100 / total_enrollment
                         except ZeroDivisionError:
@@ -903,7 +916,7 @@ def view_generator(req,
 
                     to_ret.append([location, temp])
                 return render_to_response(template_name, {'form':time_range_form, 'dataset':to_ret,
-                                                          'title': title,
+                                                          'title': title,'month_flag': month_flag,
                                                           'url_name':url_name_district,
                                                           'date_batch':date_weeks}, RequestContext(req))
 
@@ -927,8 +940,8 @@ def view_generator(req,
                         temp.append(percentage)
 
                     to_ret.append([school, temp])
-                return render_to_response(template_name, {'form':time_range_form, 'dataset':to_ret,
-                                                                             'title': title,
+                return render_to_response(template_name, {'form':time_range_form, 'dataset_school':to_ret,
+                                                                             'title': title,'month_flag':month_flag,
                                                                              'url_name': url_name_school,
                                                                              'date_batch':date_weeks}, RequestContext(req))
         else:
@@ -2037,8 +2050,8 @@ def time_range_boysp6(req):
 @login_required
 def time_range_girlsp3(req):
     return view_generator(
-        reg,
-        enrol_deploy_poll = 'edtrac_girlsp3_enrollement',
+        req,
+        enrol_deploy_poll = 'edtrac_girlsp3_enrollment',
         attendance_poll = 'edtrac_girlsp3_attendance',
         title = 'P3 Girls Absenteeism',
         url_name_district = 'girlsp3-district-attd-detail'
@@ -2131,7 +2144,7 @@ def time_range_head_teachers(req):
                 while from_date <= to_date:
                     #TODO refine data points
                     date_weeks.append([dateutils.month_start(from_date),dateutils.month_end(from_date)])
-                    from_date += datetime.timedelta(months = 1)
+                    from_date = dateutils.increment(from_date, months = 1)
 
             # splitting the results by analysing membership of Officials accessing EduTrac
             if req.user.get_profile().is_member_of('Ministry Officials') or\
