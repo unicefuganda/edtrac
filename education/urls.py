@@ -108,8 +108,6 @@ urlpatterns = patterns('',
             ('', False, '', None,)],
         }, name="emis-contact"),
 
-    url(r'^edtrac/sys-report-dist/$', sys_report_dist, name="emis-sys-report-dist"),
-    url(r'^edtrac/sys-report/$', sys_report, name="emis-sys-report"),
     url(r'^edtrac/scripts-special/$', emis_scripts_special, name='emis-special-scripts'),
 
     url(r'^edtrac/new-comment/$', new_comment, name='new-comment'),
@@ -185,6 +183,7 @@ urlpatterns = patterns('',
 
     # Excel Reports
     url(r'^edtrac/excelreports/$',excel_reports),
+    url(r'^edtrac/system-report/$', system_report, name="system-report"),
     #users and permissions
     url(r'^edtrac/toexcel/$',to_excel, name="to-excel"),
     url(r'^edtrac/schoolexcel/$', school_reporters_to_excel, name="school_report_excel"),
