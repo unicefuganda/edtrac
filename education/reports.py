@@ -1418,14 +1418,6 @@ def write_to_xls(sheet_name, headings, data, book=None):
                     pass
                 sheet.write(rowx, colx, value)
 
-def system_report():
-    district_names = Location.objects.select_related().filter(type="districti", pk__in =\
-        EmisReporter.objects.values_list('reporting_location__pk',flat=True)).values_list('name',flat=True)
-
-    school_dates = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
-    schools = EnrolledDeployedQuestionsAnswered.objects.select_related().filter(sent_at__range = school_dates)
-    headings = ['Schools', schools.order_by('sent_at').values_list('sent_at',flat=True)]
-
 def get_range_on_date(reporting_period, report_comment):
     if reporting_period == 'wk':
         return get_week_date(depth=2)[0]
