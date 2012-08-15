@@ -34,78 +34,76 @@
                     $('#id_to_date').datepicker();
                 });
             </script>
-
             {% if dataset %}
+            <!--{{data_set}} variable is produced when the form has been POSTed-->
                 <table class="tabulated-data classy">
-                    <tr>
-                        <th>District</th>
-                        {% for date1, date2 in date_batch %}
-                        {% if mmonth_flag %}
-                            <th style="font-size: .7em;">{{ date1|date:"M" }}</th>
-                        {% else %}
-                            <th style="font-size: .7em;">{{ date1|date }}</th>
-                        {% endif %}
-                        {% endfor %}
-                    </tr>
-                    {% for location, figure_list in dataset %}
-                    <tr>
-                        <td>{{ location }}</td>
-                        {% for figure in figure_list %}
-                        <td>
-                            {% if figure == '--' %}
-                                {{ figure }}
+                        <tr>
+                            <th>District</th>
+                            {% for date1, date2 in date_batch %}
+                            {% if mmonth_flag %}
+                                <th style="font-size: .7em;">{{ date1|date:"M" }}</th>
                             {% else %}
-                                {{ figure|floatformat }}
+                                <th style="font-size: .7em;">{{ date1|date }}</th>
                             {% endif %}
-                        </td>
+                            {% endfor %}
+                        </tr>
+                        {% for location, figure_list in dataset %}
+                        <tr>
+                            <td>{{ location }}</td>
+                            {% for figure in figure_list %}
+                            <td>
+                                {% if figure == '--' %}
+                                    {{ figure }}
+                                {% else %}
+                                    {{ figure|floatformat }}
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
                         {% endfor %}
-                    </tr>
-                    {% endfor %}
                 </table>
+
             {% else %}
+
                 <div class="alert-message">Please click the text boxes to select date range for data</div>
 
 
-            <div class="attendance">
-                <h2>Weekly Change in {{ title }} {{ week|date:"D d M Y" }}</h2>
+                <div class="attendance">
+                    <h2>Weekly Change in {{ title }} {{ week|date:"D d M Y" }}</h2>
+                    <div class="top">
+                        {% if dataset_school %}
+                            school dataset pending
+                        {% endif %}
 
-                <div class="top">
-                    {% paginate 25 location_data %}
-                    <table class="tabulated-data">
-                        <thead>
-                        <tr>
-                            {% for heading in headings %}
-                            <th>{{ heading }}</th>
-                            {% endfor %}
-                        </tr>
+                        {% if location_data %}
+                            {% paginate 25 location_data %}
+                            <table class="tabulated-data">
+                                <thead>
+                                <tr>
+                                    {% for heading in headings %}
+                                    <th>{{ heading }}</th>
+                                    {% endfor %}
+                                </tr>
 
-                        </thead>
-                        <tbody>
-                        {% for entity_attribute, cur_value, prev_value, diff in location_data %}
-                            <td><a href="{% url url_name entity_attribute.id %}">{{ entity_attribute }}</a>
-                            <td>{% if cur_value == '--' or cur_value == 0%} {{ cur_value }} {% else %} {{ cur_value|floatformat }} {% endif %}</td>
-                            <td>{% if prev_value == '--' or prev_value == 0%} {{ prev_value }} {% else %} {{ prev_value|floatformat }} {% endif %}</td>
-                            <td>{% if diff == '--' or diff == 0 %} {{ diff }} {% else %} {{ diff|floatformat }}{% endif %}</td>
-                        </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
+                                </thead>
+                                <tbody>
+                                {% for entity_attribute, cur_value, prev_value, diff in location_data %}
+                                    <td><a href="{% url url_name entity_attribute.id %}">{{ entity_attribute }}</a>
+                                    <td>{% if cur_value == '--' or cur_value == 0%} {{ cur_value }} {% else %} {{ cur_value|floatformat }} {% endif %}</td>
+                                    <td>{% if prev_value == '--' or prev_value == 0%} {{ prev_value }} {% else %} {{ prev_value|floatformat }} {% endif %}</td>
+                                    <td>{% if diff == '--' or diff == 0 %} {{ diff }} {% else %} {{ diff|floatformat }}{% endif %}</td>
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="paginator">
+                            {% show_pages %}
+                        </div>
+                    {% endif %}
                 </div>
-                <div class="paginator">
-                    {% show_pages %}
-                </div>
 
-            </div>
-            <!--
-            <script>
-                $(function(){
-                    $(".tabulated-data").tablesorter({sortList: [
-                        [0,0],
-                        [1,0]
-                    ]});
-                });
-            </script>
-            -->
             {% endif %}
+
         </div>
 {% endblock %}
