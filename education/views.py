@@ -878,10 +878,10 @@ def view_generator(req,
             else:
                 month_flag = True # split data in months
                 while from_date <= to_date:
-                    date_weeks.append([dateutils.month_start(from_date),dateutils.month_end(from_date)])
-                    from_date = dateutils.increment(from_date, months = 1)
-
-                date_weeks = [d.reverse() for d in date_weeks]
+                    date_weeks.append([dateutils.month_start(from_date),dateutils.month_end(dateutils.increment(from_date, months=1))])
+                    next_date = dateutils.increment(from_date, months = 1)
+                    delta = next_date - from_date
+                    from_date += datetime.timedelta(days = abs(delta.days))
 
             if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins')\
                 or profile.is_member_of('UNICEF Officials'):
