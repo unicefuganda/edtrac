@@ -904,7 +904,6 @@ def view_generator(req,
                                     attendance = get_numeric_report_data(attendance_poll, school = school,
                                         time_range=list(d), to_ret = 'sum')
 
-                                print school, 'enrolled:', enrolled, 'attendance:', attendance
                                 total_attendance += attendance
                                 total_enrollment += enrolled
 
@@ -913,8 +912,8 @@ def view_generator(req,
                         except ZeroDivisionError:
                             percentage = '--'
                         temp.append(percentage)
-
                     to_ret.append([location, temp])
+
                 return render_to_response(template_name, {'form':time_range_form, 'dataset':to_ret,
                                                           'title': title,'month_flag': month_flag,
                                                           'url_name':url_name_district,
@@ -922,7 +921,7 @@ def view_generator(req,
 
             else:
                 location_schools = School.objects.filter(pk__in = EnrolledDeployedQuestionsAnswered.objects.select_related().\
-                filter(school__location=locations[0]).values_list('school__pk', flat=True))
+                    filter(school__location=locations[0]).values_list('school__pk', flat=True))
                 #Non admin types
                 date_weeks, to_ret = [], []
                 date_weeks.append(previous_calendar_week(t = datetime.datetime.now()))
@@ -931,8 +930,12 @@ def view_generator(req,
                     for d in date_weeks:
                         temp = []
                         enrollment = poll_responses_term(enrol_deploy_poll, belongs_to='schools', school = school )
-                        attendance = get_numeric_report_data(attendance_poll, school = school,
-                            time_range=list(d), to_ret = 'sum')
+                        if month_flag:
+                            attendance = get_numeric_report_data(attendance_poll, school = school,
+                                time_range=list(d), to_ret = 'avg')
+                        else:
+                            attendance = get_numeric_report_data(attendance_poll, school = school,
+                                time_range=list(d), to_ret = 'sum')
                         try:
                             percentage = (enrollment - attendance) * 100 / enrollment
                         except ZeroDivisionError:
@@ -990,14 +993,41 @@ def view_generator(req,
                 location_data.append([location, temp[0], temp[1], diff])
             context_vars.update({'location_data':location_data})
         else:
-            print
+
+            location_schools = School.objects.filter(pk__in = EnrolledDeployedQuestionsAnswered.objects.select_related().\
+            filter(school__location=locations[0]).values_list('school__pk', flat=True))
+            #Non admin types
+            date_weeks, to_ret = [], []
+            date_weeks.append(previous_calendar_week(t = datetime.datetime.now()))
+
+            for school in location_schools:
+                for d in date_weeks:
+                    temp = []
+                    enrollment = poll_responses_term(enrol_deploy_poll, belongs_to='schools', school = school )
+                    attendance = get_numeric_report_data(attendance_poll, school = school,
+                        time_range=list(d), to_ret = 'sum')
+                    try:
+                        percentage = (enrollment - attendance) * 100 / enrollment
+                    except ZeroDivisionError:
+                        percentage = '--'
+                    temp.append(percentage)
+
+                to_ret.append([school, temp])
+
+            context_vars = {'form':time_range_form, 'dataset_school':to_ret,
+                                                      'title': title,
+                                                      'url_name': url_name_school,
+                                                      'date_batch':date_weeks}
+
 
 
         if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
             x = {'url_name':url_name_district, 'headings':['District', 'Current week', 'Previous week', 'Percentage difference']}
         else:
             x = {'url_name':url_name_school, 'headings':['School', 'Current week', 'Previous week', 'Percentage difference']}
-        context_vars.update({'form':time_range_form,'title':title})
+
+        if context_vars.has_key('form') ==False and context_vars.has_key('title') == False:
+            context_vars.update({'form':time_range_form,'title':title}) # add the keys to context_vars dict
         context_vars.update(x)
         return render_to_response(template_name, context_vars, RequestContext(req))
 
@@ -2633,7 +2663,7 @@ def system_report(req=None):
     district_schools = {}
     for dn in district_names:
         district_schools[dn] = School.objects.select_related().filter(pk__in =\
-            enrolled_answered.filter(school__location__name = dn).values_list('school__pk',flat=True))
+            enrolled_answered.filter(school__location__name = dn).values_list('school__pk',flat=True)).order_by('name')
 
     polls = Poll.objects.select_related().filter(Q(name__icontains="boys")|Q(name__icontains="girls")|\
                                                  Q(name = 'edtrac_f_teachers_attendance')|\
