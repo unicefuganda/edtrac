@@ -20,23 +20,28 @@
 
             <div style="padding:20px; margin-bottom: 30px;">
                 <form action="" method="post" class="selector">
+                    <div class="box-message" style="float:left;">Please click the text boxes to select date range for data</div>
+                    <span style="margin-left: 5px;">
                     From {{ form.from_date }} to {{ form.to_date }}
                     <button>Search</button>
+                    </span>
                 </form>
-                <div style="float:right; clear:both;" class="alert-message">
-                    {{ title }} - Percentage
-                </div>
+                <script>
+                    $(function(){
+                        $('#id_from_date').datepicker();
+                        $('#id_to_date').datepicker();
+                    });
+                </script>
             </div>
 
-            <script>
-                $(function(){
-                    $('#id_from_date').datepicker();
-                    $('#id_to_date').datepicker();
-                });
-            </script>
+            <div style="float:right; clear:both;" class="alert-message">
+                {{ title }} - Percentage
+            </div>
+
+
             {% if dataset %}
             <!--{{data_set}} variable is produced when the form has been POSTed-->
-                <table class="tabulated-data classy">
+                <table class="tabulated-data classy" style="clear:both;">
                         <tr>
                             <th>District</th>
                             {% for date1, date2 in date_batch %}
@@ -65,10 +70,7 @@
 
             {% else %}
 
-                <div class="alert-message">Please click the text boxes to select date range for data</div>
-
-
-                <div class="attendance">
+                <div class="attendance" style="clear:both;">
                     <h2>Weekly Change in {{ title }} {{ week|date:"D d M Y" }}</h2>
                     <div class="top">
                         {% if dataset_school %}
@@ -81,6 +83,9 @@
                                     {% endfor %}
                                 </tr>
                                 </thead>
+                                <tbody>
+                                {{ dataset_school }}
+                                </tbody>
                             </table>
                         {% endif %}
 

@@ -923,9 +923,7 @@ def view_generator(req,
                 location_schools = School.objects.filter(pk__in = EnrolledDeployedQuestionsAnswered.objects.select_related().\
                     filter(school__location=locations[0]).values_list('school__pk', flat=True))
                 #Non admin types
-                date_weeks, to_ret = [], []
-                date_weeks.append(previous_calendar_week(t = datetime.datetime.now()))
-
+                print date_weeks
                 for school in location_schools:
                     for d in date_weeks:
                         temp = []
@@ -955,10 +953,14 @@ def view_generator(req,
     # NO POST data sent!
     else:
         date_weeks = []
+        date_weeks.append(previous_calendar_week(t = datetime.datetime.now()))
+        sw = date_weeks[0][0]
+        date_weeks.append(previous_calendar_week(t = dateutils.increment(datetime.datetime(sw.year, sw.month, sw.day, 10), weeks = -1)))
+
         location_data = []
-        date_weeks.append(previous_calendar_week())
-        temp_date = datetime.datetime(date_weeks[0][0].year, date_weeks[0][0].month, date_weeks[0][0].day) - datetime.timedelta(days = 1)
-        date_weeks.append(previous_calendar_week(t = temp_date))
+#        date_weeks.append(previous_calendar_week())
+#        temp_date = datetime.datetime(date_weeks[0][0].year, date_weeks[0][0].month, date_weeks[0][0].day) - datetime.timedelta(days = 1)
+#        date_weeks.append(previous_calendar_week(t = temp_date))
         schools_temp = School.objects.select_related().\
             filter(pk__in =\
                 EnrolledDeployedQuestionsAnswered.objects.select_related().filter(school__location__in=locations).values_list('school__pk',flat=True))
