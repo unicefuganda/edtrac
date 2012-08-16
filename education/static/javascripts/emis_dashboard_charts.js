@@ -53,9 +53,7 @@ function violence_cases(monthly_data, title){
         violence_case.push(parseFloat(split_data[1]));
     }
 
-    var violence_chart;
-
-    violence_chart = new Highcharts.Chart(
+    var violence_chart = new Highcharts.Chart(
         {
             chart: {
                 renderTo:'violence-graph',
