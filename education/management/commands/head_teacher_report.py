@@ -39,7 +39,6 @@ class Command(BaseCommand):
 
 
         for district_name in district_schools.keys():
-            print district_name
             container = []
 
             sheet = book.add_sheet(district_name, cell_overwrite_ok=True)
@@ -54,7 +53,6 @@ class Command(BaseCommand):
             for school in district_schools[district_name]:
                 school_vals = [school.name]
                 for d_bunch in date_bunches:
-                    submission_count = 0
                     yes_count = ResponseCategory.objects.filter(category__name = 'yes',
                         response__in=head_teacher_poll.responses.filter(date__range = d_bunch,
                         contact__emisreporter__schools = school)).count()
