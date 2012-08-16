@@ -1337,8 +1337,8 @@ def violence_details_dash(req):
     for dr in get_month_day_range(datetime.datetime.now(), depth=2):
 
         if profile.location.type.name == 'country':
-            contacts = Contact.objects.filter(reporting_location__in=profile.\
-            location.get_descendants().filter(type="district"))
+            contacts = Contact.objects.select_related().filter(reporting_location__in=profile.\
+                location.get_descendants().filter(type="district"))
         else:
             contacts = Contact.objects.filter(reporting_location=profile.location)
 
@@ -1373,11 +1373,20 @@ def violence_details_dash(req):
     h_teach_month = []
     h_teach_data = []
     gem_data = []
+    if profile.is_member_of('Minstry Officials') or profile.is_member_of('UNICEF Officials') or profile.is_member_of('Admins'):
 
-    for month_range in month_ranges:
-        h_teach_month.append(month_range[0].strftime('%B'))
-        h_teach_data.append(get_numeric_report_data('edtrac_headteachers_abuse',time_range=month_range, to_ret = 'sum'))
-        gem_data.append(get_numeric_report_data('edtrac_gem_abuse',time_range=month_range, to_ret = 'sum'))
+        for month_range in month_ranges:
+            h_teach_month.append(month_range[0].strftime('%B'))
+            h_teach_data.append(get_numeric_report_data('edtrac_headteachers_abuse',time_range=month_range, to_ret = 'sum'))
+
+            gem_data.append(get_numeric_report_data('edtrac_gem_abuse',time_range=month_range, to_ret = 'sum'))
+
+    else:
+        for month_range in month_ranges:
+            h_teach_month.append(month_range[0].strftime('%B'))
+            h_teach_data.append(get_numeric_report_data('edtrac_headteachers_abuse',time_range=month_range, to_ret = 'sum', location=profile.location))
+
+            gem_data.append(get_numeric_report_data('edtrac_gem_abuse',time_range=month_range, to_ret = 'sum', location=profile.location))
 
     monthly_data_h_teachers = ';'.join([str(item[0])+'-'+str(item[1]) for item in zip(h_teach_month, h_teach_data)])
 
