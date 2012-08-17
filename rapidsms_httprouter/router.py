@@ -57,7 +57,7 @@ class HttpRouter(object, LoggerMixin):
         """
 
         # lookup / create this backend
-        # TODO: is this too flexible?  Perhaps we should do this upon initialization and refuse 
+        # TODO: is this too flexible?  Perhaps we should do this upon initialization and refuse
         # any backends not found in our settings.  But I hate dropping messages on the floor.
         backend, created = Backend.objects.get_or_create(name=backend)
 
@@ -66,7 +66,7 @@ class HttpRouter(object, LoggerMixin):
         # create our connection
         #connection, created = Connection.objects.get_or_create(backend=backend, identity=contact)
         try:
-            connection = Connection.objects.get(identity=contact)
+            connection = Connection.objects.get(identity=contact, backend=backend)
         except Connection.DoesNotExist:
             connection = Connection.objects.create(backend=backend, identity=contact)
 
@@ -139,7 +139,7 @@ class HttpRouter(object, LoggerMixin):
                     elif phase == "handle":
                         if handled is True:
                             self.debug("Short-circuited")
-                            # mark the message handled to avoid the 
+                            # mark the message handled to avoid the
                             # default phase firing unnecessarily
                             msg.handled = True
                             db_message.application = app
@@ -148,7 +148,7 @@ class HttpRouter(object, LoggerMixin):
 
                     elif phase == "default":
                         # allow default phase of apps to short circuit
-                        # for prioritized contextual responses.   
+                        # for prioritized contextual responses.
                         if handled is True:
                             self.debug("Short-circuited default")
                             break
