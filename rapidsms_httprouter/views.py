@@ -18,6 +18,7 @@ from djtables.column import DateColumn
 
 from .models import Message
 from .router import get_router
+from.tasks import handle_incoming
 
 class SecureForm(forms.Form):
     """
@@ -55,18 +56,22 @@ def receive(request):
 
     # otherwise, create the message
     data = form.cleaned_data
-    message = get_router().handle_incoming(data['backend'], data['sender'], data['message'])
 
-    response = {}
-    response['message'] = message.as_json()
-    response['responses'] = [m.as_json() for m in message.responses.all()]
-    response['status'] = "Message handled."
-
-    # do we default to having silent responses?  200 means success in this case
-    if getattr(settings, "ROUTER_SILENT", False) and (not 'echo' in data or not data['echo']):
-        return HttpResponse()
+    if getattr(settings,'CELERY_MESSAGE_PROCESSING',None):
+        handle_incoming.delay(get_router(),data['backend'], data['sender'], data['message'])
+        return HttpResponse("celery handler")
     else:
-        return HttpResponse(json.dumps(response))
+        message = get_router().handle_incoming(data['backend'], data['sender'], data['message'])
+        response = {}
+        response['message'] = message.as_json()
+        response['responses'] = [m.as_json() for m in message.responses.all()]
+        response['status'] = "Message handled."
+
+        # do we default to having silent responses?  200 means success in this case
+        if getattr(settings, "ROUTER_SILENT", False) and (not 'echo' in data or not data['echo']):
+            return HttpResponse()
+        else:
+            return HttpResponse(json.dumps(response))
 
 def outbox(request):
     """
