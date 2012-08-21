@@ -5,7 +5,9 @@
 # -------------------------------------------------------------------- #
 #                          PATH CONFIGURATION                          #
 # -------------------------------------------------------------------- #
-import sys, os
+import sys, os, djcelery
+from datetime import timedelta
+
 filedir = os.path.dirname(__file__)
 sys.path.append(os.path.join(filedir))
 sys.path.append(os.path.join(filedir, 'rapidsms', 'lib'))
@@ -119,14 +121,12 @@ INSTALLED_APPS = [
 
 INSTALLED_APPS += ['celery', "djcelery"]
 
-import djcelery
-from datetime import timedelta
 djcelery.setup_loader()
 CELERY_ALWAYS_EAGER = True
 TEST_RUNNER = 'djcelery.contrib.test_runner.CeleryTestSuiteRunner'
 BROKER_URL = "amqp://guest:guest@localhost:5672"
 SIMPLE_AUTOCOMPLETE_MODELS = ('rapidsms.models.Connection')
-CELERY_ENABLE_UTC = True
+#CELERY_ENABLE_UTC = True # enable this when rapidsms is stable on django 1.4
 CELERY_TIMEZONE = 'Africa/Kampala'
 
 CELERYBEAT_SCHEDULE = {
