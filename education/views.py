@@ -9,6 +9,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic import DetailView, TemplateView, ListView, CreateView, FormView
 from .forms import *
 from .models import *
+
 from uganda_common.utils import *
 from rapidsms.contrib.locations.models import Location
 from generic.views import generic
@@ -29,7 +30,7 @@ from time import strftime
 
 Num_REG = re.compile('\d+')
 
-super_user_required=user_passes_test(lambda u: u.groups.filter(name__in=['Admins','DFO']).exists() or u.is_superuser)
+super_user_required=user_passes_test(lambda u: u.groups.filter(name__in=['Admins','DFO', 'UNICEF Officials']).exists() or u.is_superuser)
 
 def login(req):
     return login(req, template_name="education/admin/admin_dashboard.html")
@@ -332,7 +333,7 @@ def violence_changes(locations):
         violence_change_class = "zero"
         violence_change_data = "data-white"
     return {
-            'violence_change' : violence_change,
+            'violence_change' : abs(violence_change),
             'violence_change_class' : violence_change_class,
             'violence_change_data' : violence_change_data
     }
@@ -640,14 +641,14 @@ def head_teachers_female(locations):
     if (female_d1_yes + female_d1_no) > 0:
         female_d1 = female_d1_no * 100 / sum([female_d1_no, female_d1_yes]) # messing with ya! :D
     else:
-        female_d1 = '--'
+        female_d1 = 100
 
     female_d2_yes = yes_fht_d2.count()
     female_d2_no = no_fht_d2.count()
     if (female_d2_yes + female_d2_no) > 0:
         female_d2 = female_d2_no * 100 / sum([female_d2_no, female_d2_yes]) # messing with ya! :D
     else:
-        female_d2 = '--'
+        female_d2 = 100
 
     if isinstance(female_d2, float) and female_d2 >= 0 and female_d1 >= 0 and isinstance(female_d1, float):
 
@@ -663,7 +664,7 @@ def head_teachers_female(locations):
             f_head_t_class = "zero"
             f_head_t_data = 'data-white'
     else:
-        f_head_diff = '--'
+        f_head_diff = 0
         f_head_t_class = 'zero'
         f_head_t_data = 'data-white'
 
@@ -701,14 +702,14 @@ def head_teachers_male(locations):
     if (male_d1_yes + male_d1_no) > 0:
         male_d1 = male_d1_no * 100 / sum([male_d1_no, male_d1_yes]) # messing with ya! :D
     else:
-        male_d1 = '--'
+        male_d1 = 100 # absent
 
     male_d2_yes = yes_mht_d2.count()
     male_d2_no = no_mht_d2.count()
     if (male_d2_yes + male_d2_no) > 0:
         male_d2 = float(male_d2_no * 100 / sum([male_d2_no, male_d2_yes])) # messing with ya! :D
     else:
-        male_d2 = '--'
+        male_d2 = 100 # absent
 
     if isinstance(male_d2, float) and male_d2 >= 0 and male_d1 >= 0 and isinstance(male_d1, float):
 
@@ -724,7 +725,7 @@ def head_teachers_male(locations):
             m_head_t_class = "zero"
             m_head_t_data = 'data-white'
     else:
-        m_head_diff = '--'
+        m_head_diff = 0
         m_head_t_class = 'zero'
         m_head_t_data = 'data-white'
 
@@ -966,9 +967,8 @@ def view_generator(req,
                 EnrolledDeployedQuestionsAnswered.objects.select_related().filter(school__location__in=locations).values_list('school__pk',flat=True))
 
         context_vars = {}
-
         if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins')\
-        or profile.is_member_of('UNICEF Officials'):
+            or profile.is_member_of('UNICEF Officials'):
             for location in locations:
                 temp = []
                 # get schools in this location
@@ -995,17 +995,15 @@ def view_generator(req,
                 location_data.append([location, temp[0], temp[1], diff])
             context_vars.update({'location_data':location_data})
         else:
-
             location_schools = School.objects.filter(pk__in = EnrolledDeployedQuestionsAnswered.objects.select_related().\
-            filter(school__location=locations[0]).values_list('school__pk', flat=True))
+                filter(school__location=locations[0]).values_list('school__pk', flat=True))
             #Non admin types
-            date_weeks, to_ret = [], []
-            date_weeks.append(previous_calendar_week(t = datetime.datetime.now()))
+            to_ret = []
 
             for school in location_schools:
+                enrollment = poll_responses_term(enrol_deploy_poll, belongs_to='schools', school = school )
+                temp = []
                 for d in date_weeks:
-                    temp = []
-                    enrollment = poll_responses_term(enrol_deploy_poll, belongs_to='schools', school = school )
                     attendance = get_numeric_report_data(attendance_poll, school = school,
                         time_range=list(d), to_ret = 'sum')
                     try:
@@ -1430,12 +1428,11 @@ class DistrictViolenceDetails(TemplateView):
 
         #reports = poll_response_sum("edtrac_headteachers_abuse", month_filter=True, months=1)
         emis_reporters = EmisReporter.objects.exclude(connection__in=\
-        Blacklist.objects.values_list('connection')).filter(schools__in=schools)
+            Blacklist.objects.values_list('connection')).filter(schools__in=schools)
 
         context['location'] = location
         context['school_vals'] = school_case
-        #        context['school_count'] = School.objects.filter(location__in=EmisReporter.objects.exclude(connection__in=Blacklist.objects.values_list('connection').\
-        #            values_list('reporting_location'))).count()
+
         context['month_now'] = month_now[0]
         context['month_before'] = month_before[0]
 
