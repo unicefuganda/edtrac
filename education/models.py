@@ -486,26 +486,6 @@ def reschedule_weekly_polls(grp=None):
         if rep.default_connection and rep.groups.count() > 0:
             _schedule_weekly_scripts(rep.groups.all()[0], rep.default_connection, ['Teachers', 'Head Teachers', 'SMC'])
 
-def reschedule_weekly_polls_now(grp=None):
-    """
-    manually reschedule all weekly polls or for a specified group
-    """
-    weekly_scripts = Script.objects.filter(slug__endswith='_weekly')
-    if grp:
-        slg_start = 'edtrac_%s'%grp.replace(' ','_').lower()
-        weekly_scripts = weekly_scripts.filter(slug__startswith=slg_start)
-        ScriptProgress.objects.filter(script__in=weekly_scripts)\
-        .filter(connection__contact__emisreporter__groups__name__iexact=grp).delete()
-    else:
-        ScriptProgress.objects.filter(script__in=weekly_scripts).delete()
-    Script.objects.filter(slug__in=weekly_scripts.values_list('slug', flat=True)).update(enabled=True)
-    grps = Group.objects.filter(name__iexact=grp) if grp else Group.objects.filter(name__in=['Teachers', 'Head Teachers', 'SMC'])
-    # get active reporters
-    reps = EmisReporter.objects.filter(groups__in=grps)
-    for rep in reps:
-        if rep.default_connection and rep.groups.count() > 0:
-            _schedule_weekly_scripts_now(rep.groups.all()[0], rep.default_connection, ['Teachers', 'Head Teachers', 'SMC'])
-
 
 def reschedule_monthly_polls(grp=None):
     """
@@ -566,6 +546,12 @@ def schedule_weekly_report(grp='DEO'):
 
 #more scheduled stuff
 def create_record_enrolled_deployed_questions_answered(model=None):
+    """
+    This function is run in a periodic task to create instances of the EnrolledDeployedQuestionsAnswered class that
+    represents schools that have the enrollment and deployment questions answered.
+
+    PERKS: Currently this function is called in a celery task and is optionally called as a management command.
+    """
     if model:
         # query against the poll model
         polls = Poll.objects.filter(Q(name__icontains="enrollment")|Q(name__icontains="deployment"))
@@ -583,6 +569,7 @@ def create_record_enrolled_deployed_questions_answered(model=None):
                     filter(date__gte = erqa.sent_at).select_related().\
                     values_list( 'poll__name', 'contact__emisreporter__schools__pk', 'date'))
         else:
+            # This is run only once; no chance of it happening unless the `erqa` model is flushed out.
             now = datetime.datetime.now()
             # get responses that came in before now!!!
             for poll in polls:
@@ -601,7 +588,6 @@ def create_record_enrolled_deployed_questions_answered(model=None):
                 other_responses = resp_dict[poll_name]
                 for school_pk, sent_at in other_responses:
                     school = School.objects.select_related().get(pk = school_pk)
-                    print poll, school
                     model.objects.create(
                         poll = poll,
                         school = school,
