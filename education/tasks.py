@@ -1,6 +1,6 @@
 from celery.task import Task, PeriodicTask
 from celery.registry import tasks
-from .models import School, EnrolledDeployedQuestionsAnswered
+from .models import EnrolledDeployedQuestionsAnswered, create_record_enrolled_deployed_questions_answered
 from poll.models import Poll
 from datetime import timedelta
 
