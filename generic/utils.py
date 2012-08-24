@@ -1,6 +1,7 @@
 from .models import *
 from .forms import DateRangeForm
 import datetime, time
+from django.core.paginator import Paginator, InvalidPage, EmptyPage
 
 
 def copy_dashboard(from_dashboard, to_dashboard):
@@ -71,3 +72,51 @@ def flatten_list(report_dict):
         value_dict['key'] = key
         toret.append(value_dict)
     return toret
+
+
+def paginate(filtered_list,objects_per_page,page,p):
+    if hasattr(filtered_list, 'count') and callable(filtered_list.count):
+        try:
+            total = filtered_list.count()
+        except TypeError:
+            total = len(filtered_list)
+    else:
+        total = len(filtered_list)
+    ranges = []
+    paginator = Paginator(filtered_list, objects_per_page)
+    if p and p <= paginator.num_pages:
+        page=p
+        # If page request is out of range, deliver last page of results.
+    try:
+        filtered_list = paginator.page(page).object_list
+    except (EmptyPage, InvalidPage):
+        filtered_list = paginator.page(paginator.num_pages).object_list
+        page = paginator.num_pages
+    if paginator.num_pages > 10:
+        low_range = range(1, 6)
+        high_range = range(paginator.num_pages - 4, paginator.num_pages + 1)
+        if page < 10:
+            low_range += range(6, min(paginator.num_pages, page + 5))
+            mid_range = range(10, paginator.num_pages - 10, 10)
+            ranges.append(low_range)
+            ranges.append(mid_range)
+            ranges.append(high_range)
+        elif page > paginator.num_pages - 10:
+            high_range = range(max(0, page - 5), paginator.num_pages - 4) + high_range
+            mid_range = range(10, paginator.num_pages - 10, 10)
+            ranges.append(low_range)
+            ranges.append(mid_range)
+            ranges.append(high_range)
+        else:
+            ranges.append(low_range)
+            ranges.append(range(10, max(0, page - 2), 10))
+            ranges.append(range(max(0, page - 2), min(paginator.num_pages, page + 3)))
+            ranges.append(range(int(round(min(paginator.num_pages, page + 3) / 10) + 1) * 10, paginator.num_pages - 10, 10))
+            ranges.append(high_range)
+
+    else:
+        ranges.append(paginator.page_range)
+
+    return dict(total=total,ranges=ranges,paginator=paginator,object_list=filtered_list,page=page)
+
+

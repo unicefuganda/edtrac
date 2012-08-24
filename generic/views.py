@@ -15,7 +15,7 @@ from django.contrib.auth.models import User
 from generic.models import Dashboard, Module, ModuleParams, StaticModuleContent
 from django.db.models import Count
 from django.views.decorators.cache import cache_control
-from .utils import copy_dashboard, get_dates, set_default_dates
+from .utils import copy_dashboard, get_dates, set_default_dates,paginate
 
 def generic_row(request, model=None, pk=None, partial_row='generic/partials/partial_row.html', selectable=True):
     if not (model and pk):
@@ -35,6 +35,7 @@ def generic(request,
             paginator_template='generic/partials/pagination.html',
             results_title='Results',
             paginated=True,
+            paginator_func=None,
             selectable=True,
             objects_per_page=25,
             columns=[('object', False, '', None)],
@@ -170,49 +171,17 @@ def generic(request,
                 if sortable and sort_param == sort_column:
                     filtered_list = sorter.sort(sort_column, filtered_list, sort_ascending)
 
-    if hasattr(filtered_list, 'count') and callable(filtered_list.count):
-        try:
-            total = filtered_list.count()
-        except TypeError:
-            total = len(filtered_list)
-    else:
-        total = len(filtered_list)
+    total=None
+    ranges=[]
     paginator = None
-    ranges = []
+    paginator_dict={}
     if paginated:
-        paginator = Paginator(filtered_list, objects_per_page)
-        if p and p <= paginator.num_pages:
-            page=p
-        # If page request is out of range, deliver last page of results.
-        try:
-            filtered_list = paginator.page(page).object_list
-        except (EmptyPage, InvalidPage):
-            filtered_list = paginator.page(paginator.num_pages).object_list
-            page = paginator.num_pages
-        if paginator.num_pages > 10:
-            low_range = range(1, 6)
-            high_range = range(paginator.num_pages - 4, paginator.num_pages + 1)
-            if page < 10:
-                low_range += range(6, min(paginator.num_pages, page + 5))
-                mid_range = range(10, paginator.num_pages - 10, 10)
-                ranges.append(low_range)
-                ranges.append(mid_range)
-                ranges.append(high_range)
-            elif page > paginator.num_pages - 10:
-                high_range = range(max(0, page - 5), paginator.num_pages - 4) + high_range
-                mid_range = range(10, paginator.num_pages - 10, 10)
-                ranges.append(low_range)
-                ranges.append(mid_range)
-                ranges.append(high_range)
-            else:
-                ranges.append(low_range)
-                ranges.append(range(10, max(0, page - 2), 10))
-                ranges.append(range(max(0, page - 2), min(paginator.num_pages, page + 3)))
-                ranges.append(range(int(round(min(paginator.num_pages, page + 3) / 10) + 1) * 10, paginator.num_pages - 10, 10))
-                ranges.append(high_range)
 
-        else:
-            ranges.append(paginator.page_range)
+       if not paginator_func:
+           paginator_dict=paginate(filtered_list,objects_per_page,page,p)
+       else:
+           paginator_dict=paginator_func(filtered_list,objects_per_page,page,p)
+
     context_vars = {
         'partial_base':partial_base,
         'partial_header':partial_header,
@@ -238,6 +207,7 @@ def generic(request,
         'status_message_type':status_message_type,
         'base_template':'layout.html',
     }
+    context_vars.update(paginator_dict)
 
     # For pages that not only have tables, but also need a time range slider
     if needs_date:
