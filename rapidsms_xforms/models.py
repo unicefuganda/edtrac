@@ -20,6 +20,7 @@ from django.core.files.base import ContentFile
 from django.contrib.auth.models import Group
 from django.conf import settings
 from rapidsms_httprouter.models import Message
+from picklefield.fields import PickledObjectField
 
 class XForm(models.Model):
     """
@@ -1148,6 +1149,41 @@ class BinaryValue(models.Model):
         if name.find('/') != -1:
             name = name[name.rfind("/") + 1:]
         return name
+
+class XFormReport(models.Model):
+    """
+    Collection of XForms
+    """
+    name = models.CharField(max_legth=32, help_text="Human readable name")
+    frequency = models.CharField(max_length=32, help_text="How often the report is generated")
+    constraints = PickledObjectField() # [ constraint1, constraint2, ... , constraintN ]
+    submissions = models.ManyToManyField(XFormSubmission, through='XFormReportSubmission')
+    xforms = models.ManyToManyField(XForm, through='XFormList')
+
+    def __unicode__(self):
+        return self.name
+    
+    
+class XFormList(models.Model):
+    """
+    Intermediary model of the Many:Many relationship between XForm and XFormReport
+    """
+    xform = models.ForeignKey(XForm)
+    report = models.ForeignKey(XFormReport)
+    required = models.BooleanField(default=True)
+    priority = models.IntegerField
+
+class XFormReportSubmission(models.Model):
+    """
+    Intermediary model of the Many:Many relationship between XFormReport and XFormSubmission
+    """
+    report = models.ForeignKey(XFormReport)
+    submission = models.ForeignKey(XFormSubmission)
+    start_date = models.DateTimeField('First date of the period of the report')
+    status = models.CharField(max_length=10)
+    
+    def __unicode__(self):
+        return 'beginning "{0}"'.format(self.start_date)
 
 # Signal triggered whenever an xform is received.  The caller can derive from the submission
 # whether it was successfully parsed or not and do what they like with it.
