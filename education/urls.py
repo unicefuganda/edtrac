@@ -17,7 +17,7 @@ from rapidsms_xforms.models import XFormSubmission
 from uganda_common.utils import get_xform_dates, get_messages
 from django.contrib.auth.views import login_required
 from django.contrib.auth.models import User
-from django.views.generic import ListView
+from django.views.generic import ListView, base
 from .reports import othermessages
 from poll.models import Poll
 urlpatterns = patterns('',
@@ -188,6 +188,7 @@ urlpatterns = patterns('',
     url(r'^edtrac/excelreports/$',excel_reports),
     #users and permissions
     url(r'^edtrac/toexcel/$',to_excel, name="to-excel"),
+#    url(r'edtrac/schoolexcel/$', base.RedirectView(url='/static/reporters.xls'), name="school_report_excel"),
     url(r'^edtrac/schoolexcel/$', school_reporters_to_excel, name="school_report_excel"),
     url(r'^edtrac/toexcel/(?P<start_date>[0-9\-]+)/(?P<end_date>[0-9\-]+)$',to_excel, name="to-excel"),
     url(r'^edtrac/users/(\d+)/edit/', edit_user, name='edit_user'),
