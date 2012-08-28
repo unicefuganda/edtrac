@@ -16,7 +16,7 @@ from uganda_common.reports import PollNumericResultsColumn, PollCategoryResultsC
 from uganda_common.utils import total_submissions, reorganize_location, total_attribute_value, previous_calendar_month
 from uganda_common.utils import reorganize_dictionary
 from education.utils import previous_calendar_week, Statistics, StatisticsException
-from .models import EmisReporter, School
+from .models import EmisReporter, School, EnrolledDeployedQuestionsAnswered
 from poll.models import Response, Poll
 import datetime, dateutils
 from datetime import date, timedelta
@@ -383,7 +383,7 @@ def reporters(request, district_id=None):
         return EmisReporter.objects.exclude(
                     connection__id__in=Blacklist.objects.values_list('connection__id', flat=True),
                     connection__identity__in = getattr(settings, 'MODEM_NUMBERS')
-            ).exclude(reporting_location = None)
+            ).exclude(reporting_location = None).exclude(connection=None)
     else:
         user_location = get_location(request)
         return EmisReporter.objects.exclude(\
@@ -635,6 +635,17 @@ def get_week_date(depth=None):
     get_week_date returns a range of weekly dates from today when not in holiday
     """
     now = datetime.datetime.now()
+    # clean the hour
+    now = now if now.second == 0 else now - datetime.timedelta(seconds = now.second)
+    now = now if now.minute == 0 else now - datetime.timedelta(minutes = now.minute)
+    now = now if now.microsecond == 0 else now - datetime.timedelta(microseconds = now.microsecond)
+    if now.hour == 8:
+        pass
+    elif now.hour > 8:
+        now = now - datetime.timedelta(hours = now.hour - 8)
+    else:
+        now = now + datetime.timedelta(hours = 8 - now.hour)
+
     if depth:
         """
         Suppose you want a depth of 3 weeks worth of weekly ranges, all you need to do is set the depth
@@ -712,7 +723,7 @@ def month19to20(**kwargs):
         return [current_month, previous_month]
 
 def get_numeric_report_data(poll_name, location=None, time_range=None, to_ret=None, **kwargs):
-    poll = Poll.objects.get(name=poll_name)    
+    poll = Poll.objects.select_related().get(name=poll_name)
     if time_range:
         if location:
         # time filters
@@ -745,7 +756,7 @@ def get_numeric_report_data(poll_name, location=None, time_range=None, to_ret=No
             elif kwargs.has_key('locations') and len(locations) == 1:
                 q = Value.objects.filter(attribute__slug='poll_number_value',\
                     entity_ct=ContentType.objects.get_for_model(Response),\
-                    entity_id__in=poll.responses.filter(date__range=time_range, contact__reporting_location=locations[0])).values('entity_ct')            
+                    entity_id__in=poll.responses.filter(date__range=time_range, contact__reporting_location=locations[0])).values('entity_ct')
                 # use-case designed in views #TODO clean up
             else:
                 q = Value.objects.filter(attribute__slug='poll_number_value',\
@@ -789,7 +800,9 @@ def poll_response_sum(poll_name, **kwargs):
         if kwargs.has_key('month_filter') and not kwargs.get('month_filter') in ['biweekly','weekly','monthly','termly'] and not kwargs.has_key('location'):
             # when no location is provided { worst case scenario }
             to_ret = {}
-            for location in Location.objects.filter(type='district', name__in = EmisReporter.objects.values_list('reporting_location',flat=True)).distinct():
+            _locations = Location.objects.filter(type='district', name__in = \
+                EmisReporter.objects.select_related().values_list('reporting_location',flat=True)).distinct().select_related()
+            for location in _locations:
                 to_ret[location.__unicode__()] = get_numeric_report_data(
                     poll_name,
                     location = location,
@@ -813,6 +826,7 @@ def poll_response_sum(poll_name, **kwargs):
                     locations = Location.objects.get(name=kwargs.get('location')).get_descendants().filter(type="district")
                 else:
                     locations = [locations]
+
             to_ret = {}
 
             if not kwargs.has_key('months'):
@@ -869,22 +883,6 @@ def poll_response_sum(poll_name, **kwargs):
             # return just one figure/sum without all the list stuff
             # TODO fix to work with biweekly data
             return [0, 0]
-#            return [sum(filter(None,
-#                [
-#                r.eav.poll_number_value for r in poll_queryset.responses.filter(
-#                    contact__in=Contact.objects.filter(reporting_location__in=kwargs.get('locations')),
-#                    date__range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
-#                )
-#                ])),
-#                    sum(filter(None,
-#                        [
-#                        r.eav.poll_number_value for r in poll_queryset.responses.filter(
-#                            contact__in=Contact.objects.filter(reporting_location__in=kwargs.get('locations')),
-#                            date__range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
-#                        )
-#                        ]))
-#            ]
-
 
         if kwargs.get('month_filter')=='monthly' and kwargs.has_key('locations') or kwargs.get('month_20to19'):
             if kwargs.get('month_20to19'):
@@ -914,7 +912,7 @@ def poll_response_sum(poll_name, **kwargs):
             school = kwargs.get('school')
             # return only sums of values from responses sent in by EMIS reporters in this school
             response_sum = get_numeric_report_data(
-                poll_name, time_range = date_week, school=school, to_ret = 'sum', belongs_to = 'schools'
+                poll_name, time_range = date_week if not kwargs.has_key('date_week') else list(kwargs.get('date_week')), school=school, to_ret = 'sum', belongs_to = 'schools'
             )
 
             if response_sum == 0:
@@ -922,6 +920,7 @@ def poll_response_sum(poll_name, **kwargs):
             else:
                return response_sum
         #another hail mary shot
+        # when the type of data is from a single school and monthly data is needed
         if kwargs.get('monthly_filter') == 'monthly' and kwargs.has_key('school'):
             school = kwargs.get('school')
             response_sum = get_numeric_report_data(
@@ -950,7 +949,7 @@ def cleanup_sums(sums):
 
 def cleanup_differences_on_poll(responses):
     """a function to clean up total poll sums from districts and compute a difference"""
-    #use case --> on polls where a difference is needed between previous and current time epoch
+    # use case --> on polls where a difference is needed between previous and current time epochs
     # this function also aggregates a Location wide-poll
     current_epoch_sum = []
     previous_epoch_sum = []
@@ -989,13 +988,9 @@ def poll_responses_past_week_sum(poll_name, **kwargs):
         # This returns sums of responses for a number of weeks while returning them as ranges
         # NOTE: if you are looking to getting data that reflects 2 different weeks, then you have to set it up as 2
         ###############################################################################################################
-        >>> poll_responses_past_week_sum(Poll.objects.get(name="edtrac_boysp3_attendance"),
-        .... location="Kampala", weeks = 2)
-
-
+        >>> poll_responses_past_week_sum(Poll.objects.get(name="edtrac_boysp3_attendance"), location="Kampala", weeks = 2)
         >>> (34, 23)
     """
-
     if kwargs:
         first_quota, second_quota = get_week_date(depth=kwargs.get('weeks'))
         #narrowing to location
@@ -1095,8 +1090,10 @@ def poll_responses_term(poll_name, to_ret=None, **kwargs):
 
 
 def curriculum_progress_list(poll_name, **kwargs):
+    """
+    This function gets the curriculum progress in a week of either schools in a location or just a school
+    """
     if kwargs:
-
         if kwargs.has_key('location'):
             try:
                 to_ret = get_numeric_report_data(
@@ -1121,7 +1118,7 @@ def curriculum_progress_list(poll_name, **kwargs):
                 return 0
 
         elif kwargs.get('time_range'):
-            try:                
+            try:
                 return  get_numeric_report_data(
                     poll_name,
                     to_ret = 'q',
@@ -1229,7 +1226,7 @@ def get_count_response_to_polls(poll_queryset, location_name = None,  **kwargs):
                 EmisReporter.objects.exclude(reporting_location=None).values_list('reporting_location__name',\
                     flat=True).distinct()).values_list('pk', flat=True)
 
-        for location in Location.objects.filter(pk__in = catchment_area_pk):
+        for location in Location.objects.filter(pk__in = catchment_area_pk).select_related():
             to_ret[location.__unicode__()] = []
 
         if kwargs.get('with_range') and kwargs.get('with_percent'):
@@ -1245,8 +1242,8 @@ def get_count_response_to_polls(poll_queryset, location_name = None,  **kwargs):
                 expected_reports = School.objects.filter(pk__in = EmisReporter.objects.exclude(schools = None).\
                     filter(reporting_location = location).values_list('schools__pk', flat=True)).count()
                 resps = poll_queryset.responses.filter(contact__in=\
-                    Contact.objects.filter(reporting_location= location),
-                        date__range = month_range)
+                            Contact.objects.filter(reporting_location= location).select_related(),
+                            date__range = month_range).select_related()
 
                 resp_values = [r.eav.poll_number_value for r in resps]
 
@@ -1257,16 +1254,73 @@ def get_count_response_to_polls(poll_queryset, location_name = None,  **kwargs):
 
             return final_ret
 
+        elif kwargs.get('termly') and kwargs.get('with_percent') and kwargs.get('admin') == False:
+            temp = []
+            termly_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
+            expected_reports = School.objects.filter(pk__in = EmisReporter.objects.exclude(schools = None).\
+                filter(reporting_location = location).values_list('schools__pk', flat=True)).select_related().count()
+            responses = poll_queryset.responses.filter(contact__in =\
+                Contact.objects.filter(reporting_location = location), date__range = termly_range).select_related()
+            all_vals =  [r.eav.poll_number_value for r in responses]
+            vals = filter(None, all_vals)
+
+            try:
+                correctly_answered = len(vals)*100 / expected_reports
+            except ZeroDivisionError:
+                correctly_answered = 0
+
+            for choice in choices:
+                if choice == 404:
+                    if len(to_ret.keys()) == len(choices) - 1:
+                        total = len(vals)
+                        #unknown or improperly answered responses
+                        try:
+                            to_ret[choice] = 100 * (len(all_vals) - total) / len(all_vals)
+                        except ZeroDivisionError:
+                            to_ret[choice] = 0
+                else:
+                    to_ret[choice] = compute_report_percent(vals.count(choice), len(all_vals))
+            return {'to_ret':to_ret, 'correctly_answered':correctly_answered}
+
+        elif kwargs.get('termly') and kwargs.get('with_percent') and kwargs.get('admin'):
+            termly_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
+            expected_reports = School.objects.filter(pk__in = EmisReporter.objects.exclude(schools = None).\
+                values_list('schools__pk', flat=True)).select_related().count()
+            responses = poll_queryset.responses.filter(date__range = termly_range).select_related()
+            all_vals = [r.eav.poll_number_value for r in responses]
+            vals = filter(None, all_vals)
+
+            try:
+                correctly_answered = len(vals)*100 / len(all_vals)
+            except ZeroDivisionError:
+                correctly_answered = 0
+
+            to_ret = {}
+
+            for choice in choices:
+                if choice == 404:
+                    if len(to_ret.keys()) == len(choices) - 1:
+                        total = len(vals) # all responses with value #TODO -> identify correct and incorrect
+                        #unknown or improperly answered responses
+                        try:
+                            to_ret[choice] = 100 * (len(all_vals) - total) / len(all_vals)
+                        except ZeroDivisionError:
+                            to_ret[choice] = 0
+                else:
+                    to_ret[choice] = compute_report_percent(vals.count(choice), len(all_vals))
+            return {'to_ret':to_ret, 'correctly_answered':correctly_answered}
+
+
         else:
             for key in to_ret.keys():
                 resps = poll_queryset.responses.filter(contact__in=\
-                    Contact.objects.filter(reporting_location=Location.objects.filter(type="district").get(name=key)),
-                    date__range = get_month_day_range(datetime.datetime.now())
-                )
+                    Contact.objects.filter(reporting_location=Location.objects.filter(type="district").get(name=key)).\
+                    select_related(), date__range = get_month_day_range(datetime.datetime.now())).select_related()
+
                 resp_values = [r.eav.poll_number_value for r in resps]
                 expected_reports = School.objects.filter(pk__in = EmisReporter.objects.exclude(schools = None).\
                     filter(reporting_location = Location.objects.filter(type="district").get(name=key)).\
-                    values_list('schools__pk', flat=True)).count()
+                    values_list('schools__pk', flat=True)).select_related().count()
                 for choice in choices:
                     to_ret[key].append((choice,compute_report_percent(resp_values.count(choice), expected_reports)))
             return to_ret
@@ -1302,10 +1356,17 @@ def return_absent_month(poll_name, enrollment, month_range, school=None):
             except ZeroDivisionError:
                 return 0.0
 
-def return_absent(poll_name, enrollment, locations=None, school=None):
+
+def avg(list):
+    try:
+        return float(sum(list))/len(list)
+    except ZeroDivisionError:
+        return 0
+
+def return_absent(poll_name, enrollment, locations=None, school=None, **kwargs):
     """
-    Handy function to get weekly figures for enrollment/deployment to get absenteism percentages; 
-    EMIS is about variances and differences, this not only returns values; it returns the percentage 
+    Handy function to get weekly figures for enrollment/deployment to get absenteism percentages;
+    EMIS is about variances and differences, this not only returns values; it returns the percentage
     change too.
 
     Value returned:
@@ -1313,27 +1374,45 @@ def return_absent(poll_name, enrollment, locations=None, school=None):
     """
     to_ret = []
     if locations:
+        enrollment_poll = Poll.objects.select_related().get(name = enrollment)
+
         for loc in locations:
             pre_ret = []
             pre_ret.append(loc)
-            now, before = poll_responses_past_week_sum(poll_name, weeks=2, locations=[loc])
-            current_enrollment = poll_responses_term(enrollment, locations=[loc], belongs_to="location")
-            # computing absenteism
-            try:
-                percent_absent_now = 100 * (current_enrollment - now) / current_enrollment
-            except exceptions.ZeroDivisionError:
-                percent_absent_now = '--'
-            except:
-                percent_absent_now = '--'
 
-            try:
-                percent_absent_before = 100 * (current_enrollment - before) / current_enrollment
-            except exceptions.ZeroDivisionError:
-                percent_absent_before = '--'
-            except:
-                percent_absent_before = '--'
+            enrollment_schools_pks = enrollment_poll.responses.\
+                filter(contact__reporting_location__name = loc.name).values_list('contact__emisreporter__schools__pk', flat=True)
+            school_filter = {}
+            _schools = School.objects.filter(pk__in=enrollment_schools_pks).select_related()
+            for school in _schools:
+                week_now_temp, week_before_temp = poll_responses_past_week_sum(enrollment_poll.name,
+                    weeks = 2, school=school, to_ret='sum')
+                current_enrollment = poll_responses_term(enrollment_poll.name, belongs_to='schools', school=school)
+#                print school, week_now_temp, week_before_temp, current_enrollment
+                try:
+                    percent_absent_now = 100 * (current_enrollment - week_now_temp) / current_enrollment
+                except ZeroDivisionError:
+                    percent_absent_now = '--'
+                except:
+                    percent_absent_now = '--'
 
-            pre_ret.extend([percent_absent_now, percent_absent_before])
+                try:
+                    percent_absent_before = 100 * (current_enrollment - week_before_temp )  / current_enrollment
+                except ZeroDivisionError:
+                    percent_absent_before = '--'
+                except:
+                    percent_absent_before = '--'
+                school_filter[school] = (percent_absent_now, percent_absent_before)
+#            print loc, "schools", len(school_filter.values())
+            now, before = [],[]
+            for now_temp, before_temp in school_filter.values():
+                now.append(now_temp)
+                before.append(before_temp)
+
+            now = avg([x for x in now if x != '--'])
+            before = avg([x for x in before if x != '--'])
+
+            pre_ret.extend([now, before])
 
             x,y = pre_ret[-2:]
 
@@ -1347,7 +1426,18 @@ def return_absent(poll_name, enrollment, locations=None, school=None):
             to_ret.append(pre_ret)
         return to_ret
 
-    if school:
+    if school and kwargs.has_key('date_week'):
+        current_enrollment = poll_responses_term(enrollment, school=school, belongs_to='schools')
+        in_class = poll_response_sum(poll_name, month_filter='weekly', date_week=kwargs.get('date_week'), school = school)
+        print current_enrollment, in_class
+        try:
+            x = 100 * (current_enrollment - in_class) / current_enrollment
+        except Exception as e:
+            x = '--'
+            print e
+        return [x]
+
+    else:
         now, before = poll_responses_past_week_sum(poll_name, weeks=2, school=school)
         current_enrollment = poll_responses_term(enrollment, school=school, belongs_to='schools')
         try:
@@ -1370,9 +1460,10 @@ def return_absent(poll_name, enrollment, locations=None, school=None):
             diff = '--'
         return [now_percentage, before_percentage, diff]
 
+
 #### Excel reporting
 
-def write_to_xls(sheet_name, headings, data):
+def write_to_xls(sheet_name, headings, data, book=None):
     sheet = book.add_sheet(sheet_name)
     rowx = 0
     for colx, value in enumerate(headings):

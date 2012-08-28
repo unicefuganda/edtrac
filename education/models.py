@@ -1,14 +1,17 @@
 from difflib import get_close_matches
+from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.contrib.auth.models import Group, User
 from django.db import models
+from django.db.models import Q
 from django.forms import ValidationError
 from eav.models import Attribute
-from education.utils import _schedule_weekly_scripts, _schedule_monthly_script, _schedule_termly_script,\
+from education.utils import _schedule_weekly_scripts, _schedule_weekly_scripts_now, _schedule_monthly_script, _schedule_termly_script,\
     _schedule_weekly_report, _schedule_monthly_report
 from rapidsms_httprouter.models import mass_text_sent
 from rapidsms.models import Contact, ContactBase
 from rapidsms.contrib.locations.models import Location
+from poll.models import Poll
 from script.signals import script_progress_was_completed, script_progress
 from script.models import *
 from script.utils.handling import find_best_response, find_closest_match
@@ -129,7 +132,13 @@ class ReportComment(models.Model):
     def set_report_date(self, reporting_date):
         self.report_date = reporting_date
 
+class EnrolledDeployedQuestionsAnswered(models.Model):
+    poll = models.ForeignKey(Poll)
+    school = models.ForeignKey(School)
+    sent_at = models.DateTimeField()
 
+    def __unicode__(self):
+        return self.school.name
 
 
 def parse_grade(grade):
@@ -357,8 +366,6 @@ def edtrac_reschedule_script(**kwargs):
     group = connection.contact.groups.all()[0]
     if slug in ["edtrac_%s" % g.lower().replace(' ', '_') + '_weekly' for g in ['Teachers', 'Head Teachers', 'SMC']]:
         _schedule_weekly_scripts(group, connection, ['Teachers', 'Head Teachers', 'SMC'])
-#    elif slug == 'edtrac_teachers_monthly':
-#        _schedule_monthly_script(group, connection, 'edtrac_teachers_monthly', 'last', ['Teachers'])
     elif slug == 'edtrac_head_teachers_monthly':
         _schedule_monthly_script(group, connection, 'edtrac_head_teachers_monthly', 'last', ['Head Teachers'])
     elif slug == 'edtrac_smc_monthly':
@@ -425,7 +432,7 @@ def edtrac_attendance_script_transition(**kwargs):
         progress.step = progress.script.steps.get(order=progress.step.order + 1)
         progress.save()
         return
-    
+
     skipsteps = {
         'edtrac_boysp3_attendance':['P3'],
         'edtrac_boysp6_attendance':['P6'],
@@ -437,8 +444,7 @@ def edtrac_attendance_script_transition(**kwargs):
     while grade and skipped:
         skipped = False
         for step_name, grades in skipsteps.items():
-            if  progress.step.poll and\
-                progress.step.poll.name == step_name and grade not in grades:
+            if  progress.step.poll and progress.step.poll.name == step_name and not grade in grades:
                 skipped = True
                 if progress.last_step():
                     progress.giveup()
@@ -469,8 +475,7 @@ def reschedule_weekly_polls(grp=None):
     if grp:
         slg_start = 'edtrac_%s'%grp.replace(' ','_').lower()
         weekly_scripts = weekly_scripts.filter(slug__startswith=slg_start)
-        ScriptProgress.objects.filter(script__in=weekly_scripts)\
-        .filter(connection__contact__emisreporter__groups__name__iexact=grp).delete()
+        ScriptProgress.objects.filter(script__in=weekly_scripts).filter(connection__contact__emisreporter__groups__name__iexact=grp).delete()
     else:
         ScriptProgress.objects.filter(script__in=weekly_scripts).delete()
     Script.objects.filter(slug__in=weekly_scripts.values_list('slug', flat=True)).update(enabled=True)
@@ -480,6 +485,7 @@ def reschedule_weekly_polls(grp=None):
     for rep in reps:
         if rep.default_connection and rep.groups.count() > 0:
             _schedule_weekly_scripts(rep.groups.all()[0], rep.default_connection, ['Teachers', 'Head Teachers', 'SMC'])
+
 
 def reschedule_monthly_polls(grp=None):
     """
@@ -538,13 +544,57 @@ def schedule_weekly_report(grp='DEO'):
     from .utils import _schedule_report_sending
     _schedule_report_sending()
 
-def edtrac_special_script(**kwargs):
-    progress = kwargs['sender']
-    #check if progress.script.slug name has timestamp in it (after 9999 years, change add a \d)
-    if re.search(r'\d\d\d\d-\d+-\d+ \d+\:\d+\:\d+',progress.script.slug) and not Script.objects.get(slug=progress.script.slug).scriptprogress_set.exists():
-        Script.objects.get(slug = progress.script.slug).delete()
-    else:
-        return
+#more scheduled stuff
+def create_record_enrolled_deployed_questions_answered(model=None):
+    """
+    This function is run in a periodic task to create instances of the EnrolledDeployedQuestionsAnswered class that
+    represents schools that have the enrollment and deployment questions answered.
+
+    PERKS: Currently this function is called in a celery task and is optionally called as a management command.
+    """
+    if model:
+        # query against the poll model
+        polls = Poll.objects.filter(Q(name__icontains="enrollment")|Q(name__icontains="deployment"))
+        all_responses = []
+        resp_dict = {}
+
+        if model.objects.exists():
+            # this runs on existing EnrolledDeployedQuestionsAnswered records
+            erqa = model.objects.latest('sent_at')
+            # get responses that came in after the time of latest `erqa` recorded created
+
+            for poll in polls:
+                resp_dict[poll.name] = []
+                all_responses.extend(poll.responses.exclude(contact__emisreporter__schools=None).\
+                    filter(date__gte = erqa.sent_at).select_related().\
+                    values_list( 'poll__name', 'contact__emisreporter__schools__pk', 'date'))
+        else:
+            # This is run only once; no chance of it happening unless the `erqa` model is flushed out.
+            now = datetime.datetime.now()
+            # get responses that came in before now!!!
+            for poll in polls:
+                resp_dict[poll.name] = []
+                all_responses.extend(
+                    poll.responses.exclude(contact__emisreporter__schools=None).filter(date__lte = now).\
+                        select_related().values_list('poll__name', 'contact__emisreporter__schools__pk', 'date'))
+
+        # populate the res_dict with school_pk and sent_at values as a list of lists
+        for poll_name, school_pk, sent_at in all_responses:
+            resp_dict[poll_name].append([school_pk, sent_at])
+
+        for poll_name in resp_dict.keys():
+            try:
+                poll = Poll.objects.get(name = poll_name)
+                other_responses = resp_dict[poll_name]
+                for school_pk, sent_at in other_responses:
+                    school = School.objects.select_related().get(pk = school_pk)
+                    model.objects.create(
+                        poll = poll,
+                        school = school,
+                        sent_at = sent_at)
+            except ObjectDoesNotExist:
+                pass
+            return
 
 Poll.register_poll_type('date', 'Date Response', parse_date_value, db_type=Attribute.TYPE_OBJECT)
 
@@ -555,7 +605,6 @@ reversion.register(ReportComment)
 
 script_progress_was_completed.connect(edtrac_autoreg, weak=False)
 script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)
-script_progress_was_completed.connect(edtrac_special_script, weak=False)
 script_progress.connect(edtrac_autoreg_transition, weak=False)
 script_progress.connect(edtrac_attendance_script_transition, weak=False)
 #script_progress.connect(edtrac_scriptrun_schedule, weak=False)

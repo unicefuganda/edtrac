@@ -37,7 +37,6 @@
     </td>
     <td>{{ object.reporting_location|get_district }}</td>
     <td>{{ object|latest|date:"d-m-Y" }}</td>
-    <td>{{ object|submissions }}</td>
     <td>
     	<ul>
             {% for s in object.schools.all %}
@@ -52,10 +51,10 @@
     {% endcomment %}
     <td class="button_col">
         <div class="buttons">
-            <a href="javascript:void(0)" onclick="deleteReporter(this, {{ object.pk }},'{{ object.name }}', '{% url education.views.delete_reporter object.pk %}')", alt="Delete">
+            <a id='delete-reporter' href="javascript:void(0)" onclick="deleteReporter(this, {{ object.pk }},'{{ object.name }}', '{% url education.views.delete_reporter object.pk %}')", alt="Delete">
                 <img src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png" />
             </a>
-             <a href="javascript:void(0)" onclick="editReporter(this, {{ object.pk }}, '{% url education.views.edit_reporter object.pk %}')">
+             <a id="edit-reporter" href="javascript:void(0)" onclick="editReporter(this, {{ object.pk }}, '{% url education.views.edit_reporter object.pk %}')">
                 <img src="{{ MEDIA_URL }}poll/icons/silk/pencil.png" />
             </a>
         </div>

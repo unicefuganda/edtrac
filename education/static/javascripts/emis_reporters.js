@@ -49,7 +49,7 @@ function scheduleSpecialScript(elem){
             $('div#selected_reporters').html(tmp_var);
         });
     }else{
-        alert("Select at least one reporter before clicking this button!");
+        alert("Select at least one group of reporters before clicking this button!");
     }
     if (allChecked || atLeastOneIsChecked) {
         $('#myModal').modal('show'); // show modal when all validated

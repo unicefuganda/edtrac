@@ -6,14 +6,15 @@
         <a href="{% url rapidsms-dashboard %}" style="text-decoration: none; line-height: inherit;">← Back to EdTrac Home Page</a>
     </li>
 </ul>
-
 <div id="smc_meetings_container">
     <div id="smc_meetings"></div>
     <script type="text/javascript">
-        $(document).ready(function(){smc_meetings();});
+        $(document).ready(function(){
+            smc_meetings("{{ titles }}","{{ meetings }}");
+        });
     </script>
     <div class="alert-message" style="width:150px;">
-        <p>Report based on 22% of Total Reporters (Schools)</p>
+        <p>Report based on {{ meeting_basis|floatformat }}% of Total Reporters (Schools)</p>
     </div>
 </div>
 

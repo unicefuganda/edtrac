@@ -1,7 +1,6 @@
 from __future__ import division
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
-import django.contrib
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
@@ -10,6 +9,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic import DetailView, TemplateView, ListView, CreateView, FormView
 from .forms import *
 from .models import *
+
 from uganda_common.utils import *
 from rapidsms.contrib.locations.models import Location
 from generic.views import generic
@@ -24,13 +24,13 @@ from rapidsms.views import login, logout
 import  re, datetime, operator, xlwt, exceptions, copy, reversion
 from datetime import date
 from reversion.models import Revision
-#from decimal import getcontext, Decimal
+from unregister.models import Blacklist
 from .utils import themes
 from time import strftime
 
 Num_REG = re.compile('\d+')
 
-super_user_required=user_passes_test(lambda u: u.groups.filter(name__in=['Admins','DFO']).exists() or u.is_superuser)
+super_user_required=user_passes_test(lambda u: u.groups.filter(name__in=['Admins','DFO', 'UNICEF Officials']).exists() or u.is_superuser)
 
 def login(req):
     return login(req, template_name="education/admin/admin_dashboard.html")
@@ -136,7 +136,7 @@ def dash_admin_progress(req):
                 reporting_location = None,
                 schools = None,\
                 connection__in = Blacklist.objects.values_list('connection', flat=True)).\
-                values_list('reporting_location__pk', flat=True))
+            values_list('reporting_location__pk', flat=True))
         loc_data = []
         for location in locations:
             try:
@@ -155,9 +155,9 @@ def dash_admin_progress(req):
         p = Poll.objects.get(name='edtrac_p3curriculum_progress')
         for school in schools:
             response_dates = p.responses.filter(contact__connection__in = school.emisreporter_set.\
-                values_list('connection',flat=True)).values_list('date', flat=True)
+            values_list('connection',flat=True)).values_list('date', flat=True)
             response = [r.eav.poll_number_value for r in p.responses.\
-                filter(contact__connection__in = school.emisreporter_set.values_list('connection',flat=True))]
+            filter(contact__connection__in = school.emisreporter_set.values_list('connection',flat=True))]
             response_sieve = zip(response_dates, response)
             response_sieve = sorted(response_sieve, reverse=True)
             try:
@@ -176,22 +176,22 @@ def dash_admin_progress(req):
         temp_2 = sorted(temp_2, key=operator.itemgetter(1), reverse=True)
         loc_data = temp_2 + temp
         return render_to_response('education/progress/district_progress_details.html',
-            {'location_data':loc_data, 'location':profile.location}, RequestContext(req))
+                {'location_data':loc_data, 'location':profile.location}, RequestContext(req))
 
 def dash_admin_progress_district(req, district_pk):
     location = Location.objects.filter(type="district").get(pk=district_pk)
 
     schools = School.objects.filter(pk__in = EmisReporter.objects.filter(reporting_location=location).\
-        values_list('schools__pk', flat=True)).order_by('name')
+    values_list('schools__pk', flat=True)).order_by('name')
     loc_data = []
 
     p = Poll.objects.get(name='edtrac_p3curriculum_progress')
     for school in schools:
         response_dates = p.responses.filter(contact__connection__in = school.emisreporter_set.\
-            values_list('connection',flat=True)).values_list('date', flat=True)
+        values_list('connection',flat=True)).values_list('date', flat=True)
 
         response = [r.eav.poll_number_value for r in p.responses.\
-            filter(contact__connection__in = school.emisreporter_set.values_list('connection',flat=True))]
+        filter(contact__connection__in = school.emisreporter_set.values_list('connection',flat=True))]
         response_sieve = zip(response_dates, response)
         response_sieve = sorted(response_sieve, reverse=True)
         try:
@@ -202,7 +202,7 @@ def dash_admin_progress_district(req, district_pk):
         except IndexError:
             # no or missing data
             loc_data.append([school, 'missing'])
-        # clean up
+            # clean up
         loc_data = sorted(loc_data, key=operator.itemgetter(1))
         temp = [item for item in loc_data if item[1] == 'missing' or item[1] == 'incorrect response']
         temp_2 = [item for item in loc_data if item not in temp]
@@ -225,26 +225,33 @@ def dash_admin_meetings(req):
 
     p = Poll.objects.get(name = 'edtrac_smc_meetings')
 
-    schools_to_date = School.objects.filter(pk__in=EmisReporter.objects.\
-        filter(reporting_location__in = locations).values_list('schools__pk', flat=True)).count()
-
     if profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials') or profile.is_member_of('Ministry Officials'):
-        meeting_count = get_count_response_to_polls(p,
-            choices = [0, 1, 2, 3], # number of meetings
-            with_percent = True #percentage counted based on number of schools
-        )
+        meeting_stats = get_count_response_to_polls(p,
+            #404 is shortcode for unknown
+            choices = [0, 1, 2, 3, 404], # number of meetings
+            with_percent = True, #percentage counted based on number of schools
+            termly = True, admin=True)
 
         return render_to_response("education/admin/admin_meetings.html",{
-            'meeting_count': meeting_count.items()
+            'meeting_basis': meeting_stats.get('correctly_answered'),
+            'titles':",".join(str(k) for k in meeting_stats.get('to_ret').keys()),
+            'meetings':",".join(str(v) for v in meeting_stats.get('to_ret').values())
         }, RequestContext(req))
     else:
-        meeting_count = get_count_response_to_polls(p,
+        meeting_stats = get_count_response_to_polls(p,
             location_name = location.name,
-            choices = [0, 1, 2, 3], # number of meetings
-            with_percent = True #percentage counted based on number of schools
+            #404 is shortcode for unknown
+            choices = [0, 1, 2, 3, 404], # number of meetings
+            with_percent = True, #percentage counted based on number of schools
+            termly = True,
+            admin = False
         )
         return render_to_response('education/admin/other_meetings.html',
-                {'meeting_count':meeting_count.items(), 'location_name':location.name}, RequestContext(req))
+                {'location_name':location.name,
+                 'meeting_basis': meeting_stats.get('correctly_answered'),
+                 'meetings':",".join(str(v) for v in meeting_stats.get('to_ret').values()),
+                 'titles':",".join(str(k) for k in meeting_stats.get('to_ret').keys()),
+                 'meeting_basis':meeting_stats.get('correctly_answered')}, RequestContext(req))
 
 
 def preprocess_response(resp):
@@ -264,8 +271,8 @@ def dash_district_meetings(req, district_name):
     p = Poll.objects.get(name = 'edtrac_smc_meetings')
 
     schools_data = EmisReporter.objects.exclude(connection__in = Blacklist.objects.values_list('connection')).\
-        filter(groups__name = 'SMC', reporting_location = district).exclude(schools = None).order_by('schools__name').\
-        values_list('schools__name','schools__id','connection__pk')
+    filter(groups__name = 'SMC', reporting_location = district).exclude(schools = None).order_by('schools__name').\
+    values_list('schools__name','schools__id','connection__pk')
 
     school_container = {}
     for school_name, school_id, smc_connection in schools_data:
@@ -285,24 +292,43 @@ def dash_district_meetings(req, district_name):
 def dashboard(request):
     return admin_dashboard(request)
 
-# generate context vars
-def generate_dashboard_vars(location=None):
-    """
-    An overly ambitious function that generates context variables for a location if provided
-    This gets populated in the dashboard.
-    """
-    locations = []
-    if location.name == "Uganda":
-        # get locations from active districts only
-        locations = Location.objects.filter(pk__in=EmisReporter.objects.values_list('reporting_location__pk', flat=True)).distinct()
+def capitation_grants(locations):
+    # capitation grants
+    cg = Poll.objects.get(name="edtrac_upe_grant")
+
+    resp_category = cg.responses_by_category()
+
+    responses = resp_category.filter(response__contact__reporting_location__in = locations)
+    if not responses:
+        yeses_cg = 0
+        nos_cg = 0
     else:
-        locations.append(location)
+        # more validations
+        if responses.filter(category__name = 'yes').exists():
+            yeses_cg = responses.get(category__name = "yes").get('value')
+        else:
+            yeses_cg = 0
 
-    responses_to_violence = poll_response_sum("edtrac_headteachers_abuse", month_filter = 'monthly', locations = locations, month_20to19=True)
+        if responses.filter(category__name = 'no').exists():
+            nos_cg = responses.get(category__name = "no").get('value')
+        else:
+            nos_cg = 0
 
+
+    # percent of those that received grants
+    try:
+        grant_percent = 100 * yeses_cg / (yeses_cg + nos_cg)
+    except ZeroDivisionError:
+        grant_percent = 0
+
+    return {'grant_percent': grant_percent}
+
+def violence_changes(locations):
     """
-    Percentage change in violance from the prvious month
+    Percentage change in violance from the previous month
     """
+    responses_to_violence = poll_response_sum("edtrac_headteachers_abuse", month_filter = 'monthly',\
+        locations = locations, month_20to19=True)
     violence_change = cleanup_sums(responses_to_violence)
     if violence_change > 0:
         violence_change_class = "decrease"
@@ -313,7 +339,13 @@ def generate_dashboard_vars(location=None):
     else:
         violence_change_class = "zero"
         violence_change_data = "data-white"
+    return {
+            'violence_change' : abs(violence_change),
+            'violence_change_class' : violence_change_class,
+            'violence_change_data' : violence_change_data
+    }
 
+def p3_absent_boys(locations):
     """
     Attendance of P3 Pupils; this gets the absenteeism
     """
@@ -335,6 +367,7 @@ def generate_dashboard_vars(location=None):
     except:
         boysp3_past = '--'
 
+
     try:
         boysp3_diff = boysp3 - boysp3_past
 
@@ -352,6 +385,10 @@ def generate_dashboard_vars(location=None):
         boysp3_class = 'zero'
         boysp3_data = 'data-white'
 
+    return {'boysp3' : boysp3, 'boysp3_past' : boysp3_past, 'boysp3_class' : boysp3_class,
+                    'boysp3_diff' : boysp3_diff, 'boysp3_data' : boysp3_data}
+
+def p6_boys_absent(locations):
     x, y  = poll_responses_past_week_sum("edtrac_boysp6_attendance", locations=locations, weeks=2)
     enrol = poll_responses_term("edtrac_boysp6_enrollment", belongs_to="location", locations=locations)
     try:
@@ -385,6 +422,10 @@ def generate_dashboard_vars(location=None):
         boysp6_class = 'zero'
         boysp6_data = 'data-white'
 
+    return {'boysp6' : boysp6, 'boysp6_past' : boysp6_past, 'boysp6_class' : boysp6_class,
+            'boysp6_diff' : boysp6_diff, 'boysp6_data' : boysp6_data}
+
+def p3_absent_girls(locations):
     x, y = poll_responses_past_week_sum("edtrac_girlsp3_attendance",locations=locations, weeks=2)
     enrol = poll_responses_term("edtrac_girlsp3_enrollment", belongs_to="location", locations=locations)
     try:
@@ -418,6 +459,10 @@ def generate_dashboard_vars(location=None):
         girlsp3_class = 'zero'
         girlsp3_data = 'data-white'
 
+    return {'girlsp3' : girlsp3, 'girlsp3_past' : girlsp3_past, 'girlsp3_class': girlsp3_class,
+                    'girlsp3_diff' : girlsp3_diff, 'girlsp3_data' : girlsp3_data}
+
+def p6_girls_absent(locations):
     x, y = poll_responses_past_week_sum("edtrac_girlsp6_attendance", locations=locations, weeks=2)
     enrol = poll_responses_term("edtrac_girlsp6_enrollment", belongs_to="location", locations=locations)
 
@@ -453,6 +498,10 @@ def generate_dashboard_vars(location=None):
         girlsp6_data = 'data-white'
         girlsp6_class = "zero"
 
+    return {'girlsp6' : girlsp6, 'girlsp6_past' : girlsp6_past,'girlsp6_diff' : girlsp6_diff,
+                    'girlsp6_class' : girlsp6_class,'girlsp6_data' : girlsp6_data}
+
+def f_teachers_absent(locations):
     x, y = poll_responses_past_week_sum("edtrac_f_teachers_attendance",locations=locations, weeks=2)
     deploy = poll_responses_term("edtrac_f_teachers_deployment", belongs_to="location", locations=locations)
     try:
@@ -486,6 +535,11 @@ def generate_dashboard_vars(location=None):
         female_teachers_data = "data-white"
         female_teachers_class = "zero"
 
+    return {'female_teachers_class' : female_teachers_class,
+            'female_teachers' :female_teachers,'female_teachers_past' : female_teachers_past,
+            'female_teachers_diff' : female_teachers_diff,'female_teachers_data' : female_teachers_data}
+
+def m_teachers_absent(locations):
     x, y = poll_responses_past_week_sum("edtrac_m_teachers_attendance", weeks = 2, locations=locations)
     deploy = poll_responses_term("edtrac_m_teachers_deployment", belongs_to="location", locations=locations)
     try:
@@ -519,6 +573,12 @@ def generate_dashboard_vars(location=None):
         male_teachers_class = "zero"
         male_teachers_data = 'data-white'
 
+    return {'male_teachers' : male_teachers, 'male_teachers_past' : male_teachers_past,
+            'male_teachers_diff' : male_teachers_diff, 'male_teachers_class' : male_teachers_class,
+            'male_teachers_data' : male_teachers_data,}
+
+
+def p3_curriculum(locations):
     try:
         if len(locations) == 1:
             progress_list =curriculum_progress_list("edtrac_p3curriculum_progress", time_range = True, location=locations[0])
@@ -543,6 +603,9 @@ def generate_dashboard_vars(location=None):
     except ValueError:
         mode_progress = 0 # when no values are recorded
 
+    return {'mode_progress' : mode_progress, 'c_mode' : mode}
+
+def meals_missed(locations):
     if len(locations) == 1:
         response_to_meals = get_count_response_to_polls(Poll.objects.get(name = "edtrac_headteachers_meals"),
             time_range = get_week_date()[0], choices = [0], location_name = locations[0].name)
@@ -554,8 +617,10 @@ def generate_dashboard_vars(location=None):
 
     worst_meal = p[len(p)-1]
 
-    # ideally head teachers match the number of SMCs in eductrac
+    return {'worst_meal' : worst_meal}
 
+def head_teachers_female(locations):
+    # ideally head teachers match the number of SMCs in eductrac
     d1, d2 = get_week_date(depth = 2)
     head_teacher_poll = Poll.objects.get(name = 'edtrac_head_teachers_attendance')
 
@@ -568,70 +633,31 @@ def generate_dashboard_vars(location=None):
 
     # female head teachers
     yes_fht_d1 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
-        filter(date__range = d1, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
+        filter(date__range = d1, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True))).select_related()
     yes_fht_d2 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
-        filter(date__range = d2, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
+        filter(date__range = d2, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True))).select_related()
     no_fht_d1 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
-        filter(date__range = d1, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
+        filter(date__range = d1, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True))).select_related()
     no_fht_d2 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
-        filter(date__range = d2, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True)))
+        filter(date__range = d2, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True))).select_related()
 
     # get the count for female head teachers present in the last 3 days
-
     female_d1_yes = yes_fht_d1.count()
     female_d1_no = no_fht_d1.count()
+
     if (female_d1_yes + female_d1_no) > 0:
         female_d1 = female_d1_no * 100 / sum([female_d1_no, female_d1_yes]) # messing with ya! :D
     else:
-        female_d1 = '--'
+        female_d1 = 100
 
     female_d2_yes = yes_fht_d2.count()
     female_d2_no = no_fht_d2.count()
     if (female_d2_yes + female_d2_no) > 0:
         female_d2 = female_d2_no * 100 / sum([female_d2_no, female_d2_yes]) # messing with ya! :D
     else:
-        female_d2 = '--'
+        female_d2 = 100
 
-    male_head_teachers = EmisReporter.objects.filter(reporting_location__in =\
-        locations, groups__name="Head Teachers", gender='M').exclude(schools = None)
-    male_head_t_deploy = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
-        male_head_teachers.values_list('schools', flat=True), groups__name = 'SMC').distinct()
-    m_head_t_count = male_head_t_deploy.count() # how many male head teachers are available
-
-    yes_mht_d1 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
-        filter(date__range = d1, contact__reporting_location__in=locations,
-            contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
-
-    yes_mht_d2 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
-        filter(date__range = d2, contact__reporting_location__in=locations,
-            contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
-
-    no_mht_d1 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
-        filter(date__range = d1, contact__reporting_location__in=locations,
-            contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
-
-    no_mht_d2 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
-        filter(date__range = d2, contact__reporting_location__in=locations,
-            contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
-
-
-    # get the count for female head teachers present in the last 3 days
-
-    male_d1_yes = yes_mht_d1.count()
-    male_d1_no = no_mht_d1.count()
-    if (male_d1_yes + male_d1_no) > 0:
-        male_d1 = male_d1_no * 100 / sum([male_d1_no, male_d1_yes]) # messing with ya! :D
-    else:
-        male_d1 = '--'
-
-    male_d2_yes = yes_mht_d2.count()
-    male_d2_no = no_mht_d2.count()
-    if (male_d2_yes + male_d2_no) > 0:
-        male_d2 = male_d2_no * 100 / sum([male_d2_no, male_d2_yes]) # messing with ya! :D
-    else:
-        male_d2 = '--'
-
-    if isinstance(female_d2, int) and female_d2 >= 0 and female_d1 >= 0 and isintance(female_d1, int):
+    if isinstance(female_d2, float) and female_d2 >= 0 and female_d1 >= 0 and isinstance(female_d1, float):
 
         f_head_diff = female_d2 - female_d1
 
@@ -645,11 +671,54 @@ def generate_dashboard_vars(location=None):
             f_head_t_class = "zero"
             f_head_t_data = 'data-white'
     else:
-        f_head_diff = '--'
+        f_head_diff = 0
         f_head_t_class = 'zero'
         f_head_t_data = 'data-white'
 
-    if isinstance(male_d2, int) and male_d2 >= 0 and male_d1 >= 0 and isintance(male_d1, int):
+    return {'f_head_t_week' : female_d2, 'f_head_t_week_before' : female_d1, 'f_head_diff' : f_head_diff,
+            'f_head_t_class' : f_head_t_class, 'f_head_t_data':f_head_t_data}
+
+def head_teachers_male(locations):
+    d1, d2 = get_week_date(depth = 2)
+    male_head_teachers = EmisReporter.objects.filter(reporting_location__in =\
+    locations, groups__name="Head Teachers", gender='M').exclude(schools = None)
+    male_head_t_deploy = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
+    male_head_teachers.values_list('schools', flat=True), groups__name = 'SMC').distinct()
+    m_head_t_count = male_head_t_deploy.count() # how many male head teachers are available
+    head_teacher_poll = Poll.objects.get(name = 'edtrac_head_teachers_attendance')
+    yes_mht_d1 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
+    filter(date__range = d1, contact__reporting_location__in=locations,
+        contact__in=male_head_t_deploy.values_list('connection__contact',flat=True))).select_related()
+
+    yes_mht_d2 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
+        filter(date__range = d2, contact__reporting_location__in=locations,
+            contact__in=male_head_t_deploy.values_list('connection__contact',flat=True))).select_related()
+
+    no_mht_d1 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
+        filter(date__range = d1, contact__reporting_location__in=locations,
+            contact__in=male_head_t_deploy.values_list('connection__contact',flat=True))).select_related()
+
+    no_mht_d2 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
+        filter(date__range = d2, contact__reporting_location__in=locations,
+            contact__in=male_head_t_deploy.values_list('connection__contact',flat=True))).select_related()
+
+    # get the count for female head teachers present in the last 3 days
+    male_d1_yes = yes_mht_d1.count()
+    male_d1_no = no_mht_d1.count()
+
+    if (male_d1_yes + male_d1_no) > 0:
+        male_d1 = male_d1_no * 100 / sum([male_d1_no, male_d1_yes]) # messing with ya! :D
+    else:
+        male_d1 = 100 # absent
+
+    male_d2_yes = yes_mht_d2.count()
+    male_d2_no = no_mht_d2.count()
+    if (male_d2_yes + male_d2_no) > 0:
+        male_d2 = float(male_d2_no * 100 / sum([male_d2_no, male_d2_yes])) # messing with ya! :D
+    else:
+        male_d2 = 100 # absent
+
+    if isinstance(male_d2, float) and male_d2 >= 0 and male_d1 >= 0 and isinstance(male_d1, float):
 
         m_head_diff = male_d2 - male_d1
 
@@ -663,53 +732,50 @@ def generate_dashboard_vars(location=None):
             m_head_t_class = "zero"
             m_head_t_data = 'data-white'
     else:
-        m_head_diff = '--'
+        m_head_diff = 0
         m_head_t_class = 'zero'
         m_head_t_data = 'data-white'
 
-    school_to_date = School.objects.filter(pk__in=EmisReporter.objects.filter(reporting_location__in = locations).\
-        values_list('schools__pk', flat=True)).count()
+    return {'m_head_t_week' : male_d2, 'm_head_t_data':m_head_t_data, 'm_head_t_week_before' : male_d1, 'm_head_diff' : m_head_diff,
+            'm_head_t_class' : m_head_t_class}
 
+
+def schools_active(locations):
     try:
-        school_reporters = EmisReporter.objects.filter(
-            reporting_location__in = locations,
-            groups__name__in=["Head Teachers", "Teachers"], connection__in=Message.objects.exclude(application='script').\
-            filter(date__range = get_week_date(depth = 2)[1]).values_list('connection', flat = True)).\
-            exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
-        school_active = (100 * School.objects.filter(pk__in = school_reporters.values_list('schools__pk', flat=True)).\
-            count()) / school_to_date
+        count_reps = EmisReporter.objects.filter(groups__name__in=['Head Teachers', 'Teachers', 'SMC'],
+            reporting_location__in = locations).exclude(schools = None).exclude(
+                connection__identity__in=Blacklist.objects.select_related().values_list('connection__identity',flat=True)).select_related().\
+                    values_list('connection__identity').count()
+
+        count = 0
+        for p in Poll.objects.filter(name__icontains = 'attendance').select_related():
+            if len(locations) == 1:
+                count += p.responses.filter(
+                    contact__reporting_location__in = locations, date__range = get_week_date(depth = 2)[0]
+                ).distinct().select_related().count()
+            else:
+                count += p.responses.filter(date__range = get_week_date(depth=2)[0]).distinct().select_related().count()
+
+        school_active = (100 * count) / count_reps
+
     except ZeroDivisionError:
         school_active = 0
 
+    return {'school_active': school_active}
 
-    # capitation grants
-    cg = Poll.objects.get(name="edtrac_upe_grant")
-
-    resp_category = cg.responses_by_category()
-
-    responses = resp_category.filter(response__contact__reporting_location__in = locations)
-    if not responses:
-        yeses_cg = 0
-        nos_cg = 0
-    else:
-        yeses_cg = responses.get(category__name = "yes").get('value')
-        nos_cg = responses.get(category__name = "no").get('value')
-
-
-    # percent of those that received grants
-    try:
-        grant_percent = 100 * yeses_cg / (yeses_cg + nos_cg)
-    except ZeroDivisionError:
-        grant_percent = 0
-
+def smc_meetings(locations):
     # SMC meetings are count based
+    school_to_date = School.objects.filter(pk__in=EmisReporter.objects.\
+        filter(reporting_location__name__in = [loc.name for loc in locations]).select_related().\
+        values_list('schools__pk', flat=True)).count()
+
     smc_meeting_poll = Poll.objects.get(name = 'edtrac_smc_meetings')
     meetings = [r.eav.poll_number_value
                 for r in smc_meeting_poll.responses.filter(
-                contact__reporting_location__in=locations,
-                date__range =\
-                [getattr(settings, 'SCHOOL_TERM_START'),
-                 getattr(settings, 'SCHOOL_TERM_END')]) if r.eav.poll_number_value is not None]
+                            contact__reporting_location__in=locations,
+                            date__range =\
+                            [getattr(settings, 'SCHOOL_TERM_START'),
+                             getattr(settings, 'SCHOOL_TERM_END')]).select_related() if r.eav.poll_number_value is not None]
     zero_count = meetings.count(0)
 
     try:
@@ -717,57 +783,260 @@ def generate_dashboard_vars(location=None):
     except ZeroDivisionError:
         total_meetings = 0
 
-    return {
-        'worst_meal' : worst_meal,
-        'c_mode' : mode,
-        'smc_meetings' : total_meetings,
-        'mode_progress' : mode_progress,
-        'violence_change' : violence_change,
-        'violence_change_class' : violence_change_class,
-        'violence_change_data' : violence_change_data,
-        'male_teachers' : male_teachers,
-        'male_teachers_past' : male_teachers_past,
-        'male_teachers_diff' : male_teachers_diff,
-        'male_teachers_class' : male_teachers_class,
-        'male_teachers_data' : male_teachers_data,
-        'female_teachers_class' : female_teachers_class,
-        'female_teachers' :female_teachers,
-        'female_teachers_past' : female_teachers_past,
-        'female_teachers_diff' : female_teachers_diff,
-        'female_teachers_data' : female_teachers_data,
-        'girlsp3' : girlsp3,
-        'girlsp3_past' : girlsp3_past,
-        'girlsp3_class': girlsp3_class,
-        'girlsp3_diff' : girlsp3_diff,
-        'girlsp3_data' : girlsp3_data,
-        'girlsp6' : girlsp6,
-        'girlsp6_past' : girlsp6_past,
-        'girlsp6_diff' : girlsp6_diff,
-        'girlsp6_class' : girlsp6_class,
-        'girlsp6_data' : girlsp6_data,
-        'boysp3' : boysp3,
-        'boysp3_past': boysp3_past,
-        'boysp3_class' : boysp3_class,
-        'boysp3_diff' : boysp3_diff,
-        'boysp3_data' : boysp3_data,
-        'boysp6' : boysp6,
-        'boysp6_past' : boysp6_past,
-        'boysp6_class' : boysp6_class,
-        'boysp6_diff' : boysp6_diff,
-        'boysp6_data' : boysp6_data,
-        'f_head_t_week' : female_d2,
-        'f_head_t_week_before' : female_d1,
-        'f_head_diff' : f_head_diff,
-        'm_head_t_week' : male_d2,
-        'm_head_t_week_before' : male_d1,
-        'm_head_diff' : m_head_diff,
-        'f_head_t_class' : f_head_t_class,
-        'm_head_t_class' : m_head_t_class,
-        'month':datetime.datetime.now(),
-        'schools_to_date': school_to_date,
-        'school_active' : school_active,
-        'grant_percent' : grant_percent
-    }
+    return {'smc_meetings' : total_meetings, 'schools_to_date': school_to_date}
+
+# generate context vars
+def generate_dashboard_vars(location=None):
+    """
+    An overly ambitious function that generates context variables for a location if provided
+    This gets populated in the dashboard.
+    """
+    context_vars = {}
+    locations = []
+    if location.name == "Uganda":
+        # get locations from active districts only
+        locations = Location.objects.filter(pk__in=EmisReporter.objects.select_related().\
+            values_list('reporting_location__pk', flat=True)).distinct().select_related()
+    else:
+        locations.append(location)
+
+    context_vars.update(violence_changes(locations))
+
+    # capitations grants
+    context_vars.update(capitation_grants(locations))
+
+    #active schools
+    context_vars.update(schools_active(locations))
+
+    #SMC meetings
+    context_vars.update(smc_meetings(locations))
+
+    #female head teachers that missed school
+    context_vars.update(head_teachers_female(locations))
+
+    #male head teachers that missed school
+    context_vars.update(head_teachers_male(locations))
+
+    # time stamps
+    context_vars.update({'month':datetime.datetime.now()})
+
+    # progress
+    context_vars.update(p3_curriculum(locations))
+
+    # Female teachers
+    context_vars.update(f_teachers_absent(locations))
+
+    # P3 teachers male
+    context_vars.update(m_teachers_absent(locations))
+
+    # P3 boys
+    context_vars.update(p3_absent_boys(locations))
+
+    # P3 Girls
+    context_vars.update(p3_absent_girls(locations))
+
+    # P6 Girls
+    context_vars.update(p6_girls_absent(locations))
+
+    # P6 Boys
+    context_vars.update(p6_boys_absent(locations))
+
+    #Meals
+    context_vars.update(meals_missed(locations))
+
+    return context_vars
+
+# view generator
+def view_generator(req,
+                   enrol_deploy_poll=None,
+                   attendance_poll=None,
+                   title=None,
+                   url_name_district=None,
+                   url_name_school = 'school-detail',
+                   template_name='education/timeslider_base.html'):
+    """
+    A generic function to create views based on time ranges.
+    """
+    time_range_form = ResultForm()
+    profile = req.user.get_profile()
+    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins')\
+        or profile.is_member_of('UNICEF Officials'):
+        # high level officials will access all districts
+        locations = Location.objects.filter(type='district').filter(pk__in =\
+            EnrolledDeployedQuestionsAnswered.objects.select_related().values_list('school__location__pk',flat=True)).\
+                select_related()
+    else:
+        # other officials will access individual districts
+        locations = [profile.location]
+
+    if req.method == 'POST':
+        time_range_form = ResultForm(data=req.POST)
+        to_ret = []
+        if time_range_form.is_valid():
+            from_date = time_range_form.cleaned_data['from_date']
+            to_date = time_range_form.cleaned_data['to_date']
+            month_delta = abs(from_date.month - to_date.month)
+
+            date_weeks = []
+            month_flag = None
+            if month_delta <= 2: # same month get days in between
+                month_flag = False # don't split data in months
+                while from_date <= to_date:
+                    if from_date.weekday() == 3: #is to_day a Thursday?
+                        date_weeks.append(previous_calendar_week(t = from_date)) # get range from Wed to Thur.
+                    from_date += datetime.timedelta(days = 1)
+            else:
+                month_flag = True # split data in months
+                while from_date <= to_date:
+                    date_weeks.append([dateutils.month_start(from_date),dateutils.month_end(dateutils.increment(from_date, months=1))])
+                    next_date = dateutils.increment(from_date, months = 1)
+                    delta = next_date - from_date
+                    from_date += datetime.timedelta(days = abs(delta.days))
+
+            if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins')\
+                or profile.is_member_of('UNICEF Officials'):
+
+                schools_temp = School.objects.filter(pk__in = \
+                    EnrolledDeployedQuestionsAnswered.objects.select_related().values_list('school__pk', flat=True)).\
+                    select_related()
+                for location in locations:
+                    temp = []
+                    # get schools in this location
+                    location_schools = schools_temp.filter(location = location).select_related() # store in memory
+                    for d in date_weeks:
+                        total_attendance = 0 # per school
+                        total_enrollment = 0 # per school
+                        for school in location_schools:
+                            enrolled = poll_responses_term(enrol_deploy_poll, belongs_to='schools', school = school )
+                            if enrolled > 0:
+                                if month_flag:
+                                    attendance = get_numeric_report_data(attendance_poll, school = school,
+                                        time_range=list(d), to_ret = 'avg') # use averages
+                                else:
+                                    attendance = get_numeric_report_data(attendance_poll, school = school,
+                                        time_range=list(d), to_ret = 'sum')
+
+                                total_attendance += attendance
+                                total_enrollment += enrolled
+
+                        try:
+                            percentage = (total_enrollment - total_attendance) * 100 / total_enrollment
+                        except ZeroDivisionError:
+                            percentage = '--'
+                        temp.append(percentage)
+                    to_ret.append([location, temp])
+
+                return render_to_response(template_name, {'form':time_range_form, 'dataset':to_ret,
+                                                          'title': title,'month_flag': month_flag,
+                                                          'url_name':url_name_district,
+                                                          'date_batch':date_weeks}, RequestContext(req))
+
+            else:
+                location_schools = School.objects.filter(pk__in = EnrolledDeployedQuestionsAnswered.objects.select_related().\
+                    filter(school__location=locations[0]).values_list('school__pk', flat=True)).select_related()
+                #Non admin types#
+                for school in location_schools:
+                    for d in date_weeks:
+                        temp = []
+                        enrollment = poll_responses_term(enrol_deploy_poll, belongs_to='schools', school = school )
+                        if month_flag:
+                            attendance = get_numeric_report_data(attendance_poll, school = school,
+                                time_range=list(d), to_ret = 'avg')
+                        else:
+                            attendance = get_numeric_report_data(attendance_poll, school = school,
+                                time_range=list(d), to_ret = 'sum')
+                        try:
+                            percentage = (enrollment - attendance) * 100 / enrollment
+                        except ZeroDivisionError:
+                            percentage = '--'
+                        temp.append(percentage)
+
+                    to_ret.append([school, temp])
+                return render_to_response(template_name, {'form':time_range_form, 'dataset_school':to_ret,
+                                                                             'title': title,'month_flag':month_flag,
+                                                                             'url_name': url_name_school,
+                                                                             'date_batch':date_weeks}, RequestContext(req))
+        else:
+            return render_to_response(template_name, {'form':time_range_form,
+                                                                         'url_name':url_name_district,
+                                                                         'title':title}, RequestContext(req))
+
+    # NO POST data sent!
+    else:
+        date_weeks = []
+        date_weeks.append(previous_calendar_week(t = datetime.datetime.now()))
+        sw = date_weeks[0][0]
+        date_weeks.append(previous_calendar_week(t = dateutils.increment(datetime.datetime(sw.year, sw.month, sw.day, 10), weeks = -1)))
+
+        location_data = []
+        schools_temp = School.objects.select_related().\
+            filter(pk__in =\
+                EnrolledDeployedQuestionsAnswered.objects.select_related().filter(school__location__in=locations).values_list('school__pk',flat=True))
+
+        context_vars = {}
+        if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins')\
+            or profile.is_member_of('UNICEF Officials'):
+            for location in locations:
+                temp = []
+                # get schools in this location
+                location_schools = schools_temp.select_related().filter(location = location)
+                for d in date_weeks:
+                    total_attendance = 0 # per school
+                    total_enrollment = 0 # per school
+                    for school in location_schools:
+                        enrolled = poll_responses_term(enrol_deploy_poll, belongs_to='schools', school = school )
+                        attendance = get_numeric_report_data(attendance_poll, school = school,
+                            time_range=list(d), to_ret = 'sum')
+                        total_attendance += attendance
+                        total_enrollment += enrolled
+                    try:
+                        percentage = (total_enrollment - total_attendance) * 100 / total_enrollment
+                    except ZeroDivisionError:
+                        percentage = '--'
+                    temp.append(percentage)
+                try:
+                    diff = temp[0] - temp[1]
+                except TypeError:
+                    diff = '--'
+
+                location_data.append([location, temp[0], temp[1], diff])
+            context_vars.update({'location_data':location_data})
+        else:
+            location_schools = School.objects.select_related().filter(pk__in = EnrolledDeployedQuestionsAnswered.objects.select_related().\
+                filter(school__location=locations[0]).values_list('school__pk', flat=True))
+            #Non admin types
+            to_ret = []
+
+            for school in location_schools:
+                enrollment = poll_responses_term(enrol_deploy_poll, belongs_to='schools', school = school )
+                temp = []
+                for d in date_weeks:
+                    attendance = get_numeric_report_data(attendance_poll, school = school,
+                        time_range=list(d), to_ret = 'sum')
+                    try:
+                        percentage = (enrollment - attendance) * 100 / enrollment
+                    except ZeroDivisionError:
+                        percentage = '--'
+                    temp.append(percentage)
+
+                to_ret.append([school, temp])
+
+            context_vars = {'form':time_range_form, 'dataset_school':to_ret,
+                                                      'title': title,
+                                                      'url_name': url_name_school,
+                                                      'date_batch':date_weeks}
+
+
+
+        if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
+            x = {'url_name':url_name_district, 'headings':['District', 'Current week', 'Previous week', 'Percentage difference']}
+        else:
+            x = {'url_name':url_name_school, 'headings':['School', 'Current week', 'Previous week', 'Percentage difference']}
+
+        if context_vars.has_key('form') ==False and context_vars.has_key('title') == False:
+            context_vars.update({'form':time_range_form,'title':title}) # add the keys to context_vars dict
+        context_vars.update(x)
+        return render_to_response(template_name, context_vars, RequestContext(req))
 
 
 ##########################################################################################################
@@ -778,7 +1047,7 @@ def generate_dashboard_vars(location=None):
 @login_required
 def admin_dashboard(request):
     if request.user.get_profile().is_member_of('Ministry Officials') or request.user.get_profile().is_member_of('Admins')\
-        or request.user.get_profile().is_member_of('UNICEF Officials'):
+    or request.user.get_profile().is_member_of('UNICEF Officials'):
         location = Location.objects.get(name="Uganda")
     else:
         location = request.user.get_profile().location
@@ -793,10 +1062,10 @@ class NationalStatistics(TemplateView):
     def compute_percent(self, reps, groups = []):
         if groups:
             all_reporters = EmisReporter.objects.filter(groups__name__in=groups).exclude(connection__in=\
-                Blacklist.objects.values_list('connection',flat=True))
+            Blacklist.objects.values_list('connection',flat=True))
         else:
             all_reporters = EmisReporter.objects.exclude(connection__in=\
-                Blacklist.objects.values_list('connection',flat=True))
+            Blacklist.objects.values_list('connection',flat=True))
 
         try:
             return 100 * reps.count() / all_reporters.count()
@@ -810,70 +1079,71 @@ class NationalStatistics(TemplateView):
         profile = self.request.user.get_profile()
         if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
             districts = Location.objects.filter(type="district").\
-                filter(name__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in=Blacklist.objects.values_list('connection',flat=True))\
-                    .values_list('reporting_location__name', flat=True))
+            filter(name__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in=Blacklist.objects.values_list('connection',flat=True))\
+            .values_list('reporting_location__name', flat=True))
             district_schools = [
-                (district,
-                School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).\
-                    filter(reporting_location__name = district.name).distinct().values_list('schools__pk',flat=True)).count())
-                for district in districts
+            (district,
+             School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).\
+             filter(reporting_location__name = district.name).distinct().values_list('schools__pk',flat=True)).count())
+            for district in districts
             ]
             #School.objects.filter(pk__in=\
-            #    EmisReporter.objects.filter(reporting_location=district).exclude(schools = None).values_list('schools__pk',flat=True)).count())            
+            #    EmisReporter.objects.filter(reporting_location=district).exclude(schools = None).values_list('schools__pk',flat=True)).count())
             context['total_districts'] = districts.count()
             context['district_schools'] = district_schools
             context['school_count'] = School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).\
-                exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).distinct().values_list('schools__pk',flat=True)).count()
+            exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).distinct().values_list('schools__pk',flat=True)).count()
             # getting weekly system usage
             # reporters that sent messages in the past week.
-            reps = EmisReporter.objects.filter(groups__name="Head Teachers", connection__in=Message.objects.\
-                filter(date__range = get_week_date(depth = 2)[1]).values_list('connection', flat = True)).\
-                exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
+            reps = EmisReporter.objects.select_related().filter(groups__name="Head Teachers", connection__in=Message.objects.\
+               filter(date__range = get_week_date(depth = 2)[1]).values_list('connection', flat = True)).\
+               select_related().exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
 
             district_active = [
-                    (
-                    district, self.compute_percent(reps.filter(reporting_location__pk=district.pk), groups=['Head Teachers'])
-                    )
-                for district in districts
+            (
+                district, self.compute_percent(reps.filter(reporting_location__pk=district.pk), groups=['Head Teachers'])
+                )
+            for district in districts
             ]
             district_active.sort(key=operator.itemgetter(1), reverse=True)
             context['district_active'] = district_active[:3]
             context['district_less_active'] = district_active[-3:]
 
             context['head_teacher_count'] = reps.count()
-            context['smc_count'] = EmisReporter.objects.exclude(schools=None).exclude(connection__in = Blacklist.objects.\
+            er = EmisReporter.objects.select_related()
+            context['smc_count'] = er.exclude(schools=None).exclude(connection__in = Blacklist.objects.\
                 values_list('connection', flat = True)).filter(groups__name = "SMC").count()
 
-            context['p6_teacher_count'] = EmisReporter.objects.exclude(schools=None, connection__in = Blacklist.objects.\
+            context['p6_teacher_count'] = er.exclude(schools=None, connection__in = Blacklist.objects.\
                 values_list('connection', flat = True)).filter(groups__name = "Teachers", grade = "P6").count()
 
-            context['p3_teacher_count'] = EmisReporter.objects.exclude(schools=None, connection__in = Blacklist.objects.\
+            context['p3_teacher_count'] = er.exclude(schools=None, connection__in = Blacklist.objects.\
                 values_list('connection', flat = True)).filter(groups__name = "Teachers", grade = "P3").count()
-            context['total_teacher_count'] = EmisReporter.objects.exclude(schools=None, connection__in = Blacklist.objects.\
+            context['total_teacher_count'] = er.exclude(schools=None, connection__in = Blacklist.objects.\
                 values_list('connection', flat = True)).filter(groups__name="Teachers").count()
 
-            context['deo_count'] = EmisReporter.objects.exclude(schools=None, connection__in = Blacklist.objects.\
-            values_list('connection', flat = True)).filter(groups__name="DEO").count()
+            context['deo_count'] = er.exclude(schools=None, connection__in = Blacklist.objects.\
+                values_list('connection', flat = True)).filter(groups__name="DEO").count()
 
-            context['gem_count'] = EmisReporter.objects.exclude(schools=None, connection__in = Blacklist.objects.\
-            values_list('connection', flat = True)).filter(groups__name="GEM").count()
+            context['gem_count'] = er.exclude(schools=None, connection__in = Blacklist.objects.\
+                values_list('connection', flat = True)).filter(groups__name="GEM").count()
 
-            context['all_reporters'] = EmisReporter.objects.exclude(schools=None, connection__in = Blacklist.objects.\
-            values_list('connection', flat = True)).count()
+            context['all_reporters'] = er.exclude(schools=None, connection__in = Blacklist.objects.\
+                values_list('connection', flat = True)).count()
 
-            schools = School.objects.filter(pk__in = EmisReporter.objects.exclude(schools=None, connection__in=\
-                Blacklist.objects.values_list('connection',flat=True)).values_list('schools__pk', flat=True))
-            context['expected_reporters'] = len(schools) * 4
+            schools = School.objects.select_related().filter(pk__in = EmisReporter.objects.exclude(schools=None, connection__in=\
+                Blacklist.objects.select_related().values_list('connection',flat=True)).values_list('schools__pk', flat=True))
+            context['expected_reporters'] = schools.count() * 4
             # reporters that used EduTrac the past week
-            school_reporters = EmisReporter.objects.filter(groups__name__in=["Head Teachers", "Teachers"],\
-                connection__in=Message.objects.exclude(application='script').\
+            school_reporters = er.filter(groups__name__in=["Head Teachers", "Teachers"],\
+                connection__in=Message.objects.select_related().exclude(application='script').\
                 filter(date__range = get_week_date(depth = 2)[1]).values_list('connection', flat = True)).\
-                exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
+                    exclude(schools = None).exclude(connection__in = Blacklist.objects.select_related().values_list('connection', flat=True))
 
             school_active = [
-                (school, self.compute_percent(school_reporters.filter(schools__pk=school.pk), groups=['Head Teachers', 'Teachers']))
-                for school in schools
-                ]
+            (school, self.compute_percent(school_reporters.filter(schools__pk=school.pk), groups=['Head Teachers', 'Teachers']))
+            for school in schools
+            ]
 
             school_active.sort(key=operator.itemgetter(1), reverse=True)
             context['school_active_count'] = School.objects.filter(pk__in = school_reporters.values_list('schools__pk', flat=True)).count()
@@ -916,7 +1186,7 @@ class CapitationGrants(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(CapitationGrants, self).get_context_data(**kwargs)
-        cg = Poll.objects.get(name="edtrac_upe_grant")
+        cg = Poll.objects.select_related().get(name="edtrac_upe_grant")
 
         # correspond with group names
         authorized_users = ['Admins', 'Ministry Officials', 'UNICEF Officials']
@@ -929,25 +1199,25 @@ class CapitationGrants(TemplateView):
                 break
 
         context['authorized_user'] = authorized_user
-
+        er = EmisReporter.objects.select_related()
         if authorized_user:
 
-            head_teacher_count = EmisReporter.objects.filter(groups__name = "Head Teachers").exclude(schools=None).count()
+            head_teacher_count = er.filter(groups__name = "Head Teachers").exclude(schools=None).count()
             responses = cg.responses_by_category(location=Location.tree.root_nodes()[0])
             all_responses = cg.responses_by_category()
             location_ids = Location.objects.filter(
-                type="district", pk__in = \
-                    EmisReporter.objects.exclude(connection__in=Blacklist.objects.\
-                        values_list('connection', flat=True), schools=None).filter(groups__name="Head Teachers").\
-                        values_list('reporting_location__pk',flat=True)).values_list('id',flat=True)
+                type="district", pk__in =\
+                er.exclude(connection__in=Blacklist.objects.\
+                values_list('connection', flat=True), schools=None).filter(groups__name="Head Teachers").\
+                values_list('reporting_location__pk',flat=True)).values_list('id',flat=True)
 
             locs = Location.objects.filter(id__in = location_ids)
 
             districts_to_ret = []
             for location in locs:
-                head_teacher_count = EmisReporter.objects.exclude(schools = None, connection__in =\
+                head_teacher_count = er.exclude(schools = None, connection__in =\
                     Blacklist.objects.values_list('connection', flat = True)).filter(reporting_location=location,
-                        groups__name = 'Head Teachers').count()
+                    groups__name = 'Head Teachers').count()
                 other_responses = list(cg.responses_by_category(location = location, for_map=False))
 
                 info = self.extract_info(other_responses)
@@ -973,7 +1243,7 @@ class CapitationGrants(TemplateView):
                 ht_yes = 0
 
             context['national_responses'] = [('Yes', ht_yes), ('No', ht_no), ('unknown',ht_unknown)]
-            context['head_teacher_count'] = 100 * (head_teacher_count / EmisReporter.objects.exclude(schools=None,\
+            context['head_teacher_count'] = 100 * (head_teacher_count / er.exclude(schools=None,\
                 connection__in = Blacklist.objects.values_list('connection', flat=True)).count())
 
             context['districts'] = districts_to_ret
@@ -987,15 +1257,15 @@ class CapitationGrants(TemplateView):
                 location = location,
                 for_map = False
             )
-            htc = EmisReporter.objects.exclude(schools = None, connection__in =\
-                    Blacklist.objects.values_list('connection', flat = True)).filter(groups__name = 'Head Teachers',\
+            htc = er.exclude(schools = None, connection__in =\
+                Blacklist.objects.values_list('connection', flat = True)).filter(groups__name = 'Head Teachers',\
                     reporting_location = location).count()
             try:
 
                 htc_p = (100 *  cg.responses.filter(contact__reporting_location = location, contact__connection__in =\
-                            EmisReporter.objects.exclude(schools = None, connection__id__in =\
-                                Blacklist.objects.values_list('connection', flat = True)).filter(groups__name = 'Head Teachers',\
-                                reporting_location = location).values_list('connection__id', flat=True)).count()) / htc
+                    er.exclude(schools = None, connection__id__in =\
+                        Blacklist.objects.values_list('connection', flat = True)).filter(groups__name = 'Head Teachers',\
+                            reporting_location = location).values_list('connection__id', flat=True)).count()) / htc
 
             except ZeroDivisionError:
                 htc_p = 0
@@ -1010,139 +1280,146 @@ class CapitationGrants(TemplateView):
 
 
 # Details views... specified by ROLES
-class ViolenceAdminDetails(TemplateView):
-    template_name = "education/admin/admin_violence_details.html"
-    #TODO open this up with more data variables
-    def get_context_data(self, **kwargs):
-        context = super(ViolenceAdminDetails, self).get_context_data(**kwargs)
-        #TODO: filtering by ajax and time
-        profile = self.request.user.get_profile()
-        if profile.is_member_of('Ministry Officials') or profile.is_member_of('UNICEF Officials') or profile.is_member_of('Admins'):
-            location = Location.objects.get(name="Uganda")
+def violence_details_dash(req):
+    profile = req.user.get_profile()
+    context_vars = {}
+    if profile.is_member_of('Minstry Officials') or profile.is_member_of('UNICEF Officials') or profile.is_member_of('Admins'):
+        location = Location.objects.select_related().get(name = 'Uganda')
+    else:
+        location = profile.location
+
+    violence_cases_schools = poll_response_sum("edtrac_headteachers_abuse", location=location, month_filter=True, months=2, ret_type=list)
+
+    violence_cases_gem = poll_response_sum('edtrac_gem_abuse', location=location, month_filter=True, months=2, ret_type=list)
+
+    general_violence = get_numeric_report_data('edtrac_headteachers_abuse', location=location)
+
+    school_total = [] # total violence cases reported by school
+    for name, list_val in violence_cases_schools:
+        try:
+            diff = (list_val[0] - list_val[1]) / list_val[0]
+        except ZeroDivisionError:
+            diff = '--'
+        school_total.append((list_val[0], list_val[1], diff))
+        list_val.append(diff)
+
+    context_vars['violence_cases_reported_by_schools'] = violence_cases_schools
+
+    first_col, second_col, third_col = [],[],[]
+    for first, second, third in school_total:
+        first_col.append(first), second_col.append(second), third_col.append(third)
+    first_col = [i for i in first_col if i != '--']
+    second_col = [i for i in second_col if i != '--']
+    third_col = [i for i in third_col if i != '--']
+
+    context_vars['school_totals'] = [sum(first_col), sum(second_col), sum(third_col)]
+
+    gem_total = [] # total violence cases reported by school
+    for name, list_val in violence_cases_gem:
+        try:
+            diff = (list_val[0] - list_val[1]) / list_val[0]
+        except ZeroDivisionError:
+            diff = '--'
+        gem_total.append((list_val[0], list_val[1], diff))
+        list_val.append(diff)
+
+    context_vars['violence_cases_reported_by_gem'] = violence_cases_gem
+
+    first_col, second_col, third_col = [],[],[]
+    for first, second, third in gem_total:
+        first_col.append(first), second_col.append(second), third_col.append(third)
+    first_col = [i for i in first_col if i != '--']
+    second_col = [i for i in second_col if i != '--']
+    third_col = [i for i in third_col if i != '--']
+    context_vars['gem_totals'] = [sum(first_col), sum(second_col), sum(third_col)]
+
+
+    # depth of 2 months
+    context_vars['report_dates'] = [start for start, end in get_month_day_range(datetime.datetime.now(), depth=2)]
+    school_report_count = 0
+    gem_report_count = 0
+    #TODO
+    # -> 100 * (reports-that-are-sent-to-edtrac / reports-that-should-have-come-edtrac a.k.a. all schools)
+    #
+    # Assumes every administrator's location is the root location Uganda
+    for dr in get_month_day_range(datetime.datetime.now(), depth=2):
+
+        if profile.location.type.name == 'country':
+            contacts = Contact.objects.select_related().filter(reporting_location__in=profile.\
+                location.get_descendants().filter(type="district"))
         else:
-            location = profile.location
+            contacts = Contact.objects.select_related().filter(reporting_location=profile.location)
 
-        violence_cases_schools = poll_response_sum("edtrac_headteachers_abuse",
-            location=location, month_filter=True, months=2, ret_type=list)
+        school_resp_count = Poll.objects.select_related().get(name="edtrac_headteachers_abuse").responses.filter(
+            contact__in = contacts,
+            date__range = dr).count()
 
-        violence_cases_gem = poll_response_sum('edtrac_gem_abuse', location=location, month_filter=True, months=2, ret_type=list)
+        gem_resp_count = Poll.objects.select_related().get(name="edtrac_gem_abuse").responses.filter(
+            contact__in = contacts,
+            date__range = dr).count()
 
-        general_violence = get_numeric_report_data('edtrac_headteachers_abuse', location=location)
+        school_report_count += school_resp_count
+        gem_report_count += gem_resp_count
 
-        school_total = [] # total violence cases reported by school
-        for name, list_val in violence_cases_schools:
-            try:
-                diff = (list_val[0] - list_val[1]) / list_val[0]
-            except ZeroDivisionError:
-                diff = '--'
-            school_total.append((list_val[0], list_val[1], diff))
-            list_val.append(diff)
+    try:
+        context_vars['sch_reporting_percentage'] = 100 * ( school_report_count / (float(len(get_month_day_range(datetime.datetime.now(),
+            depth=2))) * school_report_count))
+    except ZeroDivisionError:
+        context_vars['sch_reporting_percentage'] = 0
 
-        context['violence_cases_reported_by_schools'] = violence_cases_schools
+    try:
+        context_vars['gem_reporting_percentage'] = 100 * ( gem_report_count / (float(len(get_month_day_range(datetime.datetime.now(),
+            depth=2))) * gem_report_count))
+    except ZeroDivisionError:
+        context_vars['gem_reporting_percentage'] = 0
 
-        first_col, second_col, third_col = [],[],[]
-        for first, second, third in school_total:
-            first_col.append(first), second_col.append(second), third_col.append(third)
-        first_col = [i for i in first_col if i != '--']
-        second_col = [i for i in second_col if i != '--']
-        third_col = [i for i in third_col if i != '--']
-
-        context['school_totals'] = [sum(first_col), sum(second_col), sum(third_col)]
-
-        gem_total = [] # total violence cases reported by school
-        for name, list_val in violence_cases_gem:
-            try:
-                diff = (list_val[0] - list_val[1]) / list_val[0]
-            except ZeroDivisionError:
-                diff = '--'
-            gem_total.append((list_val[0], list_val[1], diff))
-            list_val.append(diff)
-
-        context['violence_cases_reported_by_gem'] = violence_cases_gem
-
-        first_col, second_col, third_col = [],[],[]
-        for first, second, third in gem_total:
-            first_col.append(first), second_col.append(second), third_col.append(third)
-        first_col = [i for i in first_col if i != '--']
-        second_col = [i for i in second_col if i != '--']
-        third_col = [i for i in third_col if i != '--']
-        context['gem_totals'] = [sum(first_col), sum(second_col), sum(third_col)]
+    now = datetime.datetime.now()
+    month_ranges = get_month_day_range(now, depth=now.month)
+    month_ranges.sort()
 
 
-        # depth of 2 months
-        context['report_dates'] = [start for start, end in get_month_day_range(datetime.datetime.now(), depth=2)]
-        school_report_count = 0
-        gem_report_count = 0
-        #TODO
-        # -> 100 * (reports-that-are-sent-to-edtrac / reports-that-should-have-come-edtrac a.k.a. all schools)
-        #
-        # Assumes every administrator's location is the root location Uganda
-        for dr in get_month_day_range(datetime.datetime.now(), depth=2):
-
-            if self.request.user.get_profile().location.type.name == 'country':
-                contacts = Contact.objects.filter(reporting_location__in=self.request.user.get_profile().\
-                    location.get_descendants().filter(type="district"))
-            else:
-                contacts = Contact.objects.filter(reporting_location=self.request.user.get_profile().location)
-
-            school_resp_count = Poll.objects.get(name="edtrac_headteachers_abuse").responses.filter(
-                contact__in = contacts,
-                date__range = dr).count()
-
-            gem_resp_count = Poll.objects.get(name="edtrac_gem_abuse").responses.filter(
-                contact__in = contacts,
-                date__range = dr).count()
-
-            school_report_count += school_resp_count
-            gem_report_count += gem_resp_count
-
-        try:
-            context['sch_reporting_percentage'] = 100 * ( school_report_count / (float(len(get_month_day_range(datetime.datetime.now(),
-                depth=2))) * school_report_count))
-        except ZeroDivisionError:
-            context['sch_reporting_percentage'] = 0
-
-        try:
-            context['gem_reporting_percentage'] = 100 * ( gem_report_count / (float(len(get_month_day_range(datetime.datetime.now(),
-                depth=2))) * gem_report_count))
-        except ZeroDivisionError:
-            context['gem_reporting_percentage'] = 0
-
-        now = datetime.datetime.now()
-        month_ranges = get_month_day_range(now, depth=now.month)
-        month_ranges.sort()
-
-
-        h_teach_month = []
-        h_teach_data = []
-        gem_data = []
+    h_teach_month = []
+    h_teach_data = []
+    gem_data = []
+    if profile.is_member_of('Minstry Officials') or profile.is_member_of('UNICEF Officials') or profile.is_member_of('Admins'):
 
         for month_range in month_ranges:
             h_teach_month.append(month_range[0].strftime('%B'))
             h_teach_data.append(get_numeric_report_data('edtrac_headteachers_abuse',time_range=month_range, to_ret = 'sum'))
+
             gem_data.append(get_numeric_report_data('edtrac_gem_abuse',time_range=month_range, to_ret = 'sum'))
 
-        monthly_data_h_teachers = ';'.join([str(item[0])+'-'+str(item[1]) for item in zip(h_teach_month, h_teach_data)])
+    else:
+        for month_range in month_ranges:
+            h_teach_month.append(month_range[0].strftime('%B'))
+            h_teach_data.append(get_numeric_report_data('edtrac_headteachers_abuse',time_range=month_range, to_ret = 'sum', location=profile.location))
 
-        gem_month = copy.deepcopy(h_teach_month)
-        monthly_data_gem = ';'.join([str(item[0])+'-'+str(item[1]) for item in zip(gem_month, gem_data)])
+            gem_data.append(get_numeric_report_data('edtrac_gem_abuse',time_range=month_range, to_ret = 'sum', location=profile.location))
 
-        context['monthly_data_gem'] = monthly_data_gem
-        context['monthly_data_h_teach'] = monthly_data_h_teachers
+    monthly_data_h_teachers = ';'.join([str(item[0])+'-'+str(item[1]) for item in zip(h_teach_month, h_teach_data)])
 
-        return context
+    gem_month = copy.deepcopy(h_teach_month)
+    monthly_data_gem = ';'.join([str(item[0])+'-'+str(item[1]) for item in zip(gem_month, gem_data)])
 
-#District violence details (TODO: permission/rolebased viewing)
+    context_vars['monthly_data_gem'] = monthly_data_gem
+    context_vars['monthly_data_h_teach'] = monthly_data_h_teachers
+
+    if profile.is_member_of('Minstry Officials') or profile.is_member_of('UNICEF Officials') or profile.is_member_of('Admins'):
+        return render_to_response('education/admin/admin_violence_details.html', context_vars, RequestContext(req))
+    elif profile.is_member_of('DEO'):
+        context_vars['location_name'] = profile.location
+        return render_to_response('education/deo/deo2_violence_details.html', context_vars, RequestContext(req))
+
 class DistrictViolenceDetails(TemplateView):
     template_name = "education/dashboard/district_violence_detail.html"
 
     def get_context_data(self, **kwargs):
         context = super(DistrictViolenceDetails, self).get_context_data(**kwargs)
 
-        location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk'))) or self.request.user.get_profile().location
+        location = Location.objects.select_related().filter(type="district").get(pk=int(self.kwargs.get('pk'))) or self.request.user.get_profile().location
 
-        schools = School.objects.filter(
-            pk__in = EmisReporter.objects.filter(reporting_location=location).values_list('schools__pk', flat=True))
+        schools = School.objects.select_related().filter(
+            pk__in = EmisReporter.objects.select_related().filter(reporting_location=location).values_list('schools__pk', flat=True))
 
         school_case = []
         month_now, month_before = get_month_day_range(datetime.datetime.now(), depth=2)
@@ -1158,13 +1435,12 @@ class DistrictViolenceDetails(TemplateView):
                 school_case.append((school, now_data, before_data))
 
         #reports = poll_response_sum("edtrac_headteachers_abuse", month_filter=True, months=1)
-        emis_reporters = EmisReporter.objects.exclude(connection__in=\
-            Blacklist.objects.values_list('connection')).filter(schools__in=schools)
+        emis_reporters = EmisReporter.objects.select_related().exclude(connection__in=\
+            Blacklist.objects.select_related().values_list('connection')).filter(schools__in=schools)
 
         context['location'] = location
         context['school_vals'] = school_case
-        #        context['school_count'] = School.objects.filter(location__in=EmisReporter.objects.exclude(connection__in=Blacklist.objects.values_list('connection').\
-        #            values_list('reporting_location'))).count()
+
         context['month_now'] = month_now[0]
         context['month_before'] = month_before[0]
 
@@ -1183,11 +1459,9 @@ class AttendanceAdminDetails(TemplateView):
         profile = self.request.user.get_profile()
         context['role_name'] = profile.role.name
         if profile.is_member_of("Admins") or profile.is_member_of("Ministry Officials") or profile.is_member_of('UNICEF Officials'):
-            names = list(set(EmisReporter.objects.exclude(reporting_location=None).filter(reporting_location__type="district").\
-                        values_list('reporting_location__name',flat=True)))
-            locations = Location.objects.filter(name__in=names).order_by("name")
-            #locations = Location.objects.get(name="Uganda").get_descendants().filter(type="district").order_by("name")
-            #context['total_districts'] = Location.objects.get(name="Uganda").get_descendants().filter(type="district").count()
+            names = list(set(EmisReporter.objects.select_related().exclude(reporting_location=None).filter(reporting_location__type="district").\
+            values_list('reporting_location__name',flat=True)))
+            locations = Location.objects.select_related().filter(name__in=names).order_by("name")
             context['total_disticts'] = locations.count()
         else:
             locations = [profile.location]
@@ -1197,7 +1471,7 @@ class AttendanceAdminDetails(TemplateView):
         context['week'] = datetime.datetime.now()
         context['location'] = profile.location
         return context
-        
+
 
 # search functionality
 def search_form(req):
@@ -1208,24 +1482,10 @@ def search_form(req):
         if searchform.is_valid():
             searchform.save()
     return render_to_response(
-            'education/partials/search-form.html',
-        {'form': searchform},
+        'education/partials/search-form.html',
+            {'form': searchform},
         RequestContext(req)
     )
-#    query = req.POST[u'query']
-#    split_query = re.split(ur'(?u)\W', query)
-#    while u'' in split_query:
-#        split_query.remove(u'')
-#    results = []
-#    for word in split_query:
-#        for district in Location.objects.filter(type="district", name__icontains=word):
-#            if re.match(ur'(?ui)\b' + word + ur'\b'):
-#                entry = {
-#                    u'id':district.id,
-#                    u'name':district.name
-#                }
-#            if not entry in results:
-#                results.append(entry)
 
 class ProgressAdminDetails(TemplateView):
     template_name = "education/progress/admin_progress_details.html"
@@ -1235,10 +1495,10 @@ class ProgressAdminDetails(TemplateView):
         ##context['some_key'] = <some_list_of_response>
         # we get all violence cases ever reported
         #TODO: filtering by ajax and time
-        context['progress'] = list_poll_responses(Poll.objects.get(name="edtrac_p3ccurriculum_progress"))
+        context['progress'] = list_poll_responses(Poll.objects.select_related().get(name="edtrac_p3curriculum_progress"))
         # decimal module used to work with really floats with more than 2 decimal places
         getcontext().prec = 1
-        context['progress_figures'] = get_count_response_to_polls(Poll.objects.get(name="edtrac_p3curriculum_progress"),\
+        context['progress_figures'] = get_count_response_to_polls(Poll.objects.select_related().get(name="edtrac_p3curriculum_progress"),\
             location=self.request.user.get_profile().location,
             choices = [Decimal(str(key)) for key in themes.keys()])
         return context
@@ -1253,12 +1513,12 @@ class MealsAdminDetails(TemplateView):
         context['school_meals_reports'] = get_count_response_to_polls(Poll.objects.get(name="edtrac_headteachers_meals"),\
             month_filter=True, choices=choices)
 
-        context['community_meals_reports'] = get_count_response_to_polls(Poll.objects.get(name="edtrac_smc_meals"),
+        context['community_meals_reports'] = get_count_response_to_polls(Poll.objects.select_related().get(name="edtrac_smc_meals"),
             month_filter=True, choices=choices, with_percent=True)
-        districts = Location.objects.filter(type="district", id__in =\
-                EmisReporter.objects.exclude(reporting_location = None).\
-                    values_list('reporting_location__id', flat=True)).order_by('name').\
-                        values_list('name', flat=True)
+        districts = Location.objects.select_related().filter(type="district", id__in =\
+            EmisReporter.objects.select_related().exclude(reporting_location = None).\
+                values_list('reporting_location__id', flat=True)).order_by('name').\
+                    values_list('name', flat=True)
         # basic filtering for CSS
         districts = [[d, False] for d in districts]
         districts[0][1] = True
@@ -1276,7 +1536,7 @@ class DistrictMealsDetails(DetailView):
     model = Location
 
     def get_object(self):
-        return self.model.objects.filter(type="district").get(name = self.kwargs.get('name'))
+        return self.model.objects.select_related().filter(type="district").get(name = self.kwargs.get('name'))
 
     def get_context_data(self, **kwargs):
         context = super(DistrictMealsDetails, self).get_context_data(**kwargs)
@@ -1284,13 +1544,13 @@ class DistrictMealsDetails(DetailView):
         choices = CHOICES
 
         school_meal_reports = get_count_response_to_polls(
-            Poll.objects.get(name="edtrac_headteachers_meals"),
+            Poll.objects.select_related().get(name="edtrac_headteachers_meals"),
             location_name = location.name,
             month_filter=True,
             choices=choices,
             with_range = True,
             with_percent = True
-            )
+        )
         context['school_meals_reports'] = school_meal_reports
 
         context['location'] = location
@@ -1323,7 +1583,7 @@ class ViolenceDeoDetails(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ViolenceDeoDetails, self).get_context_data(**kwargs)
         #context['violence_cases'] = list_poll_responses(Poll.objects.get(name="emis_headteachers_abuse"))
-        context['violence_cases'] = poll_response_sum(Poll.objects.get(name="edtrac_headteachers_abuse"),
+        context['violence_cases'] = poll_response_sum(Poll.objects.select_related().get(name="edtrac_headteachers_abuse"),
             location=self.request.user.get_profile().location, month_filter=True)
         return context
 
@@ -1338,7 +1598,7 @@ class ProgressDeoDetails(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ProgressDeoDetails, self).get_context_data(**kwargs)
         #TODO mixins and filters
-        context['progress'] = list_poll_responses(Poll.objects.get(name="edtrac_p3curriculum_progress"))
+        context['progress'] = list_poll_responses(Poll.objects.select_related().get(name="edtrac_p3curriculum_progress"))
 
         return context
 
@@ -1365,7 +1625,7 @@ def audit_trail(req):
         revisions = Revision.objects.exclude(comment='').order_by('-date_created').values_list('user__username','comment','date_created')
     else:
         revisions = Revision.objects.exclude(user__username = 'admin', comment='').\
-            order_by('-date_created').values_list('user__username','comment','date_created')
+        order_by('-date_created').values_list('user__username','comment','date_created')
     return render_to_response('education/admin/audit_trail.html',{'revisions':revisions}, RequestContext(req))
 
 class DistrictViolenceCommunityDetails(DetailView):
@@ -1374,9 +1634,9 @@ class DistrictViolenceCommunityDetails(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(DistrictViolenceCommunityDetails, self).get_context_data(**kwargs)
-        location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk'))) or self.request.user.get_profile().location
-        emis_reporters = EmisReporter.objects.filter(groups__name="GEM", connection__in =\
-            Poll.objects.get(name="edtrac_gem_abuse").responses.values_list('contact__connection',flat=True))
+        location = Location.objects.select_related().filter(type="district").get(pk=int(self.kwargs.get('pk'))) or self.request.user.get_profile().location
+        emis_reporters = EmisReporter.objects.select_related().filter(groups__name="GEM", connection__in =\
+            Poll.objects.select_related().get(name="edtrac_gem_abuse").responses.values_list('contact__connection',flat=True))
         context['location'] = location
         context['reporters'] = emis_reporters
         context['month'] = datetime.datetime.now()
@@ -1390,7 +1650,7 @@ class DistrictProgressDetails(DetailView):
     #TODO provide filters
     def get_context_data(self, **kwargs):
         context = super(DistrictProgressDetails, self).get_context_data(**kwargs)
-        location = Location.objects.filter(type="district").get(pk=int(self.kwargs.get('pk')))
+        location = Location.objects.select_related().filter(type="district").get(pk=int(self.kwargs.get('pk')))
         context['location'] = location
         return context
 
@@ -1409,8 +1669,8 @@ def boysp3_district_attd_detail(req, location_id):
     """
     This gets the details about schools in a district, the people in attedance, etc.
     """
-    location = Location.objects.exclude(type="country").filter(type="district").get(id=location_id)
-    schools = School.objects.filter(location=location)
+    location = Location.objects.select_related().exclude(type="country").filter(type="district").get(id=location_id)
+    schools = School.objects.select_related().filter(location=location)
     to_ret = []
     for school in schools:
         temp = [school]
@@ -1420,17 +1680,17 @@ def boysp3_district_attd_detail(req, location_id):
     to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
 
     return render_to_response("education/boysp3_district_attd_detail.html", { 'location':location,\
-        'location_data':to_ret,
-        'week':datetime.datetime.now(),
-        'headings' : ['School', 'Current Week (%)', 'Week before (%)', 'Percentage change']}, RequestContext(req))
+                                                                              'location_data':to_ret,
+                                                                              'week':datetime.datetime.now(),
+                                                                              'headings' : ['School', 'Current Week (%)', 'Week before (%)', 'Percentage change']}, RequestContext(req))
 
 @login_required
 def boysp6_district_attd_detail(req, location_id):
     """
     This gets the details about schools in a district, the people in attedance, etc.
     """
-    location = Location.objects.exclude(type="country").filter(type="district").get(id=location_id)
-    schools = School.objects.filter(location=location)
+    location = Location.objects.select_related().exclude(type="country").filter(type="district").get(id=location_id)
+    schools = School.objects.select_related().filter(location=location)
     to_ret = []
     for school in schools:
         temp = [school]
@@ -1440,9 +1700,9 @@ def boysp6_district_attd_detail(req, location_id):
     to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
 
     return render_to_response("education/boysp6_district_attd_detail.html", { 'week':datetime.datetime.now(),\
-        'location':location,\
-        'headings' : ['School', 'Current Week (%)', 'Week before (%)', 'Percentage change'],
-        'location_data':to_ret },\
+                                                                              'location':location,\
+                                                                              'headings' : ['School', 'Current Week (%)', 'Week before (%)', 'Percentage change'],
+                                                                              'location_data':to_ret },\
         RequestContext(req))
 
 
@@ -1451,8 +1711,8 @@ def girlsp3_district_attd_detail(req, location_id):
     """
     This gets the details about schools in a district, the people in attedance, etc.
     """
-    location = Location.objects.exclude(type="country").filter(type='district').get(id = location_id)
-    schools = School.objects.filter(location=location)
+    location = Location.objects.select_related().exclude(type="country").filter(type='district').get(id = location_id)
+    schools = School.objects.select_related().filter(location=location)
     to_ret = []
     for school in schools:
         temp = [school]
@@ -1462,17 +1722,17 @@ def girlsp3_district_attd_detail(req, location_id):
     to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
 
     return render_to_response("education/girlsp3_district_attd_detail.html", { 'week':datetime.datetime.now(),\
-        'location_data':to_ret,
-        'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
-        'location':location}, RequestContext(req))
+                                                                               'location_data':to_ret,
+                                                                               'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
+                                                                               'location':location}, RequestContext(req))
 
 @login_required
 def girlsp6_district_attd_detail(req, location_id):
     """
     This gets the details about schools in a district, the people in attedance, etc.
     """
-    location = Location.objects.exclude(type="country").filter(type='district').get(id = location_id)
-    schools = School.objects.filter(location=location)
+    location = Location.objects.select_related().exclude(type="country").filter(type='district').get(id = location_id)
+    schools = School.objects.select_related().filter(location=location)
     to_ret = []
     for school in schools:
         temp = [school]
@@ -1483,9 +1743,9 @@ def girlsp6_district_attd_detail(req, location_id):
 
     return render_to_response("education/girlsp6_district_attd_detail.html",
             { 'week':datetime.datetime.now(),\
-               'location_data':to_ret,
-               'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
-               'location':location}, RequestContext(req))
+              'location_data':to_ret,
+              'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
+              'location':location}, RequestContext(req))
 
 
 @login_required
@@ -1493,9 +1753,10 @@ def female_t_district_attd_detail(req, location_id):
     """
     This gets the details about schools in a district, the people in attedance, etc.
     """
-    location = Location.objects.exclude(type="country").filter(type='district').get(id = location_id)
+    location =Location.objects.select_related().exclude(type="country").filter(type='district').get(id = location_id)
     schools = School.objects.filter(location=location)
     to_ret = []
+
     for school in schools:
         temp = [school]
         temp.extend(return_absent('edtrac_f_teachers_attendance', 'edtrac_f_teachers_deployment', school = school))
@@ -1514,8 +1775,8 @@ def male_t_district_attd_detail(req, location_id):
     """
     This gets the details about schools in a district, the people in attedance, etc.
     """
-    location = Location.objects.exclude(type="country").filter(type='district').get(id = location_id)
-    schools = School.objects.filter(location=location)
+    location = Location.objects.select_related().exclude(type="country").filter(type='district').get(id = location_id)
+    schools = School.objects.select_related().filter(location=location)
     to_ret = []
     for school in schools:
         temp = [school]
@@ -1530,39 +1791,36 @@ def male_t_district_attd_detail(req, location_id):
               'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
               'location':location}, RequestContext(req))
 
-def boys_p3_attendance(req):
+def boys_p3_attendance(req, **kwargs):
     profile = req.user.get_profile()
     location = profile.location
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
         """
         This view shows data by district
         """
-        locations = Location.objects.exclude(type="country").filter(type="district", name__in=\
-            EmisReporter.objects.distinct().values_list('reporting_location__name', flat=True)).order_by("name")
-        # return view that will give shool-based views
+        locations = Location.objects.select_related().exclude(type="country").filter(type="district", name__in=\
+            EmisReporter.objects.select_related().distinct().values_list('reporting_location__name', flat=True)).order_by("name")
+        # return view that will give school-based views
         # --> ref function just below this <---
         return boys_p3_attd_admin(req, locations=locations)
     else:
         #DEO
-        schools = School.objects.filter(location=location)
+        dates = kwargs.get('dates')
+        schools = School.objects.select_related().filter(location=location)
 
         to_ret = []
         for school in schools:
             temp = [school]
-            temp.extend(return_absent('edtrac_boysp3_attendance', 'edtrac_boysp3_enrollment', school = school))
+            for d in dates:
+                temp.extend(return_absent('edtrac_boysp3_attendance', 'edtrac_boysp3_enrollment', school = school, date_week=d))
             to_ret.append(temp)
-
         to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
-
-        return  render_to_response(
-            'education/partials/boys_p3_attendance.html',
-            {
+        return {
                 'week':datetime.datetime.now(),
                 'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
                 'location_data': to_ret,
                 'location':location
-            },
-            RequestContext(req))
+            }
 
 def boys_p3_attd_admin(req, **kwargs):
     """
@@ -1572,24 +1830,20 @@ def boys_p3_attd_admin(req, **kwargs):
     locations = kwargs.get('locations')
 
     to_ret = return_absent('edtrac_boysp3_attendance', 'edtrac_boysp3_enrollment', locations)
-    return render_to_response(
-        'education/partials/boys_p3_attd_admin.html',
-        {'location_data':to_ret,
-         'headings': HEADINGS,
-         'week':datetime.datetime.now()}, RequestContext(req)
-    )
+
+    return {'location_data':to_ret, 'headings': HEADINGS, 'week':datetime.datetime.now()}
 
 
 def boys_p6_attendance(req):
     profile = req.user.get_profile()
     location = profile.location
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
-        locations = Location.objects.exclude(type="country").filter(type="district", name__in=\
-            EmisReporter.objects.values_list('reporting_location__name', flat=True)).distinct().order_by("name")
+        locations = Location.objects.select_related().exclude(type="country").filter(type="district", name__in=\
+        EmisReporter.objects.values_list('reporting_location__name', flat=True)).distinct().order_by("name")
         return boys_p6_attd_admin(req, locations=locations)
     else:
         #DEO
-        schools = School.objects.filter(location=location)
+        schools = School.objects.select_related().filter(location=location)
         to_ret = []
         for school in schools:
             temp = [school]
@@ -1598,16 +1852,12 @@ def boys_p6_attendance(req):
 
         to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
 
-        return  render_to_response(
-            'education/partials/boys_p6_attendance.html',
-                {
+        return  {
                 'week':datetime.datetime.now(),
                 'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
                 'location_data': to_ret,
                 'location' : location
-            },
-            RequestContext(req)
-        )
+            }
 
 def boys_p6_attd_admin(req, locations=None):
     """
@@ -1616,19 +1866,18 @@ def boys_p6_attd_admin(req, locations=None):
     # P6 attendance /// what to show an admin or Ministry official
     to_ret = return_absent('edtrac_boysp6_attendance', 'edtrac_boysp6_enrollment', locations=locations)
 
-    return render_to_response('education/partials/boys_p6_attd_admin.html',
-            {'location_data':to_ret,'headings':HEADINGS,'week':datetime.datetime.now()}, RequestContext(req))
+    return {'location_data':to_ret,'headings':HEADINGS,'week':datetime.datetime.now()}
 
 def girls_p3_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
-        locations = Location.objects.exclude(type="country").filter(type="district", name__in=\
-            EmisReporter.objects.values_list('reporting_location__name', flat=True)).distinct().order_by("name")
+        locations = Location.objects.select_related().exclude(type="country").filter(type="district", name__in=\
+            EmisReporter.objects.select_related().values_list('reporting_location__name', flat=True)).distinct().order_by("name")
         return girls_p3_attd_admin(req, locations=locations)
     else:
         #DEO
-        schools = School.objects.filter(location=location)
+        schools = School.objects.select_related().filter(location=location)
         to_ret = []
         for school in schools:
             temp = [school]
@@ -1637,36 +1886,31 @@ def girls_p3_attendance(req):
 
         to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
 
-        return  render_to_response(
-            'education/partials/girls_p3_attendance.html',
-                {
+        return  {
                 'week':datetime.datetime.now(),
                 'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
                 'location_data': to_ret,
                 'location' : location
-            },
-            RequestContext(req))
-
+            }
 def girls_p3_attd_admin(req, locations=None):
     """
     Helper function to get differences in absenteeism across districts for P3 girls
     """
     to_ret = return_absent('edtrac_girlsp3_attendance', 'edtrac_girlsp3_enrollment', locations=locations)
-    return render_to_response('education/partials/girls_p3_attd_admin.html', 
-        {'location_data':to_ret,'headings':HEADINGS,'week':datetime.datetime.now()}, RequestContext(req))
+    return {'location_data':to_ret,'headings':HEADINGS,'week':datetime.datetime.now()}
 
 
 def girls_p6_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
-        locations = Location.objects.exclude(type="country").filter(type="district", name__in=\
-            EmisReporter.objects.values_list('reporting_location__name', flat=True)).distinct().order_by("name")
+        locations = Location.objects.select_related().exclude(type="country").filter(type="district", name__in=\
+            EmisReporter.objects.select_related().values_list('reporting_location__name', flat=True)).distinct().order_by("name")
         return girls_p6_attd_admin(req, locations=locations)
     else:
 
         #DEO
-        schools = School.objects.filter(location=location)
+        schools = School.objects.select_related().filter(location=location)
         to_ret = []
         for school in schools:
             temp = [school]
@@ -1675,34 +1919,29 @@ def girls_p6_attendance(req):
 
         to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
 
-        return  render_to_response(
-            'education/partials/girls_p6_attendance.html',
-                {
+        return {
                 'week':datetime.datetime.now(),
                 'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
                 'location_data': to_ret,
                 'location' : location
-            },
-            RequestContext(req))
-
+            }
 def girls_p6_attd_admin(req, locations=None):
     """
     Helper function to get differences in absenteeism across districts for P6 girls
     """
     to_ret = return_absent('edtrac_girlsp6_attendance', 'edtrac_girlsp6_enrollment', locations=locations)
-    return render_to_response('education/partials/girls_p6_attd_admin.html',
-        {'location_data':to_ret, 'headings':HEADINGS, 'week':datetime.datetime.now()}, RequestContext(req))
+    return {'location_data':to_ret, 'headings':HEADINGS, 'week':datetime.datetime.now()}
 
 def female_teacher_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
-        locations = Location.objects.exclude(type="country").filter(type="district", name__in=\
-            EmisReporter.objects.distinct().values_list('reporting_location__name',flat=True)).order_by("name")
+        locations = Location.objects.select_related().exclude(type="country").filter(type="district", name__in=\
+            EmisReporter.objects.select_related().distinct().values_list('reporting_location__name',flat=True)).order_by("name")
         return female_teacher_attd_admin(req, locations=locations)
     else:
         #DEO
-        schools = School.objects.filter(location=location)
+        schools = School.objects.select_related().filter(location=location)
         to_ret = []
         for school in schools:
             temp = [school]
@@ -1711,36 +1950,31 @@ def female_teacher_attendance(req):
 
         to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
 
-        return  render_to_response(
-            'education/partials/female_teachers_attendance.html',
-                {
+        return  {
                 'week':datetime.datetime.now(),
                 'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
                 'location_data': to_ret,
                 'location' : location
-            },
-            RequestContext(req))
-
+            }
 def female_teacher_attd_admin(req, locations=None):
     """
     Helper function to get differences in absenteeism across districts for all female teachers
     """
     to_ret = return_absent('edtrac_f_teachers_attendance', 'edtrac_f_teachers_deployment', locations=locations)
-    return render_to_response('education/partials/female_teachers_attd_admin.html',
-            {'location_data':to_ret,
+    return {'location_data':to_ret,
              'headings':HEADINGS,
-             'week':datetime.datetime.now()}, RequestContext(req))
+             'week':datetime.datetime.now()}
 
 def male_teacher_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
-        locations = Location.objects.exclude(type="country").filter(type="district", name__in=\
-            EmisReporter.objects.distinct().values_list('reporting_location__name',flat=True)).order_by("name")
+        locations = Location.objects.select_related().exclude(type="country").filter(type="district", name__in=\
+            EmisReporter.objects.select_related().distinct().values_list('reporting_location__name',flat=True)).order_by("name")
         return male_teacher_attd_admin(req, locations=locations)
     else:
         #DEO
-        schools = School.objects.filter(location=location)
+        schools = School.objects.select_related().filter(location=location)
         to_ret = []
         for school in schools:
             temp = [school]
@@ -1749,35 +1983,29 @@ def male_teacher_attendance(req):
 
         to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
 
-        return  render_to_response(
-            'education/partials/male_teachers_attendance.html',
-                {
+        return {
                 'week':datetime.datetime.now(),
                 'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
                 'location_data': to_ret,
                 'location' : location
-            },
-            RequestContext(req))
+            }
 
 def male_teacher_attd_admin(req, locations=None):
     """
     Helper function to get differences in absenteeism across districts for all female teachers
     """
     to_ret = return_absent('edtrac_m_teachers_attendance', 'edtrac_m_teachers_deployment', locations=locations)
-    return render_to_response('education/partials/male_teachers_attd_admin.html',
-            {'location_data':to_ret,
-             'headings':HEADINGS,
-             'week':datetime.datetime.now()}, RequestContext(req))
+    return {'location_data':to_ret, 'headings':HEADINGS, 'week':datetime.datetime.now()}
 
 def male_head_teacher_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
-        schools = School.objects.filter(location__name__in=EmisReporter.objects.distinct().\
+        schools = School.objects.select_related().filter(location__name__in=EmisReporter.objects.distinct().\
         filter(reporting_location__type = 'district').values_list('reporting_location__name', flat=True))
     else:
         #DEO
-        schools = School.objects.filter(location=location)
+        schools = School.objects.select_related().filter(location=location)
     data_to_render = []
     for school in schools:
         #TODO separate male and female head teachers
@@ -1803,12 +2031,12 @@ def female_head_teacher_attendance(req):
     location = req.user.get_profile().location
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
-        schools = School.objects.filter(location__name__in= EmisReporter.objects.distinct().\
-            filter(reporting_location__type = 'district').values_list('reporting_location__name', flat=True))
+        schools = School.objects.select_related().filter(location__name__in= EmisReporter.objects.distinct().\
+            select_related().filter(reporting_location__type = 'district').values_list('reporting_location__name', flat=True))
 
     else:
         #DEO
-        schools = School.objects.filter(location=location).order_by("name", "location__name")
+        schools = School.objects.select_related().filter(location=location).order_by("name", "location__name")
     data_to_render = []
     for school in schools:
         #TODO separate male and female head teachers
@@ -1833,166 +2061,237 @@ def female_head_teacher_attendance(req):
 
 @login_required
 def time_range_boysp3(req):
-    time_range_form = ResultForm()
-    locations = Location.objects.filter(type='district').filter(pk__in = EmisReporter.objects.values_list('reporting_location__pk',flat=True))
-    if req.method == 'POST':
-        time_range_form = ResultForm(data=req.POST)
-        to_ret = []
-        if time_range_form.is_valid():
-            for location in locations:
-                enrolled = poll_responses_term('edtrac_boysp3_enrollment', belongs_to='location', locations=[location])
-                attendance = get_numeric_report_data('edtrac_boysp3_attendance', locations=[location], time_range=[
-                    time_range_form.cleaned_data['from_date'],
-                    time_range_form.cleaned_data['to_date']
-                ], to_ret = 'avg')
-                try:
-                    percentage = (enrolled - attendance) * 100 / enrolled
-                except ZeroDivisionError:
-                    percentage = '--'
-
-                to_ret.append([location, percentage])
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
-                                                                         'title':'P3 Boys Absenteeism'}, RequestContext(req))
-        else:
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form,'title':'P3 Boys Absenteeism'}, RequestContext(req))
-    return render_to_response('education/timeslider_base.html', {'form':time_range_form,'title':'P3 Boys Absenteeism'}, RequestContext(req))
-
+    return view_generator(req,
+        enrol_deploy_poll='edtrac_boysp3_enrollment',
+        attendance_poll='edtrac_boysp3_attendance',
+        title='P3 Boys Absenteeism',
+        url_name_district = "boysp3-district-attd-detail"
+    )
 
 @login_required
 def time_range_boysp6(req):
-    time_range_form = ResultForm()
-    locations = Location.objects.filter(type='district').filter(pk__in = EmisReporter.objects.values_list('reporting_location__pk',flat=True))
-    if req.method == 'POST':
-        time_range_form = ResultForm(data=req.POST)
-        to_ret = []
-        if time_range_form.is_valid():
-            for location in locations:
-                enrolled = poll_responses_term('edtrac_boysp6_enrollment', belongs_to='location', locations=[location])
-                attendance = get_numeric_report_data('edtrac_boysp6_attendance', locations=[location], time_range=[
-                    time_range_form.cleaned_data['from_date'],
-                    time_range_form.cleaned_data['to_date']
-                ], to_ret = 'avg')
-                try:
-                    percentage = (enrolled - attendance) * 100 / enrolled
-                except ZeroDivisionError:
-                    percentage = '--'
-
-                to_ret.append([location, percentage])
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
-                                                                         'title':'P6 Boys Absenteeism'}, RequestContext(req))
-        else:
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form,
-                                                                         'title':'P6 Boys Absenteeism'}, RequestContext(req))
-    return render_to_response('education/timeslider_base.html', {'form':time_range_form,
-                                                                 'title':'P6 Boys Absenteeism'}, RequestContext(req))
+    return view_generator(
+        req,
+        enrol_deploy_poll='edtrac_boysp6_enrollment',
+        attendance_poll='edtrac_boysp3_attendance',
+        title = 'P6 Boys Absenteeism',
+        url_name_district = 'boysp6-district-attd-detail'
+    )
 
 @login_required
 def time_range_girlsp3(req):
-    time_range_form = ResultForm()
-    locations = Location.objects.filter(type='district').filter(pk__in = EmisReporter.objects.values_list('reporting_location__pk',flat=True))
-    if req.method == 'POST':
-        time_range_form = ResultForm(data=req.POST)
-        to_ret = []
-        if time_range_form.is_valid():
-            for location in locations:
-                enrolled = poll_responses_term('edtrac_girlsp3_enrollment', belongs_to='location', locations=[location])
-                attendance = get_numeric_report_data('edtrac_girlsp3_attendance', locations=[location], time_range=[
-                    time_range_form.cleaned_data['from_date'],
-                    time_range_form.cleaned_data['to_date']
-                ], to_ret = 'avg')
-                try:
-                    percentage = (enrolled - attendance) * 100 / enrolled
-                except ZeroDivisionError:
-                    percentage = '--'
-
-                to_ret.append([location, percentage])
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
-                                                                         'title':'P3 Girls Absenteeism'}, RequestContext(req))
-        else:
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form}, RequestContext(req))
-    return render_to_response('education/timeslider_base.html', {'form':time_range_form}, RequestContext(req))
+    return view_generator(
+        req,
+        enrol_deploy_poll = 'edtrac_girlsp3_enrollment',
+        attendance_poll = 'edtrac_girlsp3_attendance',
+        title = 'P3 Girls Absenteeism',
+        url_name_district = 'girlsp3-district-attd-detail'
+    )
 
 @login_required
 def time_range_girlsp6(req):
-    time_range_form = ResultForm()
-    locations = Location.objects.filter(type='district').filter(pk__in = EmisReporter.objects.values_list('reporting_location__pk',flat=True))
-    if req.method == 'POST':
-        time_range_form = ResultForm(data=req.POST)
-        to_ret = []
-        if time_range_form.is_valid():
-            for location in locations:
-                enrolled = poll_responses_term('edtrac_girlsp6_enrollment', belongs_to='location', locations=[location])
-                attendance = get_numeric_report_data('edtrac_girlsp6_attendance', locations=[location], time_range=[
-                    time_range_form.cleaned_data['from_date'],
-                    time_range_form.cleaned_data['to_date']
-                ], to_ret = 'avg')
-                try:
-                    percentage = (enrolled - attendance) * 100 / enrolled
-                except ZeroDivisionError:
-                    percentage = '--'
+    """
+    A function that compute time-ranged data for P6 girls. This function is split in two: handling of POST data and
+    GET data. It also makes a difference between User groups so you different role players like DEO, Admins, UNICEF
+    Officials
+    """
+    return view_generator(
+        req,
+        enrol_deploy_poll = 'edtrac_girlsp6_enrollment',
+        attendance_poll = 'edtrac_girlsp6_attendance',
+        title = 'P6 Girls Absenteeism',
+        url_name_district = 'girlsp6-district-attd-detail'
+    )
 
-                to_ret.append([location, percentage])
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
-                                                                         'title':'P6 Girls Absenteeism'}, RequestContext(req))
-        else:
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form,
-                                                                         'title':'P6 Girls Absenteeism'}, RequestContext(req))
-    return render_to_response('education/timeslider_base.html', {'form':time_range_form,
-                                                                 'title':'P6 Girls Absenteeism'}, RequestContext(req))
+
 @login_required
 def time_range_teachers_m(req):
-    time_range_form = ResultForm()
-    locations = Location.objects.filter(type='district').filter(pk__in = EmisReporter.objects.values_list('reporting_location__pk',flat=True))
-    if req.method == 'POST':
-        time_range_form = ResultForm(data=req.POST)
-        to_ret = []
-        if time_range_form.is_valid():
-            for location in locations:
-                enrolled = poll_responses_term('edtrac_m_teachers_deployment', belongs_to='location', locations=[location])
-                attendance = get_numeric_report_data('edtrac_m_teachers_attendance', locations=[location], time_range=[
-                    time_range_form.cleaned_data['from_date'],
-                    time_range_form.cleaned_data['to_date']
-                ], to_ret = 'avg')
-                try:
-                    percentage = (enrolled - attendance) * 100 / enrolled
-                except ZeroDivisionError:
-                    percentage = '--'
+    """
+    A function that compute time-ranged data for male teachers. This function is split in two: handling of POST data and
+    GET data. It also makes a difference between User groups so you different role players like DEO, Admins, UNICEF
+    Officials
+    """
 
-                to_ret.append([location, percentage])
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
-                                                                         'title':'Male Teachers Absenteeism'}, RequestContext(req))
-        else:
-            return render_to_response('education/timeslider_base.html', {'form':time_range_form,
-                                                                         'title':'Male Teachers Absenteeism'}, RequestContext(req))
-    return render_to_response('education/timeslider_base.html', {'form':time_range_form,
-                                                                 'title':'Male Teachers Absenteeism'}, RequestContext(req))
+    return view_generator(
+        req,
+        enrol_deploy_poll = 'edtrac_m_teachers_deployment',
+        attendance_poll = 'edtrac_m_teachers_attendance',
+        title = 'Male teachers absenteeism',
+        url_name_district = 'male-teacher-district-attd-detail'
+    )
+
 @login_required
 def time_range_teachers_f(req):
+    """
+    A function that compute time-ranged data for male teachers. This function is split in two: handling of POST data and
+    GET data. It also makes a difference between User groups so you different role players like DEO, Admins, UNICEF
+    Officials
+    """
+
+    return view_generator(
+        req,
+        enrol_deploy_poll = 'edtrac_f_teachers_deployment',
+        attendance_poll = 'edtrac_f_teachers_attendance',
+        title = 'Female teachers absenteeism',
+        url_name_district = 'female-teacher-district-attd-detail'
+    )
+
+@login_required
+def time_range_head_teachers(req):
+    """
+    Get a date-ranged page for Head teachers
+    """
+
+    """
+    A function that compute time-ranged data for female teachers. This function is split in two: handling of POST data and
+    GET data. It also makes a difference between User groups so you different role players like DEO, Admins, UNICEF
+    Officials
+    """
+
     time_range_form = ResultForm()
     locations = Location.objects.filter(type='district').filter(pk__in = EmisReporter.objects.values_list('reporting_location__pk',flat=True))
+
     if req.method == 'POST':
+        # handling of POST data
         time_range_form = ResultForm(data=req.POST)
         to_ret = []
         if time_range_form.is_valid():
-            for location in locations:
-                enrolled = poll_responses_term('edtrac_f_teachers_deployment', belongs_to='location', locations=[location])
-                attendance = get_numeric_report_data('edtrac_f_teachers_attendance', locations=[location], time_range=[
-                    time_range_form.cleaned_data['from_date'],
-                    time_range_form.cleaned_data['to_date']
-                ], to_ret = 'avg')
-                try:
-                    percentage = (enrolled - attendance) * 100 / enrolled
-                except ZeroDivisionError:
-                    percentage = '--'
+            from_date = time_range_form.cleaned_data['from_date']
+            to_date = time_range_form.cleaned_data['to_date']
+            month_delta = abs(from_date.month - to_date.month)
 
-                to_ret.append([location, percentage])
+            # date_weeks holds the time splittings necessary to get time ranges
+            # if dates selected are under 2 months, then we populate only week ranges
+            # a week range starts on Thursday and ends on Wednesday of the next week.
+            date_weeks = []
+
+            if month_delta <= 2: # same month get days in between
+                while from_date <= to_date:
+                    if from_date.weekday() == 3: #is to_day a Thursday?
+                        date_weeks.append(previous_calendar_week(t = from_date)) # get range from Wed to Thur.
+                    from_date += datetime.timedelta(days = 1)
+            else:
+                # case for when more than 2 months is selected
+                while from_date <= to_date:
+                    #TODO refine data points
+                    date_weeks.append([dateutils.month_start(from_date),dateutils.month_end(from_date)])
+                    from_date = dateutils.increment(from_date, months = 1)
+
+            # splitting the results by analysing membership of Officials accessing EduTrac
+            if req.user.get_profile().is_member_of('Ministry Officials') or\
+               req.user.get_profile().is_member_of('Admins') or req.user.get_profile().is_member_of('UNICEF Officials'):
+                schools_temp = School.objects.select_related().\
+                    filter(pk__in = EmisReporter.objects.select_related().\
+                        filter(groups__name = "Head Teachers").values_list('schools__pk',flat=True))
+
+                for location in locations:
+                    temp = []
+                    # get schools in this location
+                    schools = schools_temp.filter(contact__reporting_location__name = location.name).\
+                        values_list('contact__emisreporter__schools__pk', flat=True).select_related()
+                    location_schools = School.objects.filter(pk__in = schools).select_related()
+                    for d in date_weeks:
+                        total_attendance = 0 # per school
+                        total_deployment = 0 # per school
+                        for school in location_schools:
+                            deployed = poll_responses_term('edtrac_f_teachers_deployment', belongs_to='schools', school = school )
+                            attendance = get_numeric_report_data('edtrac_f_teachers_attendance', school = school,
+                                time_range=list(d), to_ret = 'sum')
+                            total_attendance += attendance
+                            total_deployment += deployed
+                        try:
+                            percentage = (total_deployment - total_attendance) * 100 / total_deployment
+                        except ZeroDivisionError:
+                            percentage = '--'
+                        temp.append(percentage)
+
+                    to_ret.append([location, temp])
+            else:
+                #Non admin types
+                date_weeks, to_ret = [], []
+                date_weeks.append(previous_calendar_week(t = datetime.datetime.now()))
+                for location in locations:
+                    temp = []
+                    # get schools in this location
+                    schools = schools_temp.filter(contact__reporting_location__name = location.name).\
+                    values_list('contact__emisreporter__schools__pk', flat=True)
+                    location_schools = School.objects.filter(pk__in=schools).select_related()
+                    for d in date_weeks:
+                        total_attendance = 0 # per school
+                        total_deployment = 0 # per school
+                        for school in location_schools:
+                            deployed = poll_responses_term('edtrac_f_teachers_deployment', belongs_to='schools', school = school )
+                            attendance = get_numeric_report_data('edtrac_f_teachers_attendance', school = school,
+                                time_range=list(d), to_ret = 'sum')
+                            total_attendance += attendance
+                            total_deployment += deployed
+                        try:
+                            percentage = (total_deployment - total_attendance) * 100 / total_deployment
+                        except ZeroDivisionError:
+                            percentage = '--'
+                        temp.append(percentage)
+
+                    to_ret.append([location, temp])
+
+
             return render_to_response('education/timeslider_base.html', {'form':time_range_form, 'dataset':to_ret,
-                                                                         'title':'Female Teachers Absenteeism'}, RequestContext(req))
+                                                                         'title':'Female Teacher Absenteeism',
+                                                                         'url_name':"female-teacher-district-attd-detail",
+                                                                         'date_batch':date_weeks}, RequestContext(req))
         else:
             return render_to_response('education/timeslider_base.html', {'form':time_range_form,
-                                                                         'title':'Female Teachers Absenteeism'}, RequestContext(req))
-    return render_to_response('education/timeslider_base.html', {'form':time_range_form,
-                                                                 'title':'Female Teachers Absenteeism'}, RequestContext(req))
+                                                                         'url_name':"female-teacher-district-attd-detail",
+                                                                         'title':'Male Teacher Absenteeism'}, RequestContext(req))
+    else:
+
+        # initial GET view is displays difference between 2 weeks of the attendance of female teachers as reported by the Head Teacher
+        date_weeks = []
+        location_data = []
+        # get current week
+        date_weeks.append(previous_calendar_week())
+        temp_date = datetime.datetime(date_weeks[0][0].year, date_weeks[0][0].month, date_weeks[0][0].day) - datetime.timedelta(days = 1)
+        # add previous week to date_weeks list
+        date_weeks.append(previous_calendar_week(t = temp_date))
+        # cache schools query in memory (these are Schools that have enrollment data)
+        schools_temp = Poll.objects.select_related().get(name = 'edtrac_f_teachers_deployment').responses.\
+            exclude(contact__emisreporter__schools__name = None).select_related()
+        context_vars = {}
+        for location in locations:
+            temp = []
+            # get schools in this location
+            schools = schools_temp.filter(contact__reporting_location__name = location.name).\
+                values_list('contact__emisreporter__schools__pk', flat=True)
+            location_schools = School.objects.filter(pk__in = schools).select_related()
+            for d in date_weeks:
+                total_attendance = 0 # per school
+                total_deployment = 0 # per school
+                for school in location_schools:
+                    deployed = poll_responses_term('edtrac_f_teachers_deployment', belongs_to='schools', school = school )
+                    attendance = get_numeric_report_data('edtrac_f_teachers_attendance', school = school,
+                        time_range=list(d), to_ret = 'sum')
+                    total_attendance += attendance
+                    total_deployment += deployed
+                try:
+                    percentage = (total_deployment - total_attendance) * 100 / total_deployment
+                except ZeroDivisionError:
+                    percentage = '--'
+                temp.append(percentage)
+            try:
+                diff = temp[0] - temp[1]
+            except TypeError:
+                diff = '--'
+
+            location_data.append([location, temp[0], temp[1], diff])
+        context_vars.update({'location_data':location_data})
+        profile = req.user.get_profile()
+        if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
+            x = {'url_name':"female-teacher-district-attd-detail", "headings":["District", "Current Week", "Previous Week", "Percentage Change"]}
+        else:
+            x = {'url_name':"school-detail", "headings":["School", "Current Week", "Previous Week", "Percentage Change"]}
+        context_vars.update({'form':time_range_form,'title':'Female Teachers Absenteeism'})
+        context_vars.update(x)
+        return render_to_response('education/timeslider_base.html', context_vars, RequestContext(req))
+
 
 def whitelist(request):
     numbers = []
@@ -2070,12 +2369,12 @@ def comments(req):
     if profile.is_member_of('Admins') or profile.is_member_of('Ministry Officials') or profile.is_member_of('UNICEF Officials'):
         comments = [(r.get_commentable_display(), r.comment, r.user, r.get_reporting_period_display(),
                      get_range_on_date(r.reporting_period, r) )
-                    for r in ReportComment.objects.order_by('-report_date')]
+        for r in ReportComment.objects.order_by('-report_date')]
     else:
         # DFO/DEO should get only information on their districts
         comments = [(r.get_commentable_display(), r.comment, r.user, r.get_reporting_period_display(),
                      get_range_on_date(r.reporting_period, r))
-                    for r in ReportComment.objects.filter(user__profile__location=profile.location).order_by('-report_date')]
+        for r in ReportComment.objects.filter(user__profile__location=profile.location).order_by('-report_date')]
 
     return render_to_response('education/partials/comments.html', {'data_set':comments}, RequestContext(req))
 
@@ -2270,11 +2569,11 @@ def school_detail(request, school_id):
     for month_range in month_ranges:
         monthly_data.append(
             [return_absent_month(
-                    'edtrac_'+ '%s'%slug + '_attendance',
-                    'edtrac_'+ '%s'%slug + '_enrollment',
-                    month_range = month_range,
-                    school = school)
-                for slug in slug_list])
+                'edtrac_'+ '%s'%slug + '_attendance',
+                'edtrac_'+ '%s'%slug + '_enrollment',
+                month_range = month_range,
+                school = school)
+             for slug in slug_list])
         monthly_data_teachers.append(
             [return_absent_month(
                 'edtrac_'+'%s'%slug + '_attendance',
@@ -2303,7 +2602,7 @@ def school_detail(request, school_id):
         'girls_p6_enrolled' : girls_p6_enrolled,
         'm_teachers_deployed': m_teachers_deployed,
         'f_teachers_deployed': f_teachers_deployed
-        }, RequestContext(request))
+    }, RequestContext(request))
 
 # analytics specific for emis {copy, but adjust to suit your needs}
 @login_required
@@ -2333,14 +2632,81 @@ def school_reporters_to_excel(req):
     return response
 
 @login_required
+def system_report(req=None):
+    book = xlwt.Workbook()
+    school_dates = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
+    first_date = school_dates[0]
+    last_date = school_dates[1]
+    date_bunches = []
+    while first_date <= last_date:
+        tmp = get_day_range(first_date)
+        first_date  = tmp[0]
+        date_bunches.append(get_day_range(first_date))
+        first_date = dateutils.increment(first_date, weeks = 1)
+
+    profile = req.user.get_profile()
+
+    enrolled_answered = EnrolledDeployedQuestionsAnswered.objects.select_related()
+
+    headings = ['School'] + [d.strftime("%d/%m/%Y") for d, _ in date_bunches]
+
+    if profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
+        district_names = enrolled_answered.values_list('school__location__name',flat=True).distinct()
+    else:
+        location = profile.location
+        district_names = [location.name]
+
+    district_schools = {}
+    for dn in district_names:
+        district_schools[dn] = School.objects.select_related().filter(pk__in =\
+            enrolled_answered.filter(school__location__name = dn).values_list('school__pk',flat=True)).order_by('name')
+
+    polls = Poll.objects.select_related().filter(Q(name__icontains="boys")|Q(name__icontains="girls")|\
+                                                 Q(name = 'edtrac_f_teachers_attendance')|\
+                                                 Q(name = 'edtrac_m_teachers_attendance'))
+
+    for district_name in district_schools.keys():
+        container = []
+
+        sheet = book.add_sheet(district_name, cell_overwrite_ok=True)
+        rowx = 0
+        for colx, val_headings in enumerate(headings):
+            sheet.write(rowx, colx, val_headings)
+            sheet.set_panes_frozen(True)
+            sheet.set_horz_split_pos(rowx+1) # in general, freeze after last heading row
+            sheet.set_remove_splits(True) # if user does unfreeze, don't leave a split there
+
+
+        for school in district_schools[district_name]:
+            school_vals = [school.name]
+            for d_bunch in date_bunches:
+                submission_count = 0
+                for poll in polls:
+                    submission_count += poll.responses.filter(contact__in = school.emisreporter_set.values_list('connection__contact'),
+                        date__range = d_bunch).count()
+                school_vals.extend([submission_count])
+            container.append(school_vals)
+
+        for row in container:
+            rowx += 1
+            for colx, value in enumerate(row):
+                sheet.write(rowx, colx, value)
+
+    response = HttpResponse(mimetype="application/vnd.ms-excel")
+    response['Content-Disposition'] = 'attachment; filename=SystemReport.xls'
+    book.save(response)
+    return response
+
+
+@login_required
 def excel_reports(req):
     return render_to_response('education/excelreports/excel_dashboard.html',{},RequestContext(req))
 
-@super_user_required
+@login_required
 def edit_user(request, user_pk=None):
     title=""
     user=User()
-    if request.method == 'POST':
+    if request.method == 'POST' and request.user.get_profile().role_id == Role.objects.get(name = 'Admins').id:
         if user_pk:
             user = get_object_or_404(User, pk=user_pk)
         user_form = UserForm(request.POST,instance=user,edit=True)
@@ -2372,16 +2738,6 @@ def edit_user(request, user_pk=None):
 
     return render_to_response('education/partials/edit_user.html', {'user_form': user_form,'title':title},
         context_instance=RequestContext(request))
-
-
-@login_required
-def sys_report_dist(req):
-    return render_to_response("education/partials/sys_report_dist.html", {}, RequestContext(req))
-
-@login_required
-def sys_report(req):
-    return render_to_response("education/partials/sys_report.html", {}, RequestContext(req))
-
 
 @login_required
 def alerts_detail(request, alert, district_id=None):
@@ -2531,7 +2887,7 @@ def meals(request, district_id=None):
 def edit_scripts(request):
 
     forms = []
-    for script in Script.objects.all().order_by('slug'):
+    for script in Script.objects.exclude(name = 'Special Script').order_by('slug'):
         forms.append((script, ScriptsForm(instance=script)))
 
     if request.method == 'POST':
@@ -2543,7 +2899,7 @@ def edit_scripts(request):
         context_instance=RequestContext(request))
 
 def emis_scripts_special(req):
-    scripts = Script.objects.exclude(slug__icontains='weekly').exclude(slug='edtrac_autoreg').order_by('slug')
+    scripts = Script.objects.exclude(slug__icontains='weekly').exclude(name='Special Script').exclude(slug='edtrac_autoreg').order_by('slug')
 
     if req.method == 'POST':
         checked_numbers = req.POST.getlist('checked_numbers')
@@ -2552,19 +2908,18 @@ def emis_scripts_special(req):
         poll_scripts = [pq.split('-') for pq in poll_questions] #(poll_id, script_slug)
         d = datetime.datetime.now()
         _script = Script.objects.create(slug=\
-            "edtrac_%s-%s-%s %s:%s:%s"%(d.year,d.month,d.day,d.hour, d.minute, d.second), name="Special Script")
+        "edtrac_%s %s %s %s:%s:%s"%(d.year,d.month,d.day,d.hour, d.minute, d.second), name="Special Script")
 
         _poll_scripts = []
         # make sure that the poll/script to sent to just one group not a mixture of groups.
-        reporter_group_name = EmisReporter.objects.get(id=checked_numbers[0]).groups.all()[0].name.\
-            lower().replace(' ', '_')
+        reporter_group_name = EmisReporter.objects.get(id=checked_numbers[0]).groups.all()[0].name.lower().replace(' ', '_')
         for id, script_slug in poll_scripts:
             if re.search(reporter_group_name, script_slug):
                 _poll_scripts.append((id, script_slug))
 
         for i, li in enumerate(_poll_scripts):
             poll_id, script_slug = li
-#            s = Script.objects.get(slug = script_slug) #script
+            #            s = Script.objects.get(slug = script_slug) #script
             _script.steps.add(ScriptStep.objects.create(
                 script = _script,
                 poll = Poll.objects.get(id = poll_id),
@@ -2576,13 +2931,53 @@ def emis_scripts_special(req):
                 giveup_offset = 86400,
             ))
             _script.save()
+            # Hack!! When manager wants to select all (otherwise default will be all folks in group selected)
 
-        for reporter in EmisReporter.objects.filter(id__in=checked_numbers).exclude(connection=None):
-            if reporter.groups.exists():
+        if len(checked_numbers) < 25 and len(checked_numbers) > 0:
+            # assuming that "all" is not checked
+            for reporter in EmisReporter.objects.filter(id__in=checked_numbers).exclude(connection=None):
                 sp = ScriptProgress.objects.create(connection=reporter.default_connection, script=_script)
                 sp.set_time(datetime.datetime.now()+datetime.timedelta(seconds=90)) # 30s after default cron wait time
                 sp.save()
-        
+        else:
+            # what if the reporting location is different? Would you instead want to poll the different districts?
+            single_reporter_location = True # flag
+            reporter_location = EmisReporter.objects.filter(id__in=checked_numbers).\
+            exclude(reporting_location=None).values_list('reporting_location__name', flat=True)
+            if reporter_location.count() > 0 and len(set(reporter_location)) > 1:
+                single_reporter_location = False
+                reporter_location = EmisReporter.objects.filter(reporting_location__type = 'district').\
+                values_list('reporting_location__name',flat=True)
+            else:
+                reporter_location = EmisReporter.objects.filter(reporting_location__type='district').\
+                filter(reporting_location__name = reporter_location[0]).values_list('reporting_location__name',flat=True)
+
+            single_school = True
+            reporter_schools = EmisReporter.objects.filter(id__in=checked_numbers).\
+            exclude(schools=None).values_list('schools__name', flat=True)
+            if reporter_schools.count() > 0 and len(set(reporter_schools)) > 1:
+                single_school = False
+                reporter_schools = EmisReporter.objects.values_list('schools__name',flat=True)
+            else:
+                reporter_schools = EmisReporter.objects.filter(schools__name=reporter_schools[0]).values_list(
+                    'schools__name', flat=True
+                )
+
+            if single_reporter_location or single_school:
+                for reporter in EmisReporter.objects.filter(schools__name__in=reporter_schools,
+                    reporting_location__name__in = reporter_location, groups__name =\
+                    ' '.join([i.capitalize() for i in reporter_group_name.replace('_',' ').split()])).\
+                exclude(connection=None):
+                    sp = ScriptProgress.objects.create(connection=reporter.default_connection, script=_script)
+                    sp.set_time(datetime.datetime.now()+datetime.timedelta(seconds=90)) # 30s after default cron wait time
+                    sp.save()
+            else:
+                for reporter in EmisReporter.objects.filter(groups__name =\
+                ' '.join([i.capitalize() for i in reporter_group_name.replace('_',' ').split()])).exclude(connection=None):
+                    sp = ScriptProgress.objects.create(connection=reporter.default_connection, script=_script)
+                    sp.set_time(datetime.datetime.now()+datetime.timedelta(seconds=90)) # 30s after default cron wait time
+                    sp.save()
+
         return HttpResponseRedirect(reverse('emis-contact'))
     else:
         return render_to_response('education/partials/reporters/special_scripts.html',{'scripts':scripts}, RequestContext(req))
@@ -2591,7 +2986,7 @@ def emis_scripts_special(req):
 def reschedule_scripts(request, script_slug):
     grp = get_script_grp(script_slug)
     if script_slug.endswith('_weekly'):
-#        call_command('reschedule_weekly_polls', grp)
+    #        call_command('reschedule_weekly_polls', grp)
         reschedule_weekly_polls(grp)
     elif script_slug.endswith('_monthly'):
         reschedule_monthly_polls(grp)
@@ -2609,6 +3004,7 @@ def reschedule_scripts(request, script_slug):
         return response
     else:
         return HttpResponse("This script can't be rescheduled. Try again")
+
 
 # Reporters view
 

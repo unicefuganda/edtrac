@@ -6,9 +6,9 @@
 	    		<p>
 		            {{ obj.identity }} - Added to White List
 			        <span class="buttons">
-			            <a href="javascript:void(0)" onclick="deleteConnection(this, '{% url education.views.delete_connection obj.pk %}','{{ obj.identity }}')">
+                        <button class="btn"> <a href="javascript:void(0)" onclick="deleteConnection(this, '{% url education.views.delete_connection obj.pk %}','{{ obj.identity }}')">
 			                <img src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png" />
-			            </a>
+                    </a></button>
 			        </span>
 		    	</p>
 	        {% endfor %}	

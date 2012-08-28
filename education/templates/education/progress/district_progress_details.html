@@ -22,7 +22,7 @@
                             <!--<th>Progress Status</th>-->
                             </thead>
                         </tr>
-                        {% paginate location_data %}
+                        {% paginate 25 location_data %}
                         {% for school, mode in location_data %}
                         <tr>
                             <td>

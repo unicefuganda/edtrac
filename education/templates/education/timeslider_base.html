@@ -1,61 +1,133 @@
 {% extends "education/admin/admin_dashboard.html" %}
 {% load endless %}
+{% comment %} using url from future to pass context vars {% endcomment %}
+{% load url from future %}
 {% block title %}
 {{ title }} -- {{ block.super }}
 {% endblock %}
 {% block content %}
 <ul class='breadcrumb'>
     <li>
-        <a href="{% url rapidsms-dashboard %}">
+        <a href="{% url 'rapidsms-dashboard' %}">
             Dashboard Home</a>
         <span class="divider">\</span>
     </li>
     <li>
-        <a href="{% url attendance-admin-details %}">Details view</a>
+        Details view
     </li>
 </ul>
         <div class="general" style="min-height: 200px;">
 
-            <div>
+            <div style="padding:20px; margin-bottom: 30px;">
                 <form action="" method="post" class="selector">
+                    <div class="box-message" style="float:left;">Please click the text boxes to select date range for data</div>
+                    <span style="margin-left: 5px;">
                     From {{ form.from_date }} to {{ form.to_date }}
                     <button>Search</button>
+                    </span>
                 </form>
+                <script>
+                    $(function(){
+                        $('#id_from_date').datepicker();
+                        $('#id_to_date').datepicker();
+                    });
+                </script>
             </div>
 
-            <script>
-                $(function(){
-                    $('#id_from_date').datepicker();
-                    $('#id_to_date').datepicker();
-                });
-            </script>
+            <div style="float:right; clear:both;" class="alert-message">
+                {{ title }} - Percentage
+            </div>
+
 
             {% if dataset %}
-                <table class="tabulated-data classy">
-                    <tr>
-                        <th>District</th>
-                        <th>Percentage Absenteism</th>
-                    </tr>
-                    {% for location, figure in dataset %}
-                    <tr>
-                        <td>{{ location }}</td>
-                        <td>
-                            {% if figure == '--' %}
-                                {{ figure }}
+            <!--{{data_set}} variable is produced when the form has been POSTed-->
+                <table class="tabulated-data classy" style="clear:both;">
+                        <tr>
+                            <th>District</th>
+                            {% for date1, date2 in date_batch %}
+                            {% if mmonth_flag %}
+                                <th style="font-size: .7em;">{{ date1|date:"M" }}</th>
                             {% else %}
-                                {{ figure|floatformat }}
+                                <th style="font-size: .7em;">{{ date1|date }}</th>
                             {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
+                            {% endfor %}
+                        </tr>
+                        {% for location, figure_list in dataset %}
+                        <tr>
+                            <td>{{ location }}</td>
+                            {% for figure in figure_list %}
+                            <td>
+                                {% if figure == '--' %}
+                                    {{ figure }}
+                                {% else %}
+                                    {{ figure|floatformat }}
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
                 </table>
 
             {% else %}
-            <div class="alert-message">Please click the text boxes to select date range for data</div>
+
+                <div class="attendance" style="clear:both;">
+                    <h2>Weekly Change in {{ title }} {{ week|date:"D d M Y" }}</h2>
+                    <div class="top">
+                        {% if dataset_school %}
+                            {% paginate dataset_school %}
+                            <table class="tabulated-data">
+                                <thead>
+                                <tr>
+                                    {% for heading in headings %}
+                                    <th>{{heading}}</th>
+                                    {% endfor %}
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for entity_attribute, vals in dataset_school %}
+                                <tr>
+                                    <td><a href="">{{ entity_attribute }}</a>
+                                    <!--<td>{% if cur_value == '--' or cur_value == 0%} {{ cur_value }} {% else %} {{ cur_value|floatformat }} {% endif %}</td>-->
+                                    <!--<td>{% if prev_value == '--' or prev_value == 0%} {{ prev_value }} {% else %} {{ prev_value|floatformat }} {% endif %}</td>-->
+                                    <!--<td>{% if diff == '--' or diff == 0 %} {{ diff }} {% else %} {{ diff|floatformat }}{% endif %}</td>-->
+                                    <td>{{ vals.0 }}</td>
+                                    <td>{{ vals.1 }}</td>
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        {% endif %}
+
+                        {% if location_data %}
+                            {% paginate 25 location_data %}
+                            <table class="tabulated-data">
+                                <thead>
+                                <tr>
+                                    {% for heading in headings %}
+                                    <th>{{ heading }}</th>
+                                    {% endfor %}
+                                </tr>
+
+                                </thead>
+                                <tbody>
+                                {% for entity_attribute, cur_value, prev_value, diff in location_data %}
+                                <tr>
+                                    <td><a href="{% url url_name entity_attribute.id %}">{{ entity_attribute }}</a>
+                                    <td>{% if cur_value == '--' or cur_value == 0%} {{ cur_value }} {% else %} {{ cur_value|floatformat }} {% endif %}</td>
+                                    <td>{% if prev_value == '--' or prev_value == 0%} {{ prev_value }} {% else %} {{ prev_value|floatformat }} {% endif %}</td>
+                                    <td>{% if diff == '--' or diff == 0 %} {{ diff }} {% else %} {{ diff|floatformat }}{% endif %}</td>
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="paginator">
+                            {% show_pages %}
+                        </div>
+                    {% endif %}
+                </div>
+
             {% endif %}
 
-
         </div>
-
-
 {% endblock %}

@@ -1,6 +1,16 @@
-function smc_meetings(schools, meetings) {
-    var schools;
-    var meetings;
+function smc_meetings(titles, meetings) {
+    var titles_extract = titles.split(",");
+    var meetings_extract = meetings.split(",");
+    var data_container = []
+    console.log(titles_extract);
+    for(var i =0; i < titles_extract.length; i++) {
+        if (titles_extract[i] == '404'){
+            data_container.push(['unknown', parseFloat(meetings_extract[i])]);
+        }else{
+            data_container.push([titles_extract[i]+' meetings', parseFloat(meetings_extract[i])]);
+        }
+    }
+
     meeting_chart = new Highcharts.Chart({
         chart: {
             renderTo: 'smc_meetings',
@@ -13,7 +23,7 @@ function smc_meetings(schools, meetings) {
         },
         tooltip: {
             formatter: function() {
-                return '<b>'+ this.point.name +'</b>: '+ this.percentage +' %';
+                return '<b>'+ this.point.name +'</b>: '+ this.percentage.toFixed(2) +' %';
             }
         },
         plotOptions: {
@@ -23,7 +33,7 @@ function smc_meetings(schools, meetings) {
                 dataLabels: {
                     enabled: true,
                     formatter: function(){
-                        return '<b>'+ this.point.name + '</b>: '+this.percentage + '%';
+                        return '<b>'+ this.point.name + '</b>: '+this.percentage.toFixed(2) + '%';
                     }
                 },
                 showInLegend: false
@@ -32,12 +42,7 @@ function smc_meetings(schools, meetings) {
         series: [{
             type: 'pie',
             name: 'Browser share',
-            // iteration
-            data: [
-                ['one meeting',  78],
-                ['two meetings',       9],
-                ['Three meetings', 13]
-            ]
+            data : data_container
         }]
     });
 }
@@ -53,9 +58,7 @@ function violence_cases(monthly_data, title){
         violence_case.push(parseFloat(split_data[1]));
     }
 
-    var violence_chart;
-
-    violence_chart = new Highcharts.Chart(
+    var violence_chart = new Highcharts.Chart(
         {
             chart: {
                 renderTo:'violence-graph',

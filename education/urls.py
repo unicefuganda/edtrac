@@ -103,14 +103,11 @@ urlpatterns = patterns('',
             ('Role(s)', True, 'groups__name', SimpleSorter(),),
             ('District', False, 'district', None,),
             ('Last Reporting Date', True, 'latest_submission_date', LatestSubmissionSorter(),),
-            ('Total Reports', True, 'connection__submissions__count', SimpleSorter(),),
             ('School(s)', True, 'schools__name', SimpleSorter(),),
             #                 ('Location', True, 'reporting_location__name', SimpleSorter(),),
             ('', False, '', None,)],
         }, name="emis-contact"),
 
-    url(r'^edtrac/sys-report-dist/$', sys_report_dist, name="emis-sys-report-dist"),
-    url(r'^edtrac/sys-report/$', sys_report, name="emis-sys-report"),
     url(r'^edtrac/scripts-special/$', emis_scripts_special, name='emis-special-scripts'),
 
     url(r'^edtrac/new-comment/$', new_comment, name='new-comment'),
@@ -160,13 +157,13 @@ urlpatterns = patterns('',
     url(r'^edtrac/school/(?P<pk>\d+)/delete/', delete_school, name='delete-school'),
     url(r'^edtrac/school/(?P<pk>\d+)/show', generic_row, {'model':School, 'partial_row':'education/partials/school_row.html'}, name='show-school'),
 
-    url(r'^edtrac/attd/boys-p3$', time_range_boysp3, name='boys-p3-range' ),
-    url(r'^edtrac/attd/boys-p6$', time_range_boysp6, name="boys-p6-range"),
-    url(r'^edtrac/attd/girls-p3$', time_range_girlsp3, name="girls-p3-range"),
-    url(r'^edtrac/attd/girls-p6$', time_range_girlsp6, name="girls-p6-range"),
-    url(r'^edtrac/attd/m-teachers$', time_range_teachers_m, name="m-teachers-range"),
-    url(r'^edtrac/attd/f-teachers$', time_range_teachers_f, name="f-teachers-range"),
-
+    url(r'^edtrac/attd/boys-p3/$', time_range_boysp3, name='boys-p3-range' ),
+    url(r'^edtrac/attd/boys-p6/$', time_range_boysp6, name="boys-p6-range"),
+    url(r'^edtrac/attd/girls-p3/$', time_range_girlsp3, name="girls-p3-range"),
+    url(r'^edtrac/attd/girls-p6/$', time_range_girlsp6, name="girls-p6-range"),
+    url(r'^edtrac/attd/m-teachers/$', time_range_teachers_m, name="m-teachers-range"),
+    url(r'^edtrac/attd/f-teachers/$', time_range_teachers_f, name="f-teachers-range"),
+    url(r'^edtrac/attd/head-teachers/$', time_range_head_teachers, name="head-teachers-range"),
 
     url(r'^edtrac/othermessages/$', login_required(generic), {
         'model':Message,
@@ -186,6 +183,7 @@ urlpatterns = patterns('',
 
     # Excel Reports
     url(r'^edtrac/excelreports/$',excel_reports),
+    url(r'^edtrac/system-report/$', system_report, name="system-report"),
     #users and permissions
     url(r'^edtrac/toexcel/$',to_excel, name="to-excel"),
 #    url(r'edtrac/schoolexcel/$', base.RedirectView(url='/static/reporters.xls'), name="school_report_excel"),
@@ -194,7 +192,7 @@ urlpatterns = patterns('',
     url(r'^edtrac/users/(\d+)/edit/', edit_user, name='edit_user'),
     url(r'^edtac/users/add/', edit_user, name='add_user'),
 
-    url(r'^edtrac/user/$', super_user_required(generic), {
+    url(r'^edtrac/user/$', generic, {
         'model':User,
         'objects_per_page':25,
         'partial_row':'education/partials/user_row.html',
@@ -239,7 +237,7 @@ urlpatterns = patterns('',
     url(r'^edtrac/dash-admin-progress/district/(?P<district_pk>\d+)/$', dash_admin_progress_district, {},
         name="emis-admin-curriculum-progress-district"),
 
-    url(r'^edtrac/violence-admin-details/$', ViolenceAdminDetails.as_view(), name="violence-admin-details"),
+    url(r'^edtrac/violence-admin-details/$', violence_details_dash, name="violence-admin-details"),
     url(r'^edtrac/attendance-admin-details/$', AttendanceAdminDetails.as_view(), name="attendance-admin-details"),
     url(r'^edtrac/attd_admin_details/search$', search_form, name="attendance-search"),
     # to find out about violence in a district
