@@ -5,11 +5,8 @@ Created on Aug 27, 2012
 '''
 
 from django.core.management.base import BaseCommand
-import traceback
-import os
 from django.conf import settings
 from education.models import School, EmisReporter
-import datetime
 import xlwt
 from rapidsms.contrib.locations.models import Location
 from rapidsms.models import Connection
