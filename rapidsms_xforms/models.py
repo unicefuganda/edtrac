@@ -1154,7 +1154,7 @@ class XFormReport(models.Model):
     """
     Collection of XForms
     """
-    name = models.CharField(max_legth=32, help_text="Human readable name")
+    name = models.CharField(max_length=32, help_text="Human readable name")
     frequency = models.CharField(max_length=32, help_text="How often the report is generated")
     constraints = PickledObjectField() # [ constraint1, constraint2, ... , constraintN ]
     submissions = models.ManyToManyField(XFormSubmission, through='XFormReportSubmission')
@@ -1171,7 +1171,7 @@ class XFormList(models.Model):
     xform = models.ForeignKey(XForm)
     report = models.ForeignKey(XFormReport)
     required = models.BooleanField(default=True)
-    priority = models.IntegerField
+    priority = models.IntegerField()
 
 class XFormReportSubmission(models.Model):
     """
