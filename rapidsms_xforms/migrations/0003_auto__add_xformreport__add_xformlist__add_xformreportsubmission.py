@@ -31,11 +31,18 @@ class Migration(SchemaMigration):
         db.create_table('rapidsms_xforms_xformreportsubmission', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('report', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rapidsms_xforms.XFormReport'])),
-            ('submission', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rapidsms_xforms.XFormSubmission'])),
             ('start_date', self.gf('django.db.models.fields.DateTimeField')()),
             ('status', self.gf('django.db.models.fields.CharField')(max_length=10)),
         ))
         db.send_create_signal('rapidsms_xforms', ['XFormReportSubmission'])
+
+        # Adding M2M table for field submissions on 'XFormReportSubmission'
+        db.create_table('rapidsms_xforms_xformreportsubmission_submissions', (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('xformreportsubmission', models.ForeignKey(orm['rapidsms_xforms.xformreportsubmission'], null=False)),
+            ('xformsubmission', models.ForeignKey(orm['rapidsms_xforms.xformsubmission'], null=False))
+        ))
+        db.create_unique('rapidsms_xforms_xformreportsubmission_submissions', ['xformreportsubmission_id', 'xformsubmission_id'])
 
 
     def backwards(self, orm):
@@ -47,6 +54,9 @@ class Migration(SchemaMigration):
 
         # Deleting model 'XFormReportSubmission'
         db.delete_table('rapidsms_xforms_xformreportsubmission')
+
+        # Removing M2M table for field submissions on 'XFormReportSubmission'
+        db.delete_table('rapidsms_xforms_xformreportsubmission_submissions')
 
 
     models = {
@@ -326,7 +336,6 @@ class Migration(SchemaMigration):
             'frequency': ('django.db.models.fields.CharField', [], {'max_length': '32'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '32'}),
-            'submissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['rapidsms_xforms.XFormSubmission']", 'through': "orm['rapidsms_xforms.XFormReportSubmission']", 'symmetrical': 'False'}),
             'xforms': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['rapidsms_xforms.XForm']", 'through': "orm['rapidsms_xforms.XFormList']", 'symmetrical': 'False'})
         },
         'rapidsms_xforms.xformreportsubmission': {
@@ -335,7 +344,7 @@ class Migration(SchemaMigration):
             'report': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rapidsms_xforms.XFormReport']"}),
             'start_date': ('django.db.models.fields.DateTimeField', [], {}),
             'status': ('django.db.models.fields.CharField', [], {'max_length': '10'}),
-            'submission': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rapidsms_xforms.XFormSubmission']"})
+            'submissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['rapidsms_xforms.XFormSubmission']", 'symmetrical': 'False'})
         },
         'rapidsms_xforms.xformsubmission': {
             'Meta': {'object_name': 'XFormSubmission'},
