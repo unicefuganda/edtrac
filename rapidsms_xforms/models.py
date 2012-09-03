@@ -1157,9 +1157,8 @@ class XFormReport(models.Model):
     name = models.CharField(max_length=32, help_text="Human readable name")
     frequency = models.CharField(max_length=32, help_text="How often the report is generated")
     constraints = PickledObjectField() # [ constraint1, constraint2, ... , constraintN ]
-    submissions = models.ManyToManyField(XFormSubmission, through='XFormReportSubmission')
     xforms = models.ManyToManyField(XForm, through='XFormList')
-
+    
     def __unicode__(self):
         return self.name
     
@@ -1175,15 +1174,19 @@ class XFormList(models.Model):
 
 class XFormReportSubmission(models.Model):
     """
-    Intermediary model of the Many:Many relationship between XFormReport and XFormSubmission
+    Instance of an XFormReport. One will be created per reporting group per reporting period.
+    
+    Has the following relationships:
+        1. XFormReport:XFormReportSubmission = 1:Many
+        2. XFormReportSubmission:XFormSubmission = Many:Many
     """
     report = models.ForeignKey(XFormReport)
-    submission = models.ForeignKey(XFormSubmission)
+    submissions = models.ManyToManyField(XFormSubmission)
     start_date = models.DateTimeField('First date of the period of the report')
     status = models.CharField(max_length=10)
     
     def __unicode__(self):
-        return 'beginning "{0}"'.format(self.start_date)
+        return '{0} beginning "{1}"'.format(self.report, self.start_date)
 
 # Signal triggered whenever an xform is received.  The caller can derive from the submission
 # whether it was successfully parsed or not and do what they like with it.
