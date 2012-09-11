@@ -3,3 +3,5 @@
 *.pyc
 localsettings.py
 edtrac_projects/media
+build
+patch
