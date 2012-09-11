@@ -61,40 +61,27 @@ def next_relativedate(day_offset, month_offset=0):
         d = datetime.datetime(d.year, d.month, 1, d.hour, d.minute, d.second, d.microsecond)
     return d + datetime.timedelta(day)
 
+def time_to_10am(d):
+    return datetime.datetime(d.year, d.month, d.day, 10, 0, 0, 0)
+
 def _next_thursday(sp=None, **kwargs):
     """
     Next Thursday is the very next Thursday of the week which is not a school holiday
     """
     holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
-    time_schedule = kwargs.get('time_set') if kwargs.has_key('time_set') else datetime.datetime.now()
     if sp:
-        #time shaving
-        if sp.time.hour > 10:
-            d = sp.time - datetime.timedelta(hours = sp.time.hour - 10)
-        elif sp.time.hour < 10:
-            d = sp.time + datetime.timedelta(hours = 10 - sp.time.hour)
-        else:
-            d = sp.time
-        d = d if d.second == 0 else d - datetime.timedelta(seconds = d.second)
-        d = d if d.minute == 0 else d - datetime.timedelta(minutes = d.minute)
-        d = d if d.microsecond == 0 else d - datetime.timedelta(microseconds = d.microsecond)
+        d = time_to_10am(sp.time)
+    elif kwargs.get('time_set'):
+        d = time_to_10am(kwargs.has_key('time_set'))
     else:
-        d = time_schedule
-        if d.hour > 10:
-            d = d - datetime.timedelta(hours = d.hour - 10)
-        elif d.hour < 10:
-            d = sp.time + datetime.timedelta(hours = 10 - sp.time.hour)
-        d = d if d.second == 0 else d - datetime.timedelta(seconds = d.second)
-        d = d if d.minute == 0 else d - datetime.timedelta(minutes = d.minute)
-        d = d if d.microsecond == 0 else d - datetime.timedelta(microseconds = d.microsecond)
-
+        d = time_to_10am(datetime.datetime.now())
 
     if d.weekday() == 3: # if a thursday
         d = d + datetime.timedelta(days = 7)
-    elif d.weekday() > 3:
-        d = d - datetime.timedelta(days = d.weekday()-3)
+    elif d.weekday() < 3:
+        d = d + datetime.timedelta(days = (3 - d.weekday()))
     else:
-        d = d + datetime.timedelta(days = 3 - d.weekday())
+        d = d + (datetime.timedelta(days = (7 - d.weekday()) + 3))
 
     in_holiday = True
     while in_holiday:
@@ -120,12 +107,13 @@ def _this_thursday(sp=None, **kwargs):
     holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
     time_schedule = kwargs.get('time_set') if kwargs.has_key('time_set') else datetime.datetime.now()
     d = sp.time if sp else time_schedule
-    if d.weekday() == 3:
-        d = d # no decrement
-    elif d.weekday() < 3:
-        d = d + datetime.timedelta(days = 3 - d.weekday())
-    else:
-        d = d - datetime.timedelta(days = d.weekday() - 3)
+#    if d.weekday() == 3:
+#        d = d # no decrement
+#    elif d.weekday() < 3:
+#        d = d + datetime.timedelta(days = 3 - d.weekday())
+#    else:
+#        d = d - datetime.timedelta(days = d.weekday() - 3)
+    d = d + datetime.timedelta((3 - d.weekday()) % 7)
     in_holiday = True
     while in_holiday:
         in_holiday = False
@@ -324,43 +312,23 @@ def _schedule_weekly_scripts(group, connection, grps):
     and it sets the start time for a script to _next_thursday() relative to either current date
     or the date that is currently in ScriptProgress
     """
+    
     if group.name in grps:
         script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
-        now = datetime.datetime.now()
-
-        if ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug=script_slug)).exists():
-            sp = ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug=script_slug))[0]
+        #Since script_was_completed is sent before progress is deleted, chances are you will find connection and script existing
+        if ScriptProgress.objects.filter(connection=connection, script__slug=script_slug).exists():
+            sp = ScriptProgress.objects.filter(connection=connection, script__slug=script_slug)[0]
             d = _next_thursday(sp=sp)
         else:
-            d = _next_thursday(time_set=now)
+            d = _next_thursday()
+    else:
+        #Reporter is not in group that receives weekly messages so, we don't schedule them for any weekly messages
+        return
+    
+    #create new scriptprogress regardless
+    sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
+    sp.set_time(d)
 
-        #if reporter is a teacher set in the script session only if this reporter has a grade
-        if connection.contact.emisreporter.groups.filter(name='Teachers').exists():
-            if connection.contact.emisreporter.grade and connection.contact.emisreporter.schools.exists():
-                # get rid of any existing script progress; this is a one time thing
-                #ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug=script_slug)).delete()
-                if not ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug=script_slug)).exists():
-                    #reschedule user only if their ScriptProgresses have been expired
-                    sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-                    sp.set_time(d)
-            else:
-                pass # do nothing, jump to next iteration
-        elif connection.contact.emisreporter.groups.filter(name__in = ["Head Teachers", "SMC", "GEM"]).exists() and \
-             connection.contact.emisreporter.groups.filter(name__in = ["Head Teachers", "SMC", "GEM"]).count()==1 and \
-            not Blacklist.objects.filter(connection=connection).exists():
-
-            if ScriptProgress.objects.filter(connection=connection,
-                time__lte=datetime.datetime.now(),
-                script=Script.objects.get(slug = script_slug)).exists():
-                # if by today, the script hasn't been expired, delete it and set it up
-                ScriptProgress.objects.filter(connection=connection, script=Script.objects.get(slug = script_slug)).delete()
-
-            if not ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug=script_slug)).exists():
-                # set user to new script only if they have completed Script polls
-                sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-                sp.set_time(d)
-        else:
-            pass # do nothing if reporter has no recognizable group. e.g. Other Reporters or unessential sms receiver groups like DEO/MEO, UNICEF Officials, etc.
 
 
 def _schedule_weekly_scripts_now(group, connection, grps):

@@ -15,9 +15,10 @@ class Command(BaseCommand):
     )
     def handle(self, **options):
         if not options['group']:
-            group = raw_input('For which group? -- Teachers, SMC, Head Teachers:')
+            group = raw_input('For which group? -- Teachers, SMC, Head Teachers, All:')
         else:
             group = options['group']
-        reschedule_weekly_polls(group)
+        group = None if options['group'] == 'All' else group
+        reschedule_weekly_polls(grp=group)
         self.stdout.write('')
         self.stdout.write('Done')

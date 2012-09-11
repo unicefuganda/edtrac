@@ -16,6 +16,7 @@ from script.signals import script_progress_was_completed, script_progress
 from script.models import *
 from script.utils.handling import find_best_response, find_closest_match
 import re, calendar, datetime, time, reversion
+from poll.models import ResponseCategory, Category
 
 class School(models.Model):
     name = models.CharField(max_length=160)
@@ -240,6 +241,40 @@ def parse_fuzzy_number_2(value):
         else:
             return int(num)
 
+def match_group_response(session, response, poll):
+    grp_dict = {'teacher': 'Teachers',\
+                    'hteacher': 'Head Teachers',\
+                    'smc': 'SMC',\
+                    'gem': 'GEM',\
+                    'deo': 'DEO',\
+                    'meo': 'MEO',\
+                    'unknown': 'Other Reporters',\
+                    }
+    resp_cats = {1: 'teacher',\
+                    2: 'hteacher',\
+                    3: 'smc',\
+                    4: 'gem',\
+                    5: 'deo',\
+                    6: 'meo',\
+                    }
+    try:
+        category = Category.objects.get(name=resp_cats[int(response)], poll=poll)
+    except:
+        category = Category.objects.get(name='unknown', poll=poll)
+    try:
+        #some times an answer for role might be missing    
+        resp = session.responses.filter(response__poll=poll, response__has_errors=False).order_by('-response__date')[0]
+        try:
+            rc = ResponseCategory.objects.get(response=resp, category=category)
+            grp = Group.objects.get(name=grp_dict[rc.category.name])
+        except ResponseCategory.DoesNotExist:
+            # if answer was not categorized, put member in "Other Reporters"
+            grp = Group.objects.get(name='Other Reporters')
+    except IndexError:
+        # if no response is given, still put member in Other Reporters
+        grp = Group.objects.get(name='Other Reporters')
+    return grp
+
 def edtrac_autoreg(**kwargs):
     connection = kwargs['connection']
     progress = kwargs['sender']
@@ -269,8 +304,9 @@ def edtrac_autoreg(**kwargs):
     if subcounty:
         subcounty = find_closest_match(subcounty, Location.objects.filter(type__name='sub_county'))
 
-    grp = find_closest_match(role, Group.objects)
-    grp = grp if grp else default_group
+    grp = match_group_response(session, role, role_poll)
+#    grp = find_closest_match(role, Group.objects)
+#    grp = grp if grp else default_group
 
     if subcounty:
         rep_location = subcounty
@@ -291,14 +327,20 @@ def edtrac_autoreg(**kwargs):
 
     connection.contact = contact
     connection.save()
-
-    group = Group.objects.get(name='Other Reporters')
-    default_group = group
-    if role:
-        group = find_closest_match(role, Group.objects) or find_closest_match(role, Group.objects, True)
-        if not group:
-            group = default_group
+    
+    group = grp
+    if contact.groups.count() > 0: 
+        for g in contact.groups.all():
+            contact.groups.remove(g)
     contact.groups.add(group)
+
+#    group = Group.objects.get(name='Other Reporters')
+#    default_group = group
+#    if role:
+#        group = find_closest_match(role, Group.objects) or find_closest_match(role, Group.objects, True)
+#        if not group:
+#            group = default_group
+#    contact.groups.add(group)
 
     if subcounty:
         contact.reporting_location = subcounty
@@ -355,7 +397,7 @@ def edtrac_autoreg(**kwargs):
 def edtrac_reschedule_script(**kwargs):
     connection = kwargs['connection']
     progress = kwargs['sender']
-    #TODO: test whether connection isn't being duplicated into a progress??
+    
     slug = progress.script.slug
     if not progress.script.slug.startswith('edtrac_') or progress.script.slug == 'edtrac_autoreg':
         return
@@ -365,6 +407,7 @@ def edtrac_reschedule_script(**kwargs):
         return
     group = connection.contact.groups.all()[0]
     if slug in ["edtrac_%s" % g.lower().replace(' ', '_') + '_weekly' for g in ['Teachers', 'Head Teachers', 'SMC']]:
+#        import ipdb;ipdb.set_trace()
         _schedule_weekly_scripts(group, connection, ['Teachers', 'Head Teachers', 'SMC'])
     elif slug == 'edtrac_head_teachers_monthly':
         _schedule_monthly_script(group, connection, 'edtrac_head_teachers_monthly', 'last', ['Head Teachers'])
@@ -395,8 +438,9 @@ def edtrac_autoreg_transition(**kwargs):
     role = find_best_response(session, role_poll)
     group = None
 
-    if role:
-        group = find_closest_match(role, Group.objects) or find_closest_match(role, Group.objects, True)
+#    if role:
+#        group = find_closest_match(role, Group.objects) or find_closest_match(role, Group.objects, True)
+    group = match_group_response(session, role, role_poll)
     skipsteps = {
         'edtrac_gender':['Head Teachers'],
         'edtrac_subcounty' : ['Teachers', 'Head Teachers', 'SMC', 'GEM'],
@@ -481,9 +525,10 @@ def reschedule_weekly_polls(grp=None):
     Script.objects.filter(slug__in=weekly_scripts.values_list('slug', flat=True)).update(enabled=True)
     grps = Group.objects.filter(name__iexact=grp) if grp else Group.objects.filter(name__in=['Teachers', 'Head Teachers', 'SMC'])
     # get active reporters
+    print grps
     reps = EmisReporter.objects.filter(groups__in=grps)
     for rep in reps:
-        if rep.default_connection and rep.groups.count() > 0:
+        if rep.default_connection and len(rep.groups.all()) > 0:
             _schedule_weekly_scripts(rep.groups.all()[0], rep.default_connection, ['Teachers', 'Head Teachers', 'SMC'])
 
 

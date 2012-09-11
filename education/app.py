@@ -1,6 +1,6 @@
 import difflib
 from rapidsms.apps.base import AppBase
-from script.models import Script, ScriptProgress
+from script.models import Script, ScriptProgress, ScriptSession
 from django.conf import settings
 from unregister.models import Blacklist
 from uganda_common.utils import handle_dongle_sms
@@ -14,7 +14,7 @@ class App (AppBase):
             return True
 
         if message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_OUT_WORDS', ['quit'])]:
-
+            
             if Blacklist.objects.filter(connection=message.connection).exists():
                 message.respond('You cannot send Quit to 6200 (EduTrac) more than once.')
                 return True
@@ -25,7 +25,9 @@ class App (AppBase):
                     return True
 
                 Blacklist.objects.create(connection=message.connection)
-                ScriptProgress.objects.exclude(script__slug="edtrac_autoreg").filter(connection=message.connection).delete() # delete other script progress only place reporter to right one
+#                ScriptProgress.objects.exclude(script__slug="edtrac_autoreg").filter(connection=message.connection).delete() # delete other script progress only place reporter to right one
+                ScriptProgress.objects.filter(connection=message.connection).delete() # delete all script progress since the user has quit
+                ScriptSession.objects.filter(connection=message.connection, end_time=None).delete() # the non closed out sessions need to be expunged as well
                 if (message.connection.contact):
                     message.connection.contact.active = False
                     message.connection.contact.save()
@@ -33,6 +35,7 @@ class App (AppBase):
                 return True
 
         elif message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', ['join'])]:
+            
             if not message.connection.contact:
                 if ScriptProgress.objects.filter(script__slug='edtrac_autoreg', connection=message.connection).count() == 0:
                     ScriptProgress.objects.create(script=Script.objects.get(slug="edtrac_autoreg"),\
