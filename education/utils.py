@@ -24,6 +24,9 @@ from django.db.models import Avg
 from unregister.models import Blacklist
 from time import strftime
 
+def time_to_10am(d):
+    return datetime.datetime(d.year, d.month, d.day, 10, 0, 0, 0)
+
 def previous_calendar_week(t=None):
     """
     To education monitoring, a week runs between Thursdays, 
@@ -59,10 +62,8 @@ def next_relativedate(day_offset, month_offset=0):
         d = d + dateutils.relativedelta(day=31)
     else:
         d = datetime.datetime(d.year, d.month, 1, d.hour, d.minute, d.second, d.microsecond)
+    d = time_to_10am(d)
     return d + datetime.timedelta(day)
-
-def time_to_10am(d):
-    return datetime.datetime(d.year, d.month, d.day, 10, 0, 0, 0)
 
 def _next_thursday(sp=None, **kwargs):
     """
@@ -202,7 +203,7 @@ def _date_of_monthday(day_offset):
     
     """
     Find the date corresponding to day_offset of the month for example 25th day of of month
-    If the 'day_offset' day of the month is falls in holiday period, 'day_offset' day of
+    If the 'day_offset' day of the month falls in holiday period, 'day_offset' day of
     the following month is returned
     """
     

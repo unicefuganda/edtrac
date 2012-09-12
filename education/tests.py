@@ -629,7 +629,7 @@ class ModelTest(TestCase): #pragma: no cover
 
 
     def testMonthlyHeadTeacherPolls(self):
-        self.register_reporter('head teacher')
+        self.register_reporter('2')
         Script.objects.filter(slug__in=['edtrac_head_teachers_weekly', 'edtrac_head_teachers_monthly', 'edtrac_head_teachers_termly']).update(enabled=True)
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
         d = _date_of_monthday('last')
@@ -653,8 +653,64 @@ class ModelTest(TestCase): #pragma: no cover
         prog = ScriptProgress.objects.get(script__slug='edtrac_head_teachers_monthly', connection=self.connection)
         check_progress(prog.script)
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
+        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.hour, 10)
         seconds_to_nextprog = self.total_seconds(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time - datetime.datetime.now())
         seconds_to_monthday = self.total_seconds(_date_of_monthday('last') - datetime.datetime.now())
+        self.assertEquals(seconds_to_nextprog, seconds_to_monthday)
+        
+    def testMonthlySMCPolls(self):
+        self.register_reporter('3')
+        Script.objects.filter(slug__in=['edtrac_smc_weekly', 'edtrac_smc_monthly', 'edtrac_smc_termly']).update(enabled=True)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_smc_monthly', connection=self.connection)
+        d = _date_of_monthday(5)
+        seconds_to_5th = self.total_seconds(d - datetime.datetime.now())
+        self.elapseTime2(prog, seconds_to_5th+(1*60*60)) #seconds to 5th + one hour
+        prog = ScriptProgress.objects.get(script__slug='edtrac_smc_monthly', connection=self.connection)
+        check_progress(prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_smc_monthly').steps.get(order=0).poll.question)
+        self.fake_incoming('50%')
+        self.assertEquals(Script.objects.get(slug='edtrac_smc_monthly').steps.get(order=0).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 50)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_smc_monthly', connection=self.connection)
+        self.elapseTime2(prog, 61)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_smc_monthly', connection=self.connection)
+        check_progress(prog.script)
+        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
+        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.hour, 10)
+        seconds_to_nextprog = self.total_seconds(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time - datetime.datetime.now())
+        seconds_to_monthday = self.total_seconds(_date_of_monthday(5) - datetime.datetime.now())
+        self.assertEquals(seconds_to_nextprog, seconds_to_monthday)
+
+    def testMonthlyGEMPolls(self):
+        self.register_reporter('4')
+        Script.objects.filter(slug__in=['edtrac_gem_monthly']).update(enabled=True)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_gem_monthly', connection=self.connection)
+        d = _date_of_monthday(20)
+        seconds_to_20th = self.total_seconds(d - datetime.datetime.now())
+        self.elapseTime2(prog, seconds_to_20th+(1*60*60)) #seconds to 20th day + one hour
+        prog = ScriptProgress.objects.get(script__slug='edtrac_gem_monthly', connection=self.connection)
+        check_progress(prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_gem_monthly').steps.get(order=0).poll.question)
+        self.fake_incoming('St Peters PS, St John PS')
+        self.assertEquals(Script.objects.get(slug='edtrac_gem_monthly').steps.get(order=0).poll.responses.all().order_by('-date')[0].eav.poll_text_value, 'St Peters PS, St John PS')
+        self.elapseTime2(prog, 1)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_gem_monthly', connection=self.connection)
+        check_progress(prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_gem_monthly').steps.get(order=1).poll.question)
+        self.fake_incoming('St Peters PS, St John PS')
+        self.assertEquals(Script.objects.get(slug='edtrac_gem_monthly').steps.get(order=1).poll.responses.all().order_by('-date')[0].eav.poll_text_value, 'St Peters PS, St John PS')
+        self.elapseTime2(prog, 1)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_gem_monthly', connection=self.connection)
+        check_progress(prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_gem_monthly').steps.get(order=2).poll.question)
+        self.fake_incoming('50')
+        self.assertEquals(Script.objects.get(slug='edtrac_gem_monthly').steps.get(order=2).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 50)
+        self.elapseTime2(prog, 61)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_gem_monthly', connection=self.connection)
+        check_progress(prog.script)
+        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
+        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.hour, 10)
+        seconds_to_nextprog = self.total_seconds(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time - datetime.datetime.now())
+        seconds_to_monthday = self.total_seconds(_date_of_monthday(20) - datetime.datetime.now())
         self.assertEquals(seconds_to_nextprog, seconds_to_monthday)
 
 
@@ -717,26 +773,6 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.time().hour, d.time().hour)
     #        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.time().minute, d.time().minute)
 
-    def testMonthlySMCPolls(self):
-        self.register_reporter('smc')
-        Script.objects.filter(slug__in=['edtrac_smc_weekly', 'edtrac_smc_monthly', 'edtrac_smc_termly']).update(enabled=True)
-        prog = ScriptProgress.objects.get(script__slug='edtrac_smc_monthly', connection=self.connection)
-        d = _date_of_monthday(5)
-        seconds_to_5th = self.total_seconds(d - datetime.datetime.now())
-        self.elapseTime2(prog, seconds_to_5th+(1*60*60)) #seconds to 5th + one hour
-        prog = ScriptProgress.objects.get(script__slug='edtrac_smc_monthly', connection=self.connection)
-        check_progress(prog.script)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_smc_monthly').steps.get(order=0).poll.question)
-        self.fake_incoming('50%')
-        self.assertEquals(Script.objects.get(slug='edtrac_smc_monthly').steps.get(order=0).poll.responses.all().order_by('-date')[0].eav.poll_number_value, 50)
-        prog = ScriptProgress.objects.get(script__slug='edtrac_smc_monthly', connection=self.connection)
-        self.elapseTime2(prog, 61)
-        prog = ScriptProgress.objects.get(script__slug='edtrac_smc_monthly', connection=self.connection)
-        check_progress(prog.script)
-        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).__unicode__(), 'Not Started')
-        seconds_to_nextprog = self.total_seconds(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time - datetime.datetime.now())
-        seconds_to_monthday = self.total_seconds(_date_of_monthday(5) - datetime.datetime.now())
-        self.assertEquals(seconds_to_nextprog, seconds_to_monthday)
 
     def testRescheduleWeeklyPolls(self):
         ScriptProgress.objects.all().delete()
@@ -766,10 +802,10 @@ class ModelTest(TestCase): #pragma: no cover
 
     def testRescheduleMonthlyPolls(self):
         ScriptProgress.objects.all().delete()
-        self.register_reporter('teacher', '8675349')
-        self.register_reporter('head teacher', '8675319')
-        self.register_reporter('smc', '8675329')
-        self.register_reporter('gem', '8675339')
+        self.register_reporter('1', '8675349')
+        self.register_reporter('2', '8675319')
+        self.register_reporter('3', '8675329')
+        self.register_reporter('4', '8675339')
         monthly_scripts = Script.objects.filter(slug__endswith='_monthly')
         Script.objects.filter(slug__in=monthly_scripts.values_list('slug', flat=True)).update(enabled=True)
         for sp in ScriptProgress.objects.filter(script__slug__in=monthly_scripts.values_list('slug', flat=True)):
@@ -779,11 +815,14 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_monthly').time.date(), _date_of_monthday('last').date())
         reschedule_monthly_polls('smc')
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='edtrac_smc_monthly').time.date(), _date_of_monthday(5).date())
+        reschedule_monthly_polls('gem')
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675339', script__slug='edtrac_gem_monthly').time.date(), _date_of_monthday(20).date())
         for sp in ScriptProgress.objects.filter(script__slug__in=monthly_scripts.values_list('slug', flat=True)):
             self.elapseTime2(sp, 13*31*24*60*60)
         reschedule_monthly_polls()
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_monthly').time.date(), _date_of_monthday('last').date())
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='edtrac_smc_monthly').time.date(), _date_of_monthday(5).date())
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675339', script__slug='edtrac_gem_monthly').time.date(), _date_of_monthday(20).date())
 
     def testRescheduleTermlyPolls(self):
         ScriptProgress.objects.all().delete()
