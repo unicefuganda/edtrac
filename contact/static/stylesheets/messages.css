@@ -41,12 +41,15 @@
     left:0;
     top:3em;
 }
-
+/*
 #div_filter_0 input {
     position:absolute;
 	margin-left:30%;
     left:20%;
     top:0em;
+}*/
+#div_filter_0 input{
+	border: 1px solid #CCCCCC;
 }
 
 #div_filter_1 {
