@@ -267,6 +267,23 @@ class ModelTest(TestCase): #pragma: no cover
         #without a role a reporter should not be scheduled for any regular polls
         self.assertListEqual(list(ScriptProgress.objects.filter(connection=self.connection).values_list('script__slug', flat=True)), ['edtrac_autoreg'])
 
+    def testAutoRegNoGrade(self):
+        self.fake_incoming('join')
+        script_prog = ScriptProgress.objects.all()[0]
+        self.fake_script_dialog(script_prog, self.connection, [\
+            ('edtrac_role', '1'),\
+            ('edtrac_name', 'no grade tester'),\
+            ('edtrac_district', 'kampala'),\
+            ('edtrac_subcounty', 'Gul'),\
+            ('edtrac_school', 'St Marys'),\
+        ])
+        contact = EmisReporter.objects.all()[0]
+        self.assertEquals(contact.groups.all()[0].name, 'Teachers')
+        self.assertEquals(contact.reporting_location, self.gulu_subcounty)
+        self.assertEquals(contact.name, 'No Grade Tester')
+        #without a grade a reporter should not be scheduled for any regular polls
+        self.assertListEqual(list(ScriptProgress.objects.filter(connection=self.connection).values_list('script__slug', flat=True)), ['edtrac_autoreg'])
+
     def testBasicQuit(self):
         self.register_reporter('1')
         ScriptProgress.objects.filter(script__slug='edtrac_autoreg', connection=self.connection).delete() #script always deletes a connection on completion of registration

@@ -313,7 +313,11 @@ def _schedule_weekly_scripts(group, connection, grps):
     and it sets the start time for a script to _next_thursday() relative to either current date
     or the date that is currently in ScriptProgress
     """
-    
+    #Short curcuit scheduling teachers without grades
+    if group.name == 'Teachers':
+        if not connection.contact.emisreporter.grade:
+            return
+        
     if group.name in grps:
         script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
         #Since script_was_completed is sent before progress is deleted, chances are you will find connection and script existing

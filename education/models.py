@@ -550,6 +550,7 @@ def reschedule_monthly_polls(grp=None):
         # get list of active reporters
         reps = EmisReporter.objects.filter(groups__in=grps)
         for rep in reps:
+            print 'processing %s' % rep.name
             if rep.default_connection and rep.groups.count() > 0:
                 if slug == 'edtrac_teachers_monthly':
                     _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'edtrac_teachers_monthly', 'last', ['Teachers'])
