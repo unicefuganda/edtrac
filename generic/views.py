@@ -175,6 +175,7 @@ def generic(request,
     ranges=[]
     paginator = None
     paginator_dict={}
+    request.session['queryset']=filtered_list
     if paginated:
        if not paginator_func:
            paginator_dict=paginate(filtered_list,objects_per_page,page,p)
