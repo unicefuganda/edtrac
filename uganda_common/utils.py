@@ -35,7 +35,7 @@ def get_location_for_user(user):
             return Location.objects.get(name__icontains=user.username, type__name='district')
         except:
             try:
-                if Contact.objects.filter(user=user).exclude(reporting_location=None).count():
+                if Contact.objects.filter(user=user).exclude(reporting_location=None):
                     return Contact.objects.filter(user=user).exclude(reporting_location=None)[0].reporting_location
             except:
                 pass
