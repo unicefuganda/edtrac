@@ -1,13 +1,5 @@
 [
     {
-        "pk": 5, 
-        "model": "sites.site", 
-        "fields": {
-            "domain": "edtrac.unicefuganda.org", 
-            "name": ""
-        }
-    },
-    {
         "pk": 49, 
         "model": "auth.group", 
         "fields": {
@@ -60,14 +52,6 @@
         "model": "auth.group", 
         "fields": {
             "name": "District Officials", 
-            "permissions": []
-        }
-    }, 
-    {
-        "pk": 111, 
-        "model": "auth.group", 
-        "fields": {
-            "name": "Other Reporters", 
             "permissions": []
         }
     }, 
@@ -486,6 +470,14 @@
                 232, 
                 233
             ]
+        }
+    }, 
+    {
+        "pk": 117, 
+        "model": "auth.group", 
+        "fields": {
+            "name": "Other Reporters", 
+            "permissions": []
         }
     },
     {
