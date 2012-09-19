@@ -24,6 +24,8 @@ from django.core.management import call_command
 from unregister.models import Blacklist
 from education.utils import _next_thursday, _date_of_monthday, _next_midterm, _next_term_question_date
 from poll.models import ResponseCategory
+from .models import match_group_response
+from script.utils.handling import find_best_response
 import difflib
 
 class ModelTest(TestCase): #pragma: no cover
@@ -153,13 +155,6 @@ class ModelTest(TestCase): #pragma: no cover
         return ss
 
     def register_reporter(self, grp, phone=None):
-#        grp_dict = {1: 'Teachers',\
-#                    2: 'Head Teachers',\
-#                    3: 'SMC',\
-#                    4: 'GEM',\
-#                    5: 'DEO',\
-#                    6: 'MEO',\
-#                    }
         connection = Connection.objects.create(identity=phone, backend=self.backend) if phone else self.connection
         self.fake_incoming('join', connection)
         script_prog = ScriptProgress.objects.filter(script__slug='edtrac_autoreg').order_by('-time')[0]
@@ -549,6 +544,75 @@ class ModelTest(TestCase): #pragma: no cover
             self.assertEquals(3, _next_thursday(set_time=set_time).weekday()) 
             self.assertEquals(10, _next_thursday(set_time=set_time).hour) 
             
+    def testRoleAssignment(self):
+        """
+        Test the multiple response role question, it should match 
+        the provided response option to the appropriate grup
+        """
+        #Option 1 should be matched to teachers
+        self.register_reporter('1')
+        prog = ScriptProgress.objects.get(script__slug='edtrac_autoreg', connection=self.connection)
+        session = ScriptSession.objects.filter(script=prog.script, connection=self.connection).order_by('-end_time')[0]
+        role_poll = prog.script.steps.get(poll__name='edtrac_role').poll
+        role = find_best_response(session, role_poll)
+        group = match_group_response(session, role, role_poll)
+        self.assertEquals(group.name, "Teachers")
+        
+        #Option 2 should be matched to head teachers
+        self.register_reporter('2', '8675319')
+        prog = ScriptProgress.objects.get(script__slug='edtrac_autoreg', connection__identity='8675319')
+        session = ScriptSession.objects.filter(script=prog.script, connection__identity='8675319').order_by('-end_time')[0]
+        role_poll = prog.script.steps.get(poll__name='edtrac_role').poll
+        role = find_best_response(session, role_poll)
+        group = match_group_response(session, role, role_poll)
+        self.assertEquals(group.name, "Head Teachers")
+        
+        #Option 3 should be matched to SMC
+        self.register_reporter('3', '8675329')
+        prog = ScriptProgress.objects.get(script__slug='edtrac_autoreg', connection__identity='8675329')
+        session = ScriptSession.objects.filter(script=prog.script, connection__identity='8675329').order_by('-end_time')[0]
+        role_poll = prog.script.steps.get(poll__name='edtrac_role').poll
+        role = find_best_response(session, role_poll)
+        group = match_group_response(session, role, role_poll)
+        self.assertEquals(group.name, "SMC")
+        
+        #Option 4 should be matched to GEM
+        self.register_reporter('4', '8675339')
+        prog = ScriptProgress.objects.get(script__slug='edtrac_autoreg', connection__identity='8675339')
+        session = ScriptSession.objects.filter(script=prog.script, connection__identity='8675339').order_by('-end_time')[0]
+        role_poll = prog.script.steps.get(poll__name='edtrac_role').poll
+        role = find_best_response(session, role_poll)
+        group = match_group_response(session, role, role_poll)
+        self.assertEquals(group.name, "GEM")
+        
+        #Option 5 should be matched to DEO
+        self.register_reporter('5', '8675349')
+        prog = ScriptProgress.objects.get(script__slug='edtrac_autoreg', connection__identity='8675349')
+        session = ScriptSession.objects.filter(script=prog.script, connection__identity='8675349').order_by('-end_time')[0]
+        role_poll = prog.script.steps.get(poll__name='edtrac_role').poll
+        role = find_best_response(session, role_poll)
+        group = match_group_response(session, role, role_poll)
+        self.assertEquals(group.name, "DEO")
+        
+        #Option 6 should be matched to MEO
+        self.register_reporter('6', '8675359')
+        prog = ScriptProgress.objects.get(script__slug='edtrac_autoreg', connection__identity='8675359')
+        session = ScriptSession.objects.filter(script=prog.script, connection__identity='8675359').order_by('-end_time')[0]
+        role_poll = prog.script.steps.get(poll__name='edtrac_role').poll
+        role = find_best_response(session, role_poll)
+        group = match_group_response(session, role, role_poll)
+        self.assertEquals(group.name, "MEO")
+        
+        #Unknown Option should be matched to "Other Reporters
+        self.register_reporter('7', '8675369')
+        prog = ScriptProgress.objects.get(script__slug='edtrac_autoreg', connection__identity='8675369')
+        session = ScriptSession.objects.filter(script=prog.script, connection__identity='8675369').order_by('-end_time')[0]
+        role_poll = prog.script.steps.get(poll__name='edtrac_role').poll
+        role = find_best_response(session, role_poll)
+        group = match_group_response(session, role, role_poll)
+        self.assertEquals(group.name, "Other Reporters")
+        
+            
 #Weekly Polls, tests
 #Teachers
     def testWeeklyTeacherPolls(self):
@@ -556,7 +620,6 @@ class ModelTest(TestCase): #pragma: no cover
         Script.objects.filter(slug__in=['edtrac_teachers_weekly', 'edtrac_teachers_monthly']).update(enabled=True)
         prog = ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly', connection=self.connection)
         seconds_to_thursday = self.total_seconds(_next_thursday() - datetime.datetime.now())
-        print _next_thursday()
         self.elapseTime2(prog, seconds_to_thursday+(1*60*60)) #seconds to thursday + one hour
         prog = ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly', connection=self.connection)
         check_progress(prog.script)
@@ -789,6 +852,46 @@ class ModelTest(TestCase): #pragma: no cover
         # micro seconds make test fail
         self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.time().hour, d.time().hour)
     #        self.assertEquals(ScriptProgress.objects.get(connection=self.connection, script=prog.script).time.time().minute, d.time().minute)
+    
+    def testPollRetryRules(self):
+        self.register_reporter('1')
+        Script.objects.filter(slug__in=['edtrac_teachers_weekly', 'edtrac_teachers_monthly']).update(enabled=True)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly', connection=self.connection)
+        seconds_to_thursday = self.total_seconds(_next_thursday() - datetime.datetime.now())
+        self.elapseTime2(prog, seconds_to_thursday+(1*60*60)) #seconds to thursday + one hour
+        prog = ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly', connection=self.connection)
+        check_progress(prog.script)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_teachers_weekly').steps.get(order=0).poll.question)
+        check_progress(prog.script)
+        #script should remain on the same step
+        self.assertEquals(ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly').step.order, 0)
+        #no double questioning
+        self.assertEquals(Message.objects.filter(direction='O', text=Script.objects.get(slug='edtrac_teachers_weekly').steps.get(order=0).poll.question).count(), 1)
+        #if time < retry_offset
+        self.elapseTime2(prog, 61)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly', connection=self.connection)
+        check_progress(prog.script)
+        #script should remain on the same step
+        self.assertEquals(ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly').step.order, 0)
+        #no double questioning
+        self.assertEquals(Message.objects.filter(direction='O', text=Script.objects.get(slug='edtrac_teachers_weekly').steps.get(order=0).poll.question).count(), 1)
+        #if time < retry_offset
+        self.elapseTime2(prog, (86400 - 60))
+        prog = ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly', connection=self.connection)
+        check_progress(prog.script)
+        #script should remain on the same step
+        self.assertEquals(ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly').step.order, 0)
+        #no double questioning
+        self.assertEquals(Message.objects.filter(direction='O', text=Script.objects.get(slug='edtrac_teachers_weekly').steps.get(order=0).poll.question).count(), 1)
+        #elapse retry_offset ===> another 3 seconds subtructed from scriptprogress.time
+        self.elapseTime2(prog, 3)
+        prog = ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly', connection=self.connection)
+        check_progress(prog.script)
+        #script should remain on the same step
+        self.assertEquals(ScriptProgress.objects.get(script__slug='edtrac_teachers_weekly').step.order, 0)
+        #the question should be resent out!
+        self.assertEquals(Message.objects.filter(direction='O', text=Script.objects.get(slug='edtrac_teachers_weekly').steps.get(order=0).poll.question).count(), 2)
+        self.fake_incoming('40')
 
 
     def testRescheduleWeeklyPolls(self):
