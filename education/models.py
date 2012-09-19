@@ -250,15 +250,15 @@ def match_group_response(session, response, poll):
                     'meo': 'MEO',\
                     'unknown': 'Other Reporters',\
                     }
-    resp_cats = {1: 'teacher',\
-                    2: 'hteacher',\
-                    3: 'smc',\
-                    4: 'gem',\
-                    5: 'deo',\
-                    6: 'meo',\
+    resp_cats = {'1': 'teacher',\
+                '2': 'hteacher',\
+                '3': 'smc',\
+                '4': 'gem',\
+                '5': 'deo',\
+                '6': 'meo',\
                     }
     try:
-        category = Category.objects.get(name=resp_cats[int(response)], poll=poll)
+        category = Category.objects.get(name=resp_cats.get(response.strip(), 'unknown'), poll=poll)
     except:
         category = Category.objects.get(name='unknown', poll=poll)
     try:
