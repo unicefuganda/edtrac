@@ -442,22 +442,22 @@ def edtrac_autoreg_transition(**kwargs):
 #        group = find_closest_match(role, Group.objects) or find_closest_match(role, Group.objects, True)
     if role:
         group = match_group_response(session, role, role_poll)
-    skipsteps = {
-        'edtrac_gender':['Head Teachers'],
-        'edtrac_subcounty' : ['Teachers', 'Head Teachers', 'SMC', 'GEM'],
-        'edtrac_class':['Teachers'],
-        'edtrac_school':['Teachers', 'Head Teachers', 'SMC']
-    }
-    skipped = True
-    while group and skipped:
-        skipped = False
-        for step_name, roles in skipsteps.items():
-            if  progress.step.poll and\
-                progress.step.poll.name == step_name and group.name not in roles:
-                skipped = True
-                progress.step = progress.script.steps.get(order=progress.step.order + 1)
-                progress.save()
-                break
+        skipsteps = {
+            'edtrac_gender':['Head Teachers'],
+            'edtrac_subcounty' : ['Teachers', 'Head Teachers', 'SMC', 'GEM'],
+            'edtrac_class':['Teachers'],
+            'edtrac_school':['Teachers', 'Head Teachers', 'SMC']
+        }
+        skipped = True
+        while group and skipped:
+            skipped = False
+            for step_name, roles in skipsteps.items():
+                if  progress.step.poll and\
+                    progress.step.poll.name == step_name and group.name not in roles:
+                    skipped = True
+                    progress.step = progress.script.steps.get(order=progress.step.order + 1)
+                    progress.save()
+                    break
 
 def edtrac_attendance_script_transition(**kwargs):
     connection = kwargs['connection']

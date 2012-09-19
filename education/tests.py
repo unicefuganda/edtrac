@@ -427,6 +427,26 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(contact.groups.all()[0].name, 'MEO')
         self.assertEquals(ScriptProgress.objects.filter(connection=self.connection).count(), 1)
         self.assertListEqual(list(ScriptProgress.objects.filter(connection=self.connection).values_list('script__slug', flat=True)), ['edtrac_autoreg'])
+        
+    def testTeacherAutoregKannelGetUrl(self):
+        from django.test.client import Client
+        get_url = '/router/receive/?password=%s&backend=%s&sender=%s&message=%s'
+        msg = 'Join'
+        sender = '8675319'
+        backend = 'test'
+        password = 'p73TestP'
+        c = Client()
+        resp = c.get(get_url % (password, backend, sender, msg))
+        Script.objects.filter(slug='edtrac_autoreg').update(enabled=True)
+        script_prog = ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_autoreg')
+        self.elapseTime2(script_prog, 61)
+        call_command('check_script_progress', e=8, l=24)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_autoreg').steps.get(order=0).poll.question)
+        c.get(get_url % (password, backend, sender, '1'))
+        script_prog = ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_autoreg')
+        self.elapseTime2(script_prog, 61)
+        call_command('check_script_progress', e=8, l=24)
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_autoreg').steps.get(order=2).poll.question)
 
     def testTeacherAutoregProgression(self):
         Script.objects.filter(slug='edtrac_autoreg').update(enabled=True)
