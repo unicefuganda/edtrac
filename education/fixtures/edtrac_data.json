@@ -650,7 +650,7 @@
         "fields": {
             "script": "edtrac_autoreg", 
             "retry_offset": 86400, 
-            "rule": "M", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 0, 
@@ -666,7 +666,7 @@
         "fields": {
             "script": "edtrac_autoreg", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 0, 
@@ -682,7 +682,7 @@
         "fields": {
             "script": "edtrac_autoreg", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 0, 
@@ -698,7 +698,7 @@
         "fields": {
             "script": "edtrac_autoreg", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -730,7 +730,7 @@
         "fields": {
             "script": "edtrac_head_teachers_weekly", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -746,7 +746,7 @@
         "fields": {
             "script": "edtrac_head_teachers_weekly", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -762,7 +762,7 @@
         "fields": {
             "script": "edtrac_smc_termly", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -778,7 +778,7 @@
         "fields": {
             "script": "edtrac_smc_termly", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -794,7 +794,7 @@
         "fields": {
             "script": "edtrac_teachers_weekly", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -810,7 +810,7 @@
         "fields": {
             "script": "edtrac_teachers_weekly", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -826,7 +826,7 @@
         "fields": {
             "script": "edtrac_teachers_weekly", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -842,7 +842,7 @@
         "fields": {
             "script": "edtrac_teachers_weekly", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -858,7 +858,7 @@
         "fields": {
             "script": "edtrac_head_teachers_monthly", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -874,7 +874,7 @@
         "fields": {
             "script": "edtrac_head_teachers_monthly", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -890,7 +890,7 @@
         "fields": {
             "script": "edtrac_smc_monthly", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -906,7 +906,7 @@
         "fields": {
             "script": "edtrac_smc_weekly", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -922,7 +922,7 @@
         "fields": {
             "script": "edtrac_gem_monthly", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -938,7 +938,7 @@
         "fields": {
             "script": "edtrac_teachers_weekly", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -954,7 +954,7 @@
         "fields": {
             "script": "edtrac_head_teachers_termly", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -970,7 +970,7 @@
         "fields": {
             "script": "edtrac_head_teachers_termly", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -986,7 +986,7 @@
         "fields": {
             "script": "edtrac_head_teachers_termly", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -1002,7 +1002,7 @@
         "fields": {
             "script": "edtrac_head_teachers_termly", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -1018,7 +1018,7 @@
         "fields": {
             "script": "edtrac_head_teachers_termly", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -1034,7 +1034,7 @@
         "fields": {
             "script": "edtrac_head_teachers_termly", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -1050,7 +1050,7 @@
         "fields": {
             "script": "edtrac_head_teachers_termly", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -1066,7 +1066,7 @@
         "fields": {
             "script": "edtrac_gem_monthly", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -1082,7 +1082,7 @@
         "fields": {
             "script": "edtrac_gem_monthly", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -1098,7 +1098,7 @@
         "fields": {
             "script": "edtrac_autoreg", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 0, 
@@ -1114,7 +1114,7 @@
         "fields": {
             "script": "edtrac_autoreg", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 0, 
@@ -1130,7 +1130,7 @@
         "fields": {
             "script": "edtrac_autoreg", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 0, 
@@ -1146,7 +1146,7 @@
         "fields": {
             "script": "edtrac_head_teachers_midterm", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 
@@ -1162,7 +1162,7 @@
         "fields": {
             "script": "edtrac_head_teachers_midterm", 
             "retry_offset": 86400, 
-            "rule": "R", 
+            "rule": "w", 
             "email": null, 
             "num_tries": 1, 
             "start_offset": 60, 

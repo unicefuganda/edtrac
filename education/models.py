@@ -434,16 +434,14 @@ def edtrac_autoreg_transition(**kwargs):
         session = ScriptSession.objects.filter(script=progress.script, connection=connection, end_time=None).latest('start_time')
     except ScriptSession.DoesNotExist:
         return
-#    import ipdb;ipdb.set_trace()
     role_poll = script.steps.get(poll__name="edtrac_role").poll
-    role = find_best_response(session, role_poll)
+    role = find_best_response(session, role_poll) if find_best_response(session, role_poll) else None
     group = None
 
 #    if role:
 #        group = find_closest_match(role, Group.objects) or find_closest_match(role, Group.objects, True)
     if role:
         group = match_group_response(session, role, role_poll)
-    print group
     skipsteps = {
         'edtrac_gender':['Head Teachers'],
         'edtrac_subcounty' : ['Teachers', 'Head Teachers', 'SMC', 'GEM'],
