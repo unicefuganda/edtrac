@@ -17,6 +17,9 @@ from script.models import *
 from script.utils.handling import find_best_response, find_closest_match
 import re, calendar, datetime, time, reversion
 from poll.models import ResponseCategory, Category
+import logging
+
+logger = logging.getLogger(__name__)
 
 class School(models.Model):
     name = models.CharField(max_length=160)
@@ -424,7 +427,9 @@ def edtrac_reschedule_script(**kwargs):
 
 
 def edtrac_autoreg_transition(**kwargs):
-
+    
+    logger.info('Keyword arguments: %s' % kwargs)
+    
     connection = kwargs['connection']
     progress = kwargs['sender']
     if not progress.script.slug == 'edtrac_autoreg':
@@ -437,11 +442,16 @@ def edtrac_autoreg_transition(**kwargs):
     role_poll = script.steps.get(poll__name="edtrac_role").poll
     role = find_best_response(session, role_poll) if find_best_response(session, role_poll) else None
     group = None
+    if role:
+        logger.info('Role: %s' % role)
 
 #    if role:
 #        group = find_closest_match(role, Group.objects) or find_closest_match(role, Group.objects, True)
     if role:
         group = match_group_response(session, role, role_poll)
+        
+        logger.info('Identified group: %s'% group.name)
+        
         skipsteps = {
             'edtrac_gender':['Head Teachers'],
             'edtrac_subcounty' : ['Teachers', 'Head Teachers', 'SMC', 'GEM'],
@@ -454,6 +464,9 @@ def edtrac_autoreg_transition(**kwargs):
             for step_name, roles in skipsteps.items():
                 if  progress.step.poll and\
                     progress.step.poll.name == step_name and group.name not in roles:
+                    
+                    logger.info('SKIPPED! %s -> %s:' % (step_name, progress.step.poll.question))
+                    
                     skipped = True
                     progress.step = progress.script.steps.get(order=progress.step.order + 1)
                     progress.save()

@@ -446,7 +446,8 @@ class ModelTest(TestCase): #pragma: no cover
         script_prog = ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 61)
         call_command('check_script_progress', e=8, l=24)
-        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_autoreg').steps.get(order=2).poll.question)
+        print Message.objects.all()
+        self.assertEquals(Message.objects.filter(direction='O').order_by('-date')[0].text, Script.objects.get(slug='edtrac_autoreg').steps.get(order=3).poll.question)
 
     def testTeacherAutoregProgression(self):
         Script.objects.filter(slug='edtrac_autoreg').update(enabled=True)
