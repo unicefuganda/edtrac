@@ -44,7 +44,7 @@
 	                <td {% if columns %}colspan="{{ columns|length }}"{% endif %}>
 	                    <span id="span_select_all">Select all</span>
 	                    {% if paginated %}
-	                        <span id="span_select_everything" {% if not selected %}style="display:none"{% endif %}>You have selected all items on this page.  <a href="javascript:void(0)" onclick="select_everything({{ total }})">Click here</a> to select all {{ total }} items.</span>
+	                        <span id="span_select_everything" {% if not selected %}style="display:none"{% endif %}>You have selected all items on this page.  <a href="javascript:void(0)" onclick="select_everything('{{ total }}')">Click here</a> to select all {{ total }} items.</span>
 	                        <input type="hidden" id="input_select_everything" name="select_everythingx" value=""/>
 	                    {% endif %}
 	                </td>
