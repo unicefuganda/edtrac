@@ -301,10 +301,10 @@ class XForm(models.Model):
         """
         sms submissions can have two formats, either explicitely marking each field:
             <keyword> +field_command1 [values] +field_command2 [values]
-        
+
         or ommitting the 'command' for all required fields:
             <keyword> [first required field] [second required field] +field_command3 [first optional field]
-        
+
         Note that if you are using the no-delimeter form, then all string fields are 'assumed' to be
         a single word.  TODO: this could probably be made to be smarter
         """
@@ -436,7 +436,7 @@ class XForm(models.Model):
             while segments:
                 segment = segments.pop(0)
 
-                # if this segment contains a command, set the segment as our command and 
+                # if this segment contains a command, set the segment as our command and
                 # parse this segment
                 if self.is_command(segment, commands):
                     command = segment
@@ -535,7 +535,7 @@ class XForm(models.Model):
                         errors.append("Error. There is a mistake in this report. Please check carefully, only send one SMS report at a time and resend.")
 
         # build a map of the number of values we have for each included field
-        # TODO: for the love of god, someone show me how to do this in one beautiful Python 
+        # TODO: for the love of god, someone show me how to do this in one beautiful Python
         # lambda, just don't have time now
         value_count = {}
         value_dict = {}
@@ -620,7 +620,7 @@ class XForm(models.Model):
         """
         Given an incoming SMS message, will create a new submission.  If there is an error
         we will throw with the appropriate error message.
-        
+
         The newly created submission object will be returned.
         """
         message = message_obj.text
@@ -701,7 +701,7 @@ class XForm(models.Model):
             for field in self.fields.all():
                 required = field.constraints.all().filter(type="req_val")
 
-                # we are at a field that isn't required?  pop out, these will be dealt with 
+                # we are at a field that isn't required?  pop out, these will be dealt with
                 # in the next block
                 if not required:
                     continue
@@ -849,7 +849,7 @@ class XFormField(Attribute):
         a string to an integer or decimal, or splitting it into two for a gps location.
 
         2) if the coercion into the appropriate type succeeds, then validates then validates the
-        value against any constraints on this field.  
+        value against any constraints on this field.
 
         If either of these steps fails, a ValidationError is raised.  If both are successful
         then the cleaned, Python typed value is returned.
@@ -970,7 +970,7 @@ class XFormFieldConstraint(models.Model):
 
     All constraints also define an error message which will be returned if the constraint fails.
 
-    Constraints are evaluated in order, the first constraint to fail shortcuts all subsequent 
+    Constraints are evaluated in order, the first constraint to fail shortcuts all subsequent
     constraints.
     """
     field = models.ForeignKey(XFormField, related_name='constraints')
@@ -1051,7 +1051,7 @@ SUBMISSION_CHOICES = (
 
 class XFormSubmission(models.Model):
     """
-    Represents an XForm submission.  This acts as an aggregator for the values and a way of 
+    Represents an XForm submission.  This acts as an aggregator for the values and a way of
     storing where the submission came form.
     """
 
@@ -1083,8 +1083,8 @@ class XFormSubmission(models.Model):
 
     def save(self, force_insert=False, force_update=False, using=None):
         """
-        Assigns our confirmation id.  We increment our confirmation id's for each form 
-        for every submission.  
+        Assigns our confirmation id.  We increment our confirmation id's for each form
+        for every submission.
         """
         # everybody gets a confirmation id
         if not self.confirmation_id:
@@ -1158,11 +1158,11 @@ class XFormReport(models.Model):
     frequency = models.CharField(max_length=32, help_text="How often the report is generated")
     constraints = PickledObjectField() # [ constraint1, constraint2, ... , constraintN ]
     xforms = models.ManyToManyField(XForm, through='XFormList')
-    
+
     def __unicode__(self):
         return self.name
-    
-    
+
+
 class XFormList(models.Model):
     """
     Intermediary model of the Many:Many relationship between XForm and XFormReport
@@ -1172,10 +1172,16 @@ class XFormList(models.Model):
     required = models.BooleanField(default=True)
     priority = models.IntegerField()
 
+    class Meta:
+        ordering =['priority']
+
+    def __unicode__(self):
+        return "{0} XFormReport: {1} XForm".format(self.report, self.xform)
+
 class XFormReportSubmission(models.Model):
     """
     Instance of an XFormReport. One will be created per reporting group per reporting period.
-    
+
     Has the following relationships:
         1. XFormReport:XFormReportSubmission = 1:Many
         2. XFormReportSubmission:XFormSubmission = Many:Many
@@ -1184,7 +1190,7 @@ class XFormReportSubmission(models.Model):
     submissions = models.ManyToManyField(XFormSubmission)
     start_date = models.DateTimeField('First date of the period of the report')
     status = models.CharField(max_length=10)
-    
+
     def __unicode__(self):
         return '{0} beginning "{1}"'.format(self.report, self.start_date)
 
