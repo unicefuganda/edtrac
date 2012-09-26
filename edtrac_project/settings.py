@@ -32,7 +32,8 @@ sys.path.append(os.path.join(filedir, 'endless'))
 # -------------------------------------------------------------------- #
 #                          MAIN CONFIGURATION                          #
 # -------------------------------------------------------------------- #
-TIME_ZONE = "Africa/Kampala"
+#TIME_ZONE = "Africa/Kampala"
+TIME_ZONE = None
 ACTIVATION_CODE = '+START'
 OPT_IN_WORDS = ['join']
 OPT_OUT_WORDS = ['quit']
@@ -83,6 +84,7 @@ INSTALLED_APPS = [
     "djtables",
     "mptt",
     "uni_form",
+    "debug_toolbar",
     "django_extensions",
     "rapidsms.contrib.handlers",
     "rapidsms.contrib.locations",
@@ -180,6 +182,7 @@ DEBUG = TEMPLATE_DEBUG = False
 # after login (which is handled by django.contrib.auth), redirect to the
 # dashboard rather than 'accounts/profile' (the default).
 LOGIN_REDIRECT_URL = "/"
+INTERNAL_IPS = ('127.0.0.1',)
 
 
 # use django-nose to run tests. rapidsms contains lots of packages and
@@ -232,6 +235,19 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.middleware.transaction.TransactionMiddleware',
     'reversion.middleware.RevisionMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+)
+
+DEBUG_TOOLBAR_PANELS = (
+    'debug_toolbar.panels.version.VersionDebugPanel',
+    'debug_toolbar.panels.timer.TimerDebugPanel',
+    'debug_toolbar.panels.settings_vars.SettingsVarsDebugPanel',
+    'debug_toolbar.panels.headers.HeaderDebugPanel',
+    'debug_toolbar.panels.request_vars.RequestVarsDebugPanel',
+    'debug_toolbar.panels.template.TemplateDebugPanel',
+    'debug_toolbar.panels.sql.SQLDebugPanel',
+    'debug_toolbar.panels.signals.SignalDebugPanel',
+    'debug_toolbar.panels.logger.LoggingPanel',
 )
 
 # -------------------------------------------------------------------- #
