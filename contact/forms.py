@@ -18,6 +18,7 @@ from django.conf import settings
 import datetime
 from rapidsms_httprouter.models import Message
 from django.forms.util import ErrorList
+from django.core.exceptions import FieldError
 
 
 class FlaggedMessageForm(forms.ModelForm):
@@ -85,11 +86,23 @@ class FilterGroupsForm(FilterForm):
         if '-1' in groups_pk:
             groups_pk.remove('-1')
             if len(groups_pk):
-                return queryset.filter(Q(groups=None) | Q(groups__in=groups_pk))
+                try:
+                    return queryset.filter(Q(groups=None) | Q(groups__in=groups_pk))
+                except FieldError:
+                    return queryset.filter(Q(group=None) | Q(group__in=Group.objects.filter(pk__in=groups_pk).values_list('name')))
             else:
-                return queryset.filter(groups=None)
+                try:
+                    return queryset.filter(groups=None)
+                except FieldError:
+                    return queryset.filter(group=None)
+
+
         else:
-            return queryset.filter(groups__in=groups_pk)
+            try:
+                return queryset.filter(groups__in=groups_pk)
+            except FieldError:
+                return queryset.filter(group__in=Group.objects.filter(pk__in=groups_pk).values_list('name'))
+
 
 class NewContactForm(forms.ModelForm):
 
@@ -360,7 +373,8 @@ class AssignGroupForm(ActionForm):
 
     def perform(self, request, results):
         groups = self.cleaned_data['groups']
-        for c in results:
+        contacts=Contact.objects.filter(pk__in=results)
+        for c in contacts:
             for g in groups:
                 c.groups.add(g)
         return ('%d Contacts assigned to %d groups.' % (len(results), len(groups)), 'success',)

@@ -36,9 +36,9 @@ class Flag(models.Model):
     contains_one_of=2
 
     name = models.CharField(max_length=50, unique=True)
-    words=models.CharField(max_length=200,null=True)
+    words=models.CharField(max_length=500,null=True)
     rule=models.IntegerField(max_length=10,choices=((contains_all_of,"contains_all_of"),(contains_one_of,"contains_one_of"),),null=True)
-    rule_regex=models.CharField(max_length=200,null=True)
+    rule_regex=models.CharField(max_length=700,null=True)
 
     def get_messages(self):
         message_flags = self.messages.values_list('message', flat=True)
