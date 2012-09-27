@@ -84,7 +84,7 @@ def generic(request,
 
     # define some defaults
     response_template = base_template
-    page = 1
+    page = request.session.get('page_num',1)
     selected = False
     status_message = ''
     status_message_type = ''
@@ -123,14 +123,19 @@ def generic(request,
 
         elif page_action:
             try:
-                page = int(request.POST.get('page_num', '1'))
+                page = request.POST.get('page_num', None)
+                if page:
+                    page=int(page)
+                else:
+                    page=request.session.get('page_num',1)
             except ValueError:
                 pass
         elif action_taken:
-            try:
-                p = int(request.POST.get('page_num', '1'))
-            except ValueError:
-                pass
+            page = request.POST.get('page_num', None)
+            if page:
+                page=int(page)
+            else:
+                page=request.session.get('page_num',1)
 
             everything_selected = request.POST.get('select_everythingx', None)
             results = []
@@ -175,6 +180,7 @@ def generic(request,
     ranges=[]
     paginator = None
     paginator_dict={}
+    request.session['page_num']=page
     if paginated:
        if not paginator_func:
            paginator_dict=paginate(filtered_list,objects_per_page,page,p)
