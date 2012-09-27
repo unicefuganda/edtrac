@@ -133,6 +133,29 @@ class FreeSearchForm(FilterForm):
             return queryset.filter(Q(name__icontains=searchx)
                                    | Q(reporting_location__name__icontains=searchx)
                                    | Q(connection__identity__icontains=searchx))
+class FreeSearchForm2(FilterForm):
+
+    """ concrete implementation of filter form
+        TO DO: add ability to search for multiple search terms separated by 'or'
+    """
+
+    searchx = forms.CharField(max_length=100, required=False, label="Free-form search",
+                             help_text="Use 'or' to search for multiple names")
+
+    def filter(self, request, queryset):
+        searchx = self.cleaned_data['searchx'].strip()
+        if searchx == "":
+            return queryset
+        elif searchx[0] in ["'", '"'] and searchx[-1] in ["'", '"']:
+            searchx = searchx[1:-1]
+            return queryset.filter(Q(name__iregex=".*\m(%s)\y.*" % searchx)
+                                   | Q(loc_name__iregex=".*\m(%s)\y.*" % searchx)
+                                   | Q(connections__iregex=".*\m(%s)\y.*" % searchx))
+
+        else:
+            return queryset.filter(Q(name__icontains=searchx)
+                                   | Q(loc_name__icontains=searchx)
+                                   | Q(connections__icontains=searchx))
 
 class FreeSearchTextForm(FilterForm):
 
@@ -187,7 +210,8 @@ class DistictFilterForm(FilterForm):
             except Location.DoesNotExist:
                 district = None
             if district:
-                return queryset.filter(reporting_location__in=district.get_descendants(include_self=True))
+                return queryset.filter(district=district.name)
+                #return queryset.filter(reporting_location__in=district.get_descendants(include_self=True))
             else:
                 return queryset
 class RolesFilter(FilterForm):
@@ -203,7 +227,11 @@ class RolesFilter(FilterForm):
             except Group.DoesNotExist:
                 grp = None
             if grp:
-                return queryset.filter(groups__pk__in=[grp.pk])
+                #return queryset.filter(groups__pk__in=[grp.pk])
+                if grp.name == 'VHT':
+                    return queryset.filter(groups__contains=grp.name).exclude(groups__contains='PVHT')
+                else:
+                    return queryset.filter(groups__contains=grp.name)
             return queryset
 
 class MultipleDistictFilterForm(FilterForm):
@@ -277,12 +305,15 @@ class MassTextForm(ActionForm):
             return ('A message must have one or more recipients!', 'error')
 
         if request.user and request.user.has_perm('contact.can_message'):
-            connections = \
+            if type(results[0]).__name__ == 'Reporters':
+                con_ids = \
+                [r.default_connection.split(',')[1] if len(r.default_connection.split(',')) > 1 else 0 for r in results]
+                connections = list(Connection.objects.filter(pk__in=con_ids).distinct())
+            else:
+                connections = \
                 list(Connection.objects.filter(contact__in=results).distinct())
-
             text = self.cleaned_data.get('text', "")
             text = text.replace('%', u'\u0025')
-
             messages = Message.mass_text(text, connections)
 
             MassText.bulk.bulk_insert(send_pre_save=False,
