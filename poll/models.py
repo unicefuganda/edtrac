@@ -558,6 +558,26 @@ class Poll(models.Model):
 
         return categorized
 
+    def process_uncategorized(self):
+        responses=self.responses.filter(categories__category=None)
+        for resp in responses:
+            resp.has_errors = False
+            for category in self.categories.all():
+                for rule in category.rules.all():
+                    regex = re.compile(rule.regex, re.IGNORECASE)
+                    if resp.eav.poll_text_value:
+                        if regex.search(resp.eav.poll_text_value.lower()) and not resp.categories.filter(category=category).count():
+                            if category.error_category:
+                                resp.has_errors = True
+                            rc = ResponseCategory.objects.create(response=resp, category=category)
+                            break
+            if not resp.categories.all().count() and self.categories.filter(default=True).count():
+                if self.categories.get(default=True).error_category:
+                    resp.has_errors = True
+                resp.categories.add(ResponseCategory.objects.create(response=resp, category=self.categories.get(default=True)))
+            resp.save()
+
+
     def __unicode__(self):
         if self.start_date:
             sd = self.start_date.date()
