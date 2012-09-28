@@ -180,7 +180,7 @@ def generic(request,
     ranges=[]
     paginator = None
     paginator_dict={}
-    request.session['page_num']=page
+
     if paginated:
        if not paginator_func:
            paginator_dict=paginate(filtered_list,objects_per_page,page,p)
@@ -213,6 +213,9 @@ def generic(request,
         'base_template':'layout.html',
     }
     context_vars.update(paginator_dict)
+    if (context_vars.get('paginator').num_pages < context_vars.get('page')) or not object_list :
+        request.session['page_num']=1
+
 
     # For pages that not only have tables, but also need a time range slider
     if needs_date:
