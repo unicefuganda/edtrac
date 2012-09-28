@@ -213,7 +213,7 @@ def generic(request,
         'base_template':'layout.html',
     }
     context_vars.update(paginator_dict)
-    if (context_vars.get('paginator').num_pages < context_vars.get('page')) or not object_list :
+    if context_vars.get('paginator').num_pages < context_vars.get('page'):
         request.session['page_num']=1
 
 
