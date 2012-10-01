@@ -1190,6 +1190,7 @@ class XFormReportSubmission(models.Model):
     submissions = models.ManyToManyField(XFormSubmission)
     start_date = models.DateTimeField('First date of the period of the report')
     status = models.CharField(max_length=10)
+    created = models.DateTimeField(auto_now_add=True, blank=True)
 
     def __unicode__(self):
         return '{0} beginning "{1}"'.format(self.report, self.start_date)
