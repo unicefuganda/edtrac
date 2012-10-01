@@ -306,12 +306,15 @@ class MassTextForm(ActionForm):
 
         if request.user and request.user.has_perm('contact.can_message'):
             if type(results[0]).__name__ == 'Reporters':
+
                 con_ids = \
                 [r.default_connection.split(',')[1] if len(r.default_connection.split(',')) > 1 else 0 for r in results]
                 connections = list(Connection.objects.filter(pk__in=con_ids).distinct())
+                contacts = list(Contact.objects.filter(pk__in=results.values_list('id', flat=True)))
             else:
                 connections = \
-                list(Connection.objects.filter(contact__in=results).distinct())
+                list(Connection.objects.filter(contact__pk__in=results.values_list('id', flat=True)).distinct())
+                contacts = list(results)
             text = self.cleaned_data.get('text', "")
             text = text.replace('%', u'\u0025')
             messages = Message.mass_text(text, connections)
@@ -319,7 +322,7 @@ class MassTextForm(ActionForm):
             MassText.bulk.bulk_insert(send_pre_save=False,
                     user=request.user,
                     text=text,
-                    contacts=list(results))
+                    contacts=contacts)
             masstexts = MassText.bulk.bulk_insert_commit(send_post_save=False, autoclobber=True)
             masstext = masstexts[0]
             if settings.SITE_ID:
@@ -373,7 +376,7 @@ class AssignGroupForm(ActionForm):
 
     def perform(self, request, results):
         groups = self.cleaned_data['groups']
-        contacts=Contact.objects.filter(pk__in=results)
+        contacts = Contact.objects.filter(pk__in=results)
         for c in contacts:
             for g in groups:
                 c.groups.add(g)
