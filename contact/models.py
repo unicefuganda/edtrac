@@ -45,7 +45,7 @@ class Flag(models.Model):
         return Message.objects.filter(pk__in=message_flags)
 
     def get_regex(self):
-        words=self.words.replace(','," ").split()
+        words=self.words.split(",")
 
         if self.rule == 1:
             all_template=r"(?=.*\b%s\b)"
