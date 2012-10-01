@@ -38,17 +38,17 @@ def get_location_for_user(user):
 def get_location(request):
     #location of current logged in user or selected district
     district_id = request.POST.get('district_id') or request.GET.get('district_id')
-    user_location = Location.objects.get(pk=district_id) if district_id else get_location_for_user(request.user)
+    user_location = Location.objects.select_related().get(pk=district_id) if district_id else get_location_for_user(request.user)
     return user_location
 
 def attrib_ratios(top_attrib, bottom_attrib, dates, location):
-    top_value = XFormSubmissionValue.objects.exclude(submission__has_errors=True)\
+    top_value = XFormSubmissionValue.objects.select_related().exclude(submission__has_errors=True)\
     .exclude(submission__connection__contact=None)\
     .filter(created__range=(dates.get('start'), dates.get('end')))\
     .filter(attribute__slug__in=top_attrib)\
     .filter(submission__connection__contact__emisreporter__schools__location__in=location.get_descendants(include_self=True).all())\
     .annotate(Sum('value_int')).values_list('value_int__sum', flat=True)
-    bottom_value = XFormSubmissionValue.objects.exclude(submission__has_errors=True)\
+    bottom_value = XFormSubmissionValue.objects.select_related().exclude(submission__has_errors=True)\
     .exclude(submission__connection__contact=None)\
     .filter(created__range=(dates.get('start'), dates.get('end')))\
     .filter(attribute__slug__in=bottom_attrib)\
@@ -67,7 +67,7 @@ class SchoolMixin(object):
         start_date = report.start_date
         if single_week:
             start_date = report.end_date - datetime.timedelta(7)
-        return XFormSubmissionValue.objects.exclude(submission__has_errors=True)\
+        return XFormSubmissionValue.objects.select_related().exclude(submission__has_errors=True)\
         .exclude(submission__connection__contact=None)\
         .filter(created__range=(start_date, report.end_date))\
         .filter(attribute__slug__in=keyword)\
@@ -77,7 +77,7 @@ class SchoolMixin(object):
         .annotate(Sum('value_int'))
 
     def total_dateless_attribute_by_school(self, report, keyword):
-        return XFormSubmissionValue.objects.exclude(submission__has_errors=True)\
+        return XFormSubmissionValue.objects.select_related().exclude(submission__has_errors=True)\
         .exclude(submission__connection__contact=None)\
         .filter(attribute__slug__in=keyword)\
         .filter(submission__connection__contact__emisreporter__schools__location__in=report.location.get_descendants(include_self=True).all())\
@@ -107,7 +107,7 @@ class AverageSubmissionBySchoolColumn(Column, SchoolMixin):
     def add_to_report(self, report, key, dictionary):
         val = total_submissions(self.keyword, report.start_date, report.end_date, report.location, self.extra_filters)
         for rdict in val:
-            rdict['value'] = rdict['value'] / Location.objects.get(pk=rdict['location_id']).get_descendants(include_self=True).aggregate(Count('schools'))['schools__count']
+            rdict['value'] = rdict['value'] / Location.objects.select_related().get(pk=rdict['location_id']).get_descendants(include_self=True).aggregate(Count('schools'))['schools__count']
         reorganize_location(key, val, dictionary)
 
 
@@ -275,7 +275,7 @@ class PollsColumn(Column, SchoolMixin):
 class WeeklyPollSchoolColumn(PollNumericResultsColumn, SchoolMixin):
 
     def __init__(self, poll_name, title, order, attrs=None):
-        self.poll = Poll.objects.get(name=poll_name)
+        self.poll = Poll.objects.select_related().get(name=poll_name)
         self.attrs = attrs
         self.title = title
         self.order = order
@@ -315,7 +315,7 @@ class DatelessSchoolReport(Report):
 def school_last_xformsubmission(request, school_id):
     xforms = []
     scripted_polls = []
-    for xform in XForm.objects.all():
+    for xform in XForm.objects.select_related().all():
         xform_values = XFormSubmissionValue.objects.exclude(submission__has_errors=True)\
                        .exclude(submission__connection__contact=None)\
                        .filter(submission__connection__contact__emisreporter__schools__pk=school_id)\
@@ -324,9 +324,9 @@ def school_last_xformsubmission(request, school_id):
                        .annotate(Sum('value_int'))[:1] #.values_list('submission__xform__name', 'value_int__sum', 'submission__connection__contact__name', 'submission__created')
         xforms.append((xform, xform_values))
 
-    for script in Script.objects.exclude(slug='emis_autoreg'):
+    for script in Script.objects.select_related().exclude(slug='emis_autoreg'):
         for step in script.steps.all():
-            resp = Response.objects.filter(poll=step.poll)\
+            resp = Response.objects.select_related().filter(poll=step.poll)\
                    .filter(message__connection__contact__emisreporter__schools__pk=school_id)\
                    .order_by('-date')[:1]
             scripted_polls.append((step.poll,resp))
@@ -335,15 +335,15 @@ def school_last_xformsubmission(request, school_id):
 
 def messages(request):
     if request.user.get_profile().is_member_of('Admins'):
-        messages = Message.objects.exclude(
+        messages = Message.objects.select_related().exclude(
             connection__identity__in = getattr(settings, 'MODEM_NUMBERS')
         ).filter(direction='I',
             connection__contact__emisreporter__reporting_location__in =\
-            Location.objects.get(name="Uganda").get_descendants(include_self=True).all()
+            Location.objects.select_related().get(name="Uganda").get_descendants(include_self=True).all()
         )
     else:
         user_location = get_location(request)
-        messages = Message.objects.exclude(
+        messages = Message.objects.select_related().exclude(
             connection__identity__in = getattr(settings, 'MODEM_NUMBERS')
             ).filter(direction='I', connection__contact__emisreporter__reporting_location__in=\
             user_location.get_descendants(include_self=True).all())
@@ -352,9 +352,9 @@ def messages(request):
         #Get only messages handled by rapidsms_xforms and the polls app (this exludes opt in and opt out messages)
         messages = messages.filter(Q(application=None) | Q(application__in=['rapidsms_xforms', 'poll']))
         #Exclude XForm submissions
-        messages = messages.exclude(pk__in=XFormSubmission.objects.exclude(message=None).filter(has_errors=False).values_list('message__pk', flat=True))
+        messages = messages.exclude(pk__in=XFormSubmission.objects.select_related().exclude(message=None).filter(has_errors=False).values_list('message__pk', flat=True))
         # Exclude Poll responses
-        return messages.exclude(pk__in=Response.objects.exclude(message=None).filter(has_errors=False).values_list('message__pk', flat=True))
+        return messages.exclude(pk__in=Response.objects.select_related().exclude(message=None).filter(has_errors=False).values_list('message__pk', flat=True))
     else:
         return messages
 
@@ -362,7 +362,7 @@ def messages(request):
 def othermessages(request, district_id=None):
     user_location = get_location(request)
     #First we get all incoming messages
-    messages = Message.objects.exclude(
+    messages = Message.objects.select_related().exclude(
         connection__identity__in = getattr(settings, 'MODEM_NUMBERS')
     ).filter(direction='I', connection__contact__emisreporter__reporting_location__in=user_location.get_descendants(include_self=True).all())
 
@@ -380,13 +380,13 @@ def othermessages(request, district_id=None):
 def reporters(request, district_id=None):
     profile = request.user.get_profile()
     if profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
-        return EmisReporter.objects.exclude(
+        return EmisReporter.objects.select_related().exclude(
                     connection__id__in=Blacklist.objects.values_list('connection__id', flat=True),
                     connection__identity__in = getattr(settings, 'MODEM_NUMBERS')
             ).exclude(reporting_location = None).exclude(connection=None)
     else:
         user_location = get_location(request)
-        return EmisReporter.objects.exclude(\
+        return EmisReporter.objects.select_related().exclude(\
             connection__id__in=Blacklist.objects.values_list('connection__id', flat=True)).\
             filter(reporting_location__in= user_location.get_descendants(include_self=True))
 
@@ -395,8 +395,8 @@ def education_responses_bp3(request, dates=None):
     """
     -> district, figures
     """
-    locations = Location.objects.filter(type='district').filter(pk__in =\
-        EmisReporter.objects.values_list('reporting_location__pk',flat=True))
+    locations = Location.objects.select_related().filter(type='district').filter(pk__in =\
+        EmisReporter.objects.select_related().values_list('reporting_location__pk',flat=True))
     to_ret = []
     if dates:
         date_dict = dates(request)
@@ -416,10 +416,10 @@ def education_responses_bp3(request, dates=None):
 def schools(request, district_id=None):
     profile = request.user.get_profile()
     if profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials') or profile.is_member_of('Ministry Officials'):
-        return School.objects.all() # should we include all schools???
+        return School.objects.select_related().all() # should we include all schools???
     else:
         user_location = get_location(request)
-        return School.objects.filter(location__in=user_location.get_descendants(include_self=True).all())
+        return School.objects.select_related().filter(location__in=user_location.get_descendants(include_self=True).all())
 
 #excel reports
 def raw_data(request, district_id, dates, slugs, teachers=False):
@@ -430,14 +430,16 @@ def raw_data(request, district_id, dates, slugs, teachers=False):
     """
     #    from .reports import get_location
     user_location = get_location(request, district_id)
-    schools = School.objects.filter(location__in=user_location.get_descendants(include_self=True).all())
-    values = XFormSubmissionValue.objects.exclude(submission__has_errors=True)\
+    schools = School.objects.select_related().filter(location__in=user_location.get_descendants(include_self=True).all())
+    schools = list(schools)
+    values = XFormSubmissionValue.objects.select_related().exclude(submission__has_errors=True)\
     .filter(created__range=(dates.get('start'), dates.get('end')))\
     .filter(attribute__slug__in=slugs)\
     .filter(submission__connection__contact__emisreporter__schools__in=schools)\
     .order_by('submission__connection__contact__emisreporter__schools__name','-created')\
     .values('submission__connection__contact__emisreporter__schools__name','value_int', 'created')
     #.annotate(Avg('value_int'))
+    values = list(values)
 
     data = []
     i = 0
@@ -724,47 +726,48 @@ def month19to20(**kwargs):
 
 def get_numeric_report_data(poll_name, location=None, time_range=None, to_ret=None, **kwargs):
     poll = Poll.objects.select_related().get(name=poll_name)
+    entity_content = ContentType.objects.get_for_model(Response)
     if time_range:
         if location:
         # time filters
             if location.type.name == 'country': # for views that have locations
-                q = Value.objects.filter(attribute__slug='poll_number_value',\
-                    entity_ct=ContentType.objects.get_for_model(Response), \
+                q = Value.objects.select_related().filter(attribute__slug='poll_number_value',\
+                    entity_ct=entity_content, \
                     entity_id__in=poll.responses.filter(date__range=time_range, contact__reporting_location__in=\
                     location.get_descendants().filter(type='district'))).values('entity_ct')
             else:
                 if kwargs.has_key('school'):
-                    q = Value.objects.filter(attribute__slug='poll_number_value',\
-                        entity_ct=ContentType.objects.get_for_model(Response),\
+                    q = Value.objects.select_related().filter(attribute__slug='poll_number_value',\
+                        entity_ct=entity_content,\
                         entity_id__in=poll.responses.filter(date__range=time_range,\
                             contact__in=kwargs.get('school').emisreporter_set.all(),
                             contact__reporting_location = kwargs.get('school').location
                         )).values('entity_ct')
                 else:
-                    q = Value.objects.filter(attribute__slug='poll_number_value',\
-                        entity_ct=ContentType.objects.get_for_model(Response),\
+                    q = Value.objects.select_related().filter(attribute__slug='poll_number_value',\
+                        entity_ct=entity_content,\
                         entity_id__in=poll.responses.filter(date__range=time_range, contact__reporting_location=location)).values('entity_ct')
         else:
             # casing point for kwargs=locations
             locations = kwargs.get('locations')
             if kwargs.has_key('school'):
-                q = Value.objects.filter(attribute__slug='poll_number_value',\
-                    entity_ct=ContentType.objects.get_for_model(Response),\
+                q = Value.objects.select_related().filter(attribute__slug='poll_number_value',\
+                    entity_ct=entity_content,\
                     entity_id__in=poll.responses.filter(date__range=time_range,\
                         contact__in=kwargs.get('school').emisreporter_set.all())).values('entity_ct')
 
             elif kwargs.has_key('locations') and len(locations) == 1:
-                q = Value.objects.filter(attribute__slug='poll_number_value',\
-                    entity_ct=ContentType.objects.get_for_model(Response),\
+                q = Value.objects.select_related().filter(attribute__slug='poll_number_value',\
+                    entity_ct=entity_content,\
                     entity_id__in=poll.responses.filter(date__range=time_range, contact__reporting_location=locations[0])).values('entity_ct')
                 # use-case designed in views #TODO clean up
             else:
-                q = Value.objects.filter(attribute__slug='poll_number_value',\
-                    entity_ct=ContentType.objects.get_for_model(Response),\
+                q = Value.objects.select_related().filter(attribute__slug='poll_number_value',\
+                    entity_ct=entity_content,\
                     entity_id__in=poll.responses.filter(date__range=time_range)).values('entity_ct')
     else:
-        q = Value.objects.filter(attribute__slug='poll_number_value',\
-            entity_ct=ContentType.objects.get_for_model(Response), entity_id__in=poll.responses.all()).values('entity_ct')
+        q = Value.objects.select_related().filter(attribute__slug='poll_number_value',\
+            entity_ct=entity_content, entity_id__in=poll.responses.all()).values('entity_ct')
 
     if to_ret:
         if not q:
@@ -800,8 +803,9 @@ def poll_response_sum(poll_name, **kwargs):
         if kwargs.has_key('month_filter') and not kwargs.get('month_filter') in ['biweekly','weekly','monthly','termly'] and not kwargs.has_key('location'):
             # when no location is provided { worst case scenario }
             to_ret = {}
-            _locations = Location.objects.filter(type='district', name__in = \
+            _locations = Location.objects.select_related().filter(type='district', name__in = \
                 EmisReporter.objects.select_related().values_list('reporting_location',flat=True)).distinct().select_related()
+            _locations = list(_locations)
             for location in _locations:
                 to_ret[location.__unicode__()] = get_numeric_report_data(
                     poll_name,
@@ -823,7 +827,8 @@ def poll_response_sum(poll_name, **kwargs):
                 locations = locations
             if isinstance(locations, Location):
                 if locations.type.name == 'country':
-                    locations = Location.objects.get(name=kwargs.get('location')).get_descendants().filter(type="district")
+                    locations = Location.objects.select_related().get(name=kwargs.get('location')).get_descendants().filter(type="district")
+                    locations = list(locations)
                 else:
                     locations = [locations]
 
@@ -866,7 +871,7 @@ def poll_response_sum(poll_name, **kwargs):
                 to_ret = sorted(to_ret.iteritems(), key=operator.itemgetter(1))
                 #initial structure is [('name', val1, val2) ]
                 for name, val in to_ret:
-                    val.append(Location.objects.filter(type="district").get(name__icontains=name))
+                    val.append(Location.objects.select_related().filter(type="district").get(name__icontains=name))
                     # the last elements appear to be the largest
                 to_ret.reverse()
                 return to_ret
@@ -1145,7 +1150,7 @@ def generate_deo_report(location_name = None):
     else:
         try:
             # attempt to get a district if the location is not of district type.
-            all_locations = Location.objects.filter(name=location_name) # locations with similar name
+            all_locations = list(Location.objects.select_related().filter(name=location_name)) # locations with similar name
             if len(all_locations) > 1:
                 for loc in all_locations.exclude(type="country"):
                     if loc.type == 'district':
@@ -1160,17 +1165,19 @@ def generate_deo_report(location_name = None):
                 location = all_locations[0]
         except DoesNotExist:
             return #quit
+    location_filter = Location.objects.filter(name=location_name).distinct()
+
     boys_p3_enrollment = Poll.objects.get(name="edtrac_p3_enrollment").responses.filter(contact__reporting_location__in=\
-    Location.objects.filter(name=location_name).distinct())
+    location_filter)
 
     boys_p6_enrollment = Poll.objects.get(name="edtrac_p6_enrollment").responses.filter(contact__reporting_location__in=\
-    Location.objects.filter(name=location_name).distinct())
+    location_filter)
 
     girls_p3_enrollment = Poll.objects.get(name="edtrac_girlsp3_enrollment").responses.filter(contact__reporting_location__in=\
-    Location.objects.filter(name=location_name).distinct())
+    location_filter)
 
     girls_p6_enrollment = Poll.objects.get(name="edtrac_girlsp6_enrollment").responses.filter(contact__reporting_location__in=\
-    Location.objects.filter(name=location_name).distinct())
+    location_filter)
 
     p3_enrollment = boys_p3_enrollment + girls_p3_enrollment
     p6_enrollment = boys_p6_enrollment + girls_p6_enrollment
@@ -1222,7 +1229,7 @@ def get_count_response_to_polls(poll_queryset, location_name = None,  **kwargs):
         if location_name:
             catchment_area_pk = [Location.objects.filter(type='district').get(name = location_name).pk] # as list
         else:
-            catchment_area_pk = Location.objects.filter(type="district", name__in=\
+            catchment_area_pk = Location.objects.select_related().filter(type="district", name__in=\
                 EmisReporter.objects.exclude(reporting_location=None).values_list('reporting_location__name',\
                     flat=True).distinct()).values_list('pk', flat=True)
 
@@ -1239,7 +1246,7 @@ def get_count_response_to_polls(poll_queryset, location_name = None,  **kwargs):
             for month_range in month_ranges:
                 temp = []
                 location = Location.objects.filter(type="district").get(name=to_ret.keys()[0])
-                expected_reports = School.objects.filter(pk__in = EmisReporter.objects.exclude(schools = None).\
+                expected_reports = School.objects.select_related().filter(pk__in = EmisReporter.objects.select_related().exclude(schools = None).\
                     filter(reporting_location = location).values_list('schools__pk', flat=True)).count()
                 resps = poll_queryset.responses.filter(contact__in=\
                             Contact.objects.filter(reporting_location= location).select_related(),
@@ -1257,7 +1264,7 @@ def get_count_response_to_polls(poll_queryset, location_name = None,  **kwargs):
         elif kwargs.get('termly') and kwargs.get('with_percent') and kwargs.get('admin') == False:
             temp = []
             termly_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
-            expected_reports = School.objects.filter(pk__in = EmisReporter.objects.exclude(schools = None).\
+            expected_reports = School.objects.select_related().filter(pk__in = EmisReporter.objects.select_related().exclude(schools = None).\
                 filter(reporting_location = location).values_list('schools__pk', flat=True)).select_related().count()
             responses = poll_queryset.responses.filter(contact__in =\
                 Contact.objects.filter(reporting_location = location), date__range = termly_range).select_related()
