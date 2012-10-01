@@ -20,16 +20,16 @@ class Command(BaseCommand):
     def handle(self, **options):
 
         """Reporting Violence"""
-        def violence_report():
-            groups = Poll.objects.filter(name__endswith='_abuse')
-            return groups
+        def violence_polls():
+            toret = Poll.objects.filter(name__endswith='_abuse')
+            return toret
         
         book = xlwt.Workbook(encoding='utf-8')
-        for poll in violence_report():
+        for poll in violence_polls():
             sheet = book.add_sheet(poll.name, cell_overwrite_ok=True)
             rowx = 0
             colx = 0
-            headings = ['District', 'Reporter', 'Message', 'Date']
+            headings = ['District', 'Reporter', 'Phone Numbers', 'Group', 'Schools', 'Message', 'Date']
             for colx, value in enumerate(headings):
                 sheet.write(rowx, colx, value)
             sheet.set_panes_frozen(True)
@@ -37,11 +37,24 @@ class Command(BaseCommand):
             sheet.set_remove_splits(True)
             rowx = 1
                             
-            for rep in poll.responses.all().values('contact__reporting_location__name', 'message__text', 'date', 'contact__name', 'poll__question'):
-                sheet.write(rowx, 0, '%s' %rep['contact__reporting_location__name'])
-                sheet.write(rowx, 1, '%s' % rep['contact__name'])
-                sheet.write(rowx, 2, '%s' % rep['message__text'])
-                sheet.write(rowx, 3, '%s' % rep['date'].strftime("%A, %B %d, %Y"))
+#            for rep in poll.responses.all().values('contact__reporting_location__name', 'message__text', 'date', 'contact__name', 'poll__question'):
+#                sheet.write(rowx, 0, '%s' %rep['contact__reporting_location__name'])
+#                sheet.write(rowx, 1, '%s' % rep['contact__name'])
+#                sheet.write(rowx, 2, '%s' % rep['message__text'])
+#                sheet.write(rowx, 3, '%s' % rep['date'].strftime("%A, %B %d, %Y"))
+#                rowx +=1
+
+            for resp in poll.responses.all():
+                sheet.write(rowx, 0, '%s' % resp.contact.emisreporter.reporting_location.name)
+                sheet.write(rowx, 1, '%s' % resp.contact.emisreporter.name)
+                pnumbers = ','.join(resp.contact.emisreporter.connection_set.all().values_list('identity', flat=True))
+                sheet.write(rowx, 2, '%s' % pnumbers)
+                groups = ','.join(resp.contact.emisreporter.groups.all().values_list('name', flat=True))
+                sheet.write(rowx, 3, '%s' % groups)
+                schools = ','.join(resp.contact.emisreporter.schools.all().values_list('name', flat=True))
+                sheet.write(rowx, 4, '%s' % schools)
+                sheet.write(rowx, 5, '%s' % resp.message.text)
+                sheet.write(rowx, 6, '%s' % resp.date.strftime("%A, %B %d, %Y"))
                 rowx +=1
                 
 
