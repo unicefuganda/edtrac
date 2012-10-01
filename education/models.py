@@ -245,6 +245,7 @@ def parse_fuzzy_number_2(value):
             return int(num)
 
 def match_group_response(session, response, poll):
+    logger.info('match_group_response() called to match : session->%s response->%s poll->%s' % (session.pk, response, poll.question))
     grp_dict = {'teacher': 'Teachers',\
                     'hteacher': 'Head Teachers',\
                     'smc': 'SMC',\
@@ -262,20 +263,26 @@ def match_group_response(session, response, poll):
                     }
     try:
         category = Category.objects.get(name=resp_cats.get(response.strip(), 'unknown'), poll=poll)
+        logger.info('Found category: %s corresponding to response: %s ' % (category, response))
     except:
         category = Category.objects.get(name='unknown', poll=poll)
+        logger.info('Category not found, so defaulting to: %s corresponding to response: %s ' % (category, response))
     try:
         #some times an answer for role might be missing    
         resp = session.responses.filter(response__poll=poll, response__has_errors=False).order_by('-response__date')[0]
+        logger.info('Response stored in this session: %s ' % resp.response.message)
         try:
             rc = ResponseCategory.objects.get(response=resp, category=category)
             grp = Group.objects.get(name=grp_dict[rc.category.name])
+            logger.info('Response categorized as: %s so, user belongs to group: %s ' % (rc.category.name, grp.name))
         except ResponseCategory.DoesNotExist:
             # if answer was not categorized, put member in "Other Reporters"
             grp = Group.objects.get(name='Other Reporters')
+            logger.info('Group corresponding to response category not found, defaulting to group: %s ' % grp.name)
     except IndexError:
         # if no response is given, still put member in Other Reporters
         grp = Group.objects.get(name='Other Reporters')
+        logger.info('No group response found in session, defaulting to group: %s ' % grp.name)
     return grp
 
 def edtrac_autoreg(**kwargs):
@@ -428,7 +435,7 @@ def edtrac_reschedule_script(**kwargs):
 
 def edtrac_autoreg_transition(**kwargs):
     
-    logger.info('Keyword arguments: %s' % kwargs)
+    # logger.info('Keyword arguments: %s' % kwargs)
     
     connection = kwargs['connection']
     progress = kwargs['sender']
