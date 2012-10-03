@@ -16,7 +16,7 @@ from uganda_common.reports import PollNumericResultsColumn, PollCategoryResultsC
 from uganda_common.utils import total_submissions, reorganize_location, total_attribute_value, previous_calendar_month
 from uganda_common.utils import reorganize_dictionary
 from education.utils import previous_calendar_week, Statistics, StatisticsException
-from .models import EmisReporter, School, EnrolledDeployedQuestionsAnswered
+from education.models import EmisReporter, School, EnrolledDeployedQuestionsAnswered
 from poll.models import Response, Poll
 import datetime, dateutils
 from datetime import date, timedelta
