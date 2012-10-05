@@ -265,6 +265,9 @@ def total_submissions(keyword, start_date, end_date, location, extra_filters=Non
     """
     returns *total submission of values* from an xform; this is used to get certain values from and xform
     submitted database table.
+
+    T%d is reverse engineered from the SQL django generates.
+    hint: take a look at QuerySet.quary.alias_map in pdb
     """
     if extra_filters:
         extra_filters = dict([(str(k), v) for k, v in extra_filters.items()])
@@ -308,9 +311,12 @@ def total_submissions(keyword, start_date, end_date, location, extra_filters=Non
 
 
 def total_attribute_value(attribute_slug_list, start_date, end_date, location, group_by_timespan=None):
+    """
+    the table name T8 is reverse engineered from the SQL django generates.
+    hint: take a look at QuerySet.quary.alias_map in pdb
+    """
     if type(attribute_slug_list) != list:
         attribute_slug_list = [attribute_slug_list]
-
     select = {
         'location_name': 'T8.name',
         'location_id': 'T8.id',
