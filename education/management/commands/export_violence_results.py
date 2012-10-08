@@ -36,13 +36,6 @@ class Command(BaseCommand):
             sheet.set_horz_split_pos(rowx+1)
             sheet.set_remove_splits(True)
             rowx = 1
-                            
-#            for rep in poll.responses.all().values('contact__reporting_location__name', 'message__text', 'date', 'contact__name', 'poll__question'):
-#                sheet.write(rowx, 0, '%s' %rep['contact__reporting_location__name'])
-#                sheet.write(rowx, 1, '%s' % rep['contact__name'])
-#                sheet.write(rowx, 2, '%s' % rep['message__text'])
-#                sheet.write(rowx, 3, '%s' % rep['date'].strftime("%A, %B %d, %Y"))
-#                rowx +=1
 
             for resp in poll.responses.all():
                 sheet.write(rowx, 0, '%s' % resp.contact.emisreporter.reporting_location.name)
@@ -54,7 +47,7 @@ class Command(BaseCommand):
                 schools = ','.join(resp.contact.emisreporter.schools.all().values_list('name', flat=True))
                 sheet.write(rowx, 4, '%s' % schools)
                 sheet.write(rowx, 5, '%s' % resp.message.text)
-                sheet.write(rowx, 6, '%s' % resp.date.strftime("%A, %B %d, %Y"))
+                sheet.write(rowx, 6, '%s' % resp.date.strftime("%B %Y"))
                 rowx +=1
                 
 
