@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.forms import ValidationError
 from eav.models import Attribute
 from education.utils import _schedule_weekly_scripts, _schedule_weekly_scripts_now, _schedule_monthly_script, _schedule_termly_script,\
-    _schedule_weekly_report, _schedule_monthly_report
+    _schedule_weekly_report, _schedule_monthly_report, _schedule_midterm_script
 from rapidsms_httprouter.models import mass_text_sent
 from rapidsms.models import Contact, ContactBase
 from rapidsms.contrib.locations.models import Location
@@ -430,7 +430,7 @@ def edtrac_reschedule_script(**kwargs):
     elif slug == 'edtrac_smc_termly':
         _schedule_termly_script(group, connection, 'edtrac_smc_termly', ['SMC'])
     else:
-        print "special script"
+        pass
 
 
 def edtrac_autoreg_transition(**kwargs):
@@ -582,6 +582,30 @@ def reschedule_monthly_polls(grp=None):
                 elif slug == 'edtrac_gem_monthly':
                     _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'edtrac_gem_monthly', 20, ['GEM'])
 
+def reschedule_midterm_polls(grp = 'all', date=None):
+
+    """
+    manually reschedule all mid-term polls or for a specified group
+    """
+
+    midterm_scripts = Script.objects.filter(slug__endswith='_midterm')
+    if not grp == 'all':
+        slg_start = 'edtrac_%s'%grp.replace(' ','_').lower()
+        midterm_scripts = midterm_scripts.filter(slug__startswith=slg_start)
+        ScriptProgress.objects.filter(script__in=midterm_scripts)\
+            .filter(connection__contact__emisreporter__groups__name__iexact=grp).delete()
+    else:
+        ScriptProgress.objects.filter(script__in=midterm_scripts).delete()
+
+    Script.objects.filter(slug__in=midterm_scripts.values_list('slug', flat=True)).update(enabled=True)
+    for slug in midterm_scripts.values_list('slug', flat=True):
+        grps = Group.objects.filter(name__iexact=grp) if not grp == 'all' else Group.objects.filter(name__in=['Head Teachers'])
+        # send poll questions to active reporters
+        reps = EmisReporter.objects.filter(groups__in=grps)
+        for rep in reps:
+            if rep.default_connection and rep.groups.count() > 0:
+                _schedule_midterm_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers'], date)
+                
 def reschedule_termly_polls(grp = 'all', date=None):
 
     """

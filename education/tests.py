@@ -17,7 +17,7 @@ from education.management import *
 from rapidsms_httprouter.router import get_router
 from script.signals import script_progress_was_completed, script_progress
 from poll.management import create_attributes
-from education.models import EmisReporter, School, reschedule_weekly_polls, reschedule_monthly_polls, reschedule_termly_polls
+from education.models import EmisReporter, School, reschedule_weekly_polls, reschedule_monthly_polls, reschedule_termly_polls, reschedule_midterm_polls
 from django.db import connection
 from script.utils.outgoing import check_progress
 from django.core.management import call_command
@@ -994,6 +994,42 @@ class ModelTest(TestCase): #pragma: no cover
         reschedule_termly_polls('all', '2012-4-17')
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_termly').time.date(), datetime.datetime(2012, 4, 17).date())
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='edtrac_smc_termly').time.date(), datetime.datetime(2012, 4, 17).date())
+        
+    def testRescheduleMidTermPolls(self):
+        ScriptProgress.objects.all().delete()
+        self.register_reporter('1', '8675349')
+        self.register_reporter('2', '8675319')
+        self.register_reporter('3', '8675329')
+        self.register_reporter('4', '8675339')
+        midterm_scripts = Script.objects.filter(slug__endswith='_midterm')
+        Script.objects.filter(slug__in=midterm_scripts.values_list('slug', flat=True)).update(enabled=True)
+        for sp in ScriptProgress.objects.filter(script__slug__in=midterm_scripts.values_list('slug', flat=True)):
+            self.elapseTime2(sp, 13*31*24*60*60)
+        reschedule_midterm_polls('head teachers')
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_midterm').time.date(), _next_midterm().date())
+        for sp in ScriptProgress.objects.filter(script__slug__in=midterm_scripts.values_list('slug', flat=True)):
+            self.elapseTime2(sp, 13*31*24*60*60)
+        reschedule_midterm_polls()
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_midterm').time.date(), _next_midterm().date())
+        for sp in ScriptProgress.objects.filter(script__slug__in=midterm_scripts.values_list('slug', flat=True)):
+            self.elapseTime2(sp, 13*31*24*60*60)
+        reschedule_midterm_polls('head teachers', date='2012-10-08')
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_midterm').time.date(), datetime.datetime(2012, 10, 8).date())
+        for sp in ScriptProgress.objects.filter(script__slug__in=midterm_scripts.values_list('slug', flat=True)):
+            self.elapseTime2(sp, 13*31*24*60*60)
+        reschedule_termly_polls('all', '2012-10-08')
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_midterm').time.date(), datetime.datetime(2012, 10, 8).date())
+        
+    def testRescheduleMidTermManagementCommand(self):
+        ScriptProgress.objects.all().delete()
+        self.register_reporter('1', '8675349')
+        self.register_reporter('2', '8675319')
+        self.register_reporter('3', '8675329')
+        self.register_reporter('4', '8675339')
+        call_command('reschedule_midterm_polls', group='Head Teachers', date='2012-10-08')
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_midterm').time.date(), datetime.datetime(2012, 10, 8).date())
+        
+        
     
 #def load_edtrac_data():
 ##    User.objects.get_or_create(username='admin')
