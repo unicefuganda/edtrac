@@ -272,7 +272,7 @@ def match_group_response(session, response, poll):
         resp = session.responses.filter(response__poll=poll, response__has_errors=False).order_by('-response__date')[0]
         logger.info('Response stored in this session: %s ' % resp.response.message)
         try:
-            rc = ResponseCategory.objects.get(response=resp, category=category)
+            rc = ResponseCategory.objects.get(response=resp.response, category=category)
             grp = Group.objects.get(name=grp_dict[rc.category.name])
             logger.info('Response categorized as: %s so, user belongs to group: %s ' % (rc.category.name, grp.name))
         except ResponseCategory.DoesNotExist:

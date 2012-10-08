@@ -26,6 +26,7 @@ from education.utils import _next_thursday, _date_of_monthday, _next_midterm, _n
 from poll.models import ResponseCategory
 from .models import match_group_response
 from script.utils.handling import find_best_response
+from django.test.client import Client
 import difflib
 
 class ModelTest(TestCase): #pragma: no cover
@@ -429,15 +430,15 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertListEqual(list(ScriptProgress.objects.filter(connection=self.connection).values_list('script__slug', flat=True)), ['edtrac_autoreg'])
         
     def testTeacherAutoregKannelGetUrl(self):
-        from django.test.client import Client
         get_url = '/router/receive/?password=%s&backend=%s&sender=%s&message=%s'
         msg = 'Join'
         sender = '8675319'
         backend = 'test'
         password = 'p73TestP'
         c = Client()
-        resp = c.get(get_url % (password, backend, sender, msg))
         Script.objects.filter(slug='edtrac_autoreg').update(enabled=True)
+        
+        resp = c.get(get_url % (password, backend, sender, msg))
         script_prog = ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_autoreg')
         self.elapseTime2(script_prog, 61)
         call_command('check_script_progress', e=8, l=24)
@@ -994,9 +995,9 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_termly').time.date(), datetime.datetime(2012, 4, 17).date())
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675329', script__slug='edtrac_smc_termly').time.date(), datetime.datetime(2012, 4, 17).date())
     
-def load_edtrac_data():
-#    User.objects.get_or_create(username='admin')
-    call_command('loaddata', 'edtrac_data')
-    
-
-post_syncdb.connect(load_edtrac_data, weak=True)
+#def load_edtrac_data():
+##    User.objects.get_or_create(username='admin')
+#    call_command('loaddata', 'edtrac_data')
+#    
+#
+#post_syncdb.connect(load_edtrac_data, weak=True)
