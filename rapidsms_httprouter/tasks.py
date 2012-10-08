@@ -15,7 +15,7 @@ import re
 
 
 @task
-def handle_incoming(router,backend, sender, text,**kwargs):
+def handle_incoming(router,backend, sender, text,ignore_result=True,**kwargs):
     """
         Handles an incoming message.
         """
