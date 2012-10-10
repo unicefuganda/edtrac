@@ -29,14 +29,16 @@
             </tr>
             </thead>
             <tbody>
-            {% for school, val1, val2 in school_vals %}
+            {% for school, val1, val2, val3 in school_vals %}           	
                 {% if val == 0 %}
                 {% else %}
                 <tr><td><a href="{% url school-detail school.pk %}">{{ school.name }}</a></td><td>{{ val1 }}</td><td>{{ val2 }}</td></tr>
                 {% endif %}
             {% endfor %}
+            <tr><td><h6>Number of Violence Cases:</h6></td><td><h6>{{ nowViolence }}</h6></td><td><h6>{{ beforeViolence }}</h6></td></tr> 
             </tbody>
         </table>
+        <h3 class="block-header">Total Number of Violence Cases: {{ totalViolence }}</h3>
     </div>
 
 {% endblock %}

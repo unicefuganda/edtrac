@@ -2,6 +2,7 @@
 Basic tests for Edtrac
 """
 from django.test import TestCase
+from django.utils import unittest
 from django.db.models.signals import post_syncdb
 from rapidsms.messages.incoming import IncomingMessage, OutgoingMessage
 from rapidsms_xforms.models import *

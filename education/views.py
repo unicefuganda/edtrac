@@ -1421,6 +1421,9 @@ class DistrictViolenceDetails(TemplateView):
 
         school_case = []
         month_now, month_before = get_month_day_range(datetime.datetime.now(), depth=2)
+        totalViolence = 0
+        nowViolence = 0
+        beforeViolence = 0
         for school in schools:
             # optimize with value queries
             now_data = get_numeric_report_data( 'edtrac_headteachers_abuse', time_range = month_now, school = school,
@@ -1428,13 +1431,31 @@ class DistrictViolenceDetails(TemplateView):
 
             before_data = get_numeric_report_data('edtrac_headteachers_abuse', time_range = month_before, school = school,\
                 to_ret = 'sum', belongs_to = 'schools')
+            
+            data = int(now_data + before_data)
             # sieve out only schools with either value of violence cases being shown
+#            if now_data > 0 or before_data > 0:
+#                school_case.append((school, now_data, before_data))
+#            data = now_data + before_data
+            
+            totalViolence += data
+            nowViolence += now_data
+            beforeViolence += before_data
+            
             if now_data > 0 or before_data > 0:
-                school_case.append((school, now_data, before_data))
+                school_case.append((school, now_data, before_data, data))
+                
+            
+            
+        
 
         #reports = poll_response_sum("edtrac_headteachers_abuse", month_filter=True, months=1)
         emis_reporters = EmisReporter.objects.exclude(connection__in=\
             Blacklist.objects.values_list('connection')).filter(schools__in=schools)
+            
+        context['totalViolence'] = totalViolence
+        context['nowViolence'] = nowViolence
+        context['beforeViolence'] = beforeViolence    
 
         context['location'] = location
         context['school_vals'] = school_case

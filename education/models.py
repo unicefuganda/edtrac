@@ -460,10 +460,10 @@ def edtrac_autoreg_transition(**kwargs):
         logger.info('Identified group: %s'% group.name)
         
         skipsteps = {
-            'edtrac_gender':['Head Teachers'],
+            'edtrac_class' : ['Teachers'],
+            'edtrac_gender' : ['Head Teachers'],
             'edtrac_subcounty' : ['Teachers', 'Head Teachers', 'SMC', 'GEM'],
-            'edtrac_class':['Teachers'],
-            'edtrac_school':['Teachers', 'Head Teachers', 'SMC']
+            'edtrac_school' : ['Teachers', 'Head Teachers', 'SMC']
         }
         skipped = True
         while group and skipped:
@@ -689,10 +689,10 @@ def create_record_enrolled_deployed_questions_answered(model=None):
 
 Poll.register_poll_type('date', 'Date Response', parse_date_value, db_type=Attribute.TYPE_OBJECT)
 
-reversion.register(School)
-reversion.register(UserProfile)#, follow = ['location', 'role', 'user'])
-reversion.register(EmisReporter, follow=['schools'])#, follow = ['contact_ptr'])
-reversion.register(ReportComment)
+#reversion.register(School)
+#reversion.register(UserProfile)#, follow = ['location', 'role', 'user'])
+#reversion.register(EmisReporter, follow=['schools'])#, follow = ['contact_ptr'])
+#reversion.register(ReportComment)
 
 script_progress_was_completed.connect(edtrac_autoreg, weak=False)
 script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)
