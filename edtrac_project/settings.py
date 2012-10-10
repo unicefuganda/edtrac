@@ -116,6 +116,7 @@ INSTALLED_APPS = [
     "endless_pagination",
     "simple_autocomplete",
     "monitor",
+    "timelog",
     #leave south at the end of this list
     "south",
 
@@ -236,6 +237,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.transaction.TransactionMiddleware',
     'reversion.middleware.RevisionMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'timelog.middleware.TimeLogMiddleware',
 )
 
 DEBUG_TOOLBAR_PANELS = (
