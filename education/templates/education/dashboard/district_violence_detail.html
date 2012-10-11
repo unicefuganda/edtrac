@@ -35,10 +35,9 @@
                 <tr><td><a href="{% url school-detail school.pk %}">{{ school.name }}</a></td><td>{{ val1 }}</td><td>{{ val2 }}</td></tr>
                 {% endif %}
             {% endfor %}
-            <tr><td><h6>Number of Violence Cases:</h6></td><td><h6>{{ nowViolence }}</h6></td><td><h6>{{ beforeViolence }}</h6></td></tr> 
-            </tbody>
+            <tr style="background-color:#00bdea;"><td><h6>Monthly Violence Cases:</h6></td><td><h6>{{ nowViolence }}</h6></td><td><h6>{{ beforeViolence }}</h6></td></tr>
         </table>
-        <h3 class="block-header">Total Number of Violence Cases: {{ totalViolence }}</h3>
+        <p class="report alert-message block-message">Total Number of Violence Cases: {{ totalViolence }}</p>
     </div>
 
 {% endblock %}
