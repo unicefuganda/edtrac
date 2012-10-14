@@ -969,10 +969,10 @@ class ModelTest(TestCase): #pragma: no cover
 
     def testRescheduleTermlyPolls(self):
         ScriptProgress.objects.all().delete()
-        self.register_reporter('teacher', '8675349')
-        self.register_reporter('head teacher', '8675319')
-        self.register_reporter('smc', '8675329')
-        self.register_reporter('gem', '8675339')
+        self.register_reporter('1', '8675349')
+        self.register_reporter('2', '8675319')
+        self.register_reporter('3', '8675329')
+        self.register_reporter('4', '8675339')
         termly_scripts = Script.objects.filter(slug__endswith='_termly')
         Script.objects.filter(slug__in=termly_scripts.values_list('slug', flat=True)).update(enabled=True)
         for sp in ScriptProgress.objects.filter(script__slug__in=termly_scripts.values_list('slug', flat=True)):
@@ -1030,6 +1030,14 @@ class ModelTest(TestCase): #pragma: no cover
         call_command('reschedule_midterm_polls', group='Head Teachers', date='2012-10-08')
         self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_midterm').time.date(), datetime.datetime(2012, 10, 8).date())
         
+    def testRescheduleTermlyManagementCommand(self):
+        ScriptProgress.objects.all().delete()
+        self.register_reporter('1', '8675349')
+        self.register_reporter('2', '8675319')
+        self.register_reporter('3', '8675329')
+        self.register_reporter('4', '8675339')
+        call_command('reschedule_termly_polls', group=['Head Teachers', 'SMC'], date='2012-4-17')
+        self.assertEquals(ScriptProgress.objects.get(connection__identity='8675319', script__slug='edtrac_head_teachers_termly').time.date(), datetime.datetime(2012, 4, 17).date())
         
     
 #def load_edtrac_data():
