@@ -84,7 +84,7 @@ INSTALLED_APPS = [
     "djtables",
     "mptt",
     "uni_form",
-    "debug_toolbar",
+#    "debug_toolbar",
     "django_extensions",
     "rapidsms.contrib.handlers",
     "rapidsms.contrib.locations",
@@ -116,7 +116,6 @@ INSTALLED_APPS = [
     "endless_pagination",
     "simple_autocomplete",
     "monitor",
-    "timelog",
     #leave south at the end of this list
     "south",
 
@@ -236,24 +235,24 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.middleware.transaction.TransactionMiddleware',
     'reversion.middleware.RevisionMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
+#    'debug_toolbar.middleware.DebugToolbarMiddleware',
 )
 
-DEBUG_TOOLBAR_PANELS = (
-    'debug_toolbar.panels.version.VersionDebugPanel',
-    'debug_toolbar.panels.timer.TimerDebugPanel',
-    'debug_toolbar.panels.settings_vars.SettingsVarsDebugPanel',
-    'debug_toolbar.panels.headers.HeaderDebugPanel',
-    'debug_toolbar.panels.request_vars.RequestVarsDebugPanel',
-    'debug_toolbar.panels.template.TemplateDebugPanel',
-    'debug_toolbar.panels.sql.SQLDebugPanel',
-    'debug_toolbar.panels.signals.SignalDebugPanel',
-    'debug_toolbar.panels.logger.LoggingPanel',
-)
-
-DEBUG_TOOLBAR_CONFIG = {
-    'INTERCEPT_REDIRECTS': False,
-}
+#DEBUG_TOOLBAR_PANELS = (
+#    'debug_toolbar.panels.version.VersionDebugPanel',
+#    'debug_toolbar.panels.timer.TimerDebugPanel',
+#    'debug_toolbar.panels.settings_vars.SettingsVarsDebugPanel',
+#    'debug_toolbar.panels.headers.HeaderDebugPanel',
+#    'debug_toolbar.panels.request_vars.RequestVarsDebugPanel',
+#    'debug_toolbar.panels.template.TemplateDebugPanel',
+#    'debug_toolbar.panels.sql.SQLDebugPanel',
+#    'debug_toolbar.panels.signals.SignalDebugPanel',
+#    'debug_toolbar.panels.logger.LoggingPanel',
+#)
+#
+#DEBUG_TOOLBAR_CONFIG = {
+#    'INTERCEPT_REDIRECTS': False,
+#}
 # -------------------------------------------------------------------- #
 #                           HERE BE DRAGONS!                           #
 #        these settings are pure hackery, and will go away soon        #
