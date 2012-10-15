@@ -237,7 +237,6 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.transaction.TransactionMiddleware',
     'reversion.middleware.RevisionMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
-    'timelog.middleware.TimeLogMiddleware',
 )
 
 DEBUG_TOOLBAR_PANELS = (
