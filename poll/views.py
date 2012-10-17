@@ -15,18 +15,17 @@ from django.utils import simplejson
 from django.utils.safestring import mark_safe
 from rapidsms_httprouter.router import get_router
 from rapidsms.messages.outgoing import OutgoingMessage
-from models import Response
+from models import Response,ResponseCategory
 from rapidsms.contrib.locations.models import Location
 from rapidsms.models import Connection, Backend
 from eav.models import Attribute
 from django.core.urlresolvers import reverse
 from django.views.decorators.cache import cache_control
 from django.conf import settings
-from multiprocessing import Process, Queue
+
 
 from forms import *
-import os
-import subprocess
+
 
 # CSV Export
 
@@ -473,6 +472,7 @@ def edit_response(req, response_id):
         form = _get_response_edit_form(response, data=req.POST)
         if form.is_valid():
             if 'categories' in form.cleaned_data:
+                ResponseCategory.objects.filter(response=response).delete()
                 response.update_categories(form.cleaned_data['categories'
                         ], req.user)
 
