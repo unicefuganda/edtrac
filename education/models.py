@@ -310,9 +310,14 @@ def edtrac_autoreg(**kwargs):
 
     if name:
         name = ' '.join([n.capitalize() for n in name.lower().split()])[:100]
+    if district:
+        district =  find_closest_match(district, Location.objects.filter(type='district'))
 
     if subcounty:
-        subcounty = find_closest_match(subcounty, Location.objects.filter(type__name='sub_county'))
+        if district:
+            subcounty = find_closest_match(subcounty, district.get_descendants().filter(type='sub_county'))
+        else:
+            subcounty = find_closest_match(subcounty, Location.objects.filter(type__name='sub_county'))
 
     grp = match_group_response(session, role, role_poll)
 #    grp = find_closest_match(role, Group.objects)
