@@ -673,7 +673,7 @@ class Rule(models.Model):
         """
            create a regular expression from the input
         """
-        words=self.rule_string.replace(','," ").split()
+        words=self.rule_string.split(',')
 
         if self.rule == 1:
             all_template=r"(?=.*\b%s\b)"
