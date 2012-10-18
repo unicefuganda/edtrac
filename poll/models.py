@@ -687,9 +687,9 @@ class Rule(models.Model):
             w_regex=r""
             for word in words:
                 if len(w_regex):
-                    w_regex=w_regex+r"|"+one_template%re.escape(word)
+                    w_regex=w_regex+r"|"+one_template%re.escape(word.strip())
                 else:
-                    w_regex=w_regex+one_template%re.escape(word)
+                    w_regex=w_regex+one_template%re.escape(word.strip())
 
             return w_regex
 
