@@ -679,7 +679,8 @@ class Rule(models.Model):
             all_template=r"(?=.*\b%s\b)"
             w_regex=r""
             for word in words:
-                w_regex=w_regex+all_template%re.escape(word.strip())
+                if len(word):
+                    w_regex=w_regex+all_template%re.escape(word.strip())
             return w_regex
 
         elif self.rule == 2:
@@ -687,9 +688,11 @@ class Rule(models.Model):
             w_regex=r""
             for word in words:
                 if len(w_regex):
-                    w_regex=w_regex+r"|"+one_template%re.escape(word.strip())
+                    if len(word):
+                        w_regex=w_regex+r"|"+one_template%re.escape(word.strip())
                 else:
-                    w_regex=w_regex+one_template%re.escape(word.strip())
+                    if len(word):
+                        w_regex=w_regex+one_template%re.escape(word.strip())
 
             return w_regex
 
