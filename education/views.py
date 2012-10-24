@@ -785,12 +785,25 @@ def smc_meetings(locations):
 
     return {'smc_meetings' : total_meetings, 'schools_to_date': school_to_date}
 
+def total_schools(locations):
+    total_schools = 0
+    districts = Location.objects.filter(type="district").\
+                filter(name__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in=Blacklist.objects.values_list('connection',flat=True)).values_list('reporting_location__name', flat=True))
+    for district in districts:
+        s_count = School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).\
+                                        filter(reporting_location__name = district.name).distinct().values_list('schools__pk',flat=True)).count()
+        total_schools += s_count
+        
+    return {'total_schools' : total_schools }
+    
+
 # generate context vars
 def generate_dashboard_vars(location=None):
     """
     An overly ambitious function that generates context variables for a location if provided
     This gets populated in the dashboard.
     """
+    
     context_vars = {}
     locations = []
     if location.name == "Uganda":
@@ -843,6 +856,9 @@ def generate_dashboard_vars(location=None):
 
     #Meals
     context_vars.update(meals_missed(locations))
+    
+    #Total Schools
+    context_vars.update(total_schools(locations))
 
     return context_vars
 
@@ -1056,100 +1072,101 @@ def admin_dashboard(request):
 
 class NationalStatistics(TemplateView):
     template_name = "education/admin/national_statistics.html"
-    #simple helper function
-    def compute_percent(self, reps, groups = []):
-        if groups:
-            all_reporters = EmisReporter.objects.filter(groups__name__in=groups).exclude(connection__in=\
-            Blacklist.objects.values_list('connection',flat=True))
-        else:
-            all_reporters = EmisReporter.objects.exclude(connection__in=\
-            Blacklist.objects.values_list('connection',flat=True))
+    groups = ['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters', 'DEO', 'MEO']
 
+    def compute_percent(self, reps, groups = groups): 
+        all_reporters = EmisReporter.objects.filter(groups__name__in=groups).exclude(connection__in=Blacklist.objects.all()).exclude(schools=None)   
         try:
-            return 100 * reps.count() / all_reporters.count()
+            reps.count() / all_reporters.count()
         except ZeroDivisionError:
             return 0
 
-
     def get_context_data(self, **kwargs):
-        context = super(NationalStatistics, self).get_context_data(**kwargs)
-
-        profile = self.request.user.get_profile()
-        if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
-            districts = Location.objects.filter(type="district").\
-            filter(name__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in=Blacklist.objects.values_list('connection',flat=True))\
-            .values_list('reporting_location__name', flat=True))
-            district_schools = [
-            (district,
-             School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).\
-             filter(reporting_location__name = district.name).distinct().values_list('schools__pk',flat=True)).count())
-            for district in districts
-            ]
-            #School.objects.filter(pk__in=\
-            #    EmisReporter.objects.filter(reporting_location=district).exclude(schools = None).values_list('schools__pk',flat=True)).count())
-            context['total_districts'] = districts.count()
-            context['district_schools'] = district_schools
-            context['school_count'] = School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).\
-            exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).distinct().values_list('schools__pk',flat=True)).count()
-            # getting weekly system usage
-            # reporters that sent messages in the past week.
-            reps = EmisReporter.objects.select_related().filter(groups__name="Head Teachers", connection__in=Message.objects.\
-               filter(date__range = get_week_date(depth = 2)[1]).values_list('connection', flat = True)).\
-               select_related().exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
-
-            district_active = [
-            (
-                district, self.compute_percent(reps.filter(reporting_location__pk=district.pk), groups=['Head Teachers'])
-                )
-            for district in districts
-            ]
-            district_active.sort(key=operator.itemgetter(1), reverse=True)
-            context['district_active'] = district_active[:3]
-            context['district_less_active'] = district_active[-3:]
-
-            context['head_teacher_count'] = reps.count()
-            er = EmisReporter.objects.select_related()
-            context['smc_count'] = er.exclude(schools=None).exclude(connection__in = Blacklist.objects.\
-                values_list('connection', flat = True)).filter(groups__name = "SMC").count()
-
-            context['p6_teacher_count'] = er.exclude(schools=None, connection__in = Blacklist.objects.\
-                values_list('connection', flat = True)).filter(groups__name = "Teachers", grade = "P6").count()
-
-            context['p3_teacher_count'] = er.exclude(schools=None, connection__in = Blacklist.objects.\
-                values_list('connection', flat = True)).filter(groups__name = "Teachers", grade = "P3").count()
-            context['total_teacher_count'] = er.exclude(schools=None, connection__in = Blacklist.objects.\
-                values_list('connection', flat = True)).filter(groups__name="Teachers").count()
-
-            context['deo_count'] = er.exclude(schools=None, connection__in = Blacklist.objects.\
-                values_list('connection', flat = True)).filter(groups__name="DEO").count()
-
-            context['gem_count'] = er.exclude(schools=None, connection__in = Blacklist.objects.\
-                values_list('connection', flat = True)).filter(groups__name="GEM").count()
-
-            context['all_reporters'] = er.exclude(schools=None, connection__in = Blacklist.objects.\
-                values_list('connection', flat = True)).count()
-
-            schools = School.objects.select_related().filter(pk__in = EmisReporter.objects.exclude(schools=None, connection__in=\
-                Blacklist.objects.select_related().values_list('connection',flat=True)).values_list('schools__pk', flat=True))
-            context['expected_reporters'] = schools.count() * 4
-            # reporters that used EduTrac the past week
-            school_reporters = er.filter(groups__name__in=["Head Teachers", "Teachers"],\
-                connection__in=Message.objects.select_related().exclude(application='script').\
-                filter(date__range = get_week_date(depth = 2)[1]).values_list('connection', flat = True)).\
-                    exclude(schools = None).exclude(connection__in = Blacklist.objects.select_related().values_list('connection', flat=True))
-
-            school_active = [
-            (school, self.compute_percent(school_reporters.filter(schools__pk=school.pk), groups=['Head Teachers', 'Teachers']))
-            for school in schools
-            ]
-
-            school_active.sort(key=operator.itemgetter(1), reverse=True)
-            context['school_active_count'] = School.objects.filter(pk__in = school_reporters.values_list('schools__pk', flat=True)).count()
-            context['school_active'] = school_active[:3]
-            context['school_less_active'] = school_active[-3:]
-            return context
-        else:
-            return self.render_to_response(dashboard(self.request))
+            context = super(NationalStatistics, self).get_context_data(**kwargs)
+            groups = ['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters', 'DEO', 'MEO']
+            all_reporters = EmisReporter.objects.filter(groups__name__in=groups).exclude(connection__in=Blacklist.objects.all()).exclude(schools=None)
+            
+    
+            profile = self.request.user.get_profile()
+            if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
+                districts = Location.objects.filter(type="district").\
+                filter(name__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in=Blacklist.objects.values_list('connection',flat=True)).values_list('reporting_location__name', flat=True))
+#                districts = Location.objects.filter(type="district").exclude(connection__in=Blacklist.objects.values_list('connection',flat=True))
+                reps = EmisReporter.objects.select_related().filter(groups__name__in=['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters'], connection__in=Message.objects.\
+                   filter(date__range = get_week_date(depth = 2)[1]).values_list('connection', flat = True)).exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
+    
+                district_schools = [
+                (district,
+                 School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).\
+                 filter(reporting_location__name = district.name).distinct().values_list('schools__pk',flat=True)).count())
+                for district in districts
+                ]
+                    
+                context['total_districts'] = districts.count()
+                context['district_schools'] = district_schools
+                schools= School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).\
+                exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).distinct().values_list('schools__pk',flat=True))
+                context['school_count'] = schools.count()
+                # getting weekly system usage
+                # reporters that sent messages in the past week.
+                total_schools = 0
+                for district in districts:
+                    s_count = School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).\
+                                                    filter(reporting_location__name = district.name).distinct().values_list('schools__pk',flat=True)).count()
+                    total_schools += s_count
+                    
+                context['total_schools'] = total_schools
+                 
+                
+                district_active = [
+                (
+                    district, self.compute_percent(reps.filter(reporting_location__pk=district.pk), groups=['Head Teachers'])
+                    )
+                for district in districts
+                ]
+                district_active.sort(key=operator.itemgetter(1), reverse=True)
+                
+#                district_active.sort(key=operator.itemgetter(1), reverse=True)
+                context['district_active'] = district_active[:3]
+                context['district_less_active'] = district_active[-3:]
+    
+#                context['head_teacher_count'] = reps.count()
+                head_teacher_count = all_reporters.filter(groups__name='Head Teachers').count()
+                smc_count = all_reporters.filter(groups__name = "SMC").count()
+                p6_teacher_count = all_reporters.filter(groups__name = "Teachers", grade = "P6").count()
+                p3_teacher_count = all_reporters.filter(groups__name = "Teachers", grade = "P3").count()
+                total_teacher_count = all_reporters.filter(groups__name="Teachers").count()
+                deo_count = all_reporters.filter(groups__name="DEO").count()
+                gem_count = all_reporters.filter(groups__name="GEM").count()
+                teacher_data_unclean = total_teacher_count - p3_teacher_count - p6_teacher_count
+                
+                context['head_teacher_count'] = head_teacher_count
+                context['smc_count'] = smc_count
+                context['p6_teacher_count'] = p6_teacher_count
+                context['p3_teacher_count'] = p3_teacher_count
+                context['total_teacher_count'] = total_teacher_count
+                context['teacher_data_unclean'] = teacher_data_unclean
+                context['deo_count'] = deo_count
+                context['gem_count'] = gem_count
+                context['all_reporters'] = all_reporters.count()
+    
+                context['expected_reporters'] = schools.count() * 4
+                # reporters that used EduTrac the past week
+                active_school_reporters = all_reporters.filter(connection__in=Message.objects.exclude(application='script').\
+                    filter(date__range = get_week_date(depth = 2)[1]).values_list('connection', flat = True))
+    
+                school_active = [
+                (school, self.compute_percent(active_school_reporters.filter(schools__pk=school.pk), groups=['Head Teachers', 'Teachers', 'GEM', 'SMC','Other Reporters']))
+                for school in schools
+                ]
+    
+                school_active.sort(key=operator.itemgetter(1), reverse=True)
+                context['school_active_count'] = School.objects.filter(pk__in = active_school_reporters.values_list('schools__pk', flat=True)).count()
+                context['school_active'] = school_active[:3]
+                context['school_less_active'] = school_active[-3:]
+                return context
+            else:
+                return self.render_to_response(dashboard(self.request))
 
 
 class CapitationGrants(TemplateView):

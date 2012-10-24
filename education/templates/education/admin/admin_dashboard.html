@@ -181,7 +181,8 @@ Dashboard -- {{ block.super }}
     </div>
     <div class="sidebar">
         <div class="quick-stats">
-            <p><label>{{ schools_to_date }}</label><b>schools to date</b></p>
+<!--             <p><label>{{ schools_to_date }}</label><b>schools to date</b></p> -->
+			<p><label>{{ total_schools }}</label><b>Schools To-Date</b></p>
             <p><label class="active" style="font-size:15px;"><a href="{% url emis-national-stats %}">{{ school_active|floatformat }}%</a>
             </label><b>have reported (<a href="{% url emis-national-stats %}">more</a>)</b></p>
         </div>

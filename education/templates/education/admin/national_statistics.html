@@ -37,14 +37,18 @@
             			<th>Number of Reporters</th>
             		</tr>
             		<tr><td>Head Teachers: </td><td>{{ head_teacher_count }}</td></tr>
-            		<tr><td>SMC Members: </td><td>{{ smc_count }}</td></tr>
-            		<tr><td>GEM Reporters: </td><td>{{ gem_count }}</td></tr>
-            		<tr><td>District Education Officers: </td><td>{{ deo_count }}</td></tr>
+            		<tr><td>Total Teacher Number: </td><td>{{ total_teacher_count }}</td></tr>
             		<tr><td>P3 Teachers: </td><td>{{ p3_teacher_count }}</td></tr>
             		<tr><td>P6 Teachers: </td><td>{{ p6_teacher_count }}</td></tr>
-            		<tr><td>Total Teacher Number: </td><td>{{ total_teacher_count }}</td></tr>
-            		<tr><td>Expected Number of Reporters: </td><td>{{ expected_reporters }}</td></tr>
+            		<tr><td>Dirty Teacher Data: </td><td>{{ teacher_data_unclean }}</td></tr>
+            		<tr><td>SMC Members: </td><td>{{ smc_count }}</td></tr>
+            		<tr><td>GEM Reporters: </td><td>{{ gem_count }}</td></tr>
+            		<tr><td>Total Expected Reporters: </td><td>{{ expected_reporters }}</td></tr>
             	</table>
+            	
+            	<h3 style="background-color:black; color:white; margin-bottom:5px; padding:10px;">
+                EduTrac Schools Tracked: {{ total_schools }}
+            	</h3>
             </div>
 
 
@@ -66,7 +70,7 @@
                         <td>
                             <table style="width:450px;">
                                 {% for school, active_schools in school_active %}
-                                <tr><td>{{ school }}</td><td>{{ active_schools|floatformat }}%</td><td></td></tr>
+                                <tr><td>{{ school }}</td><td>{{ active_schools|floatformat }}%</td></tr>
                                 {% endfor %}
                             </table>
                         </td>
