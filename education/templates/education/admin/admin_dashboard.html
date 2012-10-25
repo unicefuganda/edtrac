@@ -182,9 +182,10 @@ Dashboard -- {{ block.super }}
     <div class="sidebar">
         <div class="quick-stats">
 <!--             <p><label>{{ schools_to_date }}</label><b>schools to date</b></p> -->
-			<p><label>{{ total_schools }}</label><b>Schools To-Date</b></p>
+			<p><label>{{ total_schools }}</label><b>Schools Tracked</b></p>
+			<p><label>{{ total_reporters }}</label><b>Valid Reporters</b></p>
             <p><label class="active" style="font-size:15px;"><a href="{% url emis-national-stats %}">{{ school_active|floatformat }}%</a>
-            </label><b>have reported (<a href="{% url emis-national-stats %}">more</a>)</b></p>
+            </label><b>Recently Reported</b></p>
         </div>
         <div class="attention section">
             <h2>Alerts</h2>

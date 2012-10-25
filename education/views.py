@@ -742,10 +742,13 @@ def head_teachers_male(locations):
 
 def schools_active(locations):
     try:
-        count_reps = EmisReporter.objects.filter(groups__name__in=['Head Teachers', 'Teachers', 'SMC'],
-            reporting_location__in = locations).exclude(schools = None).exclude(
-                connection__identity__in=Blacklist.objects.select_related().values_list('connection__identity',flat=True)).select_related().\
-                    values_list('connection__identity').count()
+#        count_reps = EmisReporter.objects.filter(groups__name__in=['Head Teachers', 'Teachers', 'SMC'],
+#            reporting_location__in = locations).exclude(schools = None).exclude(
+#                connection__identity__in=Blacklist.objects.select_related().values_list('connection__identity',flat=True)).select_related().\
+#                    values_list('connection__identity').count()
+                    
+        count_reps = EmisReporter.objects.filter(groups__name__in=['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters', 'DEO', 'MEO'],
+                                reporting_location__in = locations).exclude(connection__in=Blacklist.objects.all()).exclude(schools=None).count()
 
         count = 0
         for p in Poll.objects.filter(name__icontains = 'attendance').select_related():
@@ -795,7 +798,12 @@ def total_schools(locations):
         total_schools += s_count
         
     return {'total_schools' : total_schools }
+
+def total_reporters(locations):
+    total_reporters = EmisReporter.objects.filter(groups__name__in=['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters', 'DEO', 'MEO']).\
+        exclude(connection__in=Blacklist.objects.all()).exclude(schools=None).count()
     
+    return {'total_reporters' : total_reporters }
 
 # generate context vars
 def generate_dashboard_vars(location=None):
@@ -859,6 +867,9 @@ def generate_dashboard_vars(location=None):
     
     #Total Schools
     context_vars.update(total_schools(locations))
+    
+    #Total Reporters
+    context_vars.update(total_reporters(locations))
 
     return context_vars
 
