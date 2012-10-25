@@ -52,19 +52,19 @@
             </div>
 
 
-            <!-- <div style="clear:both;">
-                <h3 style="background-color:black; color:white; margin-bottom:5px; padding:10px;">EduTrac usage by Schools (top 3 and worst 3)</h3>
+			<div style="clear:both;">
+                <h3 style="background-color:black; color:white; margin-bottom:5px; padding:10px;">School Activity</h3>
 
-                <div class="stats">
+                <!-- <div class="stats">
                     <span>Number of active schools: </span><span style="color:white;">{{ school_active_count }}</span><br/><br/>
                     <span>Total number of schools: </span><span style="color:white;">{{ school_count }}</span>
-                </div>
-
-
+                </div> -->
+                
+                
                 <table class="classy">
                     <tr>
-                        <th>Active (%)</th>
-                        <th>Inactive (%)</th>
+                        <th>Most Active </th>
+                        <th>Least Active </th>
                     </tr>
                     <tr>
                         <td>
@@ -83,23 +83,23 @@
                         </td>
                     </tr>
                 </table>
-            </div> -->
+            </div> 
+	
 
 
-
-           <!--  <div style="clear:both;">
-            <h3 style="background-color:black; color:white; margin-bottom:5px; padding:10px;">EduTrac usage by Head Teachers (top 3 and worst 3)</h3>
+           <div style="clear:both;">
+            <h3 style="background-color:black; color:white; margin-bottom:5px; padding:10px;">Head Teacher Activity</h3>
 
             <table class="classy">
                 <tr>
-                    <th>Active (%)</th>
-                    <th>Inactive (%)</th>
+                    <th>Most Active</th>
+                    <th>Least Active</th>
                 </tr>
                 <tr>
                     <td>
                     <table style="width:450px;">
                         {% for district, active_heads in district_active %}
-                        <tr><td>{{ district }}</td><td>{{ active_heads|floatformat }}%</td><td></td></tr>
+                        <tr><td>{{ district }}</td><td>{{ active_heads|floatformat }}%</td></tr>
                         {% endfor %}
                     </table>
                     </td>
@@ -112,6 +112,6 @@
                     </td>
                 </tr>
             </table>
-            </div> -->
+            </div>
         </div>
 {% endblock %}
