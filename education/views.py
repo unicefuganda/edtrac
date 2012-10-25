@@ -800,8 +800,8 @@ def total_schools(locations):
     return {'total_schools' : total_schools }
 
 def total_reporters(locations):
-    total_reporters = EmisReporter.objects.filter(groups__name__in=['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters', 'DEO', 'MEO']).\
-        exclude(connection__in=Blacklist.objects.all()).exclude(schools=None).count()
+    total_reporters = EmisReporter.objects.filter(groups__name__in=['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters', 'DEO', 'MEO'], 
+                            reporting_location__in = locations).exclude(connection__in=Blacklist.objects.all()).exclude(schools=None).count()
     
     return {'total_reporters' : total_reporters }
 
