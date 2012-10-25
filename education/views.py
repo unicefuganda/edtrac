@@ -791,8 +791,11 @@ def smc_meetings(locations):
 def total_schools(locations):
     total_schools = 0
     districts = Location.objects.filter(type="district").\
-                filter(name__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in=Blacklist.objects.values_list('connection',flat=True)).values_list('reporting_location__name', flat=True))
+                filter(name__in=EmisReporter.objects.filter(reporting_location__in = locations).exclude(schools=None).exclude(connection__in=Blacklist.objects.values_list('connection',flat=True)).values_list('reporting_location__name', flat=True))
     for district in districts:
+#        s_count = School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).\
+#                                        filter(reporting_location__name = district.name).distinct().values_list('schools__pk',flat=True)).count()
+#        
         s_count = School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).\
                                         filter(reporting_location__name = district.name).distinct().values_list('schools__pk',flat=True)).count()
         total_schools += s_count
