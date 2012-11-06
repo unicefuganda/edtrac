@@ -105,7 +105,13 @@ class FilterGroupsForm(FilterForm):
             try:
                 return queryset.filter(groups__in=groups_pk)
             except FieldError:
-                return queryset.filter(group__in=Group.objects.filter(pk__in=groups_pk).values_list('name'))
+                q=None
+                for f in Group.objects.filter(pk__in=groups_pk).values_list('name',flat=True):
+                    if not q:
+                        q=Q(group__icontains=f)
+                    else:
+                        q=q | Q(group__icontains=f)
+                return queryset.filter(q)
 
 
 class NewContactForm(forms.ModelForm):
