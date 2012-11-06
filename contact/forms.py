@@ -89,7 +89,11 @@ class FilterGroupsForm(FilterForm):
                 try:
                     return queryset.filter(Q(groups=None) | Q(groups__in=groups_pk))
                 except FieldError:
-                    return queryset.filter(Q(group=None) | Q(group__in=Group.objects.filter(pk__in=groups_pk).values_list('name')))
+                    q=Q(group=None)
+                    for f in Group.objects.filter(pk__in=groups_pk).values_list('name',flat=True):
+                        q=q | Q(group__icontains=f)
+
+                    return queryset.filter(q)
             else:
                 try:
                     return queryset.filter(groups=None)
