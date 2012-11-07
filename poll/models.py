@@ -299,14 +299,7 @@ class Poll(models.Model):
                 messages = Message.mass_text(gettext_db(field=self.question, language=language), Connection.objects.filter(contact__in=localized_contacts).distinct(), status='Q', batch_status='Q')
                 localized_messages[language] = [messages, localized_contacts]
 
-        # This is the fastest (pretty much only) was to get messages M2M into the
-        # DB fast enough at scale
-        cursor = connection.cursor()
-        for language in localized_messages.keys():
-
-            raw_sql = "insert into poll_poll_messages (poll_id, message_id) values %s" % ','.join(\
-                ["(%d, %d)" % (self.pk, m.pk) for m in localized_messages.get(language)[0].iterator()])
-            cursor.execute(raw_sql)
+            self.messages.add(*messages.values_list('pk',flat=True))
 
         self.start_date = datetime.datetime.now()
         self.save()
