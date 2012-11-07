@@ -213,7 +213,7 @@ class Poll(models.Model):
     @classmethod
     @transaction.commit_on_success
 
-    def create_with_bulk(cls, name, type, question, default_response, contacts, user):
+    def create_with_bulk(cls, name, type, question, default_response, contacts, user,send_signals=True):
         if getattr(settings,"BLACKLIST_MODEL",None):
             app_label,model_name=settings.BLACKLIST_MODEL.rsplit(".")
             try:
@@ -223,7 +223,8 @@ class Poll(models.Model):
                 raise Exception("Your Blacklist Model is Improperly configured")
 
 
-        poll = Poll.objects.create(name=name, type=type, question=question, default_response=default_response, user=user)
+        poll = Poll(name=name, type=type, question=question, default_response=default_response, user=user)
+        poll.save(send_signals=send_signals)
 
         #batch for responses
         MessageBatch.objects.get_or_create(name=str(poll.pk))
