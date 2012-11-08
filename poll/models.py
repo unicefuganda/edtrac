@@ -222,16 +222,9 @@ class Poll(models.Model):
             except :
                 raise Exception("Your Blacklist Model is Improperly configured")
 
-        poll = Poll.objects.create(name=name, type=type, question=question, default_response=default_response, user=user)
+        poll = Poll.objects.create(name=name, type=type, question=question,contacts=contacts, default_response=default_response, user=user)
         #batch for responses
         MessageBatch.objects.get_or_create(name=str(poll.pk))
-
-        # This is the fastest (pretty much only) was to get contacts and messages M2M into the
-        # DB fast enough at scale
-        cursor = connection.cursor()
-        raw_sql = "insert into poll_poll_contacts (poll_id, contact_id) values %s" % ','.join(\
-            ["(%d, %d)" % (poll.pk, c.pk) for c in contacts])
-        cursor.execute(raw_sql)
 
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
             poll.sites.add(Site.objects.get_current())
