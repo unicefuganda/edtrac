@@ -16,7 +16,7 @@ class Command(BaseCommand):
         yesno_category_name = ['yes', 'no', 'unknown']
         for p in Poll.objects.order_by('-pk'):
             if p.categories.count():
-                category_names = yesno_category_name if p.is_yesno_poll() else list(p.categories.order_by('name').values_list('name', flat=True))
+                category_names = yesno_category_name if p.is_yesno_poll() else list(p.categories.all().values_list('name', flat=True))
                 category_names.append('uncategorized')
                 data = p.responses_by_category(location=root)
                 insert_data = {}
