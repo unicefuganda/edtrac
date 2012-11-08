@@ -222,8 +222,9 @@ class Poll(models.Model):
             except :
                 raise Exception("Your Blacklist Model is Improperly configured")
 
-        poll = Poll.objects.create(name=name, type=type, question=question,contacts=contacts, default_response=default_response, user=user)
+        poll = Poll.objects.create(name=name, type=type, question=question, default_response=default_response, user=user)
         #batch for responses
+        poll.contacts.add(*contacts.values_list('pk',flat=True))
         MessageBatch.objects.get_or_create(name=str(poll.pk))
 
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
