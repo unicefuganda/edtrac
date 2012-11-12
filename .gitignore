@@ -6,3 +6,5 @@ edtrac_projects/media
 build
 patch
 *.log
+.project
+.pydevproject
