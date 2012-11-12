@@ -48,12 +48,14 @@ def is_weekend(date):
     """
     return date.weekday() in [5, 6]
 
-def next_relativedate(day_offset, month_offset=0):
+def next_relativedate(day_offset, month_offset=0, xdate = datetime.datetime.now()):
     """
     Find the date corresponding to day_offset of the month for example 25th day of of month
     you can also give month offsets, ie date of the 25th day of the next month
     """
-    d = datetime.datetime.now()
+#    d = datetime.datetime.now()
+    d = xdate
+    
     if month_offset:
         d = d + datetime.timedelta(month_offset*31)
         
@@ -206,7 +208,6 @@ def _date_of_monthday(day_offset):
     If the 'day_offset' day of the month falls in holiday period, 'day_offset' day of
     the following month is returned
     """
-    
     holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
     d = next_relativedate(day_offset)
     if is_weekend(d):
@@ -226,7 +227,7 @@ def _date_of_monthday(day_offset):
                     in_holiday = True
                     break
         if in_holiday:
-            d = next_relativedate(day_offset, 1)
+            d = next_relativedate(day_offset, 0, d)
             if is_weekend(d):
                 d = d + datetime.timedelta((0 - d.weekday()) % 7)
     return d
@@ -479,7 +480,7 @@ def get_contacts(**kwargs):
         return Contact.objects.annotate(Count('responses'))
 
 def get_polls(**kwargs):
-    script_polls = ScriptStep.objects.exclude(poll=None).values_list('poll', flat=True)
+    script_polls = ScriptStep.objects.values_list('poll', flat=True).exclude(poll=None)
     return Poll.objects.exclude(pk__in=script_polls).annotate(Count('responses'))
 
 def get_script_polls(**kwargs):

@@ -82,9 +82,12 @@ class NewConnectionForm(forms.Form):
     identity = forms.CharField(max_length=15, required=True, label="Primary contact information")
 
 class EditReporterForm(forms.ModelForm):
-
     schools = forms.ModelChoiceField(queryset=School.objects.filter(location__name__in=\
             EmisReporter.objects.values_list('reporting_location__name',flat=True)).order_by('location__name','name'))
+    
+#    groups = forms.ModelChoiceField(queryset=Group.objects.all().values_list('name', flat=True).order_by('name'))
+
+  
     class Meta:
         model = EmisReporter
         fields = ('name', 'gender', 'grade', 'reporting_location', 'groups', 'schools')
@@ -106,17 +109,18 @@ class EditReporterForm(forms.ModelForm):
         else:
             # remove all schools associated with this reporter
             [reporter_form.schools.remove(sch) for sch in reporter_form.schools.all()]
-
+        
         groups = self.cleaned_data['groups']
-        # django-auth has many to many relation on groups
         if groups:
-            groups = Group.objects.filter(pk = groups[0].pk) # queryset (pick first)
-            reporter_form.groups = groups
+            reporter_form.groups.clear()
+            group = Group.objects.get(pk = groups[0].pk)
+            reporter_form.groups.add(group)
         else:
             [reporter_form.groups.remove(grp) for grp in reporter_form.groups.all()]
 
         if commit:
             reporter_form.save()
+
 
 
 class DistrictFilterForm(forms.Form):

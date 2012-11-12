@@ -2498,8 +2498,8 @@ def edit_reporter(request, reporter_pk):
     reporter_group_name = reporter.groups.all()[0].name
 
     if request.method == 'POST':
-        reporter_form = EditReporterForm(instance=reporter,
-            data=request.POST)
+#        import pdb;pdb.set_trace()
+        reporter_form = EditReporterForm(instance=reporter,data=request.POST)
         if reporter_form.is_valid():
             with reversion.create_revision():
                 reporter_form.save()
