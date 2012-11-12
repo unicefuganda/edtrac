@@ -291,9 +291,8 @@ class Poll(models.Model):
                 localized_contacts = contacts.filter(language=language)
             if localized_contacts.exists():
                 messages = Message.mass_text(gettext_db(field=self.question, language=language), Connection.objects.filter(contact__in=localized_contacts).distinct(), status='Q', batch_status='Q')
-                localized_messages[language] = [messages, localized_contacts]
-
-            self.messages.add(*messages.values_list('pk',flat=True))
+                #localized_messages[language] = [messages, localized_contacts]
+                self.messages.add(*messages.values_list('pk',flat=True))
 
         self.start_date = datetime.datetime.now()
         self.save()
