@@ -150,7 +150,7 @@ class ExcelResponse(HttpResponse):
     from a form.
     """
 
-    def __init__(self, data, output_name='excel_report.xls', headers=None, write_to_file=False, force_csv=False,
+    def __init__(self, data, output_name='excel_report.xls', headers=None,header=None, write_to_file=False, force_csv=False,
                  encoding='utf8'):
         # Make sure we've got the right type of data to work with
         valid_data = False
@@ -186,6 +186,7 @@ class ExcelResponse(HttpResponse):
 
         else:
             #zip em all
+            from django.core.servers.basehttp import FileWrapper
             zipped_file = zipfile.ZipFile(output_name, "w")
             num_files = int(math.ceil(len(data) / float(MAX_SHEET_LENGTH)))
             print len(data)
@@ -199,7 +200,13 @@ class ExcelResponse(HttpResponse):
                 zipped_file.write(handle, handle.rsplit("/")[-1])
                 start = end
                 end = end + MAX_SHEET_LENGTH
-            zipped_file.close()
+
+            super(ExcelResponse, self).__init__(open(output_name,"r"), mimetype="application/zip")
+            self['Content-Disposition'] = 'attachment;filename=export.zip'
+
+
+
+
 
 
 
