@@ -35,7 +35,7 @@ def get_location_for_user(user):
             return Location.objects.get(name__icontains=user.username, type__name='district')
         except:
             try:
-                if Contact.objects.filter(user=user).exclude(reporting_location=None).count():
+                if Contact.objects.filter(user=user).exclude(reporting_location=None):
                     return Contact.objects.filter(user=user).exclude(reporting_location=None)[0].reporting_location
             except:
                 pass
@@ -81,10 +81,12 @@ def assign_backend(number):
     assign a backend to a given number
     """
     country_code = getattr(settings, 'COUNTRY_CALLING_CODE', '256')
-    backends = getattr(settings, 'BACKEND_PREFIXES', [('75', 'zain'), ('71', 'utl'), ('', 'dmark')])
+    backends = getattr(settings, 'BACKEND_PREFIXES', [('75', 'zain'), ('71', 'dmark'), ('', 'dmark')])
 
     if number.startswith('0'):
         number = '%s%s' % (country_code, number[1:])
+    elif number.startswith('+'):
+        number = '%s' % number[1:]
     elif number[:len(country_code)] != country_code:
         number = '%s%s' % (country_code, number)
     backendobj = None
@@ -169,11 +171,11 @@ class ExcelResponse(HttpResponse):
         # Excel has a limit on number of rows; if we have more than that, make a csv
         use_xls = False
         mimetype = 'application/vnd.ms-excel'
-        if len(output_name.rsplit('.'))>1:
+        if len(output_name.rsplit('.')) > 1:
             file_ext = output_name.rsplit('.')[1]
         else:
-            file_ext="xls"
-        if file_ext !="zip" and len(data) <= MAX_SHEET_LENGTH :
+            file_ext = "xls"
+        if file_ext != "zip" and len(data) <= MAX_SHEET_LENGTH :
             book = create_workbook(data, encoding)
             if write_to_file:
                 book.save(output_name)
@@ -270,6 +272,9 @@ def total_submissions(keyword, start_date, end_date, location, extra_filters=Non
     """
     returns *total submission of values* from an xform; this is used to get certain values from and xform
     submitted database table.
+
+    T%d is reverse engineered from the SQL django generates.
+    hint: take a look at QuerySet.quary.alias_map in pdb
     """
     if extra_filters:
         extra_filters = dict([(str(k), v) for k, v in extra_filters.items()])
@@ -313,9 +318,12 @@ def total_submissions(keyword, start_date, end_date, location, extra_filters=Non
 
 
 def total_attribute_value(attribute_slug_list, start_date, end_date, location, group_by_timespan=None):
+    """
+    the table name T8 is reverse engineered from the SQL django generates.
+    hint: take a look at QuerySet.quary.alias_map in pdb
+    """
     if type(attribute_slug_list) != list:
         attribute_slug_list = [attribute_slug_list]
-
     select = {
         'location_name': 'T8.name',
         'location_id': 'T8.id',
@@ -536,9 +544,9 @@ def handle_excel_file(file, group, fields):
                     gender = parse_gender(row, worksheet, cols) if 'gender' in fields else None
                     if district:
                         contact['reporting_location'] = find_closest_match(district,
-                                                                           Area.objects.filter(kind__name='district'))
+                                                                           Location.objects.filter(kind__name='district'))
                     if village:
-                        contact['village'] = find_closest_match(village, Area.objects)
+                        contact['village'] = find_closest_match(village, Location.objects)
                     if birthdate:
                         contact['birthdate'] = birthdate
                     if gender:
@@ -593,3 +601,11 @@ def handle_dongle_sms(message):
                                            status='Q', connection=message.connection)
         return True
     return False
+def get_districts_for_user(user):
+    if user:
+        ret = Location.objects.filter(name__icontains=user.username, type__name='district')
+        if ret:
+            return ret
+        else:
+            return Location.objects.filter(type__name='district').order_by('name')
+    return Location.objects.filter(type__name='district').order_by('name')
