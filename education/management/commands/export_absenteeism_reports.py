@@ -1,5 +1,5 @@
 '''
-Created on November 14, 2012
+Created on November 21, 2012
 
 @author: raybesiga
 '''
@@ -15,13 +15,19 @@ from poll.models import Poll
 
 
 class Command(BaseCommand):
-    """Generates WASH Reports by Poll"""
+    """Generates Absenteeism Reports by Poll"""
     
     def handle(self, **options):
 
-        """Reporting Violence"""
+        """Reporting Absenteeism"""
         def wash_polls():
-            toret = Poll.objects.filter(name__in=['latrines_proportion', 'water_and_soap'])
+            toret = Poll.objects.filter(name__in=['edtrac_boysp3_attendance', \
+                                                  'edtrac_girlsp3_attendance', \
+                                                  'edtrac_boysp6_attendance', \
+                                                  'edtrac_girlsp6_attendance', \
+                                                  'edtrac_f_teachers_attendance', \
+                                                  'edtrac_m_teachers_attendance', \
+                                                  'edtrac_head_teachers_attendance'])
             return toret
         
         book = xlwt.Workbook(encoding='utf-8')
@@ -49,6 +55,6 @@ class Command(BaseCommand):
                 rowx +=1
                 
 
-        file_name = "wash_report.xls"
+        file_name = "absenteeism_report.xls"
         file_path = '%s%s' % (settings.SPREADSHEETS_PATH, file_name)
         book.save(file_path)  
