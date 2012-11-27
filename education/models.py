@@ -311,13 +311,13 @@ def edtrac_autoreg(**kwargs):
     if name:
         name = ' '.join([n.capitalize() for n in name.lower().split()])[:100]
     if district:
-        district =  find_closest_match(district, Location.objects.filter(type='district'))
+        district =  find_closest_match(district.name, Location.objects.filter(type='district'))
 
     if subcounty:
         if district:
             subcounty = find_closest_match(subcounty, district.get_descendants().filter(type='sub_county'))
         else:
-            subcounty = find_closest_match(subcounty, Location.objects.filter(type__name='sub_county'))
+            subcounty = find_closest_match(subcounty, Location.objects.filter(type='sub_county'))
 
     grp = match_group_response(session, role, role_poll)
 #    grp = find_closest_match(role, Group.objects)
@@ -386,12 +386,15 @@ def edtrac_autoreg(**kwargs):
     reporting_school = None
     school = find_best_response(session, school_poll)
     if school:
-        if subcounty:
+        if district:
+            reporting_school = find_closest_match(school, School.objects.filter(location__name__in=[district],\
+                location__type__name='district'), True)
+        elif subcounty:
             reporting_school = find_closest_match(school, School.objects.filter(location__name__in=[subcounty],\
                 location__type__name='sub_county'), True)
-        elif district:
-            reporting_school = find_closest_match(school, School.objects.filter(location__name__in=[district.name],\
-                location__type__name='district'), True)
+#        elif district:
+#            reporting_school = find_closest_match(school, School.objects.filter(location__name__in=[district.name],\
+#                location__type__name='district'), True)
         else:
             reporting_school = find_closest_match(school, School.objects.filter(location__name=Location.tree.root_nodes()[0].name))
         if reporting_school:
