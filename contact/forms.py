@@ -392,6 +392,31 @@ class AssignGroupForm(ActionForm):
                 c.groups.add(g)
         return ('%d Contacts assigned to %d groups.' % (len(results), len(groups)), 'success',)
 
+
+class RemoveGroupForm(ActionForm):
+
+    action_label = 'Remove  group(s)'
+
+    def __init__(self, data=None, **kwargs):
+        self.request = kwargs.pop('request')
+        if data:
+            forms.Form.__init__(self, data, **kwargs)
+        else:
+            forms.Form.__init__(self, **kwargs)
+        if hasattr(Contact, 'groups'):
+            if self.request.user.is_authenticated():
+                self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.filter(pk__in=self.request.user.groups.values_list('pk', flat=True)), required=False)
+            else:
+                self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.all(), required=False)
+
+    def perform(self, request, results):
+        groups = self.cleaned_data['groups']
+        contacts = Contact.objects.filter(pk__in=results)
+        for c in contacts:
+            for g in groups:
+                c.groups.remove(g)
+        return ('%d Contacts removed from %d groups.' % (len(results), len(groups)), 'success',)
+
 class FlaggedForm(FilterForm):
 
     """ filter flagged/unflagged messages form """
