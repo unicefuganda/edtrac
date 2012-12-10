@@ -2,15 +2,30 @@
 import datetime
 from south.db import db
 from south.v2 import DataMigration
+from django.db.utils import DatabaseError
 from django.db import models
+from django.db import transaction
 
 class Migration(DataMigration):
 
     def forwards(self, orm):
         #db.rename_column('locations_location', 'code', 'alias')
-        db.rename_column('locations_location', 'is_active', 'status')
-        db.add_column('locations_location', 'code', self.gf('django.db.models.fields.CharField')(max_length=100, null=True))
-        db.add_column('locations_location', 'is_active', self.gf('django.db.models.fields.BooleanField')(default=True),keep_default=False)
+        try:
+            db.rename_column('locations_location', 'is_active', 'status')
+        except DatabaseError:
+            transaction.rollback()
+
+        try:
+            db.add_column('locations_location', 'code', self.gf('django.db.models.fields.CharField')(max_length=100, null=True))
+        except DatabaseError:
+
+            transaction.rollback()
+
+        try:
+            db.add_column('locations_location', 'is_active', self.gf('django.db.models.fields.BooleanField')(default=True),keep_default=False)
+        except DatabaseError:
+            transaction.rollback()
+
 
 
 
