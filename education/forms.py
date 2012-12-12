@@ -82,10 +82,11 @@ class NewConnectionForm(forms.Form):
     identity = forms.CharField(max_length=15, required=True, label="Primary contact information")
 
 class EditReporterForm(forms.ModelForm):
-    schools = forms.ModelChoiceField(queryset=School.objects.filter(location__name__in=\
-            EmisReporter.objects.values_list('reporting_location__name',flat=True)).order_by('location__name','name'))
-    
-#    groups = forms.ModelChoiceField(queryset=Group.objects.all().values_list('name', flat=True).order_by('name'))
+    locations = Location.objects.filter(type= 'district')
+    district = Location.objects.filter(type='district').filter(name__in=EmisReporter.objects.filter(reporting_location__in = locations))
+    schools = forms.ModelChoiceField(queryset=School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).\
+                                                                    exclude(connection__in = Blacklist.objects.values_list('connection', flat=True)).\
+                                                                    filter(reporting_location__type = 'district').distinct().values_list('schools__pk', flat=True)))
 
   
     class Meta:
@@ -94,7 +95,7 @@ class EditReporterForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
            super(EditReporterForm, self).__init__(*args, **kwargs)
-           self.fields['reporting_location'] = TreeNodeChoiceField(queryset=self.fields['reporting_location'].queryset, level_indicator=u'.')
+           self.fields['reporting_location'] = forms.ModelChoiceField(queryset=Location.objects.filter(type='district').order_by('name'))
            self.fields['schools'].required = False
            self.fields['gender'].required = False
            self.fields['grade'].required = False
