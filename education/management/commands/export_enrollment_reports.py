@@ -24,7 +24,9 @@ class Command(BaseCommand):
             toret = Poll.objects.filter(name__in=['edtrac_boysp3_enrollment', \
                                                   'edtrac_girlsp3_enrollment', \
                                                   'edtrac_boysp6_enrollment', \
-                                                  'edtrac_girlsp6_enrollment'])
+                                                  'edtrac_girlsp6_enrollment', \
+                                                  'edtrac_f_teachers_deployment', \
+                                                  'edtrac_m_teachers_deployment'])
             return toret
         
         book = xlwt.Workbook(encoding='utf-8')

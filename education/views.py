@@ -751,7 +751,7 @@ def schools_active(locations):
                                 reporting_location__in = locations).exclude(connection__in=Blacklist.objects.all()).exclude(schools=None).count()
 
         count = 0
-        for p in Poll.objects.filter(name__icontains = 'attendance').select_related():
+        for p in Poll.objects.filter(name__icontains = 'attendance'):
             if len(locations) == 1:
                 count += p.responses.filter(
                     contact__reporting_location__in = locations, date__range = get_week_date(depth = 2)[0]
