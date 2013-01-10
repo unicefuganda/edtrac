@@ -84,6 +84,7 @@ class FilterGroupsForm(FilterForm):
     def filter(self, request, queryset):
         groups_pk = self.cleaned_data['groups']
         if '-1' in groups_pk:
+
             groups_pk.remove('-1')
             if len(groups_pk):
                 try:
@@ -108,9 +109,9 @@ class FilterGroupsForm(FilterForm):
                 q=None
                 for f in Group.objects.filter(pk__in=groups_pk).values_list('name',flat=True):
                     if not q:
-                        q=Q(group__icontains=f)
+                        q=Q(group__iregex="\m%s\y"%f)
                     else:
-                        q=q | Q(group__icontains=f)
+                        q=q | Q(group__iregex="\m%s\y"%f)
                 return queryset.filter(q)
 
 
