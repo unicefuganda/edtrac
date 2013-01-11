@@ -5,6 +5,12 @@ from south.v2 import DataMigration
 from django.db.utils import DatabaseError
 from django.db import models
 from django.db import transaction
+from rapidsms.contrib.locations.models import Location
+from django.db import connection
+
+def db_table_field_exists(table_name,field):
+    cursor=connection.cursor()
+    return field in map(lambda x:  x[0].lower(),connection.introspection.get_table_description(cursor, table_name))
 
 class Migration(DataMigration):
 
@@ -16,7 +22,8 @@ class Migration(DataMigration):
             transaction.rollback()
 
         try:
-            db.add_column('locations_location', 'code', self.gf('django.db.models.fields.CharField')(max_length=100, null=True))
+            if not db_table_field_exists("locations_location","code"):
+                db.add_column('locations_location', 'code', self.gf('django.db.models.fields.CharField')(max_length=100, null=True))
         except DatabaseError:
 
             transaction.rollback()
