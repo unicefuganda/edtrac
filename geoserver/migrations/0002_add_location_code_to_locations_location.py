@@ -15,30 +15,17 @@ def db_table_field_exists(table_name,field):
 class Migration(DataMigration):
 
     def forwards(self, orm):
-        #db.rename_column('locations_location', 'code', 'alias')
-        try:
-            db.rename_column('locations_location', 'is_active', 'status')
-        except DatabaseError:
-            transaction.rollback()
 
-        try:
-            if not db_table_field_exists("locations_location","code"):
-                db.add_column('locations_location', 'code', self.gf('django.db.models.fields.CharField')(max_length=100, null=True))
-        except DatabaseError:
+        if not db_table_field_exists("locations_location","code"):
+            db.add_column('locations_location', 'code', self.gf('django.db.models.fields.CharField')(max_length=100, null=True))
 
-            transaction.rollback()
-
-        try:
+        if not db_table_field_exists("locations_location","code"):
             db.add_column('locations_location', 'is_active', self.gf('django.db.models.fields.BooleanField')(default=True),keep_default=False)
-        except DatabaseError:
-            transaction.rollback()
-
 
 
 
     def backwards(self, orm):
-        #db.rename_column('locations_location', 'alias', 'code')
-        db.rename_column('locations_location', 'status', 'is_active')
+        pass
 
 
 
