@@ -185,7 +185,8 @@ class SchoolForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(SchoolForm, self).__init__(*args, **kwargs)
-        self.fields['location'] = TreeNodeChoiceField(queryset=self.fields['location'].queryset, level_indicator=u'.')
+#        self.fields['location'] = TreeNodeChoiceField(queryset=self.fields['location'].queryset, level_indicator=u'.')
+        self.fields['location'] = forms.ModelChoiceField(queryset=Location.objects.filter(type='district').order_by('name'))
         self.fields['name'] = forms.CharField(required=False, max_length=160)
         self.fields['emis_id'] = forms.CharField(required=False, max_length=10)
 
