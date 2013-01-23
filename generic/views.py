@@ -117,7 +117,7 @@ def generic(request,
 
         if sort_action:
             # we already have to sort regardless, but
-            # if this action was just a sort, we're done 
+            # if this action was just a sort, we're done
             # (and should avoid re-filtering)
             pass
 
@@ -166,7 +166,7 @@ def generic(request,
 
         response_template = partial_base
     else:
-        # reset the filter key, if there was a previous one it should be 
+        # reset the filter key, if there was a previous one it should be
         # cleared out
         request.session[FILTER_REQUEST_KEY] = None
         # calls to this view can define a default sorting order,
@@ -213,8 +213,10 @@ def generic(request,
         'base_template':'layout.html',
     }
     context_vars.update(paginator_dict)
-    if context_vars.get('paginator').num_pages < context_vars.get('page'):
-        request.session['page_num']=1
+
+    if context_vars['paginated'] and context_vars['paginator']:
+        if context_vars.get('paginator').num_pages < context_vars.get('page'):
+            request.session['page_num']=1
 
 
     # For pages that not only have tables, but also need a time range slider
