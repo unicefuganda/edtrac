@@ -561,6 +561,15 @@ class Poll(models.Model):
                 resp.categories.add(ResponseCategory.objects.create(response=resp, category=self.categories.get(default=True)))
             resp.save()
 
+    def responses_by_gender(self):
+        m = ['M','m']
+        f = ['F','f']
+        responses_for_male = self.responses.filter(contact__gender__in=m)
+        responses_for_female = self.responses.filter(contact__gender__in=f)
+
+        return [{'category__name':'M','category__color':'green','value': (len(responses_for_male))},
+                {'category__name':'F','category__color':'red','value':len(responses_for_female)}]
+
 
     def __unicode__(self):
         if self.start_date:
