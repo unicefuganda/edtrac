@@ -350,11 +350,15 @@ def stats(req, poll_id, location_id=None):
                           'data': list(poll.responses_by_category(location))}
     return HttpResponse(mark_safe(simplejson.dumps(json_response_data)))
 
-def gender_stats(req, poll_id):
+def gender_stats(req, poll_id, gender):
     poll = get_object_or_404(Poll, pk=poll_id)
+    try:
+        filtered_data = list(poll.responses_by_gender(gender))
+    except AssertionError:
+        filtered_data = []
     json_response_data = {'layer_title': 'Survey:%s' % poll.name,
                           'layer_type': 'categorized',
-                          'data': list(poll.responses_by_gender())}
+                          'data': filtered_data}
     return HttpResponse(mark_safe(simplejson.dumps(json_response_data)))
 
 def age_stats(req, poll_id):

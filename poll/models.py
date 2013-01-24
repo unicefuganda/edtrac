@@ -560,20 +560,17 @@ class Poll(models.Model):
                 resp.categories.add(ResponseCategory.objects.create(response=resp, category=self.categories.get(default=True)))
             resp.save()
 
-    def responses_by_gender(self):
-        m = ['M','m']
-        f = ['F','f']
-        responses_for_male = self.responses.filter(contact__gender__in=m)
-        responses_for_female = self.responses.filter(contact__gender__in=f)
-
-        return [{'category__name':'M','category__color':'green','value': (len(responses_for_male))},
-                {'category__name':'F','category__color':'red','value':len(responses_for_female)}]
-
     def responses_by_age(self,lower_bound_in_years,upper_bound_in_years):
         lower_bound_date = datetime.datetime.now() - relativedelta(years=lower_bound_in_years)
         upper_bound_date = datetime.datetime.now() - relativedelta(years=upper_bound_in_years)
         return ResponseCategory.objects.filter(response__poll=self,response__contact__birthdate__gte=upper_bound_date
                ,response__contact__birthdate__lte=lower_bound_date).values('category__name').annotate(value=Count('pk'))
+
+    def responses_by_gender(self, gender):
+        assert self.is_yesno_poll()
+        values_list = ['category__name', 'category__color']
+        return ResponseCategory.objects.filter(response__poll=self, response__contact__gender__iexact = gender)\
+        .values(*values_list).annotate(value=Count('pk'))
 
     def __unicode__(self):
         if self.start_date:

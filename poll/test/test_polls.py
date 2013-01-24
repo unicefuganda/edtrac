@@ -39,17 +39,24 @@ class TestPolls(TestCase):
     def test_responses_by_gender_only_for_male(self):
         self.send_message(self.connection_for_male, 'yes')
 
-        expected_result = [{'category__name':'M','category__color':'green','value':1},
-                {'category__name':'F','category__color':'red','value':0}]
-        self.assertEqual(expected_result,self.poll.responses_by_gender())
+        yes_aggregation = {"category__name": u"yes", "category__color": u"", "value": 1}
+
+        filtered_responses = self.poll.responses_by_gender(gender='m')
+        self.assertIn(yes_aggregation, filtered_responses)
 
     def test_responses_by_gender(self):
         self.send_message(self.connection_for_male, 'yes')
         self.send_message(self.connection_for_female, 'No')
 
-        expected_result = [{'category__name':'M','category__color':'green','value':1},
-                {'category__name':'F','category__color':'red','value':1}]
-        self.assertEqual(expected_result,self.poll.responses_by_gender())
+        no_aggregation = {"category__name": u"no", "category__color": u"", "value": 1}
+        filtered_responses = self.poll.responses_by_gender(gender='F')
+
+        self.assertIn(no_aggregation, filtered_responses)
+
+    def test_responses_by_gender_should_check_if_poll_is_yes_no(self):
+        poll = Poll.objects.create(name='test poll2', question='are you happy??', user=self.male_user, type=Poll.TYPE_TEXT)
+        with(self.assertRaises(AssertionError)):
+            poll.responses_by_gender(gender='F')
 
     def test_responses_by_age(self):
         self.send_message(self.connection_for_male,'yes')
