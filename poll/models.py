@@ -1,6 +1,5 @@
 import datetime
 import difflib
-
 import django
 from django.db import models, transaction, connection
 from django.db.models import Sum, Avg, Count, Max, Min, StdDev
@@ -28,7 +27,7 @@ from django.conf import settings
 from django.db import models
 import re
 from django.utils.translation import (ugettext, activate, deactivate)
-
+from dateutil.relativedelta import relativedelta
 
 
 poll_started = django.dispatch.Signal(providing_args=[])
@@ -570,6 +569,11 @@ class Poll(models.Model):
         return [{'category__name':'M','category__color':'green','value': (len(responses_for_male))},
                 {'category__name':'F','category__color':'red','value':len(responses_for_female)}]
 
+    def responses_by_age(self,lower_bound_in_years,upper_bound_in_years):
+        lower_bound_date = datetime.datetime.now() - relativedelta(years=lower_bound_in_years)
+        upper_bound_date = datetime.datetime.now() - relativedelta(years=upper_bound_in_years)
+        return ResponseCategory.objects.filter(response__poll=self,response__contact__birthdate__gte=upper_bound_date
+               ,response__contact__birthdate__lte=lower_bound_date).values('category__name').annotate(value=Count('pk'))
 
     def __unicode__(self):
         if self.start_date:
