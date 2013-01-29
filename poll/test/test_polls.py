@@ -39,7 +39,7 @@ class TestPolls(TestCase):
     def test_responses_by_gender_only_for_male(self):
         self.send_message(self.connection_for_male, 'yes')
 
-        yes_aggregation = {"category__name": u"yes", "category__color": u"", "value": 1}
+        yes_aggregation = [1, u"yes" ]
 
         filtered_responses = self.poll.responses_by_gender(gender='m')
         self.assertIn(yes_aggregation, filtered_responses)
@@ -48,7 +48,7 @@ class TestPolls(TestCase):
         self.send_message(self.connection_for_male, 'yes')
         self.send_message(self.connection_for_female, 'No')
 
-        no_aggregation = {"category__name": u"no", "category__color": u"", "value": 1}
+        no_aggregation = [1, u"no" ]
         filtered_responses = self.poll.responses_by_gender(gender='F')
 
         self.assertIn(no_aggregation, filtered_responses)
@@ -63,9 +63,9 @@ class TestPolls(TestCase):
         self.send_message(self.connection_for_female,'no')
         self.send_message(self.connection_for_male,'foobar')
 
-        yes_responses = {'category__name': 'yes', 'value': 1}
-        no_responses = {'category__name': 'no', 'value': 1}
-        unknown_responses = {'category__name': 'unknown', 'value': 1}
+        yes_responses = [1, u"yes" ]
+        no_responses = [1, u"no" ]
+        unknown_responses = [1, u"unknown" ]
 
         results = self.poll.responses_by_age(20, 26)
 

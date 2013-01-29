@@ -563,14 +563,18 @@ class Poll(models.Model):
     def responses_by_age(self,lower_bound_in_years,upper_bound_in_years):
         lower_bound_date = datetime.datetime.now() - relativedelta(years=lower_bound_in_years)
         upper_bound_date = datetime.datetime.now() - relativedelta(years=upper_bound_in_years)
-        return ResponseCategory.objects.filter(response__poll=self,response__contact__birthdate__gte=upper_bound_date
-               ,response__contact__birthdate__lte=lower_bound_date).values('category__name').annotate(value=Count('pk'))
+        category_dicts = ResponseCategory.objects.filter(response__poll=self,
+            response__contact__birthdate__gte=upper_bound_date,
+            response__contact__birthdate__lte=lower_bound_date).values('category__name').annotate(
+            value=Count('pk'))
+        return [self._get_formatted_values_for_bar_chart(category_dict) for category_dict in category_dicts]
 
     def responses_by_gender(self, gender):
         assert self.is_yesno_poll()
-        values_list = ['category__name', 'category__color']
-        return ResponseCategory.objects.filter(response__poll=self, response__contact__gender__iexact = gender)\
-        .values(*values_list).annotate(value=Count('pk'))
+        values_list = ['category__name']
+        category_dicts = ResponseCategory.objects.filter(response__poll=self,
+            response__contact__gender__iexact=gender).values(*values_list).annotate(value=Count('pk'))
+        return [self._get_formatted_values_for_bar_chart(category_dict) for category_dict in category_dicts]
 
     def __unicode__(self):
         if self.start_date:
@@ -578,6 +582,10 @@ class Poll(models.Model):
         else:
             sd = "Not Started"
         return "%s %s ...(%s)" % (self.name, self.question[0:18], sd)
+
+    def _get_formatted_values_for_bar_chart(self, category_dict):
+        return [category_dict['value'], category_dict['category__name']]
+
 
 class Category(models.Model):
     """
