@@ -191,18 +191,17 @@ class ExcelResponse(HttpResponse):
             from django.core.servers.basehttp import FileWrapper
             zipped_file = zipfile.ZipFile(output_name, "w")
             num_files = int(math.ceil(len(data) / float(MAX_SHEET_LENGTH)))
-            print len(data)
             file_name = output_name.rsplit('.')[0]
             start = 0
             end = MAX_SHEET_LENGTH
-            for file in range(num_files):
+            for file in xrange(num_files):
                 book = create_workbook(data[start:end], encoding)
                 handle = file_name + str(file) + ".xls"
                 book.save(handle)
                 zipped_file.write(handle, handle.rsplit("/")[-1])
                 start = end
                 end = end + MAX_SHEET_LENGTH
-
+            del data
             super(ExcelResponse, self).__init__(open(output_name,"r"), mimetype="application/zip")
             self['Content-Disposition'] = 'attachment;filename=export.zip'
 
