@@ -133,7 +133,7 @@ def create_workbook(data, encoding):
     for rowx, row in enumerate(data):
         length=rowx
         if length == 65500:
-            books.append(book)
+            yield book
             create_workbook(data, encoding)
         for colx, value in enumerate(row):
             if isinstance(value, datetime.datetime):
@@ -151,8 +151,8 @@ def create_workbook(data, encoding):
                 sheet.write(rowx, colx, value, style=cell_style)
             except:
                 sheet.write(rowx, colx, str(value), style=styles['default'])
-    books.append(book)
-    return books
+    yield book
+
 class ExcelResponse(HttpResponse):
     """
     This class contains utilities that are used to produce Excel reports from datasets stored in a database or scraped
@@ -184,10 +184,10 @@ class ExcelResponse(HttpResponse):
             file_ext = "xls"
 
         if file_ext != "zip":
-            books = create_workbook(data, encoding)
+            book = create_workbook(data, encoding).next()
             if write_to_file:
-                books[0].save(output_name)
-            books[0].save(output)
+                book.save(output_name)
+            book.save(output)
             output.seek(0)
             super(ExcelResponse, self).__init__(content=output.getvalue(),
                                             mimetype=mimetype)
@@ -199,8 +199,8 @@ class ExcelResponse(HttpResponse):
             from django.core.servers.basehttp import FileWrapper
             zipped_file = zipfile.ZipFile(output_name, "w")
             file_name = output_name.rsplit('.')[0]
-            books = create_workbook(data, encoding)
-            for n,book in enumerate(books):
+            #books = create_workbook(data, encoding)
+            for n,book in enumerate(create_workbook(data, encoding)):
                 handle = file_name + str(n) + ".xls"
                 book.save(handle)
                 zipped_file.write(handle, handle.rsplit("/")[-1])
