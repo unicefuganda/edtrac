@@ -132,7 +132,7 @@ def create_workbook(data, encoding):
 
     for rowx, row in enumerate(data):
         length=rowx
-        if length == 65500:
+        if length%65500 ==0:
             yield book
             create_workbook(data, encoding)
         for colx, value in enumerate(row):
