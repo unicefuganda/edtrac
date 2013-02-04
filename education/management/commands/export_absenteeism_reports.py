@@ -51,7 +51,7 @@ class Command(BaseCommand):
                 sheet.write(rowx, 2, '%s' % schools)
                 sheet.write(rowx, 3, '%s' % resp.contact.emisreporter.reporting_location.name)
                 sheet.write(rowx, 4, '%s' % resp.message.text)
-                sheet.write(rowx, 5, '%s' % resp.date.strftime("%d %B, %Y"))
+                sheet.write(rowx, 5, '%s' % resp.date.strftime("%B %Y"))
                 rowx +=1
                 
 

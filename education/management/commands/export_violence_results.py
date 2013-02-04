@@ -29,8 +29,7 @@ class Command(BaseCommand):
             sheet = book.add_sheet(poll.name, cell_overwrite_ok=True)
             rowx = 0
             colx = 0
-            headings = ['Reporter Name', 'Phone Numbers', 'School Name', 'District Name', 'Message', 'Date']
-            # headings = ['District', 'Reporter', 'Phone Numbers', 'Group', 'Schools', 'Message', 'Date']
+            headings = ['District', 'Reporter', 'Phone Numbers', 'Group', 'Schools', 'Message', 'Date']
             for colx, value in enumerate(headings):
                 sheet.write(rowx, colx, value)
             sheet.set_panes_frozen(True)
@@ -39,25 +38,16 @@ class Command(BaseCommand):
             rowx = 1
 
             for resp in poll.responses.all():
-                sheet.write(rowx, 0, '%s' % resp.contact.emisreporter.name)
+                sheet.write(rowx, 0, '%s' % resp.contact.emisreporter.reporting_location.name)
+                sheet.write(rowx, 1, '%s' % resp.contact.emisreporter.name)
                 pnumbers = ','.join(resp.contact.emisreporter.connection_set.all().values_list('identity', flat=True))
-                sheet.write(rowx, 1, '%s' % pnumbers)
+                sheet.write(rowx, 2, '%s' % pnumbers)
+                groups = ','.join(resp.contact.emisreporter.groups.all().values_list('name', flat=True))
+                sheet.write(rowx, 3, '%s' % groups)
                 schools = ','.join(resp.contact.emisreporter.schools.all().values_list('name', flat=True))
-                sheet.write(rowx, 2, '%s' % schools)
-                sheet.write(rowx, 3, '%s' % resp.contact.emisreporter.reporting_location.name)
-                sheet.write(rowx, 4, '%s' % resp.message.text)
-                sheet.write(rowx, 5, '%s' % resp.date.strftime("%B %Y"))
-
-                # sheet.write(rowx, 0, '%s' % resp.contact.emisreporter.reporting_location.name)
-                # sheet.write(rowx, 1, '%s' % resp.contact.emisreporter.name)
-                # pnumbers = ','.join(resp.contact.emisreporter.connection_set.all().values_list('identity', flat=True))
-                # sheet.write(rowx, 2, '%s' % pnumbers)
-                # groups = ','.join(resp.contact.emisreporter.groups.all().values_list('name', flat=True))
-                # sheet.write(rowx, 3, '%s' % groups)
-                # schools = ','.join(resp.contact.emisreporter.schools.all().values_list('name', flat=True))
-                # sheet.write(rowx, 4, '%s' % schools)
-                # sheet.write(rowx, 5, '%s' % resp.message.text)
-                # sheet.write(rowx, 6, '%s' % resp.date.strftime("%B %Y"))
+                sheet.write(rowx, 4, '%s' % schools)
+                sheet.write(rowx, 5, '%s' % resp.message.text)
+                sheet.write(rowx, 6, '%s' % resp.date.strftime("%B %Y"))
                 rowx +=1
                 
 

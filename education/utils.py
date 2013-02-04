@@ -374,7 +374,40 @@ def _schedule_weekly_scripts_now(group, connection, grps):
         else:
             pass # do nothing if reporter has no recognizable group. e.g. Other Reporters or unessential sms receiver groups like DEO/MEO, UNICEF Officials, etc.
 
-
+def _schedule_weekly_script(group, connection, script_slug, role_names):
+    """
+    This method is called within a loop over several connections or for an individual connection
+    and it sets the start time for a script to _date_of_monthday() corresponding to day_offset
+    the new date is computed relative datetime.datetime.now()
+    """
+    if group.name in role_names:
+        now  = datetime.datetime.now()
+        time_set = None
+        if now.hour > 10:
+            time_set = now - datetime.timedelta(hours = now.hour - 10)
+        elif now.hour < 10:
+            time_set = now + datetime.timedelta(hours = 10 - now.hour)
+        else:
+            time_set = now
+        time_set = time_set if time_set.second == 0 else time_set - datetime.timedelta(seconds = time_set.second)
+        time_set = time_set if time_set.minute == 0 else time_set - datetime.timedelta(minutes = time_set.minute)
+        d = _this_thursday(time_set=time_set)
+        
+        #if reporter is a teacher set in the script session only if this reporter has a grade
+        if connection.contact.emisreporter.groups.filter(name='Teachers').exists():
+            if connection.contact.emisreporter.grade in ['p3', 'P3'] and connection.contact.emisreporter.schools.exists():
+                # get rid of any existing script progress; this is a one time thing
+                ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug=script_slug)).delete()
+                sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
+                sp.set_time(d)
+            elif connection.contact.emisreporter.grade in ['p6', 'P6'] and connection.contact.emisreporter.schools.exists():
+                # get rid of existing ScriptProgresses and assign it to p6 teachers
+                ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug='edtrac_p6_teachers_weekly')).delete()
+                sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug='edtrac_p6_teachers_weekly'))
+                sp.set_time(d)
+            else:
+                pass
+                
 
 
 def _schedule_weekly_report(group, connection, grps):

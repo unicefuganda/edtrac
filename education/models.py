@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.forms import ValidationError
 from eav.models import Attribute
 from education.utils import _schedule_weekly_scripts, _schedule_weekly_scripts_now, _schedule_monthly_script, _schedule_termly_script,\
-    _schedule_weekly_report, _schedule_monthly_report, _schedule_midterm_script
+    _schedule_weekly_report, _schedule_monthly_report, _schedule_midterm_script, _schedule_weekly_script
 from rapidsms_httprouter.models import mass_text_sent
 from rapidsms.models import Contact, ContactBase
 from rapidsms.contrib.locations.models import Location
@@ -400,10 +400,14 @@ def edtrac_autoreg(**kwargs):
         if reporting_school:
             contact.schools.add(reporting_school)
             contact.save()
+            
+        
 
     if not getattr(settings, 'TRAINING_MODE', False):
         # Now that you have their roll, they should be signed up for the periodic polling
-        _schedule_weekly_scripts(group, connection, ['Teachers', 'Head Teachers', 'SMC'])
+#        _schedule_weekly_scripts(group, connection, ['Teachers', 'Head Teachers', 'SMC'])
+        _schedule_weekly_script(group, connection, 'edtrac_p3_teachers_weekly', ['Teachers'])
+        _schedule_weekly_scripts(group, connection, ['Head Teachers', 'SMC'])
         #_schedule_monthly_script(group, connection, 'edtrac_teachers_monthly', 'last', ['Teachers'])
         _schedule_monthly_script(group, connection, 'edtrac_head_teachers_monthly', 'last', ['Head Teachers'])
         _schedule_monthly_script(group, connection, 'edtrac_smc_monthly', 5, ['SMC'])
