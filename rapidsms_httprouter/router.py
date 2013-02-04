@@ -286,7 +286,7 @@ class HttpRouter(object, LoggerMixin):
 
         # the list of messages which need to be sent, we load this from the DB
         # upon first starting up
-        self.outgoing = [message for message in Message.objects.filter(status='Q')]
+        self.outgoing = Message.objects.filter(status='Q')
 
         # mark ourselves as started
         self.started = True
