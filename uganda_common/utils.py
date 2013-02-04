@@ -131,11 +131,11 @@ def create_workbook(data, encoding):
     books=[]
 
     for rowx, row in enumerate(data):
+        length=rowx
         if length == 65500:
             books.append(book)
             create_workbook(data, encoding)
         for colx, value in enumerate(row):
-            length=row
             if isinstance(value, datetime.datetime):
                 cell_style = styles['datetime']
             elif isinstance(value, datetime.date):
