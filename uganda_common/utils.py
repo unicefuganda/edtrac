@@ -130,8 +130,14 @@ def create_workbook(data, encoding):
               'time': xlwt.easyxf(num_format_str='hh:mm:ss'),
               'default': style0,
               'header': style}
+    length=0
+    books=[]
 
     for rowx, row in enumerate(data):
+        length=rowx
+        if length%65500 ==0:
+            yield book
+            create_workbook(data, encoding)
         for colx, value in enumerate(row):
             if isinstance(value, datetime.datetime):
                 cell_style = styles['datetime']
@@ -148,7 +154,8 @@ def create_workbook(data, encoding):
                 sheet.write(rowx, colx, value, style=cell_style)
             except:
                 sheet.write(rowx, colx, str(value), style=styles['default'])
-    return book
+    yield book
+
 class ExcelResponse(HttpResponse):
     """
     This class contains utilities that are used to produce Excel reports from datasets stored in a database or scraped
@@ -178,8 +185,9 @@ class ExcelResponse(HttpResponse):
             file_ext = output_name.rsplit('.')[1]
         else:
             file_ext = "xls"
-        if file_ext != "zip" and len(data) <= MAX_SHEET_LENGTH :
-            book = create_workbook(data, encoding)
+
+        if file_ext != "zip":
+            book = create_workbook(data, encoding).next()
             if write_to_file:
                 book.save(output_name)
             book.save(output)
@@ -193,18 +201,12 @@ class ExcelResponse(HttpResponse):
             #zip em all
             from django.core.servers.basehttp import FileWrapper
             zipped_file = zipfile.ZipFile(output_name, "w")
-            num_files = int(math.ceil(len(data) / float(MAX_SHEET_LENGTH)))
-            print len(data)
             file_name = output_name.rsplit('.')[0]
-            start = 0
-            end = MAX_SHEET_LENGTH
-            for file in range(num_files):
-                book = create_workbook(data[start:end], encoding)
-                handle = file_name + str(file) + ".xls"
+            #books = create_workbook(data, encoding)
+            for n,book in enumerate(create_workbook(data, encoding)):
+                handle = file_name + str(n) + ".xls"
                 book.save(handle)
                 zipped_file.write(handle, handle.rsplit("/")[-1])
-                start = end
-                end = end + MAX_SHEET_LENGTH
 
             super(ExcelResponse, self).__init__(open(output_name,"r"), mimetype="application/zip")
             self['Content-Disposition'] = 'attachment;filename=export.zip'
