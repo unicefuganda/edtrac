@@ -26,9 +26,9 @@ class Command(BaseCommand):
         else:
             group = 'all'
         if not options['slug']:
-            slug = raw_input('Slug of script you wish to reschedule -- edtrac_upe_grant_headteacher_termly')
+            slug = raw_input('Slug of script you wish to reschedule -- edtrac_teacher_deployment_headteacher_termly')
         else:
-            slug = 'edtrac_upe_grant_headteacher_termly'
+            slug = 'edtrac_teacher_deployment_headteacher_termly'
 
         reschedule_termly_script(grp=group, date=date, slug=slug)
         self.stdout.write('')
