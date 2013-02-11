@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # -*- coding: utf-8 -*-
+=======
+import logging
+>>>>>>> e6035242f7ce4c6380af5387c13968e24da64cbd
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
@@ -34,20 +38,22 @@ import tempfile
 import types
 from openpyxl.shared.compat import NamedTemporaryFile, xrange
 
-
+logger = logging.getLogger(__name__)
 def get_location_for_user(user):
     """
     if called with an argument, *user*, the location of a user returned (by district)
     """
     if user:
         try:
-            return Location.objects.get(name__icontains=user.username, type__name='district')
-        except:
+            l =  Location.objects.get(name__iexact=user.username, type__name='district')
+            logger.info("Location: %s"%l.name)
+            return l
+        except Location.DoesNotExist:
             try:
                 if Contact.objects.filter(user=user).exclude(reporting_location=None).exists():
                     return Contact.objects.filter(user=user).exclude(reporting_location=None)[0].reporting_location
-            except:
-                pass
+            except Exception, e:
+                logger.error("Error: %s"%str(e))
 
     return Location.tree.root_nodes()[0]
 
