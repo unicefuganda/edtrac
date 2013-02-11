@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
@@ -23,7 +24,15 @@ from django.db.models import Q
 from poll.models import Response
 import xlwt
 import zipfile
+from openpyxl.workbook import Workbook
+from openpyxl.writer.excel import ExcelWriter
+from openpyxl.cell import get_column_letter
+import openpyxl
+from django.utils.functional import Promise
 import math
+import tempfile
+import types
+from openpyxl.shared.compat import NamedTemporaryFile, xrange
 
 
 def get_location_for_user(user):
@@ -96,62 +105,41 @@ def assign_backend(number):
             break
     return (number, backendobj)
 
-def create_workbook(data, encoding):
-    ##formatting of the cells
-    # Grey background for the header row
-    BkgPat = xlwt.Pattern()
-    BkgPat.pattern = xlwt.Pattern.SOLID_PATTERN
-    BkgPat.pattern_fore_colour = 22
 
-    # Bold Fonts for the header row
-    font = xlwt.Font()
-    font.name = 'Calibri'
-    font.bold = True
+def normalize_value(value):
+    
+    if isinstance(value, tuple(openpyxl.shared.NUMERIC_TYPES)):
+        return value
+    elif isinstance(value, (bool, datetime.date)):
+        return value
+    elif isinstance(value,types.NoneType):
+        return ""
+    
+    else:
+       
+        return repr(value)
+       
 
-    # Non-Bold fonts for the body
-    font0 = xlwt.Font()
-    font0.name = 'Calibri'
-    font0.bold = False
-
-    # style and write field labels
-    style = xlwt.XFStyle()
-    style.font = font
-    style.pattern = BkgPat
-
-    style0 = xlwt.XFStyle()
-    style0.font = font0
-    book = xlwt.Workbook(encoding=encoding)
-    sheet = book.add_sheet('Sheet 1')
-    styles = {'datetime': xlwt.easyxf(num_format_str='yyyy-mm-dd hh:mm:ss'),
-              'date': xlwt.easyxf(num_format_str='yyyy-mm-dd'),
-              'time': xlwt.easyxf(num_format_str='hh:mm:ss'),
-              'default': style0,
-              'header': style}
-    length=0
-    books=[]
+def create_workbook(data,filename,headers):
+    
+    wb = Workbook(optimized_write = True)
+    ws = wb.create_sheet()
+    ws.append(headers)
 
     for rowx, row in enumerate(data):
-        length=rowx
-        if length%65500 ==0:
-            yield book
-            create_workbook(data, encoding)
-        for colx, value in enumerate(row):
-            if isinstance(value, datetime.datetime):
-                cell_style = styles['datetime']
-            elif isinstance(value, datetime.date):
-                cell_style = styles['date']
-            elif isinstance(value, datetime.time):
-                cell_style = styles['time']
-            elif rowx == 0:
-                cell_style = styles['header']
-            else:
-                cell_style = styles['default']
+        ws.append(map(normalize_value,list(row)))
+            
+        #import pdb;pdb.set_trace()
+      
 
-            try:
-                sheet.write(rowx, colx, value, style=cell_style)
-            except:
-                sheet.write(rowx, colx, str(value), style=styles['default'])
-    yield book
+
+        #for colx, value in enumerate(row):
+         #   column_letter = get_column_letter((colx + 1))
+          #  ws.cell('%s%s'%(column_letter, (rowx+ 1))).value = value
+    #ws.auto_filter = ws.calculate_dimension()
+    wb.save(filename)
+    return True
+    
 
 class ExcelResponse(HttpResponse):
     """
@@ -159,8 +147,7 @@ class ExcelResponse(HttpResponse):
     from a form.
     """
 
-    def __init__(self, data, output_name='excel_report.xls', headers=None,header=None, write_to_file=False, force_csv=False,
-                 encoding='utf8'):
+    def __init__(self, data, output_name='excel_report.xlsx', headers=None,header=None, write_to_file=False, force_csv=False):
         # Make sure we've got the right type of data to work with
         valid_data = False
         if hasattr(data, '__getitem__'):
@@ -174,39 +161,22 @@ class ExcelResponse(HttpResponse):
         import StringIO
 
         output = StringIO.StringIO()
-        MAX_SHEET_LENGTH = 65500
-        # Excel has a limit on number of rows; if we have more than that, make a csv
-        use_xls = False
         mimetype = 'application/vnd.ms-excel'
-        if len(output_name.rsplit('.')) > 1:
-            file_ext = output_name.rsplit('.')[1]
-        else:
-            file_ext = "xls"
 
-        if file_ext != "zip":
-            book = create_workbook(data, encoding).next()
-            if write_to_file:
-                book.save(output_name)
-            book.save(output)
-            output.seek(0)
-            super(ExcelResponse, self).__init__(content=output.getvalue(),
-                                            mimetype=mimetype)
+
+
+        book_created = create_workbook(data,output_name,headers,)
+       
+        
+            #book.save(output_name)
+        #output.seek(0)
+        if not write_to_file:
+            super(ExcelResponse, self).__init__(FileWrapper(open(output_name)),content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             self['Content-Disposition'] = 'attachment;filename="%s.%s"' % \
-                                      (output_name.replace('"', '\"'), "xls")
+                                      (output_name.replace('"', '\"'), "xlsx")
 
-        else:
-            #zip em all
-            from django.core.servers.basehttp import FileWrapper
-            zipped_file = zipfile.ZipFile(output_name, "w")
-            file_name = output_name.rsplit('.')[0]
-            #books = create_workbook(data, encoding)
-            for n,book in enumerate(create_workbook(data, encoding)):
-                handle = file_name + str(n) + ".xls"
-                book.save(handle)
-                zipped_file.write(handle, handle.rsplit("/")[-1])
 
-            super(ExcelResponse, self).__init__(open(output_name,"r"), mimetype="application/zip")
-            self['Content-Disposition'] = 'attachment;filename=export.zip'
+
 
 
 
