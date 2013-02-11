@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 # -*- coding: utf-8 -*-
-=======
 import logging
->>>>>>> e6035242f7ce4c6380af5387c13968e24da64cbd
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
