@@ -34,6 +34,7 @@ import math
 import tempfile
 import types
 from openpyxl.shared.compat import NamedTemporaryFile, xrange
+import unicodedata
 
 logger = logging.getLogger(__name__)
 def get_location_for_user(user):
@@ -119,15 +120,16 @@ def normalize_value(value):
         return ""
     
     else:
-       
-        return repr(value)
+        #openpyxl  hates unicode asciify
+        return unicodedata.normalize('NFKD', unicode(value)).encode('ascii', 'ignore')
        
 
 def create_workbook(data,filename,headers):
     
     wb = Workbook(optimized_write = True)
     ws = wb.create_sheet()
-    ws.append(headers)
+    if headers:
+        ws.append(headers)
 
     for rowx, row in enumerate(data):
         ws.append(map(normalize_value,list(row)))
