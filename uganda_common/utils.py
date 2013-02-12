@@ -114,18 +114,21 @@ def assign_backend(number):
 def normalize_value(value):
     
     if isinstance(value, tuple(openpyxl.shared.NUMERIC_TYPES)):
-        return unicodedata.normalize('NFKD', unicode(value)).encode('ascii', 'ignore')
+        return value
     elif isinstance(value, (bool, datetime.date)):
         return value
     elif isinstance(value,types.NoneType):
         return ""
+    elif isinstance(value,str):
+        return value
     elif isinstance(value,types.ListType):
         return ", ".join(value)
 
-    
-    else:
+    elif isinstance(value, unicode):
         #openpyxl  hates unicode asciify
         return unicodedata.normalize('NFKD', unicode(value)).encode('ascii', 'ignore')
+    else:
+        return repr(value)
        
 
 def create_workbook(data,filename,headers):
