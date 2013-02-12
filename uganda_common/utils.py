@@ -119,17 +119,21 @@ def normalize_value(value):
         return value
     elif isinstance(value,types.NoneType):
         return ""
-    elif isinstance(value,str):
+    elif isinstance(value,types.StringType):
+        #print "str"+value
         return value
     elif isinstance(value,types.ListType):
         return ", ".join(value)
 
     elif isinstance(value, unicode):
+        #print "unicode"
+        #print unicodedata.normalize('NFKD', unicode(value)).encode('ascii', 'ignore')
         #openpyxl  hates unicode asciify
-        return unicodedata.normalize('NFKD', unicode(value)).encode('ascii', 'ignore')
+        return repr(value)[2:-1]
+
     else:
+        print value
         return repr(value)
-       
 
 def create_workbook(data,filename,headers):
     
