@@ -35,6 +35,7 @@ import tempfile
 import types
 from openpyxl.shared.compat import NamedTemporaryFile, xrange
 import unicodedata
+from django.core.servers.basehttp import FileWrapper
 
 logger = logging.getLogger(__name__)
 def get_location_for_user(user):
