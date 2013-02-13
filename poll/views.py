@@ -180,6 +180,7 @@ def view_report(
 
     template = 'polls/poll_report.html'
     poll = get_object_or_404(Poll, pk=poll_id)
+    import pdb;pdb.set_trace()
     try:
         response_rate = poll.responses.distinct().count() * 100.0 \
             / poll.contacts.distinct().count()
@@ -360,8 +361,8 @@ def gender_stats(req, poll_id):
     return HttpResponse(mark_safe(simplejson.dumps(filtered_data)))
 
 def age_stats(req, poll_id):
-    lower = int(req.GET.get('lower'))
-    upper = int(req.GET.get('upper'))
+    lower = int(req.GET.get('lower',0))
+    upper = int(req.GET.get('upper',100))
     poll = get_object_or_404(Poll, pk=poll_id)
     return HttpResponse(mark_safe(simplejson.dumps(poll.responses_by_age(lower,upper))))
 
