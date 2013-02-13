@@ -46,6 +46,7 @@ function action(elem, action,page) {
         $('#object_list').load("./", form_data, function() {
             $('#div_results_loading').hide();
             $('#div_panel_loading').hide();
+            $(form).find('textarea,input[type="text"],input[type="file"]').val("");
         });
     }
     else {
@@ -67,6 +68,7 @@ function actionx(elem, action,page) {
         $('#object_list').load("./", form_data, function() {
             $('#div_results_loading').hide();
             $('#div_panel_loading').hide();
+            $(form).find('textarea,input[type="text"],input[type="file"]').val("");
         });
     }
     else {
