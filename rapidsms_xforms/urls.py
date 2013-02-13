@@ -1,5 +1,8 @@
 from django.conf.urls.defaults import *
-from django.contrib.auth.decorators import login_required
+try:
+    from mtrack.decorators import login_required
+except ImportError:
+    from django.contrib.auth.decorators import login_required
 from . import views
 
 urlpatterns = patterns('',
