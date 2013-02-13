@@ -73,6 +73,7 @@ def dash_ministry_map(request):
 
 
 def dash_attdance(request):
+    import pdb;pdb.set_trace()
     boysp3_attendance = get_responses_to_polls(poll_name='edtrac_boysp3_attendance')
     boysp3_enrolled = get_responses_to_polls(poll_name="edtrac_boysp3_enrollment")
     boysp3_absent = boysp3_enrolled - boysp3_attendance
