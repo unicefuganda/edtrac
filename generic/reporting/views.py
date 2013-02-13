@@ -211,7 +211,7 @@ class ReportView(View, TemplateResponseMixin):
             'module':False})
         return super(ReportView, self).render_to_response(context)
 
-    def as_urlpatterns(self, name=None):
+    def as_urlpatterns(self, name=None,login_wrapper=None):
         """
         Creates the appropriate URL patterns for this object.
         The root url (to the main report page) can take an optional 'name'
@@ -219,9 +219,15 @@ class ReportView(View, TemplateResponseMixin):
         """
         urlpatterns = patterns('')
         if name:
-            urlpatterns += patterns('', url(r'^$', self.__class__.as_view(), name=name))
+            if login_wrapper:
+                urlpatterns += patterns('', url(r'^$', login_wrapper(self.__class__.as_view()), name=name))
+            else:
+                urlpatterns += patterns('', url(r'^$', self.__class__.as_view(), name=name))
         else:
-            urlpatterns += patterns('', (r'^$', self.__class__.as_view()))
+            if login_wrapper:
+                urlpatterns += patterns('', url(r'^$', login_wrapper(self.__class__.as_view())))
+            else:
+                urlpatterns += patterns('', (r'^$', self.__class__.as_view()))
 
         for attname, column in self.columns:
             v = column.get_view_function()
