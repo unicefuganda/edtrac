@@ -180,7 +180,6 @@ def view_report(
 
     template = 'polls/poll_report.html'
     poll = get_object_or_404(Poll, pk=poll_id)
-    import pdb;pdb.set_trace()
     try:
         response_rate = poll.responses.distinct().count() * 100.0 \
             / poll.contacts.distinct().count()
