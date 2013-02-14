@@ -407,8 +407,6 @@ def _schedule_weekly_script(group, connection, script_slug, role_names):
                 sp.set_time(d)
             else:
                 pass
-                
-
 
 def _schedule_weekly_report(group, connection, grps):
     if group.name in grps:

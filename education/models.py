@@ -661,6 +661,24 @@ def reschedule_termly_script(grp = 'all', date=None, slug='edtrac_teacher_deploy
         if rep.default_connection and rep.groups.count() > 0:
             _schedule_termly_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers', 'SMC'], date)
     
+def reschedule_weekly_script(grp = 'all', date=None, slug='edtrac_p3_teachers_weekly'):
+    
+    """
+    manually reschedule each of the termly scripts for headteachers
+    """
+    
+    tscript = Script.objects.get(slug=slug)
+    if not grp == 'all':
+        ScriptProgress.objects.filter(script=tscript).filter(connection__contact__emisreporter__groups__name__iexact=grp).delete()
+    else:
+        ScriptProgress.objects.filter(script=tscript).delete()
+        
+    tscript.enabled=True
+    grps = Group.objects.filter(name__iexact=grp) if not grp == 'all' else Group.objects.filter(name__in=['Teachers', 'Head Teachers'])
+    reps = EmisReporter.objects.filter(groups__in=grps)
+    for rep in reps:
+        if rep.default_connection and rep.groups.count() > 0:
+            _schedule_weekly_script(rep.groups.all()[0], rep.default_connection, slug, ['Teachers', 'Head Teachers'])
 
 
 def schedule_weekly_report(grp='DEO'):
