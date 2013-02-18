@@ -642,7 +642,7 @@ def reschedule_termly_polls(grp = 'all', date=None):
             if rep.default_connection and rep.groups.count() > 0:
                 _schedule_termly_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers', 'SMC'], date)
                 
-def reschedule_termly_script(grp = 'all', date=None, slug='edtrac_teacher_deployment_headteacher_termly'):
+def reschedule_termly_script(grp = 'all', date=None, slug='edtrac_p3_enrollment_headteacher_termly'):
     
     """
     manually reschedule each of the termly scripts for headteachers
