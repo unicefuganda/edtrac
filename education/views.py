@@ -1219,7 +1219,7 @@ class CapitationGrants(TemplateView):
         er = EmisReporter.objects.select_related()
         if authorized_user:
 
-            head_teacher_count = er.filter(groups__name = "Head Teachers").exclude(schools=None).count()
+            head_teacher_count = er.filter(groups__name="Head Teachers").exclude(schools=None).count()
             responses = cg.responses_by_category(location=Location.tree.root_nodes()[0])
             all_responses = cg.responses_by_category()
             location_ids = Location.objects.filter(
@@ -1228,7 +1228,7 @@ class CapitationGrants(TemplateView):
                 values_list('connection', flat=True), schools=None).filter(groups__name="Head Teachers").\
                 values_list('reporting_location__pk',flat=True)).values_list('id',flat=True)
 
-            locs = Location.objects.filter(id__in = location_ids)
+            locs = Location.objects.filter(id__in=location_ids)
 
             districts_to_ret = []
             for location in locs:
@@ -1241,23 +1241,12 @@ class CapitationGrants(TemplateView):
 
                 districts_to_ret.append((location, info.items()))
 
-
             context['capitation_location_data'] = responses
 
-            try:
-                ht_no = (100 * all_responses.get(category__name = 'no').get('value')) / head_teacher_count
-            except ZeroDivisionError:
-                ht_no = 0
-
-            try:
-                ht_unknown = (100 * all_responses.get(category__name = 'unknown').get('value')) / head_teacher_count
-            except ZeroDivisionError:
-                ht_unknown = 0
-
-            try:
-                ht_yes = (100 * all_responses.get(category__name = 'yes').get('value')) / head_teacher_count
-            except ZeroDivisionError:
-                ht_yes = 0
+            ht_no = self.compute_percent(all_responses.get(category__name='no').get('value'), head_teacher_count)
+            ht_unknown = self.compute_percent(all_responses.get(category__name='unknown').get('value'),
+                                              head_teacher_count)
+            ht_yes = self.compute_percent(all_responses.get(category__name='yes').get('value'), head_teacher_count)
 
             context['national_responses'] = [('Yes', ht_yes), ('No', ht_no), ('unknown',ht_unknown)]
             context['head_teacher_count'] = 100 * (head_teacher_count / er.exclude(schools=None,\
@@ -1271,8 +1260,8 @@ class CapitationGrants(TemplateView):
 
             location = self.request.user.get_profile().location
             responses = cg.responses_by_category(
-                location = location,
-                for_map = False
+                location=location,
+                for_map=False
             )
             htc = er.exclude(schools = None, connection__in =\
                 Blacklist.objects.values_list('connection', flat = True)).filter(groups__name = 'Head Teachers',\
@@ -1288,7 +1277,6 @@ class CapitationGrants(TemplateView):
                 htc_p = 0
 
             context['head_teacher_count'] = htc_p
-
 
             info = self.extract_info(list(responses))
             context['district'] = location
