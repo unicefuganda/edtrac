@@ -52,7 +52,7 @@ class Command(BaseCommand):
                 order=0,
                 rule = ScriptStep.WAIT_MOVEON,
                 start_offset=0,
-                giveup_offset=7200, # we'll give them two hours to respond
+                giveup_offset=10800, # we'll give them two hours to respond
                 ))
         script_p3.steps.add(ScriptStep.objects.create(
                 script=script_p3,
@@ -60,15 +60,15 @@ class Command(BaseCommand):
                 order=1,
                 rule=ScriptStep.WAIT_MOVEON, # for polls, this likely means a poll whose answer we aren't particularly concerned with
                 start_offset=0, #start immediately after the giveup time has elapsed from the previous step
-                giveup_offset=7200, # we'll give them two hours to respond
+                giveup_offset=10800, # we'll give them two hours to respond
                 ))
         script_p3.steps.add(ScriptStep.objects.create(
                 script=script_p3,
                 poll=poll2,
                 order=2,
-                rule=ScriptStep.WAIT_GIVEUP, # for polls, this likely means a poll whose answer we aren't particularly concerned with
+                rule=ScriptStep.WAIT_MOVEON, # for polls, this likely means a poll whose answer we aren't particularly concerned with
                 start_offset=0, #start immediately after the giveup time has elapsed from the previous step
-                giveup_offset=7200, # we'll give them two hours to respond
+                giveup_offset=10800, # we'll give them two hours to respond
                 ))
         script_p6.steps.add(ScriptStep.objects.create(
                 script=script_p6,
@@ -76,13 +76,13 @@ class Command(BaseCommand):
                 order=0,
                 rule = ScriptStep.WAIT_MOVEON,
                 start_offset=0,
-                giveup_offset=7200, # we'll give them two hours to respond
+                giveup_offset=10800, # we'll give them two hours to respond
                 ))
         script_p6.steps.add(ScriptStep.objects.create(
                 script=script_p6,
                 poll=poll4,
                 order=1,
-                rule=ScriptStep.WAIT_GIVEUP, # for polls, this likely means a poll whose answer we aren't particularly concerned with
+                rule=ScriptStep.WAIT_MOVEON, # for polls, this likely means a poll whose answer we aren't particularly concerned with
                 start_offset=0, #start immediately after the giveup time has elapsed from the previous step
-                giveup_offset=7200, # we'll give them two hours to respond
+                giveup_offset=10800, # we'll give them two hours to respond
                 ))
