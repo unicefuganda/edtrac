@@ -343,9 +343,7 @@ def _schedule_teacher_weekly_scripts(group, connection, grps):
     """
     #Short curcuit scheduling teachers without grades
     if group.name == 'Teachers':
-        if not connection.contact.emisreporter.grade:
-            return
-        elif connection.contact.emisreporter.grade in ['p3', 'P3'] and connection.contact.emisreporter.schools.exists():
+        if connection.contact.emisreporter.grade in ['p3', 'P3'] and connection.contact.emisreporter.schools.exists():
                 # get rid of any existing script progress; this is a one time thing
                 ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug='edtrac_p3_teachers_weekly')).delete()
                 sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug='edtrac_p3_teachers_weekly'))
