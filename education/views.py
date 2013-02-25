@@ -1248,7 +1248,7 @@ class CapitationGrants(TemplateView):
                 head_teacher_count = er.exclude(schools = None, connection__in =\
                     Blacklist.objects.values_list('connection', flat = True)).filter(reporting_location=location,
                     groups__name = 'Head Teachers').count()
-                other_responses = list(cg.responses_by_category(location = location, for_map=False))
+                other_responses = [stat for stat in responses if stat['location_name'] == location.name]
 
                 info = self.extract_info(other_responses)
 
