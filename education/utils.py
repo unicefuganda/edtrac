@@ -372,8 +372,8 @@ def _schedule_teacher_weekly_scripts(group, connection, grps):
         return
     
     #create new scriptprogress regardless
-    sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-    sp.set_time(d)
+#    sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
+#    sp.set_time(d)
 
 
 
