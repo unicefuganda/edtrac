@@ -28,7 +28,7 @@ class Command(BaseCommand):
         if not options['slug']:
             slug = raw_input('Slug of script you wish to reschedule -- edtrac_p3_teachers_weekly')
         else:
-            slug = 'edtrac_p3_teachers_weekly'
+            slug = options['slug']
 
         reschedule_weekly_script(grp=group, slug=slug)
         self.stdout.write('')
