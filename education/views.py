@@ -1253,7 +1253,7 @@ class CapitationGrants(TemplateView):
 
             context['capitation_location_data'] = responses
 
-            total_responses = sum([item['value'] for item in all_responses])
+            total_responses = cg.responses.values_list('contact').distinct().count()
             context['national_responses'] = self.extract_info(all_responses).items()
             context['head_teacher_count'] = self.compute_percent(total_responses, head_teacher_count)
             context['districts'] = districts_to_ret
@@ -1263,28 +1263,19 @@ class CapitationGrants(TemplateView):
         else:
 
             location = self.request.user.get_profile().location
-            responses = cg.responses_by_category(
-                location=location,
-                for_map=False
-            )
-            htc = er.exclude(schools = None, connection__in =\
-                Blacklist.objects.values_list('connection', flat = True)).filter(groups__name = 'Head Teachers',\
-                    reporting_location = location).count()
-            try:
+            all_responses = cg.responses_by_category(location=Location.tree.root_nodes()[0])
+            responses_at_location = [stat for stat in all_responses if stat['location_name'] == location.name]
+            total_responses = cg.responses.filter(contact__reporting_location=location).values_list(
+                'contact').distinct().count()
 
-                htc_p = (100 *  cg.responses.filter(contact__reporting_location = location, contact__connection__in =\
-                    er.exclude(schools = None, connection__id__in =\
-                        Blacklist.objects.values_list('connection', flat = True)).filter(groups__name = 'Head Teachers',\
-                            reporting_location = location).values_list('connection__id', flat=True)).count()) / htc
+            htc = er.exclude(schools=None, connection__in= \
+                Blacklist.objects.values_list('connection', flat=True)).filter(groups__name='Head Teachers', \
+                                                                               reporting_location=location).count()
 
-            except ZeroDivisionError:
-                htc_p = 0
+            context['head_teacher_count'] = self.compute_percent(total_responses, htc)
 
-            context['head_teacher_count'] = htc_p
-
-            info = self.extract_info(list(responses))
             context['district'] = location
-            context['district_info'] = info.items()
+            context['district_info'] = self.extract_info(responses_at_location).items()
             return context
 
 
