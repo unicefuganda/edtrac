@@ -1245,26 +1245,17 @@ class CapitationGrants(TemplateView):
 
             districts_to_ret = []
             for location in locs:
-                head_teacher_count = er.exclude(schools = None, connection__in =\
-                    Blacklist.objects.values_list('connection', flat = True)).filter(reporting_location=location,
-                    groups__name = 'Head Teachers').count()
                 other_responses = [stat for stat in responses if stat['location_name'] == location.name]
 
                 info = self.extract_info(other_responses)
 
-                districts_to_ret.append(( location, info.items()))
+                districts_to_ret.append((location, info.items()))
 
             context['capitation_location_data'] = responses
 
-            ht_no = self.compute_percent(all_responses.get(category__name='no').get('value'), head_teacher_count)
-            ht_unknown = self.compute_percent(all_responses.get(category__name='unknown').get('value'),
-                                              head_teacher_count)
-            ht_yes = self.compute_percent(all_responses.get(category__name='yes').get('value'), head_teacher_count)
-
-            context['national_responses'] = [('Yes', ht_yes), ('No', ht_no), ('unknown',ht_unknown)]
-            context['head_teacher_count'] = 100 * (head_teacher_count / er.exclude(schools=None,\
-                connection__in = Blacklist.objects.values_list('connection', flat=True)).count())
-
+            total_responses = sum([item['value'] for item in all_responses])
+            context['national_responses'] = self.extract_info(all_responses).items()
+            context['head_teacher_count'] = self.compute_percent(total_responses, head_teacher_count)
             context['districts'] = districts_to_ret
 
             return context
