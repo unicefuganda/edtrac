@@ -14,7 +14,7 @@ class Command(BaseCommand):
     def handle(self, **options):
         root = Location.tree.root_nodes()[0]
         yesno_category_name = ['yes', 'no', 'unknown']
-        for p in Poll.objects.order_by('-pk'):
+        for p in Poll.objects.order_by('-pk')[0:9]:
             if p.categories.count():
                 category_names = yesno_category_name if p.is_yesno_poll() else list(p.categories.all().values_list('name', flat=True))
                 category_names.append('uncategorized')
