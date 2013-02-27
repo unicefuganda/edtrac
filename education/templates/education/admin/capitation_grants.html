@@ -4,86 +4,114 @@
 {% block title %} Capitation grants receipt nationwide -- {{ block.super }} {% endblock %}
 {% block content %}
 
-<ul class='breadcrumb'>
-	<li><a href="{% url rapidsms-dashboard %}">Dashboard Home</a></li>
-</ul>
-<div class="general">
+    <ul class='breadcrumb'>
+        <li><a href="{% url rapidsms-dashboard %}">Dashboard Home</a></li>
+    </ul>
+    <div class="general">
 
-{% if authorized_user %}
-<div id="capitation_container" style="margin-bottom: 20px;">
-    <div class="stats"><h3>UPE Capitation Received on time across Uganda</h3></div>
-    <div id="capitation"></div>
-    <script type="text/javascript">
-        $(document).ready(function(){
-            pie("{{ national_responses|reorganize_data|join:"," }}",
-                    "UPE Grants Received this Term",
-                    "Capitation Grants Received",
-                    "capitation",
-                    " responded",
-                    true
-            );
+    {% if authorized_user %}
+        <div id="capitation_container" style="margin-bottom: 20px;">
+            <div class="stats"><h3>UPE Capitation Received on time across Uganda</h3></div>
+            <div id="capitation"></div>
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    pie("{{ national_responses|reorganize_data|join:"," }}",
+                            "UPE Grants Received this Term",
+                            "Capitation Grants Received",
+                            "capitation",
+                            " responded",
+                            true
+                    );
 
-            $("#capitation").append("<div class='report-stickie'><span style='margin-top:10px;' class='alert-message'>Report based on {{ head_teacher_count|floatformat }}% of Total Reporters</span></div>");
-        });
-    </script>
-</div>
+                    $("#capitation").append("<div class='report-stickie'><span style='margin-top:10px;' class='alert-message'>Report based on {{ head_teacher_count|floatformat }}% of Total Reporters</span></div>");
+                });
+            </script>
+        </div>
 
-<div class="districts-stats">
-<div class="stats"><h3>UPE Capitation Grants Received by District</h3></div>
-<div style="padding:10px;">
-    <p>Click over a district to view</p>
-</div>
-    <div id="placeholder" style="float:right; clear:both;"></div>
-    <table class="classy" style="width:200px;" border='1'>
-        <tr>
-            <th>District</th>
-            <!--<th>Response Count</th>-->
-        </tr>
-        {% for district, responses in districts %}
-        <tr>
-            <td><a href="" id="response-{{district.id}}">{{ district }}</a></td>
-            <!--<td>-->
-                <!--<table>-->
+        <div class="districts-stats">
+            <div class="stats"><h3>UPE Capitation Grants Received by District</h3></div>
+            <div style="padding:10px;">
+                <p>Click over a district to view</p>
+            </div>
+            <div id="placeholder" style="float:right; clear:both;"></div>
+            <table class="classy" style="width:200px;" border='1'>
+                <tr>
+                    <th>District</th>
+                    <!--<th>Response Count</th>-->
+                </tr>
+                {% for district, responses in districts %}
+                    <tr>
+                        <td><a href="" id="response-{{ district.id }}">{{ district }}</a></td>
+                        <!--<td>-->
+                        <!--<table>-->
 
-                    <!--{% for x,y in responses %}-->
-                        <!--<tr><td>{{ x }}</td><td>{{ y|floatformat }}</td></tr>-->
-                    <!--{% endfor %}-->
-                <!--</table>-->
-            <!--</td>-->
-        </tr>
-        <script type="text/javascript">
-            $(document).ready(function(){
-                $('a#response-{{ district.id }}').click(
-                        function(event){
-                            pie('{{ responses|reorganize_data|join:"," }}', "{{ district }}", "", "placeholder", " responded", true);
-                            event.preventDefault();
+                        <!--{% for x,y in responses %}-->
+                            <!--<tr><td>{{ x }}</td><td>{{ y|floatformat }}</td></tr>-->
+                            <!--{% endfor %}-->
+                        <!--</table>-->
+                        <!--</td>-->
+                    </tr>
+                    <script type="text/javascript">
+                        $(document).ready(function () {
+                            $('a#response-{{ district.id }}').click(
+                                    function (event) {
+                                        pie('{{ responses|reorganize_data|join:"," }}', "{{ district }}", "", "placeholder", " responded", true);
+                                        event.preventDefault();
+                                    });
                         });
-            });
-        </script>
-        {% endfor %}
-    </table>
+                    </script>
+                {% endfor %}
+            </table>
+        </div>
 
-
-{% else %}
+    {% else %}
 
         <div id="capitation"></div>
         <script type="text/javascript">
-            $(document).ready(function(){
+            $(document).ready(function () {
                 pie('{{ district_info|reorganize_data|join:"," }}', "{{ district }}", "", "capitation", " responded", true);
                 $('#capitation').append("<div class='report-stickie'><span style='margin-top:10px;' class='alert-message'>Report based on {{ head_teacher_count|floatformat }}% of Total Reporters</span></div>");
             });
         </script>
 
         <div id="lineChart"></div>
-{% endif %}
+        <div class="school-stats">
+            <div class="stats"><h3>UPE Capitation Grants Received by Schools</h3></div>
+            <div style="padding:10px;">
+                <p>Click over a school to view</p>
+            </div>
+            <div id="placeholder" style="float:right; clear:both;"></div>
+
+            <table class="classy" style="width:200px;" border='1'>
+                <tr>
+                    <th>Schools</th>
+                </tr>
+                {% for school, responses in schools %}
+                    <tr>
+                        <td><a href="" id="response-{{ school.id }}">{{ school.name }}</a></td>
+                    </tr>
+                    <script type="text/javascript">
+                        $(document).ready(function () {
+                            $('a#response-{{ school.id }}').click(
+                                    function (event) {
+                                        pie('{{ responses|reorganize_data|join:"," }}', "{{ school.name }}", "", "placeholder", " responded", true);
+                                        event.preventDefault();
+                                    });
+                        });
+                    </script>
+                {% endfor %}
+            </table>
+        </div>
+
+    {% endif %}
 
 
 {% endblock %}
 
 {% block javascripts %}
-        {{ block.super }}
-        <!--<script src="{{ MEDIA_URL }}education/javascripts/endless.js" charset="utf-8"></script>-->
-        <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-collapse.js"></script>
-        <script type="text/javascript"></script>
+    {{ block.super }}
+    <!--<script src="{{ MEDIA_URL }}education/javascripts/endless.js" charset="utf-8"></script>-->
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-collapse.js"></script>
+    <script type="text/javascript"></script>
     </div>
 {% endblock %}

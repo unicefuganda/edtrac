@@ -59,6 +59,9 @@ class TestCapitationGrantView(TestCase):
         self.assertIn((u'yes', 50.00), results['district_info'])
         self.assertIn((u'no', 50.00), results['district_info'])
 
+        self.assertIn((self.kampala_school, [(u'yes', 50.00), (u'no', 50.00)]), results['schools'])
+        self.assertIn((self.kampala_school2, []), results['schools'])
+
     def tearDown(self):
         School.objects.all().delete()
         EmisReporter.objects.all().delete()

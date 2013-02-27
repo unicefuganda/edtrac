@@ -1214,6 +1214,19 @@ class CapitationGrants(TemplateView):
 
         return final_ret
 
+    def _get_per_category_responses_for_school(self, responses_by_category, school):
+        info = [stat for stat in responses_by_category if
+                stat['response__contact__emisreporter__schools__name'] == school.name]
+        return school, self.extract_info(info).items()
+
+    def _get_schools_info(self, poll, location):
+        responses_by_category = ResponseCategory.objects.filter(response__poll=poll,
+                                                                response__contact__reporting_location=location).values(
+            'response__contact__emisreporter__schools__name','category__name').annotate(value=Count('pk'))
+        schools = location.schools.all()
+
+        return [self._get_per_category_responses_for_school(responses_by_category, school) for school in schools]
+
     def get_context_data(self, **kwargs):
         context = super(CapitationGrants, self).get_context_data(**kwargs)
         cg = Poll.objects.select_related().get(name="edtrac_upe_grant")
@@ -1275,6 +1288,7 @@ class CapitationGrants(TemplateView):
             context['head_teacher_count'] = self.compute_percent(total_responses, htc)
 
             context['district'] = location
+            context['schools'] = self._get_schools_info(cg, location)
             context['district_info'] = self.extract_info(responses_at_location).items()
             return context
 
