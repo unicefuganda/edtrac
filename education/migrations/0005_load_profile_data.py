@@ -10,6 +10,8 @@ class Migration(DataMigration):
     def forwards(self, orm):
         "loads profile data"
 
+        management.call_command('loaddata', 'locations.json')
+        management.call_command('loaddata', 'schools.json')
         management.call_command('loaddata', 'user_profiles.json')
 
 
