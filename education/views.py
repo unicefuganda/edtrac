@@ -6,7 +6,7 @@ from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import user_passes_test
 from django.utils.decorators import method_decorator
-from django.views.generic import DetailView, TemplateView, ListView, CreateView, FormView
+from django.views.generic import DetailView, TemplateView, ListView
 from .forms import *
 from .models import *
 
@@ -30,13 +30,9 @@ from time import strftime
 
 Num_REG = re.compile('\d+')
 
-super_user_required=user_passes_test(lambda u: u.groups.filter(name__in=['Admins','DFO', 'UNICEF Officials']).exists() or u.is_superuser)
-
-def login(req):
-    return login(req, template_name="education/admin/admin_dashboard.html")
-
-def logout(req):
-    return logout(req, tempalte_name="educatoin/admin/admin_dashboard.html")
+super_user_required = \
+    user_passes_test(lambda u: u.groups.filter(
+        name__in=['Admins', 'DFO', 'UNICEF Officials']).exists() or u.is_superuser)
 
 
 @login_required
@@ -50,17 +46,15 @@ def index(request, **kwargs):
     else:
         #When choosing to use kwargs, don't forget to include template and context_var variables
         # if you don't need a template or just need the original template, use template_name=None
-        if kwargs.has_key('context_vars'):
-            context_vars = kwargs['context_vars']
-        else:
-            context_vars = None
+        context_vars = kwargs.get('context_vars')
         template_name = kwargs['template_name']
         if not template_name:
             #if no template name is given
             t = "education/index.html"
         else:
-            t = "education/%s"%template_name
+            t = "education/%s" % template_name
         return render_to_response(t, context_vars, RequestContext(request))
+
 
 #MAPS
 @login_required
@@ -73,7 +67,6 @@ def dash_ministry_map(request):
 
 
 def dash_attdance(request):
-    import pdb;pdb.set_trace()
     boysp3_attendance = get_responses_to_polls(poll_name='edtrac_boysp3_attendance')
     boysp3_enrolled = get_responses_to_polls(poll_name="edtrac_boysp3_enrollment")
     boysp3_absent = boysp3_enrolled - boysp3_attendance
@@ -747,7 +740,7 @@ def schools_active(locations):
 #            reporting_location__in = locations).exclude(schools = None).exclude(
 #                connection__identity__in=Blacklist.objects.select_related().values_list('connection__identity',flat=True)).select_related().\
 #                    values_list('connection__identity').count()
-                    
+
         count_reps = EmisReporter.objects.filter(groups__name__in=['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters', 'DEO', 'MEO'],
                                 reporting_location__in = locations).exclude(connection__in=Blacklist.objects.all()).exclude(schools=None).count()
 
@@ -796,17 +789,17 @@ def total_schools(locations):
     for district in districts:
 #        s_count = School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).\
 #                                        filter(reporting_location__name = district.name).distinct().values_list('schools__pk',flat=True)).count()
-#        
+#
         s_count = School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).\
                                         filter(reporting_location__name = district.name).distinct().values_list('schools__pk',flat=True)).count()
         total_schools += s_count
-        
+
     return {'total_schools' : total_schools }
 
 def total_reporters(locations):
-    total_reporters = EmisReporter.objects.filter(groups__name__in=['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters', 'DEO', 'MEO'], 
+    total_reporters = EmisReporter.objects.filter(groups__name__in=['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters', 'DEO', 'MEO'],
                             reporting_location__in = locations).exclude(connection__in=Blacklist.objects.all()).exclude(schools=None).count()
-    
+
     return {'total_reporters' : total_reporters }
 
 # generate context vars
@@ -815,7 +808,7 @@ def generate_dashboard_vars(location=None):
     An overly ambitious function that generates context variables for a location if provided
     This gets populated in the dashboard.
     """
-    
+
     context_vars = {}
     locations = []
     if location.name == "Uganda":
@@ -868,10 +861,10 @@ def generate_dashboard_vars(location=None):
 
     #Meals
     context_vars.update(meals_missed(locations))
-    
+
     #Total Schools
     context_vars.update(total_schools(locations))
-    
+
     #Total Reporters
     context_vars.update(total_reporters(locations))
 
@@ -1089,8 +1082,8 @@ class NationalStatistics(TemplateView):
     template_name = "education/admin/national_statistics.html"
     groups = ['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters', 'DEO', 'MEO']
 
-    def compute_percent(self, reps, groups = groups): 
-        all_reporters = EmisReporter.objects.filter(groups__name__in=groups).exclude(connection__in=Blacklist.objects.all()).exclude(schools=None)   
+    def compute_percent(self, reps, groups = groups):
+        all_reporters = EmisReporter.objects.filter(groups__name__in=groups).exclude(connection__in=Blacklist.objects.all()).exclude(schools=None)
         try:
             reps.count() / all_reporters.count()
         except ZeroDivisionError:
@@ -1100,8 +1093,8 @@ class NationalStatistics(TemplateView):
             context = super(NationalStatistics, self).get_context_data(**kwargs)
             groups = ['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters', 'DEO', 'MEO']
             all_reporters = EmisReporter.objects.filter(groups__name__in=groups).exclude(connection__in=Blacklist.objects.all()).exclude(schools=None)
-            
-    
+
+
             profile = self.request.user.get_profile()
             if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
                 districts = Location.objects.filter(type="district").\
@@ -1109,14 +1102,14 @@ class NationalStatistics(TemplateView):
 #                districts = Location.objects.filter(type="district").exclude(connection__in=Blacklist.objects.values_list('connection',flat=True))
                 reps = EmisReporter.objects.select_related().filter(groups__name__in=['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters'], connection__in=Message.objects.\
                    filter(date__range = get_week_date(depth = 2)[1]).values_list('connection', flat = True)).exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
-    
+
                 district_schools = [
                 (district,
                  School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).\
                  filter(reporting_location__name = district.name).distinct().values_list('schools__pk',flat=True)).count())
                 for district in districts
                 ]
-                    
+
                 context['total_districts'] = districts.count()
                 context['district_schools'] = district_schools
                 schools= School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).\
@@ -1129,10 +1122,10 @@ class NationalStatistics(TemplateView):
                     s_count = School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).\
                                                     filter(reporting_location__name = district.name).distinct().values_list('schools__pk',flat=True)).count()
                     total_schools += s_count
-                    
+
                 context['total_schools'] = total_schools
-                 
-                
+
+
                 district_active = [
                 (
                     district, self.compute_percent(reps.filter(reporting_location__pk=district.pk), groups=['Head Teachers'])
@@ -1140,11 +1133,11 @@ class NationalStatistics(TemplateView):
                 for district in districts
                 ]
                 district_active.sort(key=operator.itemgetter(1), reverse=True)
-                
+
 #                district_active.sort(key=operator.itemgetter(1), reverse=True)
                 context['district_active'] = district_active[:3]
                 context['district_less_active'] = district_active[-3:]
-    
+
 #                context['head_teacher_count'] = reps.count()
                 head_teacher_count = all_reporters.filter(groups__name='Head Teachers').count()
                 smc_count = all_reporters.filter(groups__name = "SMC").count()
@@ -1154,7 +1147,7 @@ class NationalStatistics(TemplateView):
                 deo_count = all_reporters.filter(groups__name="DEO").count()
                 gem_count = all_reporters.filter(groups__name="GEM").count()
                 teacher_data_unclean = total_teacher_count - p3_teacher_count - p6_teacher_count
-                
+
                 context['head_teacher_count'] = head_teacher_count
                 context['smc_count'] = smc_count
                 context['p6_teacher_count'] = p6_teacher_count
@@ -1164,17 +1157,17 @@ class NationalStatistics(TemplateView):
                 context['deo_count'] = deo_count
                 context['gem_count'] = gem_count
                 context['all_reporters'] = all_reporters.count()
-    
+
                 context['expected_reporters'] = schools.count() * 4
                 # reporters that used EduTrac the past week
                 active_school_reporters = all_reporters.filter(connection__in=Message.objects.exclude(application='script').\
                     filter(date__range = get_week_date(depth = 2)[1]).values_list('connection', flat = True))
-    
+
                 school_active = [
                 (school, self.compute_percent(active_school_reporters.filter(schools__pk=school.pk), groups=['Head Teachers', 'Teachers', 'GEM', 'SMC','Other Reporters']))
                 for school in schools
                 ]
-    
+
                 school_active.sort(key=operator.itemgetter(1), reverse=True)
                 context['school_active_count'] = School.objects.filter(pk__in = active_school_reporters.values_list('schools__pk', flat=True)).count()
                 context['school_active'] = school_active[:3]
@@ -1447,31 +1440,31 @@ class DistrictViolenceDetails(TemplateView):
 
             before_data = get_numeric_report_data('edtrac_headteachers_abuse', time_range = month_before, school = school,\
                 to_ret = 'sum', belongs_to = 'schools')
-            
+
             data = int(now_data + before_data)
             # sieve out only schools with either value of violence cases being shown
 #            if now_data > 0 or before_data > 0:
 #                school_case.append((school, now_data, before_data))
 #            data = now_data + before_data
-            
+
             totalViolence += data
             nowViolence += now_data
             beforeViolence += before_data
-            
+
             if now_data > 0 or before_data > 0:
                 school_case.append((school, now_data, before_data, data))
-                
-            
-            
-        
+
+
+
+
 
         #reports = poll_response_sum("edtrac_headteachers_abuse", month_filter=True, months=1)
         emis_reporters = EmisReporter.objects.exclude(connection__in=\
             Blacklist.objects.values_list('connection')).filter(schools__in=schools)
-            
+
         context['totalViolence'] = totalViolence
         context['nowViolence'] = nowViolence
-        context['beforeViolence'] = beforeViolence    
+        context['beforeViolence'] = beforeViolence
 
         context['location'] = location
         context['school_vals'] = school_case
