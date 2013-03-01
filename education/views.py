@@ -1260,10 +1260,11 @@ class CapitationGrants(TemplateView):
             context['capitation_location_data'] = responses
 
             total_responses = cg.responses.values_list('contact').distinct().count()
-            context['national_responses'] = self.extract_info(all_responses).items()
+            context['responses'] = self.extract_info(all_responses).items()
             context['head_teacher_count'] = self.compute_percent(total_responses, head_teacher_count)
-            context['districts'] = districts_to_ret
-
+            context['location'] = Location.tree.root_nodes()[0]
+            context['sub_locations'] = districts_to_ret
+            context['sub_location_type'] = "district"
             return context
 
         else:
@@ -1278,11 +1279,11 @@ class CapitationGrants(TemplateView):
                 Blacklist.objects.values_list('connection', flat=True)).filter(groups__name='Head Teachers', \
                                                                                reporting_location=location).count()
 
+            context['responses'] = self.extract_info(responses_at_location).items()
             context['head_teacher_count'] = self.compute_percent(total_responses, htc)
-
-            context['district'] = location
-            context['schools'] = self._get_schools_info(cg, location)
-            context['district_info'] = self.extract_info(responses_at_location).items()
+            context['location'] = location
+            context['sub_locations'] = self._get_schools_info(cg, location)
+            context['sub_location_type'] = "school"
             return context
 
 

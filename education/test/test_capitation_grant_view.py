@@ -23,8 +23,9 @@ class TestCapitationGrantView(TestCase):
         self.fake_incoming('yes', self.connection1)
         self.fake_incoming('no', self.connection2)
         results = self.capitation_grant_view.get_context_data()
-        self.assertIn(('yes', 50.00), results['national_responses'])
-        self.assertIn(('no', 50.00), results['national_responses'])
+        national_responses = results['responses']
+        self.assertIn(('yes', 50.00), national_responses)
+        self.assertIn(('no', 50.00), national_responses)
 
     def test_calculation_of_head_teacher_count(self):
         self.fake_incoming('yes', self.connection1)
@@ -32,14 +33,17 @@ class TestCapitationGrantView(TestCase):
         self.fake_incoming('yes', self.connection2)
         results = self.capitation_grant_view.get_context_data()
         self.assertAlmostEqual(66.66, results['head_teacher_count'], delta=0.01)
+        self.assertEqual(self.root_node, results['location'])
 
     def test_calculation_of_district_categorization(self):
         self.fake_incoming('yes', self.connection1)
         self.fake_incoming('no', self.connection2)
         self.fake_incoming('no', self.connection3)
         results = self.capitation_grant_view.get_context_data()
-        self.assertIn((self.kampala_district, [(u'yes', 50.00), (u'no', 50.00)]), results['districts'])
-        self.assertIn((self.gulu_district, [(u'no', 100.0)]), results['districts'])
+        self.assertEqual(self.root_node.get_children()[0].type.name, results['sub_location_type'])
+        districts = results['sub_locations']
+        self.assertIn((self.kampala_district, [(u'yes', 50.00), (u'no', 50.00)]), districts)
+        self.assertIn((self.gulu_district, [(u'no', 100.0)]), districts)
 
     def test_calculation_if_user_at_district_logged_in(self):
         user = User.objects.create(username='scrapy', email='scooby@shaggy.com')
@@ -55,12 +59,15 @@ class TestCapitationGrantView(TestCase):
         self.fake_incoming('no', self.connection1)
         results = self.capitation_grant_view.get_context_data()
         self.assertAlmostEqual(50.00, results['head_teacher_count'], delta=0.01)
-        self.assertEqual(self.kampala_district, results['district'])
-        self.assertIn((u'yes', 50.00), results['district_info'])
-        self.assertIn((u'no', 50.00), results['district_info'])
+        self.assertEqual(self.kampala_district, results['location'])
+        responses = results['responses']
+        self.assertIn((u'yes', 50.00), responses)
+        self.assertIn((u'no', 50.00), responses)
 
-        self.assertIn((self.kampala_school, [(u'yes', 50.00), (u'no', 50.00)]), results['schools'])
-        self.assertIn((self.kampala_school2, []), results['schools'])
+        self.assertEqual('school', results['sub_location_type'])
+        sub_locations = results['sub_locations']
+        self.assertIn((self.kampala_school, [(u'yes', 50.00), (u'no', 50.00)]), sub_locations)
+        self.assertIn((self.kampala_school2, []), sub_locations)
 
     def tearDown(self):
         School.objects.all().delete()
