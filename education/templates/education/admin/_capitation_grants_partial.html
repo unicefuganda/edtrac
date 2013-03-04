@@ -1,0 +1,46 @@
+{% load stats_extras %}
+<div id="capitation_container" style="margin-bottom: 20px;">
+    <div class="stats"><h3>UPE Capitation Received on time across {{ location.name|capfirst }}</h3></div>
+    <div id="capitation"></div>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            pie("{{ responses|reorganize_data|join:"," }}",
+                    "UPE Grants Received this Term",
+                    "Capitation Grants Received",
+                    "capitation",
+                    " responded",
+                    true
+            );
+
+            $("#capitation").append("<div class='report-stickie'><span style='margin-top:10px;' class='alert-message'>Report based on {{ head_teacher_count|floatformat }}% of Total Reporters</span></div>");
+        });
+    </script>
+</div>
+
+<div class="districts-stats">
+    <div class="stats"><h3>UPE Capitation Grants Received by {{ sub_location_type|capfirst }}</h3></div>
+    <div style="padding:10px;">
+        <p>Click over a {{ sub_location_type }} to view</p>
+    </div>
+    <div id="placeholder" style="float:right; clear:both;"></div>
+    <table class="classy" style="width:200px;" border='1'>
+        <tr>
+            <th>{{ sub_location_type|capfirst }}</th>
+        </tr>
+        {% for sub_location, responses in sub_locations %}
+            <tr>
+                <td><a href="" id="response-{{ sub_location.id }}">{{ sub_location.name }}</a></td>
+            </tr>
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    $('a#response-{{ sub_location.id }}').click(
+                            function (event) {
+                                pie('{{ responses|reorganize_data|join:"," }}', "{{ sub_location.name }}", "", "placeholder", " responded", true);
+                                event.preventDefault();
+                            });
+                });
+            </script>
+        {% endfor %}
+    </table>
+</div>
