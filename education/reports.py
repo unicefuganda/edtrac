@@ -371,37 +371,22 @@ def school_last_xformsubmission(request, school_id):
 
     for script in Script.objects.exclude(slug='emis_autoreg'):
         for step in script.steps.all():
-<<<<<<< HEAD
-            resp = Response.objects.filter(poll=step.poll)\
-                   .filter(message__connection__contact__emisreporter__schools__pk=school_id)\
-                   .order_by('-date')[:1]
-            scripted_polls.append((step.poll,resp))
-=======
             resp = Response.objects.select_related().filter(poll=step.poll)\
                 .filter(message__connection__contact__emisreporter__schools__pk=school_id)\
                 .order_by('-date')[:1]
             scripted_polls.append((step.poll, resp))
 
     return {'xforms': xforms, 'scripted_polls': scripted_polls}
->>>>>>> bbc486882b293986a301dc746215cd1364a9358e
 
 
 def messages(request):
     if request.user.get_profile().is_member_of('Admins'):
-<<<<<<< HEAD
         messages = Message.objects.exclude(
             connection__identity__in = getattr(settings, 'MODEM_NUMBERS')
         ).filter(direction='I',
             connection__contact__emisreporter__reporting_location__in =\
             locations.get(name="Uganda").get_descendants(include_self=True).all()
         )
-=======
-        messages = Message.objects.select_related()\
-            .exclude(connection__identity__in=getattr(settings, 'MODEM_NUMBERS'))\
-            .filter(direction='I',
-                    connection__contact__emisreporter__reporting_location__in=
-                    location_once.get(name="Uganda").get_descendants(include_self=True).all())
->>>>>>> bbc486882b293986a301dc746215cd1364a9358e
     else:
         user_location = get_location(request)
         messages = Message.objects.select_related()\
@@ -445,7 +430,6 @@ def othermessages(request, district_id=None):
 def reporters(request, district_id=None):
     profile = request.user.get_profile()
     if profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
-<<<<<<< HEAD
         return EmisReporter.objects.exclude(
                     connection__id__in=Blacklist.objects.values_list('connection__id', flat=True),
                     connection__identity__in = getattr(settings, 'MODEM_NUMBERS')
@@ -455,32 +439,14 @@ def reporters(request, district_id=None):
         return EmisReporter.objects.exclude(\
             connection__id__in=Blacklist.objects.values_list('connection__id', flat=True)).\
             filter(reporting_location__in= user_location.get_descendants(include_self=True))
-=======
-        return EmisReporter.objects.select_related()\
-            .exclude(connection__id__in=Blacklist.objects.values_list('connection__id', flat=True),
-                     connection__identity__in=getattr(settings, 'MODEM_NUMBERS'))\
-            .exclude(reporting_location=None).exclude(connection=None)
-    else:
-        user_location = get_location(request)
-        return EmisReporter.objects.select_related()\
-            .exclude(connection__id__in=Blacklist.objects.values_list('connection__id', flat=True))\
-            .filter(reporting_location__in=user_location.get_descendants(include_self=True))
-
->>>>>>> bbc486882b293986a301dc746215cd1364a9358e
 
 # time slider based work
 def education_responses_bp3(request, dates=None):
     """
     -> district, figures
     """
-<<<<<<< HEAD
     locations = locations.filter(type='district').filter(pk__in =\
         EmisReporter.objects.values_list('reporting_location__pk',flat=True))
-=======
-    locations = location_once.filter(type='district')\
-        .filter(pk__in=EmisReporter.objects.select_related()
-                .values_list('reporting_location__pk', flat=True))
->>>>>>> bbc486882b293986a301dc746215cd1364a9358e
     to_ret = []
     if dates:
         date_dict = dates(request)
@@ -505,11 +471,7 @@ def education_responses_bp3(request, dates=None):
 def schools(request, district_id=None):
     profile = request.user.get_profile()
     if profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials') or profile.is_member_of('Ministry Officials'):
-<<<<<<< HEAD
         return schools # should we include all schools???
-=======
-        return schools_once  # should we include all schools???
->>>>>>> bbc486882b293986a301dc746215cd1364a9358e
     else:
         user_location = get_location(request)
         return schools.filter(location__in=user_location.get_descendants(include_self=True).all())
@@ -1397,19 +1359,11 @@ def get_count_response_to_polls(poll_queryset, location_name=None, **kwargs):
             for month_range in month_ranges:
                 temp = []
                 location = Location.objects.filter(type="district").get(name=to_ret.keys()[0])
-<<<<<<< HEAD
                 expected_reports = schools.filter(pk__in = EmisReporter.objects.select_related().exclude(schools = None).\
                     filter(reporting_location = location).values_list('schools__pk', flat=True)).count()
                 resps = poll_queryset.responses.filter(contact__in=\
                             Contact.objects.filter(reporting_location= location).select_related(),
                             date__range = month_range).select_related()
-=======
-                expected_reports = schools_once.filter(pk__in=EmisReporter.objects.select_related().exclude(schools=None).
-                    filter(reporting_location=location).values_list('schools__pk', flat=True)).count()
-                resps = poll_queryset.responses.filter(contact__in=
-                            Contact.objects.filter(reporting_location=location).select_related(),
-                            date__range=month_range).select_related()
->>>>>>> bbc486882b293986a301dc746215cd1364a9358e
 
                 resp_values = [r.eav.poll_number_value for r in resps]
 
@@ -1423,17 +1377,10 @@ def get_count_response_to_polls(poll_queryset, location_name=None, **kwargs):
         elif ('termly' in kwargs) and ('with_percent' in kwargs) and (kwargs.get('admin') is False):
             temp = []
             termly_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
-<<<<<<< HEAD
             expected_reports = schools.filter(pk__in = EmisReporter.objects.select_related().exclude(schools = None).\
                 filter(reporting_location = location).values_list('schools__pk', flat=True)).select_related().count()
             responses = poll_queryset.responses.filter(contact__in =\
                 Contact.objects.filter(reporting_location = location), date__range = termly_range)
-=======
-            expected_reports = schools_once.filter(pk__in=EmisReporter.objects.select_related().exclude(schools=None).
-                filter(reporting_location=location).values_list('schools__pk', flat=True)).select_related().count()
-            responses = poll_queryset.responses.filter(contact__in =
-                Contact.objects.filter(reporting_location=location), date__range=termly_range)
->>>>>>> bbc486882b293986a301dc746215cd1364a9358e
             all_vals =  [r.eav.poll_number_value for r in responses]
             vals = filter(None, all_vals)
 
@@ -1459,15 +1406,9 @@ def get_count_response_to_polls(poll_queryset, location_name=None, **kwargs):
 
         elif kwargs.get('termly') and kwargs.get('with_percent') and kwargs.get('admin'):
             termly_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
-<<<<<<< HEAD
             expected_reports = schools.filter(pk__in = EmisReporter.objects.exclude(schools = None).\
                 values_list('schools__pk', flat=True)).select_related().count()
             responses = poll_queryset.responses.filter(date__range = termly_range).select_related()
-=======
-            expected_reports = schools_once.filter(pk__in=EmisReporter.objects.exclude(schools=None)
-                .values_list('schools__pk', flat=True)).select_related().count()
-            responses = poll_queryset.responses.filter(date__range=termly_range).select_related()
->>>>>>> bbc486882b293986a301dc746215cd1364a9358e
             all_vals = [r.eav.poll_number_value for r in responses]
             vals = filter(None, all_vals)
 
@@ -1500,15 +1441,9 @@ def get_count_response_to_polls(poll_queryset, location_name=None, **kwargs):
                     select_related(), date__range=get_month_day_range(datetime.datetime.now())).select_related()
 
                 resp_values = [r.eav.poll_number_value for r in resps]
-<<<<<<< HEAD
                 expected_reports = School.objects.filter(pk__in = EmisReporter.objects.exclude(schools = None).\
                     filter(reporting_location = Location.objects.filter(type="district").get(name=key)).\
                     values_list('schools__pk', flat=True)).count()
-=======
-                expected_reports = schools_once.filter(pk__in=EmisReporter.objects.exclude(schools=None)
-                    .filter(reporting_location=Location.objects.filter(type="district").get(name=key))
-                    .values_list('schools__pk', flat=True)).count()
->>>>>>> bbc486882b293986a301dc746215cd1364a9358e
                 for choice in choices:
                     to_ret[key].append((choice, compute_report_percent(resp_values.count(choice), expected_reports)))
             return to_ret
