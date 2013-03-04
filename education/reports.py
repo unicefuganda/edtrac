@@ -47,7 +47,7 @@ def get_location(request):
 
 
 def attrib_ratios(top_attrib, bottom_attrib, dates, location):
-<<<<<<< HEAD
+
     top_value = XFormSubmissionValue.objects.exclude(submission__has_errors=True)\
     .exclude(submission__connection__contact=None)\
     .filter(created__range=(dates.get('start'), dates.get('end')))\
@@ -60,7 +60,7 @@ def attrib_ratios(top_attrib, bottom_attrib, dates, location):
     .filter(attribute__slug__in=bottom_attrib)\
     .filter(submission__connection__contact__emisreporter__schools__location__in=location.get_descendants(include_self=True).all())\
     .annotate(Sum('value_int')).values_list('value_int__sum', flat=True)
-=======
+
     top_value = XFormSubmissionValue.objects.select_related().exclude(submission__has_errors=True)\
         .exclude(submission__connection__contact=None)\
         .filter(created__range=(dates.get('start'), dates.get('end')))\
@@ -74,7 +74,7 @@ def attrib_ratios(top_attrib, bottom_attrib, dates, location):
         .filter(attribute__slug__in=bottom_attrib)\
         .filter(submission__connection__contact__emisreporter__schools__location__in=location.get_descendants(include_self=True).all())\
         .annotate(Sum('value_int')).values_list('value_int__sum', flat=True)
->>>>>>> bbc486882b293986a301dc746215cd1364a9358e
+
     if sum(bottom_value) > 0:
         return sum(top_value) / sum(bottom_value)
     else:
@@ -89,7 +89,7 @@ class SchoolMixin(object):
         start_date = report.start_date
         if single_week:
             start_date = report.end_date - datetime.timedelta(7)
-<<<<<<< HEAD
+
         return XFormSubmissionValue.objects.exclude(submission__has_errors=True)\
         .exclude(submission__connection__contact=None)\
         .filter(created__range=(start_date, report.end_date))\
@@ -108,7 +108,7 @@ class SchoolMixin(object):
             self.SCHOOL_ID)\
         .annotate(Sum('value_int'))
 
-=======
+
         return XFormSubmissionValue.objects.select_related().exclude(submission__has_errors=True)\
             .exclude(submission__connection__contact=None)\
             .filter(created__range=(start_date, report.end_date))\
@@ -124,7 +124,7 @@ class SchoolMixin(object):
             .filter(submission__connection__contact__emisreporter__schools__location__in=report.location.get_descendants(include_self=True).all())\
             .values(self.SCHOOL_NAME, self.SCHOOL_ID)\
             .annotate(Sum('value_int'))
->>>>>>> bbc486882b293986a301dc746215cd1364a9358e
+
 
     def num_weeks(self, report):
         if report.end_date == report.start_date:

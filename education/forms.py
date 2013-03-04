@@ -45,8 +45,7 @@ class ReporterFreeSearchForm(FilterForm):
         TO DO: add ability to search for multiple search terms separated by 'or'
     """
 
-    search = forms.CharField(max_length=100, required=False, label="Free-form search",
-                             help_text="Use 'or' to search for multiple names")
+    search = forms.CharField(max_length=100, required=False, label="Free-form search",help_text="Use 'or' to search for multiple names")
     
     def filter(self, request, queryset):
         search = self.cleaned_data['search']
