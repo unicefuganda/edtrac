@@ -290,32 +290,21 @@ def capitation_grants(locations):
     # capitation grants
     cg = Poll.objects.get(name="edtrac_upe_grant")
 
-    resp_category = cg.responses_by_category()
-
-    responses = resp_category.filter(response__contact__reporting_location__in = locations)
-    if not responses:
-        yeses_cg = 0
-        nos_cg = 0
-    else:
-        # more validations
-        if responses.filter(category__name = 'yes').exists():
-            yeses_cg = responses.get(category__name = "yes").get('value')
-        else:
-            yeses_cg = 0
-
-        if responses.filter(category__name = 'no').exists():
-            nos_cg = responses.get(category__name = "no").get('value')
-        else:
-            nos_cg = 0
-
+    yes_category = cg.categories.get(name='yes')
+    yeses_cg = cg.responses.filter(contact__reporting_location__in=locations,
+                                   categories__category=yes_category).values_list('contact').distinct().count()
 
     # percent of those that received grants
+    head_teacher_count = EmisReporter.objects.exclude(schools=None, connection__in= \
+        Blacklist.objects.values_list('connection', flat=True)).filter(groups__name='Head Teachers', \
+                                                                       reporting_location__in=locations).count()
     try:
-        grant_percent = 100 * yeses_cg / (yeses_cg + nos_cg)
+        grant_percent = (100 * yeses_cg) / head_teacher_count
     except ZeroDivisionError:
         grant_percent = 0
 
     return {'grant_percent': grant_percent}
+
 
 def violence_changes(locations):
     """
