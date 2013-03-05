@@ -18,7 +18,7 @@ from poll.models import Poll, ResponseCategory
 from script.models import ScriptStep, Script
 from .reports import *
 from .utils import *
-from .utils import _schedule_monthly_script, _schedule_termly_script, _schedule_weekly_scripts
+from .utils import _schedule_monthly_script, _schedule_termly_script, _schedule_weekly_scripts, _schedule_teacher_weekly_scripts
 from urllib2 import urlopen
 from rapidsms.views import login, logout
 import  re, datetime, operator, xlwt, exceptions, copy, reversion
@@ -2481,7 +2481,9 @@ def edit_reporter(request, reporter_pk):
                     pass
                 else:
                     ScriptProgress.objects.exclude(script__slug="edtrac_autoreg").filter(connection=reporter.default_connection).delete()
-                    _schedule_weekly_scripts(reporter.groups.all()[0], reporter.default_connection, ['Teachers', 'Head Teachers', 'SMC'])
+#                    _schedule_weekly_scripts(reporter.groups.all()[0], reporter.default_connection, ['Teachers', 'Head Teachers', 'SMC'])
+                    _schedule_teacher_weekly_scripts(reporter.groups.all()[0], reporter.default_connection, ['Teachers'])
+                    _schedule_weekly_scripts(reporter.groups.all()[0], reporter.default_connection, ['Head Teachers', 'SMC'])
 
 
                     _schedule_monthly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_head_teachers_monthly', 'last', ['Head Teachers'])
@@ -2490,6 +2492,9 @@ def edit_reporter(request, reporter_pk):
 
 
                     _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_smc_termly', ['SMC'])
+                    _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_upe_grant', ['Head Teachers'])
+                    _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_p3_enrollment_headteacher_termly', ['Head Teachers'])
+                    _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_p6_enrollment_headteacher_termly', ['Head Teachers'])
                     _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_head_teachers_termly', ['Head Teachers'])
 
         else:
