@@ -35,6 +35,14 @@ class TestCapitationGrantView(TestCase):
         self.assertAlmostEqual(66.66, results['head_teacher_count'], delta=0.01)
         self.assertEqual(self.root_node, results['location'])
 
+    def test_calculation_of_head_teacher_count_should_ignore_unknowns(self):
+        self.fake_incoming('yes', self.connection1)
+        self.fake_incoming('no', self.connection1)
+        self.fake_incoming('blah', self.connection2)
+        results = self.capitation_grant_view.get_context_data()
+        self.assertAlmostEqual(33.33, results['head_teacher_count'], delta=0.01)
+        self.assertEqual(self.root_node, results['location'])
+
     def test_calculation_of_district_categorization(self):
         self.fake_incoming('yes', self.connection1)
         self.fake_incoming('no', self.connection2)
@@ -44,6 +52,25 @@ class TestCapitationGrantView(TestCase):
         districts = results['sub_locations']
         self.assertIn((self.kampala_district, [(u'yes', 50.00), (u'no', 50.00)]), districts)
         self.assertIn((self.gulu_district, [(u'no', 100.0)]), districts)
+
+    def test_should_exclude_unknowns_other_than_i_dont_know_for_district_categorization(self):
+        self.fake_incoming("yes", self.connection1)
+        self.fake_incoming('blah', self.connection2)
+        self.fake_incoming('no', self.connection3)
+        results = self.capitation_grant_view.get_context_data()
+        self.assertEqual(self.root_node.get_children()[0].type.name, results['sub_location_type'])
+        districts = results['sub_locations']
+        self.assertIn((self.kampala_district, [(u'yes', 100.00)]), districts)
+        self.assertIn((self.gulu_district, [(u'no', 100.0)]), districts)
+
+    def test_i_dont_know_response_percentage_at_uganda_level(self):
+        self.fake_incoming('I doNt kNow', self.connection1)
+        self.fake_incoming('unknown unknown', self.connection2)
+        self.fake_incoming('yes', self.connection3)
+        results = self.capitation_grant_view.get_context_data()
+        national_responses = results['responses']
+        self.assertIn(('unknown', 50.00), national_responses)
+        self.assertIn(('yes', 50.00), national_responses)
 
     def test_calculation_if_user_at_district_logged_in(self):
         user = User.objects.create(username='scrapy', email='scooby@shaggy.com')
@@ -56,18 +83,32 @@ class TestCapitationGrantView(TestCase):
         self.capitation_grant_view.request = request
 
         self.fake_incoming('yes', self.connection1)
-        self.fake_incoming('no', self.connection1)
+        self.fake_incoming('yes', self.connection1)
+        self.fake_incoming('blah', self.connection1)
+        self.fake_incoming('I dont Know', self.connection1)
+        self.fake_incoming('I Dont Know', self.connection1)
+        self.fake_incoming('i doNt Know', self.connection1)
+
+        self.fake_incoming("i Don't Know", self.connection2)
+        self.fake_incoming("i don't KNow", self.connection2)
+        self.fake_incoming('no', self.connection2)
+        self.fake_incoming('no', self.connection2)
+        self.fake_incoming('no', self.connection2)
+
         results = self.capitation_grant_view.get_context_data()
-        self.assertAlmostEqual(50.00, results['head_teacher_count'], delta=0.01)
+        self.assertAlmostEqual(100.00, results['head_teacher_count'], delta=0.01)
         self.assertEqual(self.kampala_district, results['location'])
         responses = results['responses']
-        self.assertIn((u'yes', 50.00), responses)
-        self.assertIn((u'no', 50.00), responses)
+        self.assertIn((u'yes', 20.00), responses)
+        self.assertIn((u'no', 30.00), responses)
+        self.assertIn((u'unknown', 50.00), responses)
 
         self.assertEqual('school', results['sub_location_type'])
-        sub_locations = results['sub_locations']
-        self.assertIn((self.kampala_school, [(u'yes', 50.00), (u'no', 50.00)]), sub_locations)
-        self.assertIn((self.kampala_school2, []), sub_locations)
+        sub_locations = dict(results['sub_locations'])
+        self.assertIn((u'unknown', 60.00) , sub_locations[self.kampala_school])
+        self.assertIn((u'yes', 40.00), sub_locations[self.kampala_school])
+        self.assertIn((u'no', 60.00), sub_locations[self.kampala_school2])
+        self.assertIn((u'unknown', 40.00), sub_locations[self.kampala_school2])
 
     def tearDown(self):
         School.objects.all().delete()

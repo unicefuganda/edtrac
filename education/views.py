@@ -7,6 +7,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import user_passes_test
 from django.utils.decorators import method_decorator
 from django.views.generic import DetailView, TemplateView, ListView
+from django.db.models import Q
 from .forms import *
 from .models import *
 
@@ -1201,10 +1202,10 @@ class CapitationGrants(TemplateView):
                 stat['response__contact__emisreporter__schools__name'] == school.name]
         return school, self.extract_info(info).items()
 
-    def _get_schools_info(self, poll, location):
-        responses_by_category = ResponseCategory.objects.filter(response__poll=poll,
-                                                                response__contact__reporting_location=location).values(
-            'response__contact__emisreporter__schools__name','category__name').annotate(value=Count('pk'))
+    def _get_schools_info(self, responses_at_location,location):
+        responses_by_category = responses_at_location.values(
+            'response__contact__emisreporter__schools__name',
+            'category__name').annotate(value=Count('pk')).order_by('-category__name')
         schools = location.schools.all()
 
         return [self._get_per_category_responses_for_school(responses_by_category, school) for school in schools]
@@ -1225,30 +1226,27 @@ class CapitationGrants(TemplateView):
 
         context['authorized_user'] = authorized_user
         er = EmisReporter.objects.select_related()
+        unknown_unknowns =cg.responses.filter(~Q(message__text__iregex = "i don('?)t know"),
+                                              categories__category__name ="unknown")
         if authorized_user:
 
             head_teacher_count = er.filter(groups__name="Head Teachers").exclude(schools=None).count()
-            responses = cg.responses_by_category(location=Location.tree.root_nodes()[0])
-            all_responses = cg.responses_by_category()
-            location_ids = Location.objects.filter(
-                type="district", pk__in =\
-                er.exclude(connection__in=Blacklist.objects.\
-                values_list('connection', flat=True), schools=None).filter(groups__name="Head Teachers").\
-                values_list('reporting_location__pk',flat=True)).values_list('id',flat=True)
 
-            locs = Location.objects.filter(id__in=location_ids)
+            all_responses = cg.responses_by_category().exclude(response__in = unknown_unknowns)
+
+            locs = Location.objects.filter(
+                type="district", pk__in = \
+                    er.exclude(connection__in=Blacklist.objects. \
+                        values_list('connection', flat=True), schools=None).filter(groups__name="Head Teachers"). \
+                        values_list('reporting_location__pk',flat=True))
 
             districts_to_ret = []
             for location in locs:
-                other_responses = [stat for stat in responses if stat['location_name'] == location.name]
-
-                info = self.extract_info(other_responses)
+                info = self.extract_info(all_responses.filter(response__contact__reporting_location=location))
 
                 districts_to_ret.append((location, info.items()))
 
-            context['capitation_location_data'] = responses
-
-            total_responses = cg.responses.values_list('contact').distinct().count()
+            total_responses = all_responses.values_list('response__contact').distinct().count()
             context['responses'] = self.extract_info(all_responses).items()
             context['head_teacher_count'] = self.compute_percent(total_responses, head_teacher_count)
             context['location'] = Location.tree.root_nodes()[0]
@@ -1259,10 +1257,9 @@ class CapitationGrants(TemplateView):
         else:
 
             location = self.request.user.get_profile().location
-            all_responses = cg.responses_by_category(location=Location.tree.root_nodes()[0])
-            responses_at_location = [stat for stat in all_responses if stat['location_name'] == location.name]
-            total_responses = cg.responses.filter(contact__reporting_location=location).values_list(
-                'contact').distinct().count()
+            all_responses = cg.responses_by_category().exclude(response__in=unknown_unknowns)
+            responses_at_location = all_responses.filter(response__contact__reporting_location = location)
+            total_responses = responses_at_location.values_list('response__contact').distinct().count()
 
             htc = er.exclude(schools=None, connection__in= \
                 Blacklist.objects.values_list('connection', flat=True)).filter(groups__name='Head Teachers', \
@@ -1271,7 +1268,7 @@ class CapitationGrants(TemplateView):
             context['responses'] = self.extract_info(responses_at_location).items()
             context['head_teacher_count'] = self.compute_percent(total_responses, htc)
             context['location'] = location
-            context['sub_locations'] = self._get_schools_info(cg, location)
+            context['sub_locations'] = self._get_schools_info(responses_at_location,location)
             context['sub_location_type'] = "school"
             return context
 
