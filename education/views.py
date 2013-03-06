@@ -1168,18 +1168,16 @@ class NationalStatistics(TemplateView):
 
 
 class CapitationGrants(TemplateView):
-    template_name = 'education/admin/capitation_grants.html'
-    #TODO include SMC replies to question on whether grant chat is displayed publicly in schools visited
+    poll_name =''
+    restrict_group=''
 
-
-    # handy function for % computation
     def compute_percent(self, x, y):
         try:
             return (100 * x) / y
         except ZeroDivisionError:
             return 0
 
-    def extract_info(self, list):
+    def _extract_info(self, list):
         to_ret = []
         for item in list:
             to_ret.append(
@@ -1190,7 +1188,6 @@ class CapitationGrants(TemplateView):
             final_ret[li[0]] = li[1]
 
         total = sum(filter(None, final_ret.values()))
-        # recompute and return as percentages
 
         for key in final_ret.keys():
             final_ret[key] = self.compute_percent(final_ret.get(key), total)
@@ -1200,77 +1197,71 @@ class CapitationGrants(TemplateView):
     def _get_per_category_responses_for_school(self, responses_by_category, school):
         info = [stat for stat in responses_by_category if
                 stat['response__contact__emisreporter__schools__name'] == school.name]
-        return school, self.extract_info(info).items()
+        return school, self._extract_info(info).items()
 
     def _get_schools_info(self, responses_at_location,location):
         responses_by_category = responses_at_location.values(
             'response__contact__emisreporter__schools__name',
-            'category__name').annotate(value=Count('pk')).order_by('-category__name')
+            'category__name').annotate(value=Count('pk'))
         schools = location.schools.all()
 
         return [self._get_per_category_responses_for_school(responses_by_category, school) for school in schools]
 
     def get_context_data(self, **kwargs):
         context = super(CapitationGrants, self).get_context_data(**kwargs)
-        cg = Poll.objects.select_related().get(name="edtrac_upe_grant")
-
-        # correspond with group names
+        cg = Poll.objects.select_related().get(name=self.poll_name)
         authorized_users = ['Admins', 'Ministry Officials', 'UNICEF Officials']
-
         authorized_user = False
-
         for auth_user in authorized_users:
             if self.request.user.get_profile().is_member_of(auth_user):
                 authorized_user = True
                 break
-
         context['authorized_user'] = authorized_user
         er = EmisReporter.objects.select_related()
-        unknown_unknowns =cg.responses.filter(~Q(message__text__iregex = "i don('?)t know"),
-                                              categories__category__name ="unknown")
+        unknown_unknowns = cg.responses.filter(~Q(message__text__iregex="i don('?)t know"),
+                                               categories__category__name="unknown")
         if authorized_user:
 
-            head_teacher_count = er.filter(groups__name="Head Teachers").exclude(schools=None).count()
+            reporter_count = er.filter(groups__name=self.restrict_group).exclude(schools=None).count()
 
-            all_responses = cg.responses_by_category().exclude(response__in = unknown_unknowns)
+            all_responses = cg.responses_by_category().exclude(response__in=unknown_unknowns)
 
             locs = Location.objects.filter(
-                type="district", pk__in = \
+                type="district", pk__in= \
                     er.exclude(connection__in=Blacklist.objects. \
-                        values_list('connection', flat=True), schools=None).filter(groups__name="Head Teachers"). \
-                        values_list('reporting_location__pk',flat=True))
+                        values_list('connection', flat=True), schools=None).filter(groups__name=self.restrict_group). \
+                        values_list('reporting_location__pk', flat=True))
 
             districts_to_ret = []
             for location in locs:
-                info = self.extract_info(all_responses.filter(response__contact__reporting_location=location))
+                info = self._extract_info(all_responses.filter(response__contact__reporting_location=location))
 
                 districts_to_ret.append((location, info.items()))
 
             total_responses = all_responses.values_list('response__contact').distinct().count()
-            context['responses'] = self.extract_info(all_responses).items()
-            context['head_teacher_count'] = self.compute_percent(total_responses, head_teacher_count)
+            context['responses'] = self._extract_info(all_responses).items()
             context['location'] = Location.tree.root_nodes()[0]
             context['sub_locations'] = districts_to_ret
             context['sub_location_type'] = "district"
-            return context
-
         else:
 
             location = self.request.user.get_profile().location
             all_responses = cg.responses_by_category().exclude(response__in=unknown_unknowns)
-            responses_at_location = all_responses.filter(response__contact__reporting_location = location)
+            responses_at_location = all_responses.filter(response__contact__reporting_location=location)
             total_responses = responses_at_location.values_list('response__contact').distinct().count()
 
-            htc = er.exclude(schools=None, connection__in= \
-                Blacklist.objects.values_list('connection', flat=True)).filter(groups__name='Head Teachers', \
+            reporter_count = er.exclude(schools=None, connection__in= \
+                Blacklist.objects.values_list('connection', flat=True)).filter(groups__name=self.restrict_group, \
                                                                                reporting_location=location).count()
 
-            context['responses'] = self.extract_info(responses_at_location).items()
-            context['head_teacher_count'] = self.compute_percent(total_responses, htc)
+            context['responses'] = self._extract_info(responses_at_location).items()
             context['location'] = location
-            context['sub_locations'] = self._get_schools_info(responses_at_location,location)
+            context['sub_locations'] = self._get_schools_info(responses_at_location, location)
             context['sub_location_type'] = "school"
-            return context
+
+        context['reporter_count'] = self.compute_percent(total_responses, reporter_count)
+        context['group'] = self.restrict_group
+        return context
 
 
 # Details views... specified by ROLES

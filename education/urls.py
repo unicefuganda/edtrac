@@ -253,7 +253,12 @@ urlpatterns = patterns('',
 
     #National statistics
     url(r'^edtrac/national-stats/$', NationalStatistics.as_view(), name="emis-national-stats"),
-    url(r'^edtrac/capitation-grants/$', CapitationGrants.as_view(), name = "emis-grants"),
+    url(r'^edtrac/capitation-grants/$',
+        CapitationGrants.as_view(template_name='education/admin/capitation_grants.html', poll_name='edtrac_upe_grant',
+                                 restrict_group='Head Teachers'), name="emis-grants"),
+    url(r'^edtrac/smc-capitation-grants/$',
+        CapitationGrants.as_view(template_name='education/admin/smc_capitation_grants.html',
+                                 poll_name='edtrac_smc_upe_grant', restrict_group='SMC'), name="emis-smc-grants"),
     #PROGRESS views
     url('^edtrac/progress/district/(?P<pk>\d+)/$', DistrictProgressDetails.as_view(template_name=\
     "education/dashboard/district_progress_detail.html"), name="district-progress"),
