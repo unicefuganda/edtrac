@@ -32,7 +32,7 @@ import operator
 GRADES = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7']
 polls = Poll.objects.all()
 locations = Location.objects.all()
-schools = School.objects.all()
+all_schools = School.objects.all()
 
 
 def get_location_for_user(user):
@@ -49,26 +49,13 @@ def get_location(request):
 def attrib_ratios(top_attrib, bottom_attrib, dates, location):
 
     top_value = XFormSubmissionValue.objects.exclude(submission__has_errors=True)\
-    .exclude(submission__connection__contact=None)\
-    .filter(created__range=(dates.get('start'), dates.get('end')))\
-    .filter(attribute__slug__in=top_attrib)\
-    .filter(submission__connection__contact__emisreporter__schools__location__in=location.get_descendants(include_self=True).all())\
-    .annotate(Sum('value_int')).values_list('value_int__sum', flat=True)
-    bottom_value = XFormSubmissionValue.objects.exclude(submission__has_errors=True)\
-    .exclude(submission__connection__contact=None)\
-    .filter(created__range=(dates.get('start'), dates.get('end')))\
-    .filter(attribute__slug__in=bottom_attrib)\
-    .filter(submission__connection__contact__emisreporter__schools__location__in=location.get_descendants(include_self=True).all())\
-    .annotate(Sum('value_int')).values_list('value_int__sum', flat=True)
-
-    top_value = XFormSubmissionValue.objects.select_related().exclude(submission__has_errors=True)\
         .exclude(submission__connection__contact=None)\
         .filter(created__range=(dates.get('start'), dates.get('end')))\
         .filter(attribute__slug__in=top_attrib)\
         .filter(submission__connection__contact__emisreporter__schools__location__in=location.get_descendants(include_self=True).all())\
         .annotate(Sum('value_int')).values_list('value_int__sum', flat=True)
 
-    bottom_value = XFormSubmissionValue.objects.select_related().exclude(submission__has_errors=True)\
+    bottom_value = XFormSubmissionValue.objects.exclude(submission__has_errors=True)\
         .exclude(submission__connection__contact=None)\
         .filter(created__range=(dates.get('start'), dates.get('end')))\
         .filter(attribute__slug__in=bottom_attrib)\
@@ -107,23 +94,6 @@ class SchoolMixin(object):
         .values(self.SCHOOL_NAME,
             self.SCHOOL_ID)\
         .annotate(Sum('value_int'))
-
-
-        return XFormSubmissionValue.objects.select_related().exclude(submission__has_errors=True)\
-            .exclude(submission__connection__contact=None)\
-            .filter(created__range=(start_date, report.end_date))\
-            .filter(attribute__slug__in=keyword)\
-            .filter(submission__connection__contact__emisreporter__schools__location__in=report.location.get_descendants(include_self=True).all())\
-            .values(self.SCHOOL_NAME, self.SCHOOL_ID)\
-            .annotate(Sum('value_int'))
-
-    def total_dateless_attribute_by_school(self, report, keyword):
-        return XFormSubmissionValue.objects.select_related().exclude(submission__has_errors=True)\
-            .exclude(submission__connection__contact=None)\
-            .filter(attribute__slug__in=keyword)\
-            .filter(submission__connection__contact__emisreporter__schools__location__in=report.location.get_descendants(include_self=True).all())\
-            .values(self.SCHOOL_NAME, self.SCHOOL_ID)\
-            .annotate(Sum('value_int'))
 
 
     def num_weeks(self, report):
@@ -486,7 +456,7 @@ def raw_data(request, district_id, dates, slugs, teachers=False):
     """
     #    from .reports import get_location
     user_location = get_location(request, district_id)
-    schools = schools.filter(location__in=user_location.get_descendants(include_self=True).all())
+    schools = all_schools.filter(location__in=user_location.get_descendants(include_self=True).all())
     schools = list(schools)
     values = XFormSubmissionValue.objects.select_related()\
         .exclude(submission__has_errors=True)\
@@ -886,9 +856,8 @@ def poll_response_sum(poll_name, **kwargs):
             if (kwargs['month_filter'] not in ['biweekly', 'weekly', 'monthly', 'termly']) and ('location' not in kwargs):
                 # when no location is provided { worst case scenario }
                 to_ret = {}
-                _locations = Location.objects.select_related()\
-                    .filter(type='district',
-                            name__in=EmisReporter.objects.select_related().values_list('reporting_location', flat=True)).distinct()
+                _locations = Location.objects.filter(type='district',\
+                            name__in=EmisReporter.objects.values_list('reporting_location', flat=True)).distinct()
                 _locations = list(_locations)
                 for location in _locations:
                     to_ret[location.__unicode__()] = get_numeric_report_data(poll_name,
@@ -1279,10 +1248,10 @@ def generate_deo_report(location_name=None):
             return  # quit
     location_filter = Location.objects.filter(name=location_name).distinct()
 
-    boys_p3_enrollment = Poll.objects.get(name="edtrac_p3_enrollment").responses.filter(contact__reporting_location__in=
+    boys_p3_enrollment = Poll.objects.get(name="edtrac_boysp3_enrollment").responses.filter(contact__reporting_location__in=
                                                                                         location_filter)
 
-    boys_p6_enrollment = Poll.objects.get(name="edtrac_p6_enrollment").responses.filter(contact__reporting_location__in=
+    boys_p6_enrollment = Poll.objects.get(name="edtrac_boysp6_enrollment").responses.filter(contact__reporting_location__in=
                                                                                         location_filter)
 
     girls_p3_enrollment = Poll.objects.get(name="edtrac_girlsp3_enrollment").responses.filter(contact__reporting_location__in=
@@ -1342,7 +1311,7 @@ def get_count_response_to_polls(poll_queryset, location_name=None, **kwargs):
         if location_name:
             catchment_area_pk = [Location.objects.filter(type='district').get(name=location_name).pk]  # as list
         else:
-            catchment_area_pk = Location.objects.select_related().filter(type="district", name__in=
+            catchment_area_pk = Location.objects.filter(type="district", name__in=
                 EmisReporter.objects.exclude(reporting_location=None).values_list('reporting_location__name',
                     flat=True).distinct()).values_list('pk', flat=True)
 
@@ -1359,10 +1328,10 @@ def get_count_response_to_polls(poll_queryset, location_name=None, **kwargs):
             for month_range in month_ranges:
                 temp = []
                 location = Location.objects.filter(type="district").get(name=to_ret.keys()[0])
-                expected_reports = schools.filter(pk__in = EmisReporter.objects.select_related().exclude(schools = None).\
+                expected_reports = all_schools.filter(pk__in = EmisReporter.objects.select_related().exclude(schools = None).\
                     filter(reporting_location = location).values_list('schools__pk', flat=True)).count()
                 resps = poll_queryset.responses.filter(contact__in=\
-                            Contact.objects.filter(reporting_location= location).select_related(),
+                            Contact.objects.filter(reporting_location= location),
                             date__range = month_range).select_related()
 
                 resp_values = [r.eav.poll_number_value for r in resps]
@@ -1377,8 +1346,8 @@ def get_count_response_to_polls(poll_queryset, location_name=None, **kwargs):
         elif ('termly' in kwargs) and ('with_percent' in kwargs) and (kwargs.get('admin') is False):
             temp = []
             termly_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
-            expected_reports = schools.filter(pk__in = EmisReporter.objects.select_related().exclude(schools = None).\
-                filter(reporting_location = location).values_list('schools__pk', flat=True)).select_related().count()
+            expected_reports = all_schools.filter(pk__in = EmisReporter.objects.select_related().exclude(schools = None).\
+                filter(reporting_location = location).values_list('schools__pk', flat=True)).count()
             responses = poll_queryset.responses.filter(contact__in =\
                 Contact.objects.filter(reporting_location = location), date__range = termly_range)
             all_vals =  [r.eav.poll_number_value for r in responses]
@@ -1406,7 +1375,7 @@ def get_count_response_to_polls(poll_queryset, location_name=None, **kwargs):
 
         elif kwargs.get('termly') and kwargs.get('with_percent') and kwargs.get('admin'):
             termly_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
-            expected_reports = schools.filter(pk__in = EmisReporter.objects.exclude(schools = None).\
+            expected_reports = all_schools.filter(pk__in = EmisReporter.objects.exclude(schools = None).\
                 values_list('schools__pk', flat=True)).select_related().count()
             responses = poll_queryset.responses.filter(date__range = termly_range).select_related()
             all_vals = [r.eav.poll_number_value for r in responses]
@@ -1498,7 +1467,7 @@ def return_absent(poll_name, enrollment, locations=None, school=None, **kwargs):
     """
     to_ret = []
     if locations:
-        enrollment_poll = Poll.objects.select_related().get(name=enrollment)
+        enrollment_poll = Poll.objects.get(name=enrollment)
 
         for loc in locations:
             pre_ret = []
@@ -1507,7 +1476,7 @@ def return_absent(poll_name, enrollment, locations=None, school=None, **kwargs):
             enrollment_schools_pks = enrollment_poll.responses\
                 .filter(contact__reporting_location__name=loc.name).values_list('contact__emisreporter__schools__pk', flat=True)
             school_filter = {}
-            _schools = schools.filter(pk__in=enrollment_schools_pks).select_related()
+            _schools = all_schools.filter(pk__in=enrollment_schools_pks)
             for school in _schools:
                 week_now_temp, week_before_temp = poll_responses_past_week_sum(enrollment_poll.name,
                     weeks=2, school=school, to_ret='sum')
