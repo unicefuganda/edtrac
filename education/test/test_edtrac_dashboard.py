@@ -92,13 +92,13 @@ class TestEdtracDashboard(TestCase):
         self.fake_incoming("yes", self.connection1)
         self.fake_incoming("no", self.connection2)
         grants = capitation_grants(self.root_node.get_children())
-        self.assertAlmostEqual(33.33 , grants['grant_percent'],delta=0.01)
+        self.assertAlmostEqual(33.33 , grants['grant_percent'],places=1)
 
     def test_yes_percentage_at_district_level(self):
         self.fake_incoming("yes", self.connection1)
         self.fake_incoming("yes", self.connection3)
         grants = capitation_grants([self.kampala_district])
-        self.assertAlmostEqual(50.0 , grants['grant_percent'],delta=0.01)
+        self.assertAlmostEqual(50.0 , grants['grant_percent'],places=1)
 
 
 

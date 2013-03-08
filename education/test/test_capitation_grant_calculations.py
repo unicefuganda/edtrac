@@ -80,8 +80,8 @@ class TestCapitationGrantView(TestCase):
         result = self.smc_capitation_grant_view.get_context_data()
         self.assertTrue(result.get('authorized_user'))
         result_dict = dict(result.get('responses'))
-        self.assertAlmostEqual(33.33 , result_dict['yes'],delta=0.01)
-        self.assertAlmostEqual(66.66 , result_dict['no'],delta=0.01)
+        self.assertAlmostEqual(33.33 , result_dict['yes'],places=1)
+        self.assertAlmostEqual(66.66 , result_dict['no'],places=1)
 
     def test_should_consider_only_i_dont_know_responses_as_unknown(self):
         self.fake_incoming('i Dont know',self.emis_reporter1)
@@ -107,8 +107,8 @@ class TestCapitationGrantView(TestCase):
         self.fake_incoming('no',self.emis_reporter2)
         self.fake_incoming('yes',self.emis_reporter3)
         result = self.smc_capitation_grant_view.get_context_data()
-        self.assertIn((self.kampala_district,[('yes',50.00),('no',50.00)]),result.get('sub_locations'))
-        self.assertIn((self.gulu_district,[('yes',100.00)]),result.get('sub_locations'))
+        self.assertTrue((self.kampala_district,[('yes',50.00),('no',50.00)]) in result.get('sub_locations'))
+        self.assertTrue((self.gulu_district,[('yes',100.00)]) in result.get('sub_locations'))
 
     def test_should_check_sub_location_type(self):
         result = self.smc_capitation_grant_view.get_context_data()
@@ -128,14 +128,14 @@ class TestCapitationGrantView(TestCase):
         self.fake_incoming('i dont know',self.emis_reporter2)
         self.fake_incoming('yes',self.emis_reporter4)
         result = self.smc_capitation_grant_view_district.get_context_data()
-        self.assertIn(('yes', 50.00), result.get('responses'))
-        self.assertIn(('unknown', 50.00), result.get('responses'))
+        self.assertTrue(('yes', 50.00) in result.get('responses'))
+        self.assertTrue(('unknown', 50.00) in  result.get('responses'))
 
     def test_should_check_smc_count_at_district_level(self):
         self.fake_incoming('yes',self.emis_reporter1)
         self.fake_incoming('blah',self.emis_reporter2)
         result = self.smc_capitation_grant_view_district.get_context_data()
-        self.assertAlmostEqual(33.33,result.get('reporter_count'),delta=0.01)
+        self.assertAlmostEqual(33.33,result.get('reporter_count'),places=1)
 
     def test_should_check_location_of_user_at_district_level(self):
         result = self.smc_capitation_grant_view_district.get_context_data()
@@ -146,8 +146,8 @@ class TestCapitationGrantView(TestCase):
         self.fake_incoming('no',self.emis_reporter2)
         self.fake_incoming('no',self.emis_reporter4)
         result = self.smc_capitation_grant_view_district.get_context_data()
-        self.assertIn((self.kampala_school,[('yes',50.0),('no',50.0)]),result['sub_locations'])
-        self.assertIn((self.kampala_school2,[('no',100.0)]),result['sub_locations'])
+        self.assertTrue((self.kampala_school,[('yes',50.0),('no',50.0)])in result['sub_locations'])
+        self.assertTrue((self.kampala_school2,[('no',100.0)]) in result['sub_locations'])
 
     def test_should_check_type_of_sub_locations_at_distrcit_level(self):
         result = self.smc_capitation_grant_view_district.get_context_data()
