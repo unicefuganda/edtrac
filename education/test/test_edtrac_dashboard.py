@@ -15,47 +15,18 @@ class TestEdtracDashboard(TestCase):
         user = User.objects.create(username="John", password="john")
         country = LocationType.objects.create(name='country', slug='country')
         district = LocationType.objects.create(name='district', slug='district')
-        uganda_fields = {
-            "rght": 15274,
-            "name": "Uganda",
-            "level": 0,
-            "tree_id": 1,
-            "lft": 1,
-            "type": country
-        }
+        uganda_fields = dict(rght=15274, name="Uganda", level=0, tree_id=1, lft=1, type=country)
         self.root_node = Location.objects.create(**uganda_fields)
 
-        kampala_point_fields = {
-            "latitude": "0.3162800000",
-            "longitude": "32.5821900000"
-        }
+        kampala_point_fields = dict(latitude="0.3162800000", longitude="32.5821900000")
         kampala_point = Point.objects.create(**kampala_point_fields)
-        kampala_fields = {
-            "rght": 10901,
-            "tree_parent": self.root_node,
-            "name": "Kampala",
-            "point": kampala_point,
-            "level": 1,
-            "tree_id": 1,
-            "lft": 10686,
-            "type": district
-        }
+        kampala_fields = dict(rght=10901, tree_parent=self.root_node, name="Kampala", point=kampala_point, level=1,
+                              tree_id=1, lft=10686, type=district)
         self.kampala_district = Location.objects.create(**kampala_fields)
-        gulu_point_fields = {
-            "latitude": "2.7666700000",
-            "longitude": "32.3055600000"
-        }
+        gulu_point_fields = dict(latitude="2.7666700000", longitude="32.3055600000")
         gulu_point = Point.objects.create(**gulu_point_fields)
-        gulu_fields = {
-            "rght": 9063,
-            "tree_parent": self.root_node,
-            "name": "Gulu",
-            "point": gulu_point,
-            "level": 1,
-            "tree_id": 1,
-            "lft": 8888,
-            "type": district
-        }
+        gulu_fields = dict(rght=9063, tree_parent=self.root_node, name="Gulu", point=gulu_point, level=1, tree_id=1,
+                           lft=8888, type=district)
         self.gulu_district = Location.objects.create(**gulu_fields)
 
         school = School.objects.create(name="Don Bosco School", location=self.root_node)
@@ -92,14 +63,13 @@ class TestEdtracDashboard(TestCase):
         self.fake_incoming("yes", self.connection1)
         self.fake_incoming("no", self.connection2)
         grants = capitation_grants(self.root_node.get_children())
-        self.assertAlmostEqual(33.33 , grants['grant_percent'],places=1)
+        self.assertAlmostEqual(33.33, grants['grant_percent'], places=1)
 
     def test_yes_percentage_at_district_level(self):
         self.fake_incoming("yes", self.connection1)
         self.fake_incoming("yes", self.connection3)
         grants = capitation_grants([self.kampala_district])
-        self.assertAlmostEqual(50.0 , grants['grant_percent'],places=1)
-
+        self.assertAlmostEqual(50.0, grants['grant_percent'], places=1)
 
 
     def fake_incoming(self, message, connection):
