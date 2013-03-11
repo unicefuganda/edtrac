@@ -632,14 +632,14 @@ def head_teachers_female(locations):
     if (female_d1_yes + female_d1_no) > 0:
         female_d1 = female_d1_no * 100 / sum([female_d1_no, female_d1_yes]) # messing with ya! :D
     else:
-        female_d1 = 100
+        female_d1 = 100.0
 
     female_d2_yes = yes_fht_d2.count()
     female_d2_no = no_fht_d2.count()
     if (female_d2_yes + female_d2_no) > 0:
         female_d2 = female_d2_no * 100 / sum([female_d2_no, female_d2_yes]) # messing with ya! :D
     else:
-        female_d2 = 100
+        female_d2 = 100.0
 
     if isinstance(female_d2, float) and female_d2 >= 0 and female_d1 >= 0 and isinstance(female_d1, float):
 
@@ -693,14 +693,14 @@ def head_teachers_male(locations):
     if (male_d1_yes + male_d1_no) > 0:
         male_d1 = male_d1_no * 100 / sum([male_d1_no, male_d1_yes]) # messing with ya! :D
     else:
-        male_d1 = 100 # absent
+        male_d1 = 100.0 # absent
 
     male_d2_yes = yes_mht_d2.count()
     male_d2_no = no_mht_d2.count()
     if (male_d2_yes + male_d2_no) > 0:
         male_d2 = float(male_d2_no * 100 / sum([male_d2_no, male_d2_yes])) # messing with ya! :D
     else:
-        male_d2 = 100 # absent
+        male_d2 = 100.0 # absent
 
     if isinstance(male_d2, float) and male_d2 >= 0 and male_d1 >= 0 and isinstance(male_d1, float):
 
