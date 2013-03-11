@@ -9,8 +9,8 @@ from generic.sorters import SimpleSorter
 import re
 from poll.models import Poll, LocationResponseForm, STARTSWITH_PATTERN_TEMPLATE
 from eav.models import Attribute
-from .urls import urlpatterns
-
+# from .urls import urlpatterns
+urlpatterns = []
 
 def parse_district_value(value):
     location_template = STARTSWITH_PATTERN_TEMPLATE % '[a-zA-Z]*'
