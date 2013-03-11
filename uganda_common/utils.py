@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import logging
 from django.conf import settings
 from django.contrib.auth.models import Group
@@ -25,34 +24,26 @@ from django.db.models import Q
 from poll.models import Response
 import xlwt
 import zipfile
-from openpyxl.workbook import Workbook
-from openpyxl.writer.excel import ExcelWriter
-from openpyxl.cell import get_column_letter
-import openpyxl
-from django.utils.functional import Promise
 import math
-import tempfile
-import types
-from openpyxl.shared.compat import NamedTemporaryFile, xrange
-import unicodedata
-from django.core.servers.basehttp import FileWrapper
 
 logger = logging.getLogger(__name__)
+
+
 def get_location_for_user(user):
     """
     if called with an argument, *user*, the location of a user returned (by district)
     """
     if user:
         try:
-            l =  Location.objects.get(name__iexact=user.username, type__name='district')
-            logger.info("Location: %s"%l.name)
+            l = Location.objects.get(name__iexact=user.username, type__name='district')
+            logger.info("Location: %s" % l.name)
             return l
         except Location.DoesNotExist:
             try:
                 if Contact.objects.filter(user=user).exclude(reporting_location=None).exists():
                     return Contact.objects.filter(user=user).exclude(reporting_location=None)[0].reporting_location
             except Exception, e:
-                logger.error("Error: %s"%str(e))
+                logger.error("Error: %s" % str(e))
 
     return Location.tree.root_nodes()[0]
 
@@ -83,12 +74,14 @@ def previous_calendar_quarter():
     start_date = end_date - datetime.timedelta(days=90)
     return (start_date, end_date)
 
+
 TIME_RANGES = {
     'w': previous_calendar_week,
     'm': previous_calendar_month,
     'q': previous_calendar_quarter
 
 }
+
 
 def assign_backend(number):
     """
@@ -111,51 +104,63 @@ def assign_backend(number):
     return (number, backendobj)
 
 
-def normalize_value(value):
-    
-    if isinstance(value, tuple(openpyxl.shared.NUMERIC_TYPES)):
-        return value
-    elif isinstance(value, (bool, datetime.date)):
-        return value
-    elif isinstance(value,types.NoneType):
-        return ""
-    elif isinstance(value,types.StringType):
-        #print "str"+value
-        return value
-    elif isinstance(value,types.ListType):
-        return ", ".join(value)
+def create_workbook(data, encoding):
+    ##formatting of the cells
+    # Grey background for the header row
+    BkgPat = xlwt.Pattern()
+    BkgPat.pattern = xlwt.Pattern.SOLID_PATTERN
+    BkgPat.pattern_fore_colour = 22
 
-    elif isinstance(value, unicode):
-        #print "unicode"
-        #print unicodedata.normalize('NFKD', unicode(value)).encode('ascii', 'ignore')
-        #openpyxl  hates unicode asciify
-        return repr(value)[2:-1]
+    # Bold Fonts for the header row
+    font = xlwt.Font()
+    font.name = 'Calibri'
+    font.bold = True
 
-    else:
-        print value
-        return repr(value)
+    # Non-Bold fonts for the body
+    font0 = xlwt.Font()
+    font0.name = 'Calibri'
+    font0.bold = False
 
-def create_workbook(data,filename,headers):
-    
-    wb = Workbook(optimized_write = True)
-    ws = wb.create_sheet()
-    if headers:
-        ws.append(headers)
+    # style and write field labels
+    style = xlwt.XFStyle()
+    style.font = font
+    style.pattern = BkgPat
+
+    style0 = xlwt.XFStyle()
+    style0.font = font0
+    book = xlwt.Workbook(encoding=encoding)
+    sheet = book.add_sheet('Sheet 1')
+    styles = {'datetime': xlwt.easyxf(num_format_str='yyyy-mm-dd hh:mm:ss'),
+              'date': xlwt.easyxf(num_format_str='yyyy-mm-dd'),
+              'time': xlwt.easyxf(num_format_str='hh:mm:ss'),
+              'default': style0,
+              'header': style}
+    length = 0
+    books = []
 
     for rowx, row in enumerate(data):
-        ws.append(map(normalize_value,list(row)))
-            
-        #import pdb;pdb.set_trace()
-      
+        length = rowx
+        if length % 65500 == 0:
+            yield book
+            create_workbook(data, encoding)
+        for colx, value in enumerate(row):
+            if isinstance(value, datetime.datetime):
+                cell_style = styles['datetime']
+            elif isinstance(value, datetime.date):
+                cell_style = styles['date']
+            elif isinstance(value, datetime.time):
+                cell_style = styles['time']
+            elif rowx == 0:
+                cell_style = styles['header']
+            else:
+                cell_style = styles['default']
 
+            try:
+                sheet.write(rowx, colx, value, style=cell_style)
+            except:
+                sheet.write(rowx, colx, str(value), style=styles['default'])
+    yield book
 
-        #for colx, value in enumerate(row):
-         #   column_letter = get_column_letter((colx + 1))
-          #  ws.cell('%s%s'%(column_letter, (rowx+ 1))).value = value
-    #ws.auto_filter = ws.calculate_dimension()
-    wb.save(filename)
-    return True
-    
 
 class ExcelResponse(HttpResponse):
     """
@@ -163,7 +168,9 @@ class ExcelResponse(HttpResponse):
     from a form.
     """
 
-    def __init__(self, data, output_name='excel_report.xlsx', headers=None,header=None, write_to_file=False, force_csv=False):
+    def __init__(self, data, output_name='excel_report.xls', headers=None, header=None, write_to_file=False,
+                 force_csv=False,
+                 encoding='utf8'):
         # Make sure we've got the right type of data to work with
         valid_data = False
         if hasattr(data, '__getitem__'):
@@ -177,27 +184,40 @@ class ExcelResponse(HttpResponse):
         import StringIO
 
         output = StringIO.StringIO()
+        MAX_SHEET_LENGTH = 65500
+        # Excel has a limit on number of rows; if we have more than that, make a csv
+        use_xls = False
         mimetype = 'application/vnd.ms-excel'
+        if len(output_name.rsplit('.')) > 1:
+            file_ext = output_name.rsplit('.')[1]
+        else:
+            file_ext = "xls"
 
-
-
-        book_created = create_workbook(data,output_name,headers,)
-       
-        
-            #book.save(output_name)
-        #output.seek(0)
-        if not write_to_file:
-            super(ExcelResponse, self).__init__(FileWrapper(open(output_name)),content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        if file_ext != "zip":
+            book = create_workbook(data, encoding).next()
+            if write_to_file:
+                book.save(output_name)
+            book.save(output)
+            output.seek(0)
+            super(ExcelResponse, self).__init__(content=output.getvalue(),
+                                                mimetype=mimetype)
             self['Content-Disposition'] = 'attachment;filename="%s.%s"' % \
-                                      (output_name.replace('"', '\"'), "xlsx")
+                                          (output_name.replace('"', '\"'), "xls")
 
+        else:
+            #zip em all
+            from django.core.servers.basehttp import FileWrapper
 
+            zipped_file = zipfile.ZipFile(output_name, "w")
+            file_name = output_name.rsplit('.')[0]
+            #books = create_workbook(data, encoding)
+            for n, book in enumerate(create_workbook(data, encoding)):
+                handle = file_name + str(n) + ".xls"
+                book.save(handle)
+                zipped_file.write(handle, handle.rsplit("/")[-1])
 
-
-
-
-
-
+            super(ExcelResponse, self).__init__(open(output_name, "r"), mimetype="application/zip")
+            self['Content-Disposition'] = 'attachment;filename=export.zip'
 
 
 def parse_district_value(value):
@@ -213,12 +233,14 @@ def parse_district_value(value):
     else:
         return toret
 
+
 Poll.register_poll_type('district', 'District Response', parse_district_value, db_type=Attribute.TYPE_OBJECT, \
                         view_template='polls/response_location_view.html',
                         edit_template='polls/response_location_edit.html',
                         report_columns=((('Text', 'text', True, 'message__text', SimpleSorter()), (
                             'Location', 'location', True, 'eav_values__generic_value_id', SimpleSorter()), (
-                            'Categories', 'categories', True, 'categories__category__name', SimpleSorter()))),
+                            'Categories', 'categories', True, 'categories__category__name',
+                            SimpleSorter()))),
                         edit_form=LocationResponseForm)
 
 GROUP_BY_WEEK = 1
@@ -253,7 +275,7 @@ GROUP_BY_SELECTS = {
     GROUP_BY_WEEK: ('week', 'extract(week from rapidsms_xforms_xformsubmission.created)',),
     GROUP_BY_MONTH: ('month', 'extract(month from rapidsms_xforms_xformsubmission.created)',),
     GROUP_BY_QUARTER: ('quarter', 'extract(quarter from rapidsms_xforms_xformsubmission.created)',),
-    }
+}
 
 
 def total_submissions(keyword, start_date, end_date, location, extra_filters=None, group_by_timespan=None):
@@ -276,7 +298,7 @@ def total_submissions(keyword, start_date, end_date, location, extra_filters=Non
         'location_id': 'T%d.id' % tnum,
         'rght': 'T%d.rght' % tnum,
         'lft': 'T%d.lft' % tnum,
-        }
+    }
 
     values = ['location_name', 'location_id', 'lft', 'rght']
     if group_by_timespan:
@@ -286,7 +308,7 @@ def total_submissions(keyword, start_date, end_date, location, extra_filters=Non
                        'year': 'extract (year from rapidsms_xforms_xformsubmission.created)', })
         values.extend([select_value, 'year'])
     if location.get_children().count() > 1:
-        location_children_where = 'T%d.id in %s' % (tnum, (str(tuple(location.get_children().values_list(\
+        location_children_where = 'T%d.id in %s' % (tnum, (str(tuple(location.get_children().values_list( \
             'pk', flat=True)))))
     else:
         location_children_where = 'T%d.id = %d' % (tnum, location.get_children()[0].pk)
@@ -298,10 +320,10 @@ def total_submissions(keyword, start_date, end_date, location, extra_filters=Non
         created__gte=start_date).values(
         'connection__contact__reporting_location__name').extra(
         tables=['locations_location'],
-        where=[\
+        where=[ \
             'T%d.lft <= locations_location.lft' % tnum, \
             'T%d.rght >= locations_location.rght' % tnum, \
-            location_children_where]).extra(\
+            location_children_where]).extra( \
         select=select).values(*values).annotate(value=Count('id')).extra(order_by=['location_name'])
 
 
@@ -317,7 +339,7 @@ def total_attribute_value(attribute_slug_list, start_date, end_date, location, g
         'location_id': 'T8.id',
         'rght': 'T8.rght',
         'lft': 'T8.lft',
-        }
+    }
     values = ['location_name', 'location_id', 'lft', 'rght']
     if group_by_timespan:
         select_value = GROUP_BY_SELECTS[group_by_timespan][0]
@@ -326,7 +348,7 @@ def total_attribute_value(attribute_slug_list, start_date, end_date, location, g
                        'year': 'extract (year from rapidsms_xforms_xformsubmission.created)', })
         values.extend([select_value, 'year'])
     if location.get_children().count() > 1:
-        location_children_where = 'T8.id in %s' % (str(tuple(location.get_children().values_list(\
+        location_children_where = 'T8.id in %s' % (str(tuple(location.get_children().values_list( \
             'pk', flat=True))))
     else:
         location_children_where = 'T8.id = %d' % location.get_children()[0].pk
@@ -337,10 +359,10 @@ def total_attribute_value(attribute_slug_list, start_date, end_date, location, g
         submission__created__gte=start_date).values(
         'submission__connection__contact__reporting_location__name').extra(
         tables=['locations_location'],
-        where=[\
+        where=[ \
             'T8.lft <= locations_location.lft',
             'T8.rght >= locations_location.rght',
-            location_children_where]).extra(\
+            location_children_where]).extra( \
         select=select).values(*values).annotate(value=Sum('value_int')).extra(order_by=['location_name'])
 
 
@@ -348,7 +370,7 @@ def reorganize_location(key, report, report_dict):
     for rdict in report:
         location = rdict['location_id']
         report_dict.setdefault(location,
-                {'location_name': rdict['location_name'], 'diff': (rdict['rght'] - rdict['lft'])})
+                               {'location_name': rdict['location_name'], 'diff': (rdict['rght'] - rdict['lft'])})
         report_dict[location][key] = rdict['value']
 
 
@@ -409,9 +431,9 @@ def get_xform_dates(request):
         request.session['end_date'] = dates['end']
     elif request.GET.get('start_date', None) and request.GET.get('end_date', None):
         request.session['start_date'] = dates['start'] = \
-        datetime.datetime.fromtimestamp(int(request.GET['start_date']))
+            datetime.datetime.fromtimestamp(int(request.GET['start_date']))
         request.session['end_date'] = dates['end'] = end_date = \
-        datetime.datetime.fromtimestamp(int(request.GET['end_date']))
+            datetime.datetime.fromtimestamp(int(request.GET['end_date']))
     elif request.session.get('start_date', None) and request.session.get('end_date', None):
         dates['start'] = request.session['start_date']
         dates['end'] = request.session['end_date']
@@ -431,7 +453,8 @@ def get_messages(request):
     #Exclude XForm submissions
     messages = messages.exclude(
         pk__in=XFormSubmission.objects.exclude(message=None).filter(has_errors=False).values_list('message__pk',
-                                                                                                  flat=True))
+                                                                                                  flat=True),
+        connection__contact__active=False)
 
     # Exclude Poll responses
     messages = messages.exclude(
@@ -482,7 +505,7 @@ def parse_birthdate(row, worksheet, cols):
     try:
         age = int(worksheet.cell(row, cols['age']).value)
         birthdate = '%d/%d/%d' % (
-        datetime.datetime.now().day, datetime.datetime.now().month, datetime.datetime.now().year - age)
+            datetime.datetime.now().day, datetime.datetime.now().month, datetime.datetime.now().year - age)
         return datetime.datetime.strptime(birthdate.strip(), '%d/%m/%Y')
     except ValueError:
         return None
@@ -532,7 +555,8 @@ def handle_excel_file(file, group, fields):
                     gender = parse_gender(row, worksheet, cols) if 'gender' in fields else None
                     if district:
                         contact['reporting_location'] = find_closest_match(district,
-                                                                           Location.objects.filter(kind__name='district'))
+                                                                           Location.objects.filter(
+                                                                               kind__name='district'))
                     if village:
                         contact['village'] = find_closest_match(village, Location.objects)
                     if birthdate:
@@ -586,9 +610,11 @@ def handle_dongle_sms(message):
                                                '256711957281', '256790403038',
                                                '256701205129']):
         Message.objects.create(direction="O", text=message.text,
-                                           status='Q', connection=message.connection)
+                               status='Q', connection=message.connection)
         return True
     return False
+
+
 def get_districts_for_user(user):
     if user:
         ret = Location.objects.filter(name__icontains=user.username, type__name='district')
