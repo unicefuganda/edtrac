@@ -13,13 +13,9 @@ from django.conf.urls.defaults import *
 from generic.sorters import SimpleSorter
 from generic.views import generic, generic_row
 from rapidsms_httprouter.models import Message
-from rapidsms_xforms.models import XFormSubmission
-from uganda_common.utils import get_xform_dates, get_messages
 from django.contrib.auth.views import login_required
 from django.contrib.auth.models import User
-from django.views.generic import ListView, base
-from .reports import othermessages
-from poll.models import Poll
+
 urlpatterns = patterns('',
     url(r'^edtrac/messages/$', login_required(generic), {
         'model':Message,
@@ -254,11 +250,11 @@ urlpatterns = patterns('',
     #National statistics
     url(r'^edtrac/national-stats/$', NationalStatistics.as_view(), name="emis-national-stats"),
     url(r'^edtrac/capitation-grants/$',
-        CapitationGrants.as_view(template_name='education/admin/capitation_grants.html', poll_name='edtrac_upe_grant',
-                                 restrict_group='Head Teachers'), name="emis-grants"),
+        login_required(CapitationGrants.as_view(template_name='education/admin/capitation_grants.html', poll_name='edtrac_upe_grant',
+                                 restrict_group='Head Teachers')), name="emis-grants"),
     url(r'^edtrac/smc-capitation-grants/$',
-        CapitationGrants.as_view(template_name='education/admin/smc_capitation_grants.html',
-                                 poll_name='edtrac_smc_upe_grant', restrict_group='SMC'), name="emis-smc-grants"),
+        login_required(CapitationGrants.as_view(template_name='education/admin/smc_capitation_grants.html',
+                                 poll_name='edtrac_smc_upe_grant', restrict_group='SMC')), name="emis-smc-grants"),
     #PROGRESS views
     url('^edtrac/progress/district/(?P<pk>\d+)/$', DistrictProgressDetails.as_view(template_name=\
     "education/dashboard/district_progress_detail.html"), name="district-progress"),
