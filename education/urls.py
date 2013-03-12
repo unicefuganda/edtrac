@@ -2,7 +2,7 @@ from .forms import SchoolFilterForm, LimitedDistictFilterForm,\
     RolesFilterForm, ReporterFreeSearchForm, SchoolDistictFilterForm, FreeSearchSchoolsForm, MassTextForm
 
 from .models import EmisReporter, School
-from .reports import messages, othermessages, reporters, schools
+from .reports import messages, othermessages, reporters, all_schools
 #from .reports import AttendanceReport, messages, othermessages, reporters, schools
 from .sorters import LatestSubmissionSorter
 from .views import *
@@ -125,7 +125,7 @@ urlpatterns = patterns('',
     url(r'^edtrac/deo_dashboard/', login_required(deo_dashboard), {}, name='deo-dashboard'),
     url(r'^edtrac/school/$', login_required(generic), {
         'model':School,
-        'queryset':schools,
+        'queryset':all_schools,
         'filter_forms':[FreeSearchSchoolsForm, SchoolDistictFilterForm],
         'objects_per_page':25,
         'partial_row':'education/partials/school_row.html',
