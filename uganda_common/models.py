@@ -1,16 +1,16 @@
 import urlparse
 from django.contrib.auth.models import User, Group
+from django.db.models import Q
 from django.forms import ValidationError
 from django.db import models
 from django.db.models.query import QuerySet
-from script.utils.handling import find_best_response, find_closest_match
+from script.utils.handling import find_closest_match
 from rapidsms.contrib.locations.models import Location
 from generic.sorters import SimpleSorter
 import re
 from poll.models import Poll, LocationResponseForm, STARTSWITH_PATTERN_TEMPLATE
 from eav.models import Attribute
-# from .urls import urlpatterns
-urlpatterns = []
+
 
 def parse_district_value(value):
     location_template = STARTSWITH_PATTERN_TEMPLATE % '[a-zA-Z]*'
@@ -82,23 +82,16 @@ class Access(models.Model):
     """
     user = models.ForeignKey(User, null=True)
     group = models.ForeignKey(Group, null=True)
-    url_allowed = models.CharField(max_length=200,
-                                   choices=[(p[0].regex.pattern, p[0].regex.pattern) for p in urlpatterns])
+    url_allowed = models.CharField(max_length=200)
 
     def __unicode__(self):
         return "%s %s" % (self.user.username, self.url_allowed)
 
     def clean(self):
         from django.core.exceptions import ValidationError
+
         if not self.user and not self.group:
             raise ValidationError("Access Requires at least a user or a group of users")
-
-    @classmethod
-    def all_restricted_users(cls):
-        all_groups = Access.objects.values_list('group', flat=True).distinct()
-        all_users = Access.objects.values_list('user', flat=True).distinct()
-        all_users = all_users | User.objects.filter(groups__in=all_groups)
-        return all_users
 
     @classmethod
     def denied(cls, request):
@@ -106,9 +99,10 @@ class Access(models.Model):
         path = urlparse.urlparse(path)[2]
         if path.startswith('/'): path = path[1:]
         user = request.user if request.user.is_authenticated() else None
-        if not user in Access.all_restricted_users():
+        if not Access.objects.filter(user=user) and not Access.objects.filter(group__in=user.groups.all()):
             return False
-        paths = list(Access.objects.filter(user=user).values_list('url_allowed', flat=True).distinct())
+        paths = list(Access.objects.filter(Q(user=user) | Q(group__in=user.group.all())).values_list('url_allowed',
+                                                                                                     flat=True).distinct())
         for p in paths:
             if re.match(r'' + p, path):
                 return False

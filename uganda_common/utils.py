@@ -129,37 +129,37 @@ def create_workbook(data, encoding):
     style0 = xlwt.XFStyle()
     style0.font = font0
     book = xlwt.Workbook(encoding=encoding)
-    sheet = book.add_sheet('Sheet 1')
+    sheet_name = 'sheet'
+
     styles = {'datetime': xlwt.easyxf(num_format_str='yyyy-mm-dd hh:mm:ss'),
               'date': xlwt.easyxf(num_format_str='yyyy-mm-dd'),
               'time': xlwt.easyxf(num_format_str='hh:mm:ss'),
               'default': style0,
               'header': style}
-    length = 0
-    books = []
 
-    for rowx, row in enumerate(data):
-        length = rowx
-        if length % 65500 == 0:
-            yield book
-            create_workbook(data, encoding)
-        for colx, value in enumerate(row):
-            if isinstance(value, datetime.datetime):
-                cell_style = styles['datetime']
-            elif isinstance(value, datetime.date):
-                cell_style = styles['date']
-            elif isinstance(value, datetime.time):
-                cell_style = styles['time']
-            elif rowx == 0:
-                cell_style = styles['header']
-            else:
-                cell_style = styles['default']
+    data = data[slice(0,len(data),65000)]
+    n = 0
+    for dat in data:
+        n += 1
+        sheet = book.add_sheet(sheet_name+str(n))
+        for rowx, row in enumerate(dat):
+            for colx, value in enumerate(row):
+                if isinstance(value, datetime.datetime):
+                    cell_style = styles['datetime']
+                elif isinstance(value, datetime.date):
+                    cell_style = styles['date']
+                elif isinstance(value, datetime.time):
+                    cell_style = styles['time']
+                elif rowx == 0:
+                    cell_style = styles['header']
+                else:
+                    cell_style = styles['default']
 
-            try:
-                sheet.write(rowx, colx, value, style=cell_style)
-            except:
-                sheet.write(rowx, colx, str(value), style=styles['default'])
-    yield book
+                try:
+                    sheet.write(rowx, colx, value, style=cell_style)
+                except:
+                    sheet.write(rowx, colx, str(value), style=styles['default'])
+    return book
 
 
 class ExcelResponse(HttpResponse):
