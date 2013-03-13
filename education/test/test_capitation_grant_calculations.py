@@ -67,8 +67,11 @@ class TestCapitationGrantView(TestCase):
 
         self.smc_poll = create_poll("edtrac_smc_upe_grant",
                                "Have you received your UPE grant this term? Answer  YES or NO or I don't know",
+                               Poll.TYPE_TEXT,
                                admin_user, [self.emis_reporter1, self.emis_reporter2, self.emis_reporter3,self.emis_reporter4])
 
+        self.smc_poll.add_yesno_categories()
+        self.smc_poll.start()
         self.smc_capitation_grant_view = create_view(CapitationGrants, admin_user, self.smc_poll, smc_group)
         self.smc_capitation_grant_view_district = create_view(CapitationGrants, district_user, self.smc_poll, smc_group)
 
