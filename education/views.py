@@ -1,4 +1,12 @@
 from __future__ import division
+from urllib2 import urlopen
+import re
+import datetime
+import operator
+import exceptions
+import copy
+from datetime import date
+
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render_to_response
@@ -8,9 +16,10 @@ from django.contrib.auth.decorators import user_passes_test
 from django.utils.decorators import method_decorator
 from django.views.generic import DetailView, TemplateView, ListView
 from django.db.models import Q
+import xlwt
+
 from .forms import *
 from .models import *
-
 from uganda_common.utils import *
 from rapidsms.contrib.locations.models import Location
 from generic.views import generic
@@ -20,14 +29,11 @@ from script.models import ScriptStep, Script
 from .reports import *
 from .utils import *
 from .utils import _schedule_monthly_script, _schedule_termly_script, _schedule_weekly_scripts, _schedule_teacher_weekly_scripts
-from urllib2 import urlopen
-from rapidsms.views import login, logout
-import  re, datetime, operator, xlwt, exceptions, copy, reversion
-from datetime import date
+import reversion
 from reversion.models import Revision
 from unregister.models import Blacklist
 from .utils import themes
-from time import strftime
+from education.absenteeism_view_helper import *
 
 Num_REG = re.compile('\d+')
 
@@ -3041,3 +3047,11 @@ def attendance_visualization(req):
             'geoserver_url':getattr(settings, 'GEOSERVER_URL', 'http://localhost/geoserver')
         },
         context_instance = RequestContext(req))
+
+
+@login_required()
+def detail_attd(request):
+    profile = request.user.get_profile()
+    detailed_data = get_responses_by_location(profile,'edtrac_boysp3_enrollment', 20)
+    return render_to_response('education/admin/detail_attd.html', {'detailed_data': detailed_data},
+                              RequestContext(request))
