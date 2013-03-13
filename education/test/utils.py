@@ -1,7 +1,6 @@
 # vim: ai ts=4 sts=4 et sw=4 encoding=utf-8
 from django.contrib.auth.models import User
 from django.http import HttpRequest
-from eav.models import Attribute
 from education.models import Role, School, UserProfile, EmisReporter
 from poll.models import Poll
 from rapidsms.contrib.locations.models import LocationType, Location, Point
@@ -46,18 +45,20 @@ def create_emis_reporters(name, reporting_location, school, identity, group):
     reporter.save()
     return reporter
 
-def create_poll(name,question,type,user,contacts):
+def create_poll(name,question,user,contacts):
     params = {
         "default_response": "",
         "name": name,
         "question": question,
         "user": user,
-        "type": type,
+        "type": Poll.TYPE_TEXT,
         "response_type": Poll.RESPONSE_TYPE_ALL
     }
     poll = Poll.objects.create(**params)
+    poll.add_yesno_categories()
     poll.contacts.add(*contacts)
     poll.save()
+    poll.start()
     return poll
 
 def create_view(class_name,user, poll, group):
@@ -66,15 +67,3 @@ def create_view(class_name,user, poll, group):
     request.user = user
     view.request = request
     return view
-
-def create_attribute():
-    params = {
-        "description": "A response value for a Poll with expected numeric responses",
-        "datatype": "float",
-        "enum_group": None,
-        "required": False,
-        "type": None,
-        "slug": "poll_number_value",
-        "name": "Number"
-    }
-    Attribute.objects.create(**params)
