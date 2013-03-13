@@ -103,6 +103,12 @@ def assign_backend(number):
             break
     return (number, backendobj)
 
+def chunks(l, n):
+    """ Yield successive n-sized chunks from l.
+    """
+    for i in xrange(0, len(l), n):
+        yield l[i:i+n]
+
 
 def create_workbook(data, encoding):
     ##formatting of the cells
@@ -137,7 +143,7 @@ def create_workbook(data, encoding):
               'default': style0,
               'header': style}
 
-    data = data[slice(0,len(data),65000)]
+    data = chunks(data, 65000)
     n = 0
     for dat in data:
         n += 1
@@ -194,7 +200,7 @@ class ExcelResponse(HttpResponse):
             file_ext = "xls"
 
         if file_ext != "zip":
-            book = create_workbook(data, encoding).next()
+            book = create_workbook(data, encoding)
             if write_to_file:
                 book.save(output_name)
             book.save(output)
