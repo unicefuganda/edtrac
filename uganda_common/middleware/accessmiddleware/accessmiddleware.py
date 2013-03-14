@@ -10,8 +10,6 @@ class AccessMiddleWare(object):
 
 
     def process_request(self, request):
-        if not request.user.is_authenticated():
-            return None
-        if Access.denied(request):
+        if request.user.is_authenticated() and Access.denied(request):
             return HttpResponseForbidden(render_to_string('403.html'))
         return None

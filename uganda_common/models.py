@@ -98,7 +98,7 @@ class Access(models.Model):
         path = request.build_absolute_uri()
         path = urlparse.urlparse(path)[2]
         if path.startswith('/'): path = path[1:]
-        user = request.user if request.user.is_authenticated() else None
+        user = request.user
         if not Access.objects.filter(user=user) and not Access.objects.filter(group__in=user.groups.all()):
             return False
         paths = list(Access.objects.filter(Q(user=user) | Q(group__in=user.group.all())).values_list('url_allowed',
