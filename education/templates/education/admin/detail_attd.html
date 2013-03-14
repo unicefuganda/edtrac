@@ -3,5 +3,32 @@
     Dashboard -- {{ block.super }}
 {% endblock %}
 {% block content %}
-    {{ detailed_data }}
+    {{ bp3_aggregated_by_time }}
+    {{ gp3_aggregated_by_time }}
+    <table class="tabulated-data classy">
+        <tr>
+            <th>
+                District
+            </th>
+            <th>
+                Boys P3 Attendance
+            </th>
+            <th>
+                Girls P3 Attendance
+            </th>
+        </tr>
+        {% for key, value in collective_result.items %}
+            <tr>
+                <td>
+                    {{ key }}
+                </td>
+                <td>
+                    {{ value.bp3 }}
+                </td>
+                <td>
+                    {{ value.gp3 }}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
 {% endblock %}

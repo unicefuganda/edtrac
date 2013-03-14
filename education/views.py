@@ -3051,6 +3051,16 @@ def attendance_visualization(req):
 @login_required()
 def detail_attd(request):
     profile = request.user.get_profile()
-    detailed_data = get_responses_by_location(profile,'edtrac_boysp3_enrollment', 20)
-    return render_to_response('education/admin/detail_attd.html', {'detailed_data': detailed_data},
+    bp3_detailed_data, bp3_aggregated_by_time = get_responses_by_location(profile, 'edtrac_boysp3_attendance', 5)
+    gp3_detailed_data, gp3_aggregated_by_time = get_responses_by_location(profile, 'edtrac_girlsp3_attendance', 5)
+    collective_result = get_collective_result(bp3_detailed_data, gp3_detailed_data)
+    return render_to_response('education/admin/detail_attd.html',
+                              {'collective_result': collective_result, 'bp3_aggregated_by_time': bp3_aggregated_by_time,
+                              'gp3_detailed_data': dict(gp3_detailed_data), 'gp3_aggregated_by_time': gp3_aggregated_by_time},
                               RequestContext(request))
+
+def get_collective_result(boysp3,girlsp3):
+    result = {}
+    for keys in boysp3:
+        result[keys] = dict(bp3=boysp3[keys], gp3=girlsp3[keys])
+    return result
