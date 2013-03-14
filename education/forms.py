@@ -83,9 +83,7 @@ class NewConnectionForm(forms.Form):
 class EditReporterForm(forms.ModelForm):
     locations = Location.objects.filter(type= 'district')
     district = Location.objects.filter(type='district').filter(name__in=EmisReporter.objects.filter(reporting_location__in = locations))
-    schools = forms.ModelChoiceField(queryset=School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).\
-                                                                    exclude(connection__in = Blacklist.objects.values_list('connection', flat=True)).\
-                                                                    filter(reporting_location__type = 'district').distinct().values_list('schools__pk', flat=True)))
+    schools = forms.ModelChoiceField(queryset=School.objects.filter(pk__in=EmisReporter.objects.filter(reporting_location__type = 'district').distinct().values_list('schools__pk', flat=True)))
 
   
     class Meta:

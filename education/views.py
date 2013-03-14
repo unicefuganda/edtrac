@@ -2454,7 +2454,6 @@ def edit_reporter(request, reporter_pk):
     reporter_group_name = reporter.groups.all()[0].name
 
     if request.method == 'POST':
-#        import pdb;pdb.set_trace()
         reporter_form = EditReporterForm(instance=reporter,data=request.POST)
         if reporter_form.is_valid():
             with reversion.create_revision():
@@ -2469,7 +2468,6 @@ def edit_reporter(request, reporter_pk):
                     pass
                 else:
                     ScriptProgress.objects.exclude(script__slug="edtrac_autoreg").filter(connection=reporter.default_connection).delete()
-#                    _schedule_weekly_scripts(reporter.groups.all()[0], reporter.default_connection, ['Teachers', 'Head Teachers', 'SMC'])
                     _schedule_teacher_weekly_scripts(reporter.groups.all()[0], reporter.default_connection, ['Teachers'])
                     _schedule_weekly_scripts(reporter.groups.all()[0], reporter.default_connection, ['Head Teachers', 'SMC'])
 
@@ -2482,6 +2480,7 @@ def edit_reporter(request, reporter_pk):
                     _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_smc_termly', ['SMC'])
                     _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_p3_enrollment_headteacher_termly', ['Head Teachers'])
                     _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_p6_enrollment_headteacher_termly', ['Head Teachers']) 
+                    _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_teacher_deployment_headteacher_termly', ['Head Teachers']) 
 
         else:
             if reporter.schools.exists():
