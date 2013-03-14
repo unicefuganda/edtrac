@@ -108,11 +108,14 @@ class ScriptProgressQuerySet(QuerySet):
         from script.models import ScriptSession
         spses = self
         for sp in spses:
-            session = ScriptSession.objects.filter(script=script, connection=sp.connection, end_time=None).latest(
-                'start_time')
-            session.end_time = datetime.datetime.now()
-            session.save()
-            script_progress_was_completed.send(sender=sp, connection=sp.connection)
+            try:
+                session = ScriptSession.objects.filter(script=script, connection=sp.connection, \
+                                                       end_time=None).latest('start_time')
+                session.end_time = datetime.datetime.now()
+                session.save()
+                script_progress_was_completed.send(sender=sp, connection=sp.connection)
+            except:
+                pass
         return spses.delete()
 
     def moveon(self, script, step):
@@ -143,7 +146,7 @@ class ScriptProgressQuerySet(QuerySet):
             return self.giveup(script, step)
 
     def mass_text(self):
-        #get one scriptprogress since they are all supposed to be on the same step
+        # get one scriptprogress since they are all supposed to be on the same step
         if self.exists():
             prog = self[0]
         else:
