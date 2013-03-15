@@ -35,6 +35,10 @@ from unregister.models import Blacklist
 from .utils import themes
 from education.absenteeism_view_helper import *
 
+import json
+from django.utils.safestring import mark_safe
+
+
 Num_REG = re.compile('\d+')
 
 super_user_required = \
@@ -3051,16 +3055,55 @@ def attendance_visualization(req):
 @login_required()
 def detail_attd(request):
     profile = request.user.get_profile()
-    bp3_detailed_data, bp3_aggregated_by_time = get_responses_by_location(profile, 'edtrac_boysp3_attendance', 5)
-    gp3_detailed_data, gp3_aggregated_by_time = get_responses_by_location(profile, 'edtrac_girlsp3_attendance', 5)
-    collective_result = get_collective_result(bp3_detailed_data, gp3_detailed_data)
+    time_range_depth = 5
+    bp3_detailed_data, bp3_aggregated_by_time = get_responses_by_location(profile, 'edtrac_boysp3_attendance',
+                                                                          'edtrac_boysp3_enrollment', time_range_depth)
+    gp3_detailed_data, gp3_aggregated_by_time = get_responses_by_location(profile, 'edtrac_girlsp3_attendance',
+                                                                          'edtrac_girlsp3_enrollment', time_range_depth)
+
+    bp6_detailed_data, bp6_aggregated_by_time = get_responses_by_location(profile, 'edtrac_boysp6_attendance',
+                                                                          'edtrac_boysp6_enrollment', time_range_depth)
+    gp6_detailed_data, gp6_aggregated_by_time = get_responses_by_location(profile, 'edtrac_girlsp6_attendance',
+                                                                          'edtrac_girlsp6_enrollment', time_range_depth)
+
+    m_teachers_detailed_data, m_teachers_aggregated_by_time = get_responses_by_location(profile,
+                                                                                        'edtrac_m_teachers_attendance',
+                                                                                        'edtrac_m_teachers_deployment',
+                                                                                        time_range_depth)
+    f_teachers_detailed_data, f_teachers_aggregated_by_time = get_responses_by_location(profile,
+                                                                                        'edtrac_f_teachers_attendance',
+                                                                                        'edtrac_f_teachers_deployment',
+                                                                                        time_range_depth)
+    m_head_teachers_detailed_data, m_head_teachers_aggregated_by_time = get_head_teachers_absent_over_time(locations,
+                                                                                                           'M',
+                                                                                                           time_range_depth)
+    f_head_teachers_detailed_data, f_head_teachers_aggregated_by_time = get_head_teachers_absent_over_time(locations,
+                                                                                                           'F',
+                                                                                                           time_range_depth)
+
+    collective_result = get_collective_result(bp3_detailed_data, gp3_detailed_data, bp6_detailed_data,
+                                              gp6_detailed_data, m_teachers_detailed_data, f_teachers_detailed_data,
+                                              m_head_teachers_detailed_data, f_head_teachers_detailed_data)
+    time_data = [dict(name="Boys P3", data=bp3_aggregated_by_time), dict(name="Girls P3", data=gp3_aggregated_by_time),
+                 dict(name="Boys P6", data=bp6_aggregated_by_time), dict(name="Girls P6", data=gp6_aggregated_by_time),
+                 dict(name="Male Teachers", data=m_teachers_aggregated_by_time),
+                 dict(name="Female Teachers", data=f_teachers_aggregated_by_time),
+                 dict(name="Male Head Teachers", data=m_head_teachers_aggregated_by_time),
+                 dict(name="Female Head Teachers", data=f_head_teachers_aggregated_by_time)]
     return render_to_response('education/admin/detail_attd.html',
-                              {'collective_result': collective_result, 'bp3_aggregated_by_time': bp3_aggregated_by_time,
-                              'gp3_detailed_data': dict(gp3_detailed_data), 'gp3_aggregated_by_time': gp3_aggregated_by_time},
+                              {'collective_result': collective_result, 'time_data': mark_safe(json.dumps(time_data)),
+                               'categories': range(1, (time_range_depth + 1))},
                               RequestContext(request))
 
-def get_collective_result(boysp3,girlsp3):
-    result = {}
+
+def get_collective_result(boysp3,girlsp3,boysp6,girlsp6,m_teachers,f_teachers,m_head_t,f_head_t):
+    result = defaultdict(lambda: {})
     for keys in boysp3:
         result[keys] = dict(bp3=boysp3[keys], gp3=girlsp3[keys])
-    return result
+    for keys in boysp6:
+        result[keys].update(dict(bp6=boysp6[keys], gp6=girlsp6[keys]))
+    for keys in m_teachers:
+        result[keys].update(dict(m_teachers=m_teachers[keys], f_teachers=f_teachers[keys]))
+    for keys in m_head_t:
+        result[keys].update(dict(m_head_teachers=m_head_t[keys], f_head_teachers=f_head_t.get(keys,0)))
+    return dict(result)

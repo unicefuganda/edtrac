@@ -269,49 +269,64 @@ function load_progress_chart(value){
 }
 
 
-function load_line_graph(title, subtitle, selector, yLabel, xLabel){
+function load_line_graph(title, subtitle, selector, yLabel, xLabel,categories, series) {
     line_chart = new Highcharts.Chart({
-          chart: {
-             renderTo: selector,
-             defaultSeriesType: 'line'
-          },
-          title: {
-             text: title
-          },
-          subtitle: {
-             text: subtitle
-          },
-          xAxis: {
-              title : {
+        chart: {
+            renderTo: selector,
+            type: 'line',
+            marginRight: 130
+        },
+        title: {
+            text: title,
+            x: -20 //center
+        },
+        subtitle: {
+            text: subtitle,
+            x: -20 //center
+        },
+        xAxis: {
+            title: {
                 text: xLabel
-              },
-             categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-          },
-          yAxis: {
-             title: {
+            },
+            categories: categories
+        },
+        yAxis: {
+            title: {
                 text: yLabel
-             }
-          },
-          tooltip: {
-             enabled: true,
-             formatter: function() {
-                return '<b>'+ this.series.name +'</b><br/>'+
-                   this.x +': '+ this.y +' cases';
-             }
-          },
-          plotOptions: {
-             line: {
+            },
+            plotLines: [
+                {
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }
+            ]
+        },
+        tooltip: {
+            enabled: true,
+            formatter: function () {
+                return '<b>' + this.series.name + '</b><br/>' +
+                    this.x + ': ' + this.y + ' percentage';
+            }
+        },
+        legend: {
+            layout: 'vertical',
+            align: 'right',
+            verticalAlign: 'top',
+            x: -10,
+            y: 100,
+            borderWidth: 0
+        },
+        plotOptions: {
+            line: {
                 dataLabels: {
-                   enabled: true
+                    enabled: true
                 },
                 enableMouseTracking: true
-             }
-          },
-          series: [{
-             name: 'Kaboong',
-             data: [0, 0,0,0,0,0,0,0,0,0,0,0]
-          }]
-       });
+            }
+        },
+        series: JSON.parse(series)
+    });
 }
 
 function load_column(title, selector, yLabel, xLabel, category, data_array){
