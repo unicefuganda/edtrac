@@ -83,7 +83,7 @@ class NewConnectionForm(forms.Form):
 class EditReporterForm(forms.ModelForm):
     locations = Location.objects.filter(type= 'district')
     district = Location.objects.filter(type='district').filter(name__in=EmisReporter.objects.filter(reporting_location__in = locations))
-    schools = forms.ModelChoiceField(queryset=School.objects.filter(pk__in=EmisReporter.objects.filter(reporting_location__type = 'district').distinct().values_list('schools__pk', flat=True)))
+#    schools = forms.ModelChoiceField(queryset=School.objects.filter(pk__in=EmisReporter.objects.filter(reporting_location__type = 'district').distinct().values_list('schools__pk', flat=True)))
 
   
     class Meta:
@@ -91,11 +91,12 @@ class EditReporterForm(forms.ModelForm):
         fields = ('name', 'gender', 'grade', 'reporting_location', 'groups', 'schools')
 
     def __init__(self, *args, **kwargs):
-           super(EditReporterForm, self).__init__(*args, **kwargs)
-           self.fields['reporting_location'] = forms.ModelChoiceField(queryset=Location.objects.filter(type='district').order_by('name'))
-           self.fields['schools'].required = False
-           self.fields['gender'].required = False
-           self.fields['grade'].required = False
+        super(EditReporterForm, self).__init__(*args, **kwargs)
+        self.fields['reporting_location'] = forms.ModelChoiceField(queryset=Location.objects.filter(type='district').order_by('name'))
+        self.fields['schools'] = forms.ModelChoiceField(queryset=School.objects.filter(pk__in=EmisReporter.objects.values_list('schools__pk').filter(reporting_location__type = 'district')))
+        self.fields['schools'].required = False
+        self.fields['gender'].required = False
+        self.fields['grade'].required = False
 
     def save(self, commit=True):
         reporter_form = super(EditReporterForm, self).save(commit=False)
