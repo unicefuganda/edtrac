@@ -3052,7 +3052,7 @@ def attendance_visualization(req):
         context_instance = RequestContext(req))
 
 
-@login_required()
+@login_required
 def detail_attd(request):
     profile = request.user.get_profile()
     locations = [profile.location]
