@@ -44,9 +44,9 @@ class TestAbsenteeism(TestCase):
             }
         self.gulu_district = create_location("Gulu", district, point=gulu_point, **gulu_fields)
         gulu_school = create_school("St. Joseph's", self.gulu_district)
-        kampala_school = create_school("St. Joseph's", self.kampala_district)
-        self.emis_reporter1 = create_emis_reporters("dummy1", self.kampala_district, kampala_school, 12345, admin_group)
-        self.emis_reporter2 = create_emis_reporters("dummy2", self.kampala_district, kampala_school, 12346, admin_group)
+        self.kampala_school = create_school("St. Joseph's", self.kampala_district)
+        self.emis_reporter1 = create_emis_reporters("dummy1", self.kampala_district, self.kampala_school, 12345, admin_group)
+        self.emis_reporter2 = create_emis_reporters("dummy2", self.kampala_district, self.kampala_school, 12346, admin_group)
         self.emis_reporter3 = create_emis_reporters("dummy3", self.gulu_district, gulu_school, 12347, admin_group)
         self.emis_reporter4 = create_emis_reporters("dummy4", self.gulu_district, gulu_school, 12348, admin_group)
         self.admin_user = create_user_with_group("John", admin_group, self.uganda)

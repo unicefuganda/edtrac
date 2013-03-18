@@ -4,11 +4,20 @@ from django.conf import settings
 
 from django.db.models import Sum, Count
 
-from education.models import EnrolledDeployedQuestionsAnswered, EmisReporter
+from education.models import EmisReporter
 from education.reports import get_week_date
 from poll.models import Poll, ResponseCategory
-from rapidsms.contrib.locations.models import Location
 
+
+def get_aggregated_report(locations, config_list, depth):
+    by_location = []
+    by_time = []
+    for config in config_list:
+        a,b = get_responses_by_location(locations, config['attendance_poll'], config['enrollment_poll'], depth)
+        by_location.append((a, config['collective_dict_key']))
+        by_time.append((b, config['time_data_name']))
+
+    return get_collective_result(by_location, by_time)
 
 def get_aggregation_by_time(filtered_responses):
     aggregated_list = []
@@ -38,30 +47,41 @@ def transform(untransformed_data):
     return transformed_data
 
 
-def get_responses_by_location(user_profile, attendance_poll_name, enrollment_poll_name, depth=4):
-    locations = [user_profile.location]
+def get_aggregated_result(result,dict_to_add ):
+    for key in dict_to_add:
+        result[key]+=dict_to_add[key]
 
-    if user_profile.is_member_of('Ministry Officials') or user_profile.is_member_of(
-            'Admins') or user_profile.is_member_of('UNICEF Officials'):
-        locations = Location.objects.filter(type='district').filter(pk__in= \
-            EnrolledDeployedQuestionsAnswered.objects.values_list('school__location__pk', flat=True))
 
-    filtered_responses, filtered_enrollment = get_responses_over_depth(attendance_poll_name, enrollment_poll_name,
+def get_aggregated_list(result, list_to_add):
+    if len(result)==0:
+        result.extend(list_to_add)
+    else:
+        for index,value in enumerate(result):
+            result[index] += list_to_add[index]
+
+
+def get_responses_by_location(locations, attendance_poll_names, enrollment_poll_names, depth=4):
+    total_enrollment=0
+    total_enrollment_by_location = defaultdict(lambda :0)
+    total_present_by_location = defaultdict(lambda :0)
+    total_present_by_time = []
+    for index, attendance_poll_name in enumerate(attendance_poll_names):
+        filtered_responses, filtered_enrollment = get_responses_over_depth(attendance_poll_name, enrollment_poll_names[index],
                                                                        list(locations), depth)
 
-    transformed_enrollment = transform([filtered_enrollment])
-    enrollment_by_location = get_aggregation_by_location(transformed_enrollment)
-    total_enrollment = sum(enrollment_by_location.values())
+        transformed_enrollment = transform([filtered_enrollment])
+        get_aggregated_result(total_enrollment_by_location,get_aggregation_by_location(transformed_enrollment))
+        total_enrollment+= sum(total_enrollment_by_location.values())
 
-    transformed_responses = transform(filtered_responses)
-    present_by_location = get_aggregation_by_location(transformed_responses)
-    present_by_time = get_aggregation_by_time(transformed_responses)
+        transformed_responses = transform(filtered_responses)
+        get_aggregated_result(total_present_by_location,get_aggregation_by_location(transformed_responses))
+        get_aggregated_list(total_present_by_time,get_aggregation_by_time(transformed_responses))
 
-    absent_by_time = [round(compute_percent(i,total_enrollment),2) for i in present_by_time]
+    absent_by_time = [round(compute_percent(i,total_enrollment),2) for i in total_present_by_time]
 
     absent_by_location = {}
-    for key in present_by_location:
-        absent_by_location[key] = round(compute_percent(present_by_location[key],enrollment_by_location[key]*depth),2)
+    for key in total_present_by_location:
+        absent_by_location[key] = round(compute_percent(total_present_by_location[key],total_enrollment_by_location[key]*depth),2)
 
     return absent_by_location, absent_by_time
 
@@ -112,7 +132,7 @@ def get_head_teachers_absent_over_time(locations, gender, depth):
     date_weeks = get_week_date(depth)
     fields = ['category__name', 'response__contact__reporting_location__name']
     head_teachers = EmisReporter.objects.filter(reporting_location__in=locations, groups__name="Head Teachers",
-                                                gender=gender).exclude(schools=None)
+                                                gender__iexact=gender).exclude(schools=None)
     head_t_deploy = EmisReporter.objects.filter(reporting_location__in=locations,
                                                 schools__in=head_teachers.values_list('schools', flat=True),
                                                 groups__name='SMC').distinct()
@@ -131,6 +151,8 @@ def get_head_teachers_absent_over_time(locations, gender, depth):
         calculate_yes_and_no_for_time(yes_by_time,no_by_time,resp_by_time)
         calculate_yes_and_no_for_location(yes_by_location,no_by_location,resp_by_time)
 
+    print yes_by_location, no_by_location
+    print yes_by_time, no_by_time
     absent_percent_by_time = [compute_percent(yes_by_time[i], (yes_by_time[i] + no_by_time[i])) for i in range(len(yes_by_time))]
     absent_percent_by_location = {}
     for key in yes_by_location:
@@ -142,3 +164,13 @@ def compute_percent(x, y):
         return (100 * (y-x)) / y
     except ZeroDivisionError:
         return 0
+
+def get_collective_result(location_configs, time_configs):
+    location_result = defaultdict(lambda: {})
+    for config in location_configs:
+        location_data = config[0]
+        key_name = config[1]
+        for key in location_data:
+            location_result[key].update({str(key_name):location_data[key]})
+    time_result = [dict(name=str(config[1]), data=config[0]) for config in time_configs]
+    return dict(location_result), time_result
