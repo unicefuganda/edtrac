@@ -3081,9 +3081,10 @@ def detail_attd(request):
     get_collective_result(collective_result, m_head_teachers_detailed_data, f_head_teachers_detailed_data)
     time_data.extend([dict(name="Male Head Teachers", data=m_head_teachers_aggregated_by_time),
                      dict(name="Female Head Teachers", data=f_head_teachers_aggregated_by_time)])
+    weeks = ["%s - %s" % (i[0],i[1]) for i in get_week_date(time_range_depth)]
     return render_to_response('education/admin/detail_attd.html',
                               {'collective_result': collective_result, 'time_data': mark_safe(json.dumps(time_data)),
-                               'categories': range(1, (time_range_depth + 1))},
+                               'weeks': mark_safe(json.dumps(weeks))},
                               RequestContext(request))
 
 

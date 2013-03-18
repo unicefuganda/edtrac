@@ -288,7 +288,7 @@ function load_line_graph(title, subtitle, selector, yLabel, xLabel,categories, s
             title: {
                 text: xLabel
             },
-            categories: categories
+            categories: JSON.parse(categories)
         },
         yAxis: {
             title: {
