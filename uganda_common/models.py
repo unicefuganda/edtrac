@@ -1,6 +1,5 @@
 import urlparse
 from django.contrib.auth.models import User, Group
-from django.db.models import Q
 from django.forms import ValidationError
 from django.db import models
 from django.db.models.query import QuerySet
@@ -75,34 +74,55 @@ class PolymorphicMixin():
         return self
 
 
+class AccessManager(models.Manager):
+    def add_url(self, user, url_conf):
+        access = self.get_or_create(user=user)[0]
+        access.allowed_urls.add(AccessUrls.objects.create(url=url_conf))
+
+    def add_group(self, user, group):
+        user.groups.add(group)
+        access = self.get_or_create(user=user)[0]
+        access.groups.add(group)
+
+    def create_new_access(self, username, password, groups=None, urls=None):
+        user = User.objects.create(username=username)
+        user.set_password(password)
+        for group in groups:
+            user.groups.add(group)
+        access = self.create(user=user)
+        if urls:
+            [access.allowed_urls.add(AccessUrls.objects.get_or_create(url=url)[0]) for url in urls]
+
+        if groups:
+            [access.groups.add(group) for group in groups ]
+        return access
+
+
+class AccessUrls(models.Model):
+    url = models.CharField(max_length=100, unique=True)
+
+    def __unicode__(self):
+        return self.url
+
+
 class Access(models.Model):
     """"
     This models stores a bunch of users and the urls that they can access they can't access anything else that requires login
     Users that aren't in this models follow the normal django auth and permission stuff
     """
-    user = models.ForeignKey(User, null=True)
-    group = models.ForeignKey(Group, null=True)
-    url_allowed = models.CharField(max_length=200)
+    user = models.ForeignKey(User, unique=True)
+    groups = models.ManyToManyField(Group)
+    allowed_urls = models.ManyToManyField(AccessUrls)
+    objects = AccessManager()
 
     def __unicode__(self):
-        return "%s %s" % (self.user.username, self.url_allowed)
+        return "%s" % self.user.username
 
-    def clean(self):
-        from django.core.exceptions import ValidationError
-
-        if not self.user and not self.group:
-            raise ValidationError("Access Requires at least a user or a group of users")
-
-    @classmethod
-    def denied(cls, request):
+    def denied(self, request):
         path = request.build_absolute_uri()
         path = urlparse.urlparse(path)[2]
         if path.startswith('/'): path = path[1:]
-        user = request.user
-        if not Access.objects.filter(user=user) and not Access.objects.filter(group__in=user.groups.all()):
-            return False
-        paths = list(Access.objects.filter(Q(user=user) | Q(group__in=user.group.all())).values_list('url_allowed',
-                                                                                                     flat=True).distinct())
+        paths = list(self.allowed_urls.values_list('url', flat=True))
         for p in paths:
             if re.match(r'' + p, path):
                 return False

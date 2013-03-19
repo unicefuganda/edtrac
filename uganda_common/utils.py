@@ -10,9 +10,7 @@ from generic.utils import get_dates as get_dates_from_post
 from poll.models import Poll, LocationResponseForm, STARTSWITH_PATTERN_TEMPLATE
 from rapidsms.contrib.locations.models import Location
 from rapidsms.models import Backend, Contact
-from rapidsms_xforms.models import XForm, XFormField, XFormFieldConstraint, \
-    XFormSubmission, XFormSubmissionValue
-from script.models import Script, ScriptStep, ScriptResponse
+from rapidsms_xforms.models import XFormSubmission, XFormSubmissionValue
 from generic.sorters import SimpleSorter
 from script.utils.handling import find_closest_match
 import datetime
@@ -23,36 +21,30 @@ from rapidsms.models import Connection
 from rapidsms_httprouter.models import Message
 from django.db.models import Q
 from poll.models import Response
-import xlwt
-import zipfile
 from openpyxl.workbook import Workbook
-from openpyxl.writer.excel import ExcelWriter
-from openpyxl.cell import get_column_letter
 import openpyxl
-from django.utils.functional import Promise
-import math
-import tempfile
 import types
-from openpyxl.shared.compat import NamedTemporaryFile, xrange
-import unicodedata
 from django.core.servers.basehttp import FileWrapper
+from models import Access
 
 logger = logging.getLogger(__name__)
+
+
 def get_location_for_user(user):
     """
     if called with an argument, *user*, the location of a user returned (by district)
     """
     if user:
         try:
-            l =  Location.objects.get(name__iexact=user.username, type__name='district')
-            logger.info("Location: %s"%l.name)
+            l = Location.objects.get(name__iexact=user.username, type__name='district')
+            logger.info("Location: %s" % l.name)
             return l
         except Location.DoesNotExist:
             try:
                 if Contact.objects.filter(user=user).exclude(reporting_location=None).exists():
                     return Contact.objects.filter(user=user).exclude(reporting_location=None)[0].reporting_location
             except Exception, e:
-                logger.error("Error: %s"%str(e))
+                logger.error("Error: %s" % str(e))
 
     return Location.tree.root_nodes()[0]
 
@@ -83,12 +75,14 @@ def previous_calendar_quarter():
     start_date = end_date - datetime.timedelta(days=90)
     return (start_date, end_date)
 
+
 TIME_RANGES = {
     'w': previous_calendar_week,
     'm': previous_calendar_month,
     'q': previous_calendar_quarter
 
 }
+
 
 def assign_backend(number):
     """
@@ -112,17 +106,16 @@ def assign_backend(number):
 
 
 def normalize_value(value):
-
     if isinstance(value, tuple(openpyxl.shared.NUMERIC_TYPES)):
         return value
     elif isinstance(value, (bool, datetime.date)):
         return value
-    elif isinstance(value,types.NoneType):
+    elif isinstance(value, types.NoneType):
         return ""
-    elif isinstance(value,types.StringType):
+    elif isinstance(value, types.StringType):
         #print "str"+value
         return value
-    elif isinstance(value,types.ListType):
+    elif isinstance(value, types.ListType):
         return ", ".join(value)
 
     elif isinstance(value, unicode):
@@ -135,15 +128,15 @@ def normalize_value(value):
         print value
         return repr(value)
 
-def create_workbook(data,filename,headers):
 
-    wb = Workbook(optimized_write = True)
+def create_workbook(data, filename, headers):
+    wb = Workbook(optimized_write=True)
     ws = wb.create_sheet()
     if headers:
         ws.append(headers)
 
     for rowx, row in enumerate(data):
-        ws.append(map(normalize_value,list(row)))
+        ws.append(map(normalize_value, list(row)))
 
         #import pdb;pdb.set_trace()
 
@@ -163,7 +156,8 @@ class ExcelResponse(HttpResponse):
     from a form.
     """
 
-    def __init__(self, data, output_name='excel_report.xlsx', headers=None,header=None, write_to_file=False, force_csv=False):
+    def __init__(self, data, output_name='excel_report.xlsx', headers=None, header=None, write_to_file=False,
+                 force_csv=False):
         # Make sure we've got the right type of data to work with
         valid_data = False
         if hasattr(data, '__getitem__'):
@@ -179,25 +173,16 @@ class ExcelResponse(HttpResponse):
         output = StringIO.StringIO()
         mimetype = 'application/vnd.ms-excel'
 
-
-
-        book_created = create_workbook(data,output_name,headers,)
+        book_created = create_workbook(data, output_name, headers, )
 
 
         #book.save(output_name)
         #output.seek(0)
         if not write_to_file:
-            super(ExcelResponse, self).__init__(FileWrapper(open(output_name)),content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            super(ExcelResponse, self).__init__(FileWrapper(open(output_name)),
+                                                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             self['Content-Disposition'] = 'attachment;filename="%s.%s"' % \
                                           (output_name.replace('"', '\"'), "xlsx")
-
-
-
-
-
-
-
-
 
 
 def parse_district_value(value):
@@ -213,12 +198,14 @@ def parse_district_value(value):
     else:
         return toret
 
+
 Poll.register_poll_type('district', 'District Response', parse_district_value, db_type=Attribute.TYPE_OBJECT, \
                         view_template='polls/response_location_view.html',
                         edit_template='polls/response_location_edit.html',
                         report_columns=((('Text', 'text', True, 'message__text', SimpleSorter()), (
                             'Location', 'location', True, 'eav_values__generic_value_id', SimpleSorter()), (
-                                             'Categories', 'categories', True, 'categories__category__name', SimpleSorter()))),
+                                             'Categories', 'categories', True, 'categories__category__name',
+                                             SimpleSorter()))),
                         edit_form=LocationResponseForm)
 
 GROUP_BY_WEEK = 1
@@ -253,7 +240,7 @@ GROUP_BY_SELECTS = {
     GROUP_BY_WEEK: ('week', 'extract(week from rapidsms_xforms_xformsubmission.created)',),
     GROUP_BY_MONTH: ('month', 'extract(month from rapidsms_xforms_xformsubmission.created)',),
     GROUP_BY_QUARTER: ('quarter', 'extract(quarter from rapidsms_xforms_xformsubmission.created)',),
-    }
+}
 
 
 def total_submissions(keyword, start_date, end_date, location, extra_filters=None, group_by_timespan=None):
@@ -276,7 +263,7 @@ def total_submissions(keyword, start_date, end_date, location, extra_filters=Non
         'location_id': 'T%d.id' % tnum,
         'rght': 'T%d.rght' % tnum,
         'lft': 'T%d.lft' % tnum,
-        }
+    }
 
     values = ['location_name', 'location_id', 'lft', 'rght']
     if group_by_timespan:
@@ -317,7 +304,7 @@ def total_attribute_value(attribute_slug_list, start_date, end_date, location, g
         'location_id': 'T8.id',
         'rght': 'T8.rght',
         'lft': 'T8.lft',
-        }
+    }
     values = ['location_name', 'location_id', 'lft', 'rght']
     if group_by_timespan:
         select_value = GROUP_BY_SELECTS[group_by_timespan][0]
@@ -524,15 +511,15 @@ def handle_excel_file(file, group, fields):
             for row in range(1, worksheet.nrows):
                 numbers = parse_telephone(row, worksheet, cols)
                 if len(numbers) > 0:
-                    contact = {}
-                    contact['name'] = parse_name(row, worksheet, cols)
+                    contact = {'name': parse_name(row, worksheet, cols)}
                     district = parse_district(row, worksheet, cols) if 'district' in fields else None
                     village = parse_village(row, worksheet, cols) if 'village' in fields else None
                     birthdate = parse_birthdate(row, worksheet, cols) if 'age' in fields else None
                     gender = parse_gender(row, worksheet, cols) if 'gender' in fields else None
                     if district:
                         contact['reporting_location'] = find_closest_match(district,
-                                                                           Location.objects.filter(kind__name='district'))
+                                                                           Location.objects.filter(
+                                                                               kind__name='district'))
                     if village:
                         contact['village'] = find_closest_match(village, Location.objects)
                     if birthdate:
@@ -579,6 +566,7 @@ def handle_excel_file(file, group, fields):
         info = "Invalid file"
     return info
 
+
 # For QOS testing
 def handle_dongle_sms(message):
     if message.connection.identity in getattr(settings, 'MODEM_NUMBERS',
@@ -589,6 +577,8 @@ def handle_dongle_sms(message):
                                status='Q', connection=message.connection)
         return True
     return False
+
+
 def get_districts_for_user(user):
     if user:
         ret = Location.objects.filter(name__icontains=user.username, type__name='district')
