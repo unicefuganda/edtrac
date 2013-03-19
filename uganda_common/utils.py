@@ -25,7 +25,6 @@ from openpyxl.workbook import Workbook
 import openpyxl
 import types
 from django.core.servers.basehttp import FileWrapper
-from models import Access
 
 logger = logging.getLogger(__name__)
 
