@@ -6,12 +6,8 @@ __author__ = 'kenneth'
 
 
 class AccessMiddleWare(object):
-
-
-    def process_request(self, request):
-        path = request.build_absolute_uri()
-        path = urlparse.urlparse(path)[2]
-        if path.startswith('/static/') or path == '/':
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        if not 'wraps' in view_func.func_globals:
             return None
         if request.user.is_authenticated():
             try:
