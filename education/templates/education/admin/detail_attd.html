@@ -3,6 +3,13 @@
     Dashboard -- {{ block.super }}
 {% endblock %}
 {% block content %}
+    <div style="padding: 10px;margin: 5px;">
+        <form action="/edtrac/detail-attd/" method="post">
+            {{ form.as_table }}
+            <input type="submit" value="Search" />
+        </form>
+    </div>
+    {{ form.errors }}
     <div id="container" style="min-width: 400px; height: 400px; padding-bottom: 40px"></div>
     <div style="margin: 10px; padding: 10px">
         <table class="tabulated-data classy">
@@ -10,42 +17,24 @@
                 <th>
                     District
                 </th>
-                <th>
-                    P3 Pupils Absenteeism Percentage
-                </th>
-                <th>
-                    P6 Pupils Absenteeism Percentage
-                </th>
-                <th>
-                    Teachers Absenteeism Percentage
-                </th>
-                <th>
-                    Male Head Teachers Absenteeism Percentage
-                </th>
-                <th>
-                    Female Head Teachers Absenteeism Percentage
-                </th>
+                {% for value in collective_result.values|slice:"1" %}
+                    {% for k in value.keys %}
+                        <th>
+                            {{ k }} Absenteeism Percentage
+                        </th>
+                    {% endfor %}
+                {% endfor %}
             </tr>
             {% for key, value in collective_result.items %}
                 <tr>
                     <td>
                         {{ key }}
                     </td>
-                    <td>
-                        {{ value.p3_pupils }}
-                    </td>
-                    <td>
-                        {{ value.p6_pupils }}
-                    </td>
-                    <td>
-                        {{ value.teachers }}
-                    </td>
-                    <td>
-                        {{ value.m_head_teachers }}
-                    </td>
-                    <td>
-                        {{ value.f_head_teachers }}
-                    </td>
+                    {% for k,v in value.items %}
+                        <td>
+                            {{ v }}
+                        </td>
+                    {% endfor %}
                 </tr>
             {% endfor %}
         </table>

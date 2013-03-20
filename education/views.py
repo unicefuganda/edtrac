@@ -6,6 +6,7 @@ import operator
 import exceptions
 import copy
 from datetime import date
+import json
 
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -17,7 +18,9 @@ from django.utils.decorators import method_decorator
 from django.views.generic import DetailView, TemplateView, ListView
 from django.db.models import Q
 import xlwt
+from django.utils.safestring import mark_safe
 
+from education.absenteeism_view_helper import get_polls_for_keyword
 from .forms import *
 from .models import *
 from uganda_common.utils import *
@@ -34,9 +37,6 @@ from reversion.models import Revision
 from unregister.models import Blacklist
 from .utils import themes
 from education.absenteeism_view_helper import *
-
-import json
-from django.utils.safestring import mark_safe
 
 
 Num_REG = re.compile('\d+')
@@ -3052,6 +3052,14 @@ def attendance_visualization(req):
         context_instance = RequestContext(req))
 
 
+class AbsenteeismForm(forms.Form):
+    select_choices = [('P3Boys','P3 Boys'),('P3Girls','P3 Girls'), ('P3Pupils','P3 Pupils'),
+                      ('P6Boys','P6 Boys'),('P6Girls','P6 Girls'), ('P6Pupils','P6 Pupils')]
+    from_date = forms.DateTimeField()
+    to_date = forms.DateTimeField()
+    indicator = forms.ChoiceField(choices=select_choices)
+
+
 @login_required
 def detail_attd(request):
     profile = request.user.get_profile()
@@ -3062,28 +3070,46 @@ def detail_attd(request):
         locations = Location.objects.filter(type='district').filter(pk__in= \
             EnrolledDeployedQuestionsAnswered.objects.values_list('school__location__pk', flat=True))
 
-    time_range_depth = 5
-    m_head_teachers_detailed_data, m_head_teachers_aggregated_by_time = get_head_teachers_absent_over_time(locations,
-                                                                                                           'M',
-                                                                                                           time_range_depth)
-    f_head_teachers_detailed_data, f_head_teachers_aggregated_by_time = get_head_teachers_absent_over_time(locations,
-                                                                                                           'F',
-                                                                                                           time_range_depth)
+    time_range_depth = 6
+    week_range = get_week_date(time_range_depth)
 
-    config_list = [dict(attendance_poll=['edtrac_boysp3_attendance', 'edtrac_girlsp3_attendance'], collective_dict_key='p3_pupils',
-                        enrollment_poll=['edtrac_boysp3_enrollment', 'edtrac_girlsp3_enrollment'], time_data_name='P3_Pupils'),
-                   dict(attendance_poll=['edtrac_boysp6_attendance','edtrac_girlsp6_attendance'], collective_dict_key='p6_pupils',
-                        enrollment_poll=['edtrac_boysp6_enrollment','edtrac_girlsp6_enrollment'], time_data_name='P6_Pupils'),
-                   dict(attendance_poll=['edtrac_m_teachers_attendance','edtrac_f_teachers_attendance'], collective_dict_key='teachers',
-                        enrollment_poll=['edtrac_m_teachers_deployment','edtrac_f_teachers_deployment'], time_data_name='Teachers')]
+    absenteeism_form = AbsenteeismForm()
 
-    collective_result, time_data = get_aggregated_report(locations, config_list, time_range_depth)
-    get_collective_result(collective_result, m_head_teachers_detailed_data, f_head_teachers_detailed_data)
-    time_data.extend([dict(name="Male Head Teachers", data=m_head_teachers_aggregated_by_time),
-                     dict(name="Female Head Teachers", data=f_head_teachers_aggregated_by_time)])
-    weeks = ["%s - %s" % (i[0],i[1]) for i in get_week_date(time_range_depth)]
+    if request.method == 'POST':
+        absenteeism_form = AbsenteeismForm(data=request.POST)
+        if absenteeism_form.is_valid():
+            from_date = absenteeism_form.cleaned_data['from_date']
+            to_date = absenteeism_form.cleaned_data['to_date']
+            indicator = absenteeism_form.cleaned_data['indicator']
+            week_range = get_date_range(from_date,to_date)
+            config_list = get_polls_for_keyword(indicator)
+        else:
+            config_list= []
+        collective_result, time_data = get_aggregated_report(locations, config_list, week_range)
+
+    else:
+        #request method GET
+        m_head_teachers_detailed_data, m_head_teachers_aggregated_by_time = get_head_teachers_absent_over_time(locations,
+                                                                                                               'M',
+                                                                                                                week_range)
+        f_head_teachers_detailed_data, f_head_teachers_aggregated_by_time = get_head_teachers_absent_over_time(locations,
+                                                                                                               'F',
+                                                                                                               week_range)
+
+        config_list = [dict(attendance_poll=['edtrac_boysp3_attendance', 'edtrac_girlsp3_attendance'], collective_dict_key='p3_pupils',
+                            enrollment_poll=['edtrac_boysp3_enrollment', 'edtrac_girlsp3_enrollment'], time_data_name='P3_Pupils'),
+                       dict(attendance_poll=['edtrac_boysp6_attendance','edtrac_girlsp6_attendance'], collective_dict_key='p6_pupils',
+                            enrollment_poll=['edtrac_boysp6_enrollment','edtrac_girlsp6_enrollment'], time_data_name='P6_Pupils'),
+                       dict(attendance_poll=['edtrac_m_teachers_attendance','edtrac_f_teachers_attendance'], collective_dict_key='teachers',
+                            enrollment_poll=['edtrac_m_teachers_deployment','edtrac_f_teachers_deployment'], time_data_name='Teachers')]
+
+        collective_result, time_data = get_aggregated_report(locations, config_list, week_range)
+        get_collective_result(collective_result, m_head_teachers_detailed_data, f_head_teachers_detailed_data)
+        time_data.extend([dict(name="Male Head Teachers", data=m_head_teachers_aggregated_by_time),
+                         dict(name="Female Head Teachers", data=f_head_teachers_aggregated_by_time)])
+    weeks = ["%s - %s" % (i[0].strftime("%d/%m/%Y"),i[1].strftime("%d/%m/%Y")) for i in week_range]
     return render_to_response('education/admin/detail_attd.html',
-                              {'collective_result': collective_result, 'time_data': mark_safe(json.dumps(time_data)),
+                              {'form':absenteeism_form,'collective_result': collective_result, 'time_data': mark_safe(json.dumps(time_data)),
                                'weeks': mark_safe(json.dumps(weeks))},
                               RequestContext(request))
 
