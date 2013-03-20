@@ -1,4 +1,3 @@
-import urlparse
 from django.shortcuts import render
 from uganda_common.models import Access
 
