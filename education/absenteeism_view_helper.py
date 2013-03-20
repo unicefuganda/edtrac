@@ -104,7 +104,6 @@ def get_responses_over_depth(attendance_poll_name, enrollment_poll_name, locatio
     district_enrollment = get_district_responses(locations, enrollment_poll)
 
     term_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
-    [filter_over_time_range(date_range, district_responses) for date_range in date_weeks]
     return [filter_over_time_range(date_range, district_responses) for date_range in
             date_weeks], filter_over_time_range(term_range, district_enrollment)
 
