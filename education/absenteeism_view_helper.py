@@ -196,19 +196,30 @@ def get_polls_for_keyword(indicator):
     attendance_poll_dict = dict(P3Boys=['edtrac_boysp3_attendance'], P3Girls=['edtrac_girlsp3_attendance'],
                                 P3Pupils=['edtrac_boysp3_attendance', 'edtrac_girlsp3_attendance'],
                                 P6Boys=['edtrac_boysp6_attendance'], P6Girls=['edtrac_girlsp6_attendance'],
-                                P6Pupils=['edtrac_boysp6_attendance', 'edtrac_girlsp6_attendance'])
+                                P6Pupils=['edtrac_boysp6_attendance', 'edtrac_girlsp6_attendance'],
+                                MaleTeachers=['edtrac_m_teachers_attendance'],FemaleTeachers=['edtrac_f_teachers_attendance'],
+                                Teachers=['edtrac_m_teachers_attendance','edtrac_f_teachers_attendance'])
 
     enrollment_poll_dict = dict(P3Boys=['edtrac_boysp3_enrollment'], P3Girls=['edtrac_girlsp3_enrollment'],
                                 P3Pupils=['edtrac_boysp3_enrollment', 'edtrac_girlsp3_enrollment'],
                                 P6Boys=['edtrac_boysp6_enrollment'], P6Girls=['edtrac_girlsp6_enrollment'],
-                                P6Pupils=['edtrac_boysp6_enrollment', 'edtrac_girlsp6_enrollment'])
+                                P6Pupils=['edtrac_boysp6_enrollment', 'edtrac_girlsp6_enrollment'],
+                                MaleTeachers=['edtrac_m_teachers_deployment'],FemaleTeachers=['edtrac_f_teachers_deployment'],
+                                Teachers=['edtrac_m_teachers_deployment','edtrac_f_teachers_deployment'])
+
     collective_key_dict = dict(P3Boys='p3_boys', P3Girls='p3_girls', P3Pupils='p3_pupils',
-                               P6Boys='p6_boys', P6Girls='p6_girls', P6Pupils='p6_pupils')
+                               P6Boys='p6_boys', P6Girls='p6_girls', P6Pupils='p6_pupils',
+                               MaleTeachers='m_teachers',FemaleTeachers='f_teachers',Teachers='teachers')
 
     time_data_dict = dict(P3Boys='P3_Boys', P3Girls='P3_Girls', P3Pupils='P3_Pupils',
-                          P6Boys='P6_Boys', P6Girls='P6_Girls', P6Pupils='P6_Pupils')
+                          P6Boys='P6_Boys', P6Girls='P6_Girls', P6Pupils='P6_Pupils',
+                          MaleTeachers='M_Teachers',FemaleTeachers='F_Teachers',Teachers='Teachers')
 
-    config_list = [
-        dict(attendance_poll=attendance_poll_dict[indicator], collective_dict_key=collective_key_dict[indicator],
-             enrollment_poll=enrollment_poll_dict[indicator], time_data_name=time_data_dict[indicator])]
+    if indicator == 'all':
+        list_of_values =['P3Pupils','P6Pupils','Teachers']
+        config_list= sum([get_polls_for_keyword(v) for v in list_of_values],[])
+    else:
+        config_list = [
+            dict(attendance_poll=attendance_poll_dict[indicator], collective_dict_key=collective_key_dict[indicator],
+                 enrollment_poll=enrollment_poll_dict[indicator], time_data_name=time_data_dict[indicator])]
     return config_list

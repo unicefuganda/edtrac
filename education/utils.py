@@ -24,6 +24,29 @@ from django.db.models import Avg
 from unregister.models import Blacklist
 from time import strftime
 
+def is_empty(arg):
+    """
+    Generalizes 'empty' checks on Strings, sequences, and dicts.
+
+    Returns 'True' for None, empty strings, strings with just white-space,
+    and sequences with len == 0
+    """
+
+    if arg is None:
+        return True
+
+    if isinstance(arg, basestring):
+        arg = arg.strip()
+
+    try:
+        if not len(arg):
+            return True
+    except TypeError:
+        # wasn't a sequence
+        pass
+
+    return False
+
 def time_to_10am(d):
     return datetime.datetime(d.year, d.month, d.day, 10, 0, 0, 0)
 

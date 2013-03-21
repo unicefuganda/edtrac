@@ -6,50 +6,53 @@
     <div style="padding: 10px;margin: 5px;">
         <form action="/edtrac/detail-attd/" method="post">
             {{ form.as_table }}
-            <input type="submit" value="Search" />
+            <input type="submit" value="Search"/>
         </form>
     </div>
-    {{ form.errors }}
-    <div id="container" style="min-width: 400px; height: 400px; padding-bottom: 40px"></div>
-    <div style="margin: 10px; padding: 10px">
-        <table class="tabulated-data classy">
-            <tr>
-                <th>
-                    District
-                </th>
-                {% for value in collective_result.values|slice:"1" %}
-                    {% for k in value.keys %}
-                        <th>
-                            {{ k }} Absenteeism Percentage
-                        </th>
-                    {% endfor %}
-                {% endfor %}
-            </tr>
-            {% for key, value in collective_result.items %}
+    {% if collective_result %}
+
+        <div id="container" style="min-width: 400px; height: 400px; padding-bottom: 40px"></div>
+        <div style="margin: 10px; padding: 10px">
+            <table class="tabulated-data classy">
                 <tr>
-                    <td>
-                        {{ key }}
-                    </td>
-                    {% for k,v in value.items %}
-                        <td>
-                            {{ v }}
-                        </td>
+                    <th>
+                        District
+                    </th>
+                    {% for value in collective_result.values|slice:"1" %}
+                        {% for k in value.keys %}
+                            <th>
+                                {{ k }} Absenteeism Percentage
+                            </th>
+                        {% endfor %}
                     {% endfor %}
                 </tr>
-            {% endfor %}
-        </table>
-    </div>
-    <script type="text/javascript">
-        $(document).ready(function () {
-            load_line_graph("Absenteeism Over Current Month",
-                    "",
-                    "container",
-                    "Absent-count",
-                    "Weeks",
-                   '{{ weeks }}',
-                    '{{ time_data }}');
+                {% for key, value in collective_result.items %}
+                    <tr>
+                        <td>
+                            {{ key }}
+                        </td>
+                        {% for k,v in value.items %}
+                            <td>
+                                {{ v }}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <script type="text/javascript">
+            $(document).ready(function () {
+                load_line_graph("Absenteeism Over Current Month",
+                        "",
+                        "container",
+                        "Absent-count",
+                        "Weeks",
+                        '{{ weeks }}',
+                        '{{ time_data }}');
 
-        });
+            });
 
-    </script>
+        </script>
+    {% endif %}
+
 {% endblock %}

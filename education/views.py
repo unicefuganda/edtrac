@@ -3053,12 +3053,23 @@ def attendance_visualization(req):
 
 
 class AbsenteeismForm(forms.Form):
+    error_css_class = 'error'
     select_choices = [('P3Boys','P3 Boys'),('P3Girls','P3 Girls'), ('P3Pupils','P3 Pupils'),
-                      ('P6Boys','P6 Boys'),('P6Girls','P6 Girls'), ('P6Pupils','P6 Pupils')]
-    from_date = forms.DateTimeField()
-    to_date = forms.DateTimeField()
-    indicator = forms.ChoiceField(choices=select_choices)
+                      ('P6Boys','P6 Boys'),('P6Girls','P6 Girls'), ('P6Pupils','P6 Pupils'),
+                      ('MaleTeachers','Male Teachers'),('FemaleTeachers','Female Teachers'), ('Teachers','Teachers'),
+                      ('all','--')]
+    from_date = forms.DateTimeField(required=False)
+    to_date = forms.DateTimeField(required=False)
+    indicator = forms.ChoiceField(choices=select_choices, required=False)
 
+    def clean(self):
+        data = self.cleaned_data
+        if data.get('from_date') is None or data.get('to_date') is None:
+            if is_empty(data.get('indicator')):
+                raise forms.ValidationError("Fields blank")
+        if data.get('from_date') > data.get('to_date'):
+            raise forms.ValidationError("To date less than from date")
+        return data
 
 @login_required
 def detail_attd(request):
@@ -3071,47 +3082,64 @@ def detail_attd(request):
             EnrolledDeployedQuestionsAnswered.objects.values_list('school__location__pk', flat=True))
 
     time_range_depth = 6
-    week_range = get_week_date(time_range_depth)
-
-    absenteeism_form = AbsenteeismForm()
-
     if request.method == 'POST':
         absenteeism_form = AbsenteeismForm(data=request.POST)
         if absenteeism_form.is_valid():
-            from_date = absenteeism_form.cleaned_data['from_date']
-            to_date = absenteeism_form.cleaned_data['to_date']
+            from_date = dateutils.increment(datetime.datetime.now(), weeks=-8) if absenteeism_form.cleaned_data['from_date'] is None else absenteeism_form.cleaned_data['from_date']
+            to_date = datetime.datetime.now() if absenteeism_form.cleaned_data['to_date'] is None else absenteeism_form.cleaned_data['to_date']
+
             indicator = absenteeism_form.cleaned_data['indicator']
-            week_range = get_date_range(from_date,to_date)
+            week_range = get_date_range(from_date, to_date)
             config_list = get_polls_for_keyword(indicator)
+            collective_result, time_data = get_aggregated_report(locations, config_list, week_range)
+            weeks = ["%s - %s" % (i[0].strftime("%d/%m/%Y"), i[1].strftime("%d/%m/%Y")) for i in week_range]
+            return render_to_response('education/admin/detail_attd.html',
+                               {'form': absenteeism_form, 'collective_result': collective_result,
+                                'time_data': mark_safe(json.dumps(time_data)),
+                                'weeks': mark_safe(json.dumps(weeks))},
+                               RequestContext(request))
         else:
-            config_list= []
-        collective_result, time_data = get_aggregated_report(locations, config_list, week_range)
+            return render_to_response('education/admin/detail_attd.html',
+                               {'form': absenteeism_form}, RequestContext(request))
 
     else:
         #request method GET
-        m_head_teachers_detailed_data, m_head_teachers_aggregated_by_time = get_head_teachers_absent_over_time(locations,
-                                                                                                               'M',
-                                                                                                                week_range)
-        f_head_teachers_detailed_data, f_head_teachers_aggregated_by_time = get_head_teachers_absent_over_time(locations,
-                                                                                                               'F',
-                                                                                                               week_range)
+        absenteeism_form = AbsenteeismForm(initial={'indicator': 'all'})
+        week_range = get_week_date(time_range_depth)
 
-        config_list = [dict(attendance_poll=['edtrac_boysp3_attendance', 'edtrac_girlsp3_attendance'], collective_dict_key='p3_pupils',
-                            enrollment_poll=['edtrac_boysp3_enrollment', 'edtrac_girlsp3_enrollment'], time_data_name='P3_Pupils'),
-                       dict(attendance_poll=['edtrac_boysp6_attendance','edtrac_girlsp6_attendance'], collective_dict_key='p6_pupils',
-                            enrollment_poll=['edtrac_boysp6_enrollment','edtrac_girlsp6_enrollment'], time_data_name='P6_Pupils'),
-                       dict(attendance_poll=['edtrac_m_teachers_attendance','edtrac_f_teachers_attendance'], collective_dict_key='teachers',
-                            enrollment_poll=['edtrac_m_teachers_deployment','edtrac_f_teachers_deployment'], time_data_name='Teachers')]
+        m_head_teachers_detailed_data, m_head_teachers_aggregated_by_time = get_head_teachers_absent_over_time(
+            locations,
+            'M',
+            week_range)
+        f_head_teachers_detailed_data, f_head_teachers_aggregated_by_time = get_head_teachers_absent_over_time(
+            locations,
+            'F',
+            week_range)
+
+        config_list = [dict(attendance_poll=['edtrac_boysp3_attendance', 'edtrac_girlsp3_attendance'],
+                            collective_dict_key='p3_pupils',
+                            enrollment_poll=['edtrac_boysp3_enrollment', 'edtrac_girlsp3_enrollment'],
+                            time_data_name='P3_Pupils'),
+                       dict(attendance_poll=['edtrac_boysp6_attendance', 'edtrac_girlsp6_attendance'],
+                            collective_dict_key='p6_pupils',
+                            enrollment_poll=['edtrac_boysp6_enrollment', 'edtrac_girlsp6_enrollment'],
+                            time_data_name='P6_Pupils'),
+                       dict(attendance_poll=['edtrac_m_teachers_attendance', 'edtrac_f_teachers_attendance'],
+                            collective_dict_key='teachers',
+                            enrollment_poll=['edtrac_m_teachers_deployment', 'edtrac_f_teachers_deployment'],
+                            time_data_name='Teachers')]
 
         collective_result, time_data = get_aggregated_report(locations, config_list, week_range)
         get_collective_result(collective_result, m_head_teachers_detailed_data, f_head_teachers_detailed_data)
         time_data.extend([dict(name="Male Head Teachers", data=m_head_teachers_aggregated_by_time),
-                         dict(name="Female Head Teachers", data=f_head_teachers_aggregated_by_time)])
-    weeks = ["%s - %s" % (i[0].strftime("%d/%m/%Y"),i[1].strftime("%d/%m/%Y")) for i in week_range]
-    return render_to_response('education/admin/detail_attd.html',
-                              {'form':absenteeism_form,'collective_result': collective_result, 'time_data': mark_safe(json.dumps(time_data)),
-                               'weeks': mark_safe(json.dumps(weeks))},
-                              RequestContext(request))
+                          dict(name="Female Head Teachers", data=f_head_teachers_aggregated_by_time)])
+
+        weeks = ["%s - %s" % (i[0].strftime("%d/%m/%Y"), i[1].strftime("%d/%m/%Y")) for i in week_range]
+        return render_to_response('education/admin/detail_attd.html',
+                                  {'form': absenteeism_form, 'collective_result': collective_result,
+                                   'time_data': mark_safe(json.dumps(time_data)),
+                                   'weeks': mark_safe(json.dumps(weeks))},
+                                  RequestContext(request))
 
 
 def get_collective_result(result,m_head_t,f_head_t):
