@@ -3085,7 +3085,7 @@ def detail_attd(request):
     if request.method == 'POST':
         absenteeism_form = AbsenteeismForm(data=request.POST)
         if absenteeism_form.is_valid():
-            from_date = dateutils.increment(datetime.datetime.now(), weeks=-8) if absenteeism_form.cleaned_data['from_date'] is None else absenteeism_form.cleaned_data['from_date']
+            from_date = dateutils.increment(datetime.datetime.now(), weeks=-4) if absenteeism_form.cleaned_data['from_date'] is None else absenteeism_form.cleaned_data['from_date']
             to_date = datetime.datetime.now() if absenteeism_form.cleaned_data['to_date'] is None else absenteeism_form.cleaned_data['to_date']
 
             indicator = absenteeism_form.cleaned_data['indicator']
