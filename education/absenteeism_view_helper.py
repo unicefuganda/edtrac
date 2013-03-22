@@ -5,9 +5,9 @@ from django.conf import settings
 
 from django.db.models import Sum, Count
 
-from education.models import EmisReporter
-from education.reports import get_week_date
-from poll.models import Poll, ResponseCategory
+from education.models import EmisReporter, School
+from education.utils import is_empty
+from poll.models import Poll, ResponseCategory, Response
 
 
 def get_aggregated_report(locations, config_list, date_weeks):
@@ -26,7 +26,8 @@ def get_aggregation_by_time(filtered_responses):
     for responses in filtered_responses:
         sum_value = 0
         for response in responses:
-            sum_value += response.values()[0]
+            if response.values()[0] is not None:
+                sum_value += response.values()[0]
         aggregated_list.append(sum_value)
     return aggregated_list
 
@@ -36,7 +37,8 @@ def get_aggregation_by_location(filtered_responses):
     for responses in filtered_responses:
         for response in responses:
             for key in response:
-                aggregated_dict[key] += response[key]
+                if response[key] is not None:
+                    aggregated_dict[key] += response[key]
     return aggregated_dict
 
 
@@ -62,24 +64,48 @@ def get_aggregated_list(result, list_to_add):
             result[index] += list_to_add[index]
 
 
+def _transform(responses):
+    ret=[]
+    for response in responses:
+        temp =[]
+        for item in response:
+            temp.append({item[0]:item[1]})
+        ret.append(temp)
+    return ret
+
+
 def get_responses_by_location(locations, attendance_poll_names, enrollment_poll_names, date_weeks):
     total_enrollment = 0
     total_enrollment_by_location = defaultdict(lambda: 0)
     total_present_by_location = defaultdict(lambda: 0)
     total_present_by_time = []
     for index, attendance_poll_name in enumerate(attendance_poll_names):
-        filtered_responses, filtered_enrollment = get_responses_over_depth(attendance_poll_name,
+
+        if len(locations)==1:
+            res = [filter_over_time_range( date_range , get_school_responses(locations[0],attendance_poll_name)) for date_range in date_weeks]
+            tr_res = _transform(res)
+            get_aggregated_result(total_present_by_location, get_aggregation_by_location(tr_res))
+
+            en = get_school_responses(locations[0],enrollment_poll_names[index])
+            tr_en = _transform([en])
+            get_aggregated_result(total_enrollment_by_location, get_aggregation_by_location(tr_en))
+            total_enrollment += sum(total_enrollment_by_location.values())
+            get_aggregated_list(total_present_by_time, get_aggregation_by_time(tr_res))
+        else:
+
+
+            filtered_responses, filtered_enrollment = get_responses_over_depth(attendance_poll_name,
                                                                            enrollment_poll_names[index],
                                                                            list(locations), date_weeks)
 
-        transformed_enrollment = transform([filtered_enrollment])
-        get_aggregated_result(total_enrollment_by_location, get_aggregation_by_location(transformed_enrollment))
-        total_enrollment += sum(total_enrollment_by_location.values())
+            transformed_responses = transform(filtered_responses)
+            get_aggregated_result(total_present_by_location, get_aggregation_by_location(transformed_responses))
 
-        transformed_responses = transform(filtered_responses)
-        get_aggregated_result(total_present_by_location, get_aggregation_by_location(transformed_responses))
-        get_aggregated_list(total_present_by_time, get_aggregation_by_time(transformed_responses))
+            transformed_enrollment = transform([filtered_enrollment])
+            get_aggregated_result(total_enrollment_by_location, get_aggregation_by_location(transformed_enrollment))
+            total_enrollment += sum(total_enrollment_by_location.values())
 
+            get_aggregated_list(total_present_by_time, get_aggregation_by_time(transformed_responses))
     absent_by_time = [round(compute_percent(i, total_enrollment), 2) for i in total_present_by_time]
 
     absent_by_location = {}
@@ -88,6 +114,19 @@ def get_responses_by_location(locations, attendance_poll_names, enrollment_poll_
             compute_percent(total_present_by_location[key], total_enrollment_by_location[key] * len(date_weeks)), 2)
 
     return absent_by_location, absent_by_time
+
+def get_school_responses(location,poll_name):
+    poll= Poll.objects.get(name=poll_name)
+    schools=School.objects.filter(location=location)
+    a_set = set()
+    for school in schools:
+        a_set.add(poll.responses.filter(contact__reporting_location=location,contact__in=school.emisreporter_set.all()).values('id'))
+    temp = [i for i in a_set if not is_empty(i)]
+    a_set =[item['id'] for sublist in temp for item in sublist]
+    to_ret = Response.objects.filter(pk__in = a_set).values_list('contact__emisreporter__schools__name').annotate(Sum('eav_values__value_float'))
+    return to_ret
+
+
 
 
 def get_district_responses(locations, poll):
@@ -152,8 +191,6 @@ def get_head_teachers_absent_over_time(locations, gender, date_weeks):
         calculate_yes_and_no_for_time(yes_by_time, no_by_time, resp_by_time)
         calculate_yes_and_no_for_location(yes_by_location, no_by_location, resp_by_time)
 
-    print yes_by_location, no_by_location
-    print yes_by_time, no_by_time
     absent_percent_by_time = [compute_percent(yes_by_time[i], (yes_by_time[i] + no_by_time[i])) for i in
                               range(len(yes_by_time))]
     absent_percent_by_location = {}

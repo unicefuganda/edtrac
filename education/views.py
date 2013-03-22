@@ -3135,6 +3135,9 @@ def detail_attd(request):
                           dict(name="Female Head Teachers", data=f_head_teachers_aggregated_by_time)])
 
         weeks = ["%s - %s" % (i[0].strftime("%d/%m/%Y"), i[1].strftime("%d/%m/%Y")) for i in week_range]
+        print "#########################################################"
+        print collective_result
+        print time_data
         return render_to_response('education/admin/detail_attd.html',
                                   {'form': absenteeism_form, 'collective_result': collective_result,
                                    'time_data': mark_safe(json.dumps(time_data)),
