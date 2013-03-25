@@ -188,7 +188,15 @@ class SchoolForm(forms.ModelForm):
 #        self.fields['location'] = TreeNodeChoiceField(queryset=self.fields['location'].queryset, level_indicator=u'.')
         self.fields['location'] = forms.ModelChoiceField(queryset=Location.objects.filter(type='district').order_by('name'))
         self.fields['name'] = forms.CharField(required=False, max_length=160)
-        self.fields['emis_id'] = forms.CharField(required=False, max_length=10)
+#        self.fields['emis_id'] = forms.CharField(required=False, max_length=10)
+        
+    def save(self, commit=True):
+        school = super(SchoolForm, self).save(commit=False)
+        name = self.cleaned_data.get('name')
+        if commit:
+            school.save()
+        return school
+                
 
 
 class FreeSearchSchoolsForm(FilterForm):

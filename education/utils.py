@@ -538,6 +538,7 @@ def _schedule_termly_script(group, connection, script_slug, role_names, date=Non
         sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
         sp.set_time(d)
 
+
 def compute_total(chunkit):
     # function takes in a list of tuples (school_name,value) ---> all grades p1 to p7
     new_dict = {}

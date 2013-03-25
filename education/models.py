@@ -410,7 +410,9 @@ def edtrac_autoreg(**kwargs):
         _schedule_teacher_weekly_scripts(group, connection, ['Teachers'])
         _schedule_weekly_scripts(group, connection, ['Head Teachers', 'SMC'])
         #_schedule_monthly_script(group, connection, 'edtrac_teachers_monthly', 'last', ['Teachers'])
-        _schedule_monthly_script(group, connection, 'edtrac_head_teachers_monthly', 'last', ['Head Teachers'])
+#        _schedule_monthly_script(group, connection, 'edtrac_head_teachers_monthly', 'last', ['Head Teachers'])
+        _schedule_monthly_script(group, connection, 'edtrac_headteacher_violence_monthly', 20, ['Head Teachers'])
+        _schedule_monthly_script(group, connection, 'edtrac_headteacher_meals_monthly', 26, ['Head Teachers'])
         _schedule_monthly_script(group, connection, 'edtrac_smc_monthly', 5, ['SMC'])
         _schedule_monthly_script(group, connection, 'edtrac_gem_monthly', 20, ['GEM'])
         #termly messages go out mid April, July or November by default, this can be overwridden by manual process
@@ -679,6 +681,25 @@ def reschedule_termly_script(grp = 'all', date=None, slug='edtrac_teacher_deploy
     for rep in reps:
         if rep.default_connection and rep.groups.count() > 0:
             _schedule_termly_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers', 'SMC'], date)
+            
+def reschedule_monthly_script(grp = 'all', date=None, slug=''):
+    
+    """
+    manually reschedule each of the monthly scripts for headteachers
+    """
+    
+    tscript = Script.objects.get(slug=slug)
+    if not grp == 'all':
+        ScriptProgress.objects.filter(script=tscript).filter(connection__contact__emisreporter__groups__name__iexact=grp).delete()
+    else:
+        ScriptProgress.objects.filter(script=tscript).delete()
+        
+    tscript.enabled=True
+    grps = Group.objects.filter(name__iexact=grp) if not grp == 'all' else Group.objects.filter(name__in=['Head Teachers', 'SMC'])
+    reps = EmisReporter.objects.filter(groups__in=grps)
+    for rep in reps:
+        if rep.default_connection and rep.groups.count() > 0:
+            _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers', 'SMC'], date)
     
 def reschedule_weekly_script(grp = 'all', date=None, slug='edtrac_p3_teachers_weekly'):
     
