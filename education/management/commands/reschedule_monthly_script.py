@@ -5,7 +5,7 @@ Created on Mar 25, 2013
 '''
 
 from django.core.management.base import BaseCommand
-from education.models import reschedule_monthly_script
+from education.models import reschedule_termly_script
 from optparse import OptionParser, make_option
 from education.utils import _next_term_question_date
 from rapidsms.models import Connection
@@ -34,6 +34,6 @@ class Command(BaseCommand):
         else:
             slug = options['slug']
             
-        reschedule_monthly_script(grp=group, date=date, slug=slug)    
+        reschedule_termly_script(grp=group, date=date, slug=slug)    
         self.stdout.write('')
         self.stdout.write('done!')

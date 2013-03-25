@@ -7,7 +7,8 @@ from django.db.models import Q
 from django.forms import ValidationError
 from eav.models import Attribute
 from education.utils import _schedule_weekly_scripts, _schedule_weekly_scripts_now, _schedule_monthly_script, _schedule_termly_script,\
-    _schedule_weekly_report, _schedule_monthly_report, _schedule_midterm_script, _schedule_weekly_script, _schedule_teacher_weekly_scripts
+    _schedule_weekly_report, _schedule_monthly_report, _schedule_midterm_script, _schedule_weekly_script, _schedule_teacher_weekly_scripts,\
+    _schedule_new_monthly_script
 from rapidsms_httprouter.models import mass_text_sent
 from rapidsms.models import Contact, ContactBase
 from rapidsms.contrib.locations.models import Location
@@ -411,8 +412,8 @@ def edtrac_autoreg(**kwargs):
         _schedule_weekly_scripts(group, connection, ['Head Teachers', 'SMC'])
         #_schedule_monthly_script(group, connection, 'edtrac_teachers_monthly', 'last', ['Teachers'])
 #        _schedule_monthly_script(group, connection, 'edtrac_head_teachers_monthly', 'last', ['Head Teachers'])
-        _schedule_monthly_script(group, connection, 'edtrac_headteacher_violence_monthly', 20, ['Head Teachers'])
-        _schedule_monthly_script(group, connection, 'edtrac_headteacher_meals_monthly', 26, ['Head Teachers'])
+        _schedule_new_monthly_script(group, connection, 'edtrac_headteacher_violence_monthly', ['Head Teachers'])
+        _schedule_new_monthly_script(group, connection, 'edtrac_headteacher_meals_monthly', ['Head Teachers'])
         _schedule_monthly_script(group, connection, 'edtrac_smc_monthly', 5, ['SMC'])
         _schedule_monthly_script(group, connection, 'edtrac_gem_monthly', 20, ['GEM'])
         #termly messages go out mid April, July or November by default, this can be overwridden by manual process
@@ -663,7 +664,7 @@ def reschedule_termly_polls(grp = 'all', date=None):
             if rep.default_connection and rep.groups.count() > 0:
                 _schedule_termly_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers', 'SMC'], date)
                 
-def reschedule_termly_script(grp = 'all', date=None, slug='edtrac_teacher_deployment_headteacher_termly'):
+def reschedule_termly_script(grp = 'all', date=None, slug=''):
     
     """
     manually reschedule each of the termly scripts for headteachers
@@ -699,7 +700,7 @@ def reschedule_monthly_script(grp = 'all', date=None, slug=''):
     reps = EmisReporter.objects.filter(groups__in=grps)
     for rep in reps:
         if rep.default_connection and rep.groups.count() > 0:
-            _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers', 'SMC'], date)
+            _schedule_new_monthly_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers', 'SMC'], date)
     
 def reschedule_weekly_script(grp = 'all', date=None, slug='edtrac_p3_teachers_weekly'):
     

@@ -537,6 +537,25 @@ def _schedule_termly_script(group, connection, script_slug, role_names, date=Non
     if group.name in role_names:
         sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
         sp.set_time(d)
+        
+def _schedule_new_monthly_script(group, connection, script_slug, role_names, date=None):
+    """
+    This method is called within a loop over several connections or for an individual connection
+    and it sets the start time for a script to _next_term_question_date() or _next_midterm() or to date passed to it as a String argument
+    in the format YYYY-mm-dd
+    """
+#    d = None
+    if date:
+        now = datetime.datetime.now()
+        dl = date.split('-')
+        d = datetime.datetime(int(dl[0]), int(dl[1]), int(dl[2]), now.hour, now.minute, now.second, now.microsecond)
+    else:
+        d = _next_term_question_date()
+        if group.name == 'SMC':
+            d = _next_term_question_date(True)
+    if group.name in role_names:
+        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
+        sp.set_time(d)
 
 
 def compute_total(chunkit):
