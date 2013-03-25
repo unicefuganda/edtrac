@@ -1,17 +1,18 @@
+import datetime
+import calendar
+import time
+import re
+
 from django import template
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
-from education.models import School
+from django.utils.safestring import mark_safe
+
 from rapidsms.contrib.locations.models import Location
 from rapidsms_xforms.models import XFormSubmission
 from poll.models import Response
-import datetime
-from django.utils.safestring import mark_safe
-import calendar
-import time
-import re
-from education.reports import get_month_day_range
+
 
 def get_section(path):
     pos = path.split('/')
@@ -293,11 +294,10 @@ def termly(obj):
 def key(d, key_string):
     return d.get(key_string,'--')
 
-def make_url_for_detail_attd(view_name, key_string):
-    if view_name == "school-detail":
-        school = School.objects.get(name=key_string)
-        return reverse(str(view_name),args=(school.id,))
-    return reverse(str(view_name), args=(key_string,))
+def make_url_for_detail_attd(locations, key_string):
+    if len(locations) == 1:
+        return "%s?school=%s" % (reverse("detail-attendance-school", args=(locations[0].name,)), key_string)
+    return reverse('detail-attendance-visualization', args=(key_string,))
 
 register = template.Library()
 register.filter('section', get_section)

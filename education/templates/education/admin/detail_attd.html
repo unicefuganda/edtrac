@@ -55,7 +55,7 @@
                 {% for key, value in collective_result.items %}
                     <tr>
                         <td>
-                            <a href="">{{ key }}</a>
+                            <a href="{{ locations|make_url_for_detail_attd:key }}">{{ key }}</a>
                         </td>
                     {% for key_name in collective_result_keys %}
                             <td>

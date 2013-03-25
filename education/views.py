@@ -10,7 +10,7 @@ import json
 
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, render_to_response
+from django.shortcuts import get_object_or_404, render_to_response, redirect
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import user_passes_test
@@ -3081,15 +3081,12 @@ def detail_attd(request, district=None):
     if district is None:
         profile = request.user.get_profile()
         locations = [profile.location]
-        view_name = "school-detail"
         if profile.is_member_of('Ministry Officials') or profile.is_member_of(
                 'Admins') or profile.is_member_of('UNICEF Officials'):
             locations = Location.objects.filter(type='district').filter(pk__in= \
                 EnrolledDeployedQuestionsAnswered.objects.values_list('school__location__pk', flat=True))
-            view_name = "detail-attendance-visualization"
     else:
         locations = [Location.objects.get(name__iexact=district, type__name='district')]
-        view_name = "school-detail"
 
     time_range_depth = 6
     if request.method == 'POST':
@@ -3107,7 +3104,7 @@ def detail_attd(request, district=None):
                                                                   config_list],
                                        'time_data': mark_safe(json.dumps(time_data)),
                                        'weeks': mark_safe(json.dumps(weeks)),
-                                       "view_name": view_name},
+                                       "locations": locations},
                                       RequestContext(request))
         else:
             return render_to_response('education/admin/detail_attd.html',
@@ -3128,5 +3125,11 @@ def detail_attd(request, district=None):
                                    'collective_result': collective_result,
                                    'time_data': mark_safe(json.dumps(time_data)),
                                    'weeks': mark_safe(json.dumps(weeks)),
-                                   "view_name": view_name},
+                                   "locations": locations},
                                   RequestContext(request))
+
+@login_required
+def detail_attd_school(request, location):
+    name = request.GET['school']
+    school_id = School.objects.get(name=name, location__name=location).id
+    return redirect(reverse('school-detail',args=(school_id,)))
