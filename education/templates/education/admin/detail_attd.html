@@ -30,6 +30,12 @@
                 </ul>
             </form>
         </fieldset>
+        <script>
+            $(function(){
+                $('#id_from_date').datepicker();
+                $('#id_to_date').datepicker();
+            });
+        </script>
     </div>
     {% if time_data %}
 
@@ -42,7 +48,7 @@
                     </th>
                     {% for value in collective_result_keys %}
                         <th>
-                            {{ value }} Absenteeism Percentage
+                            {{ value}} Absenteeism Percentage
                         </th>
                     {% endfor %}
                 </tr>

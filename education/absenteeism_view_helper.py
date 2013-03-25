@@ -254,16 +254,11 @@ def get_polls_for_keyword(indicator):
                                 FemaleTeachers=['edtrac_f_teachers_deployment'],
                                 Teachers=['edtrac_m_teachers_deployment', 'edtrac_f_teachers_deployment'])
 
-    collective_key_dict = dict(P3Boys='p3_boys', P3Girls='p3_girls', P3Pupils='p3_pupils',
-                               P6Boys='p6_boys', P6Girls='p6_girls', P6Pupils='p6_pupils',
-                               MaleTeachers='m_teachers', FemaleTeachers='f_teachers', Teachers='teachers',
-                               MaleHeadTeachers='m_h_teachers', FemaleHeadTeachers='f_h_teachers',
-                               HeadTeachers='h_teachers')
-
-    time_data_dict = dict(P3Boys='P3_Boys', P3Girls='P3_Girls', P3Pupils='P3_Pupils',
-                          P6Boys='P6_Boys', P6Girls='P6_Girls', P6Pupils='P6_Pupils',
-                          MaleTeachers='M_Teachers', FemaleTeachers='F_Teachers', Teachers='Teachers',
-                          FemaleHeadTeachers='F_H_Teachers', MaleHeadTeachers='M_H_Teachers', HeadTeachers='H_Teachers')
+    collective_key_dict = dict(P3Boys='P3 Boys', P3Girls='P3 Girls', P3Pupils='P3 Pupils',
+                               P6Boys='P6 Boys', P6Girls='P6 Girls', P6Pupils='P6 Pupils',
+                               MaleTeachers='Male Teachers', FemaleTeachers='Female Teachers', Teachers='Teachers',
+                               MaleHeadTeachers='Male Head Teachers', FemaleHeadTeachers='Female Head Teachers',
+                               HeadTeachers='Head Teachers')
 
     gender_dict = dict(FemaleHeadTeachers='F', MaleHeadTeachers='M')
 
@@ -273,14 +268,14 @@ def get_polls_for_keyword(indicator):
     elif indicator in ['MaleHeadTeachers', 'FemaleHeadTeachers']:
         config_list = [dict(func=get_head_teachers_absent_over_time, gender=gender_dict[indicator],
                             collective_dict_key=collective_key_dict[indicator],
-                            time_data_name=time_data_dict[indicator])]
+                            time_data_name=collective_key_dict[indicator])]
     elif indicator in ['HeadTeachers']:
         config_list = [dict(func=get_head_teachers_absent_over_time,
                             collective_dict_key=collective_key_dict[indicator],
-                            time_data_name=time_data_dict[indicator])]
+                            time_data_name=collective_key_dict[indicator])]
     else:
         config_list = [
             dict(attendance_poll=attendance_poll_dict[indicator], collective_dict_key=collective_key_dict[indicator],
-                 enrollment_poll=enrollment_poll_dict[indicator], time_data_name=time_data_dict[indicator],
+                 enrollment_poll=enrollment_poll_dict[indicator], time_data_name=collective_key_dict[indicator],
                  func=get_responses_by_location)]
     return config_list

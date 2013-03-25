@@ -3100,7 +3100,7 @@ def detail_attd(request, district=None):
                                         absenteeism_form.cleaned_data['to_date'], time_range_depth)
             config_list = get_polls_for_keyword(indicator)
             collective_result, time_data = get_aggregated_report(locations, config_list, week_range)
-            weeks = ["%s - %s" % (i[0].strftime("%d/%m/%Y"), i[1].strftime("%d/%m/%Y")) for i in week_range]
+            weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in week_range]
             return render_to_response('education/admin/detail_attd.html',
                                       {'form': absenteeism_form, 'collective_result': collective_result,
                                        'collective_result_keys': [config['collective_dict_key'] for config in
@@ -3121,7 +3121,7 @@ def detail_attd(request, district=None):
         config_list = get_polls_for_keyword("all")
         collective_result, time_data = get_aggregated_report(locations, config_list, week_range)
 
-        weeks = ["%s - %s" % (i[0].strftime("%d/%m/%Y"), i[1].strftime("%d/%m/%Y")) for i in week_range]
+        weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in week_range]
         return render_to_response('education/admin/detail_attd.html',
                                   {'form': absenteeism_form,
                                    'collective_result_keys': [config['collective_dict_key'] for config in config_list],
