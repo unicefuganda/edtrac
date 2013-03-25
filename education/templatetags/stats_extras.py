@@ -1,6 +1,8 @@
 from django import template
+from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
+from education.models import School
 from rapidsms.contrib.locations.models import Location
 from rapidsms_xforms.models import XFormSubmission
 from poll.models import Response
@@ -291,6 +293,12 @@ def termly(obj):
 def key(d, key_string):
     return d.get(key_string,'--')
 
+def make_url_for_detail_attd(view_name, key_string):
+    if view_name == "school-detail":
+        school = School.objects.get(name=key_string)
+        return reverse(str(view_name),args=(school.id,))
+    return reverse(str(view_name), args=(key_string,))
+
 register = template.Library()
 register.filter('section', get_section)
 register.filter('parent', get_parent)
@@ -312,4 +320,5 @@ register.filter('headteacher_connection',headteacher_connection)
 register.filter('hash', hash)
 register.filter('get_district', get_district)
 register.filter('key', key)
+register.filter('make_url_for_detail_attd', make_url_for_detail_attd)
 register.tag('date_range', do_date_range)

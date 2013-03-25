@@ -47,8 +47,14 @@ def _make_transformed_list_of_dict(data):
     return [{item['contact__reporting_location__name']: item['eav_values__value_float__sum']} for item in data if
             item['eav_values__value_float__sum'] is not None]
 
+def _make_transformed_list_of_dict_for_schools(data):
+    return [{item['contact__emisreporter__schools__name']: item['eav_values__value_float__sum']} for item in data if
+            item['eav_values__value_float__sum'] is not None]
 
-def transform(untransformed_data):
+
+def transform(untransformed_data, locations):
+    if len(locations) == 1:
+        return [_make_transformed_list_of_dict_for_schools(data) for data in untransformed_data]
     return [_make_transformed_list_of_dict(data) for data in untransformed_data]
 
 
@@ -65,16 +71,6 @@ def get_aggregated_list(result, list_to_add):
             result[index] += list_to_add[index]
 
 
-def _transform(responses):
-    ret = []
-    for response in responses:
-        temp = []
-        for item in response:
-            temp.append({item[0]: item[1]})
-        ret.append(temp)
-    return ret
-
-
 def get_responses_by_location(locations, config_list, date_weeks):
     attendance_poll_names = config_list['attendance_poll']
     enrollment_poll_names = config_list['enrollment_poll']
@@ -84,30 +80,18 @@ def get_responses_by_location(locations, config_list, date_weeks):
     total_present_by_time = []
     for index, attendance_poll_name in enumerate(attendance_poll_names):
 
-        if len(locations) == 1:
-            res = [filter_over_time_range(date_range, get_school_responses(locations[0], attendance_poll_name)) for
-                   date_range in date_weeks]
-            tr_res = _transform(res)
-            get_aggregated_result(total_present_by_location, get_aggregation_by_location(tr_res))
+        filtered_responses, filtered_enrollment = get_responses_over_depth(attendance_poll_name,
+                                                                           enrollment_poll_names[index],
+                                                                           list(locations), date_weeks)
+        transformed_responses = transform(filtered_responses, locations)
+        get_aggregated_result(total_present_by_location, get_aggregation_by_location(transformed_responses))
 
-            en = get_school_responses(locations[0], enrollment_poll_names[index])
-            tr_en = _transform([en])
-            get_aggregated_result(total_enrollment_by_location, get_aggregation_by_location(tr_en))
-            total_enrollment += sum(total_enrollment_by_location.values())
-            get_aggregated_list(total_present_by_time, get_aggregation_by_time(tr_res))
-        else:
-            filtered_responses, filtered_enrollment = get_responses_over_depth(attendance_poll_name,
-                                                                               enrollment_poll_names[index],
-                                                                               list(locations), date_weeks)
+        transformed_enrollment = transform([filtered_enrollment], locations)
+        get_aggregated_result(total_enrollment_by_location, get_aggregation_by_location(transformed_enrollment))
+        total_enrollment += sum(total_enrollment_by_location.values())
 
-            transformed_responses = transform(filtered_responses)
-            get_aggregated_result(total_present_by_location, get_aggregation_by_location(transformed_responses))
+        get_aggregated_list(total_present_by_time, get_aggregation_by_time(transformed_responses))
 
-            transformed_enrollment = transform([filtered_enrollment])
-            get_aggregated_result(total_enrollment_by_location, get_aggregation_by_location(transformed_enrollment))
-            total_enrollment += sum(total_enrollment_by_location.values())
-
-            get_aggregated_list(total_present_by_time, get_aggregation_by_time(transformed_responses))
     absent_by_time = [round(compute_percent(i, total_enrollment), 2) for i in total_present_by_time]
 
     absent_by_location = {}
@@ -118,22 +102,12 @@ def get_responses_by_location(locations, config_list, date_weeks):
     return absent_by_location, absent_by_time
 
 
-def get_school_responses(location, poll_name):
-    poll = Poll.objects.get(name=poll_name)
-    schools = School.objects.filter(location=location)
-    a_set = set()
-    for school in schools:
-        a_set.add(poll.responses.filter(contact__reporting_location=location,
-                                        contact__in=school.emisreporter_set.all()).values('id'))
-    temp = [i for i in a_set if not is_empty(i)]
-    a_set = [item['id'] for sublist in temp for item in sublist]
-    to_ret = Response.objects.filter(pk__in=a_set).values_list('contact__emisreporter__schools__name').annotate(
-        Sum('eav_values__value_float'))
-    return to_ret
-
-
 def get_district_responses(locations, poll):
-    q = poll.responses.filter(contact__reporting_location__in=locations).values('contact__reporting_location__name')
+    q = poll.responses.filter(contact__reporting_location__in=locations)
+    if len(locations) == 1:
+        q = q.values('contact__emisreporter__schools__name')
+    else:
+        q = q.values('contact__reporting_location__name')
     return q.annotate(Sum('eav_values__value_float'))
 
 
