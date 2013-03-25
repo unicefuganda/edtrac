@@ -3098,6 +3098,8 @@ def detail_attd(request):
             weeks = ["%s - %s" % (i[0].strftime("%d/%m/%Y"), i[1].strftime("%d/%m/%Y")) for i in week_range]
             return render_to_response('education/admin/detail_attd.html',
                                       {'form': absenteeism_form, 'collective_result': collective_result,
+                                       'collective_result_keys': [config['collective_dict_key'] for config in
+                                                                  config_list],
                                        'time_data': mark_safe(json.dumps(time_data)),
                                        'weeks': mark_safe(json.dumps(weeks))},
                                       RequestContext(request))
@@ -3110,11 +3112,14 @@ def detail_attd(request):
         absenteeism_form = AbsenteeismForm(initial={'indicator': 'all'})
         week_range = get_week_date(time_range_depth)
 
-        collective_result, time_data = get_aggregated_report(locations, get_polls_for_keyword("all"), week_range)
+        config_list = get_polls_for_keyword("all")
+        collective_result, time_data = get_aggregated_report(locations, config_list, week_range)
 
         weeks = ["%s - %s" % (i[0].strftime("%d/%m/%Y"), i[1].strftime("%d/%m/%Y")) for i in week_range]
         return render_to_response('education/admin/detail_attd.html',
-                                  {'form': absenteeism_form, 'collective_result': collective_result,
+                                  {'form': absenteeism_form,
+                                   'collective_result_keys': [config['collective_dict_key'] for config in config_list],
+                                   'collective_result': collective_result,
                                    'time_data': mark_safe(json.dumps(time_data)),
                                    'weeks': mark_safe(json.dumps(weeks))},
                                   RequestContext(request))

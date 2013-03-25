@@ -288,6 +288,9 @@ def get_district_pk(name):
 def termly(obj):
     return obj.slug.endswith('_termly')
 
+def key(d, key_string):
+    return d.get(key_string,'--')
+
 register = template.Library()
 register.filter('section', get_section)
 register.filter('parent', get_parent)
@@ -308,4 +311,5 @@ register.filter('termly', termly)
 register.filter('headteacher_connection',headteacher_connection)
 register.filter('hash', hash)
 register.filter('get_district', get_district)
+register.filter('key', key)
 register.tag('date_range', do_date_range)

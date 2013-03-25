@@ -1,13 +1,35 @@
 {% extends "education/layout_base.html" %}
+{% load stats_extras %}
 {% block title %}
     Dashboard -- {{ block.super }}
 {% endblock %}
 {% block content %}
     <div style="padding: 10px;margin: 5px;">
-        <form action="/edtrac/detail-attd/" method="post">
-            {{ form.as_table }}
-            <input type="submit" value="Search"/>
-        </form>
+        <fieldset>
+            <form action="" method="POST">
+                {% csrf_token %}
+                <ul>
+                    <li class="{{ form.from_date.css_classes  }}">
+                        {{ form.from_date.label_tag }}
+                        {{ form.from_date }}
+                        {{ form.from_date.errors }}
+                    </li>
+                    <li class="{{ form.to_date.css_classes  }}">
+                        {{ form.to_date.label_tag }}
+                        {{ form.to_date }}
+                        {{ form.to_date.errors }}
+                    </li>
+                    <li class="{{ form.indicator.css_classes  }}">
+                        {{ form.indicator.label_tag }}
+                        {{ form.indicator }}
+                        {{ form.indicator.errors }}
+                    </li>
+                    <li>
+                        <input type="submit" value="Search"/>
+                    </li>
+                </ul>
+            </form>
+        </fieldset>
     </div>
     {% if time_data %}
 
@@ -18,12 +40,10 @@
                     <th>
                         District
                     </th>
-                    {% for value in collective_result.values|slice:"1" %}
-                        {% for k in value.keys %}
-                            <th>
-                                {{ k }} Absenteeism Percentage
-                            </th>
-                        {% endfor %}
+                    {% for value in collective_result_keys %}
+                        <th>
+                            {{ value }} Absenteeism Percentage
+                        </th>
                     {% endfor %}
                 </tr>
                 {% for key, value in collective_result.items %}
@@ -31,11 +51,12 @@
                         <td>
                             {{ key }}
                         </td>
-                        {% for k,v in value.items %}
+
+                    {% for key_name in collective_result_keys %}
                             <td>
-                                {{ v }}
+                                {{ value|key:key_name }}
                             </td>
-                        {% endfor %}
+                    {% endfor %}
                     </tr>
                 {% endfor %}
             </table>
@@ -51,8 +72,6 @@
                         '{{ time_data }}');
 
             });
-
         </script>
     {% endif %}
-
 {% endblock %}
