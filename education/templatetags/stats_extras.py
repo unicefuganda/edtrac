@@ -7,6 +7,7 @@ from django import template
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
+from django.utils.http import urlquote
 from django.utils.safestring import mark_safe
 
 from rapidsms.contrib.locations.models import Location
@@ -296,7 +297,7 @@ def key(d, key_string):
 
 def make_url_for_detail_attd(locations, key_string):
     if len(locations) == 1:
-        return "%s?school=%s" % (reverse("detail-attendance-school", args=(locations[0].name,)), key_string)
+        return "%s?school=%s" % (reverse("detail-attendance-school", args=(locations[0].name,)), urlquote(key_string))
     return reverse('detail-attendance-visualization', args=(key_string,))
 
 register = template.Library()
