@@ -228,12 +228,12 @@ def get_date_range(from_date, to_date, depth=4):
     if from_date is None and to_date is None:
         return get_week_date(depth)
     week_range = []
-    first_week = (from_date, from_date + timedelta(days=7))
+    first_week = (to_date - timedelta(days=7), to_date)
     week_range.append(first_week)
-    from_date = from_date + timedelta(days=7)
-    while from_date < to_date:
-        week_range.append((from_date + timedelta(days=1), from_date + timedelta(days=8)))
-        from_date = from_date + timedelta(days=7)
+    to_date = to_date - timedelta(days=7)
+    while to_date > from_date:
+        week_range.append((to_date - timedelta(days=8), to_date - timedelta(days=1)))
+        to_date = to_date - timedelta(days=7)
     return week_range
 
 
