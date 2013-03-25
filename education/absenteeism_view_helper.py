@@ -6,6 +6,7 @@ from django.conf import settings
 from django.db.models import Sum, Count
 
 from education.models import EmisReporter, School
+from education.reports import get_week_date
 from education.utils import is_empty
 from poll.models import Poll, ResponseCategory, Response
 
@@ -65,11 +66,11 @@ def get_aggregated_list(result, list_to_add):
 
 
 def _transform(responses):
-    ret=[]
+    ret = []
     for response in responses:
-        temp =[]
+        temp = []
         for item in response:
-            temp.append({item[0]:item[1]})
+            temp.append({item[0]: item[1]})
         ret.append(temp)
     return ret
 
@@ -83,20 +84,21 @@ def get_responses_by_location(locations, config_list, date_weeks):
     total_present_by_time = []
     for index, attendance_poll_name in enumerate(attendance_poll_names):
 
-        if len(locations)==1:
-            res = [filter_over_time_range( date_range , get_school_responses(locations[0],attendance_poll_name)) for date_range in date_weeks]
+        if len(locations) == 1:
+            res = [filter_over_time_range(date_range, get_school_responses(locations[0], attendance_poll_name)) for
+                   date_range in date_weeks]
             tr_res = _transform(res)
             get_aggregated_result(total_present_by_location, get_aggregation_by_location(tr_res))
 
-            en = get_school_responses(locations[0],enrollment_poll_names[index])
+            en = get_school_responses(locations[0], enrollment_poll_names[index])
             tr_en = _transform([en])
             get_aggregated_result(total_enrollment_by_location, get_aggregation_by_location(tr_en))
             total_enrollment += sum(total_enrollment_by_location.values())
             get_aggregated_list(total_present_by_time, get_aggregation_by_time(tr_res))
         else:
             filtered_responses, filtered_enrollment = get_responses_over_depth(attendance_poll_name,
-                                                                           enrollment_poll_names[index],
-                                                                           list(locations), date_weeks)
+                                                                               enrollment_poll_names[index],
+                                                                               list(locations), date_weeks)
 
             transformed_responses = transform(filtered_responses)
             get_aggregated_result(total_present_by_location, get_aggregation_by_location(transformed_responses))
@@ -115,18 +117,19 @@ def get_responses_by_location(locations, config_list, date_weeks):
 
     return absent_by_location, absent_by_time
 
-def get_school_responses(location,poll_name):
-    poll= Poll.objects.get(name=poll_name)
-    schools=School.objects.filter(location=location)
+
+def get_school_responses(location, poll_name):
+    poll = Poll.objects.get(name=poll_name)
+    schools = School.objects.filter(location=location)
     a_set = set()
     for school in schools:
-        a_set.add(poll.responses.filter(contact__reporting_location=location,contact__in=school.emisreporter_set.all()).values('id'))
+        a_set.add(poll.responses.filter(contact__reporting_location=location,
+                                        contact__in=school.emisreporter_set.all()).values('id'))
     temp = [i for i in a_set if not is_empty(i)]
-    a_set =[item['id'] for sublist in temp for item in sublist]
-    to_ret = Response.objects.filter(pk__in = a_set).values_list('contact__emisreporter__schools__name').annotate(Sum('eav_values__value_float'))
+    a_set = [item['id'] for sublist in temp for item in sublist]
+    to_ret = Response.objects.filter(pk__in=a_set).values_list('contact__emisreporter__schools__name').annotate(
+        Sum('eav_values__value_float'))
     return to_ret
-
-
 
 
 def get_district_responses(locations, poll):
@@ -170,10 +173,12 @@ def calculate_yes_and_no_for_location(yes, no, resp_by_time_by_location):
 
 
 def get_head_teachers_absent_over_time(locations, config, date_weeks):
-    gender = config['gender']
+    gender = config.get('gender')
     fields = ['category__name', 'response__contact__reporting_location__name']
-    head_teachers = EmisReporter.objects.filter(reporting_location__in=locations, groups__name="Head Teachers",
-                                                gender__iexact=gender).exclude(schools=None)
+    head_teachers = EmisReporter.objects.filter(reporting_location__in=locations, groups__name="Head Teachers").exclude(
+        schools=None)
+    if gender is not None:
+        head_teachers = head_teachers.filter(gender__iexact=gender)
     head_t_deploy = EmisReporter.objects.filter(reporting_location__in=locations,
                                                 schools__in=head_teachers.values_list('schools', flat=True),
                                                 groups__name='SMC').distinct()
@@ -219,7 +224,9 @@ def get_collective_result(location_configs, time_configs):
     return dict(location_result), time_result
 
 
-def get_date_range(from_date, to_date):
+def get_date_range(from_date, to_date, depth=4):
+    if from_date is None and to_date is None:
+        return get_week_date(depth)
     week_range = []
     first_week = (from_date, from_date + timedelta(days=7))
     week_range.append(first_week)
@@ -250,20 +257,25 @@ def get_polls_for_keyword(indicator):
     collective_key_dict = dict(P3Boys='p3_boys', P3Girls='p3_girls', P3Pupils='p3_pupils',
                                P6Boys='p6_boys', P6Girls='p6_girls', P6Pupils='p6_pupils',
                                MaleTeachers='m_teachers', FemaleTeachers='f_teachers', Teachers='teachers',
-                               MaleHeadTeachers='m_h_teachers', FemaleHeadTeachers='f_h_teachers')
+                               MaleHeadTeachers='m_h_teachers', FemaleHeadTeachers='f_h_teachers',
+                               HeadTeachers='h_teachers')
 
     time_data_dict = dict(P3Boys='P3_Boys', P3Girls='P3_Girls', P3Pupils='P3_Pupils',
                           P6Boys='P6_Boys', P6Girls='P6_Girls', P6Pupils='P6_Pupils',
                           MaleTeachers='M_Teachers', FemaleTeachers='F_Teachers', Teachers='Teachers',
-                          FemaleHeadTeachers='F_H_Teachers', MaleHeadTeachers='M_H_Teachers')
+                          FemaleHeadTeachers='F_H_Teachers', MaleHeadTeachers='M_H_Teachers', HeadTeachers='H_Teachers')
 
     gender_dict = dict(FemaleHeadTeachers='F', MaleHeadTeachers='M')
 
     if indicator == 'all':
-        list_of_values = ['P3Pupils', 'P6Pupils', 'Teachers', 'MaleHeadTeachers', 'FemaleHeadTeachers']
+        list_of_values = ['P3Pupils', 'P6Pupils', 'Teachers', 'HeadTeachers']
         config_list = sum([get_polls_for_keyword(v) for v in list_of_values], [])
     elif indicator in ['MaleHeadTeachers', 'FemaleHeadTeachers']:
         config_list = [dict(func=get_head_teachers_absent_over_time, gender=gender_dict[indicator],
+                            collective_dict_key=collective_key_dict[indicator],
+                            time_data_name=time_data_dict[indicator])]
+    elif indicator in ['HeadTeachers']:
+        config_list = [dict(func=get_head_teachers_absent_over_time,
                             collective_dict_key=collective_key_dict[indicator],
                             time_data_name=time_data_dict[indicator])]
     else:

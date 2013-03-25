@@ -3090,22 +3090,20 @@ def detail_attd(request):
     if request.method == 'POST':
         absenteeism_form = AbsenteeismForm(data=request.POST)
         if absenteeism_form.is_valid():
-            from_date = dateutils.increment(datetime.datetime.now(), weeks=-4) if absenteeism_form.cleaned_data['from_date'] is None else absenteeism_form.cleaned_data['from_date']
-            to_date = datetime.datetime.now() if absenteeism_form.cleaned_data['to_date'] is None else absenteeism_form.cleaned_data['to_date']
-
             indicator = absenteeism_form.cleaned_data['indicator']
-            week_range = get_date_range(from_date, to_date)
+            week_range = get_date_range(absenteeism_form.cleaned_data['from_date'],
+                                        absenteeism_form.cleaned_data['to_date'], time_range_depth)
             config_list = get_polls_for_keyword(indicator)
             collective_result, time_data = get_aggregated_report(locations, config_list, week_range)
             weeks = ["%s - %s" % (i[0].strftime("%d/%m/%Y"), i[1].strftime("%d/%m/%Y")) for i in week_range]
             return render_to_response('education/admin/detail_attd.html',
-                               {'form': absenteeism_form, 'collective_result': collective_result,
-                                'time_data': mark_safe(json.dumps(time_data)),
-                                'weeks': mark_safe(json.dumps(weeks))},
-                               RequestContext(request))
+                                      {'form': absenteeism_form, 'collective_result': collective_result,
+                                       'time_data': mark_safe(json.dumps(time_data)),
+                                       'weeks': mark_safe(json.dumps(weeks))},
+                                      RequestContext(request))
         else:
             return render_to_response('education/admin/detail_attd.html',
-                               {'form': absenteeism_form}, RequestContext(request))
+                                      {'form': absenteeism_form}, RequestContext(request))
 
     else:
         #request method GET
@@ -3115,19 +3113,8 @@ def detail_attd(request):
         collective_result, time_data = get_aggregated_report(locations, get_polls_for_keyword("all"), week_range)
 
         weeks = ["%s - %s" % (i[0].strftime("%d/%m/%Y"), i[1].strftime("%d/%m/%Y")) for i in week_range]
-        print "#########################################################"
-        print collective_result
-        print time_data
         return render_to_response('education/admin/detail_attd.html',
                                   {'form': absenteeism_form, 'collective_result': collective_result,
                                    'time_data': mark_safe(json.dumps(time_data)),
                                    'weeks': mark_safe(json.dumps(weeks))},
                                   RequestContext(request))
-
-
-def get_collective_result(result,m_head_t,f_head_t):
-    for keys in m_head_t:
-        if keys in result:
-            result[keys].update(dict(m_head_teachers=m_head_t[keys], f_head_teachers=f_head_t.get(keys,0)))
-        else:
-            result[keys] = dict(m_head_teachers=m_head_t[keys], f_head_teachers=f_head_t.get(keys,0))
