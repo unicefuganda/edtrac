@@ -271,5 +271,6 @@ urlpatterns = patterns('',
     url(r'^edtrac/reshedule_scripts/(?P<script_slug>[a-z0-9_]+)/$', reschedule_scripts, name='emis-reschedule-scripts'),
     url(r'^edtrac/attdmap/$', attendance_visualization, name="attendance-visualization"),
     url(r'^edtrac/detail-attd/$', detail_attd, name="detail-attendance-visualization"),
+    url(r'^edtrac/detail-attd/(?P<district>\w+)/$', detail_attd, name="detail-attendance-visualization"),
 )
 

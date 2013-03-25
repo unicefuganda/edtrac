@@ -49,9 +49,8 @@
                 {% for key, value in collective_result.items %}
                     <tr>
                         <td>
-                            {{ key }}
+                            <a href="">{{ key }}</a>
                         </td>
-
                     {% for key_name in collective_result_keys %}
                             <td>
                                 {{ value|key:key_name }}
