@@ -20,7 +20,6 @@ from django.db.models import Q
 import xlwt
 from django.utils.safestring import mark_safe
 
-from education.absenteeism_view_helper import get_polls_for_keyword
 from .forms import *
 from .models import *
 from uganda_common.utils import *
@@ -3078,16 +3077,7 @@ class AbsenteeismForm(forms.Form):
 
 @login_required
 def detail_attd(request, district=None):
-    if district is None:
-        profile = request.user.get_profile()
-        locations = [profile.location]
-        if profile.is_member_of('Ministry Officials') or profile.is_member_of(
-                'Admins') or profile.is_member_of('UNICEF Officials'):
-            locations = Location.objects.filter(type='district').filter(pk__in= \
-                EnrolledDeployedQuestionsAnswered.objects.values_list('school__location__pk', flat=True))
-    else:
-        locations = [Location.objects.get(name__iexact=district, type__name='district')]
-
+    locations = get_location_for_absenteeism_view(district, request)
     time_range_depth = 4
     if request.method == 'POST':
         absenteeism_form = AbsenteeismForm(data=request.POST)
@@ -3095,39 +3085,27 @@ def detail_attd(request, district=None):
             indicator = absenteeism_form.cleaned_data['indicator']
             week_range = get_date_range(absenteeism_form.cleaned_data['from_date'],
                                         absenteeism_form.cleaned_data['to_date'], time_range_depth)
-            week_range.reverse()
-            config_list = get_polls_for_keyword(indicator)
-            collective_result, time_data = get_aggregated_report(locations, config_list, week_range)
-            weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in week_range]
-            return render_to_response('education/admin/detail_attd.html',
-                                      {'form': absenteeism_form, 'collective_result': collective_result,
-                                       'collective_result_keys': [config['collective_dict_key'] for config in
-                                                                  config_list],
-                                       'time_data': mark_safe(json.dumps(time_data)),
-                                       'weeks': mark_safe(json.dumps(weeks)),
-                                       "locations": locations},
-                                      RequestContext(request))
         else:
             return render_to_response('education/admin/detail_attd.html',
                                       {'form': absenteeism_form}, RequestContext(request))
 
     else:
-        #request method GET
         absenteeism_form = AbsenteeismForm(initial={'indicator': 'all'})
         week_range = get_week_date(time_range_depth)
-        week_range.reverse()
-        config_list = get_polls_for_keyword("all")
-        collective_result, time_data = get_aggregated_report(locations, config_list, week_range)
+        indicator = "all"
 
-        weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in week_range]
-        return render_to_response('education/admin/detail_attd.html',
-                                  {'form': absenteeism_form,
-                                   'collective_result_keys': [config['collective_dict_key'] for config in config_list],
-                                   'collective_result': collective_result,
-                                   'time_data': mark_safe(json.dumps(time_data)),
-                                   'weeks': mark_safe(json.dumps(weeks)),
-                                   "locations": locations},
-                                  RequestContext(request))
+    week_range.reverse()
+    config_list = get_polls_for_keyword(indicator)
+    collective_result, time_data = get_aggregated_report(locations, config_list, week_range)
+    weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in week_range]
+    return render_to_response('education/admin/detail_attd.html',
+                              {'form': absenteeism_form,
+                               'collective_result_keys': [config['collective_dict_key'] for config in config_list],
+                               'collective_result': collective_result,
+                               'time_data': mark_safe(json.dumps(time_data)),
+                               'weeks': mark_safe(json.dumps(weeks)),
+                               "locations": locations},
+                              RequestContext(request))
 
 @login_required
 def detail_attd_school(request, location):
