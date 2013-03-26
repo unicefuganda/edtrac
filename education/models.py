@@ -594,24 +594,21 @@ def reschedule_monthly_polls(grp=None):
     monthly_scripts = Script.objects.filter(slug__endswith='_monthly')
     if grp:
         slg_start = 'edtrac_%s'%grp.replace(' ','_').lower()
-        monthly_scripts = monthly_scripts.filter(slug__startswith=slg_start)
+#        monthly_scripts = monthly_scripts.filter(slug__startswith=slg_start)
+        monthly_scripts = monthly_scripts.filter(slug__in=['edtrac_smc_monthly', 'edtrac_gem_monthly'])
         ScriptProgress.objects.filter(script__in=monthly_scripts)\
         .filter(connection__contact__emisreporter__groups__name__iexact=grp).delete()
     else:
         ScriptProgress.objects.filter(script__in=monthly_scripts).delete()
     Script.objects.filter(slug__in=monthly_scripts.values_list('slug', flat=True)).update(enabled=True)
     for slug in monthly_scripts.values_list('slug', flat=True):
-        grps = Group.objects.filter(name__iexact=grp) if grp else Group.objects.filter(name__in=['Teachers', 'Head Teachers', 'SMC', 'GEM'])
+        grps = Group.objects.filter(name__iexact=grp) if grp else Group.objects.filter(name__in=['SMC', 'GEM'])
         # get list of active reporters
         reps = EmisReporter.objects.filter(groups__in=grps)
         for rep in reps:
             print 'processing %s' % rep.name
             if rep.default_connection and rep.groups.count() > 0:
-                if slug == 'edtrac_teachers_monthly':
-                    _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'edtrac_teachers_monthly', 'last', ['Teachers'])
-                elif slug == 'edtrac_head_teachers_monthly':
-                    _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'edtrac_head_teachers_monthly', 'last', ['Head Teachers'])
-                elif slug == 'edtrac_smc_monthly':
+                if slug == 'edtrac_smc_monthly':
                     _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'edtrac_smc_monthly', 5, ['SMC'])
                 elif slug == 'edtrac_gem_monthly':
                     _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'edtrac_gem_monthly', 20, ['GEM'])
@@ -677,11 +674,11 @@ def reschedule_termly_script(grp = 'all', date=None, slug=''):
         ScriptProgress.objects.filter(script=tscript).delete()
         
     tscript.enabled=True
-    grps = Group.objects.filter(name__iexact=grp) if not grp == 'all' else Group.objects.filter(name__in=['Head Teachers', 'SMC'])
+    grps = Group.objects.filter(name__iexact=grp) if not grp == 'all' else Group.objects.filter(name__in=['Head Teachers', 'SMC', 'GEM'])
     reps = EmisReporter.objects.filter(groups__in=grps)
     for rep in reps:
         if rep.default_connection and rep.groups.count() > 0:
-            _schedule_termly_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers', 'SMC'], date)
+            _schedule_termly_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers', 'SMC', 'GEM'], date)
             
 def reschedule_monthly_script(grp = 'all', date=None, slug=''):
     
@@ -696,11 +693,11 @@ def reschedule_monthly_script(grp = 'all', date=None, slug=''):
         ScriptProgress.objects.filter(script=tscript).delete()
         
     tscript.enabled=True
-    grps = Group.objects.filter(name__iexact=grp) if not grp == 'all' else Group.objects.filter(name__in=['Head Teachers', 'SMC'])
+    grps = Group.objects.filter(name__iexact=grp) if not grp == 'all' else Group.objects.filter(name__in=['Head Teachers', 'SMC', 'GEM'])
     reps = EmisReporter.objects.filter(groups__in=grps)
     for rep in reps:
         if rep.default_connection and rep.groups.count() > 0:
-            _schedule_new_monthly_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers', 'SMC'], date)
+            _schedule_new_monthly_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers', 'SMC', 'GEM'], date)
     
 def reschedule_weekly_script(grp = 'all', date=None, slug='edtrac_p3_teachers_weekly'):
     
