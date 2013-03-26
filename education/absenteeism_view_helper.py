@@ -104,7 +104,7 @@ def get_responses_by_location(locations, config_list, date_weeks):
 
 
 def get_district_responses(locations, poll):
-    q = poll.responses.filter(contact__reporting_location__in=locations)
+    q = poll.responses.filter(contact__reporting_location__in=locations).exclude(contact__emisreporter__schools=None)
     if len(locations) == 1:
         q = q.values('contact__emisreporter__schools__name')
     else:
