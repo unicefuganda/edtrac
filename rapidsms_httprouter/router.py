@@ -69,6 +69,8 @@ class HttpRouter(object, LoggerMixin):
             connection = Connection.objects.get(identity=contact)
         except Connection.DoesNotExist:
             connection = Connection.objects.create(backend=backend, identity=contact)
+        except Connection.MultipleObjectsReturned:
+            connection = Connection.objects.filter(identity=contact)[0]
 
 
         # finally, create our db message
