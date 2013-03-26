@@ -3088,13 +3088,14 @@ def detail_attd(request, district=None):
     else:
         locations = [Location.objects.get(name__iexact=district, type__name='district')]
 
-    time_range_depth = 6
+    time_range_depth = 4
     if request.method == 'POST':
         absenteeism_form = AbsenteeismForm(data=request.POST)
         if absenteeism_form.is_valid():
             indicator = absenteeism_form.cleaned_data['indicator']
             week_range = get_date_range(absenteeism_form.cleaned_data['from_date'],
                                         absenteeism_form.cleaned_data['to_date'], time_range_depth)
+            week_range.reverse()
             config_list = get_polls_for_keyword(indicator)
             collective_result, time_data = get_aggregated_report(locations, config_list, week_range)
             weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in week_range]
@@ -3114,7 +3115,7 @@ def detail_attd(request, district=None):
         #request method GET
         absenteeism_form = AbsenteeismForm(initial={'indicator': 'all'})
         week_range = get_week_date(time_range_depth)
-
+        week_range.reverse()
         config_list = get_polls_for_keyword("all")
         collective_result, time_data = get_aggregated_report(locations, config_list, week_range)
 
