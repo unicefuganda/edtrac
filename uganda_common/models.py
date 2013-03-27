@@ -118,12 +118,12 @@ class Access(models.Model):
     def __unicode__(self):
         return "%s" % self.user.username
 
-    def denied(self, request):
+    def denied(self, request, u_path=""):
         path = request.build_absolute_uri()
         path = urlparse.urlparse(path)[2]
         if path.startswith('/'): path = path[1:]
         paths = list(self.allowed_urls.values_list('url', flat=True))
         for p in paths:
-            if re.match(r'' + p, path):
+            if re.match(r'' + p, path) or (u_path and re.match(r'' + p, u_path)):
                 return False
         return True
