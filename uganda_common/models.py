@@ -112,6 +112,7 @@ class Access(models.Model):
     """
     user = models.ForeignKey(User, unique=True)
     groups = models.ManyToManyField(Group)
+    allowed_locations = models.ManyToManyField(Location)
     allowed_urls = models.ManyToManyField(AccessUrls)
     objects = AccessManager()
 
