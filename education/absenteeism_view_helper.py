@@ -72,6 +72,20 @@ def get_aggregated_list(result, list_to_add):
             result[index] += list_to_add[index]
 
 
+def get_agrregated_enrollment_by_time(total_enrollment_by_location, transformed_responses):
+    a = []
+    for i in transformed_responses:
+        if len(i) == 0:
+            a.append(0)
+        else:
+            s = 0
+            for d in i:
+                for k in d:
+                    s += total_enrollment_by_location[k]
+            a.append(s)
+    return a
+
+
 def get_responses_by_location(locations, config_list, date_weeks):
     attendance_poll_names = config_list['attendance_poll']
     enrollment_poll_names = config_list['enrollment_poll']
@@ -79,6 +93,7 @@ def get_responses_by_location(locations, config_list, date_weeks):
     total_enrollment_by_location = defaultdict(lambda: 0)
     total_present_by_location = defaultdict(lambda: 0)
     total_present_by_time = []
+    total_enrollment_by_time = []
     for index, attendance_poll_name in enumerate(attendance_poll_names):
 
         filtered_responses, filtered_enrollment = get_responses_over_depth(attendance_poll_name,
@@ -90,10 +105,11 @@ def get_responses_by_location(locations, config_list, date_weeks):
         transformed_enrollment = transform([filtered_enrollment], locations)
         get_aggregated_result(total_enrollment_by_location, get_aggregation_by_location(transformed_enrollment))
         total_enrollment += sum(total_enrollment_by_location.values())
+        get_aggregated_list(total_enrollment_by_time, get_agrregated_enrollment_by_time(total_enrollment_by_location, transformed_responses))
 
         get_aggregated_list(total_present_by_time, get_aggregation_by_time(transformed_responses))
 
-    absent_by_time = [round(compute_percent(i, total_enrollment), 2) for i in total_present_by_time]
+    absent_by_time = [round(compute_percent(value, total_enrollment_by_time[i]), 2) for i,value in enumerate(total_present_by_time)]
 
     absent_by_location = {}
     for key in total_present_by_location:
