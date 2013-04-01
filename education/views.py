@@ -149,7 +149,7 @@ def dash_admin_progress(req):
                 )
                 loc_data.append([location, curriculum_progress_mode(c_list)])
             except TypeError:
-                loc_data.append([location, 0])
+                loc_data.append([location, "--"])
 
         return render_to_response('education/progress/admin_progress_details.html',
                 {'location_data': loc_data}, RequestContext(req))
