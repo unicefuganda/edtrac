@@ -1392,7 +1392,7 @@ def violence_details_dash(req):
             diff = (list_val[0] - list_val[1]) / list_val[0]
         except ZeroDivisionError:
             diff = '--'
-        girls_total.append((list_val[0], list_val[1], diff))
+        boys_total.append((list_val[0], list_val[1], diff))
         list_val.append(diff)
     context_vars['violence_cases_boys'] = violence_cases_boys
     
