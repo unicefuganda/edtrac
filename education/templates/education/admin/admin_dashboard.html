@@ -16,7 +16,7 @@ Dashboard -- {{ block.super }}
                     	<!--Searching for the bug in display -->
                         <tr><th>Group</th><th>Absent (%) This week</th><th>Absent (%) Last week</th><th>Weekly Change</th></tr>
                         <tr>
-                            <td><a href="{% url boys-p3-range %}">Boys P3</a></td>
+                            <td><a href="{% url detail-attendance-visualization %}">Boys P3</a></td>
                             <td>{% if boysp3 == '--' %} {{ boysp3 }} {% else %} {{ boysp3|floatformat }}% {% endif %}</td>
                             <td>
                                 {% if boysp3_past == '--' %} {{ boysp3_past }} {% else %} {{ boysp3_past|floatformat }}% {% endif %}
@@ -33,7 +33,7 @@ Dashboard -- {{ block.super }}
                             </td>
                         </tr>
                         <tr>
-                            <td><a href="{% url girls-p3-range %}">Girls P3</a></td>
+                            <td><a href="{% url detail-attendance-visualization %}">Girls P3</a></td>
                             <td>{% if girlsp3 == '--' %} {{ girlsp3 }} {% else %}{{ girlsp3|floatformat }}%{% endif %}</td>
                             <td>{% if girlsp3_past == '--' %} {{ girlsp3_past }} {% else %}{{ girlsp3_past|floatformat }}%{% endif %}</td>
                             <td class="{{ girlsp3_data }}"><span class="{{ girlsp3_class }}">
@@ -45,7 +45,7 @@ Dashboard -- {{ block.super }}
                             </span></td>
                         </tr>
                         <tr>
-                            <td><a href="{% url boys-p6-range %}">Boys P6</a></td>
+                            <td><a href="{% url detail-attendance-visualization %}">Boys P6</a></td>
                             <td>{% if boysp6 == '--' %} {{ boysp6 }} {% else %} {{ boysp6|floatformat }}%{% endif %}</td>
                             <td>{% if boysp6_past == '--' %} {{ boysp6_past }} {% else %}{{ boysp6_past|floatformat }}%{% endif %}</td>
                             <td class="{{ boysp6_data }}">
@@ -54,7 +54,7 @@ Dashboard -- {{ block.super }}
                             </td>
                         </tr>
                         <tr>
-                            <td><a href="{% url girls-p6-range %}">Girls P6</a></td>
+                            <td><a href="{% url detail-attendance-visualization %}">Girls P6</a></td>
                             <td>{% if girlsp6 == '--' %}{{ girlsp6 }} {% else %}{{ girlsp6|floatformat }}%{% endif %}</td>
                             <td>{% if girlsp6_past == '--' %}{{ girlsp6_past }} {% else %}{{ girlsp6_past|floatformat }}%{% endif %}</td>
                             <td class="{{ girlsp6_data }}">
@@ -68,7 +68,7 @@ Dashboard -- {{ block.super }}
                             </td>
                         </tr>
                         <tr>
-                            <td><a href="{% url f-teachers-range %}">Female Teachers</a></td>
+                            <td><a href="{% url detail-attendance-visualization %}">Female Teachers</a></td>
                             <td>{% if female_teachers == '--' %} {{ female_teachers }} {% else %} {{ female_teachers|floatformat }}%{% endif %}</td>
                             <td>{% if female_teachers_past == '--' %} {{ female_teachers_past }} {% else %}
                                 {{ female_teachers_past|floatformat }}%{% endif %}</td>
@@ -78,7 +78,7 @@ Dashboard -- {{ block.super }}
                             </td>
                         </tr>
                         <tr>
-                            <td><a href="{% url m-teachers-range %}">Male Teachers</a></td>
+                            <td><a href="{% url detail-attendance-visualization %}">Male Teachers</a></td>
                             <td>{% if male_teachers == '--' %} {{ male_teachers }} {% else %} {{ male_teachers|floatformat }}%{% endif %}</td>
                             <td>{% if male_teachers_past == '--' %} {{ male_teachers_past }} {% else %} {{ male_teachers_past|floatformat }}%{% endif %}</td>
                             <td class="{{ male_teachers_data }}">
@@ -87,13 +87,13 @@ Dashboard -- {{ block.super }}
                             </td>
                         </tr>
                         <tr>
-                            <td><a href="#">Female H Teachers</a></td>
+                            <td><a href="{% url detail-attendance-visualization %}">Female H Teachers</a></td>
                             <td>{% if f_head_t_week_before == '--' %}{{ f_head_t_week_before }} {% else %} {{ f_head_t_week_before|floatformat }}%{% endif %}</td>
                             <td>{% if f_head_t_week == '--' %} {{ f_head_t_week }} {% else %} {{ f_head_t_week|floatformat }}%{% endif %}</td>                            
                             <td class="{{ f_head_t_data }}"><span class="{{ f_head_t_class }}">{% if f_head_diff == '--' %}{{ f_head_diff }}{% else %} {{ f_head_diff|floatformat }}%{% endif %}</span></td>
                         </tr>
                         <tr>
-                            <td><a href="#">Male H Teachers</a></td>
+                            <td><a href="{% url detail-attendance-visualization %}">Male H Teachers</a></td>
                             <td>{% if m_head_t_week_before == '--' %}{{ m_head_t_week_before }} {% else %} {{ m_head_t_week_before|floatformat }}%{% endif %}</td>
                             <td>{% if m_head_t_week == '--' %} {{ m_head_t_week }} {% else %} {{ m_head_t_week|floatformat }}%{% endif %}</td>
                             <td class="{{ m_head_t_data }}">
