@@ -316,26 +316,92 @@ def capitation_grants(locations):
     return {'grant_percent': grant_percent}
 
 
-def violence_changes(locations):
+#def violence_changes(locations):
+#    """
+#    Percentage change in violance from the previous month
+#    """
+#    responses_to_violence = poll_response_sum("edtrac_headteachers_abuse", month_filter = 'monthly',\
+#        locations = locations, month_20to19=True)
+#    violence_change = cleanup_sums(responses_to_violence)
+#    if violence_change > 0:
+#        violence_change_class = "decrease"
+#        violence_change_data = "data-green"
+#    elif violence_change < 0:
+#        violence_change_class = "increase"
+#        violence_change_data = "data-red"
+#    else:
+#        violence_change_class = "zero"
+#        violence_change_data = "data-white"
+#    return {
+#            'violence_change' : abs(violence_change),
+#            'violence_change_class' : violence_change_class,
+#            'violence_change_data' : violence_change_data
+#    }
+    
+def violence_changes_girls(locations):
     """
     Percentage change in violance from the previous month
     """
-    responses_to_violence = poll_response_sum("edtrac_headteachers_abuse", month_filter = 'monthly',\
+    responses_to_violence_girls = poll_response_sum("edtrac_violence_girls", month_filter = 'monthly',\
         locations = locations, month_20to19=True)
-    violence_change = cleanup_sums(responses_to_violence)
-    if violence_change > 0:
-        violence_change_class = "decrease"
-        violence_change_data = "data-green"
-    elif violence_change < 0:
-        violence_change_class = "increase"
-        violence_change_data = "data-red"
+    violence_change_girls = cleanup_sums(responses_to_violence_girls)
+    if violence_change_girls > 0:
+        violence_change_girls_class = "decrease"
+        violence_change_girls_data = "data-green"
+    elif violence_change_girls < 0:
+        violence_change_girls_class = "increase"
+        violence_change_girls_data = "data-red"
     else:
-        violence_change_class = "zero"
-        violence_change_data = "data-white"
+        violence_change_girls_class = "zero"
+        violence_change_girls_data = "data-white"
     return {
-            'violence_change' : abs(violence_change),
-            'violence_change_class' : violence_change_class,
-            'violence_change_data' : violence_change_data
+            'violence_change_girls' : abs(violence_change_girls),
+            'violence_change_girls_class' : violence_change_girls_class,
+            'violence_change_girls_data' : violence_change_girls_data
+    }
+    
+def violence_changes_boys(locations):
+    """
+    Percentage change in violance from the previous month
+    """
+    responses_to_violence_boys = poll_response_sum("edtrac_violence_boys", month_filter = 'monthly',\
+        locations = locations, month_20to19=True)
+    violence_change_boys = cleanup_sums(responses_to_violence_boys)
+    if violence_change_boys > 0:
+        violence_change_boys_class = "decrease"
+        violence_change_boys_data = "data-green"
+    elif violence_change_boys < 0:
+        violence_change_boys_class = "increase"
+        violence_change_boys_data = "data-red"
+    else:
+        violence_change_boys_class = "zero"
+        violence_change_boys_data = "data-white"
+    return {
+            'violence_change_boys' : abs(violence_change_boys),
+            'violence_change_boys_class' : violence_change_boys_class,
+            'violence_change_boys_data' : violence_change_boys_data
+    }
+    
+def violence_changes_reported(locations):
+    """
+    Percentage change in violance from the previous month
+    """
+    responses_to_violence_reported = poll_response_sum("edtrac_violence_reported", month_filter = 'monthly',\
+        locations = locations, month_20to19=True)
+    violence_change_reported = cleanup_sums(responses_to_violence_reported)
+    if violence_change_reported > 0:
+        violence_change_reported_class = "decrease"
+        violence_change_reported_data = "data-green"
+    elif violence_change_reported < 0:
+        violence_change_reported_class = "increase"
+        violence_change_reported_data = "data-red"
+    else:
+        violence_change_reported_class = "zero"
+        violence_change_reported_data = "data-white"
+    return {
+            'violence_change_reported' : abs(violence_change_reported),
+            'violence_change_reported_class' : violence_change_reported_class,
+            'violence_change_reported_data' : violence_change_reported_data
     }
 
 def p3_absent_boys(locations):
@@ -817,8 +883,15 @@ def generate_dashboard_vars(location=None):
     else:
         locations.append(location)
 
-    context_vars.update(violence_changes(locations))
-
+    # violence girls
+    context_vars.update(violence_changes_girls(locations))
+    
+    #violence boys
+    context_vars.update(violence_changes_boys(locations))
+    
+    #violence_reported
+    context_vars.update(violence_changes_reported(locations))
+    
     # capitations grants
     context_vars.update(capitation_grants(locations))
 
@@ -1281,32 +1354,77 @@ def violence_details_dash(req):
         location = Location.objects.get(name = 'Uganda')
     else:
         location = profile.location
+        
+    violence_cases_girls = poll_response_sum("edtrac_violence_girls", location=location, month_filter='monthly', months=2, ret_type=list)
+    violence_cases_boys = poll_response_sum("edtrac_violence_boys", location=location, month_filter='monthly', months=2, ret_type=list)
+    violence_cases_reported = poll_response_sum("edtrac_violence_reported", location=location, month_filter='monthly', months=2, ret_type=list)
 
-    violence_cases_schools = poll_response_sum("edtrac_headteachers_abuse", location=location, month_filter=True, months=2, ret_type=list)
 
-    violence_cases_gem = poll_response_sum('edtrac_gem_abuse', location=location, month_filter=True, months=2, ret_type=list)
+    violence_cases_gem = poll_response_sum('edtrac_gem_abuse', location=location, month_filter='monthly', months=2, ret_type=list)
 
-    general_violence = get_numeric_report_data('edtrac_headteachers_abuse', location=location)
 
-    school_total = [] # total violence cases reported by school
-    for name, list_val in violence_cases_schools:
+    girls_violence = get_numeric_report_data("edtrac_violence_girls", location)
+    boys_violence = get_numeric_report_data("edtrac_violence_boys", location)
+    reported_violence = get_numeric_report_data("edtrac_violence_reported", location)
+    
+    girls_total = []
+    for name, list_val in violence_cases_girls:
         try:
             diff = (list_val[0] - list_val[1]) / list_val[0]
         except ZeroDivisionError:
             diff = '--'
-        school_total.append((list_val[0], list_val[1], diff))
+        girls_total.append((list_val[0], list_val[1], diff))
         list_val.append(diff)
+    context_vars['violence_cases_girls'] = violence_cases_girls
+    
+    girls_first_col, girls_second_col, girls_third_col = [],[],[]
+    for first, second, third in girls_total:
+        girls_first_col.append(first), girls_second_col.append(second), girls_third_col.append(third)
+    girls_first_col = [i for i in girls_first_col if i != '--']
+    girls_second_col = [i for i in girls_second_col if i != '--']
+    girls_third_col = [i for i in girls_third_col if i != '--']
 
-    context_vars['violence_cases_reported_by_schools'] = violence_cases_schools
+    context_vars['girls_totals'] = [sum(girls_first_col), sum(girls_second_col), sum(girls_third_col)]
+    
+    boys_total = []
+    for name, list_val in violence_cases_boys:
+        try:
+            diff = (list_val[0] - list_val[1]) / list_val[0]
+        except ZeroDivisionError:
+            diff = '--'
+        girls_total.append((list_val[0], list_val[1], diff))
+        list_val.append(diff)
+    context_vars['violence_cases_boys'] = violence_cases_boys
+    
+    boys_first_col, boys_second_col, boys_third_col = [],[],[]
+    for first, second, third in boys_total:
+        boys_first_col.append(first), boys_second_col.append(second), boys_third_col.append(third)
+    boys_first_col = [i for i in boys_first_col if i != '--']
+    boys_second_col = [i for i in boys_second_col if i != '--']
+    boys_third_col = [i for i in boys_third_col if i != '--']
 
-    first_col, second_col, third_col = [],[],[]
-    for first, second, third in school_total:
-        first_col.append(first), second_col.append(second), third_col.append(third)
-    first_col = [i for i in first_col if i != '--']
-    second_col = [i for i in second_col if i != '--']
-    third_col = [i for i in third_col if i != '--']
+    context_vars['boys_totals'] = [sum(boys_first_col), sum(boys_second_col), sum(boys_third_col)]
 
-    context_vars['school_totals'] = [sum(first_col), sum(second_col), sum(third_col)]
+    reported_total = []
+    for name, list_val in violence_cases_reported:
+        try:
+            diff = (list_val[0] - list_val[1]) / list_val[0]
+        except ZeroDivisionError:
+            diff = '--'
+        reported_total.append((list_val[0], list_val[1], diff))
+        list_val.append(diff)
+    context_vars['violence_cases_reported'] = violence_cases_reported
+    
+    reported_first_col, reported_second_col, reported_third_col = [],[],[]
+    for first, second, third in reported_total:
+        reported_first_col.append(first), reported_second_col.append(second), reported_third_col.append(third)
+    reported_first_col = [i for i in reported_first_col if i != '--']
+    reported_second_col = [i for i in reported_second_col if i != '--']
+    reported_third_col = [i for i in reported_third_col if i != '--']
+
+    context_vars['reported_totals'] = [sum(reported_first_col), sum(reported_second_col), sum(reported_third_col)]   
+    
+    
 
     gem_total = [] # total violence cases reported by school
     for name, list_val in violence_cases_gem:
@@ -1344,7 +1462,7 @@ def violence_details_dash(req):
         else:
             contacts = Contact.objects.select_related().filter(reporting_location=profile.location)
 
-        school_resp_count = Poll.objects.select_related().get(name="edtrac_headteachers_abuse").responses.filter(
+        school_resp_count = Poll.objects.select_related().get(name="edtrac_violence_girls").responses.filter(
             contact__in = contacts,
             date__range = dr).count()
 
@@ -1379,14 +1497,14 @@ def violence_details_dash(req):
 
         for month_range in month_ranges:
             h_teach_month.append(month_range[0].strftime('%B'))
-            h_teach_data.append(get_numeric_report_data('edtrac_headteachers_abuse',time_range=month_range, to_ret = 'sum'))
+            h_teach_data.append(get_numeric_report_data('edtrac_violence_girls',time_range=month_range, to_ret = 'sum'))
 
             gem_data.append(get_numeric_report_data('edtrac_gem_abuse',time_range=month_range, to_ret = 'sum'))
 
     else:
         for month_range in month_ranges:
             h_teach_month.append(month_range[0].strftime('%B'))
-            h_teach_data.append(get_numeric_report_data('edtrac_headteachers_abuse',time_range=month_range, to_ret = 'sum', location=profile.location))
+            h_teach_data.append(get_numeric_report_data('edtrac_girls_violence',time_range=month_range, to_ret = 'sum', location=profile.location))
 
             gem_data.append(get_numeric_report_data('edtrac_gem_abuse',time_range=month_range, to_ret = 'sum', location=profile.location))
 

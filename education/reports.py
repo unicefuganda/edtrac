@@ -850,6 +850,8 @@ def poll_response_sum(poll_name, **kwargs):
     can also be used to filter by district and create a dict with
     district vs value
     """
+#    import pdb
+#    pdb.set_trace()
     #TODO: provide querying by date too
     if kwargs:
         if ('month_filter' in kwargs):
@@ -871,8 +873,7 @@ def poll_response_sum(poll_name, **kwargs):
         # probably better to group with parenthesis like:
         # (A and B) and (C or D)
         # (A and B and C) or D
-        elif ('month_filter' in kwargs) and ('location' in kwargs) and\
-             ('ret_type' in kwargs) or ('months' in kwargs):
+        if ('month_filter' in kwargs) and ('location' in kwargs) and ('ret_type' in kwargs) or ('months' in kwargs):
             #TODO support drilldowns
             now = datetime.datetime.now()
             #if role is Admin/Ministry/UNICEF then all districts will be returned

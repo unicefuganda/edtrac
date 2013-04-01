@@ -34,22 +34,22 @@
         });
     </script>
 
+	<br />
+    <!-- <a href="#" id="show-table">Show Violence data</a> | <a href="#" id="hide-table">Hide Violence data</a> -->
 
-    <a href="#" id="show-table">Show Violence data</a> | <a href="#" id="hide-table">Hide Violence data</a>
-
-    <div class="viol">
-    <h2 class="block-header">Violence cases reported by schools</h2>
+    <!-- <div class="viol"> -->
+    <h2 class="block-header">Violence cases against girls</h2>
     <div class="top">
         <table class="tabulated-data">
             <tbody>
             <tr>
                 <th>District</th>
-                <th>Violence cases recorded in {{ report_dates.0|date:"M Y"}}</th>
-                <th>Violence cases recorded in {{ report_dates.1|date:"M Y"}}</th>
+                <th>Cases recorded in {{ report_dates.0|date:"M Y"}}</th>
+                <th>Cases recorded in {{ report_dates.1|date:"M Y"}}</th>
                 <th>Percentage change (%)</th>
             </tr>
-            {% if violence_cases_reported_by_schools %}
-                {% for name, list in violence_cases_reported_by_schools %}
+            {% if violence_cases_girls %}
+                {% for name, list in violence_cases_girls %}
                     {% if list.0 == 0 and list.1 == 0 %}
                     {% else %}
                         <tr>
@@ -69,7 +69,7 @@
               {% endfor %}
             <tr>
                 <td>Total</td>
-                {% for t in school_totals %}
+                {% for t in girls_totals %}
                 <td>{{ t|floatformat }}</td>
                 {% endfor %}
             </tr>
@@ -79,8 +79,91 @@
     </table>
 
     <p class="report alert-message block-message">Results for this month based on {{ sch_reporting_percentage }}% of Total Reporters</p>
+    
+    <h2 class="block-header">Violence cases against boys</h2>
+    <div class="top">
+        <table class="tabulated-data">
+            <tbody>
+            <tr>
+                <th>District</th>
+                <th>Cases recorded in {{ report_dates.0|date:"M Y"}}</th>
+                <th>Cases recorded in {{ report_dates.1|date:"M Y"}}</th>
+                <th>Percentage change (%)</th>
+            </tr>
+            {% if violence_cases_boys %}
+                {% for name, list in violence_cases_boys %}
+                    {% if list.0 == 0 and list.1 == 0 %}
+                    {% else %}
+                        <tr>
+                            <td><a href="{% url district-violence list.2.pk %}">{{ list.2 }}</a></td>
+                            <td>{{ list.0 }}</td> <!-- current month -->
+                            <td>{{ list.1 }}</td>
+                            <!-- TODO check if list.3 is a decimal and limit dps -->
+                            <td>
+                                {% if list.3 == '--' %}
+                                    {{ list.3 }}
+                                {% else %}
+                                {{ list.3|floatformat }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endif %}
+              {% endfor %}
+            <tr>
+                <td>Total</td>
+                {% for t in boys_totals %}
+                <td>{{ t|floatformat }}</td>
+                {% endfor %}
+            </tr>
+            {% else %}
+                <tr><td colspan="4" style="text-align: center;">No cases</td> </tr>
+            {% endif %}
+    </table>
 
+    <p class="report alert-message block-message">Results for this month based on {{ sch_reporting_percentage }}% of Total Reporters</p>
+    
+	<h2 class="block-header">Violence cases referred to Police</h2>
+    <div class="top">
+        <table class="tabulated-data">
+            <tbody>
+            <tr>
+                <th>District</th>
+                <th>Cases referred in {{ report_dates.0|date:"M Y"}}</th>
+                <th>Cases referred in {{ report_dates.1|date:"M Y"}}</th>
+                <th>Percentage change (%)</th>
+            </tr>
+            {% if violence_cases_reported %}
+                {% for name, list in violence_cases_reported %}
+                    {% if list.0 == 0 and list.1 == 0 %}
+                    {% else %}
+                        <tr>
+                            <td><a href="{% url district-violence list.2.pk %}">{{ list.2 }}</a></td>
+                            <td>{{ list.0 }}</td> <!-- current month -->
+                            <td>{{ list.1 }}</td>
+                            <!-- TODO check if list.3 is a decimal and limit dps -->
+                            <td>
+                                {% if list.3 == '--' %}
+                                    {{ list.3 }}
+                                {% else %}
+                                {{ list.3|floatformat }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endif %}
+              {% endfor %}
+            <tr>
+                <td>Total</td>
+                {% for t in reported_totals %}
+                <td>{{ t|floatformat }}</td>
+                {% endfor %}
+            </tr>
+            {% else %}
+                <tr><td colspan="4" style="text-align: center;">No cases</td> </tr>
+            {% endif %}
+    </table>
 
+    <p class="report alert-message block-message">Results for this month based on {{ sch_reporting_percentage }}% of Total Reporters</p>
+	
     <h2 class="block-header">Violence cases reported by community members</h2>
         <table class="tabulated-data">
             <tbody>
@@ -116,7 +199,7 @@
 
         <p class="report alert-message block-message">Results for this month based on {{ gem_reporting_percentage }}% of Total Reporters</p>
     </div>
-</div>
+<!-- </div> -->
     </div>
 
 

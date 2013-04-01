@@ -134,9 +134,21 @@ Dashboard -- {{ block.super }}
                 <div class="top">
 
                     <div class="violence">
-                        <h3>Violence Cases in Schools</h3>
-                        <div class="data {{ violence_change_data }}"><span class="value {{ violence_change_class }}">{{ violence_change|floatformat }}%
-                            <br />{{ violence_change_class }}</span>
+                        <h3>Violence Cases Girls</h3>
+                        <div class="data {{ violence_change_girls_data }}"><span class="value {{ violence_change_girls_class }}">{{ violence_change_girls|floatformat }}%
+                            <br />{{ violence_change_girls_class }}</span>
+                        </div>
+                    </div>
+                    <div class="violence">
+                        <h3>Violence Cases Boys</h3>
+                        <div class="data {{ violence_change_boys_data }}"><span class="value {{ violence_change_boys_class }}">{{ violence_change_boys|floatformat }}%
+                            <br />{{ violence_change_boys_class }}</span>
+                        </div>
+                    </div>
+                    <div class="violence">
+                        <h3>Violence Cases Referred</h3>
+                        <div class="data {{ violence_change_reported_data }}"><span class="value {{ violence_change_reported_class }}">{{ violence_change_reported|floatformat }}%
+                            <br />{{ violence_change_reported_class }}</span>
                         </div>
                     </div>
 
