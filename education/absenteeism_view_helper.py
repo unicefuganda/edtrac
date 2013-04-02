@@ -10,6 +10,7 @@ from education.reports import get_week_date
 from education.utils import is_empty
 from poll.models import Poll, ResponseCategory, Response
 from rapidsms.contrib.locations.models import Location
+from unregister.models import Blacklist
 
 
 def get_aggregated_report(locations, config_list, date_weeks):
@@ -275,10 +276,11 @@ def get_location_for_absenteeism_view(district, request):
     if district is None:
         profile = request.user.get_profile()
         locations = [profile.location]
-        if profile.is_member_of('Ministry Officials') or profile.is_member_of(
-                'Admins') or profile.is_member_of('UNICEF Officials'):
-            locations = Location.objects.filter(type='district').filter(pk__in= \
-                EnrolledDeployedQuestionsAnswered.objects.values_list('school__location__pk', flat=True))
+        if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of(
+                'UNICEF Officials'):
+            locations = Location.objects.filter(type="district", pk__in=EmisReporter.objects.exclude(
+                connection__in=Blacklist.objects.values_list('connection', flat=True), schools=None).values_list(
+                'reporting_location__pk', flat=True))
     else:
         locations = [Location.objects.get(name__iexact=district, type__name='district')]
     return locations
