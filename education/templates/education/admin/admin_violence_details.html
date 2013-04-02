@@ -7,16 +7,15 @@
 </ul>
 
 <div class="general">
-
+	<h2>Violence cases in schools</h2>
     <ul class='breadcrumb' style="background-color: #e0ccef">
-        <li>
-            <a href="#" id="gem">Reports by GEM</a>
-            <span class="divider">|</span>
-        </li>
-        <li><a href="#" id="headteachers">Reports by Head Teachers</a></li>
+    	<li><a href="#" id="girls">Girls</a></li> |
+    	<li><a href="#" id="boys">Boys</a></li> |
+    	<li><a href="#" id="reported">Referred to Police</a></li> |
+        <li><a href="#" id="gem">Reports by GEM</a></li>
     </ul>
     <div id="violence-graph"></div>
-    <script>
+    <!-- <script>
         $(document).ready(function(){
             violence_cases('{{ monthly_data_gem }}', title = "Violence in Uganda (GEM Report)");
             $('a#headteachers').click(function(event){
@@ -32,7 +31,39 @@
                 );
             });
         });
+    </script> -->
+    
+    <script>
+        $(document).ready(function(){
+            violence_cases('{{ monthly_violence_data_girls }}', title = "Violence cases - Girls");
+            $('a#girls').click(function(event){
+               violence_cases(
+                       '{{ monthly_violence_data_girls }}',
+                       title = "Violence cases - Girls"
+               );
+            });
+            $('a#boys').click(function(event){
+               violence_cases(
+                       '{{ monthly_violence_data_boys }}',
+                       title = "Violence cases - Boys"
+               );
+            });
+            $('a#reported').click(function(event){
+               violence_cases(
+                       '{{ monthly_violence_data_reported }}',
+                       title = "Violence cases referred to Police"
+               );
+            });
+            $('a#gem').click(function(event){
+                violence_cases(
+                        '{{ monthly_data_gem }}',
+                        title = "Violence in Uganda (GEM reports)"
+                );
+            });
+        });
     </script>
+    
+    
 
 	<br />
     <!-- <a href="#" id="show-table">Show Violence data</a> | <a href="#" id="hide-table">Hide Violence data</a> -->

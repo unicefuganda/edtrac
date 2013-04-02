@@ -1491,8 +1491,17 @@ def violence_details_dash(req):
 
 
     h_teach_month = []
+    girls_violence_month = []
+    boys_violence_month =[]
+    reported_violence_month = []
+    
     h_teach_data = []
     gem_data = []
+    
+    girls_violence_data = []
+    boys_violence_data = []
+    reported_violence_data = []
+    
     if profile.is_member_of('Minstry Officials') or profile.is_member_of('UNICEF Officials') or profile.is_member_of('Admins'):
 
         for month_range in month_ranges:
@@ -1500,6 +1509,13 @@ def violence_details_dash(req):
             h_teach_data.append(get_numeric_report_data('edtrac_violence_girls',time_range=month_range, to_ret = 'sum'))
 
             gem_data.append(get_numeric_report_data('edtrac_gem_abuse',time_range=month_range, to_ret = 'sum'))
+            
+            girls_violence_month.append(month_range[0].strftime('%B'))
+            girls_violence_data.append(get_numeric_report_data('edtrac_violence_girls', time_range=month_range, to_ret='sum'))
+            boys_violence_month.append(month_range[0].strftime('%B'))
+            boys_violence_data.append(get_numeric_report_data('edtrac_violence_boys', time_range=month_range, to_ret='sum'))
+            reported_violence_month.append(month_range[0].strftime('%B'))
+            reported_violence_data.append(get_numeric_report_data('edtrac_violence_reported', time_range=month_range, to_ret='sum'))
 
     else:
         for month_range in month_ranges:
@@ -1507,13 +1523,26 @@ def violence_details_dash(req):
             h_teach_data.append(get_numeric_report_data('edtrac_girls_violence',time_range=month_range, to_ret = 'sum', location=profile.location))
 
             gem_data.append(get_numeric_report_data('edtrac_gem_abuse',time_range=month_range, to_ret = 'sum', location=profile.location))
+            
+            girls_violence_month.append(month_range[0].strftime('%B'))
+            girls_violence_data.append(get_numeric_report_data('edtrac_violence_girls', time_range=month_range, to_ret='sum', location=profile.location))
+            boys_violence_month.append(month_range[0].strftime('%B'))
+            boys_violence_data.append(get_numeric_report_data('edtrac_violence_boys', time_range=month_range, to_ret='sum', location=profile.location))
+            reported_violence_month.append(month_range[0].strftime('%B'))
+            reported_violence_data.append(get_numeric_report_data('edtrac_violence_reported', time_range=month_range, to_ret='sum', location=profile.location))
 
     monthly_data_h_teachers = ';'.join([str(item[0])+'-'+str(item[1]) for item in zip(h_teach_month, h_teach_data)])
+    monthly_violence_data_girls = ';'.join([str(item[0])+'-'+str(item[1]) for item in zip(girls_violence_month, girls_violence_data)])
+    monthly_violence_data_boys = ';'.join([str(item[0])+'-'+str(item[1]) for item in zip(boys_violence_month, boys_violence_data)])
+    monthly_violence_data_reported = ';'.join([str(item[0])+'-'+str(item[1]) for item in zip(reported_violence_month, reported_violence_data)])
 
     gem_month = copy.deepcopy(h_teach_month)
     monthly_data_gem = ';'.join([str(item[0])+'-'+str(item[1]) for item in zip(gem_month, gem_data)])
 
     context_vars['monthly_data_gem'] = monthly_data_gem
+    context_vars['monthly_violence_data_girls'] = monthly_violence_data_girls
+    context_vars['monthly_violence_data_boys'] = monthly_violence_data_boys
+    context_vars['monthly_violence_data_reported'] = monthly_violence_data_reported
     context_vars['monthly_data_h_teach'] = monthly_data_h_teachers
 
     if profile.is_member_of('Minstry Officials') or profile.is_member_of('UNICEF Officials') or profile.is_member_of('Admins'):
