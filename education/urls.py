@@ -273,5 +273,6 @@ urlpatterns = patterns('',
     url(r'^edtrac/detail-attd/$', detail_attd, name="detail-attendance-visualization"),
     url(r'^edtrac/detail-attd/(?P<district>\w+)/$', detail_attd, name="detail-attendance-visualization"),
     url(r'^edtrac/detail-attd-school/(?P<location>\w+)/$', detail_attd_school, name="detail-attendance-school"),
+    url(r"^edtrac/export/$", edtrac_export_poll_responses),
 )
 

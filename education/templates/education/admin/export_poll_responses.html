@@ -1,0 +1,40 @@
+{% extends "education/layout_base.html" %}
+{% load stats_extras %}
+{% block title %}
+    Dashboard -- {{ block.super }}
+{% endblock %}
+{% block content %}
+    <div style="padding: 10px;margin: 5px;">
+        <fieldset>
+            <form action="" method="POST">
+                {% csrf_token %}
+                <ul>
+                    <li class="{{ form.from_date.css_classes  }}">
+                        {{ form.from_date.label_tag }}
+                        {{ form.from_date }}
+                        {{ form.from_date.errors }}
+                    </li>
+                    <li class="{{ form.to_date.css_classes  }}">
+                        {{ form.to_date.label_tag }}
+                        {{ form.to_date }}
+                        {{ form.to_date.errors }}
+                    </li>
+                    <li class="{{ form.poll_name.css_classes  }}">
+                        {{ form.poll_name.label_tag }}
+                        {{ form.poll_name }}
+                        {{ form.poll_name.errors }}
+                    </li>
+                    <li>
+                        <input type="submit" value="Export"/>
+                    </li>
+                </ul>
+            </form>
+        </fieldset>
+        <script>
+            $(function(){
+                $('#id_from_date').datepicker();
+                $('#id_to_date').datepicker();
+            });
+        </script>
+    </div>
+{% endblock %}

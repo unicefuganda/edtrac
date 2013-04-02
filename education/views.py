@@ -3230,3 +3230,79 @@ def detail_attd_school(request, location):
     name = request.GET['school']
     school_id = School.objects.get(name=name, location__name=location).id
     return redirect(reverse('school-detail',args=(school_id,)))
+
+class ExportPollForm(forms.Form):
+    error_css_class = 'error'
+    select_choices = list(Poll.objects.values_list(*['pk','name']))
+    from_date = forms.DateTimeField(required=False)
+    to_date = forms.DateTimeField(required=False)
+    poll_name = forms.ChoiceField(choices=select_choices, required=False)
+
+    def clean(self):
+        data = self.cleaned_data
+        if data.get('from_date') is None or data.get('to_date') is None:
+            if is_empty(data.get('poll_name')):
+                raise forms.ValidationError("Fields blank")
+        if data.get('from_date') > data.get('to_date'):
+            raise forms.ValidationError("To date less than from date")
+        return data
+
+
+def _format_responses(responses):
+    a = []
+    for response in responses:
+        if response.contact:
+            contact = response.contact
+            sender = contact
+            location_type = contact.reporting_location.type
+            reporting_location = contact.reporting_location.name
+            school = ", ".join(contact.emisreporter.schools.values_list('name', flat=True))
+        else:
+            sender = response.message.connection.identity
+            location_type = "--"
+            reporting_location = "--"
+            school = "--"
+        date = response.message.date
+        if response.poll.type == "t":
+            value = response.eav.poll_text_value
+        elif response.poll.type == "n":
+            value = response.eav.poll_number_value
+        elif response.poll.type == 'l':
+            value = response.eav.poll_location_value.name
+        category = response.categories.values_list('category__name',flat=True)
+        if len(category) == 0:
+            category = "--"
+        else:
+            category = ", ".join(category)
+        a.append((sender,location_type,reporting_location,school,date,value,category))
+    return a
+
+
+@login_required
+def edtrac_export_poll_responses(request):
+    profile = request.user.get_profile()
+    if not (profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of(
+            'UNICEF Officials')):
+        return redirect('/')
+
+    if request.method == 'GET':
+        form = ExportPollForm()
+    else:
+        form = ExportPollForm(data=request.POST)
+        if form.is_valid():
+            poll = get_object_or_404(Poll, pk=form.cleaned_data['poll_name'])
+
+            responses = poll.responses.all().order_by('-pk')
+            to_date = form.cleaned_data['to_date']
+            from_date = form.cleaned_data['from_date']
+            if from_date and to_date:
+                responses = responses.filter(date__range=[from_date, to_date])
+
+            resp = render_to_response('education/admin/export_poll_responses.csv', {'responses'
+                                                              : _format_responses(responses)}, mimetype='text/csv',
+                                      context_instance=RequestContext(request))
+            resp['Content-Disposition'] = 'attachment;filename="%s.csv"' \
+                                          % poll.name
+            return resp
+
+    return render_to_response('education/admin/export_poll_responses.html', {'form':form},RequestContext(request))
