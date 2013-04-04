@@ -1,47 +1,7 @@
 {% extends "education/admin/admin_dashboard.html" %}
 {% block title %} Curriculum Progress P3 -- {{ block.super }} {% endblock %}
 {% block content %}
-<ul class='breadcrumb'>
-	<li>
-		<a href="{% url rapidsms-dashboard %}">
-   Dashboard Home</a>
-	</li></ul>
-<div class="general">
-    <div class="stats"><h3>Curriculum Progress &harr; P3</h3></div>
-<div class="top_row">
-    <div id="progress"></div>
-</div>
-<div id="table_row">
-    <div class="school_report general">
-        <div class="table_container">
-            <div class="table">
-                <table class="classy tabular-data">
-                    <tr>
-                        <thead>
-                        <th>District</th>
-                        <th>Literacy sub theme completed this week (Mode)</th>
-                        <!--<th>Percentage of schools at level</th>-->
-                        <!--<th>Progress Status</th>-->
-                        </thead>
-                    </tr>
 
-                    {% for district, mode in location_data %}
-                        <tr>
-                            <td>
-                                <a href="{% url emis-admin-curriculum-progress-district district.pk %}">
-                                    {{ district }}
-                                </a>
-                            </td>
-                            <td>{{ mode }}</td></tr>
-                    {% endfor %}
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-</div>
-<script type="text/javascript">
-    $(document).ready(function(){
-    });
-</script>
+    {% include "education/progress/_progress_detail_partial.html" %}
+
 {% endblock %}
