@@ -585,6 +585,8 @@ def reschedule_teacher_weekly_polls(grp=None):
     for rep in reps:
         if rep.default_connection and len(rep.groups.all()) > 0:
             _schedule_teacher_weekly_scripts(rep.groups.all()[0], rep.default_connection, ['Teachers', 'Head Teachers', 'SMC'])
+            print rep.name
+    print "Poll sent out to " + str(reps.count()) + " reporters"
 
 
 def reschedule_monthly_polls(grp=None):
