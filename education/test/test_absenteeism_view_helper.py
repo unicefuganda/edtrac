@@ -70,9 +70,11 @@ class TestAbsenteeismViewHelper(TestAbsenteeism):
     def test_should_ignore_locations_if_no_response_found(self):
         with patch('education.absenteeism_view_helper.get_responses_over_depth') as method_mock:
             method_mock.return_value = [], []
-            get_responses_by_location(list(self.uganda.get_children()), [self.p3_boys_absent_poll.name],
-                                      [self.p3_boys_enrolled_poll.name],self.date_week)
-            method_mock.assert_called_with(self.p3_boys_absent_poll.name, self.p3_boys_enrolled_poll.name, list(self.uganda.get_children()), self.date_week)
+            config_data = get_polls_for_keyword('P3Boys')
+            config=config_data[0]
+            get_responses_by_location(list(self.uganda.get_children()),config,
+                                      self.date_week)
+            method_mock.assert_called_with(config['attendance_poll'][0],config['enrollment_poll'][0], list(self.uganda.get_children()), self.date_week)
 
     def test_should_give_result_for_p3_boys_poll(self):
         locations = [self.kampala_district]
@@ -83,17 +85,20 @@ class TestAbsenteeismViewHelper(TestAbsenteeism):
         create_record_enrolled_deployed_questions_answered(model=EnrolledDeployedQuestionsAnswered)
         with patch('education.absenteeism_view_helper.get_responses_over_depth') as method_mock:
             method_mock.return_value = [], []
-            get_responses_by_location(locations, [self.p3_boys_absent_poll.name],
-                                      [self.p3_boys_enrolled_poll.name],self.date_week)
-            method_mock.assert_called_with(self.p3_boys_absent_poll.name, self.p3_boys_enrolled_poll.name,
+            config_data = get_polls_for_keyword('P3Boys')
+            config=config_data[0]
+            get_responses_by_location(locations, config ,self.date_week)
+            method_mock.assert_called_with(config['attendance_poll'][0],config['enrollment_poll'][0],
                                            locations, self.date_week)
 
     def test_should_give_result_for_p3_boys_poll_at_location(self):
         locations = [self.gulu_district]
         with patch('education.absenteeism_view_helper.get_responses_over_depth') as method_mock:
             method_mock.return_value = [], []
-            get_responses_by_location(locations,[self.p3_boys_absent_poll.name], [self.p3_boys_enrolled_poll.name],self.date_week)
-            method_mock.assert_called_with(self.p3_boys_absent_poll.name, self.p3_boys_enrolled_poll.name,
+            config_data = get_polls_for_keyword('P3Boys')
+            config=config_data[0]
+            get_responses_by_location(locations, config ,self.date_week)
+            method_mock.assert_called_with(config['attendance_poll'][0],config['enrollment_poll'][0],
                                            locations, self.date_week)
 
     def test_sholud_give_head_teachers_absenteeism_percent(self):
@@ -101,7 +106,8 @@ class TestAbsenteeismViewHelper(TestAbsenteeism):
         self.head_teachers_poll.start()
         self.fake_incoming('no', self.emis_reporter5)
         self.fake_incoming('yes', self.emis_reporter6)
-        result_by_location, result_by_time = get_head_teachers_absent_over_time(locations, 'M', self.date_week)
+        config = get_polls_for_keyword('MaleHeadTeachers')
+        result_by_location, result_by_time = get_head_teachers_absent_over_time(locations,config[0], self.date_week)
         self.assertEqual(50, result_by_location.get('Kampala'))
         self.assertTrue(50 in result_by_time)
 
@@ -120,16 +126,16 @@ class TestAbsenteeismViewHelper(TestAbsenteeism):
         create_record_enrolled_deployed_questions_answered(model = EnrolledDeployedQuestionsAnswered)
         response = client.post('/edtrac/detail-attd/', {'from_date': getattr(settings, 'SCHOOL_TERM_START').strftime('%m/%d/%Y') , 'to_date': getattr(settings, 'SCHOOL_TERM_END').strftime('%m/%d/%Y') , 'indicator':'P3Boys'})
         kampala_result =  response.context['collective_result']['Kampala']
-        self.assertEqual(94.0 , round(kampala_result['p3_boys']))
+        self.assertEqual(94.0 , round(kampala_result['P3 Boys']))
 
     def test_should_calculate_date_by_weeks_for_today(self):
         today = datetime.datetime.today()
-        fortnight_before = today - datetime.timedelta(days=14)
+        fortnight_before = today - datetime.timedelta(days=15)
         date_range = get_date_range(fortnight_before, today)
         self.assertTrue((fortnight_before, fortnight_before+datetime.timedelta(days=7)) in date_range)
 
     def test_should_return_proper_config_data_if_indicator_passed(self):
-        expected = [dict(attendance_poll=['edtrac_boysp3_attendance'], collective_dict_key='p3_boys',
-                         enrollment_poll=['edtrac_boysp3_enrollment'], time_data_name='P3_Boys')]
+        expected = [dict(attendance_poll=['edtrac_boysp3_attendance'], collective_dict_key='P3 Boys',
+                         enrollment_poll=['edtrac_boysp3_enrollment'], time_data_name='P3 Boys', func= get_responses_by_location)]
         config_data = get_polls_for_keyword("P3Boys")
         self.assertEqual(expected,config_data)
