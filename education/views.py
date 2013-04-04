@@ -3306,6 +3306,10 @@ def _format_responses(responses):
         a.append((sender,location_type,reporting_location,school,date,value,category))
     return a
 
+def _format_reporters(reporters):
+    return [[r.id,r.name,r.reporting_location.type.name, r.reporting_location.name, ", ".join(r.schools.values_list('name', flat=True))] for r in reporters]
+
+
 
 @login_required
 def edtrac_export_poll_responses(request):
@@ -3335,3 +3339,30 @@ def edtrac_export_poll_responses(request):
             return resp
 
     return render_to_response('education/admin/export_poll_responses.html', {'form':form},RequestContext(request))
+
+@login_required
+def edit_sub_county_reporters(request):
+    profile = request.user.get_profile()
+    if not (profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of(
+            'UNICEF Officials')):
+        return redirect('/')
+
+    if request.method == 'GET':
+        sub_county_reporters = EmisReporter.objects.filter(reporting_location__type = 'sub_county')
+        return render_to_response('education/admin/edit_sub_county_reporters.html', {'reporters':sub_county_reporters},RequestContext(request))
+
+
+@login_required
+def export_sub_county_reporters(request):
+    profile = request.user.get_profile()
+    if not (profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of(
+            'UNICEF Officials')):
+        return redirect('/')
+
+    if request.method == 'GET':
+        sub_county_reporters = EmisReporter.objects.filter(reporting_location__type='sub_county')
+        resp = render_to_response('education/admin/export_sub_county_reporters.csv',
+                                  {'responses': _format_reporters(sub_county_reporters)}, mimetype='text/csv',
+                                  context_instance=RequestContext(request))
+        resp['Content-Disposition'] = 'attachment;filename="sub_county_reporters.csv"'
+        return resp

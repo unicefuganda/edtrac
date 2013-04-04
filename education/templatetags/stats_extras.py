@@ -300,6 +300,9 @@ def make_url_for_detail_attd(locations, key_string):
         return "%s?school=%s" % (reverse("detail-attendance-school", args=(locations[0].name,)), urlquote(key_string))
     return reverse('detail-attendance-visualization', args=(key_string,))
 
+def format_schools(obj):
+    return ", ".join([i.name for i in obj])
+
 register = template.Library()
 register.filter('section', get_section)
 register.filter('parent', get_parent)
@@ -321,5 +324,6 @@ register.filter('headteacher_connection',headteacher_connection)
 register.filter('hash', hash)
 register.filter('get_district', get_district)
 register.filter('key', key)
+register.filter('format_schools', format_schools)
 register.filter('make_url_for_detail_attd', make_url_for_detail_attd)
 register.tag('date_range', do_date_range)
