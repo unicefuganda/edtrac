@@ -719,6 +719,8 @@ def reschedule_weekly_script(grp = 'all', date=None, slug='edtrac_p3_teachers_we
     for rep in reps:
         if rep.default_connection and rep.groups.count() > 0:
             _schedule_weekly_script(rep.groups.all()[0], rep.default_connection, slug, ['Teachers', 'Head Teachers'])
+            print rep.name
+    print "Script sent out to " + str(reps.count()) + " reporters"
 
 
 def schedule_weekly_report(grp='DEO'):
