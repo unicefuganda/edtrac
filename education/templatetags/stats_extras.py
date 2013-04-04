@@ -283,13 +283,7 @@ def make_date_range_month(obj):
 
     return ",".join(to_ret)
 
-def get_url(sublocation_type,id):
-    if sublocation_type == 'school':
-        return reverse("school-detail",args=(id,))
-    return reverse("emis-admin-curriculum-progress-district",args=(id,))
 
-def isfloat(obj):
-    return isinstance(obj,float)
 
 def get_district_pk(name):
     location = Location.objects.filter(type="district").get(name = name)
@@ -332,6 +326,4 @@ register.filter('get_district', get_district)
 register.filter('key', key)
 register.filter('format_schools', format_schools)
 register.filter('make_url_for_detail_attd', make_url_for_detail_attd)
-register.filter('get_url', get_url)
-register.filter('isfloat', isfloat)
 register.tag('date_range', do_date_range)

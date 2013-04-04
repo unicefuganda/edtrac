@@ -19,7 +19,6 @@ from django.views.generic import DetailView, TemplateView, ListView
 from django.db.models import Q
 import xlwt
 from django.utils.safestring import mark_safe
-from education.curriculum_progress_helper import get_target_value, target
 
 from .forms import *
 from .models import *
@@ -115,23 +114,6 @@ def dash_attdance(request):
         'male_teachers_present' : male_teachers_present, 'male_teachers_absent' : male_teachers_absent
     } , RequestContext(request))
 
-
-def get_mode_progress(mode):
-    try:
-        mode_progress = (100 * sorted(themes.keys()).index(mode) + 1) / float(len(themes.keys())) # offset zero-based index by 1
-    except ValueError:
-        mode_progress = 0 # when no values are recorded
-    return mode_progress
-
-
-def get_progress_color(current_mode, target_value):
-    on_schedule = 'green'
-    behind_schedule = 'red'
-    if current_mode < target_value:
-        return behind_schedule
-    return on_schedule
-
-
 def dash_admin_progress(req):
     """
     Curriculum progress
@@ -147,8 +129,10 @@ def dash_admin_progress(req):
         if profile.is_member_of(auth_user):
             authorized_user = True
             break
+    on_schedule = 'green'
+    behind_schedule = 'orange'
+    way_behind_schedule = 'red'
 
-    user_location = profile.location
     if authorized_user:
         locations = Location.objects.filter(
             type = "district",
@@ -167,14 +151,12 @@ def dash_admin_progress(req):
             except TypeError:
                 loc_data.append([location, "--"])
 
-        current_mode = p3_curriculum(locations)['c_mode']
-        sub_location_type='district'
-        template_name = 'education/progress/admin_progress_details.html'
+        return render_to_response('education/progress/admin_progress_details.html',
+                {'location_data': loc_data}, RequestContext(req))
     else:
         schools = School.objects.filter(pk__in = EmisReporter.objects.filter(reporting_location=profile.location).values_list('schools__pk', flat=True))
         loc_data = []
         p = Poll.objects.get(name='edtrac_p3curriculum_progress')
-        list_of_values=[0]
         for school in schools:
             response_dates = p.responses.filter(contact__connection__in = school.emisreporter_set.\
             values_list('connection',flat=True)).values_list('date', flat=True)
@@ -187,7 +169,6 @@ def dash_admin_progress(req):
                     loc_data.append([school, 'incorrect response'])
                 else:
                     loc_data.append([school, response_sieve[0][1]])
-                    list_of_values.append(response_sieve[0][1])
             except IndexError:
                 # no or missing data
                 loc_data.append([school, 'missing'])
@@ -198,19 +179,8 @@ def dash_admin_progress(req):
         temp_2 = [item for item in loc_data if item not in temp]
         temp_2 = sorted(temp_2, key=operator.itemgetter(1), reverse=True)
         loc_data = temp_2 + temp
-
-        current_mode = curriculum_progress_mode(list_of_values)
-        template_name = 'education/progress/district_progress_details.html'
-        sub_location_type='school'
-    target_value = get_target_value(datetime.datetime.today())
-    mode_progress = get_mode_progress(current_mode)
-    target_progress = get_mode_progress(target_value)
-    color = get_progress_color(current_mode,target_value)
-    return render_to_response(template_name,
-                              {'location_data': loc_data, 'location': user_location, 'target': target_value,
-                               'current_mode': current_mode, 'mode_progress': mode_progress, 'target_progress': target_progress,
-                               'class_sent_from_behind': color,'sub_location_type':sub_location_type}, RequestContext(req))
-
+        return render_to_response('education/progress/district_progress_details.html',
+                {'location_data':loc_data, 'location':profile.location}, RequestContext(req))
 
 def dash_admin_progress_district(req, district_pk):
     location = Location.objects.filter(type="district").get(pk=district_pk)

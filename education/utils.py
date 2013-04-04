@@ -926,16 +926,3 @@ def extract_key_count(list, key=None):
 def poll_to_xform_submissions(message):
     pass
     return True
-
-
-def get_week_count(reference_date, d):
-    week_count = 0
-    test_date = d
-    temp = reference_date
-    if reference_date > d:
-        temp = d
-        test_date = reference_date
-    while temp < test_date:
-        temp = dateutils.increment(temp,days=7)
-        week_count+=1
-    return week_count

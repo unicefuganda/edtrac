@@ -2,6 +2,56 @@
 {% extends "education/admin/admin_dashboard.html" %}
 {% block title %} Curriculum Progress P3 -- {{ block.super }} {% endblock %}
 {% block content %}
-
-    {% include "education/progress/_progress_detail_partial.html" %}
+{% load endless %}
+<ul class="breadcrumb"><li><a href="{% url rapidsms-dashboard %}">← Back to the EduTrac Home Page</a></li></ul>
+<div class="general">
+    <div class="stats"><h3>Curriculum Progress in {{ location }} &harr; P3</h3></div>
+    <div class="top_row">
+        <div id="progress"></div>
+    </div>
+    <div id="table_row">
+        <div class="school_report general">
+            <div class="table_container">
+                <div class="table">
+                    <table class="classy tabular-data">
+                        <tr>
+                            <thead>
+                            <th>School</th>
+                            <th>Literacy sub theme completed</th>
+                            <!--<th>Percentage of schools at level</th>-->
+                            <!--<th>Progress Status</th>-->
+                            </thead>
+                        </tr>
+                        {% paginate 25 location_data %}
+                        {% for school, mode in location_data %}
+                        <tr>
+                            <td>
+                                <a href="{% url school-detail school.pk %}"> {{ school.name }}</a>
+                            </td>
+                            <td>
+                                    {% if mode == 'missing' %}
+                                        <span style="color:red; font-size: 0.8em;">missing</span>
+                                    {% endif %}
+                                    {% if mode == 'incorrect response' %}
+                                        <span style="color:orange; font-size: 0.8em;">incorrect response</span>
+                                    {% endif %}
+                                    {% if mode >= 0.0 %}
+                                            {% if mode > 12.3 %}
+                                                <span style="color:red; font-size: 0.7em;">Wrong:</span>
+                                            {% endif %} {{ mode|floatformat }}
+                                    {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                    {% show_pages %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function(){
+    });
+</script>
 {% endblock %}

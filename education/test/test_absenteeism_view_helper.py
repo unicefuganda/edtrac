@@ -101,7 +101,7 @@ class TestAbsenteeismViewHelper(TestAbsenteeism):
             method_mock.assert_called_with(config['attendance_poll'][0],config['enrollment_poll'][0],
                                            locations, self.date_week)
 
-    def test_should_give_head_teachers_absenteeism_percent(self):
+    def test_sholud_give_head_teachers_absenteeism_percent(self):
         locations = [self.kampala_district]
         self.head_teachers_poll.start()
         self.fake_incoming('no', self.emis_reporter5)
