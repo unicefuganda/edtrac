@@ -202,14 +202,14 @@ def dash_admin_progress(req):
         current_mode = curriculum_progress_mode(list_of_values)
         template_name = 'education/progress/district_progress_details.html'
         sub_location_type='school'
-    target_value = get_target_value(datetime.datetime.today())
+    target_value , term = get_target_value(datetime.datetime.today())
     mode_progress = get_mode_progress(current_mode)
     target_progress = get_mode_progress(target_value)
     color = get_progress_color(current_mode,target_value)
     return render_to_response(template_name,
                               {'location_data': loc_data, 'location': user_location, 'target': target_value,
                                'current_mode': current_mode, 'mode_progress': mode_progress, 'target_progress': target_progress,
-                               'class_sent_from_behind': color,'sub_location_type':sub_location_type}, RequestContext(req))
+                               'class_sent_from_behind': color,'sub_location_type':sub_location_type,'term':term}, RequestContext(req))
 
 
 def dash_admin_progress_district(req, district_pk):

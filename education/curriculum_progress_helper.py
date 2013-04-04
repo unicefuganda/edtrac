@@ -27,15 +27,15 @@ def add_offset_according_to_term_number(target_value):
     third_term_start= getattr(settings,'THIRD_TERM_BEGINS')
 
     if term_start == first_term_start:
-        return target_value
+        return target_value , 'first'
     if term_start == second_term_start:
-        return target_value+4
+        return target_value+4 , 'second'
     if term_start ==third_term_start:
-        return target_value+8
+        return target_value+8 , 'third'
 
 def get_target_value(given_date):
     term_start = getattr(settings,'SCHOOL_TERM_START')
     week_count = get_week_count(term_start,given_date)
     target_value = target[week_count]
-    target_value = add_offset_according_to_term_number(target_value)
-    return target_value
+    target_value ,term = add_offset_according_to_term_number(target_value)
+    return target_value ,term

@@ -4,11 +4,42 @@
 <div class="general">
     <div class="stats"><h3>Curriculum Progress in {{ location }} &harr; P3</h3></div>
     <div class="curriculum-progress">
+        <p>3rd Term</p>
         <div class="progress">
-            <span style="width:{{ target_progress }}%;"><b>{{ target }}</b></span>
+            {% if term  == 'third' %}
+                <span style="width:{{ target_progress }}%;"><b>{{ target }}</b></span>
+            {% endif %}
         </div>
         <div class="progress">
-            <span class="{{ class_sent_from_behind }}" style="width:{{ mode_progress }}%;"><b>{{ current_mode }}</b></span>
+            {% if term  == 'third' %}
+                <span class="{{ class_sent_from_behind }}" style="width:{{ mode_progress }}%;"><b>{{ current_mode }}</b></span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="curriculum-progress">
+        <p>2nd Term</p>
+        <div class="progress">
+            {% if term  == 'second' %}
+                <span style="width:{{ target_progress }}%;"><b>{{ target }}</b></span>
+            {% endif %}
+        </div>
+        <div class="progress">
+            {% if term  == 'second' %}
+                <span class="{{ class_sent_from_behind }}" style="width:{{ mode_progress }}%;"><b>{{ current_mode }}</b></span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="curriculum-progress">
+        <p>1st Term</p>
+        <div class="progress">
+            {% if term  == 'first' %}
+                <span style="width:{{ target_progress }}%;"><b>{{ target }}</b></span>
+            {% endif %}
+        </div>
+        <div class="progress">
+            {% if term  == 'first' %}
+                <span class="{{ class_sent_from_behind }}" style="width:{{ mode_progress }}%;"><b>{{ current_mode }}</b></span>
+            {% endif %}
         </div>
     </div>
     <div class="top_row">
@@ -21,7 +52,7 @@
                     <table class="classy tabular-data">
                         <tr>
                             <thead>
-                            <th>School</th>
+                            <th>{{ sub_location_type|capfirst }}</th>
                             <th>Literacy sub theme completed</th>
                             <!--<th>Percentage of schools at level</th>-->
                             <!--<th>Progress Status</th>-->
