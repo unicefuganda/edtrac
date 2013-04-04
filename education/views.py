@@ -3306,8 +3306,13 @@ def _format_responses(responses):
         a.append((sender,location_type,reporting_location,school,date,value,category))
     return a
 
+
+def _get_identity(r):
+    return r.default_connection.identity if r.default_connection else "--"
+
+
 def _format_reporters(reporters):
-    return [[r.id,r.name,r.reporting_location.type.name, r.reporting_location.name, ", ".join(r.schools.values_list('name', flat=True))] for r in reporters]
+    return [[r.id,r.name, _get_identity(r),r.reporting_location.type.name, r.reporting_location.name, ", ".join(r.schools.values_list('name', flat=True))] for r in reporters]
 
 
 

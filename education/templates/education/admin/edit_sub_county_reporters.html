@@ -22,6 +22,9 @@
                     Name
                 </th>
                 <th style="border-left: 1px solid #dddddd">
+                    Number
+                </th>
+                <th style="border-left: 1px solid #dddddd">
                     Location Type
                 </th>
                 <th style="border-left: 1px solid #dddddd">
@@ -38,6 +41,9 @@
                     </td>
                     <td style="border-left: 1px solid #dddddd; border-top: 1px solid #dddddd; text-align: center">
                         {{ reporter.name }}
+                    </td>
+                    <td style="border-left: 1px solid #dddddd; border-top: 1px solid #dddddd; text-align: center">
+                        {{ reporter.default_connection.identity }}
                     </td>
                     <td style="border-left: 1px solid #dddddd; border-top: 1px solid #dddddd; text-align: center">
                         {{ reporter.reporting_location.type }}
