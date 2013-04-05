@@ -408,7 +408,7 @@ def edtrac_autoreg(**kwargs):
         # Now that you have their roll, they should be signed up for the periodic polling
 #        _schedule_weekly_scripts(group, connection, ['Teachers', 'Head Teachers', 'SMC'])
 #        _schedule_weekly_script(group, connection, 'edtrac_p3_teachers_weekly', ['Teachers'])
-        _schedule_weekly_script(group, connection, ['Teachers'])
+        _schedule_weekly_script(group, connection, 'edtrac_p3_teachers_weekly', ['Teachers'])
         _schedule_weekly_scripts(group, connection, ['Head Teachers', 'SMC'])
         #_schedule_monthly_script(group, connection, 'edtrac_teachers_monthly', 'last', ['Teachers'])
 #        _schedule_monthly_script(group, connection, 'edtrac_head_teachers_monthly', 'last', ['Head Teachers'])
