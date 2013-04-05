@@ -408,7 +408,7 @@ def edtrac_autoreg(**kwargs):
         # Now that you have their roll, they should be signed up for the periodic polling
 #        _schedule_weekly_scripts(group, connection, ['Teachers', 'Head Teachers', 'SMC'])
 #        _schedule_weekly_script(group, connection, 'edtrac_p3_teachers_weekly', ['Teachers'])
-        _schedule_teacher_weekly_scripts(group, connection, ['Teachers'])
+        _schedule_weekly_script(group, connection, ['Teachers'])
         _schedule_weekly_scripts(group, connection, ['Head Teachers', 'SMC'])
         #_schedule_monthly_script(group, connection, 'edtrac_teachers_monthly', 'last', ['Teachers'])
 #        _schedule_monthly_script(group, connection, 'edtrac_head_teachers_monthly', 'last', ['Head Teachers'])
@@ -701,7 +701,7 @@ def reschedule_monthly_script(grp = 'all', date=None, slug=''):
         if rep.default_connection and rep.groups.count() > 0:
             _schedule_new_monthly_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers', 'SMC', 'GEM'], date)
     
-def reschedule_weekly_script(grp = 'all', date=None, slug='edtrac_p3_teachers_weekly'):
+def reschedule_weekly_script(grp = 'all', date=None, slug=''):
     
     """
     manually reschedule each of the termly scripts for headteachers

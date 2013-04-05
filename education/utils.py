@@ -358,45 +358,45 @@ def _schedule_weekly_scripts(group, connection, grps):
     sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
     sp.set_time(d)
 
-def _schedule_teacher_weekly_scripts(group, connection, grps):
-    """
-    This method is called within a loop over several connections or for an individual connection
-    and it sets the start time for a script to _next_thursday() relative to either current date
-    or the date that is currently in ScriptProgress for teachers
-    """
-    #Short curcuit scheduling teachers without grades
-    if group.name == 'Teachers':
-        if connection.contact.emisreporter.grade in ['p3', 'P3'] and connection.contact.emisreporter.schools.exists():
-                # get rid of any existing script progress; this is a one time thing
-                ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug='edtrac_p3_teachers_weekly')).delete()
-                sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug='edtrac_p3_teachers_weekly'))
-                d = _next_thursday(sp=sp)
-                sp.set_time(d)
-        elif connection.contact.emisreporter.grade in ['p6', 'P6'] and connection.contact.emisreporter.schools.exists():
-            # get rid of existing ScriptProgresses and assign it to p6 teachers
-            ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug='edtrac_p6_teachers_weekly')).delete()
-            sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug='edtrac_p6_teachers_weekly'))
-            d = _next_thursday(sp=sp)
-            sp.set_time(d)
-        else:
-            pass
-        
-        
-    if group.name in grps:
-        script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
-        #Since script_was_completed is sent before progress is deleted, chances are you will find connection and script existing
-        if ScriptProgress.objects.filter(connection=connection, script__slug=script_slug).exists():
-            sp = ScriptProgress.objects.filter(connection=connection, script__slug=script_slug)[0]
-            d = _next_thursday(sp=sp)
-        else:
-            d = _next_thursday()
-    else:
-        #Reporter is not in group that receives weekly messages so, we don't schedule them for any weekly messages
-        return
-    
-    #create new scriptprogress regardless
-#    sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-#    sp.set_time(d)
+#def _schedule_teacher_weekly_scripts(group, connection, grps):
+#    """
+#    This method is called within a loop over several connections or for an individual connection
+#    and it sets the start time for a script to _next_thursday() relative to either current date
+#    or the date that is currently in ScriptProgress for teachers
+#    """
+#    #Short curcuit scheduling teachers without grades
+#    if group.name == 'Teachers':
+#        if connection.contact.emisreporter.grade in ['p3', 'P3'] and connection.contact.emisreporter.schools.exists():
+#                # get rid of any existing script progress; this is a one time thing
+#                ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug='edtrac_p3_teachers_weekly')).delete()
+#                sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug='edtrac_p3_teachers_weekly'))
+#                d = _next_thursday(sp=sp)
+#                sp.set_time(d)
+#        elif connection.contact.emisreporter.grade in ['p6', 'P6'] and connection.contact.emisreporter.schools.exists():
+#            # get rid of existing ScriptProgresses and assign it to p6 teachers
+#            ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug='edtrac_p6_teachers_weekly')).delete()
+#            sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug='edtrac_p6_teachers_weekly'))
+#            d = _next_thursday(sp=sp)
+#            sp.set_time(d)
+#        else:
+#            pass
+#        
+#        
+#    if group.name in grps:
+#        script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
+#        #Since script_was_completed is sent before progress is deleted, chances are you will find connection and script existing
+#        if ScriptProgress.objects.filter(connection=connection, script__slug=script_slug).exists():
+#            sp = ScriptProgress.objects.filter(connection=connection, script__slug=script_slug)[0]
+#            d = _next_thursday(sp=sp)
+#        else:
+#            d = _next_thursday()
+#    else:
+#        #Reporter is not in group that receives weekly messages so, we don't schedule them for any weekly messages
+#        return
+#    
+#    #create new scriptprogress regardless
+##    sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
+##    sp.set_time(d)
 
 
 
