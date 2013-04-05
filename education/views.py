@@ -214,11 +214,11 @@ def dash_admin_progress(req):
 
 def dash_admin_progress_district(req, district_pk):
     location = Location.objects.filter(type="district").get(pk=district_pk)
-
+    sub_location_type='school'
     schools = School.objects.filter(pk__in = EmisReporter.objects.filter(reporting_location=location).\
     values_list('schools__pk', flat=True)).order_by('name')
     loc_data = []
-
+    list_of_values=[0]
     p = Poll.objects.get(name='edtrac_p3curriculum_progress')
     for school in schools:
         response_dates = p.responses.filter(contact__connection__in = school.emisreporter_set.\
@@ -233,6 +233,7 @@ def dash_admin_progress_district(req, district_pk):
                 loc_data.append([school, 'incorrect response'])
             else:
                 loc_data.append([school, response_sieve[0][1]])
+                list_of_values.append(response_sieve[0][1])
         except IndexError:
             # no or missing data
             loc_data.append([school, 'missing'])
@@ -242,9 +243,15 @@ def dash_admin_progress_district(req, district_pk):
         temp_2 = [item for item in loc_data if item not in temp]
         temp_2 = sorted(temp_2, key=operator.itemgetter(1), reverse=True)
         loc_data = temp_2 + temp
-
-    return render_to_response('education/progress/district_progress_admin_details.html',
-            {'location_data':loc_data, 'location':location}, RequestContext(req))
+    current_mode = curriculum_progress_mode(list_of_values)
+    target_value , term = get_target_value(datetime.datetime.today())
+    mode_progress = get_mode_progress(current_mode)
+    target_progress = get_mode_progress(target_value)
+    color = get_progress_color(current_mode,target_value)
+    return render_to_response('education/progress/district_progress_details.html',
+                              {'location_data': loc_data, 'location': location, 'target': target_value,
+                               'current_mode': current_mode, 'mode_progress': mode_progress, 'target_progress': target_progress,
+                               'class_sent_from_behind': color,'sub_location_type':sub_location_type,'term':term}, RequestContext(req))
 
 
 # Meetings

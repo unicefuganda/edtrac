@@ -59,10 +59,10 @@
                             </thead>
                         </tr>
                         {% paginate 25 location_data %}
-                        {% for  sub_location_type , mode in location_data %}
+                        {% for  sub_location , mode in location_data %}
                             <tr>
                                 <td>
-                                    <a href={{ sub_location_type|get_url:sub_location_type.pk}}> {{ sub_location_type.name }}</a>
+                                    <a href={{ sub_location_type|get_url:sub_location.pk}}> {{ sub_location.name }}</a>
                                 </td>
                                 <td>
                                     {% if mode == 'missing' %}
