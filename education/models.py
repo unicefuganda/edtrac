@@ -498,7 +498,8 @@ def edtrac_autoreg_transition(**kwargs):
 def edtrac_attendance_script_transition(**kwargs):
     connection = kwargs['connection']
     progress = kwargs['sender']
-    if not progress.script.slug == 'edtrac_teachers_weekly':
+#    if not progress.script.slug == 'edtrac_teachers_weekly':
+    if not progress.script.slug in ['edtrac_p3_teachers_weekly', 'edtrac_p6_teachers_weekly']:    
         return
     script = progress.script
     try:
