@@ -200,9 +200,7 @@ def curriculum_progress(request,district_pk=None):
             return render_to_response('education/progress/admin_progress_details.html',
                                       {'form': curriculum_form}, RequestContext(request))
     else:
-        for week in get_weeks_in_term():
-            if week[0] < datetime.datetime.today() < week[1]:
-                target_week = week
+        target_week = get_target_week()
         curriculum_form = CurriculumForm(initial={'week_choices': format_week(target_week, ",")})
         target_date = target_week[0]
 
@@ -647,32 +645,29 @@ def m_teachers_absent(locations):
             'male_teachers_data' : male_teachers_data,}
 
 
+def get_target_week():
+    for week in get_weeks_in_term():
+        if week[0] < datetime.datetime.today() < week[1]:
+            return week
+
+
 def p3_curriculum(locations):
+    mode_progress = 0
+    target_week = get_target_week()
+    loc_data , valid_responses = get_curriculum_data(locations,target_week)
     try:
-        if len(locations) == 1:
-            progress_list =curriculum_progress_list("edtrac_p3curriculum_progress", time_range = True, location=locations[0])
-            if progress_list == 0:
-                c_list = 0
-            else:
-                c_list = list(progress_list)
+        current_mode = Statistics(valid_responses).mode
+    except StatisticsException:
+        current_mode = get_mode_if_exception_thrown(loc_data)
+
+    if isinstance(current_mode,list):
+        if len(current_mode) == 0:
+            current_mode = "Progress undetermined this week"
         else:
-            c_list = list(curriculum_progress_list("edtrac_p3curriculum_progress", time_range = True))
+            max_mode =  max([i[0] for i in current_mode])
+            mode_progress = (100 * sorted(themes.keys()).index(max_mode)+1) / float(len(themes.keys()))
 
-        if c_list == 0:
-            mode = 0
-        else:
-            mode = curriculum_progress_mode(c_list)
-
-    except exceptions.TypeError:
-        # shouldn't really reach this state (unless data isn't there)
-        mode = 0
-
-    try:
-        mode_progress = (100 * sorted(themes.keys()).index(mode)+1) / float(len(themes.keys())) # offset zero-based index by 1
-    except ValueError:
-        mode_progress = 0 # when no values are recorded
-
-    return {'mode_progress' : mode_progress, 'c_mode' : mode}
+    return {'mode_progress' : mode_progress, 'c_mode' : current_mode}
 
 def meals_missed(locations):
     if len(locations) == 1:
