@@ -19,7 +19,7 @@ from django.views.generic import DetailView, TemplateView, ListView
 from django.db.models import Q
 import xlwt
 from django.utils.safestring import mark_safe
-from education.curriculum_progress_helper import get_target_value, target
+from education.curriculum_progress_helper import get_target_value, get_location_for_curriculum_view, get_curriculum_data, target
 
 from .forms import *
 from .models import *
@@ -118,7 +118,7 @@ def dash_attdance(request):
 
 def get_mode_progress(mode):
     try:
-        mode_progress = (100 * sorted(themes.keys()).index(mode) + 1) / float(len(themes.keys())) # offset zero-based index by 1
+        mode_progress = (100 * sorted(target.values()).index(mode) + 1) / float(len(target.keys())) # offset zero-based index by 1
     except ValueError:
         mode_progress = 0 # when no values are recorded
     return mode_progress
@@ -132,126 +132,100 @@ def get_progress_color(current_mode, target_value):
     return on_schedule
 
 
-def dash_admin_progress(req):
-    """
-    Curriculum progress
-    """
-    # correspond with group names
-    authorized_users = ['Admins', 'Ministry Officials', 'UNICEF Officials']
+def get_weeks_in_term():
+    term_start= getattr(settings,'SCHOOL_TERM_START')
+    first_term_start= getattr(settings,'FIRST_TERM_BEGINS')
+    second_term_start= getattr(settings,'SECOND_TERM_BEGINS')
+    third_term_start= getattr(settings,'THIRD_TERM_BEGINS')
+    weeks =[]
+    if term_start == first_term_start:
+        weeks = get_date_range(first_term_start,datetime.datetime.today(),4)
+    if term_start == second_term_start:
+        weeks = get_date_range(first_term_start,dateutils.increment(first_term_start,weeks=12),4)
+        weeks.append(get_date_range(second_term_start,datetime.datetime.today(),4))
+    if term_start == third_term_start:
+        weeks = get_date_range(first_term_start,dateutils.increment(first_term_start,weeks=12),4)
+        weeks.append(get_date_range(second_term_start,dateutils.increment(first_term_start,weeks=12),4))
+        weeks.append(get_date_range(third_term_start,datetime.datetime.today(),4))
+    weeks.reverse()
+    return weeks
 
-    authorized_user = False
 
-    profile = req.user.get_profile()
+def format_week(week,sep):
+    day1 = week[0].strftime("%Y"+sep+"%m"+sep+"%d")
+    day2 = week[1].strftime("%Y"+sep+"%m"+sep+"%d")
+    formated_week = "%s to %s" % (day1 , day2)
+    return formated_week
 
-    for auth_user in authorized_users:
-        if profile.is_member_of(auth_user):
-            authorized_user = True
-            break
 
-    user_location = profile.location
-    if authorized_user:
-        locations = Location.objects.filter(
-            type = "district",
-            pk__in = EmisReporter.objects.exclude(
-                reporting_location = None,
-                schools = None,\
-                connection__in = Blacklist.objects.values_list('connection', flat=True)).\
-            values_list('reporting_location__pk', flat=True))
-        loc_data = []
-        for location in locations:
-            try:
-                c_list = list(
-                    curriculum_progress_list("edtrac_p3curriculum_progress", location=location)
-                )
-                loc_data.append([location, curriculum_progress_mode(c_list)])
-            except TypeError:
-                loc_data.append([location, "--"])
+class CurriculumForm(forms.Form):
+    error_css_class = 'error'
+    weeks_in_term = get_weeks_in_term()
+    select_choices = [(format_week(week,","), format_week(week,"-")) for week in weeks_in_term]
+    select_choices.extend([(format_week(get_week_date(),","),'current week ( %s )' % format_week(get_week_date(),"-"))])
 
-        current_mode = p3_curriculum(locations)['c_mode']
-        sub_location_type='district'
-        template_name = 'education/progress/admin_progress_details.html'
+    week_choices = forms.ChoiceField(choices=select_choices, required=False)
+
+
+def format_to_datetime_object(week_as_string):
+    day1 = week_as_string.split()[0]
+    day2 = week_as_string.split()[2]
+    day_one = datetime.datetime(int(day1.split(',')[0]),int(day1.split(',')[1]),int(day1.split(',')[2]))
+    day_two = datetime.datetime(int(day2.split(',')[0]),int(day2.split(',')[1]),int(day2.split(',')[2]))
+    return [day_one,day_two]
+
+
+def get_modes_and_target(current_mode, target_value):
+    target_progress = get_mode_progress(target_value)
+    if len(current_mode) > 0 and isinstance(current_mode,list):
+        mode_progress = get_mode_progress(current_mode[0][0])
+        color = get_progress_color(current_mode[0][0], target_value)
+        return color, mode_progress, target_progress
+    mode_progress = 0
+    color = 'red'
+    return color, mode_progress, target_progress
+
+
+def get_mode_if_exception_thrown(loc_data):
+    if "Progress undetermined this week" in loc_data.values():
+        return "Progress undetermined this week"
+    return "No Reports made this week"
+
+
+def curriculum_progress(request,district_pk=None):
+    locations, user_location, sub_location_type = get_location_for_curriculum_view(district_pk, request)
+    if request.method == 'POST':
+        curriculum_form = CurriculumForm(data=request.POST)
+        if curriculum_form.is_valid():
+            target_week = format_to_datetime_object(curriculum_form.cleaned_data['week_choices'])
+            target_date = target_week[0]
+        else:
+            return render_to_response('education/progress/admin_progress_details.html',
+                                      {'form': curriculum_form}, RequestContext(request))
     else:
-        schools = School.objects.filter(pk__in = EmisReporter.objects.filter(reporting_location=profile.location).values_list('schools__pk', flat=True))
-        loc_data = []
-        p = Poll.objects.get(name='edtrac_p3curriculum_progress')
-        list_of_values=[0]
-        for school in schools:
-            response_dates = p.responses.filter(contact__connection__in = school.emisreporter_set.\
-            values_list('connection',flat=True)).values_list('date', flat=True)
-            response = [r.eav.poll_number_value for r in p.responses.\
-            filter(contact__connection__in = school.emisreporter_set.values_list('connection',flat=True))]
-            response_sieve = zip(response_dates, response)
-            response_sieve = sorted(response_sieve, reverse=True)
-            try:
-                if response_sieve[0][1] is None:
-                    loc_data.append([school, 'incorrect response'])
-                else:
-                    loc_data.append([school, response_sieve[0][1]])
-                    list_of_values.append(response_sieve[0][1])
-            except IndexError:
-                # no or missing data
-                loc_data.append([school, 'missing'])
-                # clean up
-        loc_data = sorted(loc_data, key=operator.itemgetter(1))
+        curriculum_form = CurriculumForm(initial={'week_choices': format_week(get_week_date(),",")})
+        target_date = datetime.datetime.today()
+        target_week = get_week_date(depth=8)[-1]
 
-        temp = [item for item in loc_data if item[1] == 'missing' or item[1] == 'incorrect response']
-        temp_2 = [item for item in loc_data if item not in temp]
-        temp_2 = sorted(temp_2, key=operator.itemgetter(1), reverse=True)
-        loc_data = temp_2 + temp
+    loc_data , valid_responses = get_curriculum_data(locations,target_week)
+    try:
+        current_mode = Statistics(valid_responses).mode
+    except StatisticsException:
+        current_mode = get_mode_if_exception_thrown(loc_data)
 
-        current_mode = curriculum_progress_mode(list_of_values)
-        template_name = 'education/progress/district_progress_details.html'
-        sub_location_type='school'
-    target_value , term = get_target_value(datetime.datetime.today())
-    mode_progress = get_mode_progress(current_mode)
-    target_progress = get_mode_progress(target_value)
-    color = get_progress_color(current_mode,target_value)
-    return render_to_response(template_name,
-                              {'location_data': loc_data, 'location': user_location, 'target': target_value,
-                               'current_mode': current_mode, 'mode_progress': mode_progress, 'target_progress': target_progress,
-                               'class_sent_from_behind': color,'sub_location_type':sub_location_type,'term':term}, RequestContext(req))
+    target_value , term = get_target_value(target_date)
+    if isinstance(current_mode,list) and len(current_mode) == 0:
+        current_mode = "Progress undetermined this week"
 
+    color, mode_progress, target_progress = get_modes_and_target(current_mode, target_value)
+    return render_to_response('education/progress/admin_progress_details.html',
+                              {'form': curriculum_form, 'location_data': loc_data, 'location': user_location,
+                               'target': target_value,
+                               'current_mode': current_mode, 'mode_progress': mode_progress,
+                               'target_progress': target_progress,
+                               'class_sent_from_behind': color, 'sub_location_type': sub_location_type, 'term': term},
+                              RequestContext(request))
 
-def dash_admin_progress_district(req, district_pk):
-    location = Location.objects.filter(type="district").get(pk=district_pk)
-    sub_location_type='school'
-    schools = School.objects.filter(pk__in = EmisReporter.objects.filter(reporting_location=location).\
-    values_list('schools__pk', flat=True)).order_by('name')
-    loc_data = []
-    list_of_values=[0]
-    p = Poll.objects.get(name='edtrac_p3curriculum_progress')
-    for school in schools:
-        response_dates = p.responses.filter(contact__connection__in = school.emisreporter_set.\
-        values_list('connection',flat=True)).values_list('date', flat=True)
-
-        response = [r.eav.poll_number_value for r in p.responses.\
-        filter(contact__connection__in = school.emisreporter_set.values_list('connection',flat=True))]
-        response_sieve = zip(response_dates, response)
-        response_sieve = sorted(response_sieve, reverse=True)
-        try:
-            if response_sieve[0][1] is None:
-                loc_data.append([school, 'incorrect response'])
-            else:
-                loc_data.append([school, response_sieve[0][1]])
-                list_of_values.append(response_sieve[0][1])
-        except IndexError:
-            # no or missing data
-            loc_data.append([school, 'missing'])
-            # clean up
-        loc_data = sorted(loc_data, key=operator.itemgetter(1))
-        temp = [item for item in loc_data if item[1] == 'missing' or item[1] == 'incorrect response']
-        temp_2 = [item for item in loc_data if item not in temp]
-        temp_2 = sorted(temp_2, key=operator.itemgetter(1), reverse=True)
-        loc_data = temp_2 + temp
-    current_mode = curriculum_progress_mode(list_of_values)
-    target_value , term = get_target_value(datetime.datetime.today())
-    mode_progress = get_mode_progress(current_mode)
-    target_progress = get_mode_progress(target_value)
-    color = get_progress_color(current_mode,target_value)
-    return render_to_response('education/progress/district_progress_details.html',
-                              {'location_data': loc_data, 'location': location, 'target': target_value,
-                               'current_mode': current_mode, 'mode_progress': mode_progress, 'target_progress': target_progress,
-                               'class_sent_from_behind': color,'sub_location_type':sub_location_type,'term':term}, RequestContext(req))
 
 
 # Meetings
@@ -374,7 +348,7 @@ def capitation_grants(locations):
 #            'violence_change_class' : violence_change_class,
 #            'violence_change_data' : violence_change_data
 #    }
-    
+
 def violence_changes_girls(locations):
     """
     Percentage change in violance from the previous month
@@ -396,7 +370,7 @@ def violence_changes_girls(locations):
             'violence_change_girls_class' : violence_change_girls_class,
             'violence_change_girls_data' : violence_change_girls_data
     }
-    
+
 def violence_changes_boys(locations):
     """
     Percentage change in violance from the previous month
@@ -418,7 +392,7 @@ def violence_changes_boys(locations):
             'violence_change_boys_class' : violence_change_boys_class,
             'violence_change_boys_data' : violence_change_boys_data
     }
-    
+
 def violence_changes_reported(locations):
     """
     Percentage change in violance from the previous month
@@ -922,13 +896,13 @@ def generate_dashboard_vars(location=None):
 
     # violence girls
     context_vars.update(violence_changes_girls(locations))
-    
+
     #violence boys
     context_vars.update(violence_changes_boys(locations))
-    
+
     #violence_reported
     context_vars.update(violence_changes_reported(locations))
-    
+
     # capitations grants
     context_vars.update(capitation_grants(locations))
 
@@ -1391,7 +1365,7 @@ def violence_details_dash(req):
         location = Location.objects.get(name = 'Uganda')
     else:
         location = profile.location
-        
+
     violence_cases_girls = poll_response_sum("edtrac_violence_girls", location=location, month_filter='monthly', months=2, ret_type=list)
     violence_cases_boys = poll_response_sum("edtrac_violence_boys", location=location, month_filter='monthly', months=2, ret_type=list)
     violence_cases_reported = poll_response_sum("edtrac_violence_reported", location=location, month_filter='monthly', months=2, ret_type=list)
@@ -1403,7 +1377,7 @@ def violence_details_dash(req):
     girls_violence = get_numeric_report_data("edtrac_violence_girls", location)
     boys_violence = get_numeric_report_data("edtrac_violence_boys", location)
     reported_violence = get_numeric_report_data("edtrac_violence_reported", location)
-    
+
     girls_total = []
     for name, list_val in violence_cases_girls:
         try:
@@ -1413,7 +1387,7 @@ def violence_details_dash(req):
         girls_total.append((list_val[0], list_val[1], diff))
         list_val.append(diff)
     context_vars['violence_cases_girls'] = violence_cases_girls
-    
+
     girls_first_col, girls_second_col, girls_third_col = [],[],[]
     for first, second, third in girls_total:
         girls_first_col.append(first), girls_second_col.append(second), girls_third_col.append(third)
@@ -1422,7 +1396,7 @@ def violence_details_dash(req):
     girls_third_col = [i for i in girls_third_col if i != '--']
 
     context_vars['girls_totals'] = [sum(girls_first_col), sum(girls_second_col), sum(girls_third_col)]
-    
+
     boys_total = []
     for name, list_val in violence_cases_boys:
         try:
@@ -1432,7 +1406,7 @@ def violence_details_dash(req):
         boys_total.append((list_val[0], list_val[1], diff))
         list_val.append(diff)
     context_vars['violence_cases_boys'] = violence_cases_boys
-    
+
     boys_first_col, boys_second_col, boys_third_col = [],[],[]
     for first, second, third in boys_total:
         boys_first_col.append(first), boys_second_col.append(second), boys_third_col.append(third)
@@ -1451,7 +1425,7 @@ def violence_details_dash(req):
         reported_total.append((list_val[0], list_val[1], diff))
         list_val.append(diff)
     context_vars['violence_cases_reported'] = violence_cases_reported
-    
+
     reported_first_col, reported_second_col, reported_third_col = [],[],[]
     for first, second, third in reported_total:
         reported_first_col.append(first), reported_second_col.append(second), reported_third_col.append(third)
@@ -1459,9 +1433,9 @@ def violence_details_dash(req):
     reported_second_col = [i for i in reported_second_col if i != '--']
     reported_third_col = [i for i in reported_third_col if i != '--']
 
-    context_vars['reported_totals'] = [sum(reported_first_col), sum(reported_second_col), sum(reported_third_col)]   
-    
-    
+    context_vars['reported_totals'] = [sum(reported_first_col), sum(reported_second_col), sum(reported_third_col)]
+
+
 
     gem_total = [] # total violence cases reported by school
     for name, list_val in violence_cases_gem:
@@ -1531,14 +1505,14 @@ def violence_details_dash(req):
     girls_violence_month = []
     boys_violence_month =[]
     reported_violence_month = []
-    
+
     h_teach_data = []
     gem_data = []
-    
+
     girls_violence_data = []
     boys_violence_data = []
     reported_violence_data = []
-    
+
     if profile.is_member_of('Minstry Officials') or profile.is_member_of('UNICEF Officials') or profile.is_member_of('Admins'):
 
         for month_range in month_ranges:
@@ -1546,7 +1520,7 @@ def violence_details_dash(req):
             h_teach_data.append(get_numeric_report_data('edtrac_violence_girls',time_range=month_range, to_ret = 'sum'))
 
             gem_data.append(get_numeric_report_data('edtrac_gem_abuse',time_range=month_range, to_ret = 'sum'))
-            
+
             girls_violence_month.append(month_range[0].strftime('%B'))
             girls_violence_data.append(get_numeric_report_data('edtrac_violence_girls', time_range=month_range, to_ret='sum'))
             boys_violence_month.append(month_range[0].strftime('%B'))
@@ -1560,7 +1534,7 @@ def violence_details_dash(req):
             h_teach_data.append(get_numeric_report_data('edtrac_girls_violence',time_range=month_range, to_ret = 'sum', location=profile.location))
 
             gem_data.append(get_numeric_report_data('edtrac_gem_abuse',time_range=month_range, to_ret = 'sum', location=profile.location))
-            
+
             girls_violence_month.append(month_range[0].strftime('%B'))
             girls_violence_data.append(get_numeric_report_data('edtrac_violence_girls', time_range=month_range, to_ret='sum', location=profile.location))
             boys_violence_month.append(month_range[0].strftime('%B'))
@@ -2672,8 +2646,8 @@ def edit_reporter(request, reporter_pk):
 
                     _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_smc_termly', ['SMC'])
                     _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_p3_enrollment_headteacher_termly', ['Head Teachers'])
-                    _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_p6_enrollment_headteacher_termly', ['Head Teachers']) 
-                    _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_teacher_deployment_headteacher_termly', ['Head Teachers']) 
+                    _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_p6_enrollment_headteacher_termly', ['Head Teachers'])
+                    _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_teacher_deployment_headteacher_termly', ['Head Teachers'])
 
         else:
             if reporter.schools.exists():

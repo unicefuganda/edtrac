@@ -1220,7 +1220,7 @@ def curriculum_progress_mode(data_list):
     stats = Statistics(data_list)
     mode = stats.mode
     if len(mode) == 0:
-        return ", ".join([str(i) for i in data_list if i < 12.3])
+        return
     return mode[0][0]
 
 

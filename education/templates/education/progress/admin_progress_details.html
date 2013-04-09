@@ -1,7 +1,93 @@
 {% extends "education/admin/admin_dashboard.html" %}
+{% load endless %}
+{% load stats_extras %}
 {% block title %} Curriculum Progress P3 -- {{ block.super }} {% endblock %}
 {% block content %}
 
-    {% include "education/progress/_progress_detail_partial.html" %}
+{#    {% include "education/progress/_progress_detail_partial.html" %}#}
+
+    <ul class="breadcrumb"><li><a href="{% url rapidsms-dashboard %}">← Back to the EduTrac Home Page</a></li></ul>
+    <div class="general">
+        <div style="padding: 10px;margin: 5px;">
+            <fieldset>
+                <form action="" method="POST">
+                    {% csrf_token %}
+                    <ul>
+                        <li class="{{ form.week_choices.css_classes  }}">
+                            {{ form.week_choices.label_tag }}
+                            {{ form.week_choices }}
+                            {{ form.weeks_choices.errors }}
+                        </li>
+                        <li>
+                            <input type="submit" value="Search"/>
+                        </li>
+                    </ul>
+                </form>
+            </fieldset>
+        </div>
+        <div class="stats"><h3>Curriculum Progress in {{ location }} &harr; P3</h3></div>
+        {% with 'third second first' as list %}
+            {% for t in list.split %}
+                <div class="curriculum-progress">
+                    <p>{{ t|capfirst }} Term</p>
+                    <div class="progress">
+                        {% if term  == t %}
+                            <span style="width:{{ target_progress }}%;"><b>{{ target }}</b></span>
+                        {% endif %}
+                    </div>
+                    <div class="progress">
+                        {% if term  == t %}
+                            {% if current_mode|islist %}
+                                <span class="{{ class_sent_from_behind }}" style="width:{{ mode_progress }}%;"><b style="color: {{ class_sent_from_behind }}">{{ current_mode|format_mode }}</b></span>
+                            {% else %}
+                                <p style="color: {{ class_sent_from_behind }}">{{ current_mode }}</p>
+                            {% endif %}
+
+                        {% endif %}
+                    </div>
+                </div>
+
+            {% endfor %}
+        {% endwith %}
+        <div class="top_row">
+            <div id="progress"></div>
+        </div>
+        <div id="table_row">
+            <div class="school_report general">
+                <div class="table_container">
+                    <div class="table">
+                        {% with location_data.items as list %}
+                        <table class="classy tabular-data">
+                            <tr>
+                                <thead>
+                                <th>{{ sub_location_type|capfirst }}</th>
+                                <th>Literacy sub theme completed</th>
+                                <!--<th>Percentage of schools at level</th>-->
+                                <!--<th>Progress Status</th>-->
+                                </thead>
+                            </tr>
+                            {% paginate 25 list %}
+                            {% for  sub_location,mode in list %}
+                                <tr>
+                                    <td>
+                                        <a href={{ sub_location_type|get_url:sub_location.pk}}> {{ sub_location.name }}</a>
+                                    </td>
+                                    <td>
+                                        {{ mode|format_mode }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                        {% show_pages %}
+                        {% endwith %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        $(document).ready(function(){
+        });
+    </script>
 
 {% endblock %}

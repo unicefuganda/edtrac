@@ -291,6 +291,9 @@ def get_url(sublocation_type,id):
 def isfloat(obj):
     return isinstance(obj,float)
 
+def islist(obj):
+    return isinstance(obj,list)
+
 def get_district_pk(name):
     location = Location.objects.filter(type="district").get(name = name)
     return location.pk
@@ -308,6 +311,11 @@ def make_url_for_detail_attd(locations, key_string):
 
 def format_schools(obj):
     return ", ".join([i.name for i in obj])
+
+def format_mode(obj):
+    if isinstance(obj, list):
+        return ", ".join([str(round(i[0],2)) for i in obj])
+    return obj
 
 register = template.Library()
 register.filter('section', get_section)
@@ -331,7 +339,9 @@ register.filter('hash', hash)
 register.filter('get_district', get_district)
 register.filter('key', key)
 register.filter('format_schools', format_schools)
+register.filter('format_mode', format_mode)
 register.filter('make_url_for_detail_attd', make_url_for_detail_attd)
 register.filter('get_url', get_url)
 register.filter('isfloat', isfloat)
+register.filter('islist', islist)
 register.tag('date_range', do_date_range)
