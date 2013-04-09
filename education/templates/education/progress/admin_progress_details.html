@@ -38,7 +38,7 @@
                     <div class="progress">
                         {% if term  == t %}
                             {% if current_mode|islist %}
-                                <span class="{{ class_sent_from_behind }}" style="width:{{ mode_progress }}%;"><b style="color: {{ class_sent_from_behind }}">{{ current_mode|format_mode }}</b></span>
+                                <span class="{{ class_sent_from_behind }}" style="width:{{ mode_progress }}%"><b style="color: {{ class_sent_from_behind }}">{{ current_mode|format_mode }}</b></span>
                             {% else %}
                                 <p style="color: {{ class_sent_from_behind }}">{{ current_mode }}</p>
                             {% endif %}

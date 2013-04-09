@@ -153,7 +153,7 @@ a.button span.graph {
 .curriculum-progress {width: 300px;float:right}
 .curriculum-progress p {padding:10px;}
 .curriculum-progress .progress {margin:10px; padding:2px; border:1px solid #95ca8c; height: 50px; background-color: #FFF;}
-.curriculum-progress .progress span {background: url(../icons/progress.png) repeat-x; display:block; height:50px; margin:0; padding:0;width:0;}
+.curriculum-progress .progress span {background: url(../icons/progress.png) repeat-x; display:block; height:50px; margin:0; padding:0;width:0;white-space: nowrap}
 .curriculum-progress .progress span span{}
 .curriculum-progress .progress span b {font-weight: bold; font-size: 300%; color: #226c15; display:block; padding:7px 5px;}
 .container{padding:5px; margin:10px; border:1px solid #CBADCD; background-color: #F8F0FF;}

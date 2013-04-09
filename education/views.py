@@ -174,8 +174,9 @@ def format_to_datetime_object(week_as_string):
 def get_modes_and_target(current_mode, target_value):
     target_progress = get_mode_progress(target_value)
     if len(current_mode) > 0 and isinstance(current_mode,list):
-        mode_progress = get_mode_progress(current_mode[0][0])
-        color = get_progress_color(current_mode[0][0], target_value)
+        max_mode = max([i[0] for i in current_mode])
+        mode_progress = get_mode_progress(max_mode)
+        color = get_progress_color(max_mode, target_value)
         return color, mode_progress, target_progress
     mode_progress = 0
     color = 'red'

@@ -314,7 +314,7 @@ def format_schools(obj):
 
 def format_mode(obj):
     if isinstance(obj, list):
-        return ", ".join([str(round(i[0],2)) for i in obj])
+        return ",".join([str(round(i[0],2)) for i in obj])
     return obj
 
 register = template.Library()
