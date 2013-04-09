@@ -1,6 +1,7 @@
 # vim: ai ts=4 sts=4 et sw=4 encoding=utf-8
 
 #targets
+from datetime import timedelta
 from django.conf import settings
 from education.models import EmisReporter, School
 from education.utils import get_week_count, themes, Statistics
@@ -94,3 +95,10 @@ def get_curriculum_data(locations, time_range):
         valid_responses.extend(responses)
 
     return curriculum_data_by_location, valid_responses
+
+def get_date_range_for_curriculum_progress(from_date,to_date):
+    week_range = []
+    while from_date < to_date:
+        week_range.append((from_date, from_date + timedelta(days=7)))
+        from_date = from_date + timedelta(days=7)
+    return week_range

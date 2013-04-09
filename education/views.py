@@ -19,7 +19,7 @@ from django.views.generic import DetailView, TemplateView, ListView
 from django.db.models import Q
 import xlwt
 from django.utils.safestring import mark_safe
-from education.curriculum_progress_helper import get_target_value, get_location_for_curriculum_view, get_curriculum_data, target
+from education.curriculum_progress_helper import get_target_value, get_location_for_curriculum_view, get_curriculum_data, target, get_date_range_for_curriculum_progress
 
 from .forms import *
 from .models import *
@@ -137,41 +137,37 @@ def get_weeks_in_term():
     first_term_start= getattr(settings,'FIRST_TERM_BEGINS')
     second_term_start= getattr(settings,'SECOND_TERM_BEGINS')
     third_term_start= getattr(settings,'THIRD_TERM_BEGINS')
-    weeks =[]
-    if term_start == first_term_start:
-        weeks = get_date_range(first_term_start,datetime.datetime.today(),4)
-    if term_start == second_term_start:
-        weeks = get_date_range(first_term_start,dateutils.increment(first_term_start,weeks=12),4)
-        weeks.append(get_date_range(second_term_start,datetime.datetime.today(),4))
-    if term_start == third_term_start:
-        weeks = get_date_range(first_term_start,dateutils.increment(first_term_start,weeks=12),4)
-        weeks.append(get_date_range(second_term_start,dateutils.increment(first_term_start,weeks=12),4))
-        weeks.append(get_date_range(third_term_start,datetime.datetime.today(),4))
-    weeks.reverse()
+    weeks = []
+    for term_starts in [first_term_start, second_term_start, third_term_start]:
+        if term_start == term_starts:
+            weeks.extend(get_date_range_for_curriculum_progress(term_starts,datetime.datetime.today()))
+            break
+        weeks.extend(get_date_range_for_curriculum_progress(term_starts,dateutils.increment(term_starts,weeks=12)))
     return weeks
 
 
 def format_week(week,sep):
-    day1 = week[0].strftime("%Y"+sep+"%m"+sep+"%d")
-    day2 = week[1].strftime("%Y"+sep+"%m"+sep+"%d")
+    day1 = week[0].strftime("%d"+sep+"%b"+sep+"%Y")
+    day2 = week[1].strftime("%d"+sep+"%b"+sep+"%Y")
     formated_week = "%s to %s" % (day1 , day2)
     return formated_week
 
+def _get_formated_date_choice(week):
+    if week[0] < datetime.datetime.today() < week[1]:
+        return format_week(week, ","), "current week( %s )" % format_week(week, "-")
+    return format_week(week, ","), format_week(week, "-")
 
 class CurriculumForm(forms.Form):
     error_css_class = 'error'
-    weeks_in_term = get_weeks_in_term()
-    select_choices = [(format_week(week,","), format_week(week,"-")) for week in weeks_in_term]
-    select_choices.extend([(format_week(get_week_date(),","),'current week ( %s )' % format_week(get_week_date(),"-"))])
-
-    week_choices = forms.ChoiceField(choices=select_choices, required=False)
+    SELECT_CHOICES = [_get_formated_date_choice(week) for week in get_weeks_in_term()]
+    week_choices = forms.ChoiceField(choices=SELECT_CHOICES, required=False)
 
 
 def format_to_datetime_object(week_as_string):
     day1 = week_as_string.split()[0]
     day2 = week_as_string.split()[2]
-    day_one = datetime.datetime(int(day1.split(',')[0]),int(day1.split(',')[1]),int(day1.split(',')[2]))
-    day_two = datetime.datetime(int(day2.split(',')[0]),int(day2.split(',')[1]),int(day2.split(',')[2]))
+    day_one = datetime.datetime.strptime(day1,"%d,%b,%Y")
+    day_two = datetime.datetime.strptime(day2,"%d,%b,%Y")
     return [day_one,day_two]
 
 
@@ -203,9 +199,11 @@ def curriculum_progress(request,district_pk=None):
             return render_to_response('education/progress/admin_progress_details.html',
                                       {'form': curriculum_form}, RequestContext(request))
     else:
-        curriculum_form = CurriculumForm(initial={'week_choices': format_week(get_week_date(),",")})
-        target_date = datetime.datetime.today()
-        target_week = get_week_date()
+        for week in get_weeks_in_term():
+            if week[0] < datetime.datetime.today() < week[1]:
+                target_week = week
+        curriculum_form = CurriculumForm(initial={'week_choices': format_week(target_week, ",")})
+        target_date = target_week[0]
 
     loc_data , valid_responses = get_curriculum_data(locations,target_week)
     try:
