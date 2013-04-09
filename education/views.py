@@ -205,7 +205,7 @@ def curriculum_progress(request,district_pk=None):
     else:
         curriculum_form = CurriculumForm(initial={'week_choices': format_week(get_week_date(),",")})
         target_date = datetime.datetime.today()
-        target_week = get_week_date(depth=8)[-1]
+        target_week = get_week_date()
 
     loc_data , valid_responses = get_curriculum_data(locations,target_week)
     try:
