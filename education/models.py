@@ -590,31 +590,45 @@ def reschedule_teacher_weekly_polls(grp=None):
     print "Poll sent out to " + str(reps.count()) + " reporters"
 
 
-def reschedule_monthly_polls(grp=None):
+def reschedule_monthly_polls(grp='all'):
     """
     manually reschedule all monthly polls or for a specified group
     """
     monthly_scripts = Script.objects.filter(slug__endswith='_monthly')
     if grp:
         slg_start = 'edtrac_%s'%grp.replace(' ','_').lower()
-#        monthly_scripts = monthly_scripts.filter(slug__startswith=slg_start)
-        monthly_scripts = monthly_scripts.filter(slug__in=['edtrac_smc_monthly', 'edtrac_gem_monthly'])
+        monthly_scripts = monthly_scripts.filter(slug__startswith=slg_start)
+#        monthly_scripts = monthly_scripts.filter(slug__in=['edtrac_smc_monthly', 'edtrac_gem_monthly'])
         ScriptProgress.objects.filter(script__in=monthly_scripts)\
         .filter(connection__contact__emisreporter__groups__name__iexact=grp).delete()
     else:
         ScriptProgress.objects.filter(script__in=monthly_scripts).delete()
     Script.objects.filter(slug__in=monthly_scripts.values_list('slug', flat=True)).update(enabled=True)
     for slug in monthly_scripts.values_list('slug', flat=True):
-        grps = Group.objects.filter(name__iexact=grp) if grp else Group.objects.filter(name__in=['SMC', 'GEM'])
+        grps = Group.objects.filter(name__iexact=grp) if not grp == 'all' else Group.objects.filter(name__in=['SMC', 'GEM'])
         # get list of active reporters
         reps = EmisReporter.objects.filter(groups__in=grps)
         for rep in reps:
-            print 'processing %s' % rep.name
             if rep.default_connection and rep.groups.count() > 0:
-                if slug == 'edtrac_smc_monthly':
+                if rep.groups.get().name == 'SMC':
                     _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'edtrac_smc_monthly', 5, ['SMC'])
-                elif slug == 'edtrac_gem_monthly':
+                    print rep.name
+                elif rep.groups.get().name == 'GEM':
                     _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'edtrac_gem_monthly', 20, ['GEM'])
+                else:
+                    pass
+        print "Script sent out to " + str(reps.count()) + " reporters"
+                    
+#                if slug == 'edtrac_smc_monthly':
+#                    _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'edtrac_smc_monthly', 5, ['SMC'])
+#                    print rep.name
+#                else:
+#                    _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'edtrac_gem_monthly', 20, ['GEM'])
+#                    print rep.name
+#                elif slug == 'edtrac_gem_monthly':
+##                    _schedule_monthly_script(rep.groups.all()[0], rep.default_connection, 'edtrac_gem_monthly', 20, ['GEM'])
+#                    print rep.name
+#        print "Script sent out to " + str(reps.count()) + " reporters"
 
 def reschedule_midterm_polls(grp = 'all', date=None):
 
