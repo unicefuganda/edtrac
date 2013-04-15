@@ -88,7 +88,7 @@ def assign_backend(number):
     assign a backend to a given number
     """
     country_code = getattr(settings, 'COUNTRY_CALLING_CODE', '256')
-    backends = getattr(settings, 'BACKEND_PREFIXES', [('75', 'zain'), ('71', 'dmark'), ('', 'dmark')])
+    backends = getattr(settings, 'BACKEND_PREFIXES', [('75', 'dmark'), ('71', 'dmark'), ('', 'dmark')])
 
     if number.startswith('0'):
         number = '%s%s' % (country_code, number[1:])
@@ -96,6 +96,12 @@ def assign_backend(number):
         number = '%s' % number[1:]
     elif number[:len(country_code)] != country_code:
         number = '%s%s' % (country_code, number)
+    if len(number) != 12:
+        raise ValidationError("The number %s does not look valid" % number)
+    try:
+        int(number)
+    except ValueError:
+        raise ValidationError("The number %s does not look valid" % number)
     backendobj = None
     for prefix, backend in backends:
         if number[len(country_code):].startswith(prefix):
