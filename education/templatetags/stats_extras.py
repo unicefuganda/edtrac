@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from django.utils.http import urlquote
 from django.utils.safestring import mark_safe
+from education.utils import themes
 
 from rapidsms.contrib.locations.models import Location
 from rapidsms_xforms.models import XFormSubmission
@@ -309,6 +310,9 @@ def make_url_for_detail_attd(locations, key_string):
         return "%s?school=%s" % (reverse("detail-attendance-school", args=(locations[0].name,)), urlquote(key_string))
     return reverse('detail-attendance-visualization', args=(key_string,))
 
+def get_theme_title(key):
+    return themes.get(float(key))
+
 def format_schools(obj):
     return ", ".join([i.name for i in obj])
 
@@ -344,4 +348,5 @@ register.filter('make_url_for_detail_attd', make_url_for_detail_attd)
 register.filter('get_url', get_url)
 register.filter('isfloat', isfloat)
 register.filter('islist', islist)
+register.filter('get_theme_title', get_theme_title)
 register.tag('date_range', do_date_range)

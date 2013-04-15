@@ -3,7 +3,6 @@ from urllib2 import urlopen
 import re
 import datetime
 import operator
-import exceptions
 import copy
 from datetime import date
 import json
@@ -19,7 +18,7 @@ from django.views.generic import DetailView, TemplateView, ListView
 from django.db.models import Q
 import xlwt
 from django.utils.safestring import mark_safe
-from education.curriculum_progress_helper import get_target_value, get_location_for_curriculum_view, get_curriculum_data, target, get_date_range_for_curriculum_progress
+from education.curriculum_progress_helper import get_target_value, get_location_for_curriculum_view, get_curriculum_data, target
 
 from .forms import *
 from .models import *
@@ -140,9 +139,9 @@ def get_weeks_in_term():
     weeks = []
     for term_starts in [first_term_start, second_term_start, third_term_start]:
         if term_start == term_starts:
-            weeks.extend(get_date_range_for_curriculum_progress(term_starts,datetime.datetime.today()))
+            weeks.extend(get_weeks(get_week_date()[1],depth=get_week_count(get_week_date()[0],term_starts)))
             break
-        weeks.extend(get_date_range_for_curriculum_progress(term_starts,dateutils.increment(term_starts,weeks=12)))
+        weeks.extend(get_weeks(dateutils.increment(term_starts, weeks=12),depth=12))
     return weeks
 
 
@@ -160,7 +159,7 @@ def _get_formated_date_choice(week):
 class CurriculumForm(forms.Form):
     error_css_class = 'error'
     SELECT_CHOICES = [_get_formated_date_choice(week) for week in get_weeks_in_term()]
-    week_choices = forms.ChoiceField(choices=SELECT_CHOICES, required=False)
+    choose_week_to_view = forms.ChoiceField(choices=SELECT_CHOICES, required=False)
 
 
 def format_to_datetime_object(week_as_string):
@@ -188,20 +187,20 @@ def get_mode_if_exception_thrown(loc_data):
         return "Progress undetermined this week"
     return "No Reports made this week"
 
-
+@login_required
 def curriculum_progress(request,district_pk=None):
     locations, user_location, sub_location_type = get_location_for_curriculum_view(district_pk, request)
     if request.method == 'POST':
         curriculum_form = CurriculumForm(data=request.POST)
         if curriculum_form.is_valid():
-            target_week = format_to_datetime_object(curriculum_form.cleaned_data['week_choices'])
+            target_week = format_to_datetime_object(curriculum_form.cleaned_data['choose_week_to_view'])
             target_date = target_week[0]
         else:
             return render_to_response('education/progress/admin_progress_details.html',
                                       {'form': curriculum_form}, RequestContext(request))
     else:
-        target_week = get_target_week()
-        curriculum_form = CurriculumForm(initial={'week_choices': format_week(target_week, ",")})
+        target_week = get_week_date()
+        curriculum_form = CurriculumForm(initial={'choose_week_to_view': format_week(target_week, ",")})
         target_date = target_week[0]
 
     loc_data , valid_responses = get_curriculum_data(locations,target_week)
@@ -216,7 +215,7 @@ def curriculum_progress(request,district_pk=None):
 
     color, mode_progress, target_progress = get_modes_and_target(current_mode, target_value)
     return render_to_response('education/progress/admin_progress_details.html',
-                              {'form': curriculum_form, 'location_data': loc_data, 'location': user_location,
+                              {'form': curriculum_form, 'location_data': loc_data,
                                'target': target_value,
                                'current_mode': current_mode, 'mode_progress': mode_progress,
                                'target_progress': target_progress,
@@ -653,7 +652,7 @@ def get_target_week():
 
 def p3_curriculum(locations):
     mode_progress = 0
-    target_week = get_target_week()
+    target_week = get_week_date()
     loc_data , valid_responses = get_curriculum_data(locations,target_week)
     try:
         current_mode = Statistics(valid_responses).mode

@@ -929,7 +929,7 @@ def poll_to_xform_submissions(message):
 
 
 def get_week_count(reference_date, d):
-    week_count = 1
+    week_count = 0
     test_date = d
     temp = reference_date
     if reference_date > d:

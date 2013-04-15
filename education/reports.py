@@ -704,6 +704,44 @@ def get_week_date(depth=None):
     else:
         return get_day_range(now)
 
+def get_weeks(now,depth=None):
+    """
+    get_week_date returns a range of weekly dates from today when not in holiday
+    """
+    # clean the hour
+    now = now if (now.second == 0) else (now - datetime.timedelta(seconds=now.second))
+    now = now if (now.minute == 0) else (now - datetime.timedelta(minutes=now.minute))
+    now = now if (now.microsecond == 0) else (now - datetime.timedelta(microseconds=now.microsecond))
+    if now.hour == 8:
+        pass
+    elif now.hour > 8:
+        now = now - datetime.timedelta(hours=(now.hour - 8))
+    else:
+        now = now + datetime.timedelta(hours=(8 - now.hour))
+
+    if depth:
+        """
+        Suppose you want a depth of 3 weeks worth of weekly ranges, all you need to do is set the depth
+
+        A depth of zero defaults to what you'd get in `get_day_range(now)`
+        """
+
+        date_collection = []
+
+        try:
+            for wk in range(depth):
+                date_collection.append(now - datetime.timedelta(days=(wk * 7)))
+
+            to_ret = map(get_day_range, date_collection)
+
+            return to_ret
+        except TypeError:
+            # TODO should this be logged?
+            print "error"
+    else:
+        return get_day_range(now)
+
+
 
 def month19to20(**kwargs):
     now = datetime.datetime.now()

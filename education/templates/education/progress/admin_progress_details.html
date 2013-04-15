@@ -13,10 +13,10 @@
                 <form action="" method="POST">
                     {% csrf_token %}
                     <ul>
-                        <li class="{{ form.week_choices.css_classes  }}">
-                            {{ form.week_choices.label_tag }}
-                            {{ form.week_choices }}
-                            {{ form.weeks_choices.errors }}
+                        <li class="{{ form.choose_week_to_view.css_classes  }}">
+                            {{ form.choose_week_to_view.label_tag }}
+                            {{ form.choose_week_to_view }}
+                            {{ form.choose_week_to_view.errors }}
                         </li>
                         <li>
                             <input type="submit" value="Search"/>
@@ -25,34 +25,45 @@
                 </form>
             </fieldset>
         </div>
-        <div class="stats"><h3>Curriculum Progress in {{ location }} &harr; P3</h3></div>
-        {% with 'third second first' as list %}
-            {% for t in list.split %}
-                <div class="curriculum-progress">
-                    <p>{{ t|capfirst }} Term</p>
-                    <div class="progress">
+        <div class="stats"><h3>Curriculum Progress for Literacy - P3</h3></div>
+        <div>
+            {% with 'third second first' as list %}
+                {% for t in list.split %}
+                    <div class="curriculum-progress">
+                        <p>{{ t|capfirst }} Term</p>
                         {% if term  == t %}
-                            <span style="width:{{ target_progress }}%;"><b>{{ target }}</b></span>
+                            <p>Target: ({{ target|get_theme_title }})</p>
+                            <div class="progress">
+                                <span style="width:{{ target_progress }}%;"><b>{{ target }}</b></span>
+                            </div>
+                            <p>Actual
+                                {% if current_mode|islist %}
+                                    : ({{ current_mode|format_mode|get_theme_title }})
+                                {% endif %}
+                            </p>
+                            <div class="progress">
+                                {% if current_mode|islist %}
+                                    <span class="{{ class_sent_from_behind }}" style="width:{{ mode_progress }}%"><b
+                                            style="color: {{ class_sent_from_behind }}">{{ current_mode|format_mode }}</b></span>
+                                {% else %}
+                                    <span style="color: {{ class_sent_from_behind }}">{{ current_mode }}</span>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <p>Target</p>
+                            <div class="progress"></div>
+                            <p>Actual</p>
+                            <div class="progress"></div>
                         {% endif %}
                     </div>
-                    <div class="progress">
-                        {% if term  == t %}
-                            {% if current_mode|islist %}
-                                <span class="{{ class_sent_from_behind }}" style="width:{{ mode_progress }}%"><b style="color: {{ class_sent_from_behind }}">{{ current_mode|format_mode }}</b></span>
-                            {% else %}
-                                <p style="color: {{ class_sent_from_behind }}">{{ current_mode }}</p>
-                            {% endif %}
 
-                        {% endif %}
-                    </div>
-                </div>
-
-            {% endfor %}
-        {% endwith %}
-        <div class="top_row">
-            <div id="progress"></div>
+                {% endfor %}
+            {% endwith %}
         </div>
-        <div id="table_row">
+{#        <div class="top_row">#}
+{#            <div id="progress"></div>#}
+{#        </div>#}
+        <div id="table_row" class="clear">
             <div class="school_report general">
                 <div class="table_container">
                     <div class="table">
