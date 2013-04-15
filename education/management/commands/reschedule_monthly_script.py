@@ -5,8 +5,12 @@ Created on Mar 25, 2013
 '''
 
 from django.core.management.base import BaseCommand
-from education.models import reschedule_monthly_script
+from education.models import reschedule_termly_script
 from optparse import OptionParser, make_option
+from education.utils import _next_term_question_date
+from rapidsms.models import Connection
+from unregister.models import Blacklist
+from script.models import Script, ScriptProgress
 
 class Command(BaseCommand):
 
@@ -22,14 +26,14 @@ class Command(BaseCommand):
         else:
             date = options['date']
         if not options['group']:
-            group = raw_input('Group -- SMC or Head Teachers: ')
+            group = raw_input('Group -- SMC or Head Teachers:')
         else:
             group = 'all'
         if not options['slug']:
-            slug = raw_input('Slug of script you wish to reschedule: ')
+            slug = raw_input('Slug of script you wish to reschedule -- edtrac_p3_enrollment_headteacher_termly')
         else:
             slug = options['slug']
             
-        reschedule_monthly_script(grp=group, date=date, slug=slug)    
+        reschedule_termly_script(grp=group, date=date, slug=slug)    
         self.stdout.write('')
         self.stdout.write('done!')
