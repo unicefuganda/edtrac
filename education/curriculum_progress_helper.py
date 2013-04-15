@@ -47,6 +47,7 @@ def get_target_value(given_date):
 
 def get_location_for_curriculum_view(district_pk, request):
     sub_location_type = 'School'
+    template_name ='education/progress/district_progress_details.html'
     if district_pk is None:
         profile = request.user.get_profile()
         locations,user_location = [profile.location], profile.location.name
@@ -57,10 +58,11 @@ def get_location_for_curriculum_view(district_pk, request):
                 'reporting_location__pk', flat=True))
             user_location = 'Uganda'
             sub_location_type = 'District'
+            template_name='education/progress/admin_progress_details.html'
     else:
         location = Location.objects.get(pk=district_pk)
         locations, user_location = [location], location.name
-    return locations, user_location, sub_location_type
+    return locations, user_location, sub_location_type,template_name
 
 
 def get_curriculum_data_by_location(location, date_range, filter_on):

@@ -285,7 +285,7 @@ def make_date_range_month(obj):
     return ",".join(to_ret)
 
 def get_url(sublocation_type,id):
-    if sublocation_type == 'school':
+    if sublocation_type.lower() == 'school':
         return reverse("school-detail",args=(id,))
     return reverse("emis-admin-curriculum-progress-district",args=(id,))
 

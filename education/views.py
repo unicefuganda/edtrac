@@ -189,7 +189,7 @@ def get_mode_if_exception_thrown(loc_data):
 
 @login_required
 def curriculum_progress(request,district_pk=None):
-    locations, user_location, sub_location_type = get_location_for_curriculum_view(district_pk, request)
+    locations, user_location, sub_location_type,template_name = get_location_for_curriculum_view(district_pk, request)
     if request.method == 'POST':
         curriculum_form = CurriculumForm(data=request.POST)
         if curriculum_form.is_valid():
@@ -214,7 +214,7 @@ def curriculum_progress(request,district_pk=None):
         current_mode = "Progress undetermined this week"
 
     color, mode_progress, target_progress = get_modes_and_target(current_mode, target_value)
-    return render_to_response('education/progress/admin_progress_details.html',
+    return render_to_response(template_name,
                               {'form': curriculum_form, 'location_data': loc_data,
                                'target': target_value,
                                'current_mode': current_mode, 'mode_progress': mode_progress,

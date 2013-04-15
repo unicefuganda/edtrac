@@ -1,96 +1,54 @@
-{% load endless %}
 {% load stats_extras %}
-<ul class="breadcrumb"><li><a href="{% url rapidsms-dashboard %}">← Back to the EduTrac Home Page</a></li></ul>
-<div class="general">
-    <div class="stats"><h3>Curriculum Progress in {{ location }} &harr; P3</h3></div>
-    <div class="curriculum-progress">
-        <p>3rd Term</p>
-        <div class="progress">
-            {% if term  == 'third' %}
-                <span style="width:{{ target_progress }}%;"><b>{{ target }}</b></span>
-            {% endif %}
-        </div>
-        <div class="progress">
-            {% if term  == 'third' %}
-                <span class="{{ class_sent_from_behind }}" style="width:{{ mode_progress }}%;"><b>{{ current_mode }}</b></span>
-            {% endif %}
-        </div>
-    </div>
-    <div class="curriculum-progress">
-        <p>2nd Term</p>
-        <div class="progress">
-            {% if term  == 'second' %}
-                <span style="width:{{ target_progress }}%;"><b>{{ target }}</b></span>
-            {% endif %}
-        </div>
-        <div class="progress">
-            {% if term  == 'second' %}
-                <span class="{{ class_sent_from_behind }}" style="width:{{ mode_progress }}%;"><b>{{ current_mode }}</b></span>
-            {% endif %}
-        </div>
-    </div>
-    <div class="curriculum-progress">
-        <p>1st Term</p>
-        <div class="progress">
-            {% if term  == 'first' %}
-                <span style="width:{{ target_progress }}%;"><b>{{ target }}</b></span>
-            {% endif %}
-        </div>
-        <div class="progress">
-            {% if term  == 'first' %}
-                <span class="{{ class_sent_from_behind }}" style="width:{{ mode_progress }}%;"><b>{{ current_mode }}</b></span>
-            {% endif %}
-        </div>
-    </div>
-    <div class="top_row">
-        <div id="progress"></div>
-    </div>
-    <div id="table_row">
-        <div class="school_report general">
-            <div class="table_container">
-                <div class="table">
-                    <table class="classy tabular-data">
-                        <tr>
-                            <thead>
-                            <th>{{ sub_location_type|capfirst }}</th>
-                            <th>Literacy sub theme completed</th>
-                            <!--<th>Percentage of schools at level</th>-->
-                            <!--<th>Progress Status</th>-->
-                            </thead>
-                        </tr>
-                        {% paginate 25 location_data %}
-                        {% for  sub_location , mode in location_data %}
-                            <tr>
-                                <td>
-                                    <a href={{ sub_location_type|get_url:sub_location.pk}}> {{ sub_location.name }}</a>
-                                </td>
-                                <td>
-                                    {% if mode == 'missing' %}
-                                        <span style="color:red; font-size: 0.8em;">missing</span>
-                                    {% endif %}
-                                    {% if mode == 'incorrect response' %}
-                                        <span style="color:orange; font-size: 0.8em;">incorrect response</span>
-                                    {% endif %}
-                                    {% if mode == '--' %}
-                                        {{ mode }}
-                                    {% endif %}
-                                    {% if mode >= 0.0 and mode|isfloat %}
-                                        {% if mode > 12.3 %}
-                                            <span style="color:red; font-size: 0.7em;">Wrong:</span>
-                                        {% endif %} {{ mode|floatformat }}
-                                    {% endif %}
 
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </table>
-                    {% show_pages %}
-                </div>
-            </div>
-        </div>
+    <div style="padding: 10px;margin: 5px;">
+        <fieldset>
+            <form action="" method="POST">
+                {% csrf_token %}
+                <ul>
+                    <li class="{{ form.choose_week_to_view.css_classes  }}">
+                        {{ form.choose_week_to_view.label_tag }}
+                        {{ form.choose_week_to_view }}
+                        {{ form.choose_week_to_view.errors }}
+                    </li>
+                    <li>
+                        <input type="submit" value="Search"/>
+                    </li>
+                </ul>
+            </form>
+        </fieldset>
     </div>
-</div>
-<script type="text/javascript">
-    $(document).ready(function(){
-    });
-</script>
+    <div class="stats"><h3>Curriculum Progress for Literacy - P3</h3></div>
+    <div>
+        {% with 'third second first' as list %}
+            {% for t in list.split %}
+                <div class="curriculum-progress">
+                    <p>{{ t|capfirst }} Term</p>
+                    {% if term  == t %}
+                        <p>Target: ({{ target|get_theme_title }})</p>
+                        <div class="progress">
+                            <span style="width:{{ target_progress }}%;"><b>{{ target }}</b></span>
+                        </div>
+                        <p>Actual
+                            {% if current_mode|islist %}
+                                : ({{ current_mode|format_mode|get_theme_title }})
+                            {% endif %}
+                        </p>
+                        <div class="progress">
+                            {% if current_mode|islist %}
+                                <span class="{{ class_sent_from_behind }}" style="width:{{ mode_progress }}%"><b
+                                        style="color: {{ class_sent_from_behind }}">{{ current_mode|format_mode }}</b></span>
+                            {% else %}
+                                <span style="color: {{ class_sent_from_behind }}">{{ current_mode }}</span>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <p>Target</p>
+                        <div class="progress"></div>
+                        <p>Actual</p>
+                        <div class="progress"></div>
+                    {% endif %}
+                </div>
+
+            {% endfor %}
+        {% endwith %}
+    </div>
