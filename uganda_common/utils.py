@@ -142,15 +142,6 @@ def create_workbook(data, filename, headers):
 
     for rowx, row in enumerate(data):
         ws.append(map(normalize_value, list(row)))
-
-        #import pdb;pdb.set_trace()
-
-
-
-        #for colx, value in enumerate(row):
-        #   column_letter = get_column_letter((colx + 1))
-        #  ws.cell('%s%s'%(column_letter, (rowx+ 1))).value = value
-    #ws.auto_filter = ws.calculate_dimension()
     wb.save(filename)
     return True
 
@@ -180,9 +171,6 @@ class ExcelResponse(HttpResponse):
 
         book_created = create_workbook(data, output_name, headers, )
 
-
-        #book.save(output_name)
-        #output.seek(0)
         if not write_to_file:
             super(ExcelResponse, self).__init__(FileWrapper(open(output_name)),
                                                 content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
