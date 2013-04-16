@@ -478,6 +478,13 @@ def _schedule_weekly_report(group, connection, grps):
         for connection in connections:
             sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
             sp.set_time( _next_wednesday(sp) )
+            
+def _schedule_script_now(group, connection, slug, role_names):
+    if group.name in role_names:
+        slug = slug
+        connections = Connection.objects.filter(contact__in=Group.objects.get(name=group.name).contact_set.all())
+        for connection in connections:
+            ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=slug))
     
 def _schedule_monthly_script(group, connection, script_slug, day_offset, role_names):
     """
