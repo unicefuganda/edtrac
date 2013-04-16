@@ -8,7 +8,7 @@ from django.forms import ValidationError
 from eav.models import Attribute
 from education.utils import _schedule_weekly_scripts, _schedule_weekly_scripts_now, _schedule_monthly_script, _schedule_termly_script,\
     _schedule_weekly_report, _schedule_monthly_report, _schedule_midterm_script, _schedule_weekly_script, _schedule_teacher_weekly_scripts,\
-    _schedule_new_monthly_script
+    _schedule_new_monthly_script, _schedule_script_now
 from rapidsms_httprouter.models import mass_text_sent
 from rapidsms.models import Contact, ContactBase
 from rapidsms.contrib.locations.models import Location
@@ -721,6 +721,25 @@ def reschedule_weekly_script(grp = 'all', date=None, slug=''):
         if rep.default_connection and rep.groups.count() > 0:
             _schedule_weekly_script(rep.groups.all()[0], rep.default_connection, slug, ['Teachers', 'Head Teachers'])
             print rep.name
+    print "Script sent out to " + str(reps.count()) + " reporters"
+    
+def schedule_script_now(grp = 'all', slug=''):
+    
+    """
+    manually reschedule script immediately
+    """
+    now_script = Script.objects.get(slug=slug)
+    if not grp == 'all':
+        ScriptProgress.objects.filter(script=now_script).filter(connection__contact__emisreporter__groups__name__iexact=grp).delete()
+    else:
+        ScriptProgress.objects.filter(script=now_script).delete()    
+    
+    now_script.enabled = True
+    grps = Group.objects.filter(name__iexact=grp)
+    reps = EmisReporter.objects.filter(groups__in=grps)
+    for rep in reps:
+        if rep.default_connection and rep.groups.count() > 0:
+            _schedule_script_now(rep.groups.all()[0], rep.default_connection, slug, ['Teachers', 'Head Teachers', 'SMC', 'GEM'])
     print "Script sent out to " + str(reps.count()) + " reporters"
 
 
