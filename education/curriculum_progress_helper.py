@@ -72,10 +72,8 @@ def get_curriculum_data_by_location(location, date_range, filter_on):
     if responses.count() == 0:
         return "No Reports made this week", []
     valid_responses = responses.filter(eav_values__value_float__in = themes.keys())
-    if valid_responses.count() == 0:
-        return "Progress undetermined this week", []
-    if valid_responses.count() == 1:
-        return valid_responses[0], valid_responses
+    if valid_responses.count() <= 1:
+        return "Progress undetermined this week", valid_responses
     mode = Statistics(list(valid_responses)).mode
     if len(mode) == 0:
         return "Progress undetermined this week", valid_responses
