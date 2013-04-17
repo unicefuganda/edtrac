@@ -2,27 +2,23 @@
 # vim: ai ts=4 sts=4 et sw=4
 
 
-import datetime
-import time
-
-from django.db.models.query import RawQuerySet, RawQuerySet
 from django.template import RequestContext
-from django.shortcuts import redirect, get_object_or_404, render_to_response
-from django.core.paginator import Paginator, InvalidPage, EmptyPage
-from django.http import Http404, HttpResponseServerError, HttpResponseRedirect, HttpResponse
+from django.shortcuts import get_object_or_404, render_to_response
+from django.http import HttpResponseServerError, HttpResponse
 from django import forms
 from django.contrib.auth.models import User
-from generic.models import Dashboard, Module, ModuleParams, StaticModuleContent
-from django.db.models import Count
+from generic.models import Dashboard, Module, StaticModuleContent
 from django.views.decorators.cache import cache_control
-from .utils import copy_dashboard, get_dates, set_default_dates,paginate
+from .utils import copy_dashboard, get_dates, set_default_dates, paginate
+
 
 def generic_row(request, model=None, pk=None, partial_row='generic/partials/partial_row.html', selectable=True):
     if not (model and pk):
         return HttpResponseServerError
     object = get_object_or_404(model, pk=pk)
-    return render_to_response(partial_row, {'object':object, 'selectable':selectable},
-        context_instance=RequestContext(request))
+    return render_to_response(partial_row, {'object': object, 'selectable': selectable},
+                              context_instance=RequestContext(request))
+
 
 def generic(request,
             model=None,
@@ -70,7 +66,7 @@ def generic(request,
     p = None
     action_form_instances = []
     for action_class in action_forms:
-        form_instance = action_class(**{'request':request})
+        form_instance = action_class(**{'request': request})
         fully_qualified_class_name = "%s.%s" % (form_instance.__module__, form_instance.__class__.__name__)
         # we need both a dictionary of action forms (for looking up actions performed)
         # and a list of tuple for rendering within the template in a particular order
@@ -79,12 +75,12 @@ def generic(request,
 
     filter_form_instances = []
     for filter_class in filter_forms:
-        form_instance = filter_class(**{'request':request})
+        form_instance = filter_class(**{'request': request})
         filter_form_instances.append(form_instance)
 
     # define some defaults
     response_template = base_template
-    page = request.session.get('page_num',1)
+    page = request.session.get('page_num', 1)
     selected = False
     status_message = ''
     status_message_type = ''
@@ -125,17 +121,17 @@ def generic(request,
             try:
                 page = request.POST.get('page_num', None)
                 if page:
-                    page=int(page)
+                    page = int(page)
                 else:
-                    page=request.session.get('page_num',1)
+                    page = request.session.get('page_num', 1)
             except ValueError:
                 pass
         elif action_taken:
             page = request.POST.get('page_num', None)
             if page:
-                page=int(page)
+                page = int(page)
             else:
-                page=request.session.get('page_num',1)
+                page = request.session.get('page_num', 1)
 
             everything_selected = request.POST.get('select_everythingx', None)
             results = []
@@ -176,47 +172,47 @@ def generic(request,
                 if sortable and sort_param == sort_column:
                     filtered_list = sorter.sort(sort_column, filtered_list, sort_ascending)
 
-    total=None
-    ranges=[]
+    total = None
+    ranges = []
     paginator = None
-    paginator_dict={}
+    paginator_dict = {}
 
     if paginated:
-       if not paginator_func:
-           paginator_dict=paginate(filtered_list,objects_per_page,page,p)
-       else:
-           paginator_dict=paginator_func(filtered_list,objects_per_page,page,p)
+        if not paginator_func:
+            paginator_dict = paginate(filtered_list, objects_per_page, page, p)
+        else:
+            paginator_dict = paginator_func(filtered_list, objects_per_page, page, p)
 
     context_vars = {
-        'partial_base':partial_base,
-        'partial_header':partial_header,
-        'partial_row':partial_row,
-        'paginator_template':paginator_template,
-        'results_title':results_title,
-        template_object_name:filtered_list, # for custom templates
-        'object_list':filtered_list, # allow generic templates to still
-                                          # access the object list in the same way
-        'paginator':paginator,
-        'filter_forms':filter_form_instances,
-        'action_forms':action_form_instances,
-        'paginated':paginated,
-        'total':total,
-        'selectable':selectable,
-        'columns':columns,
-        'sort_column':sort_column,
-        'sort_ascending':sort_ascending,
-        'page':page,
-        'ranges':ranges,
-        'selected':selected,
-        'status_message':status_message,
-        'status_message_type':status_message_type,
-        'base_template':'layout.html',
+        'partial_base': partial_base,
+        'partial_header': partial_header,
+        'partial_row': partial_row,
+        'paginator_template': paginator_template,
+        'results_title': results_title,
+        template_object_name: filtered_list, # for custom templates
+        'object_list': filtered_list, # allow generic templates to still
+        # access the object list in the same way
+        'paginator': paginator,
+        'filter_forms': filter_form_instances,
+        'action_forms': action_form_instances,
+        'paginated': paginated,
+        'total': total,
+        'selectable': selectable,
+        'columns': columns,
+        'sort_column': sort_column,
+        'sort_ascending': sort_ascending,
+        'page': page,
+        'ranges': ranges,
+        'selected': selected,
+        'status_message': status_message,
+        'status_message_type': status_message_type,
+        'base_template': 'layout.html',
     }
     context_vars.update(paginator_dict)
 
     if context_vars['paginated'] and context_vars['paginator']:
         if context_vars.get('paginator').num_pages < context_vars.get('page'):
-            request.session['page_num']=1
+            request.session['page_num'] = 1
 
 
     # For pages that not only have tables, but also need a time range slider
@@ -227,6 +223,7 @@ def generic(request,
     context_vars.update(kwargs)
     return render_to_response(response_template, context_vars, context_instance=RequestContext(request))
 
+
 @cache_control(no_cache=True, max_age=0)
 def generic_dashboard(request,
                       slug,
@@ -236,7 +233,6 @@ def generic_dashboard(request,
                       module_partial_template='generic/partials/module.html',
                       title='Dashboard',
                       num_columns=2, **kwargs):
-
     module_dict = {}
     module_title_dict = {}
     user = (not request.user.is_anonymous() and request.user) or None
@@ -246,7 +242,8 @@ def generic_dashboard(request,
         module_dict[view_name] = module_form
         module_title_dict[view_name] = module_title
 
-    module_instances = [(view_name, module_form(), module_title) for view_name, module_form, module_title in module_types]
+    module_instances = [(view_name, module_form(), module_title) for view_name, module_form, module_title in
+                        module_types]
     if request.method == 'POST':
         page_action = request.POST.get('action', None)
         module_title_dict[view_name] = request.POST.get('title', module_title)
@@ -258,7 +255,7 @@ def generic_dashboard(request,
                 return render_to_response(module_partial_template,
                                           {'mod': module,
                                            'module_header_partial_template': module_header_partial_template},
-                context_instance=RequestContext(request))
+                                          context_instance=RequestContext(request))
         elif page_action == 'publish':
             user_pk = int(request.POST.get('user', -1))
             if user_pk == -2 or user_pk == -3: # anonymous user
@@ -300,7 +297,7 @@ def generic_dashboard(request,
         default_dash, created = Dashboard.objects.get_or_create(slug=slug, user=None)
         copy_dashboard(default_dash, dashboard)
 
-    modules = [{'col':i, 'modules':[]} for i in range(0, num_columns)]
+    modules = [{'col': i, 'modules': []} for i in range(0, num_columns)]
     columns = dashboard.modules.values_list('column', flat=True).distinct()
 
     for col in columns:
@@ -315,13 +312,14 @@ def generic_dashboard(request,
 
     return render_to_response(base_template,
                               {
-                               'modules':modules,
-                               'title':title,
-                               'module_types':module_instances,
-                               'module_header_partial_template':module_header_partial_template,
-                               'module_partial_template':module_partial_template,
-                               'user_list':user_list,
+                                  'modules': modules,
+                                  'title': title,
+                                  'module_types': module_instances,
+                                  'module_header_partial_template': module_header_partial_template,
+                                  'module_partial_template': module_partial_template,
+                                  'user_list': user_list,
                               }, context_instance=RequestContext(request))
+
 
 @cache_control(no_cache=True, max_age=0)
 def generic_map(request,
@@ -335,16 +333,18 @@ def generic_map(request,
             needs_date = True
             break
 
-    context = {'map_layers':map_layers, \
-               'needs_date':needs_date, \
-               'display_autoload':display_autoload, \
-               'timeslider_update':'update_date_layers();'}
+    context = {'map_layers': map_layers, \
+               'needs_date': needs_date, \
+               'display_autoload': display_autoload, \
+               'timeslider_update': 'update_date_layers();'}
 
     if needs_date:
         set_default_dates(dates, request, context)
 
     return render_to_response(base_template, context, context_instance=RequestContext(request))
 
+
 def static_module(request, content_id):
     content = get_object_or_404(StaticModuleContent, pk=content_id)
-    return render_to_response("generic/partials/static_module.html", {'content':content.content}, context_instance=RequestContext(request))
+    return render_to_response("generic/partials/static_module.html", {'content': content.content},
+                              context_instance=RequestContext(request))
