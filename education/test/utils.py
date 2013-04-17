@@ -39,7 +39,8 @@ def create_school(name,location):
 
 def create_emis_reporters(name, reporting_location, school, identity, group):
     reporter = EmisReporter.objects.create(name=name, reporting_location=reporting_location)
-    reporter.schools.add(school)
+    if school is not None:
+        reporter.schools.add(school)
     reporter.groups.add(group)
     backend, created = Backend.objects.get_or_create(name='fake_backend')
     reporter.connection_set.create(identity=identity, backend=backend)
