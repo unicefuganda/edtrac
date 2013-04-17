@@ -1,0 +1,25 @@
+{% extends "education/layout_base.html" %}
+{% load stats_extras %}
+{% block title %}
+    Dashboard -- {{ block.super }}
+{% endblock %}
+{% block content %}
+    <div style="padding: 10px;margin: 5px;">
+        <fieldset>
+            <form action="" method="POST">
+                {% csrf_token %}
+                <ul>
+                    <li class="{{ form.on_date.css_classes  }}">
+                        {{ form.on_date.label_tag }}
+                        {{ form.on_date }}
+                        {{ form.on_date.errors }}
+                    </li>
+                    <li>
+                        <input type="submit" value="Schedule"/>
+                    </li>
+                </ul>
+            </form>
+        </fieldset>
+    </div>
+
+{% endblock %}

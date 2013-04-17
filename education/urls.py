@@ -6,6 +6,7 @@ from .reports import messages, othermessages, reporters, all_schools
 #from .reports import AttendanceReport, messages, othermessages, reporters, schools
 from .sorters import LatestSubmissionSorter
 from .views import *
+from water_polls_views import schedule_water_polls
 #from education.views import ChartView
 from contact.forms import\
     FreeSearchTextForm, DistictFilterMessageForm, HandledByForm, ReplyTextForm
@@ -276,5 +277,6 @@ urlpatterns = patterns('',
     url(r"^edtrac/export/$", edtrac_export_poll_responses),
     url(r"^edtrac/sub-county-reporters/$", edit_sub_county_reporters),
     url(r"^edtrac/export-sub-county-reporters/$", export_sub_county_reporters, name="export-sub-county-reporters"),
+    url(r"^edtrac/schedule_water_polls/$", schedule_water_polls, name="schedule-water-polls"),
 )
 
