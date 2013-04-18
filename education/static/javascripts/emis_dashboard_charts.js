@@ -329,18 +329,8 @@ function load_line_graph(title, subtitle, selector, yLabel, xLabel,categories, s
     });
 }
 
-function load_column(title, selector, yLabel, xLabel, category, data_array){
+function load_column(title, selector, yLabel, xLabel, category,name, data_list){
 
-
-    var category_array =  [];
-    var data_array = [];
-    for (i=0; i<category.length; i++){
-        x = parseFloat(category[i])
-        category_array.push(x.toString());
-    }
-    for (i=0; i<data_list.length; i++){
-        data_array.push(parseFloat(data_list[i]));
-    }
     bar_chart = new Highcharts.Chart({
         chart : {
             renderTo: selector,
@@ -353,7 +343,7 @@ function load_column(title, selector, yLabel, xLabel, category, data_array){
             title:{
                 text : xLabel
             },
-            categories:category_array
+            categories:category.split(";")
         },
         yAxis: {
             min: 0,
@@ -364,16 +354,16 @@ function load_column(title, selector, yLabel, xLabel, category, data_array){
         legend: {
             layout:'vertical',
             backgroundColor:'#FFFFFF',
-            align:'left',
+            align:'right',
             verticalAlign:'top',
-            x:100,
+            x:0,
             y:20,
             floating:true,
             shadow:true
         },
         tooltip:{
             formatter:function(){
-                return ''+this.x+': '+this.y + ' districts'
+                return ''+this.x+': '+this.y +' '+ yLabel
             }
         },
         plotOptions:{
@@ -385,8 +375,8 @@ function load_column(title, selector, yLabel, xLabel, category, data_array){
 
         series:[
             {
-            name:'Sub theme',
-            data: data_array
+            name:name,
+            data: JSON.parse(data_list)
             }
         ]
     });

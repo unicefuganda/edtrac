@@ -1,0 +1,51 @@
+{% extends "education/admin/admin_dashboard.html" %}
+{% load stats_extras %}
+{% load endless %}
+{% block title %} Water Sources nationwide -- {{ block.super }} {% endblock %}
+{% block content %}
+
+    <ul class='breadcrumb'>
+        <li><a href="{% url rapidsms-dashboard %}">Dashboard Home</a></li>
+    </ul>
+    <div class="general">
+        {% load stats_extras %}
+        <div id="water_container" style="margin-bottom: 20px;">
+            <div class="stats"><h3>Water sources</h3></div>
+            <div id="water_sources" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
+
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    pie("{{ responses|reorganize_data|join:"," }}",
+                            "Water sources across Uganda",
+                            "--",
+                            "water_sources",
+                            " responded",
+                            true
+                    );
+
+                });
+            </script>
+        </div>
+    <div id="monthly_water_data">    </div>
+    <script type="text/javascript">
+            $(document).ready(function () {
+                load_column("Schools with a water point within 500M",
+                        "monthly_water_data",
+                        "Percentage",
+                        "Months",
+                        "{{ monthly_categories|join:";" }}",
+                        "Yes Percentages",
+                        "{{ monthly_data }}"
+                );
+
+            });
+        </script>
+{% endblock %}
+
+{% block javascripts %}
+    {{ block.super }}
+    <!--<script src="{{ MEDIA_URL }}education/javascripts/endless.js" charset="utf-8"></script>-->
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-collapse.js"></script>
+    <script type="text/javascript"></script>
+    </div>
+{% endblock %}
