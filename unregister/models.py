@@ -4,6 +4,9 @@ from rapidsms_httprouter.models import mass_text_sent, Message
 from poll.models import poll_started
 from django.db.models.signals import pre_save
 
+import logging
+log = logging.getLogger(__name__)
+
 class Blacklist(models.Model):
     connection = models.ForeignKey(Connection)
 
@@ -16,11 +19,19 @@ def bulk_process(sender, **kwargs):
         messages.filter(status='P').exclude(connection__in=bad_conns).update(status='Q')
         messages.filter(status='P').filter(connection__in=bad_conns).update(status='C')
 
+def log_bulk_process_info(poll, message):
+    log.info("[bulk-process-poll-" + str(poll.pk) + "]" + message)
+
 def bulk_process_poll(sender, **kwargs):
+    log.info("[bulk_process_poll] sender=" + str(type(sender)) + " - toString " + str(sender))
     poll = sender
+    log_bulk_process_info(poll, " finding bad connections...")
     bad_conns = Blacklist.objects.values_list('connection__pk', flat=True).distinct()
+    log_bulk_process_info(poll, " setting status to Q for anything thats not blacklisted and has status P...")
     poll.messages.filter(status='P').exclude(connection__in=bad_conns).update(status='Q')
+    log_bulk_process_info(poll, " ok. setting status to C for all the blacklisted connections...")
     poll.messages.filter(status='P').filter(connection__in=bad_conns).update(status='C')
+    log_bulk_process_info(poll, "ok.")
 
 def blacklist(sender, **kwargs):
     m = kwargs['instance']
