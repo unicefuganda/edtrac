@@ -161,7 +161,7 @@ class ExcelResponse(HttpResponse):
                 if headers is None:
                     headers = data[0].keys()
                 data = [[row[col] for col in headers] for row in data]
-                data.insert(0, headers)
+                #data.insert(0, headers)
             if hasattr(data[0], '__getitem__'):
                 valid_data = True
         import StringIO
