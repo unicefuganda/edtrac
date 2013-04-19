@@ -2,7 +2,7 @@
 import datetime
 import dateutils
 from django.test import TestCase
-# from education.curriculum_progress_helper import get_target_value
+from education.curriculum_progress_helper import add_offset_according_to_term_number
 from rapidsms_xforms.models import *
 from rapidsms.contrib.locations.models import Location, LocationType
 from rapidsms.models import Connection, Backend
@@ -16,13 +16,27 @@ from poll.models import Poll
 
 class TestCurriculumProgressView(TestCase):
     def setUp(self):
+        self.target = {
+            1:1.1,
+            2:1.2,
+            3:1.3,
+            4:2.1,
+            5:2.2,
+            6:2.3,
+            7:3.1,
+            8:3.2,
+            9:3.3,
+            10:4.1,
+            11:4.2,
+            12:4.3
+        }
         settings.FIRST_TERM_BEGINS = dateutils.increment(datetime.datetime.now(),weeks=-16)
         settings.SECOND_TERM_BEGINS = dateutils.increment(datetime.datetime.now(),weeks=-4)
         settings.THIRD_TERM_BEGINS =  dateutils.increment(datetime.datetime.now(),weeks=8)
 
         settings.SCHOOL_TERM_START = settings.SECOND_TERM_BEGINS
-        self.poll_response_current_week_date = self.get_thursday()
-        self.poll_response_previous_week_date = dateutils.increment(self.poll_response_current_week_date,weeks=-4)
+        self.poll_response_current_week_date = self.get_thursday(datetime.datetime.today())
+        self.poll_response_previous_week_date = dateutils.increment(self.poll_response_current_week_date,weeks=-2)
 
         ht = Group.objects.create(name='Head Teachers')
         country = LocationType.objects.create(name='country', slug='country')
@@ -87,6 +101,36 @@ class TestCurriculumProgressView(TestCase):
             giveup_offset=86400,
             )[0])
 
+    def get_thursday(self,today):
+
+        if today.weekday() > 3:
+            today = dateutils.increment(today,days=(3-today.weekday()))
+        elif today.weekday() < 3:
+            today = dateutils.increment(today,days=-(today.weekday()+4))
+
+        if today.hour < 8:
+            today = today + datetime.timedelta(hours=(8 - today.hour))
+        return today
+
+    def get_term_target(self,given_date):
+        test_date=given_date
+        week_count=0
+        temp=settings.SECOND_TERM_BEGINS
+
+        if temp.weekday() < 3:
+            temp = dateutils.increment(temp,days=(3-temp.weekday()))
+        elif temp.weekday() > 3:
+            temp = dateutils.increment(temp,days=(10-temp.weekday()))
+
+        if settings.SECOND_TERM_BEGINS > given_date:
+            temp = given_date
+            test_date = settings.SECOND_TERM_BEGINS
+
+        while temp < test_date:
+            temp = dateutils.increment(temp,days=7)
+            week_count+=1
+        return add_offset_according_to_term_number(self.target[week_count])
+
     def test_curriculum_progress_view_for_current_week(self):
         reschedule_monthly_script('Head Teachers',self.poll_response_current_week_date.strftime("%Y-%m-%d"),'edtrac_p3_teachers_weekly')
         check_progress(self.script)
@@ -96,8 +140,9 @@ class TestCurriculumProgressView(TestCase):
         client=Client()
         client.login(username='John',password='password')
         response=client.get('/edtrac/dash-admin-progress/')
-        # target_value,term=get_target_value(self.poll_response_current_week_date)
-        # self.assertEqual(target_value,response.context['target'])
+        target_value,term=self.get_term_target(self.poll_response_current_week_date)
+        self.assertEqual(target_value,response.context['target'])
+        self.assertEqual('second',term)
         self.assertEqual(5.3,response.context['current_mode'][0][0])
 
     def test_curriculum_progress_view_for_specified_week(self):
@@ -110,11 +155,12 @@ class TestCurriculumProgressView(TestCase):
         client=Client()
         client.login(username='John',password='password')
         week_start=self.poll_response_previous_week_date.strftime("%d,%b,%Y")
-        week_end=dateutils.increment(self.poll_response_current_week_date,weeks=-3,days=-1).strftime("%d,%b,%Y")
+        week_end=dateutils.increment(self.poll_response_current_week_date,weeks=-1,days=-1).strftime("%d,%b,%Y")
         week_choices=week_start+" to "+week_end
         response=client.post('/edtrac/dash-admin-progress/',{'choose_week_to_view':week_choices})
-        # target_value,term=get_target_value(self.poll_response_previous_week_date)
-        # self.assertEqual(target_value,response.context['target'])
+        target_value,term=self.get_term_target(self.poll_response_previous_week_date)
+        self.assertEqual(target_value,response.context['target'])
+        self.assertEqual('second',term)
         self.assertEqual(5.1,response.context['current_mode'][0][0])
 
     def test_mode_by_district(self):
@@ -128,15 +174,6 @@ class TestCurriculumProgressView(TestCase):
         response=client.get('/edtrac/dash-admin-progress/')
         self.assertTrue(5.3 in dict(response.context['location_data'][self.kampala_district]))
         self.assertEqual('Progress undetermined this week',response.context['location_data'][self.gulu_district])
-
-    def get_thursday(self):
-        today=datetime.datetime.today()
-
-        if today.weekday() > 3:
-            today = dateutils.increment(today,days=(3-today.weekday()))
-        elif today.weekday() < 3:
-            today = dateutils.increment(today,days=-(today.weekday()+4))
-        return today
 
     def fake_incoming_with_date(self, message, connection, date):
         router = get_router()
