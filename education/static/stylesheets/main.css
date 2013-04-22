@@ -1229,3 +1229,16 @@ div.box-message{
 .green{
     background: url("../icons/data-green-bg.png") !important;
 }
+
+.errorlist li{
+    color: #ff0000;
+    margin: 10px;
+}
+.schedule_poll_header{
+    margin: 10px;
+    font-size: 20px;
+    color: #f5f5f5;
+}
+.schedule_form ul li label{
+    color: #f5f5f5;
+}

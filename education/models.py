@@ -811,3 +811,7 @@ script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)
 script_progress.connect(edtrac_autoreg_transition, weak=False)
 script_progress.connect(edtrac_attendance_script_transition, weak=False)
 #script_progress.connect(edtrac_scriptrun_schedule, weak=False)
+
+class ScriptScheduleTime(models.Model):
+    script = models.ForeignKey(Script)
+    scheduled_on = models.DateField(auto_now=True)
