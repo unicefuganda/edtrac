@@ -114,6 +114,7 @@ class Command(BaseCommand, LoggerMixin):
 
         """
         DBS = settings.DATABASES.keys()
+        DBS.remove('geoserver') # TODO - We should probably send the list of dbs we want as parameters
         #DBS.remove('default') # skip the dummy -we now check default DB as well
         CHUNK_SIZE = getattr(settings, 'MESSAGE_CHUNK_SIZE', 400)
         self.info("starting up")
@@ -152,7 +153,7 @@ class Command(BaseCommand, LoggerMixin):
                     transaction.commit(using=db)
                 except Exception, exc:
                     transaction.rollback(using=db)
-                    print self.critical(traceback.format_exc(exc))
+                    self.critical(traceback.format_exc(exc))
                     if recipients:
                         send_mail('[Django] Error: messenger command', str(traceback.format_exc(exc)), 'root@uganda.rapidsms.org', recipients, fail_silently=True)
                     continue
