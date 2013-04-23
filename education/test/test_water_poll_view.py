@@ -1,6 +1,8 @@
 # vim: ai ts=4 sts=4 et sw=4 encoding=utf-8
 from datetime import datetime
 from unittest import TestCase
+import dateutils
+from django.conf import settings
 from django.contrib.auth.models import User, Group
 from education.models import EmisReporter, School
 from education.test.utils import create_group, create_location_type, create_location, create_school, create_emis_reporters, create_user_with_group, create_poll
@@ -81,7 +83,25 @@ class TestWaterPollView(TestCase):
         location_result,monthly_result = get_all_responses(self.water_source_poll,[self.kampala_district])
         self.assertTrue(('January',{'yes':100}) in monthly_result)
 
+    def test_should_get_location_termly_data(self):
+        settings.SCHOOL_TERM_START = dateutils.increment(datetime.now(),weeks=-4)
+        settings.SCHOOL_TERM_END = dateutils.increment(datetime.now(),weeks=8)
+        self.water_source_poll.start()
+        self.fake_incoming('yes',self.emis_reporter1)
+        self.fake_incoming('yes',self.emis_reporter2)
+        self.fake_incoming('no',self.emis_reporter3)
+        location_result , monthly_result = get_all_responses(self.water_source_poll,[self.kampala_district])
+        self.assertTrue(('yes', 66) in location_result)
 
+    def should_test_responses_for_current_term_only(self):
+        settings.SCHOOL_TERM_START = dateutils.increment(datetime.now(),weeks=-16)
+        settings.SCHOOL_TERM_END = dateutils.increment(datetime.now(),weeks=-4)
+        self.water_source_poll.start()
+        self.fake_incoming('yes',self.emis_reporter1)
+        self.fake_incoming('yes',self.emis_reporter2)
+        self.fake_incoming('no',self.emis_reporter3)
+        location_result , monthly_result = get_all_responses(self.water_source_poll,[self.kampala_district])
+        self.assertEqual([],location_result)
 
     def tearDown(self):
         Poll.objects.all().delete()
