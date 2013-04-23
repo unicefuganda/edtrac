@@ -119,7 +119,7 @@ class TestViolenceView(TestSetup):
     def generate_random_replies(self):
         random_replies = []
         for reps in EmisReporter.objects.filter(groups__name="Head Teachers"):
-            random_replies.append(str(random.randrange(20)))
+            random_replies.append(str(random.randrange(2,20)))
         return random_replies
 
     def generate_script_progress_and_session(self, slug, date, poll):
