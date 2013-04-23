@@ -26,7 +26,7 @@ def schedule_water_polls(request):
                 head_teachers_group = Group.objects.get(name='Head Teachers')
                 water_script = Script.objects.get(slug='edtrac_script_water_source')
                 scheduled_for = schedule_script(schedule_date, get_valid_reporters(head_teachers_group), water_script)
-                ScriptScheduleTime.objects.create(script=water_script, scheduled_on=datetime.date.today())
+                ScriptScheduleTime.objects.create(script=water_script, scheduled_on=schedule_date)
                 context_dict['message'] = "Scheduled %s script for %s reporters" % (water_script.name, scheduled_for)
 
         elif request.POST['form_name'] == "functional_water_poll_form":
