@@ -5,6 +5,7 @@ from education.test.utils import *
 from poll.models import Response
 from rapidsms.models import Connection
 from rapidsms_httprouter.router import get_router
+from script.models import Script, ScriptProgress, ScriptStep, ScriptSession
 
 
 class TestAbsenteeism(TestCase):
@@ -77,3 +78,89 @@ class TestAbsenteeism(TestCase):
         User.objects.all().delete()
         Group.objects.all().delete()
         Attribute.objects.all().delete()
+
+class TestSetup(TestCase):
+    def setUp(self):
+        country = LocationType.objects.create(name='country', slug='country')
+        district = LocationType.objects.create(name='district', slug='district')
+        uganda_fields = dict(rght=15274, name="Uganda", level=0, tree_id=1, lft=1, type=country)
+
+        self.root_node = Location.objects.create(**uganda_fields)
+        self.admin_user = create_user_with_group("John", Role.objects.create(name="Admins"), self.root_node)
+
+        kampala_point_fields = dict(latitude="0.3162800000", longitude="32.5821900000")
+        kampala_point = Point.objects.create(**kampala_point_fields)
+        kampala_fields = dict(rght=10901, tree_parent=self.root_node, name="Kampala", point=kampala_point, level=1,
+                              tree_id=1, lft=10686, type=district)
+        self.kampala_district = Location.objects.create(**kampala_fields)
+
+        gulu_point_fields = dict(latitude="2.7666700000", longitude="32.3055600000")
+        gulu_point = Point.objects.create(**gulu_point_fields)
+        gulu_fields = dict(rght=9063, tree_parent=self.root_node, name="Gulu", point=gulu_point, level=1, tree_id=1,
+                           lft=8888, type=district)
+        self.gulu_district = Location.objects.create(**gulu_fields)
+
+        self.school = School.objects.create(name="Don Bosco School", location=self.root_node)
+        self.school1 = School.objects.create(name="St. Mary School", location=self.root_node)
+
+        self.emisreporter1 = EmisReporter.objects.create(name="Reporter1", reporting_location=self.kampala_district)
+        self.emisreporter1.schools.add(self.school)
+        self.emisreporter1.save()
+
+        self.emisreporter2 = EmisReporter.objects.create(name="Reporter2", reporting_location=self.kampala_district)
+        self.emisreporter2.schools.add(self.school1)
+        self.emisreporter2.save()
+
+        self.emisreporter3 = EmisReporter.objects.create(name="Reporter3", reporting_location=self.gulu_district)
+        self.emisreporter3.schools.add(self.school)
+        self.emisreporter3.save()
+
+        self.backend = Backend.objects.create(name='fake_backed')
+        self.connection1 = Connection.objects.create(identity="02022222230", backend=self.backend,
+                                                     contact=self.emisreporter1)
+        self.connection2 = Connection.objects.create(identity="02022222231", backend=self.backend,
+                                                     contact=self.emisreporter2)
+        self.connection3 = Connection.objects.create(identity="02022222232", backend=self.backend,
+                                                     contact=self.emisreporter3)
+
+    def fake_incoming(self, message, connection):
+        router = get_router()
+        handled=router.handle_incoming(connection.backend.name, connection.identity, message)
+        return handled
+
+    def fake_incoming_with_date(self, message, connection, date):
+        router = get_router()
+        handled = router.handle_incoming(connection.backend.name, connection.identity, message)
+        for response in handled.poll_responses.all():
+            response.date = date
+            response.save()
+
+        return handled
+
+    def add_group(self, reporters, group):
+        for reporter in reporters:
+            reporter.groups.add(group)
+            reporter.save()
+
+    def create_poll(self, poll_name, poll_user, poll_type, poll_question, poll_default_response):
+        self.violence_poll, self.violence_poll_created = Poll.objects.get_or_create(name=poll_name,
+                                                                                    user=poll_user,
+                                                                                    type=poll_type,
+                                                                                    question=poll_question,
+                                                                                    default_response=poll_default_response)
+
+    def tearDown(self):
+        Location.objects.all().delete()
+        LocationType.objects.all().delete()
+        School.objects.all().delete()
+        EmisReporter.objects.all().delete()
+        Connection.objects.all().delete()
+        Backend.objects.all().delete()
+        Poll.objects.all().delete()
+        User.objects.all().delete()
+        Group.objects.all().delete()
+        Attribute.objects.all().delete()
+        Script.objects.all().delete()
+        ScriptProgress.objects.all().delete()
+        ScriptStep.objects.all().delete()
+        ScriptSession.objects.all().delete()
