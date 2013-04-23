@@ -7,18 +7,18 @@
     <ul class='breadcrumb'>
         <li><a href="{% url rapidsms-dashboard %}">Dashboard Home</a></li>
     </ul>
+{% for response,categories,data,label in data_list %}
     <div class="general">
-        {% load stats_extras %}
-        <div id="water_container" style="margin-bottom: 20px;">
-            <div class="stats"><h3>Water sources</h3></div>
-            <div id="water_sources" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
+        <div id="water_container{{ forloop.counter }}" style="margin-bottom: 20px;">
+            <div class="stats"><h3> {{ label|capfirst }}</h3></div>
+            <div id="water_sources{{ forloop.counter }}" style="min-width: 50px; height: 400px; margin: 0 auto"></div>
 
             <script type="text/javascript">
                 $(document).ready(function () {
-                    pie("{{ responses|reorganize_data|join:"," }}",
-                            "Water sources across Uganda",
+                    pie("{{ response|reorganize_data|join:"," }}",
+                            "{{ label }} across Uganda",
                             "--",
-                            "water_sources",
+                            "water_sources{{ forloop.counter }}",
                             " responded",
                             true
                     );
@@ -26,20 +26,22 @@
                 });
             </script>
         </div>
-    <div id="monthly_water_data">    </div>
+    <div id="monthly_water_data{{ forloop.counter }}">    </div>
     <script type="text/javascript">
             $(document).ready(function () {
-                load_column("Schools with a water point within 500M",
-                        "monthly_water_data",
+                load_column("Schools with a {{ label }} within 500M",
+                        "monthly_water_data{{ forloop.counter }}",
                         "Percentage",
                         "Months",
-                        "{{ monthly_categories|join:";" }}",
+                        "{{ categories|join:";" }}",
                         "Yes Percentages",
-                        "{{ monthly_data }}"
+                        "{{ data }}"
                 );
 
             });
         </script>
+    </div>
+{% endfor %}
 {% endblock %}
 
 {% block javascripts %}
@@ -47,5 +49,5 @@
     <!--<script src="{{ MEDIA_URL }}education/javascripts/endless.js" charset="utf-8"></script>-->
     <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-collapse.js"></script>
     <script type="text/javascript"></script>
-    </div>
+
 {% endblock %}

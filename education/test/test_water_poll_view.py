@@ -71,7 +71,7 @@ class TestWaterPollView(TestCase):
         self.assertEqual(['March', 'February', 'January'],categories)
         self.assertEqual([0,100,50], data)
 
-    def test_should_get_location_and_monthly_data(self):
+    def test_should_get_monthly_data(self):
         self.water_source_poll.start()
         self.fake_incoming('yes',self.emis_reporter1)
         self.fake_incoming('yes',self.emis_reporter2)
@@ -79,7 +79,6 @@ class TestWaterPollView(TestCase):
         responses = self.water_source_poll.responses.all()
         self.set_date(responses)
         location_result,monthly_result = get_all_responses(self.water_source_poll,[self.kampala_district])
-        self.assertEqual(66,location_result['yes'])
         self.assertTrue(('January',{'yes':100}) in monthly_result)
 
 

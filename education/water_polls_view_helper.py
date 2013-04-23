@@ -1,5 +1,6 @@
 # vim: ai ts=4 sts=4 et sw=4 encoding=utf-8
 from datetime import datetime
+from django.conf import settings
 from education.models import EmisReporter
 from education.reports import get_month_day_range
 from rapidsms.contrib.locations.models import Location
@@ -22,13 +23,15 @@ def get_location_for_water_view(district_pk, request):
 
 
 def get_all_responses(poll,location):
+    term_range = [getattr(settings,'SCHOOL_TERM_START'),getattr(settings,'SCHOOL_TERM_END')]
     all_responses = poll.responses_by_category().filter(response__contact__reporting_location__in=location)
+    term_responses = all_responses.filter(response__date__range = term_range)
     months= get_month_day_range(datetime.now(),depth=datetime.today().month)
     to_ret=[]
     for month in months:
         monthly_responses =all_responses.filter(response__date__range=month)
         to_ret.append((month[0].strftime("%B"),_extract_info(monthly_responses)))
-    return _extract_info(all_responses),to_ret
+    return _extract_info(term_responses).items(),to_ret
 
 
 

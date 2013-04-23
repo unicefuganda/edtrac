@@ -321,6 +321,9 @@ def format_mode(obj):
         return ",".join([str(round(i[0],2)) for i in obj])
     return obj
 
+def zip_lists(a, b):
+    return zip(a, b)
+
 register = template.Library()
 register.filter('section', get_section)
 register.filter('parent', get_parent)
@@ -348,5 +351,6 @@ register.filter('make_url_for_detail_attd', make_url_for_detail_attd)
 register.filter('get_url', get_url)
 register.filter('isfloat', isfloat)
 register.filter('islist', islist)
+register.filter('zip_lists',zip_lists)
 register.filter('get_theme_title', get_theme_title)
 register.tag('date_range', do_date_range)

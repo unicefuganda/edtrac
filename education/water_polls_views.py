@@ -86,10 +86,21 @@ def get_categories_and_data(responses):
     return categories ,[response[1].get('yes',0) for response in responses]
 
 def detail_water_view(request,district=None):
+    responses=[]
+    all_data=[]
+    all_categories=[]
     location = get_location_for_water_view(district,request)
-    poll = Poll.objects.get(name='edtrac_water_source')
-    responses , monthly_responses = get_all_responses(poll,location)
-    categories, data = get_categories_and_data(monthly_responses)
+    water_poll = Poll.objects.get(name='edtrac_water_source')
+    functional_water_poll = Poll.objects.get(name='edtrac_functional_water_source')
+    water_and_soap = Poll.objects.get(name='water_and_soap')
+    polls=[water_poll,functional_water_poll,water_and_soap]
+    labels_for_graphs = ['water source','functional water source','water and soap']
+    for poll in polls:
+        response , monthly_response = get_all_responses(poll,location)
+        categories, data = get_categories_and_data(monthly_response)
+        responses.append(response)
+        all_data.append(data)
+        all_categories.append(categories)
     return render_to_response('education/admin/detail_water.html',
-                              {'resposnes': responses, 'monthly_categories': categories, 'monthly_data': data},
+                              {'data_list':zip(responses,all_categories,all_data,labels_for_graphs)},
                               RequestContext(request))
