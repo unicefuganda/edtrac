@@ -85,6 +85,7 @@ def get_categories_and_data(responses):
     categories = [response[0] for response in responses]
     return categories ,[response[1].get('yes',0) for response in responses]
 
+@login_required()
 def detail_water_view(request,district=None):
     responses=[]
     all_data=[]
