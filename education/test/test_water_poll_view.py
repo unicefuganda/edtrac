@@ -4,7 +4,7 @@ from unittest import TestCase
 from django.contrib.auth.models import User, Group
 from education.models import EmisReporter, School
 from education.test.utils import create_group, create_location_type, create_location, create_school, create_emis_reporters, create_user_with_group, create_poll
-from education.water_polls_view_helper import get_monthly_responses, get_responses
+from education.water_polls_view_helper import get_all_responses
 from education.water_polls_views import get_categories_and_data
 from poll.models import Poll
 from rapidsms.contrib.locations.models import Location, LocationType
@@ -57,21 +57,6 @@ class TestWaterPollView(TestCase):
         connection = reporter.default_connection
         return router.handle_incoming(connection.backend.name, connection.identity, message)
 
-    def test_should_get_percent_of_yes_responses(self):
-        self.water_source_poll.start()
-        self.fake_incoming('yes',self.emis_reporter1)
-        self.fake_incoming('yes',self.emis_reporter2)
-        self.fake_incoming('no',self.emis_reporter3)
-        result = get_responses(self.water_source_poll,[self.kampala_district])
-        self.assertEqual(66,result['yes'])
-
-    def test_should_get_count_of_no_responses(self):
-        self.water_source_poll.start()
-        self.fake_incoming('yes',self.emis_reporter1)
-        self.fake_incoming('yes',self.emis_reporter2)
-        self.fake_incoming('no',self.emis_reporter3)
-        result = get_responses(self.water_source_poll,[self.kampala_district])
-        self.assertEqual(33,result.get('no'))
 
     def set_date(self, responses):
         i = 1
@@ -80,21 +65,23 @@ class TestWaterPollView(TestCase):
             r.save()
             i += 1
 
-    def test_should_get_percent_of_yes_responses_on_time_range(self):
+    def test_should_reorganize_data_for_bar_chart(self):
+        responses= [('January',{'yes':50,'no':50}),('February',{'yes':100}),('March',{'no':100})]
+        categories,data = get_categories_and_data(responses)
+        self.assertEqual(['March', 'February', 'January'],categories)
+        self.assertEqual([0,100,50], data)
+
+    def test_should_get_location_and_monthly_data(self):
         self.water_source_poll.start()
         self.fake_incoming('yes',self.emis_reporter1)
         self.fake_incoming('yes',self.emis_reporter2)
         self.fake_incoming('no',self.emis_reporter3)
         responses = self.water_source_poll.responses.all()
         self.set_date(responses)
-        result = get_monthly_responses(self.water_source_poll,[self.kampala_district])
-        self.assertTrue(('January',{'yes':100}) in result)
+        location_result,monthly_result = get_all_responses(self.water_source_poll,[self.kampala_district])
+        self.assertEqual(66,location_result['yes'])
+        self.assertTrue(('January',{'yes':100}) in monthly_result)
 
-    def test_should_reorganize_data_for_bar_chart(self):
-        responses= [('January',{'yes':50,'no':50}),('February',{'yes':100}),('March',{'no':100})]
-        categories,data = get_categories_and_data(responses)
-        self.assertEqual(['March', 'February', 'January'],categories)
-        self.assertEqual([0,100,50], data)
 
 
     def tearDown(self):

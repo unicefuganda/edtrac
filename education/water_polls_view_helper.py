@@ -21,17 +21,15 @@ def get_location_for_water_view(district_pk, request):
     return locations
 
 
-def get_responses(poll,location):
+def get_all_responses(poll,location):
     all_responses = poll.responses_by_category().filter(response__contact__reporting_location__in=location)
-    return _extract_info(all_responses)
-
-def get_monthly_responses(poll,location):
     months= get_month_day_range(datetime.now(),depth=datetime.today().month)
-    to_ret = []
+    to_ret=[]
     for month in months:
-        all_responses = poll.responses_by_category().filter(response__contact__reporting_location__in=location,response__date__range=month)
-        to_ret.append((month[0].strftime("%B"),_extract_info(all_responses)))
-    return to_ret
+        monthly_responses =all_responses.filter(response__date__range=month)
+        to_ret.append((month[0].strftime("%B"),_extract_info(monthly_responses)))
+    return _extract_info(all_responses),to_ret
+
 
 
 def _extract_info(l):

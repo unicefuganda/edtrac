@@ -7,7 +7,7 @@ from django.forms import extras
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
-from education.water_polls_view_helper import get_location_for_water_view, get_responses, get_monthly_responses
+from education.water_polls_view_helper import get_location_for_water_view, get_all_responses
 from poll.models import Poll
 from education.models import EmisReporter, ScriptScheduleTime
 from script.models import ScriptProgress, Script
@@ -88,8 +88,7 @@ def get_categories_and_data(responses):
 def detail_water_view(request,district=None):
     location = get_location_for_water_view(district,request)
     poll = Poll.objects.get(name='edtrac_water_source')
-    responses = get_responses(poll,location)
-    monthly_responses = get_monthly_responses(poll,location)
+    responses , monthly_responses = get_all_responses(poll,location)
     categories, data = get_categories_and_data(monthly_responses)
     return render_to_response('education/admin/detail_water.html',
                               {'resposnes': responses, 'monthly_categories': categories, 'monthly_data': data},
