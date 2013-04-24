@@ -24,7 +24,8 @@ def get_location_for_water_view(district_pk, request):
 
 def get_all_responses(poll,location):
     term_range = [getattr(settings,'SCHOOL_TERM_START'),getattr(settings,'SCHOOL_TERM_END')]
-    all_responses = poll.responses_by_category().filter(response__contact__reporting_location__in=location)
+    unknown_responses = poll.responses.filter(categories__category__name='unknown')
+    all_responses = poll.responses_by_category().filter(response__contact__reporting_location__in=location).exclude(response__in=unknown_responses)
     term_responses = all_responses.filter(response__date__range = term_range)
     months= get_month_day_range(datetime.now(),depth=datetime.today().month)
     to_ret=[]
