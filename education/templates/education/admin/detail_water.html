@@ -16,53 +16,59 @@
             </form>
         </fieldset>
         <script>
-            $(function(){
+            $(function () {
                 $('#id_from_date').datepicker();
                 $('#id_to_date').datepicker();
             });
         </script>
     </div>
-{% for response,categories,data,label in data_list %}
-    <div class="general">
-        <div id="water_container{{ forloop.counter }}" style="margin-bottom: 20px;">
-            <div class="stats"><h3> {{ label|capfirst }}</h3></div>
-            <div id="water_sources{{ forloop.counter }}" style="min-width: 50px; height: 400px; margin: 0 auto"></div>
+    <button id="water_source">Water Source</button>
+    <button id="sanitation">Sanitation</button>
+    {% for response,categories,data,label in data_list %}
+        <div id="general{{ forloop.counter }}">
+            <div id="water_container{{ forloop.counter }}" style="margin-bottom: 20px;">
+                <div class="stats"><h3> {{ label|capfirst }}</h3></div>
+                <div id="water_sources{{ forloop.counter }}"
+                     style="min-width: 50px; height: 400px; margin: 0 auto"></div>
 
+                <script type="text/javascript">
+                    $(document).ready(function () {
+                        pie("{{ response|reorganize_data|join:"," }}",
+                                "{{ label }} across Uganda",
+                                "--",
+                                "water_sources{{ forloop.counter }}",
+                                " responded",
+                                true
+                        );
+                    });
+                </script>
+            </div>
+            <div id="monthly_water_data{{ forloop.counter }}">
+            </div>
             <script type="text/javascript">
                 $(document).ready(function () {
-                    pie("{{ response|reorganize_data|join:"," }}",
-                            "{{ label }} across Uganda",
-                            "--",
-                            "water_sources{{ forloop.counter }}",
-                            " responded",
-                            true
+                    load_column("Schools with a {{ label }} within 500M",
+                            "monthly_water_data{{ forloop.counter }}",
+                            "Percentage",
+                            "Months",
+                            "{{ categories|join:";" }}",
+                            "Yes Percentages",
+                            "{{ data }}"
                     );
-
+                    if ('{{ forloop.counter }}' == '3') {
+                        $('#general3').hide();
+                    }
                 });
             </script>
         </div>
-    <div id="monthly_water_data{{ forloop.counter }}">    </div>
-    <script type="text/javascript">
-            $(document).ready(function () {
-                load_column("Schools with a {{ label }} within 500M",
-                        "monthly_water_data{{ forloop.counter }}",
-                        "Percentage",
-                        "Months",
-                        "{{ categories|join:";" }}",
-                        "Yes Percentages",
-                        "{{ data }}"
-                );
-
-            });
-        </script>
-    </div>
-{% endfor %}
+    {% endfor %}
 {% endblock %}
 
 {% block javascripts %}
     {{ block.super }}
     <!--<script src="{{ MEDIA_URL }}education/javascripts/endless.js" charset="utf-8"></script>-->
     <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-collapse.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/detailed_water.js"></script>
     <script type="text/javascript"></script>
 
 {% endblock %}
