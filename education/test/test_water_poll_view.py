@@ -53,6 +53,9 @@ class TestWaterPollView(TestCase):
                                                 self.emis_reporter4])
         self.water_source_poll.add_yesno_categories()
         self.water_source_poll.save()
+        settings.SCHOOL_TERM_START = dateutils.increment(datetime.now(),weeks=-4)
+        settings.SCHOOL_TERM_END = dateutils.increment(datetime.now(),weeks=8)
+        self.term_range = [settings.SCHOOL_TERM_START,settings.SCHOOL_TERM_END]
 
     def fake_incoming(self, message, reporter):
         router = get_router()
@@ -65,7 +68,7 @@ class TestWaterPollView(TestCase):
         r.save()
 
     def set_monthly_date(self, responses):
-        i = 1
+        i = datetime.today().month
         for response in responses:
             self.set_date(datetime(datetime.today().year, i, datetime.today().day), response)
             i += 1
@@ -83,37 +86,36 @@ class TestWaterPollView(TestCase):
         self.fake_incoming('no',self.emis_reporter3)
         responses = self.water_source_poll.responses.all()
         self.set_monthly_date(responses)
-        location_result,monthly_result = get_all_responses(self.water_source_poll,[self.kampala_district])
-        self.assertTrue(('January',{'yes':100}) in monthly_result)
+        location_result,monthly_result = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
+        self.assertTrue((datetime.today().strftime("%B"),{'yes':100}) in monthly_result)
+        self.assertTrue((dateutils.increment(datetime.today(),months=2).strftime("%B"),{}) in monthly_result)
+
 
     def test_should_get_location_termly_data(self):
-        settings.SCHOOL_TERM_START = dateutils.increment(datetime.now(),weeks=-4)
-        settings.SCHOOL_TERM_END = dateutils.increment(datetime.now(),weeks=8)
         self.water_source_poll.start()
         self.fake_incoming('yes',self.emis_reporter1)
         self.fake_incoming('yes',self.emis_reporter2)
         self.fake_incoming('no',self.emis_reporter3)
-        location_result , monthly_result = get_all_responses(self.water_source_poll,[self.kampala_district])
+        location_result , monthly_result = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
         self.assertTrue(('yes', 66) in location_result)
 
     def should_test_responses_for_current_term_only(self):
         settings.SCHOOL_TERM_START = dateutils.increment(datetime.now(),weeks=-16)
         settings.SCHOOL_TERM_END = dateutils.increment(datetime.now(),weeks=-4)
+        term_range = [settings.SCHOOL_TERM_START,settings.SCHOOL_TERM_END]
         self.water_source_poll.start()
         self.fake_incoming('yes',self.emis_reporter1)
         self.fake_incoming('yes',self.emis_reporter2)
         self.fake_incoming('no',self.emis_reporter3)
-        location_result , monthly_result = get_all_responses(self.water_source_poll,[self.kampala_district])
+        location_result , monthly_result = get_all_responses(self.water_source_poll, [self.kampala_district], term_range)
         self.assertEqual([],location_result)
 
     def test_should_exclude_unknown_responses_for_pie(self):
-        settings.SCHOOL_TERM_START = dateutils.increment(datetime.now(),weeks=-4)
-        settings.SCHOOL_TERM_END = dateutils.increment(datetime.now(),weeks=8)
         self.water_source_poll.start()
         self.fake_incoming('yes',self.emis_reporter1)
         self.fake_incoming('no',self.emis_reporter2)
         self.fake_incoming('unknown',self.emis_reporter3)
-        location_result , monthly_result = get_all_responses(self.water_source_poll,[self.kampala_district])
+        location_result , monthly_result = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
         self.assertTrue(('yes', 50) in location_result)
         self.assertTrue(('no', 50) in location_result)
 
@@ -125,10 +127,10 @@ class TestWaterPollView(TestCase):
         self.fake_incoming('i dont know',self.emis_reporter3)
         responses = self.water_source_poll.responses.all()
         for response in responses:
-            self.set_date(datetime(datetime.today().year, 1, datetime.today().day + day_count), response)
+            self.set_date(datetime(datetime.today().year, datetime.today().month, datetime.today().day + day_count), response)
             day_count += 1
-        location_result,monthly_result = get_all_responses(self.water_source_poll,[self.kampala_district])
-        self.assertTrue(('January',{'yes':50,'no':50}) in monthly_result)
+        location_result,monthly_result = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
+        self.assertTrue((datetime.today().strftime("%B"),{'yes':50,'no':50}) in monthly_result)
 
 
     def tearDown(self):

@@ -1,4 +1,5 @@
 import datetime
+from django.conf import settings
 
 from django.contrib.auth.decorators import login_required
 from django import forms
@@ -90,18 +91,36 @@ def detail_water_view(request,district=None):
     responses=[]
     all_data=[]
     all_categories=[]
+    labels_for_graphs = ['water source','functional water source','water and soap']
     location = get_location_for_water_view(district,request)
     water_poll = Poll.objects.get(name='edtrac_water_source')
     functional_water_poll = Poll.objects.get(name='edtrac_functional_water_source')
-    water_and_soap = Poll.objects.get(name='water_and_soap')
-    polls=[water_poll,functional_water_poll,water_and_soap]
-    labels_for_graphs = ['water source','functional water source','water and soap']
+    water_and_soap_poll = Poll.objects.get(name='water_and_soap')
+    polls=[water_poll,functional_water_poll,water_and_soap_poll]
+    time_range = [getattr(settings,'SCHOOL_TERM_START'),getattr(settings,'SCHOOL_TERM_END')]
+    water_source_form =WaterForm()
+    if request.method == 'POST':
+        water_source_form=WaterForm(data=request.POST)
+        if water_source_form.is_valid():
+            to_date = water_source_form.cleaned_data['to_date']
+            from_date = water_source_form.cleaned_data['from_date']
+            time_range = [from_date,to_date]
     for poll in polls:
-        response , monthly_response = get_all_responses(poll,location)
+        response , monthly_response = get_all_responses(poll, location, time_range)
         categories, data = get_categories_and_data(monthly_response)
         responses.append(response)
         all_data.append(data)
         all_categories.append(categories)
     return render_to_response('education/admin/detail_water.html',
-                              {'data_list':zip(responses,all_categories,all_data,labels_for_graphs)},
+                              {'data_list':zip(responses,all_categories,all_data,labels_for_graphs),'form':water_source_form},
                               RequestContext(request))
+
+class WaterForm(forms.Form):
+    from_date = forms.DateTimeField()
+    to_date = forms.DateTimeField()
+
+    def clean(self):
+        data = self.cleaned_data
+        if data.get('from_date') > data.get('to_date'):
+            raise forms.ValidationError("To date less than from date")
+        return data

@@ -7,6 +7,21 @@
     <ul class='breadcrumb'>
         <li><a href="{% url rapidsms-dashboard %}">Dashboard Home</a></li>
     </ul>
+    <div style="padding: 10px;margin: 5px;">
+        <fieldset>
+            <form action="" method="POST">
+                {% csrf_token %}
+                {{ form.as_table }}
+                <input type="submit" value="Search"/>
+            </form>
+        </fieldset>
+        <script>
+            $(function(){
+                $('#id_from_date').datepicker();
+                $('#id_to_date').datepicker();
+            });
+        </script>
+    </div>
 {% for response,categories,data,label in data_list %}
     <div class="general">
         <div id="water_container{{ forloop.counter }}" style="margin-bottom: 20px;">

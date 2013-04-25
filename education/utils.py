@@ -4,6 +4,7 @@ Created on Sep 15, 2011
 @author: asseym
 '''
 from __future__ import division
+from dateutil.relativedelta import relativedelta
 from script.utils.handling import find_best_response
 from script.models import Script, ScriptSession, ScriptProgress
 from rapidsms.models import Connection
@@ -940,7 +941,30 @@ def get_week_count(reference_date, d):
     if reference_date > d:
         temp = d
         test_date = reference_date
-    while temp < test_date:
+    while temp.date() <= test_date.date():
         temp = dateutils.increment(temp,days=7)
         week_count+=1
     return week_count
+
+
+def get_months(start_date,end_date):
+    to_ret = []
+    i = 1
+    last_day = start_date + relativedelta(day=1, months=+1, days=-1,hour=23,minute=59)
+    to_ret.append([
+        datetime.datetime(start_date.year, start_date.month, start_date.day,start_date.hour,start_date.minute),
+        datetime.datetime(last_day.year, last_day.month, last_day.day,last_day.hour,last_day.minute)])
+    start_date += relativedelta(months=1)
+    while start_date.month < end_date.month:
+        first_day = start_date + relativedelta(day=1,hour=00,minute=00)
+        last_day = start_date + relativedelta(day=1, months=+1, days=-1,hour=23,minute=59)
+        start_date += relativedelta(months=1)
+        i += 1
+        to_ret.append([
+            datetime.datetime(first_day.year, first_day.month, first_day.day,first_day.hour,first_day.minute),
+            datetime.datetime(last_day.year, last_day.month, last_day.day,last_day.hour,last_day.minute)])
+    first_day = start_date + relativedelta(day=1,hour=00,minute=00)
+    to_ret.append([
+        datetime.datetime(first_day.year, first_day.month, first_day.day,first_day.hour,first_day.minute),
+        datetime.datetime(end_date.year, end_date.month, end_date.day,end_date.hour,end_date.minute)])
+    return to_ret
