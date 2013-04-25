@@ -8,16 +8,17 @@ from unregister.models import Blacklist
 def get_location_for_water_view(district_pk, request):
     if district_pk is None:
         profile = request.user.get_profile()
-        locations = [profile.location]
+        locations,user_location = [profile.location],profile.location.name
         if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of(
                 'UNICEF Officials'):
             locations = Location.objects.filter(type="district", pk__in=EmisReporter.objects.exclude(
                 connection__in=Blacklist.objects.values_list('connection', flat=True), schools=None).values_list(
                 'reporting_location__pk', flat=True))
+            user_location = 'Uganda'
     else:
         location = Location.objects.get(pk=district_pk)
-        locations = [location]
-    return locations
+        locations,user_location = [location],location.name
+    return locations,user_location
 
 
 def get_all_responses(poll, location, time_range):

@@ -6,6 +6,7 @@
 
     <ul class='breadcrumb'>
         <li><a href="{% url rapidsms-dashboard %}">Dashboard Home</a></li>
+        {{ time_period }}
     </ul>
     <div style="padding: 10px;margin: 5px;">
         <fieldset>
@@ -25,26 +26,31 @@
     <button id="water_source">Water Source</button>
     <button id="sanitation">Sanitation</button>
     {% for response,categories,data,label in data_list %}
-        <div id="general{{ forloop.counter }}">
+        <div id="general{{ forloop.counter }}" style="background-color:#e0ccef;padding:10px;">
             <div id="water_container{{ forloop.counter }}" style="margin-bottom: 20px;">
-                <div class="stats"><h3> {{ label|capfirst }}</h3></div>
-                <div id="water_sources{{ forloop.counter }}"
-                     style="min-width: 50px; height: 400px; margin: 0 auto"></div>
+                <div class="stats"><h3> {{ label|capfirst }}</h3>
+                </div>
+                {% if response %}
+                    <div id="water_sources{{ forloop.counter }}"
+                         style="min-width: 50px; height: 400px; margin: 0 auto">
 
-                <script type="text/javascript">
-                    $(document).ready(function () {
-                        pie("{{ response|reorganize_data|join:"," }}",
-                                "{{ label }} across Uganda",
-                                "--",
-                                "water_sources{{ forloop.counter }}",
-                                " responded",
-                                true
-                        );
-                    });
-                </script>
+                    </div>
             </div>
             <div id="monthly_water_data{{ forloop.counter }}">
             </div>
+
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    pie("{{ response|reorganize_data|join:"," }}",
+                            "{{ label|capfirst }} across {{ location }}",
+                            "--",
+                            "water_sources{{ forloop.counter }}",
+                            " responded",
+                            true
+                    );
+                });
+            </script>
+
             <script type="text/javascript">
                 $(document).ready(function () {
                     load_column("Schools with a {{ label }} within 500M",
@@ -60,8 +66,17 @@
                     }
                 });
             </script>
+
+            {% else %}
+            </div>
+            <p style="text-align: center;font-size: 15px">
+                No Reports yet this term.
+            </p>
+            {% endif %}
+
         </div>
     {% endfor %}
+
 {% endblock %}
 
 {% block javascripts %}

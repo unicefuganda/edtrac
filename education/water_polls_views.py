@@ -92,7 +92,7 @@ def detail_water_view(request,district=None):
     all_data=[]
     all_categories=[]
     labels_for_graphs = ['water source','functional water source','water and soap']
-    location = get_location_for_water_view(district,request)
+    location,user_location = get_location_for_water_view(district,request)
     water_poll = Poll.objects.get(name='edtrac_water_source')
     functional_water_poll = Poll.objects.get(name='edtrac_functional_water_source')
     water_and_soap_poll = Poll.objects.get(name='water_and_soap')
@@ -111,8 +111,10 @@ def detail_water_view(request,district=None):
         responses.append(response)
         all_data.append(data)
         all_categories.append(categories)
+    time_period = "Data shown for time: %s to %s" %(time_range[0].strftime("%d %B %Y"),time_range[1].strftime("%d %B %Y"))
     return render_to_response('education/admin/detail_water.html',
-                              {'data_list':zip(responses,all_categories,all_data,labels_for_graphs),'form':water_source_form},
+                              {'data_list':zip(responses,all_categories,all_data,labels_for_graphs),'form':water_source_form,
+                               'location':user_location,'time_period':time_period},
                               RequestContext(request))
 
 class WaterForm(forms.Form):
