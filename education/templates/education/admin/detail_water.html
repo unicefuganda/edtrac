@@ -25,12 +25,12 @@
     </div>
     <button id="water_source">Water Source</button>
     <button id="sanitation">Sanitation</button>
-    {% for response,categories,data,label in data_list %}
+    {% for data_dict in data_list %}
         <div id="general{{ forloop.counter }}" style="background-color:#e0ccef;padding:10px;">
             <div id="water_container{{ forloop.counter }}" style="margin-bottom: 20px;">
-                <div class="stats"><h3> {{ label|capfirst }}</h3>
+                <div class="stats"><h3> {{ data_dict.label|capfirst }}</h3>
                 </div>
-                {% if response %}
+                {% if data_dict.response %}
                     <div id="water_sources{{ forloop.counter }}"
                          style="min-width: 50px; height: 400px; margin: 0 auto">
 
@@ -38,11 +38,15 @@
             </div>
             <div id="monthly_water_data{{ forloop.counter }}">
             </div>
-
+           <div class='report-stickie'>
+               <span style='margin-top:10px;' class='alert-message'>
+                    Report based on {{ data_dict.school_percent|floatformat }}% of schools that made a report
+               </span>
+           </div>
             <script type="text/javascript">
                 $(document).ready(function () {
-                    pie("{{ response|reorganize_data|join:"," }}",
-                            "{{ label|capfirst }} across {{ location }}",
+                    pie("{{ data_dict.response|reorganize_data|join:"," }}",
+                            "{{ data_dict.label|capfirst }} across {{ location }}",
                             "--",
                             "water_sources{{ forloop.counter }}",
                             " responded",
@@ -53,13 +57,13 @@
 
             <script type="text/javascript">
                 $(document).ready(function () {
-                    load_column("Schools with a {{ label }} within 500M",
+                    load_column("Schools with a {{ data_dict.label }} within 500M",
                             "monthly_water_data{{ forloop.counter }}",
                             "Percentage",
                             "Months",
-                            "{{ categories|join:";" }}",
+                            "{{ data_dict.categories|join:";" }}",
                             "Yes Percentages",
-                            "{{ data }}"
+                            "{{ data_dict.data }}"
                     );
                     if ('{{ forloop.counter }}' == '3') {
                         $('#general3').hide();
@@ -72,6 +76,13 @@
             <p style="text-align: center;font-size: 15px">
                 No Reports yet this term.
             </p>
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    if ('{{ forloop.counter }}' == '3') {
+                        $('#general3').hide();
+                    }
+                });
+            </script>
             {% endif %}
 
         </div>

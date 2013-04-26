@@ -86,12 +86,29 @@ def get_categories_and_data(responses):
     categories = [response[0] for response in responses]
     return categories ,[response[1].get('yes',0) for response in responses]
 
+
+def get_label_for_poll(poll):
+    d = {
+        'edtrac_water_source':'water source',
+        'edtrac_functional_water_source':'functional water source',
+        'water_and_soap': 'water and soap'
+    }
+    return d.get(poll.name)
+
+
+def _get_poll_data_dict(location, poll, time_range):
+    poll_data_dict = {}
+    response, monthly_response, percent = get_all_responses(poll, location, time_range)
+    categories, data = get_categories_and_data(monthly_response)
+    poll_data_dict['response'] = response
+    poll_data_dict['categories'] = categories
+    poll_data_dict['data'] = data
+    poll_data_dict['label'] = get_label_for_poll(poll)
+    poll_data_dict['school_percent'] = percent
+    return poll_data_dict
+
 @login_required()
 def detail_water_view(request,district=None):
-    responses=[]
-    all_data=[]
-    all_categories=[]
-    labels_for_graphs = ['water source','functional water source','water and soap']
     location,user_location = get_location_for_water_view(district,request)
     water_poll = Poll.objects.get(name='edtrac_water_source')
     functional_water_poll = Poll.objects.get(name='edtrac_functional_water_source')
@@ -105,15 +122,11 @@ def detail_water_view(request,district=None):
             to_date = water_source_form.cleaned_data['to_date']
             from_date = water_source_form.cleaned_data['from_date']
             time_range = [from_date,to_date]
-    for poll in polls:
-        response , monthly_response = get_all_responses(poll, location, time_range)
-        categories, data = get_categories_and_data(monthly_response)
-        responses.append(response)
-        all_data.append(data)
-        all_categories.append(categories)
+
+    data_list = [_get_poll_data_dict(location, poll, time_range) for poll in polls]
     time_period = "Data shown for time: %s to %s" %(time_range[0].strftime("%d %B %Y"),time_range[1].strftime("%d %B %Y"))
     return render_to_response('education/admin/detail_water.html',
-                              {'data_list':zip(responses,all_categories,all_data,labels_for_graphs),'form':water_source_form,
+                              {'data_list':data_list,'form':water_source_form,
                                'location':user_location,'time_period':time_period},
                               RequestContext(request))
 

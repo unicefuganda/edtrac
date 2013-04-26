@@ -1,5 +1,5 @@
 # vim: ai ts=4 sts=4 et sw=4 encoding=utf-8
-from education.models import EmisReporter
+from education.models import EmisReporter, School
 from education.utils import get_months
 from rapidsms.contrib.locations.models import Location
 from unregister.models import Blacklist
@@ -21,17 +21,25 @@ def get_location_for_water_view(district_pk, request):
     return locations,user_location
 
 
+def _format_to_ret_for_all_responses(month, all_responses):
+    return month[0].strftime("%B"),_extract_info(all_responses.filter(response__date__range=month))
+
+
+def get_reporting_school_percentage(responses, location):
+    response_count = responses.values_list('response__contact__emisreporter__schools').distinct().count()
+    total_schools = School.objects.exclude(emisreporter=None).filter(location__in=location).count()
+    return compute_percent(response_count,total_schools)
+
+
 def get_all_responses(poll, location, time_range):
     unknown_responses = poll.responses.filter(categories__category__name='unknown')
     all_responses = poll.responses_by_category().filter(response__contact__reporting_location__in=location).exclude(response__in=unknown_responses)
     term_responses = all_responses.filter(response__date__range = time_range)
+    percent_of_schools = get_reporting_school_percentage(term_responses,location)
     months= get_months(time_range[0],time_range[1])
     months.reverse()
-    to_ret=[]
-    for month in months:
-        monthly_responses =all_responses.filter(response__date__range=month)
-        to_ret.append((month[0].strftime("%B"),_extract_info(monthly_responses)))
-    return _extract_info(term_responses).items(),to_ret
+    to_ret = [_format_to_ret_for_all_responses(month, all_responses)for month in months]
+    return _extract_info(term_responses).items(),to_ret ,percent_of_schools
 
 
 
