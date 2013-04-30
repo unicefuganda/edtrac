@@ -64,7 +64,7 @@ def receive(request):
     # otherwise, create the message
     data = form.cleaned_data
 
-    log.debug("[receive-msg] [{}] received message [{}]".format(data.get('sender', 'no-sender'), data.get('message', 'no-message')))
+    log.debug("[receive-msg] [{}] received".format(data.get('sender', 'no-sender')))
 
     if getattr(settings,'CELERY_MESSAGE_PROCESSING',None):
         handle_incoming.delay(get_router(),data['backend'], data.get('sender','no-sender'), data.get('message', 'no-message'))
