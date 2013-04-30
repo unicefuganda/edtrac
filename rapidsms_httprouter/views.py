@@ -20,6 +20,9 @@ from .models import Message
 from .router import get_router
 from.tasks import handle_incoming
 
+import logging
+log = logging.getLogger(__name__)
+
 class SecureForm(forms.Form):
     """
     Abstracts out requirement of a password.  If you have a password set
@@ -52,13 +55,20 @@ def receive(request):
 
     # missing fields, fail
     if not form.is_valid():
+        if form.errors is not None:
+            log.error("[receive-msg] Invalid form request - {}".format(str(form.errors)))
         return HttpResponse(str(form.errors), status=400)
+
+
 
     # otherwise, create the message
     data = form.cleaned_data
 
+    log.debug("[receive-msg] [{}] received message [{}]".format(data.get('sender', 'no-sender'), data.get('message', 'no-message')))
+
     if getattr(settings,'CELERY_MESSAGE_PROCESSING',None):
-        handle_incoming.delay(get_router(),data['backend'], data['sender'], data['message'])
+        handle_incoming.delay(get_router(),data['backend'], data.get('sender','no-sender'), data.get('message', 'no-message'))
+        log.debug("[receive-msg] [{}] Message sent to celery.".format(str(data.get('sender', 'no-sender'))))
         return HttpResponse("celery handler")
     else:
         message = get_router().handle_incoming(data['backend'], data['sender'], data['message'])
@@ -67,8 +77,9 @@ def receive(request):
         response['responses'] = [m.as_json() for m in message.responses.all()]
         response['status'] = "Message handled."
 
+        log.debug("[receive-msg] [{}] Message handled".format(str(data.get('sender', 'no-sender'))))
         # do we default to having silent responses?  200 means success in this case
-        if getattr(settings, "ROUTER_SILENT", False) and (not 'echo' in data or not data['echo']):
+        if getattr(settings, "ROUTER_SILENT", False) and (not 'echo' in data or not data.get('echo', 'no-echo')):
             return HttpResponse()
         else:
             return HttpResponse(json.dumps(response))
