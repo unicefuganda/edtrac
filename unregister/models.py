@@ -25,9 +25,9 @@ def log_bulk_process_info(poll, message):
 def bulk_process_poll(sender, **kwargs):
     log.info("[bulk_process_poll] sender=" + str(type(sender)) + " - toString " + str(sender))
     poll = sender
-    log_bulk_process_info(poll, " finding bad connections...")
     bad_conns = Blacklist.objects.values_list('connection__pk', flat=True).distinct()
-    log_bulk_process_info(poll, " setting status to Q for anything thats not blacklisted and has status P...")
+    log_bulk_process_info(poll, " found [%d] bad connections..." % len(bad_conns))
+    log_bulk_process_info(poll, " setting status to Q for anything thats in Blacklisted.objects and has status P...")
     poll.messages.filter(status='P').exclude(connection__in=bad_conns).update(status='Q')
     log_bulk_process_info(poll, " ok. setting status to C for all the blacklisted connections...")
     poll.messages.filter(status='P').filter(connection__in=bad_conns).update(status='C')
