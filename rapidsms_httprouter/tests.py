@@ -21,6 +21,41 @@ from django.core.management import call_command
 from qos_messages import gen_qos_msg, get_alarms, get_backends_by_type, gen_qos_msg
 from datetime import datetime
 
+
+class MassTextTest(TestCase):
+
+    def setUp(self):
+        (self.backend_1, created) = Backend.objects.get_or_create(name="MTT_test_backend_1")
+        (self.connection_1, created) = Connection.objects.get_or_create(backend=self.backend_1, identity="20000")
+
+        (self.backend_2, created) = Backend.objects.get_or_create(name="MTT_test_backend_2")
+        (self.connection_2, created) = Connection.objects.get_or_create(backend=self.backend_2, identity="20001")
+
+    def clean_data(self):
+        Connection.objects.get(identity="20000").delete()
+        Connection.objects.get(identity="20001").delete()
+
+        Backend.objects.get(name="MTT_test_backend_1").delete()
+        Backend.objects.get(name="MTT_test_backend_2").delete()
+
+
+    def tearDown(self):
+        self.clean_data()
+
+    def test_can_send_mass_text_with_no_batch_id(self):
+        messages_sent = Message.mass_text("MassTestTest-MESSAGE", [self.connection_1, self.connection_2])
+        self.assertEqual(len(messages_sent), 2, "Should have sent 2 messages")
+
+    def test_can_send_mass_text_with_batch_id(self):
+        messages_sent = Message.mass_text("MassTestTest-MESSAGE", [self.connection_1, self.connection_2], batch_name="FOO")
+
+        message_1 = Message.objects.get(pk=messages_sent[0].pk)
+        message_2 = Message.objects.get(pk=messages_sent[1].pk)
+
+        self.assertEqual(message_1.batch.name, "FOO")
+        self.assertEqual(message_2.batch.name, "FOO")
+
+
 @nottest #BROKEN
 class BackendTest(TransactionTestCase):
 
