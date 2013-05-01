@@ -68,7 +68,7 @@ class Command(BaseCommand, LoggerMixin):
 
 
     def send_backend_chunk(self, router_url, pks, backend_name):
-        msgs = Message.objects.using(self.db).filter(pk__in=pks).exclude(connection__identity__iregex="[a-z]")
+        msgs = Message.objects.using(self.db_key).filter(pk__in=pks).exclude(connection__identity__iregex="[a-z]")
         try:
             url = self.build_send_url(router_url, backend_name, ' '.join(msgs.values_list('connection__identity', flat=True)), msgs[0].text)
             status_code = self.fetch_url(url)
@@ -103,56 +103,68 @@ class Command(BaseCommand, LoggerMixin):
             self.send_backend_chunk(router_url, pks, backend_name)
 
     def send_individual(self, router_url):
-        to_process = Message.objects.using(self.db).filter(direction='O',
-                          status__in=['Q']).order_by('priority', 'status', 'connection__backend__name')
+        to_process = Message.objects.using(self.db_key).filter(direction='O',
+                          status__in=['Q'], batch=None).order_by('priority', 'status', 'connection__backend__name', 'id') #Order by ID so that they are FIFO in absence of any other priority
         if len(to_process):
+            self.debug("found [%d] individual messages to proccess, sending the first one..." % len(to_process))
             self.send_all(router_url, [to_process[0]])
+        else:
+            self.debug("found no individual messages to process")
 
+
+    def process_messages_for_db(self, CHUNK_SIZE, db_key, router_url):
+        self.db_key = db_key
+        self.debug("looking for MessageBatch's to process with db [%s]" % str(db_key))
+        to_process = MessageBatch.objects.using(db_key).filter(status='Q')
+
+        if to_process.count():
+            self.info("found [%d] batches with status [Q] in db [%s] to process" % (to_process.count(), db_key))
+            batch = to_process[0]
+            to_process = batch.messages.using(db_key).filter(direction='O',
+                status__in=['Q']).order_by('priority', 'status', 'connection__backend__name')[:CHUNK_SIZE]
+            self.info("chunk of [%d] messages found in db [%s]" % (to_process.count(), db_key))
+            if to_process.count():
+                self.debug("found message batch [pk=%d] [name=%s] with Queued messages to send" % (batch.pk, batch.name))
+                self.send_all(router_url, to_process)
+            elif batch.messages.using(db_key).filter(status__in=['S', 'C']).count() == batch.messages.using(db_key).count():
+                batch.status = 'S'
+                batch.save()
+                self.info("No more messages in MessageBatch [%d] status set to 'S'" % batch.pk)
+            else:
+                self.debug("Looking to see if there are any messages without a batch to send")
+                self.send_individual(router_url)
+        else:
+            self.debug("No batches with status 'Q' found, reverting to individual message sending")
+            self.send_individual(router_url)
+        transaction.commit(using=db_key)
 
     def handle(self, **options):
         """
 
         """
-        DBS = settings.DATABASES.keys()
-        DBS.remove('geoserver') # TODO - We should probably send the list of dbs we want as parameters
+        DB_KEYS = settings.DATABASES.keys()
+        DB_KEYS.remove('geoserver') # TODO - We should probably send the list of dbs we want as parameters
         #DBS.remove('default') # skip the dummy -we now check default DB as well
         CHUNK_SIZE = getattr(settings, 'MESSAGE_CHUNK_SIZE', 400)
         self.info("starting up")
         recipients = getattr(settings, 'ADMINS', None)
         if recipients:
             recipients = [email for name, email in recipients]
+
         while (True):
-            self.debug("entering main loop")
-            for db in DBS:
+            self.debug("send_messages started.")
+            for db_key in DB_KEYS:
                 try:
-                    self.debug("servicing db '%s'" % db)
-                    router_url = settings.DATABASES[db]['ROUTER_URL']
-                    transaction.enter_transaction_management(using=db)
-                    self.db = db
-                    to_process = MessageBatch.objects.using(db).filter(status='Q')
-                    self.debug("looking for batch messages to process")
-                    if to_process.count():
-                        self.info("found %d batches in %s to process" % (to_process.count(), db))
-                        batch = to_process[0]
-                        to_process = batch.messages.using(db).filter(direction='O',
-                                      status__in=['Q']).order_by('priority', 'status', 'connection__backend__name')[:CHUNK_SIZE]
-                        self.info("%d chunk of messages found in %s" % (to_process.count(), db))
-                        if to_process.count():
-                            self.debug("found batch message %d with Queued messages to send" % batch.pk)
-                            self.send_all(router_url, to_process)
-                        elif batch.messages.using(db).filter(status__in=['S', 'C']).count() == batch.messages.using(db).count():
-                            self.info("found batch message %d ready to be closed" % batch.pk)
-                            batch.status = 'S'
-                            batch.save()
-                        else:
-                            self.debug("reverting to individual message sending")
-                            self.send_individual(router_url)
-                    else:
-                        self.debug("no batches found, reverting to individual message sending")
-                        self.send_individual(router_url)
-                    transaction.commit(using=db)
+                    router_url = settings.DATABASES[db_key]['ROUTER_URL']
+
+                    self.debug("servicing db [%s] with router_url [%s]" % (db_key, router_url))
+
+                    transaction.enter_transaction_management(using=db_key)
+
+                    self.process_messages_for_db(CHUNK_SIZE, db_key, router_url)
+
                 except Exception, exc:
-                    transaction.rollback(using=db)
+                    transaction.rollback(using=db_key)
                     self.critical(traceback.format_exc(exc))
                     if recipients:
                         send_mail('[Django] Error: messenger command', str(traceback.format_exc(exc)), 'root@uganda.rapidsms.org', recipients, fail_silently=True)
