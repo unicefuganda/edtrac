@@ -42,11 +42,11 @@ class MassTextTest(TestCase):
     def tearDown(self):
         self.clean_data()
 
-    def test_can_send_mass_text_with_no_batch_id(self):
+    def test_can_send_mass_text_with_no_batch_name(self):
         messages_sent = Message.mass_text("MassTestTest-MESSAGE", [self.connection_1, self.connection_2])
         self.assertEqual(len(messages_sent), 2, "Should have sent 2 messages")
 
-    def test_can_send_mass_text_with_batch_id(self):
+    def test_can_send_mass_text_with_batch_name(self):
         messages_sent = Message.mass_text("MassTestTest-MESSAGE", [self.connection_1, self.connection_2], batch_name="FOO")
 
         message_1 = Message.objects.get(pk=messages_sent[0].pk)
