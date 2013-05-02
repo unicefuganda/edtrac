@@ -51,11 +51,11 @@ class TestAbsenteeism(TestCase):
         self.emis_reporter3 = create_emis_reporters("dummy3", self.gulu_district, gulu_school, 12347, admin_group)
         self.emis_reporter4 = create_emis_reporters("dummy4", self.gulu_district, gulu_school, 12348, admin_group)
         self.admin_user = create_user_with_group("John", admin_group, self.uganda)
-        self.p3_boys_absent_poll = create_poll("edtrac_boysp3_attendance", "How many P3 boys are at school today?",
+        self.p3_boys_absent_poll = create_poll_with_reporters("edtrac_boysp3_attendance", "How many P3 boys are at school today?",
                                                Poll.TYPE_NUMERIC, self.admin_user,
                                                [self.emis_reporter1, self.emis_reporter2, self.emis_reporter3,
                                                 self.emis_reporter4])
-        self.p3_boys_enrolled_poll = create_poll("edtrac_boysp3_enrollment",
+        self.p3_boys_enrolled_poll = create_poll_with_reporters("edtrac_boysp3_enrollment",
                                                  "How many boys are enrolled in P3 this term?",
                                                  Poll.TYPE_NUMERIC, self.admin_user,
                                                  [self.emis_reporter1, self.emis_reporter2, self.emis_reporter3,

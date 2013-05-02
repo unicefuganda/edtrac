@@ -47,7 +47,7 @@ def create_emis_reporters(name, reporting_location, school, identity, group):
     reporter.save()
     return reporter
 
-def create_poll(name,question,type,user,contacts):
+def create_poll_with_reporters(name,question,type,user,contacts):
     params = {
         "default_response": "",
         "name": name,

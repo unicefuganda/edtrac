@@ -2,28 +2,31 @@
 import datetime
 import dateutils
 from django.conf import settings
+from django.contrib.auth.models import Group
 from django.test import Client
 
 from mock import patch
 
 from education.absenteeism_view_helper import get_responses_over_depth, get_responses_by_location, get_head_teachers_absent_over_time, get_date_range, get_polls_for_keyword
-from education.models import EnrolledDeployedQuestionsAnswered, create_record_enrolled_deployed_questions_answered
+from education.models import EnrolledDeployedQuestionsAnswered, create_record_enrolled_deployed_questions_answered, schedule_script_now, reschedule_weekly_script
 from education.reports import get_week_date
 from education.test.abstract_clases_for_tests import TestAbsenteeism
-from education.test.utils import create_attribute, create_group, create_poll, create_emis_reporters, create_school
+from education.test.utils import create_attribute, create_group, create_poll_with_reporters, create_emis_reporters, create_school
 from poll.models import Poll
+from script.models import Script, ScriptStep, ScriptProgress, ScriptSession
+from script.utils.outgoing import check_progress
 
 
 class TestAbsenteeismViewHelper(TestAbsenteeism):
     def setUp(self):
         super(TestAbsenteeismViewHelper, self).setUp()
-        smc_group = create_group("SMC")
         head_teacher_group = create_group("Head Teachers")
         self.kampala_school1 = create_school("St. Joseph's", self.kampala_district)
+        self.smc_group = create_group("SMC")
         self.emis_reporter5 = create_emis_reporters('Derek', self.kampala_district, self.kampala_school, 1234557,
-                                                    smc_group)
+                                                    self.smc_group)
         self.emis_reporter6 = create_emis_reporters('Peter', self.kampala_district, self.kampala_school1, 1234558,
-                                                    smc_group)
+                                                    self.smc_group)
         self.emis_reporter7 = create_emis_reporters('John', self.kampala_district, self.kampala_school, 1234559,
                                                     head_teacher_group)
         self.emis_reporter7.gender = 'M'
@@ -32,12 +35,19 @@ class TestAbsenteeismViewHelper(TestAbsenteeism):
                                                     head_teacher_group)
         self.emis_reporter8.gender = 'm'
         self.emis_reporter8.save()
-        self.head_teachers_poll = create_poll('edtrac_head_teachers_attendance',
-                                              'Has the head teacher been at school for at least 3 days? Answer YES or NO',
-                                              Poll.TYPE_TEXT,
-                                              self.admin_user, [self.emis_reporter5, self.emis_reporter6])
+        self.head_teachers_script = Script.objects.create(name='Education monitoring smc weekly script',
+                                                     slug='edtrac_smc_weekly')
+        self.head_teachers_poll, self.head_teachers_poll_created = Poll.objects.get_or_create(
+            name='edtrac_head_teachers_attendance',
+            user=self.admin_user,
+            type=Poll.TYPE_TEXT,
+            question='Has the head teacher been at school for at least 3 days? Answer YES or NO',
+            default_response='')
         self.head_teachers_poll.add_yesno_categories()
         self.head_teachers_poll.save()
+        self.head_teachers_script.steps.add(
+            ScriptStep.objects.create(script=self.head_teachers_script, poll=self.head_teachers_poll, order=0,
+                                      rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=86400 ))
         settings.SCHOOL_TERM_START = dateutils.increment(datetime.datetime.now(),weeks=-8)
         settings.SCHOOL_TERM_END = dateutils.increment(datetime.datetime.now(),weeks=1)
         self.date_week = get_week_date(4)
@@ -102,8 +112,10 @@ class TestAbsenteeismViewHelper(TestAbsenteeism):
                                            locations, self.date_week)
 
     def test_should_give_head_teachers_absenteeism_percent(self):
+        schedule_script_now(grp=self.smc_group.name,slug='edtrac_smc_weekly')
+        check_progress(self.head_teachers_script)
         locations = [self.kampala_district]
-        self.head_teachers_poll.start()
+        # self.head_teachers_poll.start()
         self.fake_incoming('no', self.emis_reporter5)
         self.fake_incoming('yes', self.emis_reporter6)
         config = get_polls_for_keyword('MaleHeadTeachers')
@@ -139,3 +151,11 @@ class TestAbsenteeismViewHelper(TestAbsenteeism):
                          enrollment_poll=['edtrac_boysp3_enrollment'], time_data_name='P3 Boys', func= get_responses_by_location)]
         config_data = get_polls_for_keyword("P3Boys")
         self.assertEqual(expected,config_data)
+
+    def tearDown(self):
+        super(TestAbsenteeismViewHelper, self).tearDown()
+        ScriptStep.objects.all().delete()
+        Script.objects.all().delete()
+        ScriptProgress.objects.all().delete()
+        ScriptSession.objects.all().delete()
+        Group.objects.all().delete()

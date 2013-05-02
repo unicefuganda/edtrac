@@ -5,7 +5,7 @@ import dateutils
 from django.conf import settings
 from django.contrib.auth.models import User, Group
 from education.models import EmisReporter, School
-from education.test.utils import create_group, create_location_type, create_location, create_school, create_emis_reporters, create_user_with_group, create_poll
+from education.test.utils import create_group, create_location_type, create_location, create_school, create_emis_reporters, create_user_with_group, create_poll_with_reporters
 from education.water_polls_view_helper import get_all_responses
 from education.water_polls_views import get_categories_and_data
 from poll.models import Poll
@@ -47,14 +47,15 @@ class TestWaterPollView(TestCase):
         self.emis_reporter3 = create_emis_reporters("dummy3", self.kampala_district, self.kampala_school, 12347, self.head_teachers_group)
         self.emis_reporter4 = create_emis_reporters("dummy4", self.kampala_district, self.kampala_school, 12348, smc_group)
         self.admin_user = create_user_with_group("John", admin_group, self.uganda)
-        self.water_source_poll = create_poll('edtrac_water_source', "Does this school have a water source within 500 metres from the school? Answer yes or no",
+        self.water_source_poll = create_poll_with_reporters('edtrac_water_source', "Does this school have a water source within 500 metres from the school? Answer yes or no",
                                                Poll.TYPE_TEXT, self.admin_user,
                                                [self.emis_reporter1, self.emis_reporter2, self.emis_reporter3,
                                                 self.emis_reporter4])
         self.water_source_poll.add_yesno_categories()
         self.water_source_poll.save()
-        settings.SCHOOL_TERM_START = dateutils.increment(datetime.now(),weeks=-4)
-        settings.SCHOOL_TERM_END = dateutils.increment(datetime.now(),weeks=8)
+        today = datetime(datetime.now().year,datetime.now().month,datetime.now().day)
+        settings.SCHOOL_TERM_START = dateutils.increment(today, weeks=-4)
+        settings.SCHOOL_TERM_END = dateutils.increment(today,weeks=8)
         self.term_range = [settings.SCHOOL_TERM_START,settings.SCHOOL_TERM_END]
 
     def fake_incoming(self, message, reporter):
@@ -68,9 +69,11 @@ class TestWaterPollView(TestCase):
         r.save()
 
     def set_monthly_date(self, responses):
-        i = datetime.today().month
+        start_term = self.term_range[0]
+        i = start_term.month
         for response in responses:
-            self.set_date(datetime(datetime.today().year, i, datetime.today().day), response)
+            print "setting month as %s " % i
+            self.set_date(datetime(datetime.today().year, i, start_term.day), response)
             i += 1
 
     def test_should_reorganize_data_for_bar_chart(self):
@@ -86,9 +89,9 @@ class TestWaterPollView(TestCase):
         self.fake_incoming('no',self.emis_reporter3)
         responses = self.water_source_poll.responses.all()
         self.set_monthly_date(responses)
-        location_result,monthly_result = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
-        self.assertTrue((datetime.today().strftime("%B"),{'yes':100}) in monthly_result)
-        self.assertTrue((dateutils.increment(datetime.today(),months=2).strftime("%B"),{}) in monthly_result)
+        location_result,monthly_result,percent = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
+        self.assertTrue((self.term_range[0].strftime("%B"),{'yes':100}) in monthly_result)
+        self.assertTrue((dateutils.increment(self.term_range[0],months=2).strftime("%B"),{'no':100}) in monthly_result)
 
 
     def test_should_get_location_termly_data(self):
@@ -96,7 +99,7 @@ class TestWaterPollView(TestCase):
         self.fake_incoming('yes',self.emis_reporter1)
         self.fake_incoming('yes',self.emis_reporter2)
         self.fake_incoming('no',self.emis_reporter3)
-        location_result , monthly_result = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
+        location_result , monthly_result,percent = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
         self.assertTrue(('yes', 66) in location_result)
 
     def should_test_responses_for_current_term_only(self):
@@ -107,7 +110,7 @@ class TestWaterPollView(TestCase):
         self.fake_incoming('yes',self.emis_reporter1)
         self.fake_incoming('yes',self.emis_reporter2)
         self.fake_incoming('no',self.emis_reporter3)
-        location_result , monthly_result = get_all_responses(self.water_source_poll, [self.kampala_district], term_range)
+        location_result , monthly_result,percent = get_all_responses(self.water_source_poll, [self.kampala_district], term_range)
         self.assertEqual([],location_result)
 
     def test_should_exclude_unknown_responses_for_pie(self):
@@ -115,7 +118,7 @@ class TestWaterPollView(TestCase):
         self.fake_incoming('yes',self.emis_reporter1)
         self.fake_incoming('no',self.emis_reporter2)
         self.fake_incoming('unknown',self.emis_reporter3)
-        location_result , monthly_result = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
+        location_result , monthly_result,percent = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
         self.assertTrue(('yes', 50) in location_result)
         self.assertTrue(('no', 50) in location_result)
 
@@ -129,7 +132,7 @@ class TestWaterPollView(TestCase):
         for response in responses:
             self.set_date(datetime(datetime.today().year, datetime.today().month, datetime.today().day + day_count), response)
             day_count += 1
-        location_result,monthly_result = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
+        location_result,monthly_result,percent = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
         self.assertTrue((datetime.today().strftime("%B"),{'yes':50,'no':50}) in monthly_result)
 
 

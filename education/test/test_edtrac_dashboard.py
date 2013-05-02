@@ -82,7 +82,7 @@ class TestEdtracDashboard(TestCase):
         self.upe_grant_poll.start()
 
     def start_p6_boys_enrollment_poll(self):
-        self.p6_boys_enrolled_poll = create_poll("edtrac_boysp6_enrollment",
+        self.p6_boys_enrolled_poll = create_poll_with_reporters("edtrac_boysp6_enrollment",
                                                  "How many boys are enrolled in P6 this term?",
                                                  Poll.TYPE_NUMERIC, self.admin_user,
                                                  [self.emisreporter1, self.emisreporter2, self.emisreporter3])
@@ -90,7 +90,7 @@ class TestEdtracDashboard(TestCase):
         self.p6_boys_enrolled_poll.start()
 
     def start_p3_boys_enrollment_poll(self):
-        self.p3_boys_enrolled_poll = create_poll("edtrac_boysp3_enrollment",
+        self.p3_boys_enrolled_poll = create_poll_with_reporters("edtrac_boysp3_enrollment",
                                                  "How many boys are enrolled in P3 this term?",
                                                  Poll.TYPE_NUMERIC, self.admin_user,
                                                  [self.emisreporter1, self.emisreporter2, self.emisreporter3])
@@ -98,7 +98,7 @@ class TestEdtracDashboard(TestCase):
         self.p3_boys_enrolled_poll.start()
 
     def start_p6_girls_enrollment_poll(self):
-        self.p6_girls_enrolled_poll = create_poll("edtrac_girlsp6_enrollment",
+        self.p6_girls_enrolled_poll = create_poll_with_reporters("edtrac_girlsp6_enrollment",
                                                   "How many girls are enrolled in P6 this term?",
                                                   Poll.TYPE_NUMERIC, self.admin_user,
                                                   [self.emisreporter1, self.emisreporter2, self.emisreporter3])
@@ -106,7 +106,7 @@ class TestEdtracDashboard(TestCase):
         self.p6_girls_enrolled_poll.start()
 
     def start_p3_girls_enrollment_poll(self):
-        self.p3_girls_enrolled_poll = create_poll("edtrac_girlsp3_enrollment",
+        self.p3_girls_enrolled_poll = create_poll_with_reporters("edtrac_girlsp3_enrollment",
                                                   "How many girls are enrolled in P3 this term?",
                                                   Poll.TYPE_NUMERIC, self.admin_user,
                                                   [self.emisreporter1, self.emisreporter2, self.emisreporter3])
@@ -114,7 +114,7 @@ class TestEdtracDashboard(TestCase):
         self.p3_girls_enrolled_poll.start()
 
     def start_f_teacher_deployment_poll(self):
-        self.f_teacher_deployment_poll=create_poll("edtrac_f_teachers_deployment",
+        self.f_teacher_deployment_poll=create_poll_with_reporters("edtrac_f_teachers_deployment",
                                                    "How many female teachers are deployed in your school this term?",
                                                    Poll.TYPE_NUMERIC,self.admin_user,
                                                    [self.emisreporter1,self.emisreporter2,self.emisreporter3])
@@ -122,7 +122,7 @@ class TestEdtracDashboard(TestCase):
         self.f_teacher_deployment_poll.start()
 
     def start_m_teacher_deployment_poll(self):
-        self.m_teacher_deployment_poll=create_poll("edtrac_m_teachers_deployment",
+        self.m_teacher_deployment_poll=create_poll_with_reporters("edtrac_m_teachers_deployment",
                                                    "How many male teachers are deployed in your school this term?",
                                                    Poll.TYPE_NUMERIC,self.admin_user,
                                                    [self.emisreporter1,self.emisreporter2,self.emisreporter3])
@@ -161,7 +161,7 @@ class TestEdtracDashboard(TestCase):
         self.fake_incoming_with_date('12', self.connection3, settings.SCHOOL_TERM_START)
         self.p6_boys_enrolled_poll.end()
 
-        self.poll_for_p6boys_absent = create_poll('edtrac_boysp6_attendance',
+        self.poll_for_p6boys_absent = create_poll_with_reporters('edtrac_boysp6_attendance',
                                                   "How many P6 boys are at school today?",
                                                   Poll.TYPE_NUMERIC, self.user,
                                                   [self.emisreporter1, self.emisreporter2, self.emisreporter3])
@@ -188,7 +188,7 @@ class TestEdtracDashboard(TestCase):
         self.fake_incoming_with_date('12', self.connection3, settings.SCHOOL_TERM_START)
         self.p3_boys_enrolled_poll.end()
 
-        self.poll_for_p3boys_absent = create_poll('edtrac_boysp3_attendance',
+        self.poll_for_p3boys_absent = create_poll_with_reporters('edtrac_boysp3_attendance',
                                                   "How many P3 boys are at school today?",
                                                   Poll.TYPE_NUMERIC, self.user,
                                                   [self.emisreporter1, self.emisreporter2, self.emisreporter3])
@@ -216,7 +216,7 @@ class TestEdtracDashboard(TestCase):
         self.fake_incoming_with_date('12', self.connection3, settings.SCHOOL_TERM_START)
         self.p6_girls_enrolled_poll.end()
 
-        self.poll_for_p6girls_absent = create_poll('edtrac_girlsp6_attendance',
+        self.poll_for_p6girls_absent = create_poll_with_reporters('edtrac_girlsp6_attendance',
                                                    "How many P6 girls are at school today?",
                                                    Poll.TYPE_NUMERIC, self.user,
                                                    [self.emisreporter1, self.emisreporter2, self.emisreporter3])
@@ -244,7 +244,7 @@ class TestEdtracDashboard(TestCase):
         self.fake_incoming_with_date('10', self.connection3, settings.SCHOOL_TERM_START)
         self.p3_girls_enrolled_poll.end()
 
-        self.poll_for_p3girls_absent = create_poll('edtrac_girlsp3_attendance',
+        self.poll_for_p3girls_absent = create_poll_with_reporters('edtrac_girlsp3_attendance',
                                                    "How many P3 girls are at school today?",
                                                    Poll.TYPE_NUMERIC, self.user,
                                                    [self.emisreporter1, self.emisreporter2, self.emisreporter3])
@@ -272,7 +272,7 @@ class TestEdtracDashboard(TestCase):
         self.fake_incoming_with_date('14', self.connection3, settings.SCHOOL_TERM_START)
         self.f_teacher_deployment_poll.end()
 
-        self.f_teacher_absent_poll=create_poll("edtrac_f_teachers_attendance",
+        self.f_teacher_absent_poll=create_poll_with_reporters("edtrac_f_teachers_attendance",
                                                "How many female teachers are at school today?",
                                                Poll.TYPE_NUMERIC,self.user,
                                                [self.emisreporter1,self.emisreporter2,self.emisreporter3])
@@ -298,7 +298,7 @@ class TestEdtracDashboard(TestCase):
         self.fake_incoming_with_date('11', self.connection3, settings.SCHOOL_TERM_START)
         self.m_teacher_deployment_poll.end()
 
-        self.m_teacher_absent_poll=create_poll("edtrac_m_teachers_attendance",
+        self.m_teacher_absent_poll=create_poll_with_reporters("edtrac_m_teachers_attendance",
                                                "How many male teachers are at school today?",
                                                Poll.TYPE_NUMERIC,self.user,
                                                [self.emisreporter1,self.emisreporter2,self.emisreporter3])
@@ -320,7 +320,7 @@ class TestEdtracDashboard(TestCase):
 
     def test_male_and_female_head_teachers_attendance(self):
         self.create_emisreporters_of_smc_group()
-        self.m_head_teachers_attendance_poll=create_poll("edtrac_head_teachers_attendance",
+        self.m_head_teachers_attendance_poll=create_poll_with_reporters("edtrac_head_teachers_attendance",
                                                          "Has the head teacher been at school for at least 3 days? Answer YES or NO",
                                                          Poll.TYPE_TEXT,self.user,
                                                          [self.emisreporter4,self.emisreporter5,self.emisreporter6])

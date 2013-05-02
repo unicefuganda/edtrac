@@ -65,7 +65,7 @@ class TestCapitationGrantView(TestCase):
         self.emis_reporter4 = create_emis_reporters("dummy4", self.kampala_district, self.kampala_school, 1233459, smc_group)
         self.emis_reporter3 = create_emis_reporters("dummy3", self.gulu_district, gulu_school, 1233458, smc_group)
 
-        self.smc_poll = create_poll("edtrac_smc_upe_grant",
+        self.smc_poll = create_poll_with_reporters("edtrac_smc_upe_grant",
                                "Have you received your UPE grant this term? Answer  YES or NO or I don't know",
                                Poll.TYPE_TEXT,
                                admin_user, [self.emis_reporter1, self.emis_reporter2, self.emis_reporter3,self.emis_reporter4])
