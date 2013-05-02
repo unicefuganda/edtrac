@@ -40,8 +40,9 @@ def add_offset_according_to_term_number(target_value):
 
 def get_target_value(given_date):
     term_start = getattr(settings,'SCHOOL_TERM_START')
+    term_end = getattr(settings,'SCHOOL_TERM_END')
     week_count = get_week_count(term_start,given_date)
-    target_value = target[week_count]
+    target_value = target.get(week_count)
     target_value ,term = add_offset_according_to_term_number(target_value)
     return target_value ,term
 

@@ -311,7 +311,9 @@ def make_url_for_detail_attd(locations, key_string):
     return reverse('detail-attendance-visualization', args=(key_string,))
 
 def get_theme_title(key):
-    return themes.get(float(key))
+    if key is not None:
+        return themes.get(float(key))
+    return
 
 def format_schools(obj):
     return ", ".join([i.name for i in obj])
