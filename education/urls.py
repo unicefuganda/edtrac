@@ -7,6 +7,7 @@ from .reports import messages, othermessages, reporters, all_schools
 from .sorters import LatestSubmissionSorter
 from .views import *
 from water_polls_views import schedule_water_polls, detail_water_view
+from violence_view import detailed_violence_view
 #from education.views import ChartView
 from contact.forms import\
     FreeSearchTextForm, DistictFilterMessageForm, HandledByForm, ReplyTextForm
@@ -280,5 +281,14 @@ urlpatterns = patterns('',
     url(r"^edtrac/sub-county-reporters/$", edit_sub_county_reporters),
     url(r"^edtrac/export-sub-county-reporters/$", export_sub_county_reporters, name="export-sub-county-reporters"),
     url(r"^edtrac/schedule_water_polls/$", schedule_water_polls, name="schedule-water-polls"),
+    
+# the urls for violence views that I am testing 
+#    url(r'^edtrac/violence-cases/$', violence_cases_view, name="violence-cases-view"),
+#    url(r'^edtrac/violence-cases/(?P<district>\d+)/$', violence_cases_view, name="violence-cases-view"), 
+    
+#more violence views being tested
+    url(r'^edtrac/violence-detail/$', detailed_violence_view, name="violence-detail-visualization"),
+    url(r'^edtrac/violence-detail/(?P<district>\w+)/$', detailed_violence_view, name="violence-detail-visualization"),
+#    url(r'^edtrac/violence-detail-school/(?P<location>\w+)/$', violence_detail_school, name="violence-detail-school"),       
 )
 

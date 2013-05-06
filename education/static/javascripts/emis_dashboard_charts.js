@@ -119,7 +119,6 @@ function violence_cases(monthly_data, title){
 
 
 
-
 //pie chart
 function pie(data, chart_title, series_title, selector_id, tooltip_text, showLegend) {
     var d = data.split(",");
@@ -379,5 +378,65 @@ function load_column(title, selector, yLabel, xLabel, category,name, data_list){
             data: JSON.parse(data_list)
             }
         ]
+    });
+}
+
+function load_three_columns(title, selector, yLabel, xLabel, category,name, data_list, name2, data_list2, name3, data_list3){
+
+    bar_chart = new Highcharts.Chart({
+        chart : {
+            renderTo: selector,
+            defaultSeriesType:'column'
+        },
+        title : {
+            text: title
+        },
+        xAxis:{
+            title:{
+                text : xLabel
+            },
+            categories:category.split(";")
+        },
+        yAxis: {
+            min: 0,
+            title: {
+                text: yLabel
+            }
+        },
+        legend: {
+            layout:'vertical',
+            backgroundColor:'#FFFFFF',
+            align:'right',
+            verticalAlign:'top',
+            x:0,
+            y:20,
+            floating:true,
+            shadow:true
+        },
+        tooltip:{
+            formatter:function(){
+                return ''+this.x+': '+this.y +' '+ yLabel
+            }
+        },
+        plotOptions:{
+            column:{
+                pointPadding:0.2,
+                borderWidth:0
+            }
+        },
+
+        series:[
+            {
+            name:name,
+            data: JSON.parse(data_list)
+            },
+            {
+            name:name2,
+            data: JSON.parse(data_list2)
+            },
+            {
+            name:name3,
+            data: JSON.parse(data_list3)
+            }]
     });
 }
