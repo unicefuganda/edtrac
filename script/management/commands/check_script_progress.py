@@ -35,6 +35,8 @@ handler = logging.handlers.RotatingFileHandler("script.log", maxBytes=5242880, b
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
+
+
 class Command(BaseCommand):
 
     option_list = BaseCommand.option_list + (
@@ -50,13 +52,13 @@ class Command(BaseCommand):
         if recipients:
             recipients = [email for name, email in recipients]
         if current.hour in range(int(options['e']), int(options['l'])):
-            try:
-                for script in Script.objects.filter(enabled=True):
+            for script in Script.objects.filter(enabled=True):
+                try:
                     check_progress(script)
-                transaction.commit()
-            except Exception, exc:
-                transaction.rollback()
-                print traceback.format_exc(exc)
-                logger.debug(str(exc))
-                if recipients:
-                    send_mail('[Django] Error: check_script_progress cron', str(traceback.format_exc(exc)), 'root@uganda.rapidsms.org', recipients, fail_silently=True)
+                    transaction.commit()
+                except Exception, exc:
+                    transaction.rollback()
+                    print traceback.format_exc(exc)
+                    logger.debug(str(exc))
+                    if recipients:
+                        send_mail('[Django] Error: check_script_progress cron', str(traceback.format_exc(exc)), 'root@uganda.rapidsms.org', recipients, fail_silently=True)
