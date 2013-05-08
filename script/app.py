@@ -1,9 +1,9 @@
-
 from rapidsms.apps.base import AppBase
 from script.utils.incoming import incoming_progress
 from .models import *
 from poll.models import gettext_db
-
+import logging
+logger = logging.getLogger(__name__)
 class App (AppBase):
 
     def handle (self, message):
@@ -20,6 +20,7 @@ class App (AppBase):
                         message.respond(gettext_db(response,progress.language))
                     return True
         except ScriptProgress.DoesNotExist:
+            logger.debug("\nScript Progress object not found for message %s with connection %s" % (message,message.connection))
             pass
 
         return False

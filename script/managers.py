@@ -7,7 +7,8 @@ from .models import *
 from rapidsms_httprouter.models import Message
 from poll.models import gettext_db
 from django.db.models import Q
-
+import logging
+logger = logging.getLogger(__name__)
 class ScriptProgressQuerySet(QuerySet):
     def need_to_start(self, script):
         """
@@ -28,6 +29,7 @@ class ScriptProgressQuerySet(QuerySet):
         ScriptProgress.objects.all().need_to_start(script)
         """
         curtime = datetime.datetime.now()
+        logger.debug("[%s] Checking if we need to kick start steps for Script with slug name = %s" % (__name__,script.slug) )
         start_offset = script.steps.get(order=0).start_offset
         return self.filter(script=script, step=None, time__lte=(curtime - datetime.timedelta(seconds=start_offset)))
 
