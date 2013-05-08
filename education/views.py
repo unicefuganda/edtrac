@@ -3362,3 +3362,9 @@ def export_sub_county_reporters(request):
                                   context_instance=RequestContext(request))
         resp['Content-Disposition'] = 'attachment;filename="sub_county_reporters.csv"'
         return resp
+
+def get_schools(request):
+    location = request.GET['location']
+    filtered_schools = School.objects.filter(location=Location.objects.get(pk=location,type__slug='district'))
+    location_schools = [{'text':school.name,'value':school.pk} for school in filtered_schools]
+    return HttpResponse(json.dumps(location_schools))

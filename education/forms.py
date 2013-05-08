@@ -81,21 +81,26 @@ class NewConnectionForm(forms.Form):
     identity = forms.CharField(max_length=15, required=True, label="Primary contact information")
 
 class EditReporterForm(forms.ModelForm):
-    # locations = Location.objects.filter(type= 'district')
-    # district = Location.objects.filter(type='district').filter(name__in=EmisReporter.objects.filter(reporting_location__in = locations))
-    # schools = forms.ModelChoiceField(queryset=School.objects.filter(pk__in=EmisReporter.objects.filter(reporting_location__type = 'district').distinct().values_list('schools__pk', flat=True)))
-
-  
     class Meta:
         model = EmisReporter
         fields = ('name', 'gender', 'grade', 'reporting_location', 'groups', 'schools')
 
     def __init__(self, *args, **kwargs):
-        # locs = Location.objects.filter(pk__in=School.objects.values_list('location__name', flat=True))
         super(EditReporterForm, self).__init__(*args, **kwargs)
+        instance = kwargs['instance']
         self.fields['reporting_location'] = forms.ModelChoiceField(queryset=Location.objects.filter(type='district').order_by('name'))
-#        self.fields['schools'] = forms.ModelChoiceField(queryset=School.objects.filter(pk__in=EmisReporter.objects.values_list('schools__pk').filter(reporting_location__type = 'district')))
-        self.fields['schools'] = forms.ModelChoiceField(queryset=School.objects.filter(location__type = 'district'))
+        if instance.reporting_location is None:
+            if instance.schools.count() == 0:
+                self.fields['schools'] = forms.ModelChoiceField(queryset=School.objects.none(),widget=forms.Select(attrs={'disabled':'disabled'}))
+            else:
+                self.fields['schools'] = forms.ModelChoiceField(queryset=instance.schools.all())
+        else:
+            school_in_location = School.objects.filter(location=instance.reporting_location)
+            if instance.schools.all().exists() and instance.schools.all()[0] not in school_in_location:
+                self.fields['schools'] = forms.ModelChoiceField(queryset=school_in_location | instance.schools.all())
+            else:
+                self.fields['schools'] = forms.ModelChoiceField(queryset=school_in_location)
+
         self.fields['schools'].required = False
         self.fields['gender'].required = False
         self.fields['grade'].required = False

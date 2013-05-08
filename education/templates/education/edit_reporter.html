@@ -1,0 +1,84 @@
+{% extends "education/admin/admin_dashboard.html" %}
+{% load stats_extras %}
+{% block title %}Edit Reporter -- {{ block.super }} {% endblock %}
+{% block content %}
+
+    <ul class='breadcrumb'>
+        <li><a href="{% url rapidsms-dashboard %}">Dashboard Home</a></li>
+    </ul>
+
+    <div style="padding: 10px;margin: 5px;">
+        <fieldset>
+            <form action="" method="POST" class="form_as_p">
+                {% csrf_token %}
+                <div>
+                    <label>Telephone Number </label>
+                    <div class="form_as_p_div">
+                        <span>{{ reporter.default_connection.identity }}</span>
+                    </div>
+                </div>
+
+                <div class="{{ reporter_form.name.css_classes }}">
+                    {{ reporter_form.name.label_tag }}
+                    <div class="form_as_p_div">
+                        {{ reporter_form.name }}
+                    </div>
+                    {{ form.name.errors }}
+                </div>
+                <div class="{{ reporter_form.grade.css_classes }}">
+                    {{ reporter_form.grade.label_tag }}
+                    <div class="form_as_p_div">
+                        {{ reporter_form.grade }}
+                    </div>
+                    {{ form.grade.errors }}
+                </div>
+                <div class="{{ reporter_form.gender.css_classes }}">
+                    {{ reporter_form.gender.label_tag }}
+                    <div class="form_as_p_div">
+                        {{ reporter_form.gender }}
+                    </div>
+                    {{ form.gender.errors }}
+                </div>
+                <div class="{{ reporter_form.groups.css_classes }}">
+                    {{ reporter_form.groups.label_tag }}
+                    <div class="form_as_p_div">
+                        {{ reporter_form.groups }}
+                    </div>
+                    {{ form.groups.errors }}
+                </div>
+                <div class="{{ reporter_form.reporting_location.css_classes }}">
+                    {{ reporter_form.reporting_location.label_tag }}
+                    <div class="form_as_p_div">
+                        {{ reporter_form.reporting_location }}
+                    </div>
+                    {{ form.reporting_location.errors }}
+                </div>
+                <div class="{{ reporter_form.schools.css_classes }}">
+                    {{ reporter_form.schools.label_tag }}
+                    <div class="form_as_p_div">
+                        {{ reporter_form.schools }}
+                    </div>
+                    {{ form.schools.errors }}
+                </div>
+                <div class="form_as_p_div">
+                    <input type="submit" value="Edit"/>
+                </div>
+            </form>
+        </fieldset>
+    </div>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $('#id_reporting_location').change(function(){
+                $.get('/get_schools',{'location':this.value},function(data){
+                    var select = $('#id_schools')[0];
+                    select.options.length = 0; // clear out existing items
+                    var json_data = JSON.parse(data);
+                    for(var i=0; i < json_data.length; i++) {
+                        var d = json_data[i];
+                        select.options.add(new Option(d.text, d.value));
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

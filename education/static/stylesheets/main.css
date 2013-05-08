@@ -1248,6 +1248,7 @@ div.box-message{
 }
 
 .form_as_p div label {
+    font-size: medium ;
     color: #f8efff;
     float: left;
     width: 150px;
@@ -1260,6 +1261,7 @@ div.box-message{
 }
 
 .form_as_p_div span {
+    font-size: medium ;
     color: #f8efff;
     margin-top: 4px;
     display: inline-block;
