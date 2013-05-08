@@ -1242,3 +1242,29 @@ div.box-message{
 .schedule_form ul li label{
     color: #f5f5f5;
 }
+
+.form_as_p div {
+    margin-bottom: 10px;
+}
+
+.form_as_p div label {
+    color: #f8efff;
+    float: left;
+    width: 150px;
+    text-align: right;
+    padding: 5px;
+}
+
+.form_as_p_div {
+    margin-left: 180px;
+}
+
+.form_as_p_div span {
+    color: #f8efff;
+    margin-top: 4px;
+    display: inline-block;
+}
+
+.form_as_p_div input {
+    display: inline-block;
+}

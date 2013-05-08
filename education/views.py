@@ -2642,29 +2642,16 @@ def edit_reporter(request, reporter_pk):
                     _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_p6_enrollment_headteacher_termly', ['Head Teachers'])
                     _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_teacher_deployment_headteacher_termly', ['Head Teachers'])
 
-        else:
-            if reporter.schools.exists():
-                reporter_form = EditReporterForm(instance=reporter, initial={'schools':reporter.schools.all()[0]})
-            else:
-                reporter_form = EditReporterForm(instance=reporter)
-
-            return render_to_response('education/partials/reporters/edit_reporter.html',
-                    {'reporter_form': reporter_form,
-                     'reporter': reporter},
-                context_instance=RequestContext(request))
-        return render_to_response('/education/partials/reporters/reporter_row.html',
-                {'object':EmisReporter.objects.get(pk=reporter_pk),
-                 'selectable':True},
-            context_instance=RequestContext(request))
+        return redirect("emis-contact")
     else:
         if reporter.schools.exists():
             reporter_form = EditReporterForm(instance=reporter, initial={'schools':reporter.schools.all()[0]})
         else:
             reporter_form = EditReporterForm(instance=reporter)
-        return render_to_response('education/partials/reporters/edit_reporter.html',
-                {'reporter_form': reporter_form,
-                 'reporter': reporter},
-            context_instance=RequestContext(request))
+    return render_to_response('education/edit_reporter.html',
+            {'reporter_form': reporter_form,
+             'reporter': reporter},
+        context_instance=RequestContext(request))
 
 @login_required
 def add_schools(request):
