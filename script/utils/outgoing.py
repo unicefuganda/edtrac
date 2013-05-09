@@ -17,7 +17,6 @@ def check_progress(script):
     and the current time.  This utility function should only be updating the ScriptProgress 
     objects accordingly.
     """
-    logger.debug("[%s] . Checking progress of all scripts.\n" % (module_name))
     for step in script.steps.order_by("-order"):
         # expire those steps that need it
         expired_progress_objects = ScriptProgress.objects.expired(script, step)
