@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from django.utils.http import urlquote
 from django.utils.safestring import mark_safe
-from education.utils import themes
+from education.utils import themes, is_empty
 
 from rapidsms.contrib.locations.models import Location
 from rapidsms_xforms.models import XFormSubmission
@@ -50,25 +50,10 @@ def get_district(location):
 def name(location):
     return location.name
 
-def latest(obj):
-    scripted_polls = ['emis_abuse', 'emis_meals', 'emis_grant', 'emis_inspection', 'emis_cct', 'emis_abuse', 'emis_sms_meals', 'emis_grant_notice', 'emis_inspection_yesno', 'emis_meetings', 'emis_classroom', 'emis_classroom_use', 'emis_latrines', 'emis_latrines_use', 'emis_teachers', 'emis_boys_enrolled', 'emis_girls_enrolled']
-    try:
-        responses = Response.objects.filter(poll__name__in=scripted_polls, message__connection__in=obj.connection_set.all())
-        poll_date = responses.latest('date').date
-    except:
-        poll_date = datetime.datetime(1900, 1, 1)
-    try:
-        xform_date = XFormSubmission.objects.filter(connection__in=obj.connection_set.all()).latest('created').created
-    except:
-        xform_date = datetime.datetime(1900, 1, 1)
+def latest(reporter):
+    if not is_empty(reporter.responses.all()):
+        return reporter.responses.exclude(poll=None).latest('date').date
 
-    if poll_date > xform_date:
-        return poll_date
-    elif xform_date > poll_date:
-        return xform_date
-    else:
-        return None
-    
 def submissions(obj):
     scripted_polls = ['emis_abuse', 'emis_meals', 'emis_grant', 'emis_inspection', 'emis_cct', 'emis_abuse', 'emis_sms_meals', 'emis_grant_notice', 'emis_inspection_yesno', 'emis_meetings', 'emis_classroom', 'emis_classroom_use', 'emis_latrines', 'emis_latrines_use', 'emis_teachers', 'emis_boys_enrolled', 'emis_girls_enrolled']
     try:
