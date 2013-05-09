@@ -2642,7 +2642,7 @@ def edit_reporter(request, reporter_pk):
                     _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_p6_enrollment_headteacher_termly', ['Head Teachers'])
                     _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_teacher_deployment_headteacher_termly', ['Head Teachers'])
 
-        return redirect("emis-contact")
+            return redirect("emis-contact")
     else:
         if reporter.schools.exists():
             reporter_form = EditReporterForm(instance=reporter, initial={'schools':reporter.schools.all()[0]})
@@ -3365,6 +3365,9 @@ def export_sub_county_reporters(request):
 
 def get_schools(request):
     location = request.GET['location']
-    filtered_schools = School.objects.filter(location=Location.objects.get(pk=location,type__slug='district'))
-    location_schools = [{'text':school.name,'value':school.pk} for school in filtered_schools]
-    return HttpResponse(json.dumps(location_schools))
+    list_of_schools = [{'text':'--------------','value':''}]
+    if not is_empty(location):
+        filtered_schools = School.objects.filter(location=Location.objects.get(pk=location,type__slug='district'))
+        location_schools = [{'text':school.name,'value':school.pk} for school in filtered_schools]
+        list_of_schools.extend(location_schools)
+    return HttpResponse(json.dumps(list_of_schools))

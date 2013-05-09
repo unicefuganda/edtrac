@@ -105,6 +105,12 @@ class EditReporterForm(forms.ModelForm):
         self.fields['gender'].required = False
         self.fields['grade'].required = False
 
+    def clean(self):
+        data = self.cleaned_data
+        if data.get('schools') is not None and data['schools'].location != data.get('reporting_location'):
+            self._errors['schools'] = self.error_class(['School should be from location same as reporting location'])
+        return data
+
     def save(self, commit=True):
         reporter_form = super(EditReporterForm, self).save(commit=False)
 

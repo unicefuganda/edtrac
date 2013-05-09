@@ -68,6 +68,15 @@ class TestEditReporterForm(TestCase):
         self.assertTrue(self.school2 in edit_emis_reporter_form.fields['schools'].queryset)
         self.assertTrue(self.school3 in edit_emis_reporter_form.fields['schools'].queryset)
 
+    def test_should_not_save_when_school_is_in_wrong_location(self):
+        self.emis_reporter.reporting_location = self.kampala_district
+        self.emis_reporter.schools.add(self.school3)
+        self.emis_reporter.save()
+        edit_emis_reporter_form = EditReporterForm(
+            instance=self.emis_reporter, data={'reporting_location':self.kampala_district.id,'schools':self.school3.id})
+        self.assertFalse(edit_emis_reporter_form.is_valid())
+        self.assertTrue("schools" in edit_emis_reporter_form._errors.keys())
+
     def tearDown(self):
         LocationType.objects.all().delete()
         Location.objects.all().delete()
