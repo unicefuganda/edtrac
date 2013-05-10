@@ -87,7 +87,7 @@ class LastReportingDateFilterForm(FilterForm):
             if self.cleaned_data['to_date'] < self.cleaned_data['from_date']:
                 return queryset.none()
             date_range = [self.cleaned_data['from_date'],self.cleaned_data['to_date']]
-            return queryset.filter(responses__date__range=date_range)
+            return queryset.filter(responses__date__range=date_range).distinct()
         return queryset
 
 class NewConnectionForm(forms.Form):
