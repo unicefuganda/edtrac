@@ -77,6 +77,19 @@ class SchoolFilterForm(FilterForm):
         else:
             return queryset.filter(schools=school_pk)
 
+class LastReportingDateFilterForm(FilterForm):
+    """ filter form for emis reporter on reporting date """
+    from_date = forms.DateField()
+    to_date = forms.DateField()
+
+    def filter(self, request, queryset):
+        if self.cleaned_data['to_date'] is not None and self.cleaned_data['from_date'] is not None:
+            if self.cleaned_data['to_date'] < self.cleaned_data['from_date']:
+                return queryset.none()
+            date_range = [self.cleaned_data['from_date'],self.cleaned_data['to_date']]
+            return queryset.filter(responses__date__range=date_range)
+        return queryset
+
 class NewConnectionForm(forms.Form):
     identity = forms.CharField(max_length=15, required=True, label="Primary contact information")
 

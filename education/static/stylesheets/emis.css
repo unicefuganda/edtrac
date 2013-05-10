@@ -69,60 +69,6 @@ div.buttons a img{
     height:16px;
 }
 
-div.module {
-    margin-top: 1em;
-}
-
-#filters {
-    height: 5em;
-}
-
-#div_filter_0 {
-    position:absolute;
-    left:0;
-    top: 3em;
-}
-
-#div_filter_1 {
-    position:absolute;
-    left:33%;
-    top: 3em;
-}
-
-#div_filter_2 {
-    position:absolute;
-    left:66%;
-    top: 3em;
-}
-
-#div_filter_update {
-    float:right;
-    position:absolute;
-    right:0;
-    bottom: 0;
-}
-
-#div_filter_clear {
-    float:right;
-    position:absolute;
-    right: 0;
-    top: 3em;
-}
-
-/*#actions {
-    height:7em;
-}
-
-#id_location {
-    width: 7em;
-}
-
-#div_action_0 {
-    position:absolute;
-    top:3em;
-    left:0;
-}*/
-
 #actions {
    height:10em;
 }
@@ -219,61 +165,6 @@ p {
 }
 .school_detail th{
     text-align:left;
-}
-
-.filter_form_help {
-    font-size:8pt;
-    color:gray;
-    position:relative;
-    float:left;
-    top:.5em;
-}
-
-#filters {
-    height:6.5em;
-}
-
-#div_filter_0 {
-    position:absolute;
-    left:0;
-    top:3em;
-}
-
-#div_filter_0 input {
-    position:absolute;
-	margin-left:5%;
-/*    left:70%;*/
-    top:0em;
-}
-
-#div_filter_1 {
-    position:absolute;
-    left:27%;
-    top: 3em;
-}
-
-#div_filter_2 {
-    position:absolute;
-    left:49%;
-    top: 3em;
-}
-
-#div_filter_3 {
-    position:absolute;
-    left:64%;
-    top: 3em;
-}
-
-#div_filter_update {
-    position:absolute;
-    right:1em;
-    top: 5em;
-}
-
-#div_filter_clear {
-    position:absolute;
-    right:7em;
-    top: 5em;
 }
 
 td.stats_title{

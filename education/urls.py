@@ -86,7 +86,7 @@ urlpatterns = patterns('',
     url(r'^edtrac/reporter/$', login_required(generic), {
         'model':EmisReporter,
         'queryset':reporters,
-        'filter_forms':[ReporterFreeSearchForm, RolesFilterForm, LimitedDistictFilterForm, SchoolFilterForm],
+        'filter_forms':[ReporterFreeSearchForm, RolesFilterForm, LimitedDistictFilterForm, SchoolFilterForm,LastReportingDateFilterForm],
         'action_forms':[MassTextForm],
         'objects_per_page':25,
         'title' : 'Reporters',
