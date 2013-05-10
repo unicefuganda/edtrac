@@ -37,6 +37,18 @@ h5{
 }
 p{line-height: 14px;}
 .clear {clear:both; width:100%;}
+
+#header #navigation > ul > li > a {
+color: #80a7cf;
+}
+
+#header #navigation > ul > li {
+list-style: none;
+color: #ffffff;
+font-size: 11px;
+display: inline;
+}
+
 #main-wrapper{width:1020px; margin:0 auto; padding:0; }
 #top{height:36px; background: url(../icons/top-bg.png) repeat-x #246c98; padding:0 36px;}
 #top #nav {float:right; margin:15px 0 0 0;}
@@ -156,7 +168,7 @@ a.button span.graph {
 .curriculum-progress .progress span {background: url(../icons/progress.png) repeat-x; display:block; height:50px; margin:0; padding:0;width:0;white-space: nowrap}
 .curriculum-progress .progress span span{}
 .curriculum-progress .progress span b {font-weight: bold; font-size: 300%; color: #226c15; display:block; padding:7px 5px;}
-.container{padding:5px; margin:10px; border:1px solid #CBADCD; background-color: #F8F0FF;}
+/*.container{padding:5px; margin:10px; border:1px solid #CBADCD; background-color: #F8F0FF;}*/
 .this-month, .this-term{padding-bottom: 1px;}
 .this-month .violence{
     float:left;

@@ -1,13 +1,17 @@
 {% extends "generic/partials/partial_header.html" %}
 {% block tablehead %}
+<table id="box-table-a" class="row">
+<thead >
 <tr>
     {% for name, colspan, href in top_columns %}
-        <td colspan="{{ colspan }}" class="stats_title">
-            {% if href %}<a href="{{ href }}">{{ name }}</a>{% else %}
+        <th scope="col">
+            {% if href %}<a href="{{ href }}">{{ name }}</a>
+            {% else %}
             {{ name }}
             {% endif %}
-        </td>
+        </th>
     {% endfor %}
 </tr>
+</thead>
 {{ block.super }}
 {% endblock %}

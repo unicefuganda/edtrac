@@ -5,7 +5,11 @@
 {{ title }} - {{ block.super }}
 {% endblock %}
 {% block stylesheets %}
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/main.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/bootstrap.min.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/bootstrap-responsive.min.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/application.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/tables.css" />
+<!-- <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/main.css" /> -->
 <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/splits.css" />
 <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/modules.css" />
 <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/icons.css" />
@@ -25,30 +29,49 @@
 
 
 {% block header %}
-<div id="top" style="width: 1020px; margin: 0 auto; padding: 0;">
-    <div id="edutrac-logo" style="float:left;">
-        <a href="{% url rapidsms-dashboard %}"><img src="{{MEDIA_URL }}education/icons/web_logo_without_slogan.jpg" alt="EduTrac"></a>
-    </div>
-
-    <div id="nav" style="float:right;">
-        <ul>
-            {% if user.is_authenticated %}
-            <li><a href="{% url rapidsms-logout %}">{% trans "Log out" %} {{ user.username }}</a></li>
-            {% else %}
-            <li><a href="{% url rapidsms-login %}">{% trans "Log in" %}</a></li>
-            {% endif %}
-        </ul>
-    </div>
+<div id="header">
+	
+	<div class="container">
+		<div id="navigation">
+		<a href="{% url rapidsms-dashboard %}" style="position: relative;top: 20px;
+  display: block;
+  overflow: hidden;margin-right: 0.75em;">
+  <img src="{{MEDIA_URL }}education/icons/web_logo.png" alt="EduTrac"></a>
+		
+		<ul class="pull-right">
+				{% if user.is_authenticated %}
+				<li><a href="">{% trans "Logged in as " %} {{ user.username }}</a></li>
+				<li><a href="{% url rapidsms-logout %}">Logout</a></li>
+				{% else %}
+	            <li><a href="{% url rapidsms-login %}">{% trans "Log in" %}</a></li>
+	            {% endif %}
+		</ul>
+		</div>
+	</div> 
+	
+</div>  
+<div id="masthead">
+	
+	<div class="container">
+		
+		<div class="masthead-pad">
+			
+			<div class="masthead-text">
+				<h2>Reporter Management</h2>
+				<p>A portal to manage reporters on the EduTrac platform</p>
+			</div> 
+		</div>
+		
+	</div> 
+	
 </div>
-
 {% endblock %}
 
 {% block content %}
-<div id="main-wrapper" style="clear:both;">
-    <div id="main-content">
-        {{ block.super }}
-    </div>
+<div class="container">
+	{{ block.super }}
 </div>
+
 <script src="{{MEDIA_URL}}contact/javascripts/messages.js" type="text/javascript"></script>
 <script src="{{MEDIA_URL}}education/javascripts/emis_reporters.js" type="text/javascript"></script>
 <script src="{{MEDIA_URL}}education/javascripts/bootstrap-modal.js" type="text/javascript"></script>
