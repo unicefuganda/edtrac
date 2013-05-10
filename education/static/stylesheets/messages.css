@@ -43,3 +43,7 @@
     left:10em;
     white-space:nowrap;
 }
+
+.filterform label{
+    font-size: medium;
+}

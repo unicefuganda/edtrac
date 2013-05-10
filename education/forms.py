@@ -80,7 +80,7 @@ class SchoolFilterForm(FilterForm):
 class LastReportingDateFilterForm(FilterForm):
     """ filter form for emis reporter on reporting date """
     from_date = forms.DateField()
-    to_date = forms.DateField()
+    to_date = forms.DateField(help_text='select dates to filter by last reporting date')
 
     def filter(self, request, queryset):
         if self.cleaned_data['to_date'] is not None and self.cleaned_data['from_date'] is not None:

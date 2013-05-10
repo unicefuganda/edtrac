@@ -3,7 +3,7 @@
 {% block title %}Edit Reporter -- {{ block.super }} {% endblock %}
 {% block content %}
 
-    <ul class='breadcrumb'>
+    <ul class='breadcrumb' xmlns="http://www.w3.org/1999/html">
         <li><a href="{% url rapidsms-dashboard %}">Dashboard Home</a></li>
     </ul>
 
@@ -61,7 +61,8 @@
                     {{ reporter_form.schools.errors }}
                 </div>
                 <div class="form_as_p_div">
-                    <input type="submit" value="Edit"/>
+                    <input type="submit" value="Save"/>
+                    <a href="{% url emis-contact %}"><button> Back </button></a>
                 </div>
             </form>
         </fieldset>
