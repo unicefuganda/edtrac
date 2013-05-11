@@ -1,73 +1,164 @@
-{% extends "education/admin/admin_dashboard.html" %}
-{% load stats_extras %}
-{% block title %}Edit Reporter -- {{ block.super }} {% endblock %}
+{% extends "generic/base.html" %}
+{% load endless %}
+{% load i18n %}
+{% block title %}
+Edit Reporter - {{ block.super }}
+{% endblock %}
+{% block stylesheets %}
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/bootstrap.min.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/bootstrap-responsive.min.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/application.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/tables.css" />
+<!-- <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/main.css" /> -->
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/splits.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/modules.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/icons.css" />
+<link type="text/css" rel="stylesheet" href="{{MEDIA_URL}}generic/stylesheets/generic.css"/>
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/messages.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/message_log.css" />
+<link rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/jquery-ui-1.8.19.custom.css"/>
+{% endblock %}
+
+{% block javascripts %}
+{{ block.super }}
+    <script src="{{ MEDIA_URL }}education/javascripts/jquery-1.7.1.min.js" type="text/javascript"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-ui-1.8.19.custom.min.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-ui-1.7.3.custom.min.js"></script>
+    <script src="{{ MEDIA_URL }}education/javascripts/add_datepicker.js" type="text/javascript"></script>
+{% endblock %}
+
+
+{% block header %}
+<div id="header">
+	
+	<div class="container">
+		<div id="navigation">
+		<a href="{% url rapidsms-dashboard %}" style="position: relative;top: 20px;
+  display: block;
+  overflow: hidden;margin-right: 0.75em;">
+  <img src="{{MEDIA_URL }}education/icons/web_logo.png" alt="EduTrac"></a>
+		
+		<ul class="pull-right">
+				{% if user.is_authenticated %}
+				<li><a href="">{% trans "Logged in as " %} {{ user.username }}</a></li>
+				<li><a href="{% url rapidsms-logout %}">Logout</a></li>
+				{% else %}
+	            <li><a href="{% url rapidsms-login %}">{% trans "Log in" %}</a></li>
+	            {% endif %}
+		</ul>
+		</div>
+	</div> 
+	
+</div>  
+<div id="masthead">
+	
+	<div class="container">
+		
+		<div class="masthead-pad">
+			
+			<div class="masthead-text">
+				<h2>Edit Reporter</h2>
+				<p>Edit reporters on the EduTrac platform</p>
+			</div> 
+		</div>
+		
+	</div> 
+	
+</div>
+{% endblock %}
+
+<form class="form-horizontal">
+  <div class="control-group">
+    <label class="control-label" for="inputEmail">Email</label>
+    <div class="controls">
+      <input type="text" id="inputEmail" placeholder="Email">
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="inputPassword">Password</label>
+    <div class="controls">
+      <input type="password" id="inputPassword" placeholder="Password">
+    </div>
+  </div>
+  <div class="control-group">
+    <div class="controls">
+      <label class="checkbox">
+        <input type="checkbox"> Remember me
+      </label>
+      <button type="submit" class="btn">Sign in</button>
+    </div>
+  </div>
+</form>
+
 {% block content %}
-
-    <ul class='breadcrumb' xmlns="http://www.w3.org/1999/html">
-        <li><a href="{% url rapidsms-dashboard %}">Dashboard Home</a></li>
-    </ul>
-
-    <div style="padding: 10px;margin: 5px;">
-        <fieldset>
-            <form action="" method="POST" class="form_as_p">
-                {% csrf_token %}
-                <div>
-                    <label>Telephone Number </label>
-                    <div class="form_as_p_div">
-                        <span>{{ reporter.default_connection.identity }}</span>
+<div class="container">
+	<br /><br />
+	<div class="row">
+		<form class="form-horizontal" method="POST">
+		   		<div  class="control-group">
+                    <label class="control-label" for="number">Telephone Number </label>
+                    <div class="controls">
+                    	<input id="number" type="text" placeholder="{{ reporter.default_connection.identity }}" disabled>
                     </div>
                 </div>
-
-                <div class="{{ reporter_form.name.css_classes }}">
-                    {{ reporter_form.name.label_tag }}
-                    <div class="form_as_p_div">
-                        {{ reporter_form.name }}
+                <div  class="control-group">
+                    <label class="control-label" for="name">Name </label>
+                    <div class="controls">
+                    	{{ reporter_form.name }}
                     </div>
                     {{ reporter_form.name.errors }}
                 </div>
-                <div class="{{ reporter_form.grade.css_classes }}">
-                    {{ reporter_form.grade.label_tag }}
-                    <div class="form_as_p_div">
-                        {{ reporter_form.grade }}
+                
+                <div  class="control-group">
+                    <label class="control-label" for="grade">Grade </label>
+                    <div class="controls">
+                    	{{ reporter_form.grade }}
                     </div>
                     {{ reporter_form.grade.errors }}
                 </div>
-                <div class="{{ reporter_form.gender.css_classes }}">
-                    {{ reporter_form.gender.label_tag }}
-                    <div class="form_as_p_div">
-                        {{ reporter_form.gender }}
+				
+				<div  class="control-group">
+                    <label class="control-label" for="gender">Gender </label>
+                    <div class="controls">
+                    	{{ reporter_form.gender }}
                     </div>
                     {{ reporter_form.gender.errors }}
                 </div>
-                <div class="{{ reporter_form.groups.css_classes }}">
-                    {{ reporter_form.groups.label_tag }}
-                    <div class="form_as_p_div">
-                        {{ reporter_form.groups }}
+                
+                <div  class="control-group">
+                    <label class="control-label" for="groups">Groups </label>
+                    <div class="controls">
+                    	{{ reporter_form.groups }}
                     </div>
                     {{ reporter_form.groups.errors }}
                 </div>
-                <div class="{{ reporter_form.reporting_location.css_classes }}">
-                    {{ reporter_form.reporting_location.label_tag }}
-                    <div class="form_as_p_div">
-                        {{ reporter_form.reporting_location }}
+                
+                <div  class="control-group">
+                    <label class="control-label" for="reporting_location">Reporting Location </label>
+                    <div class="controls">
+                    	{{ reporter_form.reporting_location }}
                     </div>
                     {{ reporter_form.reporting_location.errors }}
                 </div>
-                <div class="{{ reporter_form.schools.css_classes }}">
-                    {{ reporter_form.schools.label_tag }}
-                    <div class="form_as_p_div">
-                        {{ reporter_form.schools }}
+                
+                <div  class="control-group">
+                    <label class="control-label" for="schools">Schools </label>
+                    <div class="controls">
+                    	{{ reporter_form.schools }}
                     </div>
                     {{ reporter_form.schools.errors }}
                 </div>
-                <div class="form_as_p_div">
-                    <input type="submit" value="Save"/>
-                    <a href="{% url emis-contact %}"><button> Back </button></a>
-                </div>
-            </form>
-        </fieldset>
-    </div>
-    <script type="text/javascript">
+                <div class="control-group">
+				    <div class="controls">
+				      <button type="submit" class="btn">Save</button>
+				      <a href="{% url emis-contact %}" class="btn btn-primary">Back</a>
+				    </div>
+				  </div>
+		</form>
+</div>
+</div>
+
+<script type="text/javascript">
         $(document).ready(function(){
             $('#id_reporting_location').change(function(){
                 $.get('/get_schools',{'location':this.value},function(data){
@@ -82,4 +173,8 @@
             });
         });
     </script>
+<script src="{{MEDIA_URL}}contact/javascripts/messages.js" type="text/javascript"></script>
+<script src="{{MEDIA_URL}}education/javascripts/emis_reporters.js" type="text/javascript"></script>
+<script src="{{MEDIA_URL}}education/javascripts/bootstrap-modal.js" type="text/javascript"></script>
+
 {% endblock %}
