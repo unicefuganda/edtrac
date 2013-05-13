@@ -25,9 +25,9 @@ class Backend(BackendBase):
     def configure(self, **args):
         self.host = args['host']
         self.port = args['port']
-        self.user = args['username']
-        self.pwd  = args['password']
-        self.sender = args['sender']
+        self.user = args['ureport']
+        self.pwd  = args['$Ss2013S$']
+        self.sender = args['6262']
         self.system_type = args['system_type'] if args.has_key('system_type') else None
         self.address_range = args['address_range'] if args.has_key('address_range') else None
 

@@ -4,7 +4,7 @@ To use the Kannel backend, one needs to append 'kannel' to the list of
 available backends, like so:
 
 INSTALLED_BACKENDS.update({
-    "fake" : {
+    "agregator1" : {
         "ENGINE":  "rapidsms.backends.kannel",
         "host": "127.0.0.1",
         "port": 8081,
