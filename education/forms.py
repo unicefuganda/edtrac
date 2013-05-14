@@ -101,18 +101,24 @@ class EditReporterForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(EditReporterForm, self).__init__(*args, **kwargs)
         instance = kwargs['instance']
+        data = kwargs.get('data')
         self.fields['reporting_location'] = forms.ModelChoiceField(queryset=Location.objects.filter(type='district').order_by('name'))
-        if instance.reporting_location is None:
+
+        if instance and data:
+            schools_in_reporting_location = School.objects.filter(location=instance.reporting_location)
+            edited_school = School.objects.filter(pk = data.get('schools'))
+            self.fields['schools'] = forms.ModelChoiceField(queryset=schools_in_reporting_location | edited_school)
+        elif instance.reporting_location is None:
             if instance.schools.count() == 0:
                 self.fields['schools'] = forms.ModelChoiceField(queryset=School.objects.none(),widget=forms.Select(attrs={'disabled':'disabled'}))
             else:
                 self.fields['schools'] = forms.ModelChoiceField(queryset=instance.schools.all())
         else:
-            school_in_location = School.objects.filter(location=instance.reporting_location)
-            if instance.schools.all().exists() and instance.schools.all()[0] not in school_in_location:
-                self.fields['schools'] = forms.ModelChoiceField(queryset=school_in_location | instance.schools.all())
+            schools_in_reporting_location = School.objects.filter(location=instance.reporting_location)
+            if instance.schools.all().exists() and instance.schools.all()[0] not in schools_in_reporting_location:
+                self.fields['schools'] = forms.ModelChoiceField(queryset=schools_in_reporting_location | instance.schools.all())
             else:
-                self.fields['schools'] = forms.ModelChoiceField(queryset=school_in_location)
+                self.fields['schools'] = forms.ModelChoiceField(queryset=schools_in_reporting_location)
 
         self.fields['schools'].required = False
         self.fields['gender'].required = False
