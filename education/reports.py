@@ -366,12 +366,13 @@ def messages(request):
                     user_location.get_descendants(include_self=True).all())
 
     if request.GET.get('error_msgs'):
+        messages = messages.filter(poll_responses=None)
         #Get only messages handled by rapidsms_xforms and the polls app (this exludes opt in and opt out messages)
-        messages = messages.filter(Q(application=None) | Q(application__in=['rapidsms_xforms', 'poll']))
+        messages = messages.filter(Q(application=None) | Q(application__in=['rapidsms_xforms', 'poll','script']))
         #Exclude XForm submissions
-        messages = messages.exclude(pk__in=XFormSubmission.objects.select_related().exclude(message=None).filter(has_errors=False).values_list('message__pk', flat=True))
+        messages = messages.exclude(responses__in=XFormSubmission.objects.exclude(message=None).filter(has_errors=False))
         # Exclude Poll responses
-        return messages.exclude(pk__in=Response.objects.select_related().exclude(message=None).filter(has_errors=False).values_list('message__pk', flat=True))
+        return messages.exclude(responses__in=Response.objects.exclude(message=None).filter(has_errors=False))
     else:
         return messages
 

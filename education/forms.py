@@ -2,6 +2,7 @@ from django import forms
 from django.forms import extras
 import datetime
 from mptt.forms import TreeNodeChoiceField
+from poll.models import Poll
 from rapidsms.contrib.locations.models import Location
 from generic.forms import ActionForm, FilterForm, ModuleForm
 from mptt.forms import TreeNodeChoiceField
@@ -88,6 +89,16 @@ class LastReportingDateFilterForm(FilterForm):
                 return queryset.none()
             date_range = [self.cleaned_data['from_date'],self.cleaned_data['to_date']]
             return queryset.filter(responses__date__range=date_range).distinct()
+        return queryset
+
+class PollFilterForm(FilterForm):
+    """ filter form for message on polls """
+    polls = forms.ChoiceField(choices=(('', '-----'),) + \
+                                      tuple(Poll.objects.all().values_list('pk', 'name').order_by('name')))
+    def filter(self, request, queryset):
+        poll = Poll.objects.get(id = self.cleaned_data['polls'])
+        if poll is not None:
+            return queryset.filter(poll_responses__poll = poll)
         return queryset
 
 class NewConnectionForm(forms.Form):

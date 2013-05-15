@@ -32,19 +32,15 @@
         {{ object.date|date:"m/d/Y H:i:s" }}
     </span>
 </td>
+
 <td>
-    {% if object.application %}
-    {% ifequal object.application 'poll' %}
-    Poll Response
-    {% else %}
-    {% ifequal object.application 'rapidsms_xforms' %}
-    Report
-    {% else %}
-    Other
-    {% endifequal %}
-    {% endifequal %}
-    {% else %}
-    Other
+    {% if object.poll_responses.all.0.poll %}
+        {{ object.poll_responses.all.0.poll.name }}
+    {% endif %}
+</td>
+<td>
+    {% if object.responses %}
+        {{ object.connection.contact.reporting_location }}
     {% endif %}
 </td>
 <td>
