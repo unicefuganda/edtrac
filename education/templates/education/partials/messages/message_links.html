@@ -1,0 +1,28 @@
+
+<div id="masthead">
+
+    <div class="container">
+
+        <div class="masthead-pad">
+
+            <div class="masthead-text">
+                <h2>Reporter Management</h2>
+                <p>A portal to manage reporters on the EduTrac platform</p>
+            </div>
+            <div class="masthead-text" style="float: right">
+                <span></span>
+            </div>
+        </div>
+    </div>
+
+</div>
+<script type="text/javascript">
+    $(document).ready(function(){
+        if(document.URL.indexOf('error_msgs')== -1){
+           $('.masthead-text span').html("<a href='{% url emis-messagelog %}?error_msgs=True'>View unsolicitated messages</a>");
+        }
+        else{
+            $('.masthead-text span').html("<a href='{% url emis-messagelog %}'>Back</a>");
+        }
+    });
+</script>

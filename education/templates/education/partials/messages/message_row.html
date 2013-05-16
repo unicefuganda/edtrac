@@ -45,6 +45,11 @@
 </td>
 <td>
     {% if object.responses %}
+        {{ object.connection.contact.emisreporter.schools.all.0.name }}
+    {% endif %}
+</td>
+<td>
+    {% if object.responses %}
     <ul>
         {% for r in object.responses.all %}
         <li>&lt;&lt;
