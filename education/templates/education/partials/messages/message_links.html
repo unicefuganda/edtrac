@@ -6,8 +6,8 @@
         <div class="masthead-pad">
 
             <div class="masthead-text">
-                <h2>Reporter Management</h2>
-                <p>A portal to manage reporters on the EduTrac platform</p>
+                <h2>{{ management_for|capfirst }} Management</h2>
+                <p>A portal to manage {{ management_for }} on the EduTrac platform</p>
             </div>
             <div class="masthead-text" style="float: right">
                 <span></span>
@@ -18,11 +18,12 @@
 </div>
 <script type="text/javascript">
     $(document).ready(function(){
-        if(document.URL.indexOf('error_msgs')== -1){
-           $('.masthead-text span').html("<a href='{% url emis-messagelog %}?error_msgs=True'>View unsolicitated messages</a>");
+        if(document.URL.indexOf('error_msgs')> -1){
+            $('.masthead-text span').html("<a href='{% url emis-messagelog %}'>Back to all messages</a>");
         }
-        else{
-            $('.masthead-text span').html("<a href='{% url emis-messagelog %}'>Back</a>");
-        }
+        else
+            if(document.URL.indexOf('messages') > -1){
+                $('.masthead-text span').html("<a href='{% url emis-messagelog %}?error_msgs=True'>View unsolicitated messages</a>");
+             }
     });
 </script>

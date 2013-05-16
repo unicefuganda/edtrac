@@ -39,6 +39,7 @@ urlpatterns = patterns('',
         ],
         'sort_column':'date',
         'sort_ascending':False,
+        'management_for': 'messages'
         }, name="emis-messagelog"),
 
 
@@ -106,6 +107,7 @@ urlpatterns = patterns('',
             ('School(s)', True, 'schools__name', SimpleSorter(),),
             #                 ('Location', True, 'reporting_location__name', SimpleSorter(),),
             ('', False, '', None,)],
+        'management_for': 'reporters'
         }, name="emis-contact"),
 
     url(r'^edtrac/scripts-special/$', emis_scripts_special, name='emis-special-scripts'),
