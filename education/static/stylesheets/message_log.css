@@ -23,8 +23,5 @@ table.results thead a, table.results thead a:after,table.results thead a:active{
 }
 
 span#span_select_all{
-    font-size: 1.3em;
-    color:white;
-    padding:10px;
-    margin:10px;
+    color:#000;
 }
