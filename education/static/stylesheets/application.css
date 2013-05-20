@@ -60,7 +60,11 @@ h6 + hr {
 }
 h2 {
   font-size: 24px;
+  /*padding-bottom: 5px;
+  margin-bottom: 1em;
+  border-bottom: 1px dotted #CCC;*/
 }
+
 h3 {
   font-size: 18px;
 }
@@ -2322,3 +2326,5 @@ Layout: Responsive
     display: none !important;
   }
 }
+
+
