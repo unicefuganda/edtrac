@@ -4,6 +4,7 @@ import dateutils
 from unittest import TestCase
 from django.contrib.auth.models import User, Group
 from education.models import School, EmisReporter
+from education.reports import get_week_date
 from education.views import capitation_grants, total_schools, total_reporters, p3_absent_boys, p6_boys_absent, p3_absent_girls, p6_girls_absent,f_teachers_absent,m_teachers_absent,head_teachers_female,head_teachers_male
 from poll.models import Poll,Response
 from rapidsms.contrib.locations.models import Location, LocationType, Point
@@ -155,6 +156,7 @@ class TestEdtracDashboard(TestCase):
                                                      contact=self.emisreporter6)
 
     def test_percentage_of_p6_boys_absent(self):
+        settings.SCHOOL_HOLIDAYS = []
         self.start_p6_boys_enrollment_poll()
         self.fake_incoming_with_date('10', self.connection1, settings.SCHOOL_TERM_START)
         self.fake_incoming_with_date('15', self.connection2, settings.SCHOOL_TERM_START)
@@ -182,6 +184,7 @@ class TestEdtracDashboard(TestCase):
         self.assertAlmostEqual(5.4, result_p6_boys['boysp6_diff'], places=1)
 
     def test_percentage_of_p3_boys_absent(self):
+        settings.SCHOOL_HOLIDAYS = []
         self.start_p3_boys_enrollment_poll()
         self.fake_incoming_with_date('12', self.connection1, settings.SCHOOL_TERM_START)
         self.fake_incoming_with_date('10', self.connection2, settings.SCHOOL_TERM_START)
@@ -210,6 +213,7 @@ class TestEdtracDashboard(TestCase):
         self.assertAlmostEqual(8.82, result_p3_boys['boysp3_diff'], places=1)
 
     def test_percentage_of_p6_girls_absent(self):
+        settings.SCHOOL_HOLIDAYS = []
         self.start_p6_girls_enrollment_poll()
         self.fake_incoming_with_date('14', self.connection1, settings.SCHOOL_TERM_START)
         self.fake_incoming_with_date('10', self.connection2, settings.SCHOOL_TERM_START)
@@ -238,6 +242,7 @@ class TestEdtracDashboard(TestCase):
         self.assertAlmostEqual(5.55, result_p6_girls['girlsp6_diff'], places=1)
 
     def test_percentage_of_p3_girls_absent(self):
+        settings.SCHOOL_HOLIDAYS = []
         self.start_p3_girls_enrollment_poll()
         self.fake_incoming_with_date('8', self.connection1, settings.SCHOOL_TERM_START)
         self.fake_incoming_with_date('16', self.connection2, settings.SCHOOL_TERM_START)
@@ -266,6 +271,7 @@ class TestEdtracDashboard(TestCase):
         self.assertAlmostEqual(-26.47, result_p3_girls['girlsp3_diff'], places=1)
 
     def test_percentage_of_f_teachers_absent(self):
+        settings.SCHOOL_HOLIDAYS = []
         self.start_f_teacher_deployment_poll()
         self.fake_incoming_with_date('10', self.connection1, settings.SCHOOL_TERM_START)
         self.fake_incoming_with_date('12', self.connection2, settings.SCHOOL_TERM_START)
@@ -292,6 +298,7 @@ class TestEdtracDashboard(TestCase):
         self.assertAlmostEqual(8.33,result_f_teachers['female_teachers_diff'],places=1)
 
     def test_percentage_of_m_teachers_absent(self):
+        settings.SCHOOL_HOLIDAYS = []
         self.start_m_teacher_deployment_poll()
         self.fake_incoming_with_date('13', self.connection1, settings.SCHOOL_TERM_START)
         self.fake_incoming_with_date('14', self.connection2, settings.SCHOOL_TERM_START)
@@ -319,6 +326,7 @@ class TestEdtracDashboard(TestCase):
         self.assertAlmostEqual(-7.89,result_m_teachers['male_teachers_diff'],places=1)
 
     def test_male_and_female_head_teachers_attendance(self):
+        settings.SCHOOL_HOLIDAYS = []
         self.create_emisreporters_of_smc_group()
         self.m_head_teachers_attendance_poll=create_poll_with_reporters("edtrac_head_teachers_attendance",
                                                          "Has the head teacher been at school for at least 3 days? Answer YES or NO",
@@ -345,6 +353,31 @@ class TestEdtracDashboard(TestCase):
         self.assertAlmostEqual(50.00,result_f_head_teachers['f_head_t_week'],places=1)
         self.assertAlmostEqual(50.00,result_f_head_teachers['f_head_t_week_before'],places=1)
         self.assertAlmostEqual(0.00,result_f_head_teachers['f_head_diff'],places=1)
+
+    def test_male_and_female_head_teachers_attendance_on_holiday(self):
+        d1,d2 = get_week_date(depth = 2)
+        settings.SCHOOL_HOLIDAYS = [(d1[0],d1[1]) , (d2[0],d2[1])]
+        self.create_emisreporters_of_smc_group()
+        self.m_head_teachers_attendance_poll=create_poll_with_reporters("edtrac_head_teachers_attendance",
+                                                         "Has the head teacher been at school for at least 3 days? Answer YES or NO",
+                                                         Poll.TYPE_TEXT,self.user,
+                                                         [self.emisreporter4,self.emisreporter5,self.emisreporter6])
+
+        self.m_head_teachers_attendance_poll.add_yesno_categories()
+        self.m_head_teachers_attendance_poll.save()
+        self.m_head_teachers_attendance_poll.start()
+        self.fake_incoming_with_date('yes', self.connection4, self.poll_response_current_week_date)
+        self.fake_incoming_with_date('yes', self.connection5, self.poll_response_current_week_date)
+        self.fake_incoming_with_date('no', self.connection6, self.poll_response_current_week_date)
+
+        self.fake_incoming_with_date('no', self.connection4, self.poll_response_past_week_date)
+        self.fake_incoming_with_date('no', self.connection5, self.poll_response_past_week_date)
+        self.fake_incoming_with_date('yes', self.connection6, self.poll_response_past_week_date)
+        result_m_head_teachers=head_teachers_male(self.root_node.get_children())
+        result_f_head_teachers=head_teachers_female(self.root_node.get_children())
+
+        self.assertEqual("--",result_m_head_teachers['m_head_t_week_before'])
+        self.assertEqual("--",result_f_head_teachers['f_head_t_week_before'])
 
     def test_yes_percentage_at_uganda_level(self):
         self.start_upe_poll()

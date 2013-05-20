@@ -1,6 +1,7 @@
 from __future__ import division
 from exceptions import ZeroDivisionError
 from django.conf import settings
+from django.core.serializers import serialize
 from django.http import HttpResponse
 from generic.reports import Report
 from generic.reporting.reports import Column
@@ -366,19 +367,21 @@ def messages(request):
                     user_location.get_descendants(include_self=True).all())
 
     if request.GET.get('error_msgs'):
-        # messages = messages.filter(poll_responses=None)
-        # #Get only messages handled by rapidsms_xforms and the polls app (this exludes opt in and opt out messages)
-        # messages = messages.filter(Q(application=None) | Q(application__in=['rapidsms_xforms', 'poll','script']))
-        # #Exclude XForm submissions
-        # messages = messages.exclude(responses__in=XFormSubmission.objects.exclude(message=None).filter(has_errors=False))
-        # # Exclude Poll responses
-        # return messages.exclude(responses__in=Response.objects.exclude(message=None).filter(has_errors=False))
-
-        m =  messages.filter(poll_responses=None) | messages.filter(poll_responses__has_errors=True)
-        return m
+        error_messages =  messages.filter(poll_responses=None) | messages.filter(poll_responses__has_errors=True)
+        return error_messages
     else:
         return messages
 
+def error_messages(request, all_messages = Message.objects.none()):
+    if all_messages.count() == 0:
+        all_messages = messages(request).order_by('-date')
+    errornous_messages = all_messages.filter(poll_responses=None) | all_messages.filter(poll_responses__has_errors=True)
+    return errornous_messages[0:5]
+
+def error_messages_as_json(request):
+    messages = error_messages(request)
+    json = serialize("json", messages)
+    return HttpResponse(content=json, mimetype='application/json')
 
 def othermessages(request, district_id=None):
     user_location = get_location(request)

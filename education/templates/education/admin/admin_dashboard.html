@@ -213,23 +213,11 @@ Dashboard -- {{ block.super }}
         </div>
         <div class="attention section">
             <h2>Alerts</h2>
-            <div class="items">
-	
-				{% if alerts %}
-                <!--TODO implement alerts when module is ready -->
-				{% else %}
-				
-				<div class="item">
-                            <span class="call-out">
-                            </span>
-                    <p class="date">Notice</p>
-                    <p class="description">There are currently no alerts in the system</p>
-                </div>
-                {% endif %}
+            <div class="items" id="top_5_error_messages">
             </div>
             <div class="items">
                 <div class="">
-                <a href="{% url emis-messagelog %}" class="button button-blue"><span class="messages">View All Messages</span></a>
+                <a href="{% url emis-messagelog %}?error_msgs=True" class="button button-blue"><span class="messages">View All Alerts</span></a>
                 <div class="clear"></div>
             </div>
 
@@ -250,9 +238,28 @@ Dashboard -- {{ block.super }}
     </div>
 </div>
 <script type="text/javascript">
-//    $(document).ready(function(){
-//        $('span.value.increase').html($('span.value.increase').text().replace('-',''))
-//        $('span.value.decrease').html($('span.value.decrease').text().replace('-',''))
-//})
+    $(document).ready(function(){
+
+        $.ajax({
+            url:'{% url error_messages %}',
+            contentType: 'application/json'
+
+        }).done(function(data){
+                    if(data.length === 0){
+                        $("#top_5_error_messages").append('<div class="item">' +
+                                '<span class="call-out"></span>' +
+                                '<p class="date">Notice</p>' +
+                                '<p class="description">There are currently no Alerts to display</p>' +
+                                '</div>');
+                    }
+                    $.each(data,function(index,item){
+                        $("#top_5_error_messages").append('<div class="item">' +
+                                '<span class="call-out"></span>' +
+                                '<p class="date">Notice</p>' +
+                                '<p class="description" style="color:#FF0000">'+item.fields.text+'</p>' +
+                                '</div>');
+                    });
+                });
+})
 </script>
 {% endblock %}
