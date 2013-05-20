@@ -40,6 +40,13 @@
     {% if time_data %}
 
         <div id="container" style="min-width: 400px; height: 400px; padding-bottom: 40px"></div>
+        {% for key, value in school_percent.items %}
+            <div class='report-stickie'>
+               <span style='margin-top:10px;' class='alert-message'>
+                    {{ key }}: Report based on {{ value|floatformat }}% of schools that made a report
+               </span>
+            </div>
+        {% endfor %}
         <div style="margin: 10px; padding: 10px">
             <table class="tabulated-data classy">
                 <tr>
