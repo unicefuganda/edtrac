@@ -45,8 +45,8 @@ class TestErrorMessages(TestAbsenteeism):
     def test_should_check_count_of_error_messages(self):
         schedule_script_now(grp=self.smc_group.name,slug='edtrac_head_teachers_weekly')
         check_progress(self.head_teachers_script)
-        self.fake_incoming(3, self.emis_reporter5) #error msg
-        self.fake_incoming(2, self.emis_reporter6)
+        self.fake_incoming("3", self.emis_reporter5) #error msg
+        self.fake_incoming("2", self.emis_reporter6)
         request = self.factory.get('/customer/messages/?error_msgs=True')
         request.user = self.admin_user
         resp = messages(request)
@@ -55,7 +55,7 @@ class TestErrorMessages(TestAbsenteeism):
     def test_should_check_message_of_error_messages(self):
         schedule_script_now(grp=self.smc_group.name,slug='edtrac_head_teachers_weekly')
         check_progress(self.head_teachers_script)
-        self.fake_incoming(2, self.emis_reporter6)
+        self.fake_incoming("2", self.emis_reporter6)
         self.fake_incoming("NO one in school today", self.emis_reporter7) #error msg
         request = self.factory.get('/customer/messages/?error_msgs=True')
         request.user = self.admin_user
@@ -65,9 +65,9 @@ class TestErrorMessages(TestAbsenteeism):
     def test_should_return_none_if_all_messages_are_valid(self):
         schedule_script_now(grp=self.smc_group.name,slug='edtrac_head_teachers_weekly')
         check_progress(self.head_teachers_script)
-        self.fake_incoming(2, self.emis_reporter6)
-        self.fake_incoming(3, self.emis_reporter7)
-        self.fake_incoming(2, self.emis_reporter8)
+        self.fake_incoming("2", self.emis_reporter6)
+        self.fake_incoming("3", self.emis_reporter7)
+        self.fake_incoming("2", self.emis_reporter8)
         request = self.factory.get('/customer/messages/?error_msgs=True')
         request.user = self.admin_user
         resp = messages(request)

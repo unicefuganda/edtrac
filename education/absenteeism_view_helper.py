@@ -16,12 +16,13 @@ from unregister.models import Blacklist
 def get_aggregated_report(locations, config_list, date_weeks):
     by_location = []
     by_time = []
+    reporting_school_percent=[]
     for config in config_list:
-        a, b = config['func'](locations, config, date_weeks)
+        a, b , percent = config['func'](locations, config, date_weeks)
         by_location.append((a, config['collective_dict_key']))
         by_time.append((b, config['time_data_name']))
-
-    return get_collective_result(by_location, by_time)
+        reporting_school_percent.append((percent, config['collective_dict_key']))
+    return get_collective_result(by_location, by_time,reporting_school_percent)
 
 
 def get_aggregation_by_time(filtered_responses):
@@ -95,9 +96,10 @@ def get_responses_by_location(locations, config_list, date_weeks):
     total_present_by_location = defaultdict(lambda: 0)
     total_present_by_time = []
     total_enrollment_by_time = []
+    school_percent=0
     for index, attendance_poll_name in enumerate(attendance_poll_names):
 
-        filtered_responses, filtered_enrollment = get_responses_over_depth(attendance_poll_name,
+        filtered_responses, filtered_enrollment,percent = get_responses_over_depth(attendance_poll_name,
                                                                            enrollment_poll_names[index],
                                                                            list(locations), date_weeks)
         transformed_responses = transform(filtered_responses, locations)
@@ -109,24 +111,32 @@ def get_responses_by_location(locations, config_list, date_weeks):
         get_aggregated_list(total_enrollment_by_time, get_agrregated_enrollment_by_time(total_enrollment_by_location, transformed_responses))
 
         get_aggregated_list(total_present_by_time, get_aggregation_by_time(transformed_responses))
-
-    absent_by_time = [round(compute_percent(value, total_enrollment_by_time[i]), 2) for i,value in enumerate(total_present_by_time)]
+        school_percent +=percent
+    school_percent /= len(attendance_poll_names )
+    absent_by_time = [round(compute_percent_out_of_total(value, total_enrollment_by_time[i]), 2) for i,value in enumerate(total_present_by_time)]
 
     absent_by_location = {}
     for key in total_present_by_location:
         absent_by_location[key] = round(
-            compute_percent(total_present_by_location[key], total_enrollment_by_location[key] * len(date_weeks)), 2)
+            compute_percent_out_of_total(total_present_by_location[key], total_enrollment_by_location[key] * len(date_weeks)), 2)
 
-    return absent_by_location, absent_by_time
+    return absent_by_location, absent_by_time,school_percent
 
 
-def get_district_responses(locations, poll):
+def get_school_percent(responses, locations,date_weeks):
+    total_schools = School.objects.filter(location__in=locations).count()
+    schools_that_reported = responses.count()
+    return compute_percent(schools_that_reported,total_schools*len(date_weeks))
+
+
+def get_district_responses(locations, poll,date_weeks):
     q = poll.responses.filter(contact__reporting_location__in=locations).exclude(contact__emisreporter__schools=None)
     if len(locations) == 1:
         q = q.values('contact__emisreporter__schools__name')
     else:
         q = q.values('contact__reporting_location__name')
-    return q.annotate(Sum('eav_values__value_float'))
+    school_percent = get_school_percent(q,locations,date_weeks)
+    return q.annotate(Sum('eav_values__value_float')) ,school_percent
 
 
 def filter_over_time_range(time_range, responses):
@@ -135,14 +145,14 @@ def filter_over_time_range(time_range, responses):
 
 def get_responses_over_depth(attendance_poll_name, enrollment_poll_name, locations, date_weeks):
     attedance_poll = Poll.objects.get(name=attendance_poll_name)
-    district_responses = get_district_responses(locations, attedance_poll)
+    district_responses,school_percent = get_district_responses(locations, attedance_poll,date_weeks)
 
     enrollment_poll = Poll.objects.get(name=enrollment_poll_name)
-    district_enrollment = get_district_responses(locations, enrollment_poll)
+    district_enrollment,enrollment_school_percent = get_district_responses(locations, enrollment_poll,date_weeks)
 
     term_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
     return [filter_over_time_range(date_range, district_responses) for date_range in
-            date_weeks], filter_over_time_range(term_range, district_enrollment)
+            date_weeks], filter_over_time_range(term_range, district_enrollment) ,school_percent
 
 
 def calculate_yes_and_no_for_time(yes, no, resp_by_time):
@@ -165,6 +175,7 @@ def calculate_yes_and_no_for_location(yes, no, resp_by_time_by_location):
 
 
 def get_head_teachers_absent_over_time(locations, config, date_weeks):
+    total_resp_count =0
     gender = config.get('gender')
     fields = ['category__name', 'response__contact__reporting_location__name']
     head_teachers = EmisReporter.objects.filter(reporting_location__in=locations, groups__name="Head Teachers").exclude(
@@ -188,32 +199,42 @@ def get_head_teachers_absent_over_time(locations, config, date_weeks):
         resp_by_time = resp_by_category.filter(response__date__range=date_week)
         calculate_yes_and_no_for_time(yes_by_time, no_by_time, resp_by_time)
         calculate_yes_and_no_for_location(yes_by_location, no_by_location, resp_by_time)
-
-    absent_percent_by_time = [compute_percent(yes_by_time[i], (yes_by_time[i] + no_by_time[i])) for i in
+        total_resp_count += resp_by_time.count()
+    school_percent = compute_percent(total_resp_count,head_t_deploy.count()*len(date_weeks))
+    absent_percent_by_time = [compute_percent_out_of_total(yes_by_time[i], (yes_by_time[i] + no_by_time[i])) for i in
                               range(len(yes_by_time))]
     absent_percent_by_location = {}
     for key in yes_by_location:
-        absent_percent_by_location[key] = compute_percent(yes_by_location[key],
+        absent_percent_by_location[key] = compute_percent_out_of_total(yes_by_location[key],
                                                           yes_by_location[key] + no_by_location[key])
-    return absent_percent_by_location, absent_percent_by_time
+    return absent_percent_by_location, absent_percent_by_time ,school_percent
 
 
-def compute_percent(x, y):
+def compute_percent_out_of_total(x, y):
     try:
         return (100 * (y - x)) / y
     except ZeroDivisionError:
         return 0
 
+def compute_percent(x,y):
+    try:
+        return (100 * x)/y
+    except ZeroDivisionError:
+        return 0
 
-def get_collective_result(location_configs, time_configs):
+
+def get_collective_result(location_configs, time_configs,reporting_school_percent):
     location_result = defaultdict(lambda: {})
+    school_percent_dict = {}
     for config in location_configs:
         location_data = config[0]
         key_name = config[1]
         for key in location_data:
             location_result[key].update({str(key_name): location_data[key]})
+    for config in reporting_school_percent:
+        school_percent_dict[config[1]] = config[0]
     time_result = [dict(name=str(config[1]), data=config[0]) for config in time_configs]
-    return dict(location_result), time_result
+    return dict(location_result), time_result ,school_percent_dict
 
 
 def get_date_range(from_date, to_date, depth=4):

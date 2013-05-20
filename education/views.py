@@ -3234,13 +3234,15 @@ def detail_attd(request, district=None):
 
     week_range.reverse()
     config_list = get_polls_for_keyword(indicator)
-    collective_result, time_data = get_aggregated_report(locations, config_list, week_range)
+    collective_result, time_data, reporting_school_percent = get_aggregated_report(locations, config_list, week_range)
+    print reporting_school_percent
     weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in week_range]
     return render_to_response('education/admin/detail_attd.html',
                               {'form': absenteeism_form,
                                'collective_result_keys': [config['collective_dict_key'] for config in config_list],
                                'collective_result': collective_result,
                                'time_data': mark_safe(json.dumps(time_data)),
+                               'school_percent' : reporting_school_percent,
                                'weeks': mark_safe(json.dumps(weeks)),
                                "locations": locations},
                               RequestContext(request))
