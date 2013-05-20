@@ -111,7 +111,7 @@ class TestErrorMessages(TestAbsenteeism):
         request = self.factory.get('/edtrac/error_messages/')
         request.user = self.admin_user
         response = error_messages_as_json(request)
-        all_messages = Message.objects.filter(direction="I")
+        all_messages = Message.objects.filter(direction="I").order_by('-date')
         msg_json = serialize("json", all_messages)
         self.assertEqual(response.content, msg_json)
 

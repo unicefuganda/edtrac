@@ -374,7 +374,7 @@ def messages(request):
 
 def error_messages(request, all_messages = Message.objects.none()):
     if all_messages.count() == 0:
-        all_messages = messages(request)
+        all_messages = messages(request).order_by('-date')
     errornous_messages = all_messages.filter(poll_responses=None) | all_messages.filter(poll_responses__has_errors=True)
     return errornous_messages[0:5]
 
