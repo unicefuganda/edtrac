@@ -42,7 +42,7 @@ urlpatterns = patterns('',
         'management_for': 'messages'
         }, name="emis-messagelog"),
 
-
+    url(r'^edtrac/error_messages/$', login_required(error_messages_as_json)),
     url(r'^edtrac/other-messages/$', login_required(generic), {
         'model':Message,
         'queryset':othermessages,

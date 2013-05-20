@@ -1,5 +1,7 @@
 # vim: ai ts=4 sts=4 et sw=4 encoding=utf-8
 from django.contrib.auth.models import Group
+from rapidsms_httprouter.models import Message
+from django.core.serializers import serialize
 from django.test import Client, RequestFactory
 from education.models import schedule_script_now
 from education.reports import messages
@@ -9,7 +11,7 @@ from poll.models import Poll
 from rapidsms.models import Backend, Connection
 from script.models import Script, ScriptStep, ScriptProgress, ScriptSession
 from script.utils.outgoing import check_progress
-
+from edtrac_project.rapidsms_edtrac.education.reports import error_messages, error_messages_as_json
 
 class TestErrorMessages(TestAbsenteeism):
 
@@ -42,36 +44,76 @@ class TestErrorMessages(TestAbsenteeism):
         self.factory = RequestFactory()
 
 
-    def test_should_check_count_of_error_messages(self):
-        schedule_script_now(grp=self.smc_group.name,slug='edtrac_head_teachers_weekly')
-        check_progress(self.head_teachers_script)
-        self.fake_incoming(3, self.emis_reporter5) #error msg
-        self.fake_incoming(2, self.emis_reporter6)
-        request = self.factory.get('/customer/messages/?error_msgs=True')
-        request.user = self.admin_user
-        resp = messages(request)
-        self.assertEqual(1 , resp.count())
+#    def test_should_check_count_of_error_messages(self):
+#        schedule_script_now(grp=self.smc_group.name,slug='edtrac_head_teachers_weekly')
+#        check_progress(self.head_teachers_script)
+#        self.fake_incoming(3, self.emis_reporter5) #error msg
+#        self.fake_incoming(2, self.emis_reporter6)
+#        request = self.factory.get('/customer/messages/?error_msgs=True')
+#        request.user = self.admin_user
+#        resp = messages(request)
+#        self.assertEqual(1 , resp.count())
 
-    def test_should_check_message_of_error_messages(self):
-        schedule_script_now(grp=self.smc_group.name,slug='edtrac_head_teachers_weekly')
-        check_progress(self.head_teachers_script)
-        self.fake_incoming(2, self.emis_reporter6)
-        self.fake_incoming("NO one in school today", self.emis_reporter7) #error msg
-        request = self.factory.get('/customer/messages/?error_msgs=True')
-        request.user = self.admin_user
-        resp = messages(request)
-        self.assertEqual(1 ,resp.count())
+#    def test_should_check_message_of_error_messages(self):
+#        schedule_script_now(grp=self.smc_group.name,slug='edtrac_head_teachers_weekly')
+#        check_progress(self.head_teachers_script)
+#        self.fake_incoming(2, self.emis_reporter6)
+#        self.fake_incoming("NO one in school today", self.emis_reporter7) #error msg
+#        request = self.factory.get('/customer/messages/?error_msgs=True')
+#        request.user = self.admin_user
+#        resp = messages(request)
+#        self.assertEqual(1 ,resp.count())
 
-    def test_should_return_none_if_all_messages_are_valid(self):
-        schedule_script_now(grp=self.smc_group.name,slug='edtrac_head_teachers_weekly')
+#    def test_should_return_none_if_all_messages_are_valid(self):
+#        schedule_script_now(grp=self.smc_group.name,slug='edtrac_head_teachers_weekly')
+#        check_progress(self.head_teachers_script)
+#        self.fake_incoming(2, self.emis_reporter6)
+#        self.fake_incoming(3, self.emis_reporter7)
+#        self.fake_incoming(2, self.emis_reporter8)
+#        request = self.factory.get('/customer/messages/?error_msgs=True')
+#        request.user = self.admin_user
+#        resp = messages(request)
+#        self.assertEqual(0,resp.count())
+
+    def test_should_return_top_5_error_messages_given_6_incoming_error_messages(self):
+        schedule_script_now(grp=self.smc_group.name, slug='edtrac_head_teachers_weekly')
         check_progress(self.head_teachers_script)
-        self.fake_incoming(2, self.emis_reporter6)
-        self.fake_incoming(3, self.emis_reporter7)
-        self.fake_incoming(2, self.emis_reporter8)
-        request = self.factory.get('/customer/messages/?error_msgs=True')
+        self.fake_incoming("NO one in school today", self.emis_reporter7)
+        self.fake_incoming("NO one in school today", self.emis_reporter8)
+        self.fake_incoming("NO one in school today", self.emis_reporter6)
+        self.fake_incoming("NO one in school today", self.emis_reporter6)
+        self.fake_incoming("NO one in school today", self.emis_reporter6)
+        self.fake_incoming("NO one in school today", self.emis_reporter6)
+        request = self.factory.get('/edtrac/error_messages/')
         request.user = self.admin_user
-        resp = messages(request)
-        self.assertEqual(0,resp.count())
+        response = error_messages(request)
+        self.assertEquals(5, response.count())
+#
+#    def test_should_return_3_error_messages_given_6_messages_with_3_error_messages(self):
+#        schedule_script_now(grp=self.smc_group.name, slug='edtrac_head_teachers_weekly')
+#        check_progress(self.head_teachers_script)
+#        self.fake_incoming("NO one in school today", self.emis_reporter7)
+#        self.fake_incoming("NO one in school today", self.emis_reporter8)
+#        self.fake_incoming("NO one in school today", self.emis_reporter6)
+#        self.fake_incoming(2, self.emis_reporter6)
+#        self.fake_incoming("2", self.emis_reporter6)
+#        self.fake_incoming("2", self.emis_reporter6)
+#        request = self.factory.get('/edtrac/error_messages/')
+#        request.user = self.admin_user
+#        response = error_messages(request)
+#        self.assertEquals(3, response.count())
+
+    def test_should_convert_error_messages_to_json(self):
+        schedule_script_now(grp=self.smc_group.name, slug='edtrac_head_teachers_weekly')
+        check_progress(self.head_teachers_script)
+        self.fake_incoming("NO one in school today", self.emis_reporter7)
+        self.fake_incoming("NO one in school today", self.emis_reporter8)
+        request = self.factory.get('/edtrac/error_messages/')
+        request.user = self.admin_user
+        response = error_messages_as_json(request)
+        all_messages = Message.objects.filter(direction="I")
+        msg_json = serialize("json", all_messages)
+        self.assertEqual(response.content, msg_json)
 
     def tearDown(self):
         super(TestErrorMessages, self).tearDown()
@@ -82,3 +124,5 @@ class TestErrorMessages(TestAbsenteeism):
         Group.objects.all().delete()
         Backend.objects.all().delete()
         Connection.objects.all().delete()
+        Message.objects.all().delete()
+

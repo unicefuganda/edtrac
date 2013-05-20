@@ -213,19 +213,7 @@ Dashboard -- {{ block.super }}
         </div>
         <div class="attention section">
             <h2>Alerts</h2>
-            <div class="items">
-	
-				{% if alerts %}
-                <!--TODO implement alerts when module is ready -->
-				{% else %}
-				
-				<div class="item">
-                            <span class="call-out">
-                            </span>
-                    <p class="date">Notice</p>
-                    <p class="description">There are currently no alerts in the system</p>
-                </div>
-                {% endif %}
+            <div class="items" id="top_5_error_messages">
             </div>
             <div class="items">
                 <div class="">
@@ -250,9 +238,23 @@ Dashboard -- {{ block.super }}
     </div>
 </div>
 <script type="text/javascript">
-//    $(document).ready(function(){
-//        $('span.value.increase').html($('span.value.increase').text().replace('-',''))
-//        $('span.value.decrease').html($('span.value.decrease').text().replace('-',''))
-//})
+    $(document).ready(function(){
+
+        $.ajax({
+            url:'edtrac/error_messages',
+            contentType: 'application/json'
+
+        }).done(function(data){
+                    $.each(data,function(index,item){
+                        $("#top_5_error_messages").append('<div class="item">' +
+                                '<span class="call-out"></span>' +
+                                '<p class="date">Notice</p>' +
+                                '<p class="description">'+item.fields.text+'</p>' +
+                                '</div>')
+                       console.log(item.fields.text);
+                       console.log(JSON.stringify(data));
+                    });
+                });
+})
 </script>
 {% endblock %}

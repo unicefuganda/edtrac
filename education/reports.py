@@ -1,6 +1,7 @@
 from __future__ import division
 from exceptions import ZeroDivisionError
 from django.conf import settings
+from django.core.serializers import serialize
 from django.http import HttpResponse
 from generic.reports import Report
 from generic.reporting.reports import Column
@@ -371,6 +372,16 @@ def messages(request):
     else:
         return messages
 
+def error_messages(request, all_messages = Message.objects.none()):
+    if all_messages.count() == 0:
+        all_messages = messages(request)
+    errornous_messages = all_messages.filter(poll_responses=None) | all_messages.filter(poll_responses__has_errors=True)
+    return errornous_messages[0:5]
+
+def error_messages_as_json(request):
+    messages = error_messages(request)
+    json = serialize("json", messages)
+    return HttpResponse(content=json, mimetype='application/json')
 
 def othermessages(request, district_id=None):
     user_location = get_location(request)
