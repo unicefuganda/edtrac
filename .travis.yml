@@ -1,0 +1,20 @@
+language: python
+
+python:
+  - "2.6"
+
+# command to install dependencies
+install:
+  - pip install -r requirements.pip --use-mirrors
+  - sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm
+
+before_script:
+  - psql -c 'create database edtrac_test;' -U postgres
+  - git submodule init
+  - git submodule update
+  - cp edtrac_project/localsettings.py.example edtrac_project/localsettings.py
+
+# command to run tests
+script:
+  - cd edtrac_project
+  - python manage.py test education.test
