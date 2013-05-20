@@ -685,6 +685,8 @@ def meals_missed(locations):
 def head_teachers_female(locations):
     # ideally head teachers match the number of SMCs in eductrac
     d1, d2 = get_week_date(depth = 2)
+    female_d1 = "--"
+    female_d2 = "--"
     head_teacher_poll = Poll.objects.get(name = 'edtrac_head_teachers_attendance')
 
     female_head_teachers = EmisReporter.objects.filter(reporting_location__in =\
@@ -692,33 +694,34 @@ def head_teachers_female(locations):
 
     female_head_t_deploy = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
         female_head_teachers.values_list('schools', flat=True), groups__name = 'SMC').distinct()
-    f_head_t_count = female_head_t_deploy.count() # this count is based off just SMCs that have schools attached to them.
 
-    # female head teachers
-    yes_fht_d1 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
-        filter(date__range = d1, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True))).select_related()
-    yes_fht_d2 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
-        filter(date__range = d2, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True))).select_related()
-    no_fht_d1 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
-        filter(date__range = d1, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True))).select_related()
-    no_fht_d2 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
-        filter(date__range = d2, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True))).select_related()
+    if not is_holiday(d1[0], getattr(settings, 'SCHOOL_HOLIDAYS')):
+        # female head teachers
+        yes_fht_d1 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
+            filter(date__range = d1, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True))).select_related()
+        no_fht_d1 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
+            filter(date__range = d1, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True))).select_related()
+        # get the count for female head teachers present in the last 3 days
+        female_d1_yes = yes_fht_d1.count()
+        female_d1_no = no_fht_d1.count()
 
-    # get the count for female head teachers present in the last 3 days
-    female_d1_yes = yes_fht_d1.count()
-    female_d1_no = no_fht_d1.count()
+        try:
+            female_d1 = female_d1_no * 100 / sum([female_d1_no, female_d1_yes]) # messing with ya! :D
+        except ZeroDivisionError:
+            female_d1 = 0.0
 
-    if (female_d1_yes + female_d1_no) > 0:
-        female_d1 = female_d1_no * 100 / sum([female_d1_no, female_d1_yes]) # messing with ya! :D
-    else:
-        female_d1 = 100.0
+    if not is_holiday(d2[0], getattr(settings, 'SCHOOL_HOLIDAYS')):
+        yes_fht_d2 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses. \
+            filter(date__range = d2, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True))).select_related()
+        no_fht_d2 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
+            filter(date__range = d2, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True))).select_related()
 
-    female_d2_yes = yes_fht_d2.count()
-    female_d2_no = no_fht_d2.count()
-    if (female_d2_yes + female_d2_no) > 0:
-        female_d2 = female_d2_no * 100 / sum([female_d2_no, female_d2_yes]) # messing with ya! :D
-    else:
-        female_d2 = 100.0
+        female_d2_yes = yes_fht_d2.count()
+        female_d2_no = no_fht_d2.count()
+        try:
+            female_d2 = female_d2_no * 100 / sum([female_d2_no, female_d2_yes]) # messing with ya! :D
+        except ZeroDivisionError:
+            female_d2 = 0.0
 
     if isinstance(female_d2, float) and female_d2 >= 0 and female_d1 >= 0 and isinstance(female_d1, float):
 
@@ -734,7 +737,7 @@ def head_teachers_female(locations):
             f_head_t_class = "zero"
             f_head_t_data = 'data-white'
     else:
-        f_head_diff = 0
+        f_head_diff = "--"
         f_head_t_class = 'zero'
         f_head_t_data = 'data-white'
 
@@ -743,43 +746,48 @@ def head_teachers_female(locations):
 
 def head_teachers_male(locations):
     d1, d2 = get_week_date(depth = 2)
+    male_d1="--"
+    male_d2="--"
     male_head_teachers = EmisReporter.objects.filter(reporting_location__in =\
     locations, groups__name="Head Teachers", gender='M').exclude(schools = None)
     male_head_t_deploy = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
     male_head_teachers.values_list('schools', flat=True), groups__name = 'SMC').distinct()
     m_head_t_count = male_head_t_deploy.count() # how many male head teachers are available
     head_teacher_poll = Poll.objects.get(name = 'edtrac_head_teachers_attendance')
-    yes_mht_d1 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
-    filter(date__range = d1, contact__reporting_location__in=locations,
-        contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
 
-    yes_mht_d2 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
-        filter(date__range = d2, contact__reporting_location__in=locations,
-            contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
-
-    no_mht_d1 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
+    if not is_holiday(d1[0], getattr(settings, 'SCHOOL_HOLIDAYS')):
+        yes_mht_d1 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
         filter(date__range = d1, contact__reporting_location__in=locations,
             contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
 
-    no_mht_d2 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
-        filter(date__range = d2, contact__reporting_location__in=locations,
-            contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
+        no_mht_d1 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses. \
+            filter(date__range = d1, contact__reporting_location__in=locations,
+                   contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
 
-    # get the count for female head teachers present in the last 3 days
-    male_d1_yes = yes_mht_d1.count()
-    male_d1_no = no_mht_d1.count()
+        # get the count for male head teachers present in the last 3 days
+        male_d1_yes = yes_mht_d1.count()
+        male_d1_no = no_mht_d1.count()
 
-    if (male_d1_yes + male_d1_no) > 0:
-        male_d1 = male_d1_no * 100 / sum([male_d1_no, male_d1_yes]) # messing with ya! :D
-    else:
-        male_d1 = 100.0 # absent
+        if (male_d1_yes + male_d1_no) > 0:
+            male_d1 = male_d1_no * 100 / sum([male_d1_no, male_d1_yes]) # messing with ya! :D
+        else:
+            male_d1 = 100.0 # absent
 
-    male_d2_yes = yes_mht_d2.count()
-    male_d2_no = no_mht_d2.count()
-    if (male_d2_yes + male_d2_no) > 0:
-        male_d2 = float(male_d2_no * 100 / sum([male_d2_no, male_d2_yes])) # messing with ya! :D
-    else:
-        male_d2 = 100.0 # absent
+    if not is_holiday(d2[0], getattr(settings, 'SCHOOL_HOLIDAYS')):
+        yes_mht_d2 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
+            filter(date__range = d2, contact__reporting_location__in=locations,
+                contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
+
+        no_mht_d2 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
+            filter(date__range = d2, contact__reporting_location__in=locations,
+                contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
+
+        male_d2_yes = yes_mht_d2.count()
+        male_d2_no = no_mht_d2.count()
+        if (male_d2_yes + male_d2_no) > 0:
+            male_d2 = float(male_d2_no * 100 / sum([male_d2_no, male_d2_yes])) # messing with ya! :D
+        else:
+            male_d2 = 100.0 # absent
 
     if isinstance(male_d2, float) and male_d2 >= 0 and male_d1 >= 0 and isinstance(male_d1, float):
 
@@ -795,7 +803,7 @@ def head_teachers_male(locations):
             m_head_t_class = "zero"
             m_head_t_data = 'data-white'
     else:
-        m_head_diff = 0
+        m_head_diff = "--"
         m_head_t_class = 'zero'
         m_head_t_data = 'data-white'
 
