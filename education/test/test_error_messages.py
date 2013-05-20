@@ -99,8 +99,8 @@ class TestErrorMessages(TestAbsenteeism):
         self.fake_incoming("2", self.emis_reporter6)
         request = self.factory.get('/edtrac/error_messages/')
         request.user = self.admin_user
-        response = error_messages(request)
-        self.assertEquals(3, response.count())
+        list_of_error_messages = error_messages(request)
+        self.assertEquals(3, list_of_error_messages.count())
 
     def test_should_convert_error_messages_to_json(self):
         schedule_script_now(grp=self.smc_group.name, slug='edtrac_head_teachers_weekly')
@@ -110,9 +110,9 @@ class TestErrorMessages(TestAbsenteeism):
         request = self.factory.get('/edtrac/error_messages/')
         request.user = self.admin_user
         response = error_messages_as_json(request)
-        all_messages = Message.objects.filter(direction="I").order_by('-date')
-        msg_json = serialize("json", all_messages)
-        self.assertEqual(response.content, msg_json)
+        error_messages = Message.objects.filter(direction="I").order_by('-date')
+        error_messages_json = serialize("json", error_messages)
+        self.assertEqual(response.content, error_messages_json)
 
     def tearDown(self):
         super(TestErrorMessages, self).tearDown()
