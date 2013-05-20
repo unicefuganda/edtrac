@@ -101,7 +101,7 @@ if ('test' in sys.argv):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql_psycopg2",
-            "NAME": "mics_test",
+            "NAME": "edtrac_test",
             "USER": "postgres",
             "PASSWORD": "",
             "HOST": "localhost",
