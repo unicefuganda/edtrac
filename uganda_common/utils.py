@@ -25,6 +25,7 @@ from openpyxl.workbook import Workbook
 import openpyxl
 import types
 from django.core.servers.basehttp import FileWrapper
+from django.db import connection
 
 logger = logging.getLogger(__name__)
 
@@ -118,15 +119,15 @@ def normalize_value(value):
     elif isinstance(value, types.NoneType):
         return ""
     elif isinstance(value, types.StringType):
-        #print "str"+value
+        # print "str"+value
         return value
     elif isinstance(value, types.ListType):
         return ", ".join(value)
 
     elif isinstance(value, unicode):
-        #print "unicode"
-        #print unicodedata.normalize('NFKD', unicode(value)).encode('ascii', 'ignore')
-        #openpyxl  hates unicode asciify
+        # print "unicode"
+        # print unicodedata.normalize('NFKD', unicode(value)).encode('ascii', 'ignore')
+        # openpyxl  hates unicode asciify
         return repr(value)[2:-1]
 
     else:
@@ -142,6 +143,15 @@ def create_workbook(data, filename, headers):
 
     for rowx, row in enumerate(data):
         ws.append(map(normalize_value, list(row)))
+
+        # import pdb;pdb.set_trace()
+
+
+
+        # for colx, value in enumerate(row):
+        #   column_letter = get_column_letter((colx + 1))
+        #  ws.cell('%s%s'%(column_letter, (rowx+ 1))).value = value
+    # ws.auto_filter = ws.calculate_dimension()
     wb.save(filename)
     return True
 
@@ -169,8 +179,11 @@ class ExcelResponse(HttpResponse):
         output = StringIO.StringIO()
         mimetype = 'application/vnd.ms-excel'
 
-        book_created = create_workbook(data, output_name, headers, )
+        book_created = create_workbook(data, output_name, headers,)
 
+
+        # book.save(output_name)
+        # output.seek(0)
         if not write_to_file:
             super(ExcelResponse, self).__init__(FileWrapper(open(output_name)),
                                                 content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
@@ -266,7 +279,7 @@ def total_submissions(keyword, start_date, end_date, location, extra_filters=Non
                        'year': 'extract (year from rapidsms_xforms_xformsubmission.created)', })
         values.extend([select_value, 'year'])
     if location.get_children().count() > 1:
-        location_children_where = 'T%d.id in %s' % (tnum, (str(tuple(location.get_children().values_list( \
+        location_children_where = 'T%d.id in %s' % (tnum, (str(tuple(location.get_children().values_list(\
             'pk', flat=True)))))
     else:
         location_children_where = 'T%d.id = %d' % (tnum, location.get_children()[0].pk)
@@ -281,7 +294,7 @@ def total_submissions(keyword, start_date, end_date, location, extra_filters=Non
         where=[ \
             'T%d.lft <= locations_location.lft' % tnum, \
             'T%d.rght >= locations_location.rght' % tnum, \
-            location_children_where]).extra( \
+            location_children_where]).extra(\
         select=select).values(*values).annotate(value=Count('id')).extra(order_by=['location_name'])
 
 
@@ -306,7 +319,7 @@ def total_attribute_value(attribute_slug_list, start_date, end_date, location, g
                        'year': 'extract (year from rapidsms_xforms_xformsubmission.created)', })
         values.extend([select_value, 'year'])
     if location.get_children().count() > 1:
-        location_children_where = 'T8.id in %s' % (str(tuple(location.get_children().values_list( \
+        location_children_where = 'T8.id in %s' % (str(tuple(location.get_children().values_list(\
             'pk', flat=True))))
     else:
         location_children_where = 'T8.id = %d' % location.get_children()[0].pk
@@ -320,7 +333,7 @@ def total_attribute_value(attribute_slug_list, start_date, end_date, location, g
         where=[ \
             'T8.lft <= locations_location.lft',
             'T8.rght >= locations_location.rght',
-            location_children_where]).extra( \
+            location_children_where]).extra(\
         select=select).values(*values).annotate(value=Sum('value_int')).extra(order_by=['location_name'])
 
 
@@ -400,25 +413,26 @@ def get_xform_dates(request):
     dates['min'] = dts.get('created__min', None)
     return dates
 
-
 def get_messages(request):
-    #First we get all incoming messages
-    messages = Message.objects.filter(direction='I')
+    # First we get all incoming messages for last 30 days
+    # Getting all messages is so expensive
+    limit_date = datetime.datetime.now() - datetime.timedelta(days=getattr(settings, 'MESSAGELOG_DAYS_LIMIT', 30))
+    messages = Message.objects.filter(direction='I', date__gte=limit_date)
 
-    #Get only messages handled by rapidsms_xforms and the polls app (this exludes opt in and opt out messages)
+    # Get only messages handled by rapidsms_xforms and the polls app (this exludes opt in and opt out messages)
     messages = messages.filter(Q(application=None) | Q(application__in=['rapidsms_xforms', 'poll']))
 
-    #Exclude XForm submissions
+    # Exclude XForm submissions
     messages = messages.exclude(
-        pk__in=XFormSubmission.objects.exclude(message=None).filter(has_errors=False).values_list('message__pk',
-                                                                                                  flat=True))
+        pk__in=XFormSubmission.objects.exclude(message=None).\
+        filter(has_errors=False, created__gte=limit_date).values_list('message__pk', flat=True))
 
     # Exclude Poll responses
     messages = messages.exclude(
-        pk__in=Response.objects.exclude(message=None).filter(has_errors=False).values_list('message__pk', flat=True))
+        pk__in=Response.objects.exclude(message=None).\
+        filter(has_errors=False, date__gte=limit_date).values_list('message__pk', flat=True))
 
     return messages
-
 
 def parse_header_row(worksheet, fields):
 #    fields=['telephone number','name', 'district', 'county', 'village', 'age', 'gender']
