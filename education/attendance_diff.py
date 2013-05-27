@@ -136,3 +136,12 @@ def get_enrolled_p6_boys_and_girls(connection):
         girls_enrolled = 0
 
     return boys_enrolled , girls_enrolled
+
+def get_enrolled_p6_boys(connection, term_start_date = None, term_end_date = None):
+    boys_enrolled = Response.objects.filter(poll__name="edtrac_boysp6_enrollment", contact__connection=connection,
+        date__range=[term_start_date, term_end_date])
+    if boys_enrolled.exists():
+        boys_enrolled = int(boys_enrolled.latest('date').message.text)
+    else:
+        boys_enrolled = 0
+    return boys_enrolled

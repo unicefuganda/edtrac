@@ -12,7 +12,8 @@ from rapidsms.contrib.locations.models import Location, LocationType
 from rapidsms_httprouter.models import Message
 from script.models import Script, ScriptStep, ScriptProgress, ScriptSession
 from script.utils.outgoing import check_progress
-
+from edtrac_project.rapidsms_edtrac.education.attendance_diff import calculate_percent
+from edtrac_project.rapidsms_polls.poll.models import Response
 
 class TestSuccessfulFeedbacksToPolls(TestCase):
 
@@ -91,6 +92,11 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
         settings.SCHOOL_TERM_START = dateutils.increment(datetime.today(),weeks=-4)
         settings.SCHOOL_TERM_END = dateutils.increment(datetime.today(),weeks=8)
 
+    def test_calculate_percent_should_return_50_when_given_1_and_2(self):
+        self.assertEqual(50, calculate_percent(1, 2))
+
+    def test_calculate_percent_should_return_0_when_given_denominator_0(self):
+        self.assertEqual(0, calculate_percent(1, 0))
 
     def test_should_check_increment_in_outgoing_msg_count_on_all_responses_received(self):
         schedule_script_now(grp=self.head_teacher_group.name,slug = self.teachers_weekly_script.slug)
@@ -112,9 +118,9 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
         check_progress(self.teachers_weekly_script)
         fake_incoming("4",self.emis_reporter1)#response to p3 boys poll
         progress = ScriptProgress.objects.create(script=self.teachers_weekly_script,connection=self.emis_reporter1.connection_set.all()[0],step=self.p3_boys_attendance_step)
-        attd_diff = calculate_attendance_diff(self.emis_reporter1.connection_set.all()[0],progress)
-        self.assertEqual(40,attd_diff['boysp3'][0])
-        self.assertEqual("improved",attd_diff['boysp3'][1])
+        attendance_difference = calculate_attendance_diff(self.emis_reporter1.connection_set.all()[0],progress)
+        self.assertEqual(40,attendance_difference['boysp3'][0])
+        self.assertEqual("improved",attendance_difference['boysp3'][1])
 
 
     def tearDown(self):

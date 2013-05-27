@@ -12,7 +12,7 @@ from poll.models import Poll
 from rapidsms.contrib.locations.models import Location, LocationType
 from script.models import Script, ScriptStep, ScriptProgress, ScriptSession
 from script.utils.outgoing import check_progress
-
+from edtrac_project.rapidsms_edtrac.education.attendance_diff import get_enrolled_p6_boys
 
 class TestSuccessFulFeedbackToP6Polls(TestCase):
 
@@ -96,6 +96,20 @@ class TestSuccessFulFeedbackToP6Polls(TestCase):
         settings.SCHOOL_TERM_START = dateutils.increment(datetime.datetime.today(), weeks=-4)
         settings.SCHOOL_TERM_END = dateutils.increment(datetime.datetime.today(), weeks=8)
 
+    def test_should_return_10_given_reporter_responds_10_to_boys_enrollment_poll(self):
+        schedule_script_now(grp=self.head_teacher_group.name, slug = self.head_teachers_termly_script.slug)
+        check_progress(self.head_teachers_termly_script)
+        fake_incoming("10", self.emis_reporter1)
+        enrolled_boys = get_enrolled_p6_boys(self.emis_reporter1.connection_set.all()[0],
+            settings.SCHOOL_TERM_START, settings.SCHOOL_TERM_END)
+        self.assertEqual(10, enrolled_boys)
+
+    def test_should_return_0_given_no_reporter_responds_to_boys_enrollment_poll(self):
+        schedule_script_now(grp=self.head_teacher_group.name, slug = self.head_teachers_termly_script.slug)
+        check_progress(self.head_teachers_termly_script)
+        enrolled_boys = get_enrolled_p6_boys(self.emis_reporter1.connection_set.all()[0],
+            settings.SCHOOL_TERM_START, settings.SCHOOL_TERM_END)
+        self.assertEqual(0, enrolled_boys)
 
     def test_should_calculate_difference_in_attendance_for_this_and_past_week(self):
         schedule_script_now(grp=self.head_teacher_group.name,slug=self.head_teachers_termly_script.slug)
