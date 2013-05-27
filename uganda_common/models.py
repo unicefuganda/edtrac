@@ -84,8 +84,8 @@ class AccessManager(models.Manager):
         access = self.get_or_create(user=user)[0]
         access.groups.add(group)
 
-    def create_new_access(self, username, password, groups=None, urls=None):
-        user = User.objects.create(username=username)
+    def create_new_access(self, username, password, groups=[], urls=None):
+        user = User.objects.get_or_create(username=username)[0]
         user.set_password(password)
         for group in groups:
             user.groups.add(group)
@@ -94,7 +94,7 @@ class AccessManager(models.Manager):
             [access.allowed_urls.add(AccessUrls.objects.get_or_create(url=url)[0]) for url in urls]
 
         if groups:
-            [access.groups.add(group) for group in groups ]
+            [access.groups.add(group) for group in groups]
         return access
 
 
