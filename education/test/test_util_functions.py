@@ -1,7 +1,6 @@
 # vim: ai ts=4 sts=4 et sw=4 encoding=utf-8
 from datetime import datetime
 from unittest import TestCase
-from dateutil.relativedelta import relativedelta
 import dateutils
 from education.utils import get_week_count, get_months
 

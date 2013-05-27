@@ -9,7 +9,7 @@ from eav.models import Attribute
 from education.utils import _schedule_weekly_scripts, _schedule_weekly_scripts_now, _schedule_monthly_script, _schedule_termly_script,\
     _schedule_weekly_report, _schedule_monthly_report, _schedule_midterm_script, _schedule_weekly_script, _schedule_teacher_weekly_scripts,\
     _schedule_new_monthly_script, _schedule_script_now
-from rapidsms_httprouter.models import mass_text_sent
+from rapidsms_httprouter.models import mass_text_sent, Message
 from rapidsms.models import Contact, ContactBase
 from rapidsms.contrib.locations.models import Location
 from poll.models import Poll
@@ -18,6 +18,7 @@ from script.models import *
 from script.utils.handling import find_best_response, find_closest_match
 import re, calendar, datetime, time, reversion
 from poll.models import ResponseCategory, Category
+from education.attendance_diff import calculate_attendance_diff
 import logging
 
 logger = logging.getLogger(__name__)
@@ -549,6 +550,18 @@ def edtrac_scriptrun_schedule(**kwargs):
         s, c = ScriptSchedule.objects.get_or_create(script=script, date__contains=date)
 
 
+def send_feedback_on_complete(**kwargs):
+    connection = kwargs['connection']
+    progress = kwargs['sender']
+    if progress.script.slug == 'edtrac_p3_teachers_weekly':
+        atttd_diff = calculate_attendance_diff(connection, progress)
+        message_string = "Thankyou %s Teacher, Attendance for boys have been %s by %spercent" \
+                         "Attendance for girls have been %s by %spercent" % (
+                         connection.contact.emisreporter.grade, atttd_diff['boysp3'][1], atttd_diff['boysp3'][0], atttd_diff['girlsp3'][1],
+                         atttd_diff['girlsp3'][0])
+        Message.mass_text(message_string, [connection])
+
+
 def reschedule_weekly_polls(grp=None):
     """
     manually reschedule all weekly polls or for a specified group
@@ -736,11 +749,11 @@ def schedule_script_now(grp = 'all', slug=''):
     
     now_script.enabled = True
     grps = Group.objects.filter(name__iexact=grp)
-    reps = EmisReporter.objects.filter(groups__in=grps)
-    for rep in reps:
-        if rep.default_connection and rep.groups.count() > 0:
-            _schedule_script_now(rep.groups.all()[0], rep.default_connection, slug, ['Teachers', 'Head Teachers', 'SMC', 'GEM'])
-    print "Script sent out to " + str(reps.count()) + " reporters"
+    reporters = EmisReporter.objects.filter(groups__in=grps)
+    for reporter in reporters:
+        if reporter.default_connection and reporter.groups.count() > 0:
+            _schedule_script_now(reporter.groups.all()[0], reporter.default_connection, slug, ['Teachers', 'Head Teachers', 'SMC', 'GEM'])
+    print "Script sent out to " + str(reporters.count()) + " reporters"
 
 
 def schedule_weekly_report(grp='DEO'):
@@ -810,6 +823,7 @@ script_progress_was_completed.connect(edtrac_autoreg, weak=False)
 script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)
 script_progress.connect(edtrac_autoreg_transition, weak=False)
 script_progress.connect(edtrac_attendance_script_transition, weak=False)
+script_progress_was_completed.connect(send_feedback_on_complete,weak=True)
 #script_progress.connect(edtrac_scriptrun_schedule, weak=False)
 
 class ScriptScheduleTime(models.Model):
