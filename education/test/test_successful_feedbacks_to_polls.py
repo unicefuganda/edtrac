@@ -26,6 +26,7 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
             }
         self.uganda = create_location("uganda", country, **uganda_fields)
         admin_group = create_group("Admins")
+        self.smc_group = create_group("SMC")
         self.admin_user = create_user_with_group("John", admin_group, self.uganda)
 
         district = create_location_type("district")
@@ -51,6 +52,9 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
                                                     self.head_teacher_group)
         self.emis_reporter2.grade ='P3'
         self.emis_reporter2.save()
+
+        self.emis_reporter3 = create_emis_reporters("dummy1", self.kampala_district, self.kampala_school, 12347,
+                                                    self.smc_group)
 
         self.p3_boys_absent_poll = create_poll_with_reporters("edtrac_boysp3_attendance", "How many P3 boys are at school today?",
                                                               Poll.TYPE_NUMERIC, self.admin_user,
@@ -88,6 +92,18 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
         self.head_teachers_termly_script.steps.add(
             ScriptStep.objects.create(script=self.head_teachers_termly_script, poll=self.p3_girls_enroll_poll, order=1,
                                       rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=7200 ))
+
+        self.head_teacher_poll = create_poll_with_reporters("edtrac_head_teachers_attendance", "Has the head teacher been at school for at least 3 days? Answer YES or NO",
+                                                               Poll.TYPE_TEXT, self.admin_user,
+                                                               [self.emis_reporter3])
+        self.head_teacher_poll.add_yesno_categories()
+        self.head_teacher_poll.save()
+        self.smc_weekly_script = Script.objects.create(name='Education monitoring smc weekly script',
+                                                                 slug='edtrac_smc_weekly')
+        self.smc_weekly_script.steps.add(
+            ScriptStep.objects.create(script=self.smc_weekly_script, poll=self.head_teacher_poll, order=0,
+                                      rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=7200 ))
+
         settings.SCHOOL_TERM_START = dateutils.increment(datetime.today(),weeks=-4)
         settings.SCHOOL_TERM_END = dateutils.increment(datetime.today(),weeks=8)
 
@@ -116,6 +132,13 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
         self.assertEqual(40,attd_diff['boysp3'][0])
         self.assertEqual("improved",attd_diff['boysp3'][1])
 
+    def test_should_send_message_to_smc_for_head_teachers_attd(self):
+        schedule_script_now(self.smc_group.name,self.smc_weekly_script.slug)
+        check_progress(self.smc_weekly_script)
+        fake_incoming("yes",self.emis_reporter3)
+        check_progress(self.smc_weekly_script)
+        expected ="Thank you for your report. Please continue to visit your school and report on what is happening."
+        self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter3.connection_set.all()[0]).values_list('text',flat=True))
 
     def tearDown(self):
         Message.objects.all().delete()

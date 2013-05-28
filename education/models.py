@@ -560,7 +560,9 @@ def send_feedback_on_complete(**kwargs):
                          connection.contact.emisreporter.grade, atttd_diff['boysp3'][1], atttd_diff['boysp3'][0], atttd_diff['girlsp3'][1],
                          atttd_diff['girlsp3'][0])
         Message.mass_text(message_string, [connection])
-
+    if progress.script.slug == 'edtrac_smc_weekly':
+        message_string = "Thank you for your report. Please continue to visit your school and report on what is happening."
+        Message.mass_text(message_string, [connection])
 
 def reschedule_weekly_polls(grp=None):
     """
