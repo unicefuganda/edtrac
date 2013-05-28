@@ -1,4 +1,5 @@
 # vim: ai ts=4 sts=4 et sw=4 encoding=utf-8
+import datetime
 from django.contrib.auth.models import User
 from django.http import HttpRequest
 from eav.models import Attribute
@@ -6,6 +7,8 @@ from education.models import Role, School, UserProfile, EmisReporter
 from poll.models import Poll
 from rapidsms.contrib.locations.models import LocationType, Location, Point
 from rapidsms.models import Backend
+from rapidsms_httprouter.router import get_router
+from script.models import ScriptSession
 
 
 def create_user_with_group(username,group=None, location=None):
@@ -79,3 +82,8 @@ def create_attribute():
         "name": "Number"
     }
     Attribute.objects.create(**params)
+
+def fake_incoming(message, reporter):
+    router = get_router()
+    connection = reporter.default_connection
+    return router.handle_incoming(connection.backend.name, connection.identity, message)
