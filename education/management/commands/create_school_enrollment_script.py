@@ -30,7 +30,7 @@ from poll.models import Poll
 from optparse import OptionParser, make_option
 
 class Command(BaseCommand):
-    help = "Create school enrollment termly polls"
+    help = "Create school enrollment termly script"
     
     def handle(self, **options):
         poll0 = Poll.objects.get(name="total_enrollment_girls")
@@ -43,7 +43,7 @@ class Command(BaseCommand):
         script_school_enrollment_termly.sites.add(Site.objects.get_current())
         
         script_school_enrollment_termly.steps.add(ScriptStep.objects.create(
-                script=script_headteacher_violence_monthly,
+                script=script_school_enrollment_termly,
                 poll=poll0,
                 order=0,
                 rule = ScriptStep.WAIT_MOVEON,
@@ -51,7 +51,7 @@ class Command(BaseCommand):
                 giveup_offset=14400, # we'll give them four hours to respond
                 ))
         script_school_enrollment_termly.steps.add(ScriptStep.objects.create(
-                script=script_headteacher_violence_monthly,
+                script=script_school_enrollment_termly,
                 poll=poll1,
                 order=1,
                 rule=ScriptStep.WAIT_MOVEON, # for polls, this likely means a poll whose answer we aren't particularly concerned with
