@@ -114,7 +114,8 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
         check_progress(self.head_teachers_termly_script)
         fake_incoming("15", self.emis_reporter1)
         check_progress(self.head_teachers_termly_script)
-        boys, girls = get_enrolled_boys_and_girls(self.emis_reporter1.connection_set.all()[0])
+        boys, girls = get_enrolled_boys_and_girls(self.emis_reporter1.connection_set.all()[0],
+            self.p3_boys_enroll_poll.name, self.p3_girls_enroll_poll.name)
         self.assertEqual(10, boys)
         self.assertEqual(15, girls)
 
@@ -125,7 +126,8 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
         check_progress(self.head_teachers_termly_script)
         time.sleep(2)
         check_progress(self.head_teachers_termly_script)
-        boys, girls = get_enrolled_boys_and_girls(self.emis_reporter1.connection_set.all()[0])
+        boys, girls = get_enrolled_boys_and_girls(self.emis_reporter1.connection_set.all()[0],
+            self.p3_boys_enroll_poll.name, self.p3_girls_enroll_poll.name)
         self.assertEqual(0, boys)
         self.assertEqual(0, girls)
 
@@ -136,7 +138,8 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
         check_progress(self.head_teachers_termly_script)
         time.sleep(2)
         check_progress(self.head_teachers_termly_script)
-        boys, girls = get_enrolled_boys_and_girls(self.emis_reporter1.connection_set.all()[0])
+        boys, girls = get_enrolled_boys_and_girls(self.emis_reporter1.connection_set.all()[0],
+            self.p3_boys_enroll_poll.name, self.p3_girls_enroll_poll.name)
         self.assertEqual(10, boys)
         self.assertEqual(0, girls)
 
@@ -153,8 +156,8 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
         progress = ScriptProgress.objects.create(script=self.teachers_weekly_script,
             connection=self.emis_reporter1.connection_set.all()[0],step=self.p3_boys_attendance_step)
         attendance_difference = calculate_attendance_diff(self.emis_reporter1.connection_set.all()[0],progress)
-        self.assertEqual(40,attendance_difference['boysp3'][0])
-        self.assertEqual("improved",attendance_difference['boysp3'][1])
+        self.assertEqual(40,attendance_difference[self.p3_boys_absent_poll.name][0])
+        self.assertEqual("improved",attendance_difference[self.p3_boys_absent_poll.name][1])
 
 
     def tearDown(self):

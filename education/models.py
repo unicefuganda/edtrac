@@ -18,8 +18,9 @@ from script.models import *
 from script.utils.handling import find_best_response, find_closest_match
 import re, calendar, datetime, time, reversion
 from poll.models import ResponseCategory, Category
-from education.attendance_diff import calculate_attendance_diff
+from education.attendance_diff import calculate_attendance_difference
 import logging
+from edtrac_project.rapidsms_edtrac.education.attendance_diff import calculate_attendance_difference
 
 logger = logging.getLogger(__name__)
 
@@ -553,12 +554,15 @@ def edtrac_scriptrun_schedule(**kwargs):
 def send_feedback_on_complete(**kwargs):
     connection = kwargs['connection']
     progress = kwargs['sender']
+    keys = {'p3':['edtrac_boysp3_attendance','edtrac_girlsp3_attendance'],
+            'p6':['edtrac_boysp6_attendance','edtrac_girlsp6_attendance']}
     if progress.script.slug == 'edtrac_p3_teachers_weekly':
-        atttd_diff = calculate_attendance_diff(connection, progress)
+        atttd_diff = calculate_attendance_difference(connection, progress)
+        emisreporter_grade = connection.contact.emisreporter.grade.lower()
         message_string = "Thankyou %s Teacher, Attendance for boys have been %s by %spercent" \
                          "Attendance for girls have been %s by %spercent" % (
-                         connection.contact.emisreporter.grade, atttd_diff['boysp3'][1], atttd_diff['boysp3'][0], atttd_diff['girlsp3'][1],
-                         atttd_diff['girlsp3'][0])
+                         emisreporter_grade, atttd_diff[keys[emisreporter_grade][0]][1], atttd_diff[keys[emisreporter_grade][0]][0], atttd_diff[keys[emisreporter_grade][1]][1],
+                         atttd_diff[keys[emisreporter_grade][1]][0])
         Message.mass_text(message_string, [connection])
 
 

@@ -3,9 +3,9 @@ from unittest import TestCase
 import datetime
 import dateutils
 from django.contrib.auth.models import User, Group
-from education.attendance_diff import calculate_attendance_diff, get_enrolled_boys_and_girls, calculate_attendance_difference_for_p6
+#from education.attendance_diff import calculate_attendance_diff, get_enrolled_boys_and_girls
 from rapidsms_httprouter.models import Message
-from edtrac_project import settings
+from django.conf import settings
 from education.models import EmisReporter, School, schedule_script_now
 from education.test.utils import create_location_type, create_location, create_group, create_user_with_group,\
     create_school, create_emis_reporters, create_poll_with_reporters, fake_incoming
@@ -13,7 +13,7 @@ from poll.models import Poll
 from rapidsms.contrib.locations.models import Location, LocationType
 from script.models import Script, ScriptStep, ScriptProgress, ScriptSession
 from script.utils.outgoing import check_progress
-from edtrac_project.rapidsms_edtrac.education.attendance_diff import get_enrolled_pupils
+from edtrac_project.rapidsms_edtrac.education.attendance_diff import get_enrolled_pupils, calculate_attendance_difference
 
 class TestSuccessFulFeedbackToP6Polls(TestCase):
 
@@ -138,10 +138,10 @@ class TestSuccessFulFeedbackToP6Polls(TestCase):
         progress = ScriptProgress.objects.create(script=self.teachers_weekly_script,
                                                  connection=self.emis_reporter1.connection_set.all()[0],
                                                  step=self.p6_boys_attendance_step)
-        attendance_difference = calculate_attendance_difference_for_p6(self.emis_reporter1.connection_set.all()[0], progress)
+        attendance_difference = calculate_attendance_difference(self.emis_reporter1.connection_set.all()[0], progress)
 
-        self.assertEqual(40,attendance_difference['boysp6'][0])
-        self.assertEqual("improved",attendance_difference['boysp6'][1])
+        self.assertEqual(40,attendance_difference[self.p6_boys_absent_poll.name][0])
+        self.assertEqual("improved",attendance_difference[self.p6_boys_absent_poll.name][1])
 
     def tearDown(self):
         Message.objects.all().delete()
