@@ -123,20 +123,13 @@ def get_responses_by_location(locations, config_list, date_weeks):
     return absent_by_location, absent_by_time,school_percent
 
 
-def get_school_percent(responses, locations,date_weeks):
-    total_schools = School.objects.filter(location__in=locations).count()
-    schools_that_reported = responses.count()
-    return compute_percent(schools_that_reported,total_schools*len(date_weeks))
-
-
-def get_district_responses(locations, poll,date_weeks):
+def get_district_responses(locations, poll):
     q = poll.responses.filter(contact__reporting_location__in=locations).exclude(contact__emisreporter__schools=None)
     if len(locations) == 1:
         q = q.values('contact__emisreporter__schools__name')
     else:
         q = q.values('contact__reporting_location__name')
-    school_percent = get_school_percent(q,locations,date_weeks)
-    return q.annotate(Sum('eav_values__value_float')) ,school_percent
+    return q , q.annotate(Sum('eav_values__value_float'))
 
 
 def filter_over_time_range(time_range, responses):
@@ -144,15 +137,23 @@ def filter_over_time_range(time_range, responses):
 
 
 def get_responses_over_depth(attendance_poll_name, enrollment_poll_name, locations, date_weeks):
+    weekly_attd_responses =[]
     attedance_poll = Poll.objects.get(name=attendance_poll_name)
-    district_responses,school_percent = get_district_responses(locations, attedance_poll,date_weeks)
+    unfiltered_responses, district_responses= get_district_responses(locations, attedance_poll)
 
     enrollment_poll = Poll.objects.get(name=enrollment_poll_name)
-    district_enrollment,enrollment_school_percent = get_district_responses(locations, enrollment_poll,date_weeks)
+    unfiltered_enrollment, district_enrollment= get_district_responses(locations, enrollment_poll)
 
     term_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
-    return [filter_over_time_range(date_range, district_responses) for date_range in
-            date_weeks], filter_over_time_range(term_range, district_enrollment) ,school_percent
+    total_responses = 0
+    total_schools = School.objects.filter(location__in=locations).count()
+    for date_range in date_weeks:
+        weekly_responses = filter_over_time_range(date_range, district_responses)
+        weekly_attendance = filter_over_time_range(date_range, unfiltered_responses)
+        weekly_attd_responses.append(weekly_responses)
+        total_responses += weekly_attendance.count()
+    school_percent = compute_percent(total_responses,(total_schools*len(date_weeks)))
+    return weekly_attd_responses, filter_over_time_range(term_range, district_enrollment) ,school_percent
 
 
 def calculate_yes_and_no_for_time(yes, no, resp_by_time):

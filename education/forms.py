@@ -2,6 +2,7 @@ from django import forms
 from django.forms import extras
 import datetime
 from mptt.forms import TreeNodeChoiceField
+from education.utils import is_empty
 from poll.models import Poll
 from rapidsms.contrib.locations.models import Location
 from generic.forms import ActionForm, FilterForm, ModuleForm
@@ -116,8 +117,10 @@ class EditReporterForm(forms.ModelForm):
         self.fields['reporting_location'] = forms.ModelChoiceField(queryset=Location.objects.filter(type='district').order_by('name'))
 
         if instance and data:
+            edited_school = School.objects.none()
             schools_in_reporting_location = School.objects.filter(location=instance.reporting_location)
-            edited_school = School.objects.filter(pk = data.get('schools'))
+            if not is_empty(data.get('schools')):
+                edited_school = School.objects.filter(pk = data.get('schools'))
             self.fields['schools'] = forms.ModelChoiceField(queryset=schools_in_reporting_location | edited_school)
         elif instance.reporting_location is None:
             if instance.schools.count() == 0:

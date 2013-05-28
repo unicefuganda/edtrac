@@ -294,6 +294,7 @@ urlpatterns = patterns('',
     url(r'^edtrac/violence-detail/$', detailed_violence_view, name="violence-detail-visualization"),
     url(r'^edtrac/violence-detail/(?P<district>\w+)/$', detailed_violence_view, name="violence-detail-visualization"),
     url(r'^get_schools/$', get_schools),
+    url(r'^export_error_messages/$', edtrac_export_error_messages),
 #    url(r'^edtrac/violence-detail-school/(?P<location>\w+)/$', violence_detail_school, name="violence-detail-school"),
 )
 

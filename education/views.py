@@ -19,7 +19,7 @@ from django.db.models import Q
 import xlwt
 from django.utils.safestring import mark_safe
 from education.curriculum_progress_helper import get_target_value, get_location_for_curriculum_view, get_curriculum_data, target
-
+from rapidsms_httprouter.models import Message
 from .forms import *
 from .models import *
 from uganda_common.utils import *
@@ -3243,7 +3243,6 @@ def detail_attd(request, district=None):
     week_range.reverse()
     config_list = get_polls_for_keyword(indicator)
     collective_result, time_data, reporting_school_percent = get_aggregated_report(locations, config_list, week_range)
-    print reporting_school_percent
     weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in week_range]
     return render_to_response('education/admin/detail_attd.html',
                               {'form': absenteeism_form,
@@ -3372,6 +3371,63 @@ def export_sub_county_reporters(request):
                                   context_instance=RequestContext(request))
         resp['Content-Disposition'] = 'attachment;filename="sub_county_reporters.csv"'
         return resp
+
+class ExportMessageForm(forms.Form):
+    error_css_class = 'error'
+    from_date = forms.DateTimeField(required=False)
+    to_date = forms.DateTimeField(required=False)
+
+    def clean(self):
+        data = self.cleaned_data
+        if data.get('from_date') is None or data.get('to_date') is None:
+            raise forms.ValidationError("Fields blank")
+        if data.get('from_date') > data.get('to_date'):
+            raise forms.ValidationError("To date less than from date")
+        return data
+
+
+def _get_school(m):
+    if m.connection.contact.emisreporter.schools.all().exists():
+        return m.connection.contact.emisreporter.schools.all()[0]
+    return None
+
+
+def _format_messages(messages):
+    return[ [m ,m.connection.contact.reporting_location,_get_school(m),m.connection.contact,m.connection,m.date ] for m in messages]
+
+
+@login_required
+def edtrac_export_error_messages(request):
+    profile = request.user.get_profile()
+    if not (profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of(
+        'UNICEF Officials')):
+        return redirect('/')
+
+    if request.method == 'GET':
+        form = ExportMessageForm()
+    else:
+        form = ExportMessageForm(data=request.POST)
+        if form.is_valid():
+            messages = Message.objects.exclude(
+                connection__identity__in = getattr(settings, 'MODEM_NUMBERS')
+            ).filter(direction='I',
+                connection__contact__emisreporter__reporting_location__in =\
+                locations.get(name__iexact="Uganda").get_descendants(include_self=True).all()
+            )
+            messages= messages.filter(poll_responses=None) | messages.filter(poll_responses__has_errors=True)
+            to_date = form.cleaned_data['to_date']
+            from_date = form.cleaned_data['from_date']
+            if from_date and to_date:
+                messages = messages.filter(date__range=[from_date, to_date])
+
+            resp = render_to_response('education/admin/export_error_messages.csv', {'messages'
+                                                                                    : _format_messages(messages)}, mimetype='text/csv',
+                context_instance=RequestContext(request))
+            resp['Content-Disposition'] = 'attachment;filename="error_messages.csv"'\
+
+            return resp
+
+    return render_to_response('education/admin/export_error_messages.html', {'form':form},RequestContext(request))
 
 def get_schools(request):
     location = request.GET['location']
