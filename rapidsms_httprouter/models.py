@@ -1,14 +1,13 @@
+# -*- coding: utf-8 -*-
+
 import datetime
 from django.db import models, transaction
-#import django
 import django.dispatch
 from django.db import connection as db_connection
-from rapidsms.models import Contact, Connection
-
+from rapidsms.models import Connection
 from .managers import ForUpdateManager
-from django.conf import settings
-
 import logging
+
 log = logging.getLogger(__name__)
 
 mass_text_sent = django.dispatch.Signal(providing_args=["messages", "status"])
@@ -40,7 +39,8 @@ STATUS_CHOICES = (
 #
 class MessageBatch(models.Model):
     status = models.CharField(max_length=1, choices=STATUS_CHOICES)
-    name = models.CharField(max_length=15,null=True,blank=True)
+    name = models.CharField(max_length=15, null=True, blank=True)
+
 
 class Message(models.Model):
     connection = models.ForeignKey(Connection, related_name='messages')
@@ -59,8 +59,10 @@ class Message(models.Model):
 
     def __unicode__(self):
         # crop the text (to avoid exploding the admin)
-        if len(self.text) < 60: str = self.text
-        else: str = "%s..." % (self.text[0:57])
+        if len(self.text) < 60:
+            str = self.text
+        else:
+            str = "%s..." % (self.text[0:57])
 
         to_from = (self.direction == "I") and "to" or "from"
         return "%s (%s %s)" % (str, to_from, self.connection.identity)
@@ -76,7 +78,9 @@ class Message(models.Model):
     def mass_text(cls, text, connections, status='P', batch_status='Q', batch_name=None):
         log.info("[mass_text] TRANSACTION START")
         if connections is not None:
-            log.info("[mass_text] Sending [%s] to [%d] connections with batch name [%s]" % (text, len(connections), batch_name))
+            pass
+            log.info(
+                "[mass_text] Sending message to [%d] connections with batch name [%s]" % (len(connections), batch_name))
 
         batch = MessageBatch.objects.create(status=batch_status, name=batch_name)
         sql = 'insert into rapidsms_httprouter_message (text, date, direction, status, batch_id, connection_id, priority) values '
