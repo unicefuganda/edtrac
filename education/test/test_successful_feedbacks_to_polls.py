@@ -13,7 +13,6 @@ from rapidsms_httprouter.models import Message
 from script.models import Script, ScriptStep, ScriptProgress, ScriptSession
 from script.utils.outgoing import check_progress
 from edtrac_project.rapidsms_edtrac.education.attendance_diff import calculate_percent
-from edtrac_project.rapidsms_polls.poll.models import Response
 
 class TestSuccessfulFeedbacksToPolls(TestCase):
 

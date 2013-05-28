@@ -97,12 +97,13 @@ def calculate_percent(numerator, denominator):
 def get_enrolled_boys_and_girls(connection):
     term_start = getattr(settings, "SCHOOL_TERM_START")
     term_end = getattr(settings, "SCHOOL_TERM_END")
-    boys_enrolled = Response.objects.filter(poll__name="edtrac_boysp3_enrollment", contact__connection=connection,
-                                            date__range=[term_start, term_end])
-    if boys_enrolled.exists():
-        boys_enrolled = int(boys_enrolled.latest('date').message.text)
-    else:
-        boys_enrolled = 0
+#    boys_enrolled = Response.objects.filter(poll__name="edtrac_boysp3_enrollment", contact__connection=connection,
+#                                            date__range=[term_start, term_end])
+#    if boys_enrolled.exists():
+#        boys_enrolled = int(boys_enrolled.latest('date').message.text)
+#    else:
+#        boys_enrolled = 0
+    boys_enrolled = get_enrolled_pupils(connection, "edtrac_boysp3_enrollment", term_start, term_end)
 
     girls_enrolled = Response.objects.filter(poll__name="edtrac_girlsp3_enrollment", contact__connection=connection,
                                              date__range=[term_start, term_end])
@@ -117,15 +118,14 @@ def get_enrolled_p6_boys_and_girls(connection):
     term_start = getattr(settings, "SCHOOL_TERM_START")
     term_end = getattr(settings, "SCHOOL_TERM_END")
     # I removed the start term and end term date range and it worked. we need to look at the settings and make sure they
-    # are within range (jude)
+    # are within range (jude)0
     #boys_enrolled = Response.objects.filter(poll__name="edtrac_boysp6_enrollment", contact__connection=connection,
      #                                       date__range=[term_start, term_end])
-    boys_enrolled = Response.objects.filter(poll__name="edtrac_boysp6_enrollment", contact__connection=connection)
+    boys_enrolled = get_enrolled_pupils(connection, "edtrac_boysp6_enrollment", term_start, term_end)
 
     if boys_enrolled.exists():
         boys_enrolled = int(boys_enrolled.latest('date').message.text)
     else:
-        print "No boys"
         boys_enrolled = 0
 
     girls_enrolled = Response.objects.filter(poll__name="edtrac_girlsp6_enrollment", contact__connection=connection,
@@ -137,8 +137,8 @@ def get_enrolled_p6_boys_and_girls(connection):
 
     return boys_enrolled , girls_enrolled
 
-def get_enrolled_p6_boys(connection, term_start_date = None, term_end_date = None):
-    boys_enrolled = Response.objects.filter(poll__name="edtrac_boysp6_enrollment", contact__connection=connection,
+def get_enrolled_pupils(connection, poll_name, term_start_date = None, term_end_date = None):
+    boys_enrolled = Response.objects.filter(poll__name=poll_name, contact__connection=connection,
         date__range=[term_start_date, term_end_date])
     if boys_enrolled.exists():
         boys_enrolled = int(boys_enrolled.latest('date').message.text)
