@@ -12,7 +12,7 @@ from rapidsms.contrib.locations.models import Location, LocationType
 from rapidsms_httprouter.models import Message
 from script.models import Script, ScriptStep, ScriptProgress, ScriptSession
 from script.utils.outgoing import check_progress
-from edtrac_project.rapidsms_edtrac.education.attendance_diff import calculate_percent
+from edtrac_project.rapidsms_edtrac.education.attendance_diff import calculate_percent, get_enrolled_boys_and_girls
 
 class TestSuccessfulFeedbacksToPolls(TestCase):
 
@@ -83,7 +83,7 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
                                                             slug='edtrac_p3_enrollment_headteacher_termly')
         self.head_teachers_termly_script.steps.add(
             ScriptStep.objects.create(script=self.head_teachers_termly_script, poll=self.p3_boys_enroll_poll, order=0,
-                                      rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=7200 ))
+                                      rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=1 ))
 
         self.head_teachers_termly_script.steps.add(
             ScriptStep.objects.create(script=self.head_teachers_termly_script, poll=self.p3_girls_enroll_poll, order=1,
@@ -107,6 +107,40 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
         check_progress(self.teachers_weekly_script)
         self.assertEqual(3,Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).count())
 
+    def test_should_return_10_boys_and_15_girls_given_reporter_responds_10_and_15_to_enrollment_poll(self):
+        schedule_script_now(grp = self.head_teacher_group.name, slug = self.head_teachers_termly_script.slug)
+        check_progress(self.head_teachers_termly_script)
+        fake_incoming("10", self.emis_reporter1)
+        check_progress(self.head_teachers_termly_script)
+        fake_incoming("15", self.emis_reporter1)
+        check_progress(self.head_teachers_termly_script)
+        boys, girls = get_enrolled_boys_and_girls(self.emis_reporter1.connection_set.all()[0])
+        self.assertEqual(10, boys)
+        self.assertEqual(15, girls)
+
+    def test_should_return_0_boys_and_0_girls_given_no_reporter_responds_to_enrollment_poll(self):
+        schedule_script_now(grp = self.head_teacher_group.name, slug = self.head_teachers_termly_script.slug)
+        check_progress(self.head_teachers_termly_script)
+        time.sleep(2)
+        check_progress(self.head_teachers_termly_script)
+        time.sleep(2)
+        check_progress(self.head_teachers_termly_script)
+        boys, girls = get_enrolled_boys_and_girls(self.emis_reporter1.connection_set.all()[0])
+        self.assertEqual(0, boys)
+        self.assertEqual(0, girls)
+
+    def test_should_return_10_boys_and_0_girls_given_reporter_responds_10boys_but_no_girls_to_enrollment_poll(self):
+        schedule_script_now(grp = self.head_teacher_group.name, slug = self.head_teachers_termly_script.slug)
+        check_progress(self.head_teachers_termly_script)
+        fake_incoming("10", self.emis_reporter1)
+        check_progress(self.head_teachers_termly_script)
+        time.sleep(2)
+        check_progress(self.head_teachers_termly_script)
+        boys, girls = get_enrolled_boys_and_girls(self.emis_reporter1.connection_set.all()[0])
+        self.assertEqual(10, boys)
+        self.assertEqual(0, girls)
+
+
     def test_should_calculate_difference_in_attendance_for_this_and_past_week(self):
         schedule_script_now(grp=self.head_teacher_group.name,slug=self.head_teachers_termly_script.slug)
         check_progress(self.head_teachers_termly_script)
@@ -116,7 +150,8 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
         schedule_script_now(grp=self.head_teacher_group.name,slug = self.teachers_weekly_script.slug)
         check_progress(self.teachers_weekly_script)
         fake_incoming("4",self.emis_reporter1)#response to p3 boys poll
-        progress = ScriptProgress.objects.create(script=self.teachers_weekly_script,connection=self.emis_reporter1.connection_set.all()[0],step=self.p3_boys_attendance_step)
+        progress = ScriptProgress.objects.create(script=self.teachers_weekly_script,
+            connection=self.emis_reporter1.connection_set.all()[0],step=self.p3_boys_attendance_step)
         attendance_difference = calculate_attendance_diff(self.emis_reporter1.connection_set.all()[0],progress)
         self.assertEqual(40,attendance_difference['boysp3'][0])
         self.assertEqual("improved",attendance_difference['boysp3'][1])
