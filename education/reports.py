@@ -1075,7 +1075,7 @@ def is_holiday(date1, dates):
     for date_start, date_end in dates:
         if date1 >= date_start and date1 <= date_end:
             return True
-        return False
+    return False
 
 
 def poll_responses_past_week_sum(poll_name, **kwargs):
