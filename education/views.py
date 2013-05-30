@@ -708,7 +708,7 @@ def head_teachers_female(locations):
         try:
             female_d1 = female_d1_no * 100 / sum([female_d1_no, female_d1_yes]) # messing with ya! :D
         except ZeroDivisionError:
-            female_d1 = 0.0
+            female_d1 = 100.0
 
     if not is_holiday(d2[0], getattr(settings, 'SCHOOL_HOLIDAYS')):
         yes_fht_d2 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses. \
@@ -721,7 +721,7 @@ def head_teachers_female(locations):
         try:
             female_d2 = female_d2_no * 100 / sum([female_d2_no, female_d2_yes]) # messing with ya! :D
         except ZeroDivisionError:
-            female_d2 = 0.0
+            female_d2 = 100.0
 
     if isinstance(female_d2, float) and female_d2 >= 0 and female_d1 >= 0 and isinstance(female_d1, float):
 
@@ -741,7 +741,7 @@ def head_teachers_female(locations):
         f_head_t_class = 'zero'
         f_head_t_data = 'data-white'
 
-    return {'f_head_t_week' : female_d2, 'f_head_t_week_before' : female_d1, 'f_head_diff' : f_head_diff,
+    return {'f_head_t_week' : female_d1, 'f_head_t_week_before' : female_d2, 'f_head_diff' : f_head_diff,
             'f_head_t_class' : f_head_t_class, 'f_head_t_data':f_head_t_data}
 
 def head_teachers_male(locations):
@@ -807,7 +807,7 @@ def head_teachers_male(locations):
         m_head_t_class = 'zero'
         m_head_t_data = 'data-white'
 
-    return {'m_head_t_week' : male_d2, 'm_head_t_data':m_head_t_data, 'm_head_t_week_before' : male_d1, 'm_head_diff' : m_head_diff,
+    return {'m_head_t_week' : male_d1, 'm_head_t_data':m_head_t_data, 'm_head_t_week_before' : male_d2, 'm_head_diff' : m_head_diff,
             'm_head_t_class' : m_head_t_class}
 
 
