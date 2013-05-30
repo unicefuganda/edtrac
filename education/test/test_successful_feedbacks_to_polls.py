@@ -5,14 +5,16 @@ from unittest import TestCase
 import dateutils
 from django.conf import settings
 from django.contrib.auth.models import Group, User
-from education.models import schedule_script_now, EmisReporter, School, calculate_attendance_diff
-from education.test.utils import create_poll_with_reporters, create_group, create_location_type, create_location, create_school, create_emis_reporters, create_user_with_group, fake_incoming
+from education.models import schedule_script_now, EmisReporter, School
+from education.test.utils import create_poll_with_reporters, create_group, create_location_type, create_location,\
+    create_school, create_emis_reporters, create_user_with_group, fake_incoming
 from poll.models import Poll
 from rapidsms.contrib.locations.models import Location, LocationType
 from rapidsms_httprouter.models import Message
 from script.models import Script, ScriptStep, ScriptProgress, ScriptSession
 from script.utils.outgoing import check_progress
-from edtrac_project.rapidsms_edtrac.education.attendance_diff import calculate_percent, get_enrolled_boys_and_girls
+from edtrac_project.rapidsms_edtrac.education.attendance_diff import calculate_percent, get_enrolled_boys_and_girls, \
+    calculate_attendance_difference
 
 class TestSuccessfulFeedbacksToPolls(TestCase):
 
@@ -88,6 +90,50 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
         self.head_teachers_termly_script.steps.add(
             ScriptStep.objects.create(script=self.head_teachers_termly_script, poll=self.p3_girls_enroll_poll, order=1,
                                       rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=7200 ))
+
+        #start here
+        self.head_teachers_weekly_script = Script.objects.create(name = "Teachers weekly attendance script",
+                                                            slug = 'edtrac_weekly_teachers_attendance_script')
+        self.male_teachers_attendance_poll = create_poll_with_reporters(
+            "edtrac_male_teachers_attendance", "How many male teachers were in school this week?",
+            Poll.TYPE_NUMERIC, self.admin_user, [self.emis_reporter1])
+
+        self.female_teachers_attendance_poll = create_poll_with_reporters(
+            "edtrac_female_teacher_attendance", "How many female teachers were in school this week?",
+            Poll.TYPE_NUMERIC, self.admin_user, [self.emis_reporter1])
+
+        self.male_teacher_deployment_poll = create_poll_with_reporters(
+            "edtrac_male_teachers_deployment", "How many male teachers were deployed in school this term?",
+            Poll.TYPE_NUMERIC, self.admin_user, [self.emis_reporter1])
+
+
+        self.female_teacher_deployment_poll = create_poll_with_reporters(
+            "edtrac_female_teachers_deployment", "How many female teachers were deployed in school this term?",
+            Poll.TYPE_NUMERIC, self.admin_user, [self.emis_reporter1])
+
+        self.head_teachers_weekly_script.steps.add(
+            ScriptStep.objects.create(script=self.head_teachers_weekly_script, poll=self.female_teacher_deployment_poll,
+                order=0, rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=1)
+        )
+
+        self.head_teachers_weekly_script.steps.add(
+            ScriptStep.objects.create(script=self.head_teachers_weekly_script, poll=self.male_teacher_deployment_poll,
+                order=1, rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=1)
+        )
+
+        self.head_teachers_weekly_script.steps.add(
+            ScriptStep.objects.create(script=self.head_teachers_weekly_script, poll=self.female_teachers_attendance_poll,
+                order=2, rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=1)
+        )
+
+        self.head_teachers_weekly_script.steps.add(
+            ScriptStep.objects.create(script=self.head_teachers_weekly_script, poll=self.male_teachers_attendance_poll,
+                order=3, rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=1)
+        )
+
+        self.male_teacher_step = ScriptStep.objects.create(script=self.head_teachers_weekly_script,
+        poll=self.male_teachers_attendance_poll, order=3, rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=1)
+
         settings.SCHOOL_TERM_START = dateutils.increment(datetime.today(),weeks=-4)
         settings.SCHOOL_TERM_END = dateutils.increment(datetime.today(),weeks=8)
 
@@ -155,10 +201,43 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
         fake_incoming("4",self.emis_reporter1)#response to p3 boys poll
         progress = ScriptProgress.objects.create(script=self.teachers_weekly_script,
             connection=self.emis_reporter1.connection_set.all()[0],step=self.p3_boys_attendance_step)
-        attendance_difference = calculate_attendance_diff(self.emis_reporter1.connection_set.all()[0],progress)
+        attendance_difference = calculate_attendance_difference(self.emis_reporter1.connection_set.all()[0],progress)
         self.assertEqual(40,attendance_difference[self.p3_boys_absent_poll.name][0])
         self.assertEqual("improved",attendance_difference[self.p3_boys_absent_poll.name][1])
 
+    def test_should_give_attendance_difference_as_0_if_error_message_received(self):
+        schedule_script_now(grp=self.head_teacher_group.name,slug=self.head_teachers_termly_script.slug)
+        check_progress(self.head_teachers_termly_script)
+        fake_incoming("10",self.emis_reporter1)
+        check_progress(self.head_teachers_termly_script)
+        fake_incoming("10",self.emis_reporter1)
+        schedule_script_now(grp=self.head_teacher_group.name,slug = self.teachers_weekly_script.slug)
+        check_progress(self.teachers_weekly_script)
+        fake_incoming("I am not in school today",self.emis_reporter1)#response to p3 boys poll
+        progress = ScriptProgress.objects.create(script=self.teachers_weekly_script,
+            connection=self.emis_reporter1.connection_set.all()[0],step=self.p3_boys_attendance_step)
+        attendance_difference = calculate_attendance_difference(self.emis_reporter1.connection_set.all()[0],progress)
+        self.assertEqual(0,attendance_difference[self.p3_boys_absent_poll.name][0])
+        self.assertEqual("improved",attendance_difference[self.p3_boys_absent_poll.name][1])
+
+    def test_should_report_attendance_difference_for_teachers(self):
+        schedule_script_now(grp= self.head_teacher_group.name, slug=self.head_teachers_weekly_script.slug)
+        check_progress(self.head_teachers_weekly_script)
+        fake_incoming("10", self.emis_reporter1)
+        check_progress(self.head_teachers_weekly_script)
+        fake_incoming("10", self.emis_reporter1)
+        check_progress(self.head_teachers_weekly_script)
+        fake_incoming("9", self.emis_reporter1)
+        check_progress(self.head_teachers_weekly_script)
+        fake_incoming("4", self.emis_reporter1)
+        progress = ScriptProgress.objects.create(script=self.head_teachers_weekly_script,
+            connection=self.emis_reporter1.connection_set.all()[0], step=self.male_teacher_step)
+        teachers_attendance_difference = calculate_attendance_difference(self.emis_reporter1.connection_set.all()[0],
+        progress)
+#        self.assertEqual()
+        print "---"*10
+        print teachers_attendance_difference
+        print "---"*10
 
     def tearDown(self):
         Message.objects.all().delete()
