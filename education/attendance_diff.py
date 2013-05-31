@@ -19,10 +19,6 @@ def calculate_attendance_difference(connection, progress):
     for script, poll_names in scripts_list.items():
         boys_absent_percent_previous_week =0
         boys_absent_percent_this_week =0
-        male_teachers_percent_absent_previous_week = 0
-        male_teachers_percent_absent_this_week = 0
-        female_teachers_percent_absent_previous_week = 0
-        female_teachers_percent_absent_this_week = 0
         girls_absent_percent_previous_week =0
         girls_absent_percent_this_week =0
         boys_enrolled , girls_enrolled = get_enrolled_boys_and_girls(connection,poll_names[2],poll_names[3])
@@ -50,23 +46,10 @@ def calculate_attendance_difference(connection, progress):
                 girls_absent_percent_this_week = calculate_percent((girls_enrolled-present_this_week),girls_enrolled)
                 girls_absent_percent_previous_week = calculate_percent((girls_enrolled-present_previous_week),girls_enrolled)
 
-#            if script == "edtrac_head_teachers_weekly":
-#                if step.poll.name == poll_names[0]:
-#                    male_teachers_percent_absent_this_week = calculate_percent((boys_enrolled-present_this_week),boys_enrolled)
-#                    male_teachers_percent_absent_previous_week = calculate_percent((boys_enrolled-present_previous_week),boys_enrolled)
-##
-#                if step.poll.name == poll_names[1]:
-#                    female_teachers_percent_absent_this_week = calculate_percent((girls_enrolled-present_this_week),girls_enrolled)
-#                    female_teachers_percent_absent_previous_week = calculate_percent((girls_enrolled-present_previous_week),girls_enrolled)
-
         boys_attendance_difference =  get_attd_difference(boys_absent_percent_previous_week, boys_absent_percent_this_week)
         girls_attendance_difference =  get_attd_difference(girls_absent_percent_previous_week, girls_absent_percent_this_week)
-#        male_teacher_attendance_difference = get_attd_difference(male_teachers_percent_absent_previous_week, male_teachers_percent_absent_this_week)
-#        female_teacher_attendance_difference = get_attd_difference(female_teachers_percent_absent_previous_week, female_teachers_percent_absent_this_week)
         to_return[poll_names[0]] = boys_attendance_difference
         to_return[poll_names[1]] = girls_attendance_difference
-#        to_return[poll_names[2]] = male_teacher_attendance_difference
-#        to_return[poll_names[3]] = female_teacher_attendance_difference
     return to_return
 
 def calculate_percent(numerator, denominator):
