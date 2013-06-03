@@ -3,7 +3,7 @@ import os, sys
 import datetime
 from django.db.models import Manager
 from django.db.models.query import QuerySet
-from .models import *
+from script.models import *
 from rapidsms_httprouter.models import Message
 from poll.models import gettext_db
 from django.db.models import Q
@@ -98,6 +98,9 @@ class ScriptProgressQuerySet(QuerySet):
             return self.none()
 
     def expire(self, script, step):
+        spses =self
+        for sp in spses:
+            script_progress_was_expired.send(sender=sp,connection=sp.connection)
         give_up_rules = [step.WAIT_GIVEUP, step.RESEND_GIVEUP, step.STRICT_GIVEUP]
         self.filter(step__rule__in=give_up_rules).giveup(script, step)
         self.exclude(step__rule__in=give_up_rules).update(status=self.model.COMPLETE, time=datetime.datetime.now())

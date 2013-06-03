@@ -13,4 +13,8 @@ script_progress_pre_change=Signal(providing_args=["connection","step"])
 # Sent just after  scriptProgress is completed.
 script_progress_was_completed = Signal(providing_args=["connection",])
 
+# Sent just after  scriptProgress is Expired.
+script_progress_was_expired = Signal(providing_args=["connection",])
+
+
 
