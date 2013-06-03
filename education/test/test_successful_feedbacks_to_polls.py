@@ -123,7 +123,7 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
 
 
         self.female_teacher_deployment_poll = create_poll_with_reporters(
-            "edtrac_female_teachers_deployment", "How many female teachers were deployed in school this term?",
+            "edtrac_female_teachers_deploy", "How many female teachers were deployed this term?",
             Poll.TYPE_NUMERIC, self.admin_user, [self.emis_reporter1])
 
         self.head_teachers_weekly_script.steps.add(
