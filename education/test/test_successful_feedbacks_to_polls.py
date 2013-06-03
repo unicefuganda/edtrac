@@ -5,6 +5,7 @@ from unittest import TestCase
 import dateutils
 from django.conf import settings
 from django.contrib.auth.models import Group, User
+from mock import patch,Mock
 from education.models import schedule_script_now, EmisReporter, School, calculate_attendance_diff
 from education.test.utils import create_poll_with_reporters, create_group, create_location_type, create_location, create_school, create_emis_reporters, create_user_with_group, fake_incoming
 from poll.models import Poll
@@ -67,12 +68,12 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
                                             slug='edtrac_p3_teachers_weekly')
         self.p3_boys_attendance_step = ScriptStep.objects.create(script=self.teachers_weekly_script, poll=self.p3_boys_absent_poll,
                                                    order=0, rule=ScriptStep.WAIT_MOVEON, start_offset=0,
-                                                   giveup_offset=7200)
+                                                   giveup_offset=2)
         self.teachers_weekly_script.steps.add(
             self.p3_boys_attendance_step)
         self.p3_girls_attendance_step = ScriptStep.objects.create(script=self.teachers_weekly_script, poll=self.p3_girls_absent_poll,
                                                    order=1, rule=ScriptStep.WAIT_MOVEON, start_offset=0,
-                                                   giveup_offset=7200)
+                                                   giveup_offset=2)
         self.teachers_weekly_script.steps.add(
             self.p3_girls_attendance_step)
 
@@ -139,6 +140,29 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
         check_progress(self.smc_weekly_script)
         expected ="Thank you for your report. Please continue to visit your school and report on what is happening."
         self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter3.connection_set.all()[0]).values_list('text',flat=True))
+
+    def test_should_send_alert_to_partial_response_to_polls(self):
+        schedule_script_now(grp=self.head_teacher_group.name,slug = self.teachers_weekly_script.slug)
+        check_progress(self.teachers_weekly_script)
+        fake_incoming("4",self.emis_reporter1)#response to p3 boys poll
+        check_progress(self.teachers_weekly_script)
+        time.sleep(3)
+        check_progress(self.teachers_weekly_script)
+        print Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True)
+        expected = "Thank you for participating. Remember to answer all your questions next Thursday."
+        self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))
+
+    def test_should_not_send_successful_feedback_on_partial_responses(self):
+        schedule_script_now(grp=self.head_teacher_group.name,slug = self.teachers_weekly_script.slug)
+        check_progress(self.teachers_weekly_script)
+        fake_incoming("4",self.emis_reporter1)#response to p3 boys poll
+        check_progress(self.teachers_weekly_script)
+        time.sleep(3)
+        with patch('education.attendance_diff.calculate_attendance_diff') as method_mock:
+            method_mock.return_value = {}
+            check_progress(self.teachers_weekly_script)
+            assert not method_mock.called , 'method should not have been called'
+
 
     def tearDown(self):
         Message.objects.all().delete()

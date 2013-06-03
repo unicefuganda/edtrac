@@ -18,16 +18,16 @@ def calculate_attendance_diff(connection,progress):
     girls_absent_percent_this_week =0
     boys_enrolled , girls_enrolled = get_enrolled_boys_and_girls(connection)
     this_thursday = _this_thursday()
-    current_week = [dateutils.increment(this_thursday,days=-7),dateutils.increment(this_thursday,days=-1)]
-    previous_week = [dateutils.increment(this_thursday,days=-14),dateutils.increment(this_thursday,days=-8)]
+    current_week = [dateutils.increment(this_thursday,days=-6),this_thursday]
+    previous_week = [dateutils.increment(this_thursday,days=-13),dateutils.increment(this_thursday,days=-7)]
     for step in progress.script.steps.all():
-        present_this_week = Response.objects.filter(poll= step.poll,contact__connection=connection,date__range=current_week)
+        present_this_week = Response.objects.filter(poll= step.poll,contact__connection=connection,date__range=current_week,has_errors=False)
         if present_this_week.exists():
             present_this_week = int(present_this_week.latest('date').message.text)
         else:
             present_this_week = 0
 
-        present_previous_week = Response.objects.filter(poll= step.poll,contact__connection=connection,date__range=previous_week)
+        present_previous_week = Response.objects.filter(poll= step.poll,contact__connection=connection,date__range=previous_week,has_errors=False)
         if present_previous_week.exists():
             present_previous_week= int(present_previous_week.latest('date').message.text)
         else:
@@ -54,16 +54,16 @@ def calculate_attendance_difference_for_p6(connection,progress):
     boys_enrolled , girls_enrolled = get_enrolled_p6_boys_and_girls(connection)
     print 'Boys enrolled : '+ str(girls_enrolled)
     this_thursday = _this_thursday()
-    current_week = [dateutils.increment(this_thursday,days=-7),dateutils.increment(this_thursday,days=-1)]
-    previous_week = [dateutils.increment(this_thursday,days=-14),dateutils.increment(this_thursday,days=-8)]
+    current_week = [dateutils.increment(this_thursday,days=-6),this_thursday]
+    previous_week = [dateutils.increment(this_thursday,days=-13),dateutils.increment(this_thursday,days=-7)]
     for step in progress.script.steps.all():
-        present_this_week = Response.objects.filter(poll= step.poll,contact__connection=connection,date__range=current_week)
+        present_this_week = Response.objects.filter(poll= step.poll,contact__connection=connection,date__range=current_week,has_errors=False)
         if present_this_week.exists():
             present_this_week = int(present_this_week.latest('date').message.text)
             print step.poll.name + ' : '+str(present_this_week)
         else:
             present_this_week = 0
-        present_previous_week = Response.objects.filter(poll= step.poll,contact__connection=connection,date__range=previous_week)
+        present_previous_week = Response.objects.filter(poll= step.poll,contact__connection=connection,date__range=previous_week,has_errors=False)
         if present_previous_week.exists():
             present_previous_week= int(present_previous_week.latest('date').message.text)
         else:
