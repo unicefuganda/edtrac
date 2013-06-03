@@ -3,16 +3,17 @@ from unittest import TestCase
 import datetime
 import dateutils
 from django.contrib.auth.models import User, Group
-from education.attendance_diff import calculate_attendance_diff, get_enrolled_boys_and_girls, calculate_attendance_difference_for_p6
+#from education.attendance_diff import calculate_attendance_diff, get_enrolled_boys_and_girls
 from rapidsms_httprouter.models import Message
-from edtrac_project import settings
+from django.conf import settings
 from education.models import EmisReporter, School, schedule_script_now
-from education.test.utils import create_location_type, create_location, create_group, create_user_with_group, create_school, create_emis_reporters, create_poll_with_reporters, fake_incoming
+from education.test.utils import create_location_type, create_location, create_group, create_user_with_group,\
+    create_school, create_emis_reporters, create_poll_with_reporters, fake_incoming
 from poll.models import Poll
 from rapidsms.contrib.locations.models import Location, LocationType
 from script.models import Script, ScriptStep, ScriptProgress, ScriptSession
 from script.utils.outgoing import check_progress
-
+from edtrac_project.rapidsms_edtrac.education.attendance_diff import get_enrolled_pupils, calculate_attendance_difference
 
 class TestSuccessFulFeedbackToP6Polls(TestCase):
 
@@ -96,6 +97,34 @@ class TestSuccessFulFeedbackToP6Polls(TestCase):
         settings.SCHOOL_TERM_START = dateutils.increment(datetime.datetime.today(), weeks=-4)
         settings.SCHOOL_TERM_END = dateutils.increment(datetime.datetime.today(), weeks=8)
 
+    def test_should_return_10_given_reporter_responds_10_to_boys_enrollment_poll(self):
+        schedule_script_now(grp=self.head_teacher_group.name, slug = self.head_teachers_termly_script.slug)
+        check_progress(self.head_teachers_termly_script)
+        fake_incoming("10", self.emis_reporter1)
+        enrolled_boys = get_enrolled_pupils(self.emis_reporter1.connection_set.all()[0], self.p6_boys_enroll_poll.name,
+            settings.SCHOOL_TERM_START, settings.SCHOOL_TERM_END)
+        self.assertEqual(10, enrolled_boys)
+
+    def test_should_return_0_given_no_reporter_responds_to_boys_enrollment_poll(self):
+        schedule_script_now(grp=self.head_teacher_group.name, slug = self.head_teachers_termly_script.slug)
+        check_progress(self.head_teachers_termly_script)
+        enrolled_boys = get_enrolled_pupils(self.emis_reporter1.connection_set.all()[0], self.p6_boys_enroll_poll.name,
+            settings.SCHOOL_TERM_START, settings.SCHOOL_TERM_END)
+        self.assertEqual(0, enrolled_boys)
+
+    def test_should_return_4_given_reporter_responds_4_to_girls_enrollment_poll(self):
+        self.head_teachers_termly_script.steps.all().delete()
+        self.head_teachers_termly_script.steps.add(
+            ScriptStep.objects.create(script=self.head_teachers_termly_script, poll=self.p6_girls_enroll_poll, order=0,
+            rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=7200))
+        schedule_script_now(grp = self.head_teacher_group.name, slug = self.head_teachers_termly_script.slug)
+        check_progress(self.head_teachers_termly_script)
+        fake_incoming("4", self.emis_reporter1)
+        check_progress(self.head_teachers_termly_script)
+        enrolled_girls = get_enrolled_pupils(self.emis_reporter1.connection_set.all()[0],
+            self.p6_girls_enroll_poll.name, settings.SCHOOL_TERM_START, settings.SCHOOL_TERM_END)
+        self.assertEqual(4, enrolled_girls)
+
 
     def test_should_calculate_difference_in_attendance_for_this_and_past_week(self):
         schedule_script_now(grp=self.head_teacher_group.name,slug=self.head_teachers_termly_script.slug)
@@ -109,10 +138,10 @@ class TestSuccessFulFeedbackToP6Polls(TestCase):
         progress = ScriptProgress.objects.create(script=self.teachers_weekly_script,
                                                  connection=self.emis_reporter1.connection_set.all()[0],
                                                  step=self.p6_boys_attendance_step)
-        attendance_difference = calculate_attendance_difference_for_p6(self.emis_reporter1.connection_set.all()[0], progress)
+        attendance_difference = calculate_attendance_difference(self.emis_reporter1.connection_set.all()[0], progress)
 
-        self.assertEqual(40,attendance_difference['boysp6'][0])
-        self.assertEqual("improved",attendance_difference['boysp6'][1])
+        self.assertEqual(40,attendance_difference[self.p6_boys_absent_poll.name][0])
+        self.assertEqual("improved",attendance_difference[self.p6_boys_absent_poll.name][1])
 
     def tearDown(self):
         Message.objects.all().delete()
