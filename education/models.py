@@ -1,4 +1,5 @@
 from difflib import get_close_matches
+import dateutils
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.contrib.auth.models import Group, User
@@ -8,7 +9,7 @@ from django.forms import ValidationError
 from eav.models import Attribute
 from education.utils import _schedule_weekly_scripts, _schedule_weekly_scripts_now, _schedule_monthly_script, _schedule_termly_script,\
     _schedule_weekly_report, _schedule_monthly_report, _schedule_midterm_script, _schedule_weekly_script, _schedule_teacher_weekly_scripts,\
-    _schedule_new_monthly_script, _schedule_script_now
+    _schedule_new_monthly_script, _schedule_script_now, _this_thursday
 from rapidsms_httprouter.models import mass_text_sent, Message
 from rapidsms.models import Contact, ContactBase
 from rapidsms.contrib.locations.models import Location
@@ -558,22 +559,47 @@ def send_message_for_partial_response(**kwargs):
         message_string = 'Thank you for participating. Remember to answer all your questions next Thursday.'
         Message.mass_text(message_string,[connection])
 
+
+def all_steps_answered(script):
+    this_thursday = _this_thursday()
+    current_week = [dateutils.increment(this_thursday,days=-7),dateutils.increment(this_thursday,days=-1)]
+    for step in script.steps.all():
+        if not Response.objects.filter(poll = step.poll,date__range=current_week).exists():
+            return False
+    return True
+
+
+def get_message_string(atttd_diff, emisreporter_grade, keys, progress):
+    if progress.script.slug == 'edtrac_head_teachers_weekly':
+
+       return "Thankyou, Attendance for male teacher have been %s by %spercent Attendance for female teachers have been %s by %spercent" % (
+            atttd_diff['edtrac_m_teachers_attendance'][1], atttd_diff['edtrac_m_teachers_attendance'][0],
+            atttd_diff['edtrac_f_teachers_attendance'][1], atttd_diff['edtrac_m_teachers_attendance'][0])
+
+    if progress.script.slug == 'edtrac_smc_weekly':
+        return "Thank you for your report. Please continue to visit your school and report on what is happening."
+
+    return "Thankyou %s Teacher, Attendance for boys have been %s by %spercent" \
+                         "Attendance for girls have been %s by %spercent" % (
+                             emisreporter_grade, atttd_diff[keys[emisreporter_grade][0]][1],
+                             atttd_diff[keys[emisreporter_grade][0]][0], atttd_diff[keys[emisreporter_grade][1]][1],
+                             atttd_diff[keys[emisreporter_grade][1]][0])
+
+
 def send_feedback_on_complete(**kwargs):
     connection = kwargs['connection']
     progress = kwargs['sender']
+    emisreporter_grade = ''
+    atttd_diff={}
+    if not all_steps_answered(progress.script):
+        return
     keys = {'p3':['edtrac_boysp3_attendance','edtrac_girlsp3_attendance'],
             'p6':['edtrac_boysp6_attendance','edtrac_girlsp6_attendance']}
-    if progress.script.slug == 'edtrac_p3_teachers_weekly':
+    if progress.script.slug in ['edtrac_p3_teachers_weekly','edtrac_p6_teachers_weekly','edtrac_head_teachers_weekly']:
         atttd_diff = calculate_attendance_difference(connection, progress)
         emisreporter_grade = connection.contact.emisreporter.grade.lower()
-        message_string = "Thankyou %s Teacher, Attendance for boys have been %s by %spercent" \
-                         "Attendance for girls have been %s by %spercent" % (
-                             emisreporter_grade, atttd_diff[keys[emisreporter_grade][0]][1], atttd_diff[keys[emisreporter_grade][0]][0], atttd_diff[keys[emisreporter_grade][1]][1],
-                             atttd_diff[keys[emisreporter_grade][1]][0])
-        Message.mass_text(message_string, [connection])
-    if progress.script.slug == 'edtrac_smc_weekly':
-        message_string = "Thank you for your report. Please continue to visit your school and report on what is happening."
-        Message.mass_text(message_string, [connection])
+    message_string = get_message_string(atttd_diff, emisreporter_grade, keys, progress)
+    Message.mass_text(message_string, [connection])
 
 def reschedule_weekly_polls(grp=None):
     """

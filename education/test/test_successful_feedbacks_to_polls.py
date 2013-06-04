@@ -5,9 +5,8 @@ from unittest import TestCase
 import dateutils
 from django.conf import settings
 from django.contrib.auth.models import Group, User
-from mock import patch,Mock
 from education.attendance_diff import calculate_percent, get_enrolled_boys_and_girls, calculate_attendance_difference
-from education.models import schedule_script_now, EmisReporter, School
+from education.models import schedule_script_now, EmisReporter, School, all_steps_answered
 from education.test.utils import create_poll_with_reporters, create_group, create_location_type, create_location, create_school, create_emis_reporters, create_user_with_group, fake_incoming
 from poll.models import Poll
 from rapidsms.contrib.locations.models import Location, LocationType
@@ -108,22 +107,22 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
                                       rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=7200 ))
 
         self.head_teachers_weekly_script = Script.objects.create(name = "Teachers weekly attendance script",
-                                                            slug = 'edtrac_weekly_teachers_attendance_script')
+                                                            slug = 'edtrac_head_teachers_weekly')
         self.male_teachers_attendance_poll = create_poll_with_reporters(
-            "edtrac_male_teachers_attendance", "How many male teachers were in school this week?",
+            "edtrac_m_teachers_attendance", "How many male teachers were in school this week?",
             Poll.TYPE_NUMERIC, self.admin_user, [self.emis_reporter1])
 
         self.female_teachers_attendance_poll = create_poll_with_reporters(
-            "edtrac_female_teacher_attendance", "How many female teachers were in school this week?",
+            "edtrac_f_teachers_attendance", "How many female teachers were in school this week?",
             Poll.TYPE_NUMERIC, self.admin_user, [self.emis_reporter1])
 
         self.male_teacher_deployment_poll = create_poll_with_reporters(
-            "edtrac_male_teachers_deployment", "How many male teachers were deployed in school this term?",
+            "edtrac_m_teachers_deployment", "How many male teachers were deployed in school this term?",
             Poll.TYPE_NUMERIC, self.admin_user, [self.emis_reporter1])
 
 
         self.female_teacher_deployment_poll = create_poll_with_reporters(
-            "edtrac_female_teachers_deploy", "How many female teachers were deployed this term?",
+            "edtrac_f_teachers_deployment", "How many female teachers were deployed this term?",
             Poll.TYPE_NUMERIC, self.admin_user, [self.emis_reporter1])
 
         self.head_teachers_weekly_script.steps.add(
@@ -141,13 +140,12 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
                 order=2, rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=1)
         )
 
+        self.male_teacher_step = ScriptStep.objects.create(script=self.head_teachers_weekly_script,
+                                                           poll=self.male_teachers_attendance_poll, order=3, rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=1)
         self.head_teachers_weekly_script.steps.add(
-            ScriptStep.objects.create(script=self.head_teachers_weekly_script, poll=self.male_teachers_attendance_poll,
-                order=3, rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=1)
+            self.male_teacher_step
         )
 
-        self.male_teacher_step = ScriptStep.objects.create(script=self.head_teachers_weekly_script,
-        poll=self.male_teachers_attendance_poll, order=3, rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=1)
 
         settings.SCHOOL_TERM_START = dateutils.increment(datetime.today(),weeks=-4)
         settings.SCHOOL_TERM_END = dateutils.increment(datetime.today(),weeks=8)
@@ -249,10 +247,72 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
             connection=self.emis_reporter1.connection_set.all()[0], step=self.male_teacher_step)
         teachers_attendance_difference = calculate_attendance_difference(self.emis_reporter1.connection_set.all()[0],
         progress)
-#        self.assertEqual()
-        print "---"*10
-        print teachers_attendance_difference
-        print "---"*10
+        self.assertTrue(teachers_attendance_difference is not None)
+        self.assertEqual(40,teachers_attendance_difference[self.male_teachers_attendance_poll.name][0])
+        self.assertEqual("improved",teachers_attendance_difference[self.male_teachers_attendance_poll.name][1])
+
+    def test_should_check_message_string_for_teachers(self):
+        schedule_script_now(grp= self.head_teacher_group.name, slug=self.head_teachers_weekly_script.slug)
+        check_progress(self.head_teachers_weekly_script)
+        fake_incoming("10", self.emis_reporter1)
+        check_progress(self.head_teachers_weekly_script)
+        fake_incoming("10", self.emis_reporter1)
+        check_progress(self.head_teachers_weekly_script)
+        fake_incoming("9", self.emis_reporter1)
+        check_progress(self.head_teachers_weekly_script)
+        fake_incoming("4", self.emis_reporter1)
+        check_progress(self.head_teachers_weekly_script)
+        expected ='Thankyou, Attendance for male teacher have been improved by 40percent Attendance for female teachers have been improved by 40percent'
+        self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))
+
+    def test_should_send_feedbacks_to_smc(self):
+        schedule_script_now(grp= self.smc_group.name, slug=self.smc_weekly_script.slug)
+        check_progress(self.smc_weekly_script)
+        fake_incoming("yes", self.emis_reporter3)
+        check_progress(self.smc_weekly_script)
+        print  Message.objects.filter(direction='O',connection=self.emis_reporter3.connection_set.all()[0]).values_list('text',flat=True)
+        self.assertEqual(2,Message.objects.filter(direction='O',connection=self.emis_reporter3.connection_set.all()[0]).count())
+        expected='Thank you for your report. Please continue to visit your school and report on what is happening.'
+        self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter3.connection_set.all()[0]).values_list('text',flat=True))
+
+    def test_should_send_alert_messages_on_partial_responses(self):
+        schedule_script_now(grp=self.head_teacher_group.name,slug=self.teachers_weekly_script.slug)
+        check_progress(self.teachers_weekly_script)
+        fake_incoming("3",self.emis_reporter1)
+        check_progress(self.teachers_weekly_script)
+        time.sleep(3)
+        check_progress(self.teachers_weekly_script)
+        expected = 'Thank you for participating. Remember to answer all your questions next Thursday.'
+        self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))
+
+    def test_should_return_false_if_partial_responses_given(self):
+        schedule_script_now(grp=self.head_teacher_group.name,slug=self.teachers_weekly_script.slug)
+        check_progress(self.teachers_weekly_script)
+        fake_incoming("3",self.emis_reporter1)
+        check_progress(self.teachers_weekly_script)
+        time.sleep(3)
+        check_progress(self.teachers_weekly_script)
+        self.assertFalse(all_steps_answered(self.teachers_weekly_script))
+
+    def test_should_return_true_if_all_responses_given(self):
+        schedule_script_now(grp=self.head_teacher_group.name,slug=self.teachers_weekly_script.slug)
+        check_progress(self.teachers_weekly_script)
+        fake_incoming("3",self.emis_reporter1)
+        check_progress(self.teachers_weekly_script)
+        fake_incoming("4",self.emis_reporter1)
+        check_progress(self.teachers_weekly_script)
+        self.assertTrue(all_steps_answered(self.teachers_weekly_script))
+
+    def test_should_not_send_absenteeism_calculation_if_partial_responses_sent(self):
+        schedule_script_now(grp=self.head_teacher_group.name,slug=self.teachers_weekly_script.slug)
+        check_progress(self.teachers_weekly_script)
+        fake_incoming("3",self.emis_reporter1)
+        check_progress(self.teachers_weekly_script)
+        time.sleep(3)
+        check_progress(self.teachers_weekly_script)
+        expected = 'Thankyou p3 Teacher, Attendance for boys have been improved by 0percent" \
+                         "Attendance for girls have been improved by 0percent'
+        self.assertFalse(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))
 
     def tearDown(self):
         Message.objects.all().delete()
