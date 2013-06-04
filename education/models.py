@@ -21,7 +21,6 @@ import re, calendar, datetime, time, reversion
 from poll.models import ResponseCategory, Category
 from education.attendance_diff import calculate_attendance_difference
 import logging
-from edtrac_project.rapidsms_edtrac.education.attendance_diff import calculate_attendance_difference
 
 logger = logging.getLogger(__name__)
 

@@ -1073,6 +1073,8 @@ def cleanup_differences_on_poll(responses):
 
 def is_holiday(date1, dates):
     for date_start, date_end in dates:
+        if isinstance(date_end, str) and date1 >= date_start:
+            return True
         if date1 >= date_start and date1 <= date_end:
             return True
     return False
