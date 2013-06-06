@@ -588,8 +588,8 @@ def get_message_string(atttd_diff, emisreporter_grade, keys, progress):
 def send_feedback_on_complete(**kwargs):
     connection = kwargs['connection']
     progress = kwargs['sender']
-    emisreporter_grade = 'p3'
-    atttd_diff={}
+    # emisreporter_grade = 'p3'
+    # atttd_diff={}
     if not all_steps_answered(progress.script):
         return
     keys = {'p3':['edtrac_boysp3_attendance','edtrac_girlsp3_attendance'],
@@ -598,8 +598,8 @@ def send_feedback_on_complete(**kwargs):
         atttd_diff = calculate_attendance_difference(connection, progress)
         if not connection.contact.emisreporter.grade is None:
             emisreporter_grade = connection.contact.emisreporter.grade.lower()
-    message_string = get_message_string(atttd_diff, emisreporter_grade, keys, progress)
-    Message.mass_text(message_string, [connection])
+            message_string = get_message_string(atttd_diff, emisreporter_grade, keys, progress)
+            Message.mass_text(message_string, [connection])
 
 def reschedule_weekly_polls(grp=None):
     """
