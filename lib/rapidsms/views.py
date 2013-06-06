@@ -7,7 +7,7 @@ from django.shortcuts import render_to_response
 from django.views.decorators.http import require_GET
 from django.contrib.auth.views import login as django_login
 from django.contrib.auth.views import logout as django_logout
-from auditlog.utils import audit_log
+from django.conf import settings
 
 
 @require_GET
@@ -19,15 +19,25 @@ def dashboard(req):
 
 def login(req, template_name="rapidsms/login.html"):
     response = django_login(req, **{"template_name" : template_name})
-    if req.user.is_authenticated():
-        log_dict = {'request': req, 'logtype': 'system', 'action':'login',
-                    'detail':'User logged in %s:%s' % (req.user.id, req.user.username) }
-        audit_log(log_dict)
+    if getattr(settings, 'ENABLE_AUDITLOG', False):
+        try:
+            from auditlog.utils import audit_log
+            if req.user.is_authenticated():
+                log_dict = {'request': req, 'logtype': 'system', 'action':'login',
+                            'detail':'User logged in %s:%s' % (req.user.id, req.user.username) }
+                audit_log(log_dict)
+        except:
+            pass
     return response
 
 
 def logout(req, template_name="rapidsms/loggedout.html"):
-    log_dict = {'request': req, 'logtype': 'system', 'action':'logout',
-                    'detail':'User logged out %s:%s' % (req.user.id, req.user.username) }
-    audit_log(log_dict)
+    if getattr(settings, 'ENABLE_AUDITLOG', False):
+        try:
+            from auditlog.utils import audit_log
+            log_dict = {'request': req, 'logtype': 'system', 'action':'logout',
+                        'detail':'User logged out %s:%s' % (req.user.id, req.user.username) }
+            audit_log(log_dict)
+        except:
+            pass
     return django_logout(req, **{"template_name" : template_name})
