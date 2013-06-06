@@ -588,7 +588,7 @@ def get_message_string(atttd_diff, emisreporter_grade, keys, progress):
 def send_feedback_on_complete(**kwargs):
     connection = kwargs['connection']
     progress = kwargs['sender']
-    emisreporter_grade = ''
+    emisreporter_grade = 'p3'
     atttd_diff={}
     if not all_steps_answered(progress.script):
         return
@@ -596,7 +596,8 @@ def send_feedback_on_complete(**kwargs):
             'p6':['edtrac_boysp6_attendance','edtrac_girlsp6_attendance']}
     if progress.script.slug in ['edtrac_p3_teachers_weekly','edtrac_p6_teachers_weekly','edtrac_head_teachers_weekly']:
         atttd_diff = calculate_attendance_difference(connection, progress)
-        emisreporter_grade = connection.contact.emisreporter.grade.lower()
+        if not connection.contact.emisreporter.grade is None:
+            emisreporter_grade = connection.contact.emisreporter.grade.lower()
     message_string = get_message_string(atttd_diff, emisreporter_grade, keys, progress)
     Message.mass_text(message_string, [connection])
 
