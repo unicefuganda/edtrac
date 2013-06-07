@@ -295,7 +295,7 @@ class FieldForm(forms.ModelForm):
 class ConstraintForm(forms.ModelForm):
     class Meta:
         model = XFormFieldConstraint
-        fields = ('type', 'test', 'message') # Why do we need order?
+        fields = ('type', 'test', 'message')  # Why do we need order?
 
 @csrf_exempt
 def add_field(req, form_id):
@@ -379,7 +379,7 @@ def make_submission_form(xform):
                         cleaned_val = field.clean_submission(field_val, 'sms')
                         cleaned_data[command] = cleaned_val
                     except ValidationError as err:
-                        # if there is an error, remove it from our cleaned data and 
+                        # if there is an error, remove it from our cleaned data and
                         # add the error to our list of errors for this form
                         self._errors[field.command] = self.error_class(err.messages)
                         del cleaned_data[field.command]
@@ -408,7 +408,11 @@ def edit_submission(req, submission_id):
 
             # update our submission
             xform.update_submission_from_dict(submission, form.cleaned_data)
-
+            if getattr(settings, 'ENABLE_AUDITLOG', False):
+                from auditlog.utils import audit_log
+                log_dict = {'request': req, 'logtype': 'xform', 'action':'edit',
+                            'detail':'Edited report (submission) id:%s' % submission_id }
+                audit_log(log_dict)
             # redirect to the xform submission page
             return redirect("/xforms/%d/submissions/" % xform.pk)
     else:
