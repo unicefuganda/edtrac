@@ -575,9 +575,6 @@ def get_message_string(atttd_diff, emisreporter_grade, keys, progress):
             atttd_diff['edtrac_m_teachers_attendance'][1], atttd_diff['edtrac_m_teachers_attendance'][0],
             atttd_diff['edtrac_f_teachers_attendance'][1], atttd_diff['edtrac_m_teachers_attendance'][0])
 
-    if progress.script.slug == 'edtrac_smc_weekly':
-        return "Thank you for your report. Please continue to visit your school and report on what is happening."
-
     return "Thankyou %s Teacher, Attendance for boys have been %s by %spercent" \
                          "Attendance for girls have been %s by %spercent" % (
                              emisreporter_grade, atttd_diff[keys[emisreporter_grade][0]][1],
@@ -588,8 +585,7 @@ def get_message_string(atttd_diff, emisreporter_grade, keys, progress):
 def send_feedback_on_complete(**kwargs):
     connection = kwargs['connection']
     progress = kwargs['sender']
-    # emisreporter_grade = 'p3'
-    # atttd_diff={}
+    message_string = None
     if not all_steps_answered(progress.script):
         return
     keys = {'p3':['edtrac_boysp3_attendance','edtrac_girlsp3_attendance'],
@@ -599,7 +595,10 @@ def send_feedback_on_complete(**kwargs):
         if not connection.contact.emisreporter.grade is None:
             emisreporter_grade = connection.contact.emisreporter.grade.lower()
             message_string = get_message_string(atttd_diff, emisreporter_grade, keys, progress)
-            Message.mass_text(message_string, [connection])
+    if progress.script.slug == 'edtrac_smc_weekly':
+        message_string = "Thank you for your report. Please continue to visit your school and report on what is happening."
+    if message_string is not None:
+        Message.mass_text(message_string, [connection])
 
 def reschedule_weekly_polls(grp=None):
     """
