@@ -1,21 +1,8 @@
 {% extends "generic/partials/partial_header.html" %}
 
 {% block tablehead %}
-<!-- <table id="box-table-a" class="row">
-<thead >
-<tr>
-    {% for name, colspan, href in top_columns %}
-        <th scope="col">
-            {% if href %}<a href="{{ href }}">{{ name }}</a>
-            {% else %}
-            {{ name }}
-            {% endif %}
-        </th>
-    {% endfor %}
-</tr>
-</thead> -->
-
-<table cellspacing="1" cellpadding="3" id="repTable" class="results row table table-paper tablehead table-condensed table-striped" style="background:#CCC;">
+<!-- <div class="row"> -->
+<table cellspacing="1" cellpadding="1" id="repTable" class="results table table-paper tablehead table-condensed table-striped" style="background:#CCC;">
 <thead>
 	<tr class="colhead">
 		{% for name, colspan, href in top_columns %}
@@ -29,4 +16,6 @@
 	</tr>
 </thead>
 {{ block.super }}
+
+<!-- </div> -->
 {% endblock %}
