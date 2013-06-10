@@ -18,6 +18,8 @@ class Command(BaseCommand):
     def handle(self, **options):
         if not options['group']:
             group = raw_input('Group--["Teachers", "Head Teachers", "SMC", "GEM"]: ')
+        else:
+            group = 'all'
         if not options['slug']:
             slug = raw_input('Script slug you wish to reschedule: ')
         else:

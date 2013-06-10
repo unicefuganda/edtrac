@@ -130,16 +130,6 @@ ul.list li {
 .dropdown-menu > .active > a > [class*=" icon-"] {
   background-image: none;
 }
-
-#div_filter_3 label {
-  margin-right: 178px;
-}
-#div_filter_2 label {
-  margin-right: 178px;
-}
-#div_filter_1 label {
-  margin-right: 177px;
-}
 /*------------------------------------------------------------------
  
 Bootstrap Styles
