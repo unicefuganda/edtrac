@@ -1784,7 +1784,6 @@ class ProgressDeoDetails(TemplateView):
 
 ## management control panel
 
-@login_required
 def control_panel(req):
     profile = req.user.get_profile()
     if profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials') or profile.is_member_of('Ministry Officials'):
