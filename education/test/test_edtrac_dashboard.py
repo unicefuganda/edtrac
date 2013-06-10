@@ -1,5 +1,5 @@
 # vim: ai ts=4 sts=4 et sw=4 encoding=utf-8
-
+from datetime import datetime
 import dateutils
 from unittest import TestCase
 from django.contrib.auth.models import User, Group
@@ -12,7 +12,7 @@ from rapidsms.models import Backend, Connection
 from education.test.utils import *
 from django.conf import settings
 from rapidsms_httprouter.router import get_router
-from datetime import datetime
+
 
 class TestEdtracDashboard(TestCase):
     def setUp(self):
@@ -346,8 +346,8 @@ class TestEdtracDashboard(TestCase):
         result_m_head_teachers=head_teachers_male(self.root_node.get_children())
         result_f_head_teachers=head_teachers_female(self.root_node.get_children())
 
-        self.assertAlmostEqual(100.00,result_m_head_teachers['m_head_t_week'],places=1)
-        self.assertAlmostEqual(0.00,result_m_head_teachers['m_head_t_week_before'],places=1)
+        self.assertAlmostEqual(0.00,result_m_head_teachers['m_head_t_week'],places=1)
+        self.assertAlmostEqual(100.00,result_m_head_teachers['m_head_t_week_before'],places=1)
         self.assertAlmostEqual(-100.00,result_m_head_teachers['m_head_diff'],places=1)
 
         self.assertAlmostEqual(50.00,result_f_head_teachers['f_head_t_week'],places=1)

@@ -1,5 +1,4 @@
 from difflib import get_close_matches
-import dateutils
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.contrib.auth.models import Group, User
@@ -9,8 +8,8 @@ from django.forms import ValidationError
 from eav.models import Attribute
 from education.utils import _schedule_weekly_scripts, _schedule_weekly_scripts_now, _schedule_monthly_script, _schedule_termly_script,\
     _schedule_weekly_report, _schedule_monthly_report, _schedule_midterm_script, _schedule_weekly_script, _schedule_teacher_weekly_scripts,\
-    _schedule_new_monthly_script, _schedule_script_now, _this_thursday
-from rapidsms_httprouter.models import mass_text_sent, Message
+    _schedule_new_monthly_script, _schedule_script_now
+from rapidsms_httprouter.models import mass_text_sent
 from rapidsms.models import Contact, ContactBase
 from rapidsms.contrib.locations.models import Location
 from poll.models import Poll
@@ -19,7 +18,6 @@ from script.models import *
 from script.utils.handling import find_best_response, find_closest_match
 import re, calendar, datetime, time, reversion
 from poll.models import ResponseCategory, Category
-from education.attendance_diff import calculate_attendance_difference
 import logging
 
 logger = logging.getLogger(__name__)
@@ -551,55 +549,6 @@ def edtrac_scriptrun_schedule(**kwargs):
         s, c = ScriptSchedule.objects.get_or_create(script=script, date__contains=date)
 
 
-def send_message_for_partial_response(**kwargs):
-    connection = kwargs['connection']
-    progress = kwargs['sender']
-    if progress.script.slug in ['edtrac_p3_teachers_weekly','edtrac_p6_teachers_weekly','edtrac_smc_weekly']:
-        message_string = 'Thank you for participating. Remember to answer all your questions next Thursday.'
-        Message.mass_text(message_string,[connection])
-
-
-def all_steps_answered(script):
-    this_thursday = _this_thursday()
-    current_week = [dateutils.increment(this_thursday,days=-7),dateutils.increment(this_thursday,days=-1)]
-    for step in script.steps.all():
-        if not Response.objects.filter(poll = step.poll,date__range=current_week).exists():
-            return False
-    return True
-
-
-def get_message_string(atttd_diff, emisreporter_grade, keys, progress):
-    if progress.script.slug == 'edtrac_head_teachers_weekly':
-
-       return "Thankyou, Attendance for male teacher have been %s by %spercent Attendance for female teachers have been %s by %spercent" % (
-            atttd_diff['edtrac_m_teachers_attendance'][1], atttd_diff['edtrac_m_teachers_attendance'][0],
-            atttd_diff['edtrac_f_teachers_attendance'][1], atttd_diff['edtrac_m_teachers_attendance'][0])
-
-    return "Thankyou %s Teacher, Attendance for boys have been %s by %spercent" \
-                         "Attendance for girls have been %s by %spercent" % (
-                             emisreporter_grade, atttd_diff[keys[emisreporter_grade][0]][1],
-                             atttd_diff[keys[emisreporter_grade][0]][0], atttd_diff[keys[emisreporter_grade][1]][1],
-                             atttd_diff[keys[emisreporter_grade][1]][0])
-
-
-def send_feedback_on_complete(**kwargs):
-    connection = kwargs['connection']
-    progress = kwargs['sender']
-    message_string = None
-    if not all_steps_answered(progress.script):
-        return
-    keys = {'p3':['edtrac_boysp3_attendance','edtrac_girlsp3_attendance'],
-            'p6':['edtrac_boysp6_attendance','edtrac_girlsp6_attendance']}
-    if progress.script.slug in ['edtrac_p3_teachers_weekly','edtrac_p6_teachers_weekly','edtrac_head_teachers_weekly']:
-        atttd_diff = calculate_attendance_difference(connection, progress)
-        if not connection.contact.emisreporter.grade is None:
-            emisreporter_grade = connection.contact.emisreporter.grade.lower()
-            message_string = get_message_string(atttd_diff, emisreporter_grade, keys, progress)
-    if progress.script.slug == 'edtrac_smc_weekly':
-        message_string = "Thank you for your report. Please continue to visit your school and report on what is happening."
-    if message_string is not None:
-        Message.mass_text(message_string, [connection])
-
 def reschedule_weekly_polls(grp=None):
     """
     manually reschedule all weekly polls or for a specified group
@@ -787,11 +736,11 @@ def schedule_script_now(grp = 'all', slug=''):
     
     now_script.enabled = True
     grps = Group.objects.filter(name__iexact=grp)
-    reporters = EmisReporter.objects.filter(groups__in=grps)
-    for reporter in reporters:
-        if reporter.default_connection and reporter.groups.count() > 0:
-            _schedule_script_now(reporter.groups.all()[0], reporter.default_connection, slug, ['Teachers', 'Head Teachers', 'SMC', 'GEM'])
-    print "Script sent out to " + str(reporters.count()) + " reporters"
+    reps = EmisReporter.objects.filter(groups__in=grps)
+    for rep in reps:
+        if rep.default_connection and rep.groups.count() > 0:
+            _schedule_script_now(rep.groups.all()[0], rep.default_connection, slug, ['Teachers', 'Head Teachers', 'SMC', 'GEM'])
+    print "Script sent out to " + str(reps.count()) + " reporters"
 
 
 def schedule_weekly_report(grp='DEO'):
@@ -861,8 +810,6 @@ script_progress_was_completed.connect(edtrac_autoreg, weak=False)
 script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)
 script_progress.connect(edtrac_autoreg_transition, weak=False)
 script_progress.connect(edtrac_attendance_script_transition, weak=False)
-script_progress_was_completed.connect(send_feedback_on_complete,weak=True)
-script_progress_was_expired.connect(send_message_for_partial_response,weak=False)
 #script_progress.connect(edtrac_scriptrun_schedule, weak=False)
 
 class ScriptScheduleTime(models.Model):

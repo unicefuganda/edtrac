@@ -482,7 +482,7 @@ def _schedule_weekly_report(group, connection, grps):
             
 def _schedule_script_now(group, connection, slug, role_names):
     if group.name in role_names:
-        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=slug),language='en')
+        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=slug))
         sp.set_time(datetime.datetime.now())
     
 def _schedule_monthly_script(group, connection, script_slug, day_offset, role_names):

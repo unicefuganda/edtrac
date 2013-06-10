@@ -130,7 +130,7 @@ class TestWaterPollView(TestCase):
         self.fake_incoming('i dont know',self.emis_reporter3)
         responses = self.water_source_poll.responses.all()
         for response in responses:
-            self.set_date(dateutils.increment(datetime(datetime.today().year, datetime.today().month, datetime.today().day),days=day_count), response)
+            self.set_date(datetime(datetime.today().year, datetime.today().month, datetime.today().day + day_count), response)
             day_count += 1
         location_result,monthly_result,percent = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
         self.assertTrue((datetime.today().strftime("%B"),{'yes':50,'no':50}) in monthly_result)
