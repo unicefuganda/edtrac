@@ -1,12 +1,17 @@
 import difflib
+import datetime
+from poll.models import gettext_db, Response
 from rapidsms.apps.base import AppBase
-from script.models import Script, ScriptProgress, ScriptSession
+from rapidsms_httprouter.models import Message
+from script.models import Script, ScriptProgress, ScriptSession, ScriptStep
 from django.conf import settings
+from script.utils.incoming import incoming_progress
 from unregister.models import Blacklist
 from uganda_common.utils import handle_dongle_sms
 from education.utils import poll_to_xform_submissions
 from rapidsms_xforms.models import xform_received
-
+import logging
+logger = logging.getLogger(__name__)
 class App (AppBase):
 
     def handle (self, message):
@@ -54,4 +59,27 @@ class App (AppBase):
         elif Blacklist.objects.filter(connection=message.connection).count():
             return True
             # when all else fails, quit!
+
+        else:
+            try:
+                progress = ScriptProgress.objects.filter(connection=message.connection, time__lte=datetime.datetime.now()).order_by('-time')
+                response_message_string = {"n":"The answer you have provided is not in the correct format. use figures like 3 to answer the question",
+                                 "t":"The answer you have provided is not in the correct format. please follow instructions that were given to you"}
+                if progress.count():
+                    progress = progress[0]
+                    script_last_step = ScriptStep.objects.filter(script=progress.script).order_by('-order')[0]
+                    if progress.step and progress.step.order == script_last_step.order and progress.status == 'C':
+                        return False
+                    else:
+                        response = incoming_progress(message)
+                        r = Response.objects.filter(contact__connection=message.connection,date__lte=datetime.datetime.now(),message__text=message.text).latest('date')
+                        if r is not None:
+                            if r.has_errors:
+                                Message.mass_text(response_message_string[r.poll.type], [message.connection])
+                                Message.mass_text(r.poll.question , [message.connection])
+                        if response:
+                            message.respond(gettext_db(response,progress.language))
+                        return True
+            except ScriptProgress.DoesNotExist:
+                logger.debug("\nScript Progress object not found for message %s with connection %s" % (message,message.connection))
         return False
