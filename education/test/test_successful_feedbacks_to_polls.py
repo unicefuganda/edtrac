@@ -127,21 +127,21 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
 
         self.head_teachers_weekly_script.steps.add(
             ScriptStep.objects.create(script=self.head_teachers_weekly_script, poll=self.female_teacher_deployment_poll,
-                order=0, rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=7200)
+                order=0, rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=1)
         )
 
         self.head_teachers_weekly_script.steps.add(
             ScriptStep.objects.create(script=self.head_teachers_weekly_script, poll=self.male_teacher_deployment_poll,
-                order=1, rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=7200)
+                order=1, rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=1)
         )
 
         self.head_teachers_weekly_script.steps.add(
             ScriptStep.objects.create(script=self.head_teachers_weekly_script, poll=self.female_teachers_attendance_poll,
-                order=2, rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=7200)
+                order=2, rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=1)
         )
 
         self.male_teacher_step = ScriptStep.objects.create(script=self.head_teachers_weekly_script,
-                                                           poll=self.male_teachers_attendance_poll, order=3, rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=7200)
+                                                           poll=self.male_teachers_attendance_poll, order=3, rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=1)
         self.head_teachers_weekly_script.steps.add(
             self.male_teacher_step
         )
