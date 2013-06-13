@@ -89,7 +89,11 @@ class LastReportingDateFilterForm(FilterForm):
             if self.cleaned_data['to_date'] < self.cleaned_data['from_date']:
                 return queryset.none()
             date_range = [self.cleaned_data['from_date'],self.cleaned_data['to_date']]
-            return queryset.filter(responses__date__range=date_range).distinct()
+            if queryset.model.__name__ == 'EmisReporter':
+                return queryset.filter(responses__date__range=date_range).distinct()
+            if queryset.model.__name__ == 'Messages':
+                return queryset.filter(date__range=date_range).distinct()
+
         return queryset
 
 class PollFilterForm(FilterForm):
