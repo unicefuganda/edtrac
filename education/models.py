@@ -612,7 +612,6 @@ def send_feedback_on_complete(**kwargs):
     if message_string is not None:
         Message.mass_text(message_string, [connection])
 
-
 def reschedule_weekly_polls(grp=None):
     """
     manually reschedule all weekly polls or for a specified group
