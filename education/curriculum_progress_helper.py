@@ -2,6 +2,7 @@
 
 #targets
 from datetime import timedelta
+import dateutils
 from django.conf import settings
 from education.models import EmisReporter, School
 from education.utils import get_week_count, themes, Statistics
@@ -25,8 +26,8 @@ target = {
 }
 
 
-def add_offset_according_to_term_number(target_value):
-    term_start= getattr(settings,'SCHOOL_TERM_START')
+def add_offset_according_to_term_number(target_value,term_start):
+    # term_start= getattr(settings,'SCHOOL_TERM_START')
     first_term_start= getattr(settings,'FIRST_TERM_BEGINS')
     second_term_start= getattr(settings,'SECOND_TERM_BEGINS')
     third_term_start= getattr(settings,'THIRD_TERM_BEGINS')
@@ -38,12 +39,33 @@ def add_offset_according_to_term_number(target_value):
     if term_start ==third_term_start:
         return target_value+8 , 'third'
 
+
+def in_term(start,given_date):
+    if start <= given_date <= dateutils.increment(start,weeks=12):
+        return True
+    return False
+
+def find_term_start(given_date):
+    first_term_start= getattr(settings,'FIRST_TERM_BEGINS')
+    second_term_start= getattr(settings,'SECOND_TERM_BEGINS')
+    third_term_start= getattr(settings,'THIRD_TERM_BEGINS')
+
+    if in_term(first_term_start,given_date):
+        return first_term_start
+    if in_term(second_term_start,given_date):
+        return second_term_start
+    if in_term(third_term_start,given_date):
+        return third_term_start
+
+
+
 def get_target_value(given_date):
-    term_start = getattr(settings,'SCHOOL_TERM_START')
-    term_end = getattr(settings,'SCHOOL_TERM_END')
+    # term_start = getattr(settings,'SCHOOL_TERM_START')
+    # term_end = getattr(settings,'SCHOOL_TERM_END')
+    term_start = find_term_start(given_date)
     week_count = get_week_count(term_start,given_date)
     target_value = target.get(week_count)
-    target_value ,term = add_offset_according_to_term_number(target_value)
+    target_value ,term = add_offset_according_to_term_number(target_value,term_start)
     return target_value ,term
 
 def get_location_for_curriculum_view(district_pk, request):

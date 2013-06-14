@@ -129,7 +129,7 @@ class TestCurriculumProgressView(TestCase):
         while temp < test_date:
             temp = dateutils.increment(temp,days=7)
             week_count+=1
-        return add_offset_according_to_term_number(self.target[week_count])
+        return add_offset_according_to_term_number(self.target[week_count],settings.SECOND_TERM_BEGINS)
 
     def test_curriculum_progress_view_for_current_week(self):
         reschedule_monthly_script('Head Teachers',self.poll_response_current_week_date.strftime("%Y-%m-%d"),'edtrac_p3_teachers_weekly')
