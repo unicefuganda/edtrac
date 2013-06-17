@@ -2,6 +2,7 @@
 .idea/
 *.pyc
 localsettings.py
+testSettings.py
 edtrac_projects/media
 build
 patch
