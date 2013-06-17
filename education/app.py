@@ -75,6 +75,8 @@ class App (AppBase):
                         r = Response.objects.filter(contact__connection=message.connection,date__lte=datetime.datetime.now(),message__text=message.text).latest('date')
                         if r is not None:
                             if r.has_errors:
+                                progress.status = ScriptProgress.PENDING
+                                progress.save()
                                 Message.mass_text(response_message_string[r.poll.type], [message.connection])
                                 Message.mass_text(r.poll.question , [message.connection])
                         if response:

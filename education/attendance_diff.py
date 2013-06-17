@@ -1,4 +1,5 @@
 # vim: ai ts=4 sts=4 et sw=4 encoding=utf-8
+import re
 import dateutils
 from django.conf import settings
 from education.utils import _this_thursday
@@ -22,19 +23,20 @@ def calculate_attendance_difference(connection, progress):
         girls_absent_percent_previous_week =0
         girls_absent_percent_this_week =0
         boys_enrolled , girls_enrolled = get_enrolled_boys_and_girls(connection,poll_names[2],poll_names[3])
-        this_thursday = _this_thursday()
-        current_week = [dateutils.increment(this_thursday,days=-7),dateutils.increment(this_thursday,days=-1)]
-        previous_week = [dateutils.increment(this_thursday,days=-14),dateutils.increment(this_thursday,days=-8)]
+        this_thursday = _this_thursday().date()
+        current_week = [dateutils.increment(this_thursday,days=-6),dateutils.increment(this_thursday,days=-0)]
+        previous_week = [dateutils.increment(this_thursday,days=-13),dateutils.increment(this_thursday,days=-7)]
         for step in progress.script.steps.all():
             present_this_week = Response.objects.filter(poll= step.poll,contact__connection=connection,date__range=current_week, has_errors = False)
+
             if present_this_week.exists():
-                present_this_week = int(present_this_week.latest('date').message.text)
+                present_this_week = int(get_digit_value_from_message_text(present_this_week.latest('date').message.text))
             else:
                 present_this_week = 0
 
             present_previous_week = Response.objects.filter(poll= step.poll,contact__connection=connection,date__range=previous_week)
             if present_previous_week.exists():
-                present_previous_week= int(present_previous_week.latest('date').message.text)
+                present_previous_week= int(get_digit_value_from_message_text(present_previous_week.latest('date').message.text))
             else:
                 present_previous_week = 0
 
@@ -66,10 +68,20 @@ def get_enrolled_boys_and_girls(connection, boys_enroll_poll_name, girls_enroll_
     return boys_enrolled , girls_enrolled
 
 def get_enrolled_pupils(connection, poll_name, term_start_date = None, term_end_date = None):
-    boys_enrolled = Response.objects.filter(poll__name=poll_name, contact__connection=connection,
+    pupils_enrolled = Response.objects.filter(poll__name=poll_name, contact__connection=connection,
         date__range=[term_start_date, term_end_date])
-    if boys_enrolled.exists():
-        boys_enrolled = int(boys_enrolled.latest('date').message.text)
+    if pupils_enrolled.exists():
+        pupils_enrolled = get_digit_value_from_message_text(pupils_enrolled.latest('date').message.text)
     else:
-        boys_enrolled = 0
-    return boys_enrolled
+        pupils_enrolled = 0
+    return pupils_enrolled
+
+def get_digit_value_from_message_text(messge):
+    digit_value = 0
+    regex = re.compile(r"(-?\d+(\.\d+)?)")
+     #split the text on number regex. if the msg is of form
+     #'19'or '19 years' or '19years' or 'age19'or 'ugx34.56shs' it returns a list of length 4
+    msg_parts = regex.split(messge)
+    if len(msg_parts) == 4:
+        digit_value = int(msg_parts[1])
+    return digit_value
