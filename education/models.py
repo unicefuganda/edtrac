@@ -564,7 +564,6 @@ def send_alert_for_expired_script(script,connection):
     if not all_steps_answered(script):
         if script.slug in ['edtrac_p3_teachers_weekly','edtrac_p6_teachers_weekly','edtrac_smc_weekly']:
             message_string = 'Thank you for participating. Remember to answer all your questions next Thursday.'
-            print 'Outgoing (Expired Script)' + message_string
             Message.mass_text(message_string,[connection])
 
 
@@ -874,7 +873,6 @@ script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)
 script_progress.connect(edtrac_autoreg_transition, weak=False)
 script_progress.connect(edtrac_attendance_script_transition, weak=False)
 script_progress_was_completed.connect(send_feedback_on_complete,weak=True)
-script_progress_was_expired.connect(send_message_for_partial_response,weak=False)
 #script_progress.connect(edtrac_scriptrun_schedule, weak=False)
 
 class ScriptScheduleTime(models.Model):

@@ -169,12 +169,12 @@ class TestCurriculumProgressView(TestCase):
         settings.SCHOOL_TERM_END = dateutils.increment(datetime.datetime.now(),weeks=12)
         client = Client()
         client.login(username='John',password='password')
-        week_start=dateutils.increment(self.poll_response_previous_week_date,weeks=-2).strftime("%d,%b,%Y")
-        week_end=dateutils.increment(self.poll_response_previous_week_date,weeks=-1,days=-1).strftime("%d,%b,%Y")
+        week_start=dateutils.increment(self.poll_response_previous_week_date,weeks=-5).strftime("%d,%b,%Y")
+        week_end=dateutils.increment(self.poll_response_previous_week_date,weeks=-4,days=-1).strftime("%d,%b,%Y")
         week_choices=week_start+" to "+week_end
         response = client.post('/edtrac/dash-admin-progress/',{'choose_week_to_view':week_choices})
-        # self.assertEqual('No Reports made this week',response.context['current_mode'])
-        self.assertEqual(3.3,response.context['target'])
+        self.assertEqual('No Reports made this week',response.context['current_mode'])
+        self.assertEqual(2.3,response.context['target'])
 
 
     def test_mode_by_district(self):
