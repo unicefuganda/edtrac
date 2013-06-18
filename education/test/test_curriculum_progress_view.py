@@ -163,6 +163,20 @@ class TestCurriculumProgressView(TestCase):
         self.assertEqual('second',term)
         self.assertEqual(5.1,response.context['current_mode'][0][0])
 
+    def test_should_give_target_for_previous_terms(self):
+        settings.FIRST_TERM_BEGINS = dateutils.increment(datetime.datetime.now(),weeks=-13)
+        settings.SCHOOL_TERM_START = datetime.datetime.now()
+        settings.SCHOOL_TERM_END = dateutils.increment(datetime.datetime.now(),weeks=12)
+        client = Client()
+        client.login(username='John',password='password')
+        week_start=dateutils.increment(self.poll_response_previous_week_date,weeks=-2).strftime("%d,%b,%Y")
+        week_end=dateutils.increment(self.poll_response_previous_week_date,weeks=-1,days=-1).strftime("%d,%b,%Y")
+        week_choices=week_start+" to "+week_end
+        response = client.post('/edtrac/dash-admin-progress/',{'choose_week_to_view':week_choices})
+        # self.assertEqual('No Reports made this week',response.context['current_mode'])
+        self.assertEqual(3.3,response.context['target'])
+
+
     def test_mode_by_district(self):
         reschedule_monthly_script('Head Teachers',self.poll_response_current_week_date.strftime("%Y-%m-%d"),'edtrac_p3_teachers_weekly')
         check_progress(self.script)
