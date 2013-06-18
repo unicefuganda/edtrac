@@ -1261,6 +1261,16 @@ class NationalStatistics(TemplateView):
                 return self.render_to_response(dashboard(self.request))
 
 
+def get_term_range(term):
+    if term == 'first':
+        return [getattr(settings,'FIRST_TERM_BEGINS'),dateutils.increment(getattr(settings,'FIRST_TERM_BEGINS'),weeks=12)]
+    if term == 'second':
+        return [getattr(settings,'SECOND_TERM_BEGINS'),dateutils.increment(getattr(settings,'SECOND_TERM_BEGINS'),weeks=12)]
+    if term == 'third':
+        return [getattr(settings,'THIRD_TERM_BEGINS'),dateutils.increment(getattr(settings,'THIRD_TERM_BEGINS'),weeks=12)]
+    if term == '' or term =='current' or term is None:
+        return [getattr(settings,'SCHOOL_TERM_START'),getattr(settings,'SCHOOL_TERM_END')]
+
 class CapitationGrants(TemplateView):
     poll_name =''
     restrict_group=''
@@ -1302,6 +1312,8 @@ class CapitationGrants(TemplateView):
         return [self._get_per_category_responses_for_school(responses_by_category, school) for school in schools]
 
     def get_context_data(self, **kwargs):
+        term = self.kwargs.get('term')
+        term_range = get_term_range(term)
         context = super(CapitationGrants, self).get_context_data(**kwargs)
         cg = Poll.objects.select_related().get(name=self.poll_name)
         authorized_users = ['Admins', 'Ministry Officials', 'UNICEF Officials']
@@ -1318,7 +1330,7 @@ class CapitationGrants(TemplateView):
 
             reporter_count = er.filter(groups__name=self.restrict_group).exclude(schools=None).count()
 
-            all_responses = cg.responses_by_category().exclude(response__in=unknown_unknowns)
+            all_responses = cg.responses_by_category().exclude(response__in=unknown_unknowns).filter(response__date__range=term_range)
 
             locs = Location.objects.filter(
                 type="district", pk__in= \
@@ -1340,7 +1352,7 @@ class CapitationGrants(TemplateView):
         else:
 
             location = self.request.user.get_profile().location
-            all_responses = cg.responses_by_category().exclude(response__in=unknown_unknowns)
+            all_responses = cg.responses_by_category().exclude(response__in=unknown_unknowns).filter(response__date__range=term_range)
             responses_at_location = all_responses.filter(response__contact__reporting_location=location)
             total_responses = responses_at_location.values_list('response__contact').distinct().count()
 

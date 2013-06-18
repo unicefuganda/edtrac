@@ -1,9 +1,12 @@
 # vim: ai ts=4 sts=4 et sw=4 encoding=utf-8
 
 from unittest import TestCase
+import dateutils
+from django.conf import settings
 from django.contrib.auth.models import User, Group
+from django.test import Client
 from education.models import School, EmisReporter
-from education.views import CapitationGrants
+from education.views import CapitationGrants, get_term_range
 from rapidsms.models import Backend, Connection
 from rapidsms.contrib.locations.models import LocationType, Location
 from poll.models import Poll, Response
@@ -72,7 +75,7 @@ class TestCapitationGrantView(TestCase):
 
         self.smc_poll.add_yesno_categories()
         self.smc_poll.start()
-        self.smc_capitation_grant_view = create_view(CapitationGrants, admin_user, self.smc_poll, smc_group)
+        self.smc_capitation_grant_view = create_view(CapitationGrants, admin_user, self.smc_poll, smc_group,term=None)
         self.smc_capitation_grant_view_district = create_view(CapitationGrants, district_user, self.smc_poll, smc_group)
 
 
@@ -155,6 +158,13 @@ class TestCapitationGrantView(TestCase):
     def test_should_check_type_of_sub_locations_at_distrcit_level(self):
         result = self.smc_capitation_grant_view_district.get_context_data()
         self.assertEqual("school",result['sub_location_type'])
+
+    def test_should_return_term_range_given_term_name(self):
+        settings.SCHOOL_TERM_START = datetime.datetime.now()
+        settings.SCHOOL_TERM_END = dateutils.increment(datetime.datetime.now(),weeks=12)
+        expected = [getattr(settings,'SCHOOL_TERM_START'),getattr(settings,'SCHOOL_TERM_END')]
+        self.assertEqual(expected,get_term_range(None))
+
 
     def tearDown(self):
         School.objects.all().delete()

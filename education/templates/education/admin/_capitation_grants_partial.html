@@ -1,4 +1,9 @@
 {% load stats_extras %}
+<div>
+    <a href="{% url emis-grants 'first'%}" style="border-left: 2px solid; padding-left: 5px">First Term</a>
+    <a href="{% url emis-grants 'second'%}" style="border-left: 2px solid; padding-left: 5px">Second Term</a>
+    <a href="{% url emis-grants 'third'%}" style="border-left: 2px solid; padding-left: 5px">Third Term</a>
+</div>
 <div id="capitation_container" style="margin-bottom: 20px;">
     <div class="stats"><h3>UPE Capitation Received on time across {{ location.name|capfirst }} reported by {{ group|capfirst }}</h3></div>
     <div id="capitation" style="min-width: 400px; height: 400px; margin: 0 auto"></div>

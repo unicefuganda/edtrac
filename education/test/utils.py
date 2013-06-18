@@ -64,11 +64,12 @@ def create_poll_with_reporters(name,question,type,user,contacts):
     poll.save()
     return poll
 
-def create_view(class_name,user, poll, group):
+def create_view(class_name,user, poll, group,**kwargs):
     view = class_name(poll_name=poll.name, restrict_group=group.name)
     request = HttpRequest()
     request.user = user
     view.request = request
+    view.kwargs = kwargs
     return view
 
 def create_attribute():

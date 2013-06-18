@@ -255,7 +255,7 @@ urlpatterns = patterns('',
 
     #National statistics
     url(r'^edtrac/national-stats/$', login_required(NationalStatistics.as_view()), name="emis-national-stats"),
-    url(r'^edtrac/capitation-grants/$',
+    url(r'^edtrac/capitation-grants(?:/(?P<term>[a-zA-Z]+))?/$',
         login_required(CapitationGrants.as_view(template_name='education/admin/capitation_grants.html', poll_name='edtrac_upe_grant',
                                  restrict_group='Head Teachers')), name="emis-grants"),
     url(r'^edtrac/smc-capitation-grants/$',
