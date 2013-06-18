@@ -35,6 +35,10 @@
   -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
+
+div#div_filter_1.filterform label, div#div_filter_2.filterform label, div#div_filter_3.filterform label {
+  margin-right: 178px;
+}
 /*------------------------------------------------------------------
 
 [Typography Styles]
