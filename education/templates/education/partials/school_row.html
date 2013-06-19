@@ -1,7 +1,7 @@
 {% extends 'generic/partials/partial_row.html' %}
 {% load stats_extras %}
 {% block remaining_row_content %}
-	<td><a href="{% url school-detail object.id %}">{{ object.name }}</a></td>
+	<!-- <td><a href="{% url school-detail object.id %}">{{ object.name }}</a></td>
     <td>{{ object.location|get_district }}</td>
     <td>{{ object.emis_id }}</td>
     <td>{{ object|headteacher }} {{ object|headteacher_connection }}</td>
@@ -13,7 +13,33 @@
                 </li>
             {% endfor %}
         </ul>
+    </td> -->
+
+    <td>
+        <a href="{% url school-detail object.id %}">
+        {{ object.name }}</a>
     </td>
+    <td>
+        {{ object.location|get_district }}
+    </td>
+
+    <td>
+        {{ object|headteacher }}
+    </td>
+    <td>
+        {{ object|headteacher_connection }}
+    </td>
+    <td>
+        <ul>
+            {% for r in object.emisreporter_set.all %}
+                <li>
+                    {{ r }}
+                </li>
+            {% endfor %}
+        </ul>
+    </td>
+
+    
     <td class="button_col">
         <div class="buttons">
         	{% comment %}
