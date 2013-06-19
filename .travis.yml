@@ -16,5 +16,4 @@ before_script:
 
 # command to run tests
 script:
-  - cd edtrac_project
-  - python manage.py test education.test
+  - ./edtrac_project/run_tests.sh
