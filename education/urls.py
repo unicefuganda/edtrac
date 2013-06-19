@@ -148,6 +148,7 @@ urlpatterns = patterns('',
         ],
         'sort_column':'date',
         'sort_ascending':False,
+        'management_for': 'schools'
         }, name="emis-schools"),
     url(r'^edtrac/(\d+)/district-detail-boysp3/', boysp3_district_attd_detail, {}, name="boysp3-district-attd-detail"),
     url(r'^edtrac/(\d+)/district-detail-boysp6/', boysp6_district_attd_detail, {}, name="boysp6-district-attd-detail"),

@@ -5,7 +5,9 @@
 		<a href="javascript:void(0)" onclick="newSchool(this, '{% url add-schools %}')">Add New School(s)</a>
 		<p></p>
 	</div>
+    <h3><a href="/static/education/spreadsheets/reporters.xls">Download as Excel</a></h3>
 {% endblock %}
+
 {% block tablehead %}
 <tr>
     {% for name, colspan, href in top_columns %}
