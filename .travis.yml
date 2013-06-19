@@ -9,7 +9,7 @@ install:
   - sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm
 
 before_script:
-  - psql -c 'create database edtrac;' -U postgres
+  - psql -c 'create database test_edtrac;' -U postgres
   - git submodule init
   - git submodule update
   - cp edtrac_project/localsettings.py.example edtrac_project/localsettings.py
