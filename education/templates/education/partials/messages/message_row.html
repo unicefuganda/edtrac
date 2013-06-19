@@ -1,6 +1,6 @@
 {% extends 'generic/partials/partial_row.html' %}
+{% load stats_extras %}
 {% block remaining_row_content %}
-{% load extra_tags %}
 <td>
     <span class="textmessage">
     {% if user.is_authenticated %}
@@ -15,32 +15,24 @@
     {% endif %}
     </span>
 </td>
-<td><span class="small">
-        {% if object.connection.contact %}
-            {{ object.connection.contact.name }} ({% endif %}{{ object.connection.identity }}{% if object.connection.contact %}){% endif %}
-    <ul>
-        <li>
-            <a href="/contact/{{ object.connection.pk }}/message_history/">
-                Show history
-            </a>
-        </li>
-    </ul>
-    </span>
-</td>
 <td>
-    <span class="small">
-        {{ object.date|date:"m/d/Y H:i:s" }}
-    </span>
+    {% if object.connection.contact %}
+        <a href="/contact/{{ object.connection.pk }}/message_history/">
+    {% endif %}
+    {{ object.connection.contact.name }}
+    {% if object.connection.contact %}
+        </a>
+    {% endif %}
 </td>
+
+<td>
+        {{ object.connection.identity }}
+</td>
+
 
 <td>
     {% if object.poll_responses.all.0.poll %}
         {{ object.poll_responses.all.0.poll.name }}
-    {% endif %}
-</td>
-<td>
-    {% if object.responses %}
-        {{ object.connection.contact.reporting_location }}
     {% endif %}
 </td>
 <td>
@@ -50,35 +42,9 @@
 </td>
 <td>
     {% if object.responses %}
-    <ul>
-        {% for r in object.responses.all %}
-        <li>&lt;&lt;
-            {% ifequal object.application r.application %}
-            {% if object.application == 'poll' %}
-            {% if object.poll_responses.all.0.has_errors %}
-                            <span class="errormessage">
-                        {% else %}
-                            <span class="successmessage">
-                        {% endif %}
-                    {% else %}
-                        {% if object.application == 'rapidsms_xforms' %}
-                            {% if object.submissions.all.0.has_errors %}
-                                <span class="errormessage">
-                            {% else %}
-                                <span class="successmessage">
-                            {% endif %}
-                        {% else %}
-                            <span class="othermessage">
-                        {% endif %}
-                    {% endif %}
-                {% else %}
-                    <span class="othermessage">
-                {% endifequal %}
-                {{ r.text }}
-                </span>
-        </li>
-        {% endfor %}
-    </ul>
+        {{ object.connection.contact.reporting_location }}
     {% endif %}
 </td>
+<td>{{ object.date|date:"d-m-Y" }}</td>
+
 {% endblock %}
