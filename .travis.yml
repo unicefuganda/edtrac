@@ -13,11 +13,11 @@ before_script:
   - git submodule init
   - git submodule update
   - cp edtrac_project/travis-settings.py edtrac_project/localsettings.py
-  - python manage.py syncdb --noinput
-  - python manage.py migrate
 
 # command to run tests
 script:
   - cd edtrac_project
+  - python manage.py syncdb --noinput
+  - python manage.py migrate
   - python manage.py test education.test
 
