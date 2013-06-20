@@ -9,12 +9,15 @@ install:
   - sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm
 
 before_script:
-  - psql -c 'create database edtrac_test;' -U postgres
+  - psql -c 'create database edtrac;' -U postgres
   - git submodule init
   - git submodule update
-  - cp edtrac_project/localsettings.py.example edtrac_project/localsettings.py
+  - cp edtrac_project/travis-settings.py edtrac_project/localsettings.py
+  - python manage.py syncdb --noinput
+  - python manage.py migrate
 
 # command to run tests
 script:
   - cd edtrac_project
-  - ./run_tests.sh
+  - python manage.py test education.test
+
