@@ -3,6 +3,7 @@ import datetime
 import dateutils
 from django.test import TestCase
 from education.curriculum_progress_helper import add_offset_according_to_term_number
+from education.utils import _this_thursday
 from rapidsms_xforms.models import *
 from rapidsms.contrib.locations.models import Location, LocationType
 from rapidsms.models import Connection, Backend
@@ -169,12 +170,13 @@ class TestCurriculumProgressView(TestCase):
         settings.SCHOOL_TERM_END = dateutils.increment(datetime.datetime.now(),weeks=12)
         client = Client()
         client.login(username='John',password='password')
-        week_start=dateutils.increment(self.poll_response_previous_week_date,weeks=-5).strftime("%d,%b,%Y")
-        week_end=dateutils.increment(self.poll_response_previous_week_date,weeks=-4,days=-1).strftime("%d,%b,%Y")
-        week_choices=week_start+" to "+week_end
-        response = client.post('/edtrac/dash-admin-progress/',{'choose_week_to_view':week_choices})
+        this_thursday = _this_thursday()
+        week_start=dateutils.increment(this_thursday,weeks=-12).strftime("%d,%b,%Y")
+        week_end=dateutils.increment(this_thursday,weeks=-11,days=-1).strftime("%d,%b,%Y")
+        second_week_in_first_term=week_start+" to "+week_end
+        response = client.post('/edtrac/dash-admin-progress/',{'choose_week_to_view':second_week_in_first_term})
         self.assertEqual('No Reports made this week',response.context['current_mode'])
-        self.assertEqual(2.3,response.context['target'])
+        self.assertEqual(1.2,response.context['target'])
 
 
     def test_mode_by_district(self):
