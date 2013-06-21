@@ -24,9 +24,15 @@ DATABASES = {
         "USER": "postgres",
         "PASSWORD": "",
         "HOST": "localhost",
-        # 'PORT' : 6543
-        #put a PORT in production
+    },
+    'test': {
+         'ENGINE' : 'django.db.backends.postgresql_psycopg2',
+         'NAME': 'test_edtrac',
+         'USER': 'postgres',
+         "PASSWORD": "",
+         'HOST': 'localhost',
     }
+
 }
 
 BAD_WORDS = ['fuck', 'shit', 'ass', 'damn', 'hell', 'nigger', 'cunt', 'fucker', 'fucking', 'motherfucker', 'shithead',
@@ -97,13 +103,13 @@ BLACKLIST_MODEL = "unregister.Blacklist"
 #)
 import sys
 
-if ('test' in sys.argv):
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql_psycopg2",
-            "NAME": "edtrac_test",
-            "USER": "postgres",
-            "PASSWORD": "",
-            "HOST": "localhost",
-        }
-    }
+#if ('test' in sys.argv):
+#    DATABASES = {
+#        "default": {
+#            "ENGINE": "django.db.backends.postgresql_psycopg2",
+#            "NAME": "edtrac_test",
+#            "USER": "postgres",
+#            "PASSWORD": "",
+#            "HOST": "localhost",
+#       }
+#    }
