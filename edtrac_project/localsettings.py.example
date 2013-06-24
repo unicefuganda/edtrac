@@ -24,13 +24,6 @@ DATABASES = {
         "USER": "postgres",
         "PASSWORD": "",
         "HOST": "localhost",
-    },
-    'test': {
-         'ENGINE' : 'django.db.backends.postgresql_psycopg2',
-         'NAME': 'test_edtrac',
-         'USER': 'postgres',
-         "PASSWORD": "",
-         'HOST': 'localhost',
     }
 
 }
