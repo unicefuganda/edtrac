@@ -9,3 +9,5 @@ patch
 *.log
 .project
 .pydevproject
+Vagrantfile
+.vagrant/*
