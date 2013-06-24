@@ -19,7 +19,7 @@ from script.models import *
 from script.utils.handling import find_best_response, find_closest_match
 import re, calendar, datetime, time, reversion
 from poll.models import ResponseCategory, Category
-from education.attendance_diff import calculate_attendance_difference
+from education.attendance_diff import calculate_attendance_difference, append_time_to_week_date
 import logging
 
 logger = logging.getLogger(__name__)
@@ -569,7 +569,8 @@ def send_alert_for_expired_script(script,connection):
 
 def all_steps_answered(script):
     this_thursday = _this_thursday().date()
-    current_week = [dateutils.increment(this_thursday,days=-6),dateutils.increment(this_thursday,days=-0)]
+    week_start = dateutils.increment(this_thursday, days=-6)
+    current_week = append_time_to_week_date(this_thursday, week_start)
     for step in script.steps.all():
         if not Response.objects.filter(poll = step.poll,date__range=current_week,has_errors=False).exists():
             return False

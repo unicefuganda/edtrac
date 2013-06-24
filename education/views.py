@@ -411,28 +411,34 @@ def violence_changes_reported(locations):
             'violence_change_reported_data' : violence_change_reported_data
     }
 
+
+def get_two_weeks_absenteeism(indicator, locations):
+    date_weeks = get_week_date(depth=2)
+    holiday = False
+    if is_holiday(date_weeks[0][0], getattr(settings, 'SCHOOL_HOLIDAYS')):
+        this_week_absent = '--'
+        holiday = True
+    if is_holiday(date_weeks[1][0], getattr(settings, 'SCHOOL_HOLIDAYS')):
+        past_week_absent = '--'
+        holiday = True
+    if not holiday:
+        config_list = get_polls_for_keyword(indicator)
+        function_to_invoke = config_list[0].get('func')
+        absent_by_location, absent_by_time, school_percent = function_to_invoke(locations, config_list[0],
+                                                                                       date_weeks)
+
+        this_week_absent = absent_by_time[0]
+        past_week_absent = absent_by_time[1]
+
+    return this_week_absent, past_week_absent
+
+
 def p3_absent_boys(locations):
     """
     Attendance of P3 Pupils; this gets the absenteeism
     """
-    x, y = poll_responses_past_week_sum("edtrac_boysp3_attendance", locations=locations, weeks=2)
-    enrol = poll_responses_term("edtrac_boysp3_enrollment", belongs_to="location", locations=locations)
-
-    try:
-        boysp3 = 100*(enrol - x ) / enrol
-    except ZeroDivisionError:
-        boysp3 = 0
-    except:
-        boysp3 = '--'
-
-    try:
-        # boys in the past week
-        boysp3_past = 100*(enrol - y ) / enrol
-    except ZeroDivisionError:
-        boysp3_past = 0
-    except:
-        boysp3_past = '--'
-
+    indicator = 'P3Boys'
+    boysp3, boysp3_past = get_two_weeks_absenteeism(indicator, locations)
 
     try:
         boysp3_diff = boysp3 - boysp3_past
@@ -455,21 +461,8 @@ def p3_absent_boys(locations):
                     'boysp3_diff' : boysp3_diff, 'boysp3_data' : boysp3_data}
 
 def p6_boys_absent(locations):
-    x, y  = poll_responses_past_week_sum("edtrac_boysp6_attendance", locations=locations, weeks=2)
-    enrol = poll_responses_term("edtrac_boysp6_enrollment", belongs_to="location", locations=locations)
-    try:
-        boysp6 = 100*(enrol - x ) / enrol
-    except ZeroDivisionError:
-        boysp6 = 0
-    except:
-        boysp6 = '--'
-
-    try:
-        boysp6_past = 100*(enrol - y ) / enrol
-    except ZeroDivisionError:
-        boysp6_past = 0
-    except:
-        boysp6_past = '--'
+    indicator = 'P6Boys'
+    boysp6, boysp6_past = get_two_weeks_absenteeism(indicator,locations)
 
     try:
         boysp6_diff = boysp6 - boysp6_past
@@ -492,21 +485,8 @@ def p6_boys_absent(locations):
             'boysp6_diff' : boysp6_diff, 'boysp6_data' : boysp6_data}
 
 def p3_absent_girls(locations):
-    x, y = poll_responses_past_week_sum("edtrac_girlsp3_attendance",locations=locations, weeks=2)
-    enrol = poll_responses_term("edtrac_girlsp3_enrollment", belongs_to="location", locations=locations)
-    try:
-        girlsp3 = 100*(enrol - x ) / enrol
-    except ZeroDivisionError:
-        girlsp3 = 0
-    except:
-        girlsp3 = '--'
-
-    try:
-        girlsp3_past = 100*(enrol - y ) / enrol
-    except ZeroDivisionError:
-        girlsp3_past = 0
-    except:
-        girlsp3_past = '--'
+    indicator ='P3Girls'
+    girlsp3 ,girlsp3_past =get_two_weeks_absenteeism(indicator,locations)
 
     try:
         girlsp3_diff = girlsp3 - girlsp3_past
@@ -529,22 +509,9 @@ def p3_absent_girls(locations):
                     'girlsp3_diff' : girlsp3_diff, 'girlsp3_data' : girlsp3_data}
 
 def p6_girls_absent(locations):
-    x, y = poll_responses_past_week_sum("edtrac_girlsp6_attendance", locations=locations, weeks=2)
-    enrol = poll_responses_term("edtrac_girlsp6_enrollment", belongs_to="location", locations=locations)
 
-    try:
-        girlsp6 = 100*(enrol - x ) / enrol
-    except ZeroDivisionError:
-        girlsp6 = 0
-    except:
-        girlsp6 = '--'
-
-    try:
-        girlsp6_past = 100*(enrol - y ) / enrol
-    except ZeroDivisionError:
-        girlsp6_past = 0
-    except:
-        girlsp6_past = '--'
+    indicator = 'P6Girls'
+    girlsp6,girlsp6_past = get_two_weeks_absenteeism(indicator,locations)
 
     try:
         girlsp6_diff = girlsp6 - girlsp6_past
@@ -568,22 +535,8 @@ def p6_girls_absent(locations):
                     'girlsp6_class' : girlsp6_class,'girlsp6_data' : girlsp6_data}
 
 def f_teachers_absent(locations):
-    x, y = poll_responses_past_week_sum("edtrac_f_teachers_attendance",locations=locations, weeks=2)
-    deploy = poll_responses_term("edtrac_f_teachers_deployment", belongs_to="location", locations=locations)
-    try:
-        female_teachers = 100*(deploy - x ) / deploy
-    except ZeroDivisionError:
-        female_teachers = 0
-    except:
-        female_teachers = '--'
-
-    try:
-        female_teachers_past = 100*(deploy - y ) / deploy
-    except ZeroDivisionError:
-        female_teachers_past = 0
-    except:
-        female_teachers_past = '--'
-
+    indicator ='FemaleTeachers'
+    female_teachers ,female_teachers_past = get_two_weeks_absenteeism(indicator,locations)
     try:
         female_teachers_diff = female_teachers - female_teachers_past
 
@@ -606,21 +559,8 @@ def f_teachers_absent(locations):
             'female_teachers_diff' : female_teachers_diff,'female_teachers_data' : female_teachers_data}
 
 def m_teachers_absent(locations):
-    x, y = poll_responses_past_week_sum("edtrac_m_teachers_attendance", weeks = 2, locations=locations)
-    deploy = poll_responses_term("edtrac_m_teachers_deployment", belongs_to="location", locations=locations)
-    try:
-        male_teachers = 100*(deploy - x ) / deploy
-    except ZeroDivisionError:
-        male_teachers = 0
-    except:
-        male_teachers = '--'
-
-    try:
-        male_teachers_past = 100*(deploy - y ) / deploy
-    except ZeroDivisionError:
-        male_teachers_past = 0
-    except:
-        male_teachers_past = '--'
+    indicator = 'MaleTeachers'
+    male_teachers,male_teachers_past = get_two_weeks_absenteeism(indicator,locations)
 
     try:
         male_teachers_diff = male_teachers - male_teachers_past
@@ -682,130 +622,51 @@ def meals_missed(locations):
 
     return {'worst_meal' : worst_meal}
 
+
 def head_teachers_female(locations):
-    # ideally head teachers match the number of SMCs in eductrac
-    d1, d2 = get_week_date(depth = 2)
-    female_d1 = "--"
-    female_d2 = "--"
-    head_teacher_poll = Poll.objects.get(name = 'edtrac_head_teachers_attendance')
-
-    female_head_teachers = EmisReporter.objects.filter(reporting_location__in =\
-        locations, groups__name="Head Teachers", gender='F').exclude(schools = None)
-
-    female_head_t_deploy = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
-        female_head_teachers.values_list('schools', flat=True), groups__name = 'SMC').distinct()
-
-    if not is_holiday(d1[0], getattr(settings, 'SCHOOL_HOLIDAYS')):
-        # female head teachers
-        yes_fht_d1 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
-            filter(date__range = d1, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True))).select_related()
-        no_fht_d1 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
-            filter(date__range = d1, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True))).select_related()
-        # get the count for female head teachers present in the last 3 days
-        female_d1_yes = yes_fht_d1.count()
-        female_d1_no = no_fht_d1.count()
-
-        try:
-            female_d1 = female_d1_no * 100 / sum([female_d1_no, female_d1_yes]) # messing with ya! :D
-        except ZeroDivisionError:
-            female_d1 = 100.0
-
-    if not is_holiday(d2[0], getattr(settings, 'SCHOOL_HOLIDAYS')):
-        yes_fht_d2 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses. \
-            filter(date__range = d2, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True))).select_related()
-        no_fht_d2 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
-            filter(date__range = d2, contact__reporting_location__in=locations, contact__in=female_head_t_deploy.values_list('connection__contact',flat=True))).select_related()
-
-        female_d2_yes = yes_fht_d2.count()
-        female_d2_no = no_fht_d2.count()
-        try:
-            female_d2 = female_d2_no * 100 / sum([female_d2_no, female_d2_yes]) # messing with ya! :D
-        except ZeroDivisionError:
-            female_d2 = 100.0
-
-    if isinstance(female_d2, float) and female_d2 >= 0 and female_d1 >= 0 and isinstance(female_d1, float):
-
+    indicator = 'FemaleHeadTeachers'
+    female_d1,female_d2 = get_two_weeks_absenteeism(indicator,locations)
+    try:
         f_head_diff = female_d2 - female_d1
 
-        if f_head_diff > 0:
-            f_head_t_class = "increase"
-            f_head_t_data = 'data-red'
-        elif f_head_diff < 0:
+        if f_head_diff < 0:
             f_head_t_class = "decrease"
             f_head_t_data = 'data-green'
+        elif f_head_diff > 0:
+            f_head_t_class = "increase"
+            f_head_t_data = 'data-red'
         else:
             f_head_t_class = "zero"
             f_head_t_data = 'data-white'
-    else:
-        f_head_diff = "--"
-        f_head_t_class = 'zero'
+    except:
+        f_head_diff = '--'
+        f_head_t_class = "zero"
         f_head_t_data = 'data-white'
+
 
     return {'f_head_t_week' : female_d1, 'f_head_t_week_before' : female_d2, 'f_head_diff' : f_head_diff,
             'f_head_t_class' : f_head_t_class, 'f_head_t_data':f_head_t_data}
 
 def head_teachers_male(locations):
-    d1, d2 = get_week_date(depth = 2)
-    male_d1="--"
-    male_d2="--"
-    male_head_teachers = EmisReporter.objects.filter(reporting_location__in =\
-    locations, groups__name="Head Teachers", gender='M').exclude(schools = None)
-    male_head_t_deploy = EmisReporter.objects.filter(reporting_location__in = locations, schools__in=\
-    male_head_teachers.values_list('schools', flat=True), groups__name = 'SMC').distinct()
-    m_head_t_count = male_head_t_deploy.count() # how many male head teachers are available
-    head_teacher_poll = Poll.objects.get(name = 'edtrac_head_teachers_attendance')
-
-    if not is_holiday(d1[0], getattr(settings, 'SCHOOL_HOLIDAYS')):
-        yes_mht_d1 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
-        filter(date__range = d1, contact__reporting_location__in=locations,
-            contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
-
-        no_mht_d1 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses. \
-            filter(date__range = d1, contact__reporting_location__in=locations,
-                   contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
-
-        # get the count for male head teachers present in the last 3 days
-        male_d1_yes = yes_mht_d1.count()
-        male_d1_no = no_mht_d1.count()
-
-        if (male_d1_yes + male_d1_no) > 0:
-            male_d1 = male_d1_no * 100 / sum([male_d1_no, male_d1_yes]) # messing with ya! :D
-        else:
-            male_d1 = 100.0 # absent
-
-    if not is_holiday(d2[0], getattr(settings, 'SCHOOL_HOLIDAYS')):
-        yes_mht_d2 = ResponseCategory.objects.filter(category__name = 'yes', response__in=head_teacher_poll.responses.\
-            filter(date__range = d2, contact__reporting_location__in=locations,
-                contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
-
-        no_mht_d2 = ResponseCategory.objects.filter(category__name = 'no', response__in=head_teacher_poll.responses.\
-            filter(date__range = d2, contact__reporting_location__in=locations,
-                contact__in=male_head_t_deploy.values_list('connection__contact',flat=True)))
-
-        male_d2_yes = yes_mht_d2.count()
-        male_d2_no = no_mht_d2.count()
-        if (male_d2_yes + male_d2_no) > 0:
-            male_d2 = float(male_d2_no * 100 / sum([male_d2_no, male_d2_yes])) # messing with ya! :D
-        else:
-            male_d2 = 100.0 # absent
-
-    if isinstance(male_d2, float) and male_d2 >= 0 and male_d1 >= 0 and isinstance(male_d1, float):
-
+    indicator = 'MaleHeadTeachers'
+    male_d1, male_d2 = get_two_weeks_absenteeism(indicator,locations)
+    try:
         m_head_diff = male_d2 - male_d1
 
-        if m_head_diff > 0:
-            m_head_t_class = "increase"
-            m_head_t_data = 'data-red'
-        elif m_head_diff < 0:
+        if m_head_diff < 0:
             m_head_t_class = "decrease"
             m_head_t_data = 'data-green'
+        elif m_head_diff > 0:
+            m_head_t_class = "increase"
+            m_head_t_data = 'data-red'
         else:
             m_head_t_class = "zero"
             m_head_t_data = 'data-white'
-    else:
-        m_head_diff = "--"
-        m_head_t_class = 'zero'
+    except:
+        m_head_diff = '--'
+        m_head_t_class = "zero"
         m_head_t_data = 'data-white'
+
 
     return {'m_head_t_week' : male_d1, 'm_head_t_data':m_head_t_data, 'm_head_t_week_before' : male_d2, 'm_head_diff' : m_head_diff,
             'm_head_t_class' : m_head_t_class}

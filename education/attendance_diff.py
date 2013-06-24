@@ -1,5 +1,6 @@
 # vim: ai ts=4 sts=4 et sw=4 encoding=utf-8
 import re
+import datetime
 import dateutils
 from django.conf import settings
 from education.utils import _this_thursday
@@ -10,6 +11,23 @@ def get_attd_difference(boys_absent_percent_previous_week, boys_absent_percent_t
     if boys_absent_percent_this_week > boys_absent_percent_previous_week:
         return (boys_absent_percent_this_week - boys_absent_percent_previous_week), 'dropped'
     return (boys_absent_percent_previous_week - boys_absent_percent_this_week), 'improved'
+
+
+def append_time_to_week_date(week_end, week_start):
+    end = datetime.datetime.combine(week_end, datetime.time(23, 59))
+    start = datetime.datetime.combine(week_start, datetime.time(0, 0))
+    week = [start, end]
+    return week
+
+
+def get_current_and_previous_week():
+    this_thursday = _this_thursday().date()
+    current_week_start = dateutils.increment(this_thursday, days=-6)
+    current_week = append_time_to_week_date(this_thursday, current_week_start)
+    previous_week_start = dateutils.increment(this_thursday, days=-13)
+    previous_week_end = dateutils.increment(this_thursday, days=-7)
+    previous_week = append_time_to_week_date(previous_week_end,previous_week_start)
+    return current_week, previous_week
 
 
 def calculate_attendance_difference(connection, progress):
@@ -23,9 +41,7 @@ def calculate_attendance_difference(connection, progress):
         girls_absent_percent_previous_week =0
         girls_absent_percent_this_week =0
         boys_enrolled , girls_enrolled = get_enrolled_boys_and_girls(connection,poll_names[2],poll_names[3])
-        this_thursday = _this_thursday().date()
-        current_week = [dateutils.increment(this_thursday,days=-6),dateutils.increment(this_thursday,days=-0)]
-        previous_week = [dateutils.increment(this_thursday,days=-13),dateutils.increment(this_thursday,days=-7)]
+        current_week, previous_week = get_current_and_previous_week()
         for step in progress.script.steps.all():
             present_this_week = Response.objects.filter(poll= step.poll,contact__connection=connection,date__range=current_week, has_errors = False)
 
