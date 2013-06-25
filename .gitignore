@@ -10,4 +10,6 @@ patch
 .project
 .pydevproject
 Vagrantfile
+.vagrant
 .vagrant/*
+setup.sh
