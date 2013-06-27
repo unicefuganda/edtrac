@@ -203,10 +203,6 @@ class TestAbsenteeismViewHelper(TestAbsenteeism):
         time_data = ast.literal_eval(response.context['time_data'])
         self.assertTrue(25.0 in time_data[0]['data'])
 
-    def test_registration(self):
-        self.fake_incoming('Join',self.emis_reporter1)
-        print Message.objects.all()
-        self.assertTrue(False)
 
     def tearDown(self):
         super(TestAbsenteeismViewHelper, self).tearDown()
