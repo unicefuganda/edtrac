@@ -15,6 +15,7 @@ from education.test.utils import create_attribute, create_group, create_poll_wit
 from poll.models import Poll
 from script.models import Script, ScriptStep, ScriptProgress, ScriptSession
 from script.utils.outgoing import check_progress
+from rapidsms_httprouter.models import Message
 
 
 class TestAbsenteeismViewHelper(TestAbsenteeism):
@@ -173,6 +174,40 @@ class TestAbsenteeismViewHelper(TestAbsenteeism):
         absent_by_loc, absent_by_time, school_percent = get_responses_by_location(locations,config,self.date_week)
         self.assertEqual(25,school_percent)
 
+    def test_should_ignore_attd_if_no_enrollment_found(self):
+        client = Client()
+        client.login(username='John',password='password')
+        create_attribute()
+        self.p3_boys_enrolled_poll.start()
+        self.fake_incoming('10', self.emis_reporter1)
+        self.fake_incoming('10', self.emis_reporter2)
+        self.fake_incoming('10', self.emis_reporter3)
+        self.fake_incoming('10', self.emis_reporter4)
+        self.p3_boys_enrolled_poll.end()
+
+        self.p3_boys_absent_poll.start()
+        self.fake_incoming('12', self.emis_reporter1)
+        self.fake_incoming('6', self.emis_reporter2)
+        self.fake_incoming('8', self.emis_reporter3)
+        self.fake_incoming('4', self.emis_reporter4)
+        self.p3_boys_absent_poll.end()
+        self.p3_girls_absent_poll.start()
+        self.fake_incoming('3', self.emis_reporter1)
+        self.fake_incoming('2', self.emis_reporter2)
+        self.fake_incoming('6', self.emis_reporter3)
+        self.fake_incoming('4', self.emis_reporter4)
+        self.p3_girls_absent_poll.end()
+        create_record_enrolled_deployed_questions_answered(model = EnrolledDeployedQuestionsAnswered)
+        response = client.post('/edtrac/detail-attd/', {'from_date': getattr(settings, 'SCHOOL_TERM_START').strftime('%m/%d/%Y') , 'to_date': getattr(settings, 'SCHOOL_TERM_END').strftime('%m/%d/%Y') , 'indicator':'P3Pupils'})
+        import ast
+        time_data = ast.literal_eval(response.context['time_data'])
+        self.assertTrue(25.0 in time_data[0]['data'])
+
+    def test_registration(self):
+        self.fake_incoming('Join',self.emis_reporter1)
+        print Message.objects.all()
+        self.assertTrue(False)
+
     def tearDown(self):
         super(TestAbsenteeismViewHelper, self).tearDown()
         ScriptStep.objects.all().delete()
@@ -180,3 +215,4 @@ class TestAbsenteeismViewHelper(TestAbsenteeism):
         ScriptProgress.objects.all().delete()
         ScriptSession.objects.all().delete()
         Group.objects.all().delete()
+        Message.objects.all().delete()

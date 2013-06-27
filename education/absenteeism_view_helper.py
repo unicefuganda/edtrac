@@ -102,15 +102,16 @@ def get_responses_by_location(locations, config_list, date_weeks):
         filtered_responses, filtered_enrollment,percent = get_responses_over_depth(attendance_poll_name,
                                                                            enrollment_poll_names[index],
                                                                            list(locations), date_weeks)
-        transformed_responses = transform(filtered_responses, locations)
-        get_aggregated_result(total_present_by_location, get_aggregation_by_location(transformed_responses))
 
         transformed_enrollment = transform([filtered_enrollment], locations)
-        get_aggregated_result(total_enrollment_by_location, get_aggregation_by_location(transformed_enrollment))
-        total_enrollment += sum(total_enrollment_by_location.values())
-        get_aggregated_list(total_enrollment_by_time, get_agrregated_enrollment_by_time(total_enrollment_by_location, transformed_responses))
+        if not is_empty(transformed_enrollment[0]):
+            transformed_responses = transform(filtered_responses, locations)
+            get_aggregated_result(total_present_by_location, get_aggregation_by_location(transformed_responses))
+            get_aggregated_result(total_enrollment_by_location, get_aggregation_by_location(transformed_enrollment))
+            total_enrollment += sum(total_enrollment_by_location.values())
+            get_aggregated_list(total_enrollment_by_time, get_agrregated_enrollment_by_time(total_enrollment_by_location, transformed_responses))
 
-        get_aggregated_list(total_present_by_time, get_aggregation_by_time(transformed_responses))
+            get_aggregated_list(total_present_by_time, get_aggregation_by_time(transformed_responses))
         school_percent +=percent
     school_percent /= len(attendance_poll_names )
     absent_by_time = [round(compute_percent_out_of_total(value, total_enrollment_by_time[i]), 2) for i,value in enumerate(total_present_by_time)]
