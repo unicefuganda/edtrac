@@ -17,7 +17,7 @@ from poll.models import Poll
 from script.signals import script_progress_was_completed, script_progress
 from script.models import *
 from script.utils.handling import find_best_response, find_closest_match
-import re, calendar, datetime, time, reversion
+import re, calendar, datetime, time
 from poll.models import ResponseCategory, Category
 from education.attendance_diff import calculate_attendance_difference, append_time_to_week_date
 import logging

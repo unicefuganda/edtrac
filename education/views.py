@@ -31,8 +31,6 @@ from script.models import ScriptStep, Script
 from .reports import *
 from .utils import *
 from .utils import _schedule_monthly_script, _schedule_termly_script, _schedule_weekly_scripts, _schedule_teacher_weekly_scripts
-import reversion
-from reversion.models import Revision
 from unregister.models import Blacklist
 from .utils import themes
 from education.absenteeism_view_helper import *
