@@ -413,6 +413,8 @@ def violence_changes_reported(locations):
 
 
 def get_two_weeks_absenteeism(indicator, locations):
+    this_week_absent=100
+    past_week_absent=100
     date_weeks = get_week_date(depth=2)
     holiday = False
     if is_holiday(date_weeks[0][0], getattr(settings, 'SCHOOL_HOLIDAYS')):
@@ -426,9 +428,9 @@ def get_two_weeks_absenteeism(indicator, locations):
         function_to_invoke = config_list[0].get('func')
         absent_by_location, absent_by_time, school_percent = function_to_invoke(locations, config_list[0],
                                                                                        date_weeks)
-
-        this_week_absent = absent_by_time[0]
-        past_week_absent = absent_by_time[1]
+        if not is_empty(absent_by_time):
+            this_week_absent = absent_by_time[0]
+            past_week_absent = absent_by_time[1]
 
     return this_week_absent, past_week_absent
 
