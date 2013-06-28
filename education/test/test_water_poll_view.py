@@ -54,8 +54,8 @@ class TestWaterPollView(TestCase):
         self.water_source_poll.add_yesno_categories()
         self.water_source_poll.save()
         today = datetime(datetime.now().year,datetime.now().month,datetime.now().day)
-        settings.SCHOOL_TERM_START = dateutils.increment(today, weeks=-4)
-        settings.SCHOOL_TERM_END = dateutils.increment(today,weeks=8)
+        settings.SCHOOL_TERM_START = dateutils.increment(today, weeks=-5)
+        settings.SCHOOL_TERM_END = dateutils.increment(today,weeks=7)
         self.term_range = [settings.SCHOOL_TERM_START,settings.SCHOOL_TERM_END]
 
     def fake_incoming(self, message, reporter):

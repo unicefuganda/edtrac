@@ -597,6 +597,8 @@ def send_feedback_on_complete(**kwargs):
     connection = kwargs['connection']
     progress = kwargs['sender']
     message_string = None
+    if progress.script.slug not in ['edtrac_head_teachers_weekly','edtrac_smc_weekly','edtrac_p3_teachers_weekly','edtrac_p6_teachers_weekly']:
+        return
     if not all_steps_answered(progress.script):
         send_alert_for_expired_script(progress.script, connection)
         return

@@ -55,8 +55,17 @@ class TestAbsenteeism(TestCase):
                                                Poll.TYPE_NUMERIC, self.admin_user,
                                                [self.emis_reporter1, self.emis_reporter2, self.emis_reporter3,
                                                 self.emis_reporter4])
+        self.p3_girls_absent_poll = create_poll_with_reporters("edtrac_girlsp3_attendance", "How many P3 girls are at school today?",
+                                               Poll.TYPE_NUMERIC, self.admin_user,
+                                               [self.emis_reporter1, self.emis_reporter2, self.emis_reporter3,
+                                                self.emis_reporter4])
         self.p3_boys_enrolled_poll = create_poll_with_reporters("edtrac_boysp3_enrollment",
                                                  "How many boys are enrolled in P3 this term?",
+                                                 Poll.TYPE_NUMERIC, self.admin_user,
+                                                 [self.emis_reporter1, self.emis_reporter2, self.emis_reporter3,
+                                                  self.emis_reporter4])
+        self.p3_girls_enrolled_poll = create_poll_with_reporters("edtrac_girlsp3_enrollment",
+                                                 "How many girls are enrolled in P3 this term?",
                                                  Poll.TYPE_NUMERIC, self.admin_user,
                                                  [self.emis_reporter1, self.emis_reporter2, self.emis_reporter3,
                                                   self.emis_reporter4])
