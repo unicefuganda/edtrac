@@ -38,6 +38,7 @@
         <div id="tableData" style="margin: 10px; padding: 10px"></div>
 
         <script>
+        highChart_tooltips = null;
             $(function(){
                 $('#id_from_date').datepicker();
                 $('#id_to_date').datepicker();
@@ -51,7 +52,10 @@
                             $.each(data,function(index,dataSet){
                                 displaySchoolPercent(dataSet.school_percent);
                                 loadHighChart(dataSet.weeks,dataSet.chartData,'container','Absenteeism Over Current Month')
-                                displayTabularData(dataSet.results) });
+                                displayTabularData(dataSet.results)
+                                highChart_tooltips = dataSet.toolTips;
+
+                            });
              });
 
  $('#btnSearch').click(function(){
@@ -63,6 +67,7 @@
                 });
 
    $('#btnCurrentTerm').click(function(){
+       console.log("current Term");
         $('#container').hide();
      $('#SchoolAlerts').hide();
      $('#tableData').hide();
@@ -73,10 +78,10 @@
                 contentType: "application/json;charset=utf-8"
             }).then(function (data) {
                          $.each(data,function(index,dataSet){
+                             highChart_tooltips = dataSet.toolTips;
                                 displaySchoolPercent(dataSet.school_percent);
                                 loadHighChart(dataSet.weeks,dataSet.chartData,'container','Absenteeism Over Current Term');
                                 displayTabularData(dataSet.results);
-
      $('#container').show();
      $('#SchoolAlerts').show();
      $('#tableData').show();
@@ -100,6 +105,7 @@
                 contentType: "application/json;charset=utf-8"
             }).then(function (data) {
                             $.each(data,function(index,dataSet){
+                                highChart_tooltips = dataSet.toolTips;
                                 displaySchoolPercent(dataSet.school_percent);
                                 loadHighChart(dataSet.weeks,dataSet.chartData,'container','Absenteeism Over Current Month');
                                 displayTabularData(dataSet.results);
@@ -117,20 +123,29 @@
                    }
                 });
 
-
-
-
-
-
 }); // end document load
-function chartToolTips(indicator,percent){
-                output = '<b>'+indicator+'</b><br />';
-                output +=percent+ ' % <br />';
-                output +=' Present : (coming) Enrolled / deployed : (coming)';
+function chartToolTips(indicator,percent,time_range){
+    output = "Error Reading tooltips";
+    output = '<b>'+indicator+'</b><br />';
+    output +='<div style="color:red;background-color:red">'+ percent+ '</div> % <br />';
+    $.each(highChart_tooltips,function(index,data){
+        if(data.name == indicator){
+            count = 0;
+            $.each(data.tooltip,function(ind,val){
+                if(val.percent == percent)
+                {
+                    if(count == 0){output +=' Present : '+ val.present+ ' Enrolled / deployed : '+ val.enrollment;}
+                    count++;
+                }
 
-                return output;
+            });
+        } });
+     return output;
+    }
 
-            }
+
+
+
 
 function displaySchoolPercent(school_percent){
 
@@ -203,7 +218,7 @@ function displaySchoolPercent(school_percent){
         tooltip: {
             enabled: true,
             formatter: function () {
-                return chartToolTips( this.series.name,this.y)
+                return chartToolTips( this.series.name,this.y,this.x)
             }
         },
         legend: {
