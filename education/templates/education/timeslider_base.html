@@ -37,7 +37,16 @@
             <div style="float:right; clear:both;" class="alert-message">
                 {{ title }} - Percentage
             </div>
+<div style="margin-top: 30px; margin-left: 20px;">
+    <table>
+        <tr><td><b>Data Column Abbreviation </b></td>
+            <td> | E : Enrollment </td>
+            <td> | C : Current Week </td>
+            <td> | P : Previous Week </td>
+        </tr>
 
+    </table>
+</div>
 
             {% if dataset %}
             <!--{{data_set}} variable is produced when the form has been POSTed-->
@@ -110,9 +119,13 @@
 
                                 </thead>
                                 <tbody>
-                                {% for entity_attribute, cur_value, prev_value, diff in location_data %}
+                                {% for entity_attribute, cur_value, prev_value, diff,enrolled,current,previous in location_data %}
                                 <tr>
-                                    <td><a href="{% url url_name entity_attribute.id %}">{{ entity_attribute }}</a>
+                                    <td><a href="{% url url_name entity_attribute.id %}">{{ entity_attribute }}</a> ({{ entity_attribute.type_id }})</td>
+                                     <td> E: {% if enrolled == '--' or enrolled == 0%} {{ enrolled }} {% else %} {{ enrolled|floatformat }} {% endif %}
+                                     C: {% if current == '--' or current == 0%} {{ current }} {% else %} {{ current|floatformat }} {% endif %}
+                                     P: {% if previous == '--' or previous == 0%} {{ previous }} {% else %} {{ previous|floatformat }} {% endif %}
+                                     </td>
                                     <td>{% if cur_value == '--' or cur_value == 0%} {{ cur_value }} {% else %} {{ cur_value|floatformat }} {% endif %}</td>
                                     <td>{% if prev_value == '--' or prev_value == 0%} {{ prev_value }} {% else %} {{ prev_value|floatformat }} {% endif %}</td>
                                     <td>{% if diff == '--' or diff == 0 %} {{ diff }} {% else %} {{ diff|floatformat }}{% endif %}</td>

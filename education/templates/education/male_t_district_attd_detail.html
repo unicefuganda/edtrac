@@ -33,9 +33,27 @@ Absenteeism of Male Teachers in {{ location }} -- {{ block.super }}
 
             </thead>
             <tbody>
-            {% for school, current_week, week_before, diff in location_data %}
+            {% for school, current_week, week_before, diff,enrollment,current,previous in location_data %}
             <tr>
                 <td><a href="{% url school-detail school.id %}">{{ school.name }}</a></td>
+            <td>
+                      E:  {% if enrollment == '--' %}
+                            {{ enrollment }}
+                        {% else %}
+                            {{ enrollment|floatformat }}
+                        {% endif %}
+                C:  {% if current == '--' %}
+                            {{ current }}
+                        {% else %}
+                            {{ current|floatformat }}
+                        {% endif %}
+                P:  {% if previous == '--' %}
+                            {{ previous }}
+                        {% else %}
+                            {{ previous|floatformat }}
+                        {% endif %}
+
+                    </td>
                 <td>
                     {% if current_week == '--' %}
                     {{ current_week }}
