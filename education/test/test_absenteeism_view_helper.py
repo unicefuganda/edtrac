@@ -12,7 +12,7 @@ from education.models import EnrolledDeployedQuestionsAnswered, create_record_en
 from education.reports import get_week_date
 from education.test.abstract_clases_for_tests import TestAbsenteeism
 from education.test.utils import create_attribute, create_group, create_poll_with_reporters, create_emis_reporters, create_school
-from poll.models import Poll
+from poll.models import Poll, Response
 from script.models import Script, ScriptStep, ScriptProgress, ScriptSession
 from script.utils.outgoing import check_progress
 from rapidsms_httprouter.models import Message
@@ -204,6 +204,54 @@ class TestAbsenteeismViewHelper(TestAbsenteeism):
         self.assertTrue(25.0 in time_data[0]['data'])
 
 
+    def test_should_calculate_attd_for_past_five_weeks(self):
+        client = Client()
+        client.login(username='John',password='password')
+        create_attribute()
+        self.p3_boys_enrolled_poll.start()
+        self.fake_incoming('10', self.emis_reporter1)
+        self.p3_boys_enrolled_poll.end()
+
+        self.p3_boys_absent_poll.start()
+        self.fake_incoming('6', self.emis_reporter1)
+        self.fake_incoming('5', self.emis_reporter1)
+        self.fake_incoming('7', self.emis_reporter1)
+        self.fake_incoming('0', self.emis_reporter1)
+        self.fake_incoming('4', self.emis_reporter1)
+        self.p3_boys_absent_poll.end()
+        responses = self.p3_boys_absent_poll.responses.all()
+        self.set_weekly_date(responses)
+        self.p3_girls_absent_poll.start()
+        self.fake_incoming('5', self.emis_reporter1)
+        self.fake_incoming('6', self.emis_reporter1)
+        self.fake_incoming('4', self.emis_reporter1)
+        self.fake_incoming('6', self.emis_reporter1)
+        self.fake_incoming('4', self.emis_reporter1)
+        self.p3_girls_absent_poll.end()
+        responses = self.p3_boys_absent_poll.responses.all()
+        self.set_weekly_date(responses)
+
+        create_record_enrolled_deployed_questions_answered(model = EnrolledDeployedQuestionsAnswered)
+        response = client.post('/edtrac/detail-attd/', {'from_date': getattr(settings, 'SCHOOL_TERM_START').strftime('%m/%d/%Y') , 'to_date': getattr(settings, 'SCHOOL_TERM_END').strftime('%m/%d/%Y') , 'indicator':'P3Pupils'})
+        import ast
+        time_data = ast.literal_eval(response.context['time_data'])
+        self.assertTrue(set([60.0, 100.0, 30.0, 50.0, 40.0]) < set(time_data[0]['data']))
+        self.assertEqual(76.0 , round(response.context['collective_result']['Kampala']['P3 Pupils']))
+
+
+
+    def set_weekly_date(self, responses):
+        today = datetime.datetime.now()
+        i=-1
+        for response in responses:
+            print "setting month as %s " % i
+            self.set_date(dateutils.increment(today,weeks=i), response)
+            i -= 1
+
+    def set_date(self, date, r):
+        r.date = date
+        r.save()
+
     def tearDown(self):
         super(TestAbsenteeismViewHelper, self).tearDown()
         ScriptStep.objects.all().delete()
@@ -212,3 +260,4 @@ class TestAbsenteeismViewHelper(TestAbsenteeism):
         ScriptSession.objects.all().delete()
         Group.objects.all().delete()
         Message.objects.all().delete()
+        Response.objects.all().delete()
