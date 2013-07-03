@@ -352,14 +352,6 @@ def edtrac_autoreg(**kwargs):
             contact.groups.remove(g)
     contact.groups.add(group)
 
-#    group = Group.objects.get(name='Other Reporters')
-#    default_group = group
-#    if role:
-#        group = find_closest_match(role, Group.objects) or find_closest_match(role, Group.objects, True)
-#        if not group:
-#            group = default_group
-#    contact.groups.add(group)
-
     if subcounty:
         contact.reporting_location = subcounty
     elif district:
@@ -812,7 +804,7 @@ def schedule_weekly_report(grp='DEO'):
     from .utils import _schedule_report_sending
     _schedule_report_sending()
 
-#more scheduled stuff
+
 def create_record_enrolled_deployed_questions_answered(model=None):
     """
     This function is run in a periodic task to create instances of the EnrolledDeployedQuestionsAnswered class that
@@ -865,11 +857,6 @@ def create_record_enrolled_deployed_questions_answered(model=None):
             return
 
 Poll.register_poll_type('date', 'Date Response', parse_date_value, db_type=Attribute.TYPE_OBJECT)
-
-#reversion.register(School)
-#reversion.register(UserProfile)#, follow = ['location', 'role', 'user'])
-#reversion.register(EmisReporter, follow=['schools'])#, follow = ['contact_ptr'])
-#reversion.register(ReportComment)
 
 script_progress_was_completed.connect(edtrac_autoreg, weak=False)
 script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)
