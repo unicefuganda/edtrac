@@ -3,12 +3,10 @@ from .forms import SchoolFilterForm, LimitedDistictFilterForm,\
 
 from .models import EmisReporter, School
 from .reports import messages, othermessages, reporters, all_schools
-#from .reports import AttendanceReport, messages, othermessages, reporters, schools
 from .sorters import LatestSubmissionSorter
 from .views import *
 from water_polls_views import schedule_water_polls, detail_water_view
 from violence_view import detailed_violence_view
-#from education.views import ChartView
 from contact.forms import\
     FreeSearchTextForm, DistictFilterMessageForm, HandledByForm, ReplyTextForm
 from django.conf.urls.defaults import *
