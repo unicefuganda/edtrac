@@ -2543,15 +2543,10 @@ def add_schools(request):
         if form.is_valid():
             names = filter(None, request.POST.getlist('name'))
             locations = request.POST.getlist('location')
-#            emis_ids = request.POST.getlist('emis_id')
             if len(names) > 0:
                 for i, name in enumerate(names):
                     location = Location.objects.get(pk=int(locations[i]))
-#                    emis_id = emis_ids[i]
-#                    with reversion.create_revision():
-                    name, created = School.objects.get_or_create(name=name, location=location)#, emis_id=emis_id)
-#                        reversion.set_user(request.user)
-#                        reversion.set_comment('added %s'%name.name)
+                    name, created = School.objects.get_or_create(name=name, location=location)
                     schools.append(name)
 
                 return render_to_response('education/partials/addschools_row.html',
