@@ -48,8 +48,7 @@ class TestAdditionOfSchools(TestCase):
         self.assertTrue("School1", School.objects.all().values_list('name', flat=True))
 
     def test_add_multiple_schools(self):
-        pass
-
+        self.assertTrue(2 == 1)
 
     def tearDown(self):
         Location.objects.all().delete()

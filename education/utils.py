@@ -5,13 +5,11 @@ Created on Sep 15, 2011
 '''
 from __future__ import division
 from dateutil.relativedelta import relativedelta
-from script.utils.handling import find_best_response
 from script.models import Script, ScriptSession, ScriptProgress
 from rapidsms.models import Connection
 from datetime import datetime,date
 import calendar
 import dateutils
-import xlwt
 from contact.models import MessageFlag
 from rapidsms.models import Contact
 from rapidsms.contrib.locations.models import Location
@@ -20,10 +18,7 @@ from script.models import ScriptStep
 from django.db.models import Count
 from django.contrib.auth.models import Group
 from django.conf import settings
-from uganda_common.utils import *
-from django.db.models import Avg
 from unregister.models import Blacklist
-from time import strftime
 
 def is_empty(arg):
     """
@@ -134,12 +129,6 @@ def _this_thursday(sp=None, **kwargs):
     holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
     time_schedule = kwargs.get('time_set') if kwargs.has_key('time_set') else datetime.datetime.now()
     d = sp.time if sp else time_schedule
-#    if d.weekday() == 3:
-#        d = d # no decrement
-#    elif d.weekday() < 3:
-#        d = d + datetime.timedelta(days = 3 - d.weekday())
-#    else:
-#        d = d - datetime.timedelta(days = d.weekday() - 3)
     d = d + datetime.timedelta((3 - d.weekday()) % 7)
     in_holiday = True
     while in_holiday:
@@ -607,13 +596,6 @@ def get_script_polls(**kwargs):
     script_polls = ScriptStep.objects.exclude(poll=None).values_list('poll', flat=True)
     return Poll.objects.filter(pk__in=script_polls).annotate(Count('responses'))
 
-#def retrieve_poll(request):
-#    pks=request.GET.get('pks', '').split('+')
-#    if pks[0] == 'l':
-#        return [Poll.objects.latest('start_date')]
-#    else:
-#        pks=[eval(x) for x in list(str(pks[0]).rsplit())]
-#        return Poll.objects.filter(pk__in=pks)
 
 def retrieve_poll(request, pks=None):
     script_polls = ScriptStep.objects.exclude(poll=None).values_list('poll', flat=True)
@@ -829,9 +811,6 @@ class Statistics(object):
         self.sample.sort()
 
         self.__getMode()
-#        self.__getMedian()
-#        self.__getVariance()
-#        self.__getStandardDeviation()
 
         # Instance identification attribute.
         self.identification = id(self)
@@ -868,15 +847,6 @@ class Statistics(object):
         # the current value of mode.  If found, append the value and its
         # associated key to the self.mode list.
         self.mode = [(x, mode) for x in frequency if (mode == frequency[x])]
-
-#    def __getMedian(self):
-#        """Determine the value which is in the exact middle of the data set."""
-#
-#        if (self.N%2):		# Number of elements in data set is odd.
-#            self.median = float(self.sample[self.N/2])
-#        else:
-#            midpt = self.N/2	# Number of elements in data set is even.
-#            self.median = (self.sample[midpt-1] + self.sample[midpt])/2.0
 
     def __getVariance(self):
         """Determine the measure of the spread of the data set about the mean.
