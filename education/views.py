@@ -220,10 +220,6 @@ def curriculum_progress(request,district_pk=None):
                                'class_sent_from_behind': color, 'sub_location_type': sub_location_type, 'term': term},
                               RequestContext(request))
 
-
-
-# Meetings
-
 def dash_admin_meetings(req):
     profile = req.user.get_profile()
     location = profile.location
@@ -319,29 +315,6 @@ def capitation_grants(locations):
         grant_percent = 0
 
     return {'grant_percent': grant_percent}
-
-
-#def violence_changes(locations):
-#    """
-#    Percentage change in violance from the previous month
-#    """
-#    responses_to_violence = poll_response_sum("edtrac_headteachers_abuse", month_filter = 'monthly',\
-#        locations = locations, month_20to19=True)
-#    violence_change = cleanup_sums(responses_to_violence)
-#    if violence_change > 0:
-#        violence_change_class = "decrease"
-#        violence_change_data = "data-green"
-#    elif violence_change < 0:
-#        violence_change_class = "increase"
-#        violence_change_data = "data-red"
-#    else:
-#        violence_change_class = "zero"
-#        violence_change_data = "data-white"
-#    return {
-#            'violence_change' : abs(violence_change),
-#            'violence_change_class' : violence_change_class,
-#            'violence_change_data' : violence_change_data
-#    }
 
 def violence_changes_girls(locations):
     """
@@ -674,11 +647,6 @@ def head_teachers_male(locations):
 
 def schools_active(locations):
     try:
-#        count_reps = EmisReporter.objects.filter(groups__name__in=['Head Teachers', 'Teachers', 'SMC'],
-#            reporting_location__in = locations).exclude(schools = None).exclude(
-#                connection__identity__in=Blacklist.objects.select_related().values_list('connection__identity',flat=True)).select_related().\
-#                    values_list('connection__identity').count()
-
         count_reps = EmisReporter.objects.filter(groups__name__in=['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters', 'DEO', 'MEO'],
                                 reporting_location__in = locations).exclude(connection__in=Blacklist.objects.all()).exclude(schools=None).count()
 
@@ -725,9 +693,6 @@ def total_schools(locations):
     districts = Location.objects.filter(type="district").\
                 filter(name__in=EmisReporter.objects.filter(reporting_location__in = locations).exclude(schools=None).exclude(connection__in=Blacklist.objects.values_list('connection',flat=True)).values_list('reporting_location__name', flat=True))
     for district in districts:
-#        s_count = School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).\
-#                                        filter(reporting_location__name = district.name).distinct().values_list('schools__pk',flat=True)).count()
-#
         s_count = School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).\
                                         filter(reporting_location__name = district.name).distinct().values_list('schools__pk',flat=True)).count()
         total_schools += s_count
@@ -1005,12 +970,6 @@ def view_generator(req,
         context_vars.update(x)
         return render_to_response(template_name, context_vars, RequestContext(req))
 
-
-##########################################################################################################
-##########################################################################################################
-############################ Admin Dashboard #############################################################
-##########################################################################################################
-##########################################################################################################
 @login_required
 def admin_dashboard(request):
     if request.user.get_profile().is_member_of('Ministry Officials') or request.user.get_profile().is_member_of('Admins')\
@@ -1309,8 +1268,6 @@ def violence_details_dash(req):
 
     context_vars['reported_totals'] = [sum(reported_first_col), sum(reported_second_col), sum(reported_third_col)]
 
-
-
     gem_total = [] # total violence cases reported by school
     for name, list_val in violence_cases_gem:
         try:
@@ -1329,16 +1286,9 @@ def violence_details_dash(req):
     second_col = [i for i in second_col if i != '--']
     third_col = [i for i in third_col if i != '--']
     context_vars['gem_totals'] = [sum(first_col), sum(second_col), sum(third_col)]
-
-
-    # depth of 2 months
     context_vars['report_dates'] = [start for start, end in get_month_day_range(datetime.datetime.now(), depth=2)]
     school_report_count = 0
     gem_report_count = 0
-    #TODO
-    # -> 100 * (reports-that-are-sent-to-edtrac / reports-that-should-have-come-edtrac a.k.a. all schools)
-    #
-    # Assumes every administrator's location is the root location Uganda
     for dr in get_month_day_range(datetime.datetime.now(), depth=2):
 
         if profile.location.type.name == 'country':
@@ -1373,7 +1323,6 @@ def violence_details_dash(req):
     now = datetime.datetime.now()
     month_ranges = get_month_day_range(now, depth=now.month)
     month_ranges.sort()
-
 
     h_teach_month = []
     girls_violence_month = []
@@ -1461,23 +1410,12 @@ class DistrictViolenceDetails(TemplateView):
                 to_ret = 'sum', belongs_to = 'schools')
 
             data = int(now_data + before_data)
-            # sieve out only schools with either value of violence cases being shown
-#            if now_data > 0 or before_data > 0:
-#                school_case.append((school, now_data, before_data))
-#            data = now_data + before_data
-
             totalViolence += data
             nowViolence += now_data
             beforeViolence += before_data
 
             if now_data > 0 or before_data > 0:
                 school_case.append((school, now_data, before_data, data))
-
-
-
-
-
-        #reports = poll_response_sum("edtrac_headteachers_abuse", month_filter=True, months=1)
         emis_reporters = EmisReporter.objects.exclude(connection__in=\
             Blacklist.objects.values_list('connection')).filter(schools__in=schools)
 
@@ -1539,11 +1477,7 @@ class ProgressAdminDetails(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(ProgressAdminDetails, self).get_context_data(**kwargs)
-        ##context['some_key'] = <some_list_of_response>
-        # we get all violence cases ever reported
-        #TODO: filtering by ajax and time
         context['progress'] = list_poll_responses(Poll.objects.get(name="edtrac_p3curriculum_progress"))
-        # decimal module used to work with really floats with more than 2 decimal places
         getcontext().prec = 1
         context['progress_figures'] = get_count_response_to_polls(Poll.objects.get(name="edtrac_p3curriculum_progress"),\
             location=self.request.user.get_profile().location,
@@ -1577,9 +1511,7 @@ class MealsAdminDetails(TemplateView):
 # Meals being had at a district
 class DistrictMealsDetails(DetailView):
     template_name = "education/admin/district_meal.html"
-
     context_object_name = "district_meals"
-
     model = Location
 
     def get_object(self):
@@ -1609,11 +1541,6 @@ class DistrictMealsDetails(DetailView):
 
         return context
 
-##########################################################################################################
-##########################################################################################################
-############################ DEO Dashboard #############################################################
-##########################################################################################################
-##########################################################################################################
 @login_required
 def deo_dashboard(req):
     location = req.user.get_profile().location
@@ -1761,8 +1688,6 @@ def girlsp3_district_attd_detail(req, location_id):
     """
     This gets the details about schools in a district, the people in attedance, etc.
     """
-#    location = Location.objects.select_related().exclude(type="country").filter(type='district').get(id = location_id)
-#    schools = School.objects.select_related().filter(location=location)
     schools = School.objects.filter(location=locale.get(id=location_id))
     to_ret = []
     for school in schools:
@@ -1782,8 +1707,6 @@ def girlsp6_district_attd_detail(req, location_id):
     """
     This gets the details about schools in a district, the people in attedance, etc.
     """
-#    location = Location.objects.select_related().exclude(type="country").filter(type='district').get(id = location_id)
-#    schools = School.objects.select_related().filter(location=location)
     schools = School.objects.filter(location=locale.get(id=location_id))
     to_ret = []
     for school in schools:
@@ -1805,8 +1728,6 @@ def female_t_district_attd_detail(req, location_id):
     """
     This gets the details about schools in a district, the people in attedance, etc.
     """
-#    location =Location.objects.select_related().exclude(type="country").filter(type='district').get(id = location_id)
-#    schools = School.objects.filter(location=location)
     schools = School.objects.filter(location=locale.get(id=location_id))
     to_ret = []
 
@@ -1828,8 +1749,6 @@ def male_t_district_attd_detail(req, location_id):
     """
     This gets the details about schools in a district, the people in attedance, etc.
     """
-#    location = Location.objects.select_related().exclude(type="country").filter(type='district').get(id = location_id)
-#    schools = School.objects.select_related().filter(location=location)
     schools = School.objects.filter(location=locale.get(id=location_id))
     to_ret = []
     for school in schools:
@@ -1860,7 +1779,6 @@ def boys_p3_attendance(req, **kwargs):
     else:
         #DEO
         dates = kwargs.get('dates')
-#        schools = School.objects.select_related().filter(location=location)
         schools = School.objects.filter(location=location)
 
         to_ret = []
@@ -1898,7 +1816,6 @@ def boys_p6_attendance(req):
         return boys_p6_attd_admin(req, locations=locations)
     else:
         #DEO
-#        schools = School.objects.select_related().filter(location=location)
         schools = School.objects.filter(location=location)
         to_ret = []
         for school in schools:
@@ -1933,7 +1850,6 @@ def girls_p3_attendance(req):
         return girls_p3_attd_admin(req, locations=locations)
     else:
         #DEO
-#        schools = School.objects.filter(location=location)
         schools = School.objects.filter(location=location)
         to_ret = []
         for school in schools:
@@ -1967,7 +1883,6 @@ def girls_p6_attendance(req):
     else:
 
         #DEO
-#        schools = School.objects.filter(location=location)
         schools = School.objects.filter(location=location)
         to_ret = []
         for school in schools:
@@ -1999,7 +1914,6 @@ def female_teacher_attendance(req):
         return female_teacher_attd_admin(req, locations=locations)
     else:
         #DEO
-        #schools = School.objects.filter(location=location)
         schools = School.objects.filter(location=location)
         to_ret = []
         for school in schools:
