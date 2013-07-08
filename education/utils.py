@@ -5,9 +5,9 @@ Created on Sep 15, 2011
 '''
 from __future__ import division
 from dateutil.relativedelta import relativedelta
-from script.models import Script, ScriptSession, ScriptProgress
+from script.models import Script, ScriptProgress
 from rapidsms.models import Connection
-from datetime import datetime,date
+from datetime import datetime
 import calendar
 import dateutils
 from contact.models import MessageFlag
@@ -67,7 +67,7 @@ def is_weekend(date):
     """
     return date.weekday() in [5, 6]
 
-def next_relativedate(day_offset, month_offset=0, xdate = datetime.datetime.now()):
+def next_relativedate(day_offset, month_offset=0, xdate = datetime.now()):
     """
     Find the date corresponding to day_offset of the month for example 25th day of of month
     you can also give month offsets, ie date of the 25th day of the next month
