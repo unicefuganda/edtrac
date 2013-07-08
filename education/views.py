@@ -1,10 +1,8 @@
 from __future__ import division
 from urllib2 import urlopen
 import re
-import datetime
 import operator
 import copy
-from datetime import date
 import json
 
 from django.http import HttpResponseRedirect, HttpResponse
@@ -34,7 +32,8 @@ from .utils import _schedule_monthly_script, _schedule_termly_script, _schedule_
 from unregister.models import Blacklist
 from .utils import themes
 from education.absenteeism_view_helper import *
-
+import datetime
+from datetime import date
 
 Num_REG = re.compile('\d+')
 
