@@ -40,15 +40,34 @@ class TestAdditionOfSchools(TestCase):
     def test_school_name_exist_in_database(self):
         self.assertTrue("St. Joseph's" in School.objects.all().values_list('name', flat=True))
 
-    def test_if_school_gets_added(self):
+    def test_adding_one_school_should_increase_numbers_of_schools_by_one(self):
         client = Client()
         client.login(username='John', password='password')
         client.post('/edtrac/add_schools/', {'name': 'School2', 'location': self.kampala_district.id})
         self.assertEqual(2, School.objects.all().count())
         self.assertTrue("School1", School.objects.all().values_list('name', flat=True))
 
-    def test_add_multiple_schools(self):
-        self.assertTrue(2 == 1)
+    def test_adding_two_schools_should_increase_number_of_schools_by_two(self):
+        client = Client()
+        client.login(username='John', password='password')
+        schools = {'name': 'School2, school3', 'location': [self.kampala_district.id, self.kampala_district.id]}
+        client.post('/edtrac/add_schools/', schools)
+        self.assertEquals(3, School.objects.all().count())
+
+    def test_adding_no_school_should_not_increase_number_of_schools(self):
+        client = Client()
+        client.login(username='John', password='password')
+        schools = {}
+        client.post('/edtrac/add_schools/', schools)
+        self.assertEquals(1, School.objects.all().count())
+
+    def test_add_school_without_location_shouldnot_increase_number_of_schools(self):
+        client = Client()
+        client.login(username='John', password='password')
+        schools = {'name':"school2"}
+        client.post('/edtrac/add_schools/', schools)
+        self.assertEquals(1, School.objects.all().count())
+        self.assertFalse("school2" in School.objects.all())
 
     def tearDown(self):
         Location.objects.all().delete()
