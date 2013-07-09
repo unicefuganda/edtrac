@@ -1,4 +1,3 @@
-import difflib
 import datetime
 from poll.models import gettext_db, Response
 from rapidsms.apps.base import AppBase
@@ -8,8 +7,6 @@ from django.conf import settings
 from script.utils.incoming import incoming_progress
 from unregister.models import Blacklist
 from uganda_common.utils import handle_dongle_sms
-from education.utils import poll_to_xform_submissions
-from rapidsms_xforms.models import xform_received
 import logging
 logger = logging.getLogger(__name__)
 class App (AppBase):
@@ -30,7 +27,6 @@ class App (AppBase):
                     return True
 
                 Blacklist.objects.create(connection=message.connection)
-#                ScriptProgress.objects.exclude(script__slug="edtrac_autoreg").filter(connection=message.connection).delete() # delete other script progress only place reporter to right one
                 ScriptProgress.objects.filter(connection=message.connection).delete() # delete all script progress since the user has quit
                 ScriptSession.objects.filter(connection=message.connection, end_time=None).delete() # the non closed out sessions need to be expunged as well
                 if (message.connection.contact):
