@@ -1,7 +1,6 @@
 # vim: ai ts=4 sts=4 et sw=4 encoding=utf-8
 from unittest import TestCase
 from django.contrib.auth.models import User
-from django.http import HttpRequest
 from django.test import Client
 from education.models import School, Role
 from education.test.utils import create_location_type, create_location, create_group, create_user_with_group, create_school
@@ -51,7 +50,6 @@ class TestAdditionOfSchools(TestCase):
     def test_adding_two_schools_should_increase_number_of_schools_by_two(self):
         client = Client()
         client.login(username='John', password='password')
-        schools = HttpRequest().POST
         schools = {'name': ['School2', 'school3'], 'location': [self.kampala_district.id, self.kampala_district.id]}
         client.post('/edtrac/add_schools/', schools)
         self.assertEquals(3, School.objects.all().count())
