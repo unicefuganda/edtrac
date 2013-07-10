@@ -4,7 +4,7 @@
     </div>
     <div>
 		<form action="{% url add-schools %}" method="post">{% csrf_token %}
-			{{ form.as_table }}
+			{{ form.as_p }}
             <table class="add-contact">
             <tr><td id="addelm"><a href="javascript:void(0)" onclick="addSchoolElm(this);"> Add more </a></td></tr>
             <tr>
@@ -12,9 +12,9 @@
                     <a href="javascript:void(0)"
                        onclick="addSchools(this, '{% url add-schools %}');$('#add_school_anchor_row').show();">
                         <input type="submit" value= "Add"/></a>
-                    <span> | </span>
+
                     <a href="javascript:void(0)"
-                       onclick="$('#add_school_form').html('');$('#add_school_anchor_row').show();">Cancel</a>
+                       onclick="$('#add_school_form').html('');$('#add_school_anchor_row').show();"><input type="reset" value= "Cancel"/></a>
                 </td>
             </tr>
             </table>

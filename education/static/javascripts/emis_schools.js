@@ -43,7 +43,7 @@ function addSchoolElm(elem){
     name_form = $('#name_elms').html()
     location_form = $('#location_elms').html()
     id_form = $('#id_elms').html()
-    rowelem.next().html('<td>Name: </td><td>'+name_form+'</td><td>Location: </td><td>'+location_form+'</td><td>School ID: </td><td>'+id_form+'</td>');
+    rowelem.next().html('<td>Name: </td><td>'+name_form+'</td><td>Location: </td><td>'+location_form+'</td>');
 }
 
 function getStats(url){
