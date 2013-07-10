@@ -3,22 +3,20 @@
         <p>Add Schools</p>
     </div>
     <div>
-        {% comment %}
 		<form action="{% url add-schools %}" method="post">{% csrf_token %}
 			{{ form.as_p }}
 			<input type="submit" value="Submit" />
 		</form>
-		{% endcomment %}
-        <form action="{% url add-schools %}" method="post">
-            {% csrf_token %}
+{#        <form action="{% url add-schools %}" method="post">#}
+{#            {% csrf_token %}#}
             <table class="add-contact">
                 <tr>
                     <td>Name: {{ form.name.errors }}</td>
                     <td>{{ form.name }}</td>
                     <td>Location: {{ form.location.errors }}</td>
                     <td>{{ form.location }}</td>
-                    <td>School ID: {{ form.emis_id.errors }}</td>
-                    <td>{{ form.emis_id }}</td>
+{#                    <td>School ID: {{ form.emis_id.errors }}</td>#}
+{#                    <td>{{ form.emis_id }}</td>#}
                     <td id="addelm"><a href="javascript:void(0)" onclick="addSchoolElm(this);">+</a></td>
                 </tr>
                 <tr>
@@ -28,16 +26,16 @@
                 </tr>
                 <tr>
                     <td colspan="6">
-{#                        <a href="javascript:void(0)"#}
-{#                           onclick="addSchools(this, '{% url add-schools %}');$('#add_school_anchor_row').show();">#}
-{#                            Add</a> |#}
-                        <input type="submit" value="Add">
+                       <a href="javascript:void(0)"
+                           onclick="addSchools(this, '{% url add-schools %}');$('#add_school_anchor_row').show();">
+                            Add</a>
+                        <span> | </span>
                         <a href="javascript:void(0)"
                            onclick="$('#add_school_form').html('');$('#add_school_anchor_row').show();">Cancel</a>
                     </td>
                 </tr>
             </table>
-        </form>
+{#        </form>#}
     </div>
 </div>
 <div id="name_elms" style="display:none">
