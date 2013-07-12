@@ -29,11 +29,14 @@ from script.models import ScriptStep, Script
 from .reports import *
 from .utils import *
 from .utils import _schedule_monthly_script, _schedule_termly_script, _schedule_weekly_scripts, _schedule_teacher_weekly_scripts
+import reversion
+from reversion.models import Revision
 from unregister.models import Blacklist
 from .utils import themes
 from education.absenteeism_view_helper import *
 import datetime
 from datetime import date
+from education.view_helper import *
 
 Num_REG = re.compile('\d+')
 
@@ -383,8 +386,6 @@ def violence_changes_reported(locations):
 
 
 def get_two_weeks_absenteeism(indicator, locations):
-    this_week_absent=100
-    past_week_absent=100
     date_weeks = get_week_date(depth=2)
     holiday = False
     if is_holiday(date_weeks[0][0], getattr(settings, 'SCHOOL_HOLIDAYS')):
@@ -398,9 +399,15 @@ def get_two_weeks_absenteeism(indicator, locations):
         function_to_invoke = config_list[0].get('func')
         absent_by_location, absent_by_time, school_percent = function_to_invoke(locations, config_list[0],
                                                                                        date_weeks)
-        if not is_empty(absent_by_time):
+        try:
             this_week_absent = absent_by_time[0]
+        except IndexError:
+            this_week_absent = 0
+
+        try:
             past_week_absent = absent_by_time[1]
+        except IndexError:
+            past_week_absent = 0
 
     return this_week_absent, past_week_absent
 
@@ -410,17 +417,18 @@ def p3_absent_boys(locations):
     Attendance of P3 Pupils; this gets the absenteeism
     """
     indicator = 'P3Boys'
-    boysp3, boysp3_past = get_two_weeks_absenteeism(indicator, locations)
+    #boysp3, boysp3_past = get_two_weeks_absenteeism(indicator, locations)
+    boysp3, boysp3_past = compute_absenteeism_summary(indicator,locations)
 
     try:
         boysp3_diff = boysp3 - boysp3_past
 
         if boysp3_diff > 0:
             boysp3_class = 'increase'
-            boysp3_data = 'data-red'
+            boysp3_data = 'data-green'
         elif boysp3_diff < 0:
             boysp3_class = 'decrease'
-            boysp3_data = 'data-green'
+            boysp3_data = 'data-red'
         else:
             boysp3_class = 'zero'
             boysp3_data = 'data-white'
@@ -434,17 +442,18 @@ def p3_absent_boys(locations):
 
 def p6_boys_absent(locations):
     indicator = 'P6Boys'
-    boysp6, boysp6_past = get_two_weeks_absenteeism(indicator,locations)
+    #boysp6, boysp6_past = get_two_weeks_absenteeism(indicator,locations)
+    boysp6, boysp6_past =  compute_absenteeism_summary(indicator,locations)
 
     try:
         boysp6_diff = boysp6 - boysp6_past
 
         if boysp6_diff > 0:
             boysp6_class = 'increase'
-            boysp6_data = 'data-red'
+            boysp6_data = 'data-green'
         elif boysp6_diff < 0:
             boysp6_class = 'decrease'
-            boysp6_data = 'data-green'
+            boysp6_data = 'data-red'
         else:
             boysp6_class = 'zero'
             boysp6_data = 'data-white'
@@ -458,17 +467,18 @@ def p6_boys_absent(locations):
 
 def p3_absent_girls(locations):
     indicator ='P3Girls'
-    girlsp3 ,girlsp3_past =get_two_weeks_absenteeism(indicator,locations)
+    #girlsp3 ,girlsp3_past =get_two_weeks_absenteeism(indicator,locations)
+    girlsp3 ,girlsp3_past =  compute_absenteeism_summary(indicator,locations)
 
     try:
         girlsp3_diff = girlsp3 - girlsp3_past
 
         if girlsp3_diff > 0:
             girlsp3_class = "increase"
-            girlsp3_data = 'data-red'
+            girlsp3_data = 'data-green'
         elif girlsp3_diff < 0:
             girlsp3_class = "decrease"
-            girlsp3_data = 'data-green'
+            girlsp3_data = 'data-red'
         else:
             girlsp3_class = "zero"
             girlsp3_data = 'data-white'
@@ -483,18 +493,19 @@ def p3_absent_girls(locations):
 def p6_girls_absent(locations):
 
     indicator = 'P6Girls'
-    girlsp6,girlsp6_past = get_two_weeks_absenteeism(indicator,locations)
+    #girlsp6,girlsp6_past = get_two_weeks_absenteeism(indicator,locations)
+    girlsp6,girlsp6_past =  compute_absenteeism_summary(indicator,locations)
 
     try:
         girlsp6_diff = girlsp6 - girlsp6_past
 
         if girlsp6_diff > 0:
             girlsp6_class = "increase"
-            girlsp6_data = 'data-red'
+            girlsp6_data = 'data-green'
 
         elif girlsp6_diff < 0:
             girlsp6_class = 'decrease'
-            girlsp6_data = 'data-green'
+            girlsp6_data = 'data-red'
         else:
             girlsp6_data = 'data-white'
             girlsp6_class = "zero"
@@ -508,16 +519,17 @@ def p6_girls_absent(locations):
 
 def f_teachers_absent(locations):
     indicator ='FemaleTeachers'
-    female_teachers ,female_teachers_past = get_two_weeks_absenteeism(indicator,locations)
+    #female_teachers ,female_teachers_past = get_two_weeks_absenteeism(indicator,locations)
+    female_teachers ,female_teachers_past =  compute_absenteeism_summary(indicator,locations)
     try:
         female_teachers_diff = female_teachers - female_teachers_past
 
         if female_teachers_diff > 0:
             female_teachers_class = "increase"
-            female_teachers_data = 'data-red'
+            female_teachers_data = 'data-green'
         elif female_teachers_diff < 0:
             female_teachers_class = "decrease"
-            female_teachers_data = 'data-green'
+            female_teachers_data = 'data-red'
         else:
             female_teachers_data = "data-white"
             female_teachers_class = "zero"
@@ -532,17 +544,18 @@ def f_teachers_absent(locations):
 
 def m_teachers_absent(locations):
     indicator = 'MaleTeachers'
-    male_teachers,male_teachers_past = get_two_weeks_absenteeism(indicator,locations)
+    #male_teachers,male_teachers_past = get_two_weeks_absenteeism(indicator,locations)
+    male_teachers,male_teachers_past =  compute_absenteeism_summary(indicator,locations)
 
     try:
         male_teachers_diff = male_teachers - male_teachers_past
 
         if male_teachers_diff < 0:
             male_teachers_class = "decrease"
-            male_teachers_data = 'data-green'
+            male_teachers_data = 'data-red'
         elif male_teachers_diff > 0:
             male_teachers_class = "increase"
-            male_teachers_data = 'data-red'
+            male_teachers_data = 'data-green'
         else:
             male_teachers_class = "zero"
             male_teachers_data = 'data-white'
@@ -603,10 +616,10 @@ def head_teachers_female(locations):
 
         if f_head_diff < 0:
             f_head_t_class = "decrease"
-            f_head_t_data = 'data-green'
+            f_head_t_data = 'data-red'
         elif f_head_diff > 0:
             f_head_t_class = "increase"
-            f_head_t_data = 'data-red'
+            f_head_t_data = 'data-green'
         else:
             f_head_t_class = "zero"
             f_head_t_data = 'data-white'
@@ -627,10 +640,10 @@ def head_teachers_male(locations):
 
         if m_head_diff < 0:
             m_head_t_class = "decrease"
-            m_head_t_data = 'data-green'
+            m_head_t_data = 'data-red'
         elif m_head_diff > 0:
             m_head_t_class = "increase"
-            m_head_t_data = 'data-red'
+            m_head_t_data = 'data-green'
         else:
             m_head_t_class = "zero"
             m_head_t_data = 'data-white'
@@ -1645,42 +1658,70 @@ def boysp3_district_attd_detail(req, location_id):
     """
     This gets the details about schools in a district, the people in attedance, etc.
     """
-#    location = Location.objects.exclude(type="country").filter(type="district").get(id=location_id)
-    schools = School.objects.filter(location=locale.get(id=location_id))
-    to_ret = []
-    for school in schools:
-        temp = [school]
-        temp.extend(return_absent('edtrac_boysp3_attendance','edtrac_boysp3_enrollment', school=school))
 
-        to_ret.append(temp)
-    to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
+    school_data, existing_data = view_stats_by_school(location_id,'edtrac_boysp3_enrollment','edtrac_boysp3_attendance')
 
     return render_to_response("education/boysp3_district_attd_detail.html", { 'location':locale.get(id=location_id),\
-                                                                              'location_data':to_ret,
+                                                                              'location_data':school_data,
                                                                               'week':datetime.datetime.now(),
                                                                               'headings' : ['School', 'Current Week (%)', 'Week before (%)', 'Percentage change']}, RequestContext(req))
 
+
+
+# def boysp3_district_attd_detail(req, location_id):
+#     """
+#     This gets the details about schools in a district, the people in attedance, etc.
+#     """
+# #    location = Location.objects.exclude(type="country").filter(type="district").get(id=location_id)
+#     schools = School.objects.filter(location=locale.get(id=location_id))
+#     to_ret = []
+#     for school in schools:
+#         temp = [school]
+#         temp.extend(return_absent('edtrac_boysp3_attendance','edtrac_boysp3_enrollment', school=school))
+#
+#         to_ret.append(temp)
+#     to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
+#
+#     return render_to_response("education/boysp3_district_attd_detail.html", { 'location':locale.get(id=location_id),\
+#                                                                               'location_data':to_ret,
+#                                                                               'week':datetime.datetime.now(),
+#                                                                               'headings' : ['School', 'Current Week (%)', 'Week before (%)', 'Percentage change']}, RequestContext(req))
+
+
 @login_required
+
 def boysp6_district_attd_detail(req, location_id):
     """
     This gets the details about schools in a district, the people in attedance, etc.
     """
-#    location = Location.objects.exclude(type="country").filter(type="district").get(id=location_id)
-    schools = School.objects.filter(location=locale.get(id=location_id))
-    to_ret = []
-    for school in schools:
-        temp = [school]
-        temp.extend(return_absent('edtrac_boysp6_attendance', 'edtrac_boysp6_enrollment', school = school))
-        to_ret.append(temp)
 
-    to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
+    school_data, existing_data = view_stats_by_school(location_id,'edtrac_boysp6_enrollment','edtrac_boysp6_attendance')
 
-    return render_to_response("education/boysp6_district_attd_detail.html", { 'week':datetime.datetime.now(),\
-                                                                              'location':locale.get(id=location_id),\
-                                                                              'headings' : ['School', 'Current Week (%)', 'Week before (%)', 'Percentage change'],
-                                                                              'location_data':to_ret },\
-        RequestContext(req))
-
+    return render_to_response("education/boysp3_district_attd_detail.html", { 'location':locale.get(id=location_id),\
+                                                                              'location_data':school_data,
+                                                                              'week':datetime.datetime.now(),
+                                                                              'headings' : ['School', 'Current Week (%)', 'Week before (%)', 'Percentage change']}, RequestContext(req))
+#
+# def boysp6_district_attd_detail(req, location_id):
+#     """
+#     This gets the details about schools in a district, the people in attedance, etc.
+#     """
+# #    location = Location.objects.exclude(type="country").filter(type="district").get(id=location_id)
+#     schools = School.objects.filter(location=locale.get(id=location_id))
+#     to_ret = []
+#     for school in schools:
+#         temp = [school]
+#         temp.extend(return_absent('edtrac_boysp6_attendance', 'edtrac_boysp6_enrollment', school = school))
+#         to_ret.append(temp)
+#
+#     to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
+#
+#     return render_to_response("education/boysp6_district_attd_detail.html", { 'week':datetime.datetime.now(),\
+#                                                                               'location':locale.get(id=location_id),\
+#                                                                               'headings' : ['School', 'Current Week (%)', 'Week before (%)', 'Percentage change'],
+#                                                                               'location_data':to_ret },\
+#         RequestContext(req))
+#
 
 @login_required
 def girlsp3_district_attd_detail(req, location_id):
@@ -2033,22 +2074,36 @@ def female_head_teacher_attendance(req):
 
 @login_required
 def time_range_boysp3(req):
-    return view_generator(req,
+    return view_stats(req,
         enrol_deploy_poll='edtrac_boysp3_enrollment',
         attendance_poll='edtrac_boysp3_attendance',
         title='P3 Boys Absenteeism',
         url_name_district = "boysp3-district-attd-detail"
     )
+    # return view_generator(req,
+    #     enrol_deploy_poll='edtrac_boysp3_enrollment',
+    #     attendance_poll='edtrac_boysp3_attendance',
+    #     title='P3 Boys Absenteeism',
+    #     url_name_district = "boysp3-district-attd-detail"
+    # )
 
 @login_required
 def time_range_boysp6(req):
-    return view_generator(
-        req,
+    return view_stats(req,
         enrol_deploy_poll='edtrac_boysp6_enrollment',
         attendance_poll='edtrac_boysp3_attendance',
-        title = 'P6 Boys Absenteeism',
-        url_name_district = 'boysp6-district-attd-detail'
+        title='P6 Boys Absenteeism',
+        url_name_district = "boysp6-district-attd-detail"
     )
+
+# def time_range_boysp6(req):
+#     return view_generator(
+#         req,
+#         enrol_deploy_poll='edtrac_boysp6_enrollment',
+#         attendance_poll='edtrac_boysp3_attendance',
+#         title = 'P6 Boys Absenteeism',
+#         url_name_district = 'boysp6-district-attd-detail'
+#     )
 
 @login_required
 def time_range_girlsp3(req):
@@ -2456,10 +2511,15 @@ def add_schools(request):
         if form.is_valid():
             names = filter(None, request.POST.getlist('name'))
             locations = request.POST.getlist('location')
+            emis_ids = request.POST.getlist('emis_id')
             if len(names) > 0:
                 for i, name in enumerate(names):
                     location = Location.objects.get(pk=int(locations[i]))
-                    name, created = School.objects.get_or_create(name=name, location=location)
+                    emis_id = emis_ids[i]
+                    with reversion.create_revision():
+                        name, created = School.objects.get_or_create(name=name, location=location, emis_id=emis_id)
+                        reversion.set_user(request.user)
+                        reversion.set_comment('added %s'%name.name)
                     schools.append(name)
 
                 return render_to_response('education/partials/addschools_row.html',
@@ -2467,7 +2527,7 @@ def add_schools(request):
     else:
         form = SchoolForm()
     return render_to_response('education/deo/add_schools.html',
-            {'form': form
+            {'form': form,
              }, context_instance=RequestContext(request))
 
 @login_required
@@ -3011,8 +3071,7 @@ def detail_attd(request, district=None):
         absenteeism_form = AbsenteeismForm(data=request.POST)
         if absenteeism_form.is_valid():
             indicator = absenteeism_form.cleaned_data['indicator']
-            week_range = get_date_range(absenteeism_form.cleaned_data['from_date'],
-                                        absenteeism_form.cleaned_data['to_date'], time_range_depth)
+            week_range = get_date_range(absenteeism_form.cleaned_data['from_date'], absenteeism_form.cleaned_data['to_date'], time_range_depth)
         else:
             return render_to_response('education/admin/detail_attd.html',
                                       {'form': absenteeism_form}, RequestContext(request))
