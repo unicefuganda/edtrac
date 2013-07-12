@@ -2511,17 +2511,11 @@ def add_schools(request):
         if form.is_valid():
             names = filter(None, request.POST.getlist('name'))
             locations = request.POST.getlist('location')
-            emis_ids = request.POST.getlist('emis_id')
             if len(names) > 0:
                 for i, name in enumerate(names):
                     location = Location.objects.get(pk=int(locations[i]))
-                    emis_id = emis_ids[i]
-                    with reversion.create_revision():
-                        name, created = School.objects.get_or_create(name=name, location=location, emis_id=emis_id)
-                        reversion.set_user(request.user)
-                        reversion.set_comment('added %s'%name.name)
+                    name, created = School.objects.get_or_create(name=name, location=location)
                     schools.append(name)
-
                 return render_to_response('education/partials/addschools_row.html',
                         {'object':schools, 'selectable':False}, RequestContext(request))
     else:
@@ -3063,8 +3057,43 @@ class AbsenteeismForm(forms.Form):
         return data
 
 
+
 @login_required
 def detail_attd(request, district=None):
+    locations = get_location_for_absenteeism_view(district, request)
+    time_range_depth = 4
+    if request.method == 'POST':
+        absenteeism_form = AbsenteeismForm(data=request.POST)
+        if absenteeism_form.is_valid():
+            indicator = absenteeism_form.cleaned_data['indicator']
+            week_range = get_date_range(absenteeism_form.cleaned_data['from_date'],
+                                        absenteeism_form.cleaned_data['to_date'], time_range_depth)
+        else:
+            return render_to_response('education/admin/detail_attd.html',
+                                      {'form': absenteeism_form}, RequestContext(request))
+
+    else:
+        absenteeism_form = AbsenteeismForm(initial={'indicator': 'all'})
+        week_range = get_week_date(time_range_depth)
+        indicator = "all"
+
+    week_range.reverse()
+    config_list = get_polls_for_keyword(indicator)
+    collective_result, time_data, reporting_school_percent = get_aggregated_report(locations, config_list, week_range)
+    weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in week_range]
+    return render_to_response('education/admin/detail_attd.html',
+                              {'form': absenteeism_form,
+                               'collective_result_keys': [config['collective_dict_key'] for config in config_list],
+                               'collective_result': collective_result,
+                               'time_data': mark_safe(json.dumps(time_data)),
+                               'school_percent' : reporting_school_percent,
+                               'weeks': mark_safe(json.dumps(weeks)),
+                               "locations": locations},
+                              RequestContext(request))
+
+
+@login_required
+def detail_dashboard(request, district=None):
     locations = get_location_for_absenteeism_view(district, request)
     time_range_depth = 4
     if request.method == 'POST':
