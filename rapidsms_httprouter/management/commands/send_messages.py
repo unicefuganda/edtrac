@@ -24,7 +24,7 @@ class Command(BaseCommand, LoggerMixin):
         return response.getcode()
 
 
-    def build_send_url(self, router_url, backend, recipients, text, **kwargs):
+    def build_send_url(self, router_url, backend, recipients, text, priority=1, **kwargs):
         """
         Constructs an appropriate send url for the given message.
         """
@@ -33,6 +33,7 @@ class Command(BaseCommand, LoggerMixin):
             'backend': backend,
             'recipient': recipients,
             'text': text,
+            'priority': priority,
         }
 
         # make sure our parameters are URL encoded
@@ -67,10 +68,10 @@ class Command(BaseCommand, LoggerMixin):
         return full_url
 
 
-    def send_backend_chunk(self, router_url, pks, backend_name):
+    def send_backend_chunk(self, router_url, pks, backend_name, priority):
         msgs = Message.objects.using(self.db_key).filter(pk__in=pks).exclude(connection__identity__iregex="[a-z]")
         try:
-            url = self.build_send_url(router_url, backend_name, ' '.join(msgs.values_list('connection__identity', flat=True)), msgs[0].text)
+            url = self.build_send_url(router_url, backend_name, ' '.join(msgs.values_list('connection__identity', flat=True)), msgs[0].text, priority=str(priority))
             status_code = self.fetch_url(url)
 
             # kannel likes to send 202 responses, really any
@@ -87,27 +88,27 @@ class Command(BaseCommand, LoggerMixin):
             msgs.update(status='Q')
 
 
-    def send_all(self, router_url, to_send):
+    def send_all(self, router_url, to_send, priority):
         pks = []
         if len(to_send):
             backend_name = to_send[0].connection.backend.name
             for msg in to_send:
                 if backend_name != msg.connection.backend.name:
                     # send all of the same backend
-                    self.send_backend_chunk(router_url, pks, backend_name)
+                    self.send_backend_chunk(router_url, pks, backend_name, priority)
                     # reset the loop status variables to build the next chunk of messages with the same backend
                     backend_name = msg.connection.backend.name
                     pks = [msg.pk]
                 else:
                     pks.append(msg.pk)
-            self.send_backend_chunk(router_url, pks, backend_name)
+            self.send_backend_chunk(router_url, pks, backend_name, priority)
 
-    def send_individual(self, router_url):
+    def send_individual(self, router_url, priority=1):
         to_process = Message.objects.using(self.db_key).filter(direction='O',
                           status__in=['Q'], batch=None).order_by('priority', 'status', 'connection__backend__name', 'id') #Order by ID so that they are FIFO in absence of any other priority
         if len(to_process):
             self.debug("found [%d] individual messages to proccess, sending the first one..." % len(to_process))
-            self.send_all(router_url, [to_process[0]])
+            self.send_all(router_url, [to_process[0]], priority)
         else:
             self.debug("found no individual messages to process")
 
@@ -120,12 +121,13 @@ class Command(BaseCommand, LoggerMixin):
         if to_process.count():
             self.info("found [%d] batches with status [Q] in db [%s] to process" % (to_process.count(), db_key))
             batch = to_process[0]
+            priority = batch.priority
             to_process = batch.messages.using(db_key).filter(direction='O',
                 status__in=['Q']).order_by('priority', 'status', 'connection__backend__name')[:CHUNK_SIZE]
             self.info("chunk of [%d] messages found in db [%s]" % (to_process.count(), db_key))
             if to_process.count():
                 self.debug("found message batch [pk=%d] [name=%s] with Queued messages to send" % (batch.pk, batch.name))
-                self.send_all(router_url, to_process)
+                self.send_all(router_url, to_process, priority)
             elif batch.messages.using(db_key).filter(status__in=['S', 'C']).count() == batch.messages.using(db_key).count():
                 batch.status = 'S'
                 batch.save()
@@ -164,6 +166,7 @@ class Command(BaseCommand, LoggerMixin):
                     self.process_messages_for_db(CHUNK_SIZE, db_key, router_url)
 
                 except Exception, exc:
+                    print exc
                     transaction.rollback(using=db_key)
                     self.critical(traceback.format_exc(exc))
                     if recipients:

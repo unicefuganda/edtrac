@@ -40,6 +40,7 @@ STATUS_CHOICES = (
 class MessageBatch(models.Model):
     status = models.CharField(max_length=1, choices=STATUS_CHOICES)
     name = models.CharField(max_length=15, null=True, blank=True)
+    priority = models.IntegerField(default=1)
 
 
 class Message(models.Model):
