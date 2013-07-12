@@ -269,7 +269,6 @@ TEST_EXCLUDED_APPS = [
     "rapidsms.contrib.httptester",
 ]
 
-
 TEMPLATE_LOADERS = (
                     'django.template.loaders.filesystem.Loader',
                     'django.template.loaders.app_directories.Loader',
@@ -283,10 +282,6 @@ MAP_KEY = "ABQIAAAAmd7V71yw9ZddA0s8Z3wSKBS0unaJrFIrP1vn6ZXHpuhFyvYAGhQprSjp88j18
 COUNTRY = "UG"
 MESSAGELOG_APP = 'rapidsms_httprouter'
 
-import os
-import tempfile
-import sys
-
 try:
     import sys
     if os.environ.has_key('LOCAL_SETTINGS'):
@@ -297,15 +292,4 @@ try:
         from localsettings import *
 except ImportError:
     pass
-# since we might hit the database from any thread during testing, the
-# in-memory sqlite database isn't sufficient. it spawns a separate
-# virtual database for each thread, and syncdb is only called for the
-# first. this leads to confusing "no such table" errors. We create
-# a named temporary instance instead.
-#if 'test' in sys.argv:
-#    for db_name in DATABASES:
-#        DATABASES[db_name]['ENGINE'] = 'django.db.backends.sqlite3'
-#        DATABASES[db_name]['NAME'] = os.path.join(
-#            tempfile.gettempdir(),
-#            "%s.emis.test.sqlite3" % db_name)
 
