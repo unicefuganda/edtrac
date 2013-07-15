@@ -82,27 +82,5 @@ GEOSERVER_URL = "http://cvs.rapidsms.org/geoserver/"
 MODEM_NUMBERS = ['256777773260', '256752145316', '256711957281', '256790403038', '256701205129', '256792197598']
 #model containing blacklisted contacts
 BLACKLIST_MODEL = "unregister.Blacklist"
-#SPREADSHEETS_PATH = "/Users/raybesiga/Documents/Sites/UNICEF/edtrac/edtrac_project/rapidsms_edtrac/education/static/spreadsheets/"
-#LOG_LEVEL = "DEBUG"
-#LOG_SIZE = 8192  # 8192 bits = 8 kb
-#LOG_BACKUPS = 256  # number of logs to keep
-#LOG_FILE = '/Users/raybesiga/Documents/Sites/UNICEF/edtrac/edtrac_project/edtrac.log'
-#LOG_FILE = 'edtrac.log'
-#import logging
-#logging.basicConfig(
-#    level = logging.DEBUG,
-#    format = '%(asctime)s [%(name)s] %(levelname)s: %(message)s',
-#    filename = LOG_FILE,
-#)
-import sys
 
-#if ('test' in sys.argv):
-#    DATABASES = {
-#        "default": {
-#            "ENGINE": "django.db.backends.postgresql_psycopg2",
-#            "NAME": "edtrac_test",
-#            "USER": "postgres",
-#            "PASSWORD": "",
-#            "HOST": "localhost",
-#       }
-#    }
+import sys
