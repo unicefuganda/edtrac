@@ -9,6 +9,7 @@
 			            <a href="javascript:void(0)" onclick="deleteSchool(this, '{% url delete-school obj.pk %}','{{ obj.school }}')">
 			                <img src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png" />
 			            </a>
+                        <a href="{% url emis-schools %}"> Back </a>
 			        </span>
 		    	</p>
 	        {% endfor %}	
