@@ -3240,6 +3240,12 @@ class ExportPollForm(forms.Form):
         return data
 
 
+def get_district_parent(reporting_location):
+    parent_locations = reporting_location.get_ancestors()
+    district_parent = [parent for parent in parent_locations if parent.type.name == 'district']
+    return district_parent[0].name
+
+
 def _format_responses(responses):
     a = []
     for response in responses:
@@ -3248,6 +3254,9 @@ def _format_responses(responses):
             sender = contact
             location_type = contact.reporting_location.type
             reporting_location = contact.reporting_location.name
+            if not location_type.name == 'district' and not location_type.name == 'country':
+                reporting_location = get_district_parent(contact.reporting_location)
+                location_type = 'district'
             school = ", ".join(contact.emisreporter.schools.values_list('name', flat=True))
         else:
             sender = response.message.connection.identity
