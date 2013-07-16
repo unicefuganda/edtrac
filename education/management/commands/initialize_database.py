@@ -8,6 +8,7 @@ from poll.models import Poll, Category
 
 
 class Command(BaseCommand):
+
     def handle(self, *args, **options):
         Role.objects.create(name='edutrac_administrators')
         admin = User.objects.create(username='admin')
@@ -46,7 +47,7 @@ class Command(BaseCommand):
             'edtrac_headteachers_meals',
             'edtrac_gem_abuse',
             'edtrac_girls_violence',
-        ];
+        ]
 
         for poll_name in poll_names:
             Poll.objects.get_or_create(name=poll_name, start_date=datetime.datetime.now(), user=User.objects.get(id=1))
