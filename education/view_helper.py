@@ -35,6 +35,7 @@ from unregister.models import Blacklist
 from .utils import themes
 from education.absenteeism_view_helper import *
 from django.utils import simplejson
+from dateutil import parser
 
 
 
@@ -528,9 +529,14 @@ def report_dashboard(request, district=None):
 
     return render_to_response('education/admin/detail_report.html', RequestContext(request))
 
+@login_required
+def term_dashboard(request, district=None):
+
+    return render_to_response('education/admin/detail_term_report.html', RequestContext(request))
+
 
 #   Reporting API
-
+@login_required
 def dash_report_api(request):
     jsonDataSource = []
     config_list = get_polls_for_keyword('all')
@@ -546,11 +552,11 @@ def dash_report_api(request):
     jsonDataSource.append({'results': collective_result,'chartData':chart_data,'school_percent' : school_percent,'weeks' : weeks, 'toolTips': tooltips })
     return HttpResponse(simplejson.dumps(jsonDataSource), mimetype='application/json')
 
+@login_required
 def dash_report_term(request):
     jsonDataSource = []
     config_list = get_polls_for_keyword('all')
     time_depth = 4
-
     current_term_range = []
     current_term_range.append(getattr(settings, 'SCHOOL_TERM_START'))
     if getattr(settings, 'SCHOOL_TERM_END') > datetime.datetime.today():
@@ -568,20 +574,24 @@ def dash_report_term(request):
 
     return HttpResponse(simplejson.dumps(jsonDataSource), mimetype='application/json')
 
-
-def dash_report_params(request,start_date=None, end_date=None, indicator=None):
+@login_required
+def dash_report_params(request):
     jsonDataSource = []
+    time_depth = 4
+    start_date = parser.parse(request.GET['start_date'])
+    end_date = parser.parse(request.GET['end_date'])
+    indicator = request.GET['indicator']
+    time_range = get_date_range(start_date, end_date,time_depth)
+
     config_list = get_polls_for_keyword(indicator)
     time_range = get_week_date(depth=4)
-    params = [{'start_date' : start_date,'end_date' : end_date,'indicator' : indicator}]
     weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in time_range]
     time_range.reverse()
-
-    jsonDataSource.append({'results': params, 'chartData':config_list, 'school_percent' : time_range,'weeks' : weeks })
-
+    collective_result, chart_data, school_percent,tooltips = get_aggregated_report_data(locations,time_range,config_list)
+    jsonDataSource.append({'results': collective_result,'chartData':chart_data,'school_percent' : school_percent,'weeks' : weeks, 'toolTips': tooltips })
     return HttpResponse(simplejson.dumps(jsonDataSource), mimetype='application/json')
 
-
+@login_required
 def school_report_card(school_id):
     school = School.objects.get(id=school_id)
     today = date.today()
