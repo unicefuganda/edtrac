@@ -603,7 +603,9 @@ def meals_missed(locations):
 
     p = sorted(response_to_meals.items(), key=lambda(k,v):(v[0][1], k))
 
-    worst_meal = p[len(p)-1]
+    worst_meal = None
+    if len(p):
+        worst_meal = p[len(p)-1]
 
     return {'worst_meal' : worst_meal}
 
