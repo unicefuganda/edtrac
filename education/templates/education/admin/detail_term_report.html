@@ -1,0 +1,203 @@
+{% extends "education/layout_base.html" %}
+{% load stats_extras %}
+{% block title %}
+    Dashboard -- {{ block.super }}
+{% endblock %}
+{% block content %}
+    <div style="padding: 10px;margin: 5px;">
+
+                <div style="min-width: 400px;margin-bottom: 20px;">
+                <table><tr>
+                    <td style="color: white;">From Date</td><td><input type="text" id="id_from_date"  /></td>
+                    <td style="color: white;">To Date</td><td><input type="text" id="id_to_date" /></td>
+                    <td><select>
+                        <option value="all" selected="True">--</option>
+                        <option value="P3Boys">P3 Boys</option>
+                        <option value="P3Girls">P3 Girls</option>
+                        <option value="P3Pupils">P3 Pupils</option>
+                        <option value="P6Boys">P6 Boys</option>
+                        <option value="P6Girls">P6 Girls</option>
+                        <option value="P6Pupils">P6 Pupils</option>
+                        <option value="MaleTeachers">Male Teachers</option>
+                        <option value="FemaleTeachers">Female Teachers</option>
+                        <option value="Teachers">Teachers</option>
+                        <option value="HeadTeachers">Head Teachers</option>
+
+                    </select></td>
+                    <td><input type="submit" value="Search" id="btnSearch"/></td>
+                     <td><input type="submit" value="Current Month" id="btnCurrentMonth"/></td>
+                     <td><input type="submit" value="Current Term" id="btnCurrentTerm"/></td>
+                </tr></table>
+                </div>
+
+
+
+
+        <div id="container" style="min-width: 400px; height: 400px; padding-bottom: 40px"></div>
+        <div id="SchoolAlerts" style="min-width: 400px; padding-bottom: 10px"></div>
+        <div id="tableData" style="margin: 10px; padding: 10px"></div>
+
+        <script>
+        highChart_tooltips = null;
+            $(function(){
+                $('#id_from_date').datepicker();
+                $('#id_to_date').datepicker();
+                api_url = '/edtrac/api/dashReport/term/';
+
+                $.ajax({
+                url: api_url,
+                type: "GET",
+                contentType: "application/json;charset=utf-8"
+            }).then(function (data) {
+                            $.each(data,function(index,dataSet){
+                                displaySchoolPercent(dataSet.school_percent);
+                                loadHighChart(dataSet.weeks,dataSet.chartData,'container','Absenteeism Over Current Month')
+                                displayTabularData(dataSet.results)
+                                highChart_tooltips = dataSet.toolTips;
+
+                            });
+             });
+
+ $('#btnCurrentTerm').click(function(){
+     window.location.href = '/edtrac/term-dash/';
+ });
+
+ $('#btnCurrentMonth').click(function(){
+     window.location.href = '/edtrac/detail-dash/';
+ });
+
+ $('#btnSearch').click(function(){
+
+                   if($('#id_from_date').val() == '' ||  $('#id_to_date').val()==''){
+                        alert('Please provide both From Date and To Date in order to get data ');
+                   }else{
+                       url=
+                       alert('Date range still needs some tweaking.. very slight thou');
+                   }
+                });
+
+
+}); // end document load
+function chartToolTips(indicator,percent,time_range){
+    output = "Error Reading tooltips";
+    output = '<b>'+indicator+'</b><br />';
+    output +='<div style="color:red;background-color:red">'+ percent+ '</div> % <br />';
+    $.each(highChart_tooltips,function(index,data){
+        if(data.name == indicator){
+            count = 0;
+            $.each(data.tooltip,function(ind,val){
+                if(val.percent == percent)
+                {
+                    if(count == 0){output +=' Present : '+ val.present+ ' Enrolled / deployed : '+ val.enrollment;}
+                    count++;
+                }
+
+            });
+        } });
+     return output;
+    }
+
+
+
+
+
+function displaySchoolPercent(school_percent){
+
+                $('#SchoolAlerts').html('<p></p>');
+                $.each(school_percent,function(k,v){
+                    result = '<div class="report-stickie">'
+                    result +='<span style="margin-top:10px;" class="alert-message">'
+                    result += k+' : Report based on '+ v +' % of schools that made a report'
+                    result +='</span></div>'
+                    $('#SchoolAlerts').append(result);
+                });
+            }
+
+  function displayTabularData(data){
+
+
+                $('#tableData').html('<p></p>');
+                result = '<table class="tabulated-data classy">'
+                result +='<tr><th>District</th><th>P3 Absenteeism</th><th>P6 Absenteeism</th><th>Teacher Absenteeism</th><th>Head Teacher Absenteeism</th></tr>'
+                $.each(data,function(district,dataSet){
+                    result +='<tr>';
+                    result +='<td><a href="/edtrac/detail-attd/'+district+'/" >'+district+'</a></td>';
+                    $.each(dataSet,function(k,v){
+                        if(k=='P3 Pupils'){result +='<td>'+v+'</td>';}
+                        if(k=='P6 Pupils'){result +='<td>'+v+'</td>';}
+                        if(k=='Teachers'){result +='<td>'+v+'</td>';}
+                        if(k=='Head Teachers'){result +='<td>'+v+'</td>';}
+                    })
+                    result +='</tr>';
+                })
+                result +='</table>';
+
+                $('#tableData').append(result);
+            }
+
+   function loadHighChart(weeks,chartdata,selector,title){
+
+ line_chart = new Highcharts.Chart({
+        chart: {
+            renderTo: selector,
+            type: 'line',
+            marginRight: 130
+        },
+        title: {
+            text: title,
+            x: -20 //center
+        },
+        subtitle: {
+            text: '',
+            x: -20 //center
+        },
+        xAxis: {
+            title: {
+                text: 'Weeks'
+            },
+            categories: weeks
+        },
+        yAxis: {
+            title: {
+                text: 'Absent-count'
+            },
+            plotLines: [
+                {
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }
+            ]
+        },
+        tooltip: {
+            enabled: true,
+            formatter: function () {
+                return chartToolTips( this.series.name,this.y,this.x)
+            }
+        },
+        legend: {
+            layout: 'vertical',
+            align: 'right',
+            verticalAlign: 'top',
+            x: -10,
+            y: 100,
+            borderWidth: 0
+        },
+        plotOptions: {
+            line: {
+                dataLabels: {
+                    enabled: true
+                },
+                enableMouseTracking: true
+            }
+        },
+        series: chartdata
+    });
+
+}
+
+
+        </script>
+    </div>
+
+{% endblock %}
