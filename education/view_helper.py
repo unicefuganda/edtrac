@@ -325,6 +325,7 @@ def get_aggregated_report_data(locations,time_range,config_list):
         collective_result[location.name] = config_set_result
     time_data_model1 = []
     school_data = {}
+    tip_for_time_data1 = []
 
     # Absenteeism Computation Model 1 : problem : some locations return very high negative values, makes the dashboard look messy (but represent actual state of data)
     # get averages to display on chart (formula : divide the aggregated percent value along each week for each indicator in each location and divide by location count )
@@ -332,13 +333,16 @@ def get_aggregated_report_data(locations,time_range,config_list):
         for k,v in item.items():
             output = []
             for val in v:
-                output.append(round(val/len(locations),2))
+                avg_percent = round(val/len(locations),2)
+                output.append(avg_percent)
             time_data_model1.append({'name' : k, 'data' : output})
+
+
 
     #absenteeism computation model 2 : problem : hides some facts a long each location and computes at global count across all locations
     # get sum of present values for all locations, sum of  enrollment values for all locations, all accross each indicator
     time_data_model2 = []
-    tip_for_time_data = []
+    tip_for_time_data2 = []
     for key,entry in attendance_by_indicator.items():
         data = []
         tip = []
@@ -347,7 +351,7 @@ def get_aggregated_report_data(locations,time_range,config_list):
             tip.append({'enrollment':item['enrollment'],'present':item['present'],'percent' : percent})
             data.append(percent)
         time_data_model2.append({'name' : key, 'data' : data})
-        tip_for_time_data.append({'name' : key,'tooltip' : tip})
+        tip_for_time_data2.append({'name' : key,'tooltip' : tip})
 
     # get school response average
     for item in school_report:
@@ -357,7 +361,7 @@ def get_aggregated_report_data(locations,time_range,config_list):
                 output.append(val)
                 school_data[k] = round(((sum(output)/len(time_range))/schools_total)*100,2)
 
-    return collective_result, time_data_model2, school_data, tip_for_time_data
+    return collective_result, time_data_model1, school_data, tip_for_time_data2
 
 
 def view_stats_by_school(location_id,enrollment_poll_name,attendance_poll_name):
@@ -495,15 +499,6 @@ def get_numeric_data_by_school(polls, schools=None, time_range=None):
     return results
 
 
-def get_numeric_values_from_list(responses):
-    result = []
-    if not is_empty(responses):
-        for response in responses:
-            if response.values()[0] != None:
-                result.append(response.values()[0])
-
-    return result
-
 def compute_absent_values(present,enrollment):
     try:
         if present != 0:
@@ -530,9 +525,18 @@ def report_dashboard(request, district=None):
     return render_to_response('education/admin/detail_report.html', RequestContext(request))
 
 @login_required
-def term_dashboard(request, district=None):
+def term_dashboard(request):
 
     return render_to_response('education/admin/detail_term_report.html', RequestContext(request))
+
+
+@login_required
+def time_range_dashboard(request):
+    context = {}
+    context['start_date'] = request.GET['start_date']
+    context['end_date'] = request.GET['end_date']
+    context['indicator'] = request.GET['indicator']
+    return render_to_response('education/admin/detail_timefilter_report.html',context, RequestContext(request))
 
 
 #   Reporting API
@@ -543,10 +547,11 @@ def dash_report_api(request):
     time_range = get_week_date(depth=4)
     weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in time_range]
     time_range.reverse()
-    #locations = Location.objects.filter(type='district').exclude(name='Moroto')
-    locations = Location.objects.filter(name__in=['Buliisa','Kasese','Amuru','Pader','Agago','Bundibugyo','Arua',
-                                                  'Kaabong','Kabarole','Kyegegwa','Nebbi','Oyam','Ntoroko','Nwoya','Zombo',
-                                                  'Lamwo','Lyantonde','Nakapiripirit'],type='district')
+    profile = request.user.get_profile()
+    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
+        locations = Location.objects.filter(type__in=['district','sub_county'])
+    else:
+        locations = [profile.location]
 
     collective_result, chart_data, school_percent,tooltips = get_aggregated_report_data(locations,time_range,config_list)
     jsonDataSource.append({'results': collective_result,'chartData':chart_data,'school_percent' : school_percent,'weeks' : weeks, 'toolTips': tooltips })
@@ -565,10 +570,13 @@ def dash_report_term(request):
     time_range = get_date_range(current_term_range[0], current_term_range[1],time_depth)
     weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in time_range]
     time_range.reverse()
-    #locations = Location.objects.filter(type='district').exclude(name='Moroto')
-    locations = Location.objects.filter(name__in=['Buliisa','Kasese','Amuru','Pader','Agago','Bundibugyo','Arua',
-                                                  'Kaabong','Kabarole','Kyegegwa','Nebbi','Oyam','Ntoroko','Nwoya','Zombo',
-                                                  'Lamwo','Lyantonde','Nakapiripirit'],type='district')
+
+    profile = request.user.get_profile()
+    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
+        locations = Location.objects.filter(type__in=['district','sub_county'])
+    else:
+        locations = [profile.location]
+
     collective_result, chart_data, school_percent,tooltips = get_aggregated_report_data(locations,time_range,config_list)
     jsonDataSource.append({'results': collective_result,'chartData':chart_data,'school_percent' : school_percent,'weeks' : weeks, 'toolTips': tooltips })
 
@@ -582,57 +590,18 @@ def dash_report_params(request):
     end_date = parser.parse(request.GET['end_date'])
     indicator = request.GET['indicator']
     time_range = get_date_range(start_date, end_date,time_depth)
-
     config_list = get_polls_for_keyword(indicator)
-    time_range = get_week_date(depth=4)
     weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in time_range]
     time_range.reverse()
+    profile = request.user.get_profile()
+    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
+        locations = Location.objects.filter(type__in=['district','sub_county'])
+    else:
+        locations = [profile.location]
+
     collective_result, chart_data, school_percent,tooltips = get_aggregated_report_data(locations,time_range,config_list)
     jsonDataSource.append({'results': collective_result,'chartData':chart_data,'school_percent' : school_percent,'weeks' : weeks, 'toolTips': tooltips })
     return HttpResponse(simplejson.dumps(jsonDataSource), mimetype='application/json')
-
-@login_required
-def school_report_card(school_id):
-    school = School.objects.get(id=school_id)
-    today = date.today()
-    month_ranges = get_month_day_range(today, depth=today.month)
-    month_ranges.reverse()
-
-    slug_list = ['girlsp3', 'boysp3', 'girlsp6', 'boysp6']
-    slug_list_tr = ['f_teachers', 'm_teachers']
-
-    monthly_data = []
-    monthly_data_teachers = []
-
-    for month_range in month_ranges:
-        monthly_data.append(
-            [return_absent_month(
-                'edtrac_'+ '%s'%slug + '_attendance',
-                'edtrac_'+ '%s'%slug + '_enrollment',
-                month_range = month_range,
-                school = school)
-             for slug in slug_list])
-        monthly_data_teachers.append(
-            [return_absent_month(
-                'edtrac_'+'%s'%slug + '_attendance',
-                'edtrac_'+'%s'%slug + '_deployment', month_range = month_range, school=school) for slug in slug_list_tr])
-
-    reporters = school.emisreporter_set.all()
-
-    boys_p3_enrolled = poll_responses_term('edtrac_boysp3_enrollment', belongs_to='schools', school = school)
-    boys_p6_enrolled = poll_responses_term('edtrac_boysp6_enrollment', belongs_to='schools', school = school)
-    girls_p3_enrolled = poll_responses_term('edtrac_girlsp3_enrollment', belongs_to='schools', school = school)
-    girls_p6_enrolled = poll_responses_term('edtrac_girlsp6_enrollment', belongs_to='schools', school = school)
-    m_teachers_deployed = poll_responses_term('edtrac_m_teachers_deployment', belongs_to = 'schools', school = school)
-    f_teachers_deployed = poll_responses_term('edtrac_f_teachers_deployment', belongs_to = 'schools', school = school)
-
-
-    #monthly_violence =
-    return boys_p3_enrolled,boys_p6_enrolled, girls_p3_enrolled
-
-
-
-
 
 
 

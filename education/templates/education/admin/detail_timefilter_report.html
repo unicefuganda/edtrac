@@ -8,9 +8,9 @@
 
                 <div style="min-width: 400px;margin-bottom: 20px;">
                 <table><tr>
-                    <td style="color: white;">From Date</td><td><input type="text" id="id_from_date"  /></td>
-                    <td style="color: white;">To Date</td><td><input type="text" id="id_to_date" /></td>
-                    <td><select>
+                    <td style="color: white;">From Date</td><td><input type="text" id="id_from_date"  value="{{ start_date }}" /></td>
+                    <td style="color: white;">To Date</td><td><input type="text" id="id_to_date" value="{{ end_date }}" /></td>
+                    <td><select id="indicatorList">
                         <option value="all" selected="True">--</option>
                         <option value="P3Boys">P3 Boys</option>
                         <option value="P3Girls">P3 Girls</option>
@@ -29,10 +29,7 @@
                      <td><input type="submit" value="Current Term" id="btnCurrentTerm"/></td>
                 </tr></table>
                 </div>
-
-
-
-
+        <div id="chart_loading" style="margin-left:40%; display: none;"><img src="{{ MEDIA_URL }}education/icons/highchart_loader.gif" alt="EduTrac"></div>
         <div id="container" style="min-width: 400px; height: 400px; padding-bottom: 40px"></div>
         <div id="SchoolAlerts" style="min-width: 400px; padding-bottom: 10px"></div>
         <div id="tableData" style="margin: 10px; padding: 10px"></div>
@@ -40,20 +37,26 @@
         <script>
         highChart_tooltips = null;
             $(function(){
+
                 $('#id_from_date').datepicker();
                 $('#id_to_date').datepicker();
-                api_url = '/edtrac/api/dashReport/';
-
+                $("#indicatorList").val($.trim('{{ indicator }}')).attr('selected',true);
+                var Indicator = $("#indicatorList").val();
+                var paramData = {'start_date':$('#id_from_date').val(),'end_date' :$('#id_to_date').val(),'indicator' : Indicator};
+                api_url = '/edtrac/api/dashReport/params/';
+                $('#chart_loading').show();
                 $.ajax({
                 url: api_url,
+                data:paramData,
                 type: "GET",
                 contentType: "application/json;charset=utf-8"
             }).then(function (data) {
                             $.each(data,function(index,dataSet){
                                 displaySchoolPercent(dataSet.school_percent);
-                                loadHighChart(dataSet.weeks,dataSet.chartData,'container','Absenteeism Over Current Month')
+                                loadHighChart(dataSet.weeks,dataSet.chartData,'container','Absenteeism Over Current Selected time range')
                                 displayTabularData(dataSet.results)
                                 highChart_tooltips = dataSet.toolTips;
+                                $('#chart_loading').hide();
 
                             });
              });
@@ -68,14 +71,16 @@
 
  $('#btnSearch').click(function(){
                    if($('#id_from_date').val() == '' ||  $('#id_to_date').val()==''){
-                        alert('Please provide both From Date and To Date in order to get data ');
+                        alert('Please provide both From Date and To Date in order to proceed ');
                    }else{
-                       alert('Date range still needs some tweaking.. very slight thou');
+                       var params = '?start_date='+$('#id_from_date').val()+'&end_date='+$('#id_to_date').val()+'&indicator='+$("#indicatorList").val();
+                       window.location.href = '/edtrac/filter-dash/'+params;
                    }
                 });
 
 }); // end document load
 function chartToolTips(indicator,percent,time_range){
+
     output = "Error Reading tooltips";
     output = '<b>'+indicator+'</b><br />';
     output +='<div style="color:red;background-color:red">'+ percent+ '</div> % <br />';
@@ -91,6 +96,10 @@ function chartToolTips(indicator,percent,time_range){
 
             });
         } });
+
+    output = '<b>'+indicator+'</b><br />';
+    output +='<div style="color:red;background-color:red">'+ percent+ '</div> % <br />';
+    output += ''+time_range;
      return output;
     }
 

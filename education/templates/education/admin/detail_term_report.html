@@ -30,9 +30,7 @@
                 </tr></table>
                 </div>
 
-
-
-
+        <div id="chart_loading" style="margin-left:40%; display: none;"><img src="{{ MEDIA_URL }}education/icons/highchart_loader.gif" alt="EduTrac"></div>
         <div id="container" style="min-width: 400px; height: 400px; padding-bottom: 40px"></div>
         <div id="SchoolAlerts" style="min-width: 400px; padding-bottom: 10px"></div>
         <div id="tableData" style="margin: 10px; padding: 10px"></div>
@@ -43,7 +41,7 @@
                 $('#id_from_date').datepicker();
                 $('#id_to_date').datepicker();
                 api_url = '/edtrac/api/dashReport/term/';
-
+                $('#chart_loading').show();
                 $.ajax({
                 url: api_url,
                 type: "GET",
@@ -51,9 +49,10 @@
             }).then(function (data) {
                             $.each(data,function(index,dataSet){
                                 displaySchoolPercent(dataSet.school_percent);
-                                loadHighChart(dataSet.weeks,dataSet.chartData,'container','Absenteeism Over Current Month')
+                                loadHighChart(dataSet.weeks,dataSet.chartData,'container','Absenteeism Over Current Term')
                                 displayTabularData(dataSet.results)
                                 highChart_tooltips = dataSet.toolTips;
+                                $('#chart_loading').hide();
 
                             });
              });
@@ -66,13 +65,12 @@
      window.location.href = '/edtrac/detail-dash/';
  });
 
- $('#btnSearch').click(function(){
-
+$('#btnSearch').click(function(){
                    if($('#id_from_date').val() == '' ||  $('#id_to_date').val()==''){
-                        alert('Please provide both From Date and To Date in order to get data ');
+                        alert('Please provide both From Date and To Date in order to proceed ');
                    }else{
-                       url=
-                       alert('Date range still needs some tweaking.. very slight thou');
+                        var params = '?start_date='+$('#id_from_date').val()+'&end_date='+$('#id_to_date').val()+'&indicator='+$("#indicatorList").val();
+                       window.location.href = '/edtrac/filter-dash/'+params;
                    }
                 });
 
@@ -94,10 +92,11 @@ function chartToolTips(indicator,percent,time_range){
 
             });
         } });
+    output = '<b>'+indicator+'</b><br />';
+    output +='<div style="color:red;background-color:red">'+ percent+ '</div> % <br />';
+    output += ''+time_range;
      return output;
     }
-
-
 
 
 
