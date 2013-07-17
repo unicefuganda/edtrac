@@ -145,8 +145,11 @@ class Command(BaseCommand, LoggerMixin):
 
         """
         DB_KEYS = settings.DATABASES.keys()
-        DB_KEYS.remove('geoserver') # TODO - We should probably send the list of dbs we want as parameters
-        #DBS.remove('default') # skip the dummy -we now check default DB as well
+        dbs_to_ignore = getattr( settings, 'DBS_TO_IGNORE', [] ) # get the dbs to ignore
+        for db in dbs_to_ignore:
+            if db in DB_KEYS:
+                DB_KEYS.remove(db)
+
         CHUNK_SIZE = getattr(settings, 'MESSAGE_CHUNK_SIZE', 400)
         self.info("starting up")
         recipients = getattr(settings, 'ADMINS', None)
