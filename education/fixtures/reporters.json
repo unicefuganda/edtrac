@@ -1,0 +1,52 @@
+[
+    {
+        "pk": 30986,
+        "model": "education.emisreporter",
+        "fields": {
+            "grade": null,
+            "user_permissions": [],
+            "schools": [],
+            "groups": [117]
+        }
+    },
+    {
+        "pk": 30955,
+        "model": "education.emisreporter",
+        "fields": {
+            "grade": null,
+            "user_permissions": [],
+            "schools": [],
+            "groups": [117]
+        }
+    },
+    {
+        "pk": 30956,
+        "model": "education.emisreporter",
+        "fields": {
+            "grade": null,
+            "user_permissions": [],
+            "schools": [],
+            "groups": [117]
+        }
+    },
+    {
+        "pk": 30995,
+        "model": "education.emisreporter",
+        "fields": {
+            "grade": null,
+            "user_permissions": [],
+            "schools": [],
+            "groups": [117]
+        }
+    },
+    {
+        "pk": 30987,
+        "model": "education.emisreporter",
+        "fields": {
+            "grade": null,
+            "user_permissions": [],
+            "schools": [],
+            "groups": [117]
+        }
+    }
+]
