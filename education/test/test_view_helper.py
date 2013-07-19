@@ -16,7 +16,6 @@ from education.view_helper_utils import *
 
 
 class TestViewHelper(TestCase):
-
     def setUp(self):
         country = create_location_type("country")
         uganda_fields = {
@@ -24,7 +23,7 @@ class TestViewHelper(TestCase):
             "level": 0,
             "tree_id": 1,
             "lft": 1,
-            }
+        }
         self.uganda = create_location("uganda", country, **uganda_fields)
         admin_group = create_group("Admins")
         self.smc_group = create_group("SMC")
@@ -37,7 +36,7 @@ class TestViewHelper(TestCase):
             "level": 1,
             "tree_id": 1,
             "lft": 10686,
-            }
+        }
         kampala_point = {
             "latitude": "0.3162800000",
             "longitude": "32.5821900000"
@@ -47,53 +46,60 @@ class TestViewHelper(TestCase):
         self.head_teacher_group = create_group("Head Teachers")
         self.emis_reporter1 = create_emis_reporters("dummy1", self.kampala_district, self.kampala_school, 12345,
                                                     self.head_teacher_group)
-        self.emis_reporter1.grade ='P3'
+        self.emis_reporter1.grade = 'P3'
         self.emis_reporter1.save()
         self.emis_reporter2 = create_emis_reporters("dummy2", self.kampala_district, self.kampala_school, 12346,
                                                     self.head_teacher_group)
-        self.emis_reporter2.grade ='P3'
+        self.emis_reporter2.grade = 'P3'
         self.emis_reporter2.save()
 
         self.emis_reporter3 = create_emis_reporters("dummy1", self.kampala_district, self.kampala_school, 12347,
                                                     self.smc_group)
 
-        self.p3_boys_absent_poll = create_poll_with_reporters("edtrac_boysp3_attendance", "How many P3 boys are at school today?",
+        self.p3_boys_absent_poll = create_poll_with_reporters("edtrac_boysp3_attendance",
+                                                              "How many P3 boys are at school today?",
                                                               Poll.TYPE_NUMERIC, self.admin_user,
                                                               [self.emis_reporter1, self.emis_reporter2])
-        self.p3_girls_absent_poll = create_poll_with_reporters("edtrac_girlsp3_attendance", "How many P3 girls are at school today?",
+        self.p3_girls_absent_poll = create_poll_with_reporters("edtrac_girlsp3_attendance",
+                                                               "How many P3 girls are at school today?",
+                                                               Poll.TYPE_NUMERIC, self.admin_user,
+                                                               [self.emis_reporter1, self.emis_reporter2])
+
+        self.p3_boys_enroll_poll = create_poll_with_reporters("edtrac_boysp3_enrollment",
+                                                              "How many boys are enrolled in P3 this term?",
                                                               Poll.TYPE_NUMERIC, self.admin_user,
-                                                              [self.emis_reporter1, self.emis_reporter2])
-
-        self.p3_boys_enroll_poll = create_poll_with_reporters("edtrac_boysp3_enrollment", "How many boys are enrolled in P3 this term?",
+                                                              [self.emis_reporter1])
+        self.p3_girls_enroll_poll = create_poll_with_reporters("edtrac_girlsp3_enrollment",
+                                                               "How many girls are enrolled in P3 this term?",
                                                                Poll.TYPE_NUMERIC, self.admin_user,
                                                                [self.emis_reporter1])
-        self.p3_girls_enroll_poll = create_poll_with_reporters("edtrac_girlsp3_enrollment", "How many girls are enrolled in P3 this term?",
-                                                               Poll.TYPE_NUMERIC, self.admin_user,
-                                                               [self.emis_reporter1])
-        self.teachers_weekly_script = Script.objects.create(name='Revised P3 Teachers Weekly Script',slug='edtrac_p3_teachers_weekly')
+        self.teachers_weekly_script = Script.objects.create(name='Revised P3 Teachers Weekly Script',
+                                                            slug='edtrac_p3_teachers_weekly')
 
-        self.p3_boys_attendance_step = ScriptStep.objects.create(script=self.teachers_weekly_script, poll=self.p3_boys_absent_poll,
-                                                   order=0, rule=ScriptStep.WAIT_MOVEON, start_offset=0,
-                                                   giveup_offset=2)
+        self.p3_boys_attendance_step = ScriptStep.objects.create(script=self.teachers_weekly_script,
+                                                                 poll=self.p3_boys_absent_poll,
+                                                                 order=0, rule=ScriptStep.WAIT_MOVEON, start_offset=0,
+                                                                 giveup_offset=2)
         self.teachers_weekly_script.steps.add(self.p3_boys_attendance_step)
 
-        self.p3_girls_attendance_step = ScriptStep.objects.create(script=self.teachers_weekly_script, poll=self.p3_girls_absent_poll,
-                                                   order=1, rule=ScriptStep.WAIT_MOVEON, start_offset=0,
-                                                   giveup_offset=2)
+        self.p3_girls_attendance_step = ScriptStep.objects.create(script=self.teachers_weekly_script,
+                                                                  poll=self.p3_girls_absent_poll,
+                                                                  order=1, rule=ScriptStep.WAIT_MOVEON, start_offset=0,
+                                                                  giveup_offset=2)
         self.teachers_weekly_script.steps.add(self.p3_girls_attendance_step)
 
-        self.head_teachers_termly_script = Script.objects.create(name='P3 Enrollment Headteacher Termly Script',slug='edtrac_p3_enrollment_headteacher_termly')
+        self.head_teachers_termly_script = Script.objects.create(name='P3 Enrollment Headteacher Termly Script',
+                                                                 slug='edtrac_p3_enrollment_headteacher_termly')
         self.head_teachers_termly_script.steps.add(
             ScriptStep.objects.create(script=self.head_teachers_termly_script, poll=self.p3_boys_enroll_poll, order=0,
-                                      rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=7200 ))
+                                      rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=7200))
 
         self.head_teachers_termly_script.steps.add(
             ScriptStep.objects.create(script=self.head_teachers_termly_script, poll=self.p3_girls_enroll_poll, order=1,
-                                      rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=7200 ))
+                                      rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=7200))
 
-        settings.SCHOOL_TERM_START = dateutils.increment(datetime.datetime.today(),weeks=-4)
-        settings.SCHOOL_TERM_END = dateutils.increment(datetime.datetime.today(),weeks=8)
-
+        settings.SCHOOL_TERM_START = dateutils.increment(datetime.datetime.today(), weeks=-4)
+        settings.SCHOOL_TERM_END = dateutils.increment(datetime.datetime.today(), weeks=8)
 
     def test_calculate_percent_should_return_50_when_given_1_and_2(self):
         self.assertEqual(50, compute_absent_values(1, 2))
@@ -102,13 +108,20 @@ class TestViewHelper(TestCase):
         self.assertEqual(0, compute_absent_values(1, 0))
 
     def test_get_digit_value_from_message_text_should_return_50(self):
-        schedule_script_now(grp = self.head_teacher_group.name, slug = self.head_teachers_termly_script.slug)
+        schedule_script_now(grp=self.head_teacher_group.name, slug=self.head_teachers_termly_script.slug)
         check_progress(self.head_teachers_termly_script)
         fake_incoming("50 boys", self.emis_reporter1)
-        msg = Message.objects.filter(direction='I',connection=self.emis_reporter1.connection_set.all()[0])[0]
+        msg = Message.objects.filter(direction='I', connection=self.emis_reporter1.connection_set.all()[0])[0]
         self.assertEqual(50, get_digit_value_from_message_text(msg.text))
 
-
+    def test_should_return_numeric_data_given_a_poll_location_and_time_range(self):
+        term_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
+        schedule_script_now(self.head_teacher_group.name, slug=self.teachers_weekly_script.slug)
+        check_progress(self.teachers_weekly_script)
+        fake_incoming("20 boys", self.emis_reporter1)
+        fake_incoming("10 boys", self.emis_reporter2)
+        results = get_numeric_data([self.p3_boys_absent_poll, self.p3_girls_absent_poll], [self.kampala_district], term_range)
+        self.assertEqual(30, sum(results))
 
     def tearDown(self):
         Message.objects.all().delete()
