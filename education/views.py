@@ -37,6 +37,7 @@ from education.absenteeism_view_helper import *
 import datetime
 from datetime import date
 from education.view_helper import *
+from education.view_helper_utils import *
 
 Num_REG = re.compile('\d+')
 
