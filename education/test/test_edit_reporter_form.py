@@ -113,6 +113,14 @@ class TestEditReporterForm(TestCase):
         edit_emis_reporter_form = EditReporterForm(instance = self.emis_reporter, data=data)
         self.assertTrue(edit_emis_reporter_form.is_valid())
 
+    def test_should_save_successfully_given_correct_data(self):
+        self.emis_reporter.schools.add(self.school1)
+        self.emis_reporter.save()
+        data={'name': 'Foo Bar', 'reporting_location':self.kampala_district.id}
+        edit_emis_reporter_form = EditReporterForm(instance=self.emis_reporter, data=data)
+        edit_emis_reporter_form.save()
+        self.assertTrue('Foo Bar' in EmisReporter.objects.all().values_list('name', flat=True))
+
     def tearDown(self):
         LocationType.objects.all().delete()
         Location.objects.all().delete()
