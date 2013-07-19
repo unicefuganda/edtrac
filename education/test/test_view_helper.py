@@ -43,6 +43,7 @@ class TestViewHelper(TestCase):
         }
         self.kampala_district = create_location("Kampala", district, point=kampala_point, **kampala_fields)
         self.kampala_school = create_school("St. Joseph's", self.kampala_district)
+        self.kampala_school_lubaga = create_school("UMHS Lubaga", self.kampala_district)
         self.head_teacher_group = create_group("Head Teachers")
         self.emis_reporter1 = create_emis_reporters("dummy1", self.kampala_district, self.kampala_school, 12345,
                                                     self.head_teacher_group)
@@ -50,6 +51,7 @@ class TestViewHelper(TestCase):
         self.emis_reporter1.save()
         self.emis_reporter2 = create_emis_reporters("dummy2", self.kampala_district, self.kampala_school, 12346,
                                                     self.head_teacher_group)
+
         self.emis_reporter2.grade = 'P3'
         self.emis_reporter2.save()
 
@@ -100,6 +102,8 @@ class TestViewHelper(TestCase):
 
         settings.SCHOOL_TERM_START = dateutils.increment(datetime.datetime.today(), weeks=-4)
         settings.SCHOOL_TERM_END = dateutils.increment(datetime.datetime.today(), weeks=8)
+        self.term_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
+
 
     def test_calculate_percent_should_return_50_when_given_1_and_2(self):
         self.assertEqual(50, compute_absent_values(1, 2))
@@ -115,13 +119,20 @@ class TestViewHelper(TestCase):
         self.assertEqual(50, get_digit_value_from_message_text(msg.text))
 
     def test_should_return_numeric_data_given_a_poll_location_and_time_range(self):
-        term_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
         schedule_script_now(self.head_teacher_group.name, slug=self.teachers_weekly_script.slug)
         check_progress(self.teachers_weekly_script)
         fake_incoming("20 boys", self.emis_reporter1)
         fake_incoming("10 boys", self.emis_reporter2)
-        results = get_numeric_data([self.p3_boys_absent_poll, self.p3_girls_absent_poll], [self.kampala_district], term_range)
+        results = get_numeric_data([self.p3_boys_absent_poll, self.p3_girls_absent_poll], [self.kampala_district],
+                                   self.term_range)
         self.assertEqual(30, sum(results))
+
+    def test_should_return_get_numeric_data_by_school(self):
+        schedule_script_now(self.head_teacher_group.name, slug=self.teachers_weekly_script.slug)
+        check_progress(self.teachers_weekly_script)
+        fake_incoming("20 boys", self.emis_reporter1)
+        school_results = get_numeric_data_by_school([self.p3_boys_absent_poll], [self.kampala_school], self.term_range)
+        self.assertEqual(20, sum(school_results))
 
     def tearDown(self):
         Message.objects.all().delete()
