@@ -134,6 +134,10 @@ class TestViewHelper(TestCase):
         school_results = get_numeric_data_by_school([self.p3_boys_absent_poll], [self.kampala_school], self.term_range)
         self.assertEqual(20, sum(school_results))
 
+    def test_should_get_deployed_head_teachers(self):
+        result = get_deployed_head_Teachers(EmisReporter.objects.all(), [self.kampala_district])
+        self.assertEqual(1, result)
+
     def tearDown(self):
         Message.objects.all().delete()
         ScriptProgress.objects.all().delete()
