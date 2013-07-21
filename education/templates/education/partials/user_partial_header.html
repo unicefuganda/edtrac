@@ -7,7 +7,8 @@
 
         {{ user_form.as_table }}
 
-        <tr><td></td><td><input type="submit" value="Save User"> </td></tr>
+        <!-- <tr><td></td><td><input class="btn btn-primary" type="submit" value="Save User"> </td></tr> -->
+        <tr><td><button type="submit" class="btn btn-primary btn-large"><i class="icon-user"></i> Save User</button></td></tr>
 
 
     </table>
@@ -16,15 +17,21 @@
 {% block toprow %}
 
 {% endblock %}
+
 {% block tablehead %}
-<tr>
-    {% for name, colspan, href in top_columns %}
-        <td colspan="{{ colspan }}" class="stats_title">
-            {% if href %}<a href="{{ href }}">{{ name }}</a>{% else %}
+
+<table cellspacing="1" cellpadding="3" id="userTable" class="results table table-paper tablehead table-condensed table-striped" style="background:#CCC;">
+<thead>
+    <tr class="colhead">
+        {% for name, colspan, href in top_columns %}
+        <th>
+            {% if href %}<a href="{{ href }}">{{ name }}</a>
+            {% else %}
             {{ name }}
             {% endif %}
-        </td>
-    {% endfor %}
-</tr>
+        </th>
+        {% endfor %}
+    </tr>
+</thead>
 {{ block.super }}
 {% endblock %}

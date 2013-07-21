@@ -1,27 +1,130 @@
-{% extends "education/admin/admin_dashboard.html" %}
+{% extends "generic/base.html" %}
 {% load endless %}
-{% block title %} EduTrac Quitters -- {{ block.super }} {% endblock %}
+{% load i18n %}
+{% block title %}
+{{ title }} - {{ block.super }}
+{% endblock %}
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/jquery-ui-1.8.19.custom.css"/>
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/bootstrap.min.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/bootstrap-responsive.min.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/application.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/tablecloth.css" />
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/prettify.css" /> 
+{% endblock %}
+
+{% block javascripts %}
+{{ block.super }}
+    <script src="{{ MEDIA_URL }}education/javascripts/jquery-1.7.1.min.js" type="text/javascript"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-ui-1.8.19.custom.min.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-ui-1.7.3.custom.min.js"></script>
+    <script src="{{ MEDIA_URL }}education/javascripts/add_datepicker.js" type="text/javascript"></script>
+{% endblock %}
+
+<div id="wrapper">
+{% block header %}
+<div id="topbar">
+  
+  <div class="container">
+    
+    <a href="javascript:;" id="menu-trigger" class="dropdown-toggle" data-toggle="dropdown" data-target="#">
+      <i class="icon-cog"></i>
+    </a>
+  
+    <div id="top-nav">      
+      <ul class="pull-right">
+        {% if user.is_authenticated %}
+        <li><a href=""><i class="icon-user"></i> Logged in as {{ user.username }}</a></li>
+        <li><a href="{% url rapidsms-logout %}">Logout</a></li>
+        {% else %}
+        <li><a href="{% url rapidsms-login %}">{% trans "Log in" %}</a></li>
+        {% endif %}
+      </ul>
+      
+    </div> <!-- /#top-nav -->
+    
+  </div> <!-- /.container -->
+  
+</div> <!-- /#topbar -->
+<div id="header">
+    
+    <div class="container">
+
+
+      <a href="{% url rapidsms-dashboard %}" style="position:relative;top:20px;display: block;overflow: hidden;width: 180px;height: 45px;margin-right: .75em;"><img src="{{MEDIA_URL }}education/icons/web_logo.png" alt="EduTrac"></a>
+    
+    <a href="javascript:;" class="btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+          <i class="icon-reorder"></i>
+    </a>
+
+    <div class="nav-collapse">
+      <ul id="main-nav" class="nav pull-right">
+        <li>
+          <a href="{% url rapidsms-dashboard %}">
+            <!-- <i class="icon-home"></i> -->
+            <span>Home</span>                 
+          </a>
+        </li>
+        
+        <li class="dropdown">         
+          <a href="/edtrac/control-panel/">
+            <span>Control Panel</span> 
+          </a>  
+        </li>
+      </ul>
+      
+    </div> <!-- /.nav-collapse -->
+    </div> 
+    
+</div>  
+
+{% include "education/partials/messages/message_links.html" %}
+{% endblock %}
+
 {% block content %}
-<ul class="breadcrumb">
-    <li>
-        <a href="{% url rapidsms-dashboard %}" style="text-decoration: none; line-height: inherit;">← Back to EdTrac Home Page</a>
-    </li>
-</ul>
-<div class="general">
-        <table class="classy">
-            <tr>
-                <th>Name</th>
-                <th>Number</th>
-            </tr>
-            {% paginate quitters %}
+<div id="content">
+
+  <div class="container">
+    <h2>Quitters</h2>
+    <table cellspacing="1" cellpadding="3" id="quitters" class="results table table-paper tablehead table-condensed table-striped" style="background:#CCC;">
+    <thead>
+        <tr class="colhead">
+            <th>Name</th>
+            <th>Number</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% paginate quitters %}
             {% for reporter in quitters %}
             <tr>
                 <td>{{ reporter }}</td>
                 <td>{{ reporter.default_connection }}</td>
             </tr>
             {% endfor %}
-        </table>
-    {% show_pages %}
+    </tbody>
+</table>
+{% show_pages %}
+</div> <!-- /.container -->
 
-    </div>
+</div> <!-- /#content -->
+</div> <!-- end wrapper -->
+
+<script src="{{MEDIA_URL}}contact/javascripts/messages.js" type="text/javascript"></script>
+<script src="{{MEDIA_URL}}education/javascripts/emis_reporters.js" type="text/javascript"></script>
+<script src="{{MEDIA_URL}}education/javascripts/bootstrap-modal.js" type="text/javascript"></script>
+<script src="{{MEDIA_URL}}education/javascripts/jquery.metadata.js"></script>
+<script src="{{MEDIA_URL}}education/javascripts/jquery.tablesorter.min.js"></script>
+<script src="{{MEDIA_URL}}education/javascripts/jquery.tablecloth.js"></script>
+    
+    <script type="text/javascript" charset="utf-8">
+      $(document).ready(function() {
+        $("#quitters ").tablecloth({
+          theme: "paper",
+          striped: true,
+          condensed: true,
+          customClass: "tablehead"
+        });
+      });
+    </script>
+
 {% endblock %}
