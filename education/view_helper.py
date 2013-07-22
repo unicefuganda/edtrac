@@ -266,11 +266,18 @@ def dash_report_params(request):
         locations = Location.objects.filter(type__in=['district', 'sub_county'])
     else:
         locations = [profile.location]
-    collective_result, chart_data, school_percent, tooltips = get_aggregated_report_data(locations, time_range,
-                                                                                         config_list)
-    jsonDataSource.append(
+
+    if indicator =='all':
+        collective_result, chart_data, school_percent, tooltips = get_aggregated_report_data(locations, time_range,config_list)
+        jsonDataSource.append(
         {'results': collective_result, 'chartData': chart_data, 'school_percent': school_percent, 'weeks': weeks,
          'toolTips': tooltips})
+    else:
+        collective_result, chart_data, school_percent, tooltips = get_aggregated_report_data_single_indicator(locations, time_range,config_list)
+        jsonDataSource.append(
+        {'results': collective_result, 'chartData': chart_data, 'school_percent': school_percent, 'weeks': weeks,
+         'toolTips': tooltips})
+
     return HttpResponse(simplejson.dumps(jsonDataSource), mimetype='application/json')
 
 

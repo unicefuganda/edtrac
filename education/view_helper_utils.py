@@ -216,7 +216,95 @@ def get_aggregated_report_data(locations, time_range, config_list):
     return collective_result, time_data_model1, school_data, tip_for_time_data2
 
 
+def get_aggregated_report_data_single_indicator(locations, time_range, config_list):
+    collective_result = {}
+    computation_logger = [] # used for logging values used in computation (don't delete)
+    absenteeism_percent_by_week = {}
+    attendance_total_by_week = {}
+    avg_percent_by_location = []
+    avg_school_responses = []
+    enrollment_by_location = []
+
+    # Get term range from settings file (config file)
+    term_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
+    headteachersSource = EmisReporter.objects.filter(reporting_location__in=locations,groups__name="Head Teachers").exclude(schools=None).select_related()
+    schoolSource = School.objects.filter(location__in=locations).select_related()
+
+    week_position = 0
+    for _date in time_range:
+        absenteeism_percent_by_week[week_position] = 0
+        attendance_total_by_week[week_position] = 0
+        week_position += 1
+
+    for location in locations:
+        # get school in current location
+        schools_in_location = schoolSource.filter(location__in=[location])
+        weekly_percent_results = []
+        weekly_present_result = []
+        week_position = 0
+        weekly_school_responses = []
+
+        if config_list[0].get('collective_dict_key') != 'Head Teachers':
+            enrollment_polls = Poll.objects.filter(name__in=config_list[0].get('enrollment_poll'))
+            attendance_polls = Poll.objects.filter(name__in=config_list[0].get('attendance_poll'))
+            enroll_indicator_total = sum(get_numeric_data(enrollment_polls, [location], term_range))
+            enrollment_by_location.append(enroll_indicator_total)
+            for week in time_range:
+                # get attendance total for week by indicator from config file
+                attend_week_total = sum(get_numeric_data(attendance_polls, [location], week))
+                weekly_present_result.append(attend_week_total)
+                # get schools that Responded
+                schools_that_responded = len(get_numeric_data_by_school(attendance_polls, schools_in_location, week))
+                week_percent = compute_absent_values(attend_week_total, enroll_indicator_total)
+                weekly_percent_results.append(week_percent)
+                absenteeism_percent_by_week[week_position] += week_percent
+                weekly_school_responses.append(schools_that_responded)
+                attendance_total_by_week[week_position] += attend_week_total
+                week_position += 1
+            avg_percent_by_location.append({location.name: sum(weekly_percent_results) / len(time_range)})
+            avg_school_responses.append(sum(weekly_school_responses) / len(time_range))
+            computation_logger.append({location: {'present': weekly_present_result, 'percent': weekly_percent_results,
+                                                  'enrollment': enroll_indicator_total}})
+        else: # computer head teacher absenteeism
+            deployedHeadTeachers = get_deployed_head_Teachers(headteachersSource, [location])
+            attendance_polls = Poll.objects.filter(name__in=['edtrac_head_teachers_attendance'])
+
+            for week in time_range:
+                present, absent = get_count_for_yes_no_response(attendance_polls, [location], week)
+                schools_that_responded = len(get_numeric_data_by_school(attendance_polls, schools_in_location, week))
+                week_percent = compute_absent_values(present, deployedHeadTeachers)
+                weekly_percent_results.append(week_percent)
+                weekly_present_result.append(present)
+                weekly_school_responses.append(schools_that_responded)
+                absenteeism_percent_by_week[week_position] += week_percent
+                week_position += 1
+            avg_percent_by_location.append({location.name: sum(weekly_percent_results) / len(time_range)})
+            avg_school_responses.append(sum(weekly_school_responses) / len(time_range))
+            computation_logger.append({location: {'present': weekly_present_result, 'percent': weekly_percent_results,
+                                                  'enrollment': deployedHeadTeachers}})
+
+    collective_result[config_list[0].get('collective_dict_key')] = avg_percent_by_location
+
+    # percentage of schools that responded : add up weekly response average by selected locations and divide by total number of schools
+    school_percent = round((sum(avg_school_responses) / len(schoolSource)) * 100, 2)
+    #Model 1 : Average percentage computation. get total of averages by location by indication and divide by total locations
+    time_data_model1 = []
+    output = []
+    for k, v in absenteeism_percent_by_week.items():
+        output.append(round(v / len(locations), 2))
+    time_data_model1.append({'name': config_list[0].get('collective_dict_key'), 'data': output})
+
+    tooltip = {}
+
+    return collective_result, time_data_model1, school_percent, tooltip
+
+
 def compute_absenteeism_summary(indicator, locations):
+    """
+    :param indicator:
+    :param locations:
+    :return:
+    """
     date_weeks = get_week_date(depth=2)
     term_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
     current_week_date_range = date_weeks[0]
@@ -261,13 +349,13 @@ def get_digit_value_from_message_text(messge):
     return digit_value
 
 
-def get_count_for_yes_no_response(polls, dataSource, locations=None, time_range=None):
+def get_count_for_yes_no_response(polls, locations=None, time_range=None):
     yes = 0
     no = 0
     if time_range:
         if locations:
-            responses = dataSource.filter(date__range=time_range, poll__in=polls, has_errors=False,
-                                          contact__reporting_location__in=locations, message__direction='I')
+            responses = Response.objects.filter(date__range=time_range, poll__in=polls, has_errors=False,
+                                                contact__reporting_location__in=locations, message__direction='I')
             for response in responses:
                 if 'yes' in response.message.text.lower():
                     yes += 1

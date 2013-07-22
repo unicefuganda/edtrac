@@ -29,11 +29,7 @@
                      <td><input type="submit" value="Current Term" id="btnCurrentTerm"/></td>
                 </tr></table>
                 </div>
-
-
-
-
-        <div id="chart_loading" style="margin-left:40%; display: none;"><img src="{{ MEDIA_URL }}education/icons/highchart_loader.gif" alt="EduTrac"></div>
+        <div id="chart_loading" style="margin-left:40%;"><img src="{{ MEDIA_URL }}education/icons/highchart_loader.gif" alt="EduTrac"></div>
         <div id="container" style="min-width: 400px; height: 400px; padding-bottom: 40px"></div>
 
         <div id="SchoolAlerts" style="min-width: 400px; padding-bottom: 10px"></div>
@@ -86,27 +82,12 @@ function chartToolTips(indicator,percent,time_range){
     output = "Error Reading tooltips";
     output = '<b>'+indicator+'</b><br />';
     output +='<div style="color:red;background-color:red">'+ percent+ '</div> % <br />';
-    $.each(highChart_tooltips,function(index,data){
-        if(data.name == indicator){
-            count = 0;
-            $.each(data.tooltip,function(ind,val){
-                if(val.percent == percent)
-                {
-                    if(count == 0){output +=' Present : '+ val.present+ ' Enrolled / deployed : '+ val.enrollment;}
-                    count++;
-                }
 
-            });
-        } });
     output = '<b>'+indicator+'</b><br />';
     output +='<div style="color:red;background-color:red">'+ percent+ '</div> % <br />';
     output += ''+time_range;
      return output;
     }
-
-
-
-
 
 function displaySchoolPercent(school_percent){
 
@@ -121,7 +102,6 @@ function displaySchoolPercent(school_percent){
             }
 
   function displayTabularData(data){
-
 
                 $('#tableData').html('<p></p>');
                 result = '<table class="tabulated-data classy">'

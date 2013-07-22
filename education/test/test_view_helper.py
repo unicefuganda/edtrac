@@ -75,6 +75,10 @@ class TestViewHelper(TestCase):
                                                                "How many girls are enrolled in P3 this term?",
                                                                Poll.TYPE_NUMERIC, self.admin_user,
                                                                [self.emis_reporter1])
+        self.head_teacher_monitoring_poll = create_poll_with_reporters("edtrac_head_teachers_attendance",
+                                                                       "Has the head teacher been at school for at least 3 days? Answer YES or NO",
+                                                                       Poll.TYPE_TEXT, self.admin_user,
+                                                                       [self.emis_reporter3])
         self.teachers_weekly_script = Script.objects.create(name='Revised P3 Teachers Weekly Script',
                                                             slug='edtrac_p3_teachers_weekly')
 
@@ -92,6 +96,8 @@ class TestViewHelper(TestCase):
 
         self.head_teachers_termly_script = Script.objects.create(name='P3 Enrollment Headteacher Termly Script',
                                                                  slug='edtrac_p3_enrollment_headteacher_termly')
+        self.head_teacher_weekly_script = Script.objects.create(name='Education monitoring smc weekly script',
+                                                                slug='edtrac_education_monitoring_smc_weekly_script')
         self.head_teachers_termly_script.steps.add(
             ScriptStep.objects.create(script=self.head_teachers_termly_script, poll=self.p3_boys_enroll_poll, order=0,
                                       rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=7200))
@@ -99,11 +105,15 @@ class TestViewHelper(TestCase):
         self.head_teachers_termly_script.steps.add(
             ScriptStep.objects.create(script=self.head_teachers_termly_script, poll=self.p3_girls_enroll_poll, order=1,
                                       rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=7200))
+        self.head_teacher_weekly_script.steps.add(
+            ScriptStep.objects.create(script=self.head_teacher_weekly_script, poll=self.head_teacher_monitoring_poll,
+                                      order=0,
+                                      rule=ScriptStep.WAIT_MOVEON, start_offset=0, giveup_offset=7200)
+        )
 
         settings.SCHOOL_TERM_START = dateutils.increment(datetime.datetime.today(), weeks=-4)
         settings.SCHOOL_TERM_END = dateutils.increment(datetime.datetime.today(), weeks=8)
         self.term_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
-
 
     def test_calculate_percent_should_return_50_when_given_1_and_2(self):
         self.assertEqual(50, compute_absent_values(1, 2))
@@ -137,6 +147,15 @@ class TestViewHelper(TestCase):
     def test_should_get_deployed_head_teachers(self):
         result = get_deployed_head_Teachers(EmisReporter.objects.all(), [self.kampala_district])
         self.assertEqual(1, result)
+
+    def test_get_count_for_yes_no_response(self):
+        schedule_script_now(self.smc_group.name, slug=self.head_teacher_weekly_script.slug)
+        check_progress(self.head_teacher_weekly_script)
+        fake_incoming("yes", self.emis_reporter3)
+
+        yes, no = get_count_for_yes_no_response([self.head_teacher_monitoring_poll], [self.kampala_district], self.term_range)
+        self.assertEqual(1, yes)
+        self.assertEqual(0, no)
 
     def tearDown(self):
         Message.objects.all().delete()
