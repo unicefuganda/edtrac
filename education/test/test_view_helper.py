@@ -153,9 +153,36 @@ class TestViewHelper(TestCase):
         check_progress(self.head_teacher_weekly_script)
         fake_incoming("yes", self.emis_reporter3)
 
-        yes, no = get_count_for_yes_no_response([self.head_teacher_monitoring_poll], [self.kampala_district], self.term_range)
+        yes, no = get_count_for_yes_no_response([self.head_teacher_monitoring_poll], [self.kampala_district],
+                                                self.term_range)
         self.assertEqual(1, yes)
         self.assertEqual(0, no)
+
+    def test_get_aggregated_report_data_single_indicator(self):
+        schedule_script_now(self.head_teacher_group.name, slug=self.head_teachers_termly_script.slug)
+        check_progress(self.head_teachers_termly_script)
+        fake_incoming("10 boys", self.emis_reporter1)
+        check_progress(self.head_teachers_termly_script)
+        fake_incoming("5 girls", self.emis_reporter1)
+        schedule_script_now(self.head_teacher_group.name, slug=self.teachers_weekly_script.slug)
+
+        check_progress(self.teachers_weekly_script)
+        fake_incoming("8 boys", self.emis_reporter1)
+        check_progress(self.teachers_weekly_script)
+        fake_incoming("1 girls", self.emis_reporter1)
+
+        config_list = get_polls_for_keyword('P3Boys')
+        collective_result, time_data_model1, school_percent, tooltip = get_aggregated_report_data_single_indicator([self.kampala_district], [self.term_range], config_list)
+
+        self.assertEqual(20.0, collective_result['P3 Boys'][0].values()[0])
+
+        config_list = get_polls_for_keyword('P3Girls')
+        collective_result, time_data_model1, school_percent, tooltip = get_aggregated_report_data_single_indicator([self.kampala_district], [self.term_range], config_list)
+
+        self.assertEqual(80.0, collective_result['P3 Girls'][0].values()[0])
+
+
+
 
     def tearDown(self):
         Message.objects.all().delete()

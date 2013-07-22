@@ -300,11 +300,6 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
 
 
 def compute_absenteeism_summary(indicator, locations):
-    """
-    :param indicator:
-    :param locations:
-    :return:
-    """
     date_weeks = get_week_date(depth=2)
     term_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
     current_week_date_range = date_weeks[0]
