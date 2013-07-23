@@ -418,7 +418,6 @@ def p3_absent_boys(locations):
     Attendance of P3 Pupils; this gets the absenteeism
     """
     indicator = 'P3Boys'
-    #boysp3, boysp3_past = get_two_weeks_absenteeism(indicator, locations)
     boysp3, boysp3_past = compute_absenteeism_summary(indicator,locations)
 
     try:
@@ -468,7 +467,6 @@ def p6_boys_absent(locations):
 
 def p3_absent_girls(locations):
     indicator ='P3Girls'
-    #girlsp3 ,girlsp3_past =get_two_weeks_absenteeism(indicator,locations)
     girlsp3 ,girlsp3_past =  compute_absenteeism_summary(indicator,locations)
 
     try:
@@ -494,7 +492,7 @@ def p3_absent_girls(locations):
 def p6_girls_absent(locations):
 
     indicator = 'P6Girls'
-    #girlsp6,girlsp6_past = get_two_weeks_absenteeism(indicator,locations)
+    girlsp6,girlsp6_past = get_two_weeks_absenteeism(indicator,locations)
     girlsp6,girlsp6_past =  compute_absenteeism_summary(indicator,locations)
 
     try:
@@ -520,7 +518,6 @@ def p6_girls_absent(locations):
 
 def f_teachers_absent(locations):
     indicator ='FemaleTeachers'
-    #female_teachers ,female_teachers_past = get_two_weeks_absenteeism(indicator,locations)
     female_teachers ,female_teachers_past =  compute_absenteeism_summary(indicator,locations)
     try:
         female_teachers_diff = female_teachers - female_teachers_past
