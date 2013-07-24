@@ -254,7 +254,6 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
         if config_list[0].get('collective_dict_key') != 'Head Teachers':
             enrollment_polls = Poll.objects.filter(name__in=config_list[0].get('enrollment_poll'))
             attendance_polls = Poll.objects.filter(name__in=config_list[0].get('attendance_poll'))
-            # get enrollment figures and list of schools that responded 
             enroll_data, responsive_schools = get_numeric_enrollment_data(enrollment_polls,[location],term_range)
             enroll_indicator_total = sum(enroll_data)
             enrollment_by_location.append(enroll_indicator_total)
