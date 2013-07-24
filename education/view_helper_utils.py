@@ -13,6 +13,7 @@ def get_aggregated_report_data(locations, time_range, config_list):
     head_teacher_set = []
     tmp_data = []
     school_report = []
+    location_with_no_zero_result = []
     schools_by_location = []
     high_chart_tooltip = []
     attendance_total = [] # used for logging present values extracted from incoming messages (don't delete)
@@ -58,6 +59,7 @@ def get_aggregated_report_data(locations, time_range, config_list):
     for location in locations:
         absenteeism_percent = 0
         config_set_result = {}
+        has_enrollment = False
         # get school in current location
         schools_in_location = schoolSource.filter(location__in=[location])
 
@@ -66,8 +68,13 @@ def get_aggregated_report_data(locations, time_range, config_list):
             if config.get('collective_dict_key') in indicator_list:
                 enrollment_polls = Poll.objects.filter(name__in=[config.get('enrollment_poll')[0]])
                 attendance_polls = Poll.objects.filter(name__in=[config.get('attendance_poll')[0]])
-                enroll_indicator_total = sum(get_numeric_data(enrollment_polls, [location], term_range))
+                # get both enroll list and schools that responded
+                enroll_data, responsive_schools = get_numeric_enrollment_data(enrollment_polls,[location],term_range)
+                if not is_empty(enroll_data):
+                    has_enrollment = True
+                enroll_indicator_total = sum(enroll_data)
                 enrollment_by_indicator[config.get('collective_dict_key')] += enroll_indicator_total
+
                 week_count = 0
                 weekly_results = []
                 weekly_results_log = []
@@ -76,11 +83,10 @@ def get_aggregated_report_data(locations, time_range, config_list):
                 for week in time_range:
                     week_count += 1
                     # get attendance total for week by indicator from config file
-                    attend_week_total = sum(get_numeric_data(attendance_polls, [location], week))
+                    attend_week_total = sum(get_numeric_data_by_school(attendance_polls, responsive_schools, week))
                     attendance_total.append(attend_week_total)
                     # get schools that Responded
-                    schools_that_responded = len(
-                        get_numeric_data_by_school(attendance_polls, schools_in_location, week))
+                    schools_that_responded = len(get_numeric_data_by_school(attendance_polls, schools_in_location, week))
                     week_percent = compute_absent_values(attend_week_total, enroll_indicator_total)
                     absenteeism_percent += week_percent
                     weekly_school_count.append(schools_that_responded)
@@ -122,10 +128,8 @@ def get_aggregated_report_data(locations, time_range, config_list):
                         if k == config.get('collective_dict_key'):
                             item[k] = [sum(a) for a in zip(*[v, weekly_school_count])]
 
-                config_set_result[config.get('collective_dict_key')] = round(absenteeism_percent / len(time_range),
-                                                                             2) # adds average percentage to dict_key
-                tmp_data.append(
-                    {location.name: {'Indicator': config.get('collective_dict_key'), 'Schools': weekly_school_count}})
+                # adds average percentage to dict_key
+                config_set_result[config.get('collective_dict_key')] = round(absenteeism_percent / len(time_range),2)
 
             else: # used to compute head teachers absenteeism
                 deployedHeadTeachers = get_deployed_head_Teachers(headteachersSource, [location])
@@ -174,7 +178,10 @@ def get_aggregated_report_data(locations, time_range, config_list):
                         if k == config.get('collective_dict_key'):
                             item[k] = [sum(a) for a in zip(*[v, weekly_school_count])]
 
-        collective_result[location.name] = config_set_result
+        if has_enrollment == True:
+            location_with_no_zero_result.append(location)
+            collective_result[location.name] = config_set_result
+
     time_data_model1 = []
     school_data = {}
     tip_for_time_data1 = []
@@ -185,11 +192,9 @@ def get_aggregated_report_data(locations, time_range, config_list):
         for k, v in item.items():
             output = []
             for val in v:
-                avg_percent = round(val / len(locations), 2)
+                avg_percent = round(val / len(location_with_no_zero_result), 2)
                 output.append(avg_percent)
             time_data_model1.append({'name': k, 'data': output})
-
-
 
     #absenteeism computation model 2 : problem : hides some facts a long each location and computes at global count across all locations
     # get sum of present values for all locations, sum of  enrollment values for all locations, all accross each indicator
@@ -219,10 +224,12 @@ def get_aggregated_report_data(locations, time_range, config_list):
 def get_aggregated_report_data_single_indicator(locations, time_range, config_list):
     collective_result = {}
     computation_logger = [] # used for logging values used in computation (don't delete)
+    location_with_no_zero_result = []
     absenteeism_percent_by_week = {}
     attendance_total_by_week = {}
     avg_percent_by_location = []
     avg_school_responses = []
+    total_responsive_schools = []
     enrollment_by_location = []
 
     # Get term range from settings file (config file)
@@ -247,13 +254,16 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
         if config_list[0].get('collective_dict_key') != 'Head Teachers':
             enrollment_polls = Poll.objects.filter(name__in=config_list[0].get('enrollment_poll'))
             attendance_polls = Poll.objects.filter(name__in=config_list[0].get('attendance_poll'))
-            enroll_indicator_total = sum(get_numeric_data(enrollment_polls, [location], term_range))
+            # get enrollment figures and list of schools that responded 
+            enroll_data, responsive_schools = get_numeric_enrollment_data(enrollment_polls,[location],term_range)
+            enroll_indicator_total = sum(enroll_data)
             enrollment_by_location.append(enroll_indicator_total)
             for week in time_range:
                 # get attendance total for week by indicator from config file
-                attend_week_total = sum(get_numeric_data(attendance_polls, [location], week))
+                attend_week_total = sum(get_numeric_data_by_school(attendance_polls,responsive_schools,week))
                 weekly_present_result.append(attend_week_total)
                 # get schools that Responded
+                # suspect (can be replaced by count of response values on weekly attendance above)
                 schools_that_responded = len(get_numeric_data_by_school(attendance_polls, schools_in_location, week))
                 week_percent = compute_absent_values(attend_week_total, enroll_indicator_total)
                 weekly_percent_results.append(week_percent)
@@ -261,11 +271,14 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
                 weekly_school_responses.append(schools_that_responded)
                 attendance_total_by_week[week_position] += attend_week_total
                 week_position += 1
-            avg_percent_by_location.append({location.name: sum(weekly_percent_results) / len(time_range)})
+            if sum(weekly_percent_results) != 0:
+                location_with_no_zero_result.append(location)
+                avg_percent_by_location.append({location.name: round(sum(weekly_percent_results) / len(time_range),2)})
+
             avg_school_responses.append(sum(weekly_school_responses) / len(time_range))
             computation_logger.append({location: {'present': weekly_present_result, 'percent': weekly_percent_results,
                                                   'enrollment': enroll_indicator_total}})
-        else: # computer head teacher absenteeism
+        else: # compute head teacher absenteeism
             deployedHeadTeachers = get_deployed_head_Teachers(headteachersSource, [location])
             attendance_polls = Poll.objects.filter(name__in=['edtrac_head_teachers_attendance'])
 
@@ -278,7 +291,11 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
                 weekly_school_responses.append(schools_that_responded)
                 absenteeism_percent_by_week[week_position] += week_percent
                 week_position += 1
-            avg_percent_by_location.append({location.name: sum(weekly_percent_results) / len(time_range)})
+            if sum(weekly_percent_results) != 0: # eliminate districts that have nothing to present
+                location_with_no_zero_result.append(location)
+                avg_percent_by_location.append({location.name: round(sum(weekly_percent_results) / len(time_range),2)})
+
+
             avg_school_responses.append(sum(weekly_school_responses) / len(time_range))
             computation_logger.append({location: {'present': weekly_present_result, 'percent': weekly_percent_results,
                                                   'enrollment': deployedHeadTeachers}})
@@ -291,13 +308,12 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
     time_data_model1 = []
     output = []
     for k, v in absenteeism_percent_by_week.items():
-        output.append(round(v / len(locations), 2))
+        output.append(round(v / len(location_with_no_zero_result), 2))
     time_data_model1.append({'name': config_list[0].get('collective_dict_key'), 'data': output})
 
     tooltip = {}
 
     return collective_result, time_data_model1, school_percent, tooltip
-
 
 def compute_absenteeism_summary(indicator, locations):
     date_weeks = get_week_date(depth=2)
@@ -383,16 +399,36 @@ def get_deployed_head_Teachers(dataSource, locations=None):
     return result
 
 
-def get_numeric_data(polls, locations=None, time_range=None):
+def get_attendance_data(polls, locations=None, time_range=None):
     results = []
     if time_range:
         if locations:
-            responses = Response.objects.filter(date__range=time_range, poll__in=polls, has_errors=False,
-                                                contact__reporting_location__in=locations, message__direction='I')
+            responses = Response.objects.filter(date__range=time_range, poll__in=polls, has_errors=False,contact__reporting_location__in=locations, message__direction='I')
             for response in responses:
                 results.append(get_digit_value_from_message_text(response.message.text))
     return results
 
+def get_numeric_data(polls, locations=None, time_range=None):
+    results = []
+    if time_range:
+        if locations:
+            responses = Response.objects.filter(date__range=time_range, poll__in=polls, has_errors=False,contact__reporting_location__in=locations, message__direction='I')
+            for response in responses:
+                results.append(get_digit_value_from_message_text(response.message.text))
+    return results
+
+def get_numeric_enrollment_data(polls, locations=None, time_range=None):
+    results = []
+    responsive_schools = [] # get schools that have enrollment data (Inner joins return matching data)
+    if time_range:
+        if locations:
+            responses = Response.objects.filter(date__range=time_range, poll__in=polls, has_errors=False,contact__reporting_location__in=locations, message__direction='I')
+            for response in responses:
+                if get_digit_value_from_message_text(response.message.text) != 0:
+                    if response.contact.emisreporter.schools.all():
+                        results.append(get_digit_value_from_message_text(response.message.text))
+                        responsive_schools.append(response.contact.emisreporter.schools.all()[0])
+    return results, responsive_schools
 
 def get_numeric_data_by_school(polls, schools=None, time_range=None):
     results = []

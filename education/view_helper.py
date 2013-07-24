@@ -205,9 +205,8 @@ def dash_report_api(request):
     weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in time_range]
     time_range.reverse()
     profile = request.user.get_profile()
-    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of(
-            'UNICEF Officials'):
-        locations = Location.objects.filter(type__in=['district', 'sub_county'])
+    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
+        locations = Location.objects.filter(type__in=['district'])
     else:
         locations = [profile.location]
 
@@ -236,7 +235,7 @@ def dash_report_term(request):
     profile = request.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of(
             'UNICEF Officials'):
-        locations = Location.objects.filter(type__in=['district', 'sub_county'])
+        locations = Location.objects.filter(type__in=['district'])
     else:
         locations = [profile.location]
 
@@ -263,7 +262,7 @@ def dash_report_params(request):
     profile = request.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of(
             'UNICEF Officials'):
-        locations = Location.objects.filter(type__in=['district', 'sub_county'])
+        locations = Location.objects.filter(type__in=['district'])
     else:
         locations = [profile.location]
 
