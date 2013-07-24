@@ -1,16 +1,16 @@
 import json
 
 from django import forms
+from django.forms import ErrorList
 from django.http import HttpResponse
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.conf import settings;
+from django.conf import settings
 from django.db.models import Count
 from django.db.models import Q
 from django.core.paginator import *
 
-from rapidsms.messages.incoming import IncomingMessage
 from rapidsms.messages.outgoing import OutgoingMessage
 from rapidsms.models import Connection
 from djtables import Table, Column
@@ -56,7 +56,7 @@ def receive(request):
     # missing fields, fail
     if not form.is_valid():
         if form.errors is not None:
-            log.error("[receive-msg] Invalid form request - {}".format(str(form.errors)))
+            log.error("[receive-msg] Invalid form request - {0}".format(str(form.errors)))
         return HttpResponse(str(form.errors), status=400)
 
 
@@ -64,11 +64,11 @@ def receive(request):
     # otherwise, create the message
     data = form.cleaned_data
 
-    log.debug("[receive-msg] [{}] received".format(data.get('sender', 'no-sender')))
+    log.debug("[receive-msg] [{0}] received".format(data.get('sender', 'no-sender')))
 
     if getattr(settings,'CELERY_MESSAGE_PROCESSING',None):
         handle_incoming.delay(get_router(),data['backend'], data.get('sender','no-sender'), data.get('message', 'no-message'))
-        log.debug("[receive-msg] [{}] Message sent to celery.".format(str(data.get('sender', 'no-sender'))))
+        log.debug("[receive-msg] [{0}] Message sent to celery.".format(str(data.get('sender', 'no-sender'))))
         return HttpResponse("celery handler")
     else:
         message = get_router().handle_incoming(data['backend'], data['sender'], data['message'])
@@ -77,7 +77,7 @@ def receive(request):
         response['responses'] = [m.as_json() for m in message.responses.all()]
         response['status'] = "Message handled."
 
-        log.debug("[receive-msg] [{}] Message handled".format(str(data.get('sender', 'no-sender'))))
+        log.debug("[receive-msg] [{0}] Message handled".format(str(data.get('sender', 'no-sender'))))
         # do we default to having silent responses?  200 means success in this case
         if getattr(settings, "ROUTER_SILENT", False) and (not 'echo' in data or not data.get('echo', 'no-echo')):
             return HttpResponse()
