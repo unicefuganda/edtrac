@@ -23,8 +23,24 @@
             });
         </script>
     </div>
-    <button id="water_source">Water Source</button>
-    <button id="sanitation">Sanitation</button>
+    <div id="general" style="background-color:#e0ccef;padding:10px;">
+        <div class="stats">
+            <h3>District Level water source</h3>
+        </div>
+        <div style="padding: 10px;margin: 5px;">
+            <fieldset>
+                <form action="" method="POST">
+                    {% csrf_token %}
+                    {{ district_form.as_table }}
+                    <input type="submit" value="get report"/>
+                </form>
+            </fieldset>
+        </div>
+    </div>
+    <div style="padding: 10px">
+        <button id="water_source">Water Source</button>
+        <button id="sanitation">Sanitation</button>
+    </div>
     {% for data_dict in data_list %}
         <div id="general{{ forloop.counter }}" style="background-color:#e0ccef;padding:10px;">
             <div id="water_container{{ forloop.counter }}" style="margin-bottom: 20px;">
@@ -35,55 +51,55 @@
                          style="min-width: 50px; height: 400px; margin: 0 auto">
 
                     </div>
-            </div>
-            <div id="monthly_water_data{{ forloop.counter }}">
-            </div>
-           <div class='report-stickie'>
+                    </div>
+                    <div id="monthly_water_data{{ forloop.counter }}">
+                    </div>
+                    <div class='report-stickie'>
                <span style='margin-top:10px;' class='alert-message'>
                     Report based on {{ data_dict.school_percent|floatformat }}% of schools that made a report
                </span>
-           </div>
-            <script type="text/javascript">
-                $(document).ready(function () {
-                    pie("{{ data_dict.response|reorganize_data|join:"," }}",
-                            "{{ data_dict.label|capfirst }} across {{ location }}",
-                            "--",
-                            "water_sources{{ forloop.counter }}",
-                            " responded",
-                            true
-                    );
-                });
-            </script>
+                    </div>
+                    <script type="text/javascript">
+                        $(document).ready(function () {
+                            pie("{{ data_dict.response|reorganize_data|join:"," }}",
+                                    "{{ data_dict.label|capfirst }} across {{ location }}",
+                                    "--",
+                                    "water_sources{{ forloop.counter }}",
+                                    " responded",
+                                    true
+                            );
+                        });
+                    </script>
 
-            <script type="text/javascript">
-                $(document).ready(function () {
-                    load_column("Schools with a {{ data_dict.label }} within 500M",
-                            "monthly_water_data{{ forloop.counter }}",
-                            "Percentage",
-                            "Months",
-                            "{{ data_dict.categories|join:";" }}",
-                            "Yes Percentages",
-                            "{{ data_dict.data }}"
-                    );
-                    if ('{{ forloop.counter }}' == '3') {
-                        $('#general3').hide();
-                    }
-                });
-            </script>
+                    <script type="text/javascript">
+                        $(document).ready(function () {
+                            load_column("Schools with a {{ data_dict.label }} within 500M",
+                                    "monthly_water_data{{ forloop.counter }}",
+                                    "Percentage",
+                                    "Months",
+                                    "{{ data_dict.categories|join:";" }}",
+                                    "Yes Percentages",
+                                    "{{ data_dict.data }}"
+                            );
+                            if ('{{ forloop.counter }}' == '3') {
+                                $('#general3').hide();
+                            }
+                        });
+                    </script>
 
-            {% else %}
-            </div>
-            <p style="text-align: center;font-size: 15px">
-                No Reports yet this term.
-            </p>
-            <script type="text/javascript">
-                $(document).ready(function () {
-                    if ('{{ forloop.counter }}' == '3') {
-                        $('#general3').hide();
-                    }
-                });
-            </script>
-            {% endif %}
+                {% else %}
+                    </div>
+                    <p style="text-align: center;font-size: 15px">
+                        No Reports yet this term.
+                    </p>
+                    <script type="text/javascript">
+                        $(document).ready(function () {
+                            if ('{{ forloop.counter }}' == '3') {
+                                $('#general3').hide();
+                            }
+                        });
+                    </script>
+                {% endif %}
 
         </div>
     {% endfor %}

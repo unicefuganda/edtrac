@@ -11,6 +11,7 @@ from django.template import RequestContext
 from education.water_polls_view_helper import get_location_for_water_view, get_all_responses
 from poll.models import Poll
 from education.models import EmisReporter, ScriptScheduleTime
+from rapidsms.contrib.locations.models import Location
 from script.models import ScriptProgress, Script
 from unregister.models import Blacklist
 
@@ -115,7 +116,9 @@ def detail_water_view(request,district=None):
     water_and_soap_poll = Poll.objects.get(name='water_and_soap')
     polls=[water_poll,functional_water_poll,water_and_soap_poll]
     time_range = [getattr(settings,'SCHOOL_TERM_START'),getattr(settings,'SCHOOL_TERM_END')]
-    water_source_form =WaterForm()
+    water_source_form = WaterForm()
+    district_water_report_form = DistrictWaterForm()
+
     if request.method == 'POST':
         water_source_form=WaterForm(data=request.POST)
         if water_source_form.is_valid():
@@ -127,7 +130,7 @@ def detail_water_view(request,district=None):
     time_period = "Data shown for time: %s to %s" %(time_range[0].strftime("%d %B %Y"),time_range[1].strftime("%d %B %Y"))
     return render_to_response('education/admin/detail_water.html',
                               {'data_list':data_list,'form':water_source_form,
-                               'location':user_location,'time_period':time_period},
+                               'location':user_location,'time_period':time_period, 'district_form':district_water_report_form},
                               RequestContext(request))
 
 class WaterForm(forms.Form):
@@ -139,3 +142,7 @@ class WaterForm(forms.Form):
         if data.get('from_date') > data.get('to_date'):
             raise forms.ValidationError("To date less than from date")
         return data
+
+class DistrictWaterForm(forms.Form):
+    district_list = list(Location.objects.filter(type='district'))
+    district_choices = forms.ChoiceField(choices=[(district.id, district.name) for district in district_list])
