@@ -7,12 +7,13 @@ from .reports import *
 from education.absenteeism_view_helper import *
 
 
-def get_aggregated_report_data(locations, time_range, config_list):
+def get_aggregated_report_data(locations, time_range, config_list,report_mode = None):
     collective_result = {}
     chart_data = []
     head_teacher_set = []
     tmp_data = []
     school_report = []
+    computation_logger = []
     location_with_no_zero_result = []
     schools_by_location = []
     high_chart_tooltip = []
@@ -57,7 +58,6 @@ def get_aggregated_report_data(locations, time_range, config_list):
             v.append({'week': _date, 'present': 0, 'enrollment': 0, 'percent': 0})
 
     for location in locations:
-        absenteeism_percent = 0
         config_set_result = {}
         has_enrollment = False
         # get school in current location
@@ -75,6 +75,7 @@ def get_aggregated_report_data(locations, time_range, config_list):
                 enroll_indicator_total = sum(enroll_data)
                 enrollment_by_indicator[config.get('collective_dict_key')] += enroll_indicator_total
 
+                absenteeism_percent = 0
                 week_count = 0
                 weekly_results = []
                 weekly_results_log = []
@@ -116,7 +117,7 @@ def get_aggregated_report_data(locations, time_range, config_list):
                                             config.get('collective_dict_key')]
 
                 percent_by_indicator[config.get('collective_dict_key')].append(weekly_results_log)
-                # update high chart data collection with new values through interation
+                # update high chart data collection with new values
                 for item in chart_data:
                     for k, v in item.items():
                         if k == config.get('collective_dict_key'):
@@ -133,11 +134,12 @@ def get_aggregated_report_data(locations, time_range, config_list):
 
             else: # used to compute head teachers absenteeism
                 deployedHeadTeachers = get_deployed_head_Teachers(headteachersSource, [location])
-                enrollment_by_indicator[config.get('collective_dict_key')] = deployedHeadTeachers
+                enrollment_by_indicator[config.get('collective_dict_key')] += deployedHeadTeachers
                 attendance_polls = Poll.objects.filter(name__in=['edtrac_head_teachers_attendance'])
                 weekly_present = []
                 weekly_percent = []
                 weekly_school_count = []
+                week_logger = []
                 for week in time_range:
                     present, absent = get_count_for_yes_no_response(attendance_polls, [location], week)
                     schools_that_responded = len(
@@ -146,6 +148,7 @@ def get_aggregated_report_data(locations, time_range, config_list):
                     weekly_present.append(present)
                     weekly_percent.append(week_percent)
                     weekly_school_count.append(schools_that_responded)
+                    week_logger.append({'present' :present,'deployed' : deployedHeadTeachers, 'percent' : week_percent})
                     # update attendance by indicator collection with values per week
                     for k, v in attendance_by_indicator.items():
                         if k == config.get('collective_dict_key'):
@@ -165,6 +168,7 @@ def get_aggregated_report_data(locations, time_range, config_list):
                                             config.get('collective_dict_key')]
 
                 percent_absent = compute_absent_values(sum(weekly_present) / len(time_range), deployedHeadTeachers)
+                computation_logger.append({location : week_logger})
                 head_teacher_set.append(
                     {'Location': location, 'present': weekly_present, 'deployed': deployedHeadTeachers,
                      'percent': percent_absent})
@@ -218,10 +222,22 @@ def get_aggregated_report_data(locations, time_range, config_list):
                 output.append(val)
                 school_data[k] = round(((sum(output) / len(time_range)) / schools_total) * 100, 2)
 
-    return collective_result, time_data_model1, school_data, tip_for_time_data2
+    tooltip = []
+    chart_results_model = {}
 
 
-def get_aggregated_report_data_single_indicator(locations, time_range, config_list):
+    if report_mode == None:
+        chart_results_model = time_data_model1
+        report_mode = 'average'
+    elif report_mode == 'average':
+        chart_results_model = time_data_model1
+    elif report_mode == 'percent':
+        chart_results_model = time_data_model2
+
+    return collective_result, chart_results_model, school_data, tooltip,report_mode
+
+
+def get_aggregated_report_data_single_indicator(locations, time_range, config_list,report_mode = None):
     collective_result = {}
     computation_logger = [] # used for logging values used in computation (don't delete)
     location_with_no_zero_result = []
@@ -231,6 +247,8 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
     avg_school_responses = []
     total_responsive_schools = []
     enrollment_by_location = []
+    aggregated_enrollment = []
+    aggregated_attendance = []
 
     # Get term range from settings file (config file)
     term_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
@@ -271,6 +289,11 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
                 attendance_total_by_week[week_position] += attend_week_total
                 week_position += 1
             if sum(weekly_percent_results) != 0:
+                aggregated_enrollment.append(enroll_indicator_total)
+                if is_empty(aggregated_attendance):
+                    aggregated_attendance = weekly_present_result
+                else:
+                    aggregated_attendance = [sum(z) for z in zip(*[aggregated_attendance,weekly_present_result])]
                 location_with_no_zero_result.append(location)
                 avg_percent_by_location.append({location.name: round(sum(weekly_percent_results) / len(time_range),2)})
 
@@ -293,8 +316,6 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
             if sum(weekly_percent_results) != 0: # eliminate districts that have nothing to present
                 location_with_no_zero_result.append(location)
                 avg_percent_by_location.append({location.name: round(sum(weekly_percent_results) / len(time_range),2)})
-
-
             avg_school_responses.append(sum(weekly_school_responses) / len(time_range))
             computation_logger.append({location: {'present': weekly_present_result, 'percent': weekly_percent_results,
                                                   'enrollment': deployedHeadTeachers}})
@@ -303,16 +324,30 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
 
     # percentage of schools that responded : add up weekly response average by selected locations and divide by total number of schools
     school_percent = round((sum(avg_school_responses) / len(schoolSource)) * 100, 2)
-    #Model 1 : Average percentage computation. get total of averages by location by indication and divide by total locations
+    #Model 1 : Average percentage computation. get total of averages by location by indicator and divide by total locations
     time_data_model1 = []
     output = []
     for k, v in absenteeism_percent_by_week.items():
         output.append(round(v / len(location_with_no_zero_result), 2))
     time_data_model1.append({'name': config_list[0].get('collective_dict_key'), 'data': output})
 
-    tooltip = {}
+    # model 2 : get percentage for aggregated results i.e. total enrollment, total attendance by week
+    time_data_model2 = []
+    output =   [compute_absent_values(a,sum(aggregated_enrollment)) for a in aggregated_attendance]
+    time_data_model2.append({'name' :config_list[0].get('collective_dict_key'), 'data' : output })
 
-    return collective_result, time_data_model1, school_percent, tooltip
+
+    tooltip = {}
+    chart_results_model = {}
+    if report_mode == None:
+        chart_results_model = time_data_model1
+        report_mode = 'average'
+    elif report_mode == 'average':
+        chart_results_model = time_data_model1
+    elif report_mode == 'percent':
+        chart_results_model = time_data_model2
+
+    return collective_result, chart_results_model, school_percent,tooltip,report_mode
 
 def compute_absenteeism_summary(indicator, locations):
     date_weeks = get_week_date(depth=2)

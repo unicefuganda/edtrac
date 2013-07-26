@@ -293,9 +293,9 @@ urlpatterns = patterns('',
     url(r"^edtrac/export-sub-county-reporters/$", export_sub_county_reporters, name="export-sub-county-reporters"),
     url(r"^edtrac/schedule_water_polls/$", schedule_water_polls, name="schedule-water-polls"),
     url(r"^edtrac/api/dashReport/$", dash_report_api, name="json-report-data-request"),
-    #url(r'^edtrac/api/dashReports/params/(?P<start_date>[0-9\-]+)/(?P<end_date>[0-9\-]+)/(?P<indicator>w+)$',dash_report_params, name="dash_report_params"),
     url(r'^edtrac/api/dashReport/params/$',dash_report_params, name="dash_report_params"),
     url(r"^edtrac/api/dashReport/term/$", dash_report_term, name="json-report-term-data-request"),
+
     
 # the urls for violence views that I am testing 
 #    url(r'^edtrac/violence-cases/$', violence_cases_view, name="violence-cases-view"),
