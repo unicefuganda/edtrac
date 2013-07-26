@@ -4,7 +4,9 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django import forms
 from django.contrib.auth.models import Group
+from django.core.urlresolvers import reverse
 from django.forms import extras
+from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
@@ -118,20 +120,27 @@ def detail_water_view(request,district=None):
     time_range = [getattr(settings,'SCHOOL_TERM_START'),getattr(settings,'SCHOOL_TERM_END')]
     water_source_form = WaterForm()
     district_water_report_form = DistrictWaterForm()
-
     if request.method == 'POST':
         water_source_form=WaterForm(data=request.POST)
         if water_source_form.is_valid():
             to_date = water_source_form.cleaned_data['to_date']
             from_date = water_source_form.cleaned_data['from_date']
             time_range = [from_date,to_date]
-
     data_list = [_get_poll_data_dict(location, poll, time_range) for poll in polls]
     time_period = "Data shown for time: %s to %s" %(time_range[0].strftime("%d %B %Y"),time_range[1].strftime("%d %B %Y"))
     return render_to_response('education/admin/detail_water.html',
                               {'data_list':data_list,'form':water_source_form,
                                'location':user_location,'time_period':time_period, 'district_form':district_water_report_form},
                               RequestContext(request))
+
+@login_required()
+def district_water_view(request):
+    if request.method == 'POST':
+        district_water_report_form = DistrictWaterForm(data=request.POST)
+        if district_water_report_form.is_valid():
+            district_id = district_water_report_form.cleaned_data['district_choices']
+            return HttpResponseRedirect(reverse('detail-water-view', kwargs={'district':district_id}))
+        return HttpResponseRedirect(reverse('detail-water-view'))
 
 class WaterForm(forms.Form):
     from_date = forms.DateTimeField()

@@ -5,7 +5,7 @@ from .models import EmisReporter, School
 from .reports import messages, othermessages, reporters, all_schools
 from .sorters import LatestSubmissionSorter
 from .views import *
-from water_polls_views import schedule_water_polls, detail_water_view
+from water_polls_views import schedule_water_polls, detail_water_view, district_water_view
 from violence_view import detailed_violence_view
 from contact.forms import\
     FreeSearchTextForm, DistictFilterMessageForm, HandledByForm, ReplyTextForm
@@ -287,6 +287,7 @@ urlpatterns = patterns('',
     url(r'^edtrac/detail-attd-school/(?P<location>\w+)/$', detail_attd_school, name="detail-attendance-school"),
     url(r'^edtrac/detail-water-source/$', detail_water_view, name="detail-water-view"),
     url(r'^edtrac/detail-water-source/(?P<district>\d+)/$', detail_water_view, name="detail-water-view"),
+    url(r'edtrac/district-water-source/', district_water_view, name="district-water-view"),
     url(r"^edtrac/export/$", edtrac_export_poll_responses),
     url(r"^edtrac/sub-county-reporters/$", edit_sub_county_reporters),
     url(r"^edtrac/export-sub-county-reporters/$", export_sub_county_reporters, name="export-sub-county-reporters"),

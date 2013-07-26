@@ -4,6 +4,7 @@ from unittest import TestCase
 import dateutils
 from django.conf import settings
 from django.contrib.auth.models import User, Group
+from django.test import Client
 from education.models import EmisReporter, School
 from education.test.utils import create_group, create_location_type, create_location, create_school, create_emis_reporters, create_user_with_group, create_poll_with_reporters
 from education.water_polls_view_helper import get_all_responses
@@ -135,6 +136,13 @@ class TestWaterPollView(TestCase):
         location_result,monthly_result,percent = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
         self.assertTrue((datetime.today().strftime("%B"),{'yes':50,'no':50}) in monthly_result)
 
+
+    def test_should_redirect_to_detail_view_when_form_is_valid(self):
+        client = Client()
+        client.login(username=self.admin_user.username,password='password')
+        response = client.post('/edtrac/district-water-source/',{'district_choices':self.kampala_district.name})
+        print response
+        self.assertEqual(response.status_code,302)
 
     def tearDown(self):
         Poll.objects.all().delete()

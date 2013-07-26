@@ -29,10 +29,10 @@
         </div>
         <div style="padding: 10px;margin: 5px;">
             <fieldset>
-                <form action="" method="POST">
+                <form action="{% url district-water-view %}" method="POST">
                     {% csrf_token %}
                     {{ district_form.as_table }}
-                    <input type="submit" value="get report"/>
+                    <input type="submit" value="Get Report"/>
                 </form>
             </fieldset>
         </div>
