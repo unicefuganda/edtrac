@@ -119,7 +119,7 @@ def detail_water_view(request,district=None):
     polls=[water_poll,functional_water_poll,water_and_soap_poll]
     time_range = [getattr(settings,'SCHOOL_TERM_START'),getattr(settings,'SCHOOL_TERM_END')]
     water_source_form = WaterForm()
-    district_water_report_form = DistrictWaterForm()
+    district_water_form = DistrictWaterForm()
     if request.method == 'POST':
         water_source_form=WaterForm(data=request.POST)
         if water_source_form.is_valid():
@@ -130,16 +130,15 @@ def detail_water_view(request,district=None):
     time_period = "Data shown for time: %s to %s" %(time_range[0].strftime("%d %B %Y"),time_range[1].strftime("%d %B %Y"))
     return render_to_response('education/admin/detail_water.html',
                               {'data_list':data_list,'form':water_source_form,
-                               'location':user_location,'time_period':time_period, 'district_form':district_water_report_form},
+                               'location':user_location,'time_period':time_period, 'district_form':district_water_form},
                               RequestContext(request))
 
 @login_required()
 def district_water_view(request):
     if request.method == 'POST':
-        district_water_report_form = DistrictWaterForm(data=request.POST)
-        if district_water_report_form.is_valid():
-            district_id = district_water_report_form.cleaned_data['district_choices']
-            return HttpResponseRedirect(reverse('detail-water-view', kwargs={'district':district_id}))
+        district = Location.objects.filter(id=request.POST['district_choices'], type='district')
+        if district:
+            return HttpResponseRedirect(reverse('detail-water-view', kwargs={'district':district[0].pk}))
         return HttpResponseRedirect(reverse('detail-water-view'))
 
 class WaterForm(forms.Form):

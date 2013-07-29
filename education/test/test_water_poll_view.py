@@ -8,7 +8,7 @@ from django.test import Client
 from education.models import EmisReporter, School
 from education.test.utils import create_group, create_location_type, create_location, create_school, create_emis_reporters, create_user_with_group, create_poll_with_reporters
 from education.water_polls_view_helper import get_all_responses
-from education.water_polls_views import get_categories_and_data
+from education.water_polls_views import get_categories_and_data, DistrictWaterForm
 from poll.models import Poll
 from rapidsms.contrib.locations.models import Location, LocationType
 from rapidsms_httprouter.router import get_router
@@ -103,7 +103,7 @@ class TestWaterPollView(TestCase):
         location_result , monthly_result,percent = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
         self.assertTrue(('yes', 66) in location_result)
 
-    def should_test_responses_for_current_term_only(self):
+    def test_should_responses_for_current_term_only(self):
         settings.SCHOOL_TERM_START = dateutils.increment(datetime.now(),weeks=-16)
         settings.SCHOOL_TERM_END = dateutils.increment(datetime.now(),weeks=-4)
         term_range = [settings.SCHOOL_TERM_START,settings.SCHOOL_TERM_END]
@@ -136,12 +136,10 @@ class TestWaterPollView(TestCase):
         location_result,monthly_result,percent = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
         self.assertTrue((datetime.today().strftime("%B"),{'yes':50,'no':50}) in monthly_result)
 
-
     def test_should_redirect_to_detail_view_when_form_is_valid(self):
         client = Client()
         client.login(username=self.admin_user.username,password='password')
-        response = client.post('/edtrac/district-water-source/',{'district_choices':self.kampala_district.name})
-        print response
+        response = client.post('/edtrac/district-water-source/', {'district_choices':self.kampala_district.id})
         self.assertEqual(response.status_code,302)
 
     def tearDown(self):
