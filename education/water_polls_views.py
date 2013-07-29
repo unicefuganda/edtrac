@@ -112,14 +112,22 @@ def _get_poll_data_dict(location, poll, time_range):
 
 @login_required()
 def detail_water_view(request,district=None):
+    district_water_form =None
+    partial_to_render =''
     location,user_location = get_location_for_water_view(district,request)
+    profile = request.user.get_profile()
+    locations,user_location = [profile.location],profile.location.name
+    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of(
+        'UNICEF Officials'):
+        district_water_form = DistrictWaterForm()
+        partial_to_render = 'education/admin/_district_water_form.html'
+
     water_poll = Poll.objects.get(name='edtrac_water_source')
     functional_water_poll = Poll.objects.get(name='edtrac_functional_water_source')
     water_and_soap_poll = Poll.objects.get(name='water_and_soap')
     polls=[water_poll,functional_water_poll,water_and_soap_poll]
     time_range = [getattr(settings,'SCHOOL_TERM_START'),getattr(settings,'SCHOOL_TERM_END')]
     water_source_form = WaterForm()
-    district_water_form = DistrictWaterForm()
     if request.method == 'POST':
         water_source_form=WaterForm(data=request.POST)
         if water_source_form.is_valid():
@@ -129,7 +137,7 @@ def detail_water_view(request,district=None):
     data_list = [_get_poll_data_dict(location, poll, time_range) for poll in polls]
     time_period = "Data shown for time: %s to %s" %(time_range[0].strftime("%d %B %Y"),time_range[1].strftime("%d %B %Y"))
     return render_to_response('education/admin/detail_water.html',
-                              {'data_list':data_list,'form':water_source_form,
+                              {'data_list':data_list,'form':water_source_form,'partial_to_render':partial_to_render,
                                'location':user_location,'time_period':time_period, 'district_form':district_water_form},
                               RequestContext(request))
 

@@ -23,20 +23,9 @@
             });
         </script>
     </div>
-    <div id="general" style="background-color:#e0ccef;padding:10px;">
-        <div class="stats">
-            <h3>District Level water source</h3>
-        </div>
-        <div style="padding: 10px;margin: 5px;">
-            <fieldset>
-                <form action="{% url district-water-view %}" method="POST">
-                    {% csrf_token %}
-                    {{ district_form.as_table }}
-                    <input type="submit" value="Get Report"/>
-                </form>
-            </fieldset>
-        </div>
-    </div>
+    {% if partial_to_render != '' %}
+    {% include "education/admin/_district_water_form.html" %}
+    {% endif %}
     <div style="padding: 10px">
         <button id="water_source">Water Source</button>
         <button id="sanitation">Sanitation</button>
