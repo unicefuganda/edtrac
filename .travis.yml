@@ -19,5 +19,8 @@ script:
   - cd edtrac_project
   - python manage.py syncdb --noinput
   - python manage.py migrate
-  - python manage.py test education.test
+  - coverage run manage.py test education.test
+
+after_success:
+ - coveralls
 

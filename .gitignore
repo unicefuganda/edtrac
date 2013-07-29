@@ -12,4 +12,5 @@ patch
 Vagrantfile
 .vagrant
 .vagrant/*
-setup.sh
+.coverage
+

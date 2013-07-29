@@ -24,3 +24,4 @@ openpyxl
 dateutils
 django_digest
 python_digest
+python-coveralls
