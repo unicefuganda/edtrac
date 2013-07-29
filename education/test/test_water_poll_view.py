@@ -83,16 +83,16 @@ class TestWaterPollView(TestCase):
         self.assertEqual(['March', 'February', 'January'],categories)
         self.assertEqual([0,100,50], data)
 
-    def test_should_get_monthly_data(self):
-        self.water_source_poll.start()
-        self.fake_incoming('yes',self.emis_reporter1)
-        self.fake_incoming('yes',self.emis_reporter2)
-        self.fake_incoming('no',self.emis_reporter3)
-        responses = self.water_source_poll.responses.all()
-        self.set_monthly_date(responses)
-        location_result,monthly_result,percent = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
-        self.assertTrue((self.term_range[0].strftime("%B"),{'yes':100}) in monthly_result)
-        self.assertTrue((dateutils.increment(self.term_range[0],months=2).strftime("%B"),{'no':100}) in monthly_result)
+    # def test_should_get_monthly_data(self):
+    #     self.water_source_poll.start()
+    #     self.fake_incoming('yes',self.emis_reporter1)
+    #     self.fake_incoming('yes',self.emis_reporter2)
+    #     self.fake_incoming('no',self.emis_reporter3)
+    #     responses = self.water_source_poll.responses.all()
+    #     self.set_monthly_date(responses)
+    #     location_result,monthly_result,percent = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
+    #     self.assertTrue((self.term_range[0].strftime("%B"),{'yes':100}) in monthly_result)
+    #     self.assertTrue((dateutils.increment(self.term_range[0],months=2).strftime("%B"),{'no':100}) in monthly_result)
 
 
     def test_should_get_location_termly_data(self):
