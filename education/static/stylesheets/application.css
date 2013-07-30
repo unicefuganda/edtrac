@@ -88,6 +88,17 @@ ul.list li {
 [Misc Styles]
 
 -------------------------------------------------------------------*/
+.data-green{
+    background: url(../icons/positive-change-green-inverted.png) no-repeat;
+    background-position: right center;
+    color:#15630a;
+}
+.data-red{
+    background: url(../icons/negative-change-red.png) no-repeat;
+    background-position: right center;
+    color: #bf1226;
+}
+
 #flotTip {
   padding: 3px 6px !important;
   color: #FFF !important;
