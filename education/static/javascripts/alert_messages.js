@@ -5,18 +5,16 @@ contentType: 'application/json'
 
 }).done(function(data){
     if(data.length === 0){
-    $("#top_5_error_messages").append('<div class="item">' +
-    '<span class="call-out"></span>' +
-    '<p class="date">Notice</p>' +
-    '<p class="description">There are currently no Alerts to display</p>' +
+    $("#top_5_error_messages").append('<div>' +
+    '<p style="color:#468847;"">No alerts to display</p>' +
     '</div>');
-    }
+    }    
 $.each(data,function(index,item){
-    $("#top_5_error_messages").append('<div class="item">' +
-        '<span class="call-out"></span>' +
-        '<p class="date">Notice</p>' +
-        '<p class="description" style="color:#FF0000">'+item.fields.text+'</p>' +
-        '</div>');
+    $("#top_5_error_messages").append('<div>' +
+    '<ul class="unstyled">' +
+    '<li style="color:#b94a48;"">'+item.fields.text+'</li>' +
+    '</ul>' +
+    '</div>');
     });
 });
 });
