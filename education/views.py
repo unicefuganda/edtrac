@@ -1015,7 +1015,6 @@ class NationalStatistics(TemplateView):
             if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
                 districts = Location.objects.filter(type="district").\
                 filter(name__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in=Blacklist.objects.values_list('connection',flat=True)).values_list('reporting_location__name', flat=True))
-#                districts = Location.objects.filter(type="district").exclude(connection__in=Blacklist.objects.values_list('connection',flat=True))
                 reps = EmisReporter.objects.select_related().filter(groups__name__in=['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters'], connection__in=Message.objects.\
                    filter(date__range = get_week_date(depth = 2)[1]).values_list('connection', flat = True)).exclude(schools = None).exclude(connection__in = Blacklist.objects.values_list('connection', flat=True))
 
@@ -1031,8 +1030,6 @@ class NationalStatistics(TemplateView):
                 schools= School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).\
                 exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).distinct().values_list('schools__pk',flat=True))
                 context['school_count'] = schools.count()
-                # getting weekly system usage
-                # reporters that sent messages in the past week.
                 total_schools = 0
                 for district in districts:
                     s_count = School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).\
@@ -1049,12 +1046,8 @@ class NationalStatistics(TemplateView):
                 for district in districts
                 ]
                 district_active.sort(key=operator.itemgetter(1), reverse=True)
-
-#                district_active.sort(key=operator.itemgetter(1), reverse=True)
                 context['district_active'] = district_active[:3]
                 context['district_less_active'] = district_active[-3:]
-
-#                context['head_teacher_count'] = reps.count()
                 head_teacher_count = all_reporters.filter(groups__name='Head Teachers').count()
                 smc_count = all_reporters.filter(groups__name = "SMC").count()
                 p6_teacher_count = all_reporters.filter(groups__name = "Teachers", grade = "P6").count()
@@ -1203,25 +1196,24 @@ class CapitationGrants(TemplateView):
 
 
 # Details views... specified by ROLES
+def set_logged_in_users_location(profile):
+    if profile.is_member_of('Minstry Officials') or profile.is_member_of('UNICEF Officials') or profile.is_member_of(
+            'Admins'):
+        location = Location.objects.get(name='Uganda')
+    else:
+        location = profile.location
+    return location
+
+
 def violence_details_dash(req):
     profile = req.user.get_profile()
     context_vars = {}
-    if profile.is_member_of('Minstry Officials') or profile.is_member_of('UNICEF Officials') or profile.is_member_of('Admins'):
-        location = Location.objects.get(name = 'Uganda')
-    else:
-        location = profile.location
+    location = set_logged_in_users_location(profile)
 
     violence_cases_girls = poll_response_sum("edtrac_violence_girls", location=location, month_filter='monthly', months=2, ret_type=list)
     violence_cases_boys = poll_response_sum("edtrac_violence_boys", location=location, month_filter='monthly', months=2, ret_type=list)
     violence_cases_reported = poll_response_sum("edtrac_violence_reported", location=location, month_filter='monthly', months=2, ret_type=list)
-
-
     violence_cases_gem = poll_response_sum('edtrac_gem_abuse', location=location, month_filter='monthly', months=2, ret_type=list)
-
-
-    girls_violence = get_numeric_report_data("edtrac_violence_girls", location)
-    boys_violence = get_numeric_report_data("edtrac_violence_boys", location)
-    reported_violence = get_numeric_report_data("edtrac_violence_reported", location)
 
     girls_total = []
     for name, list_val in violence_cases_girls:

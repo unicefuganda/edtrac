@@ -18,24 +18,7 @@
     <div id="violence"></div>
     
     <div id="violence-graph"></div>
-    <!-- <script>
-        $(document).ready(function(){
-            violence_cases('{{ monthly_data_gem }}', title = "Violence in Uganda (GEM Report)");
-            $('a#headteachers').click(function(event){
-               violence_cases(
-                       '{{ monthly_data_h_teach }}',
-                       title = "Violence in Uganda (Head Teacher report)"
-               );
-            });
-            $('a#gem').click(function(event){
-                violence_cases(
-                        '{{ monthly_data_gem }}',
-                        title = "Violence in Uganda (GEM reports)"
-                );
-            });
-        });
-    </script> -->
-    
+
     <script>
         $(document).ready(function(){
             violence_cases('{{ monthly_violence_data_girls }}', title = "Violence cases - Girls");
@@ -65,12 +48,9 @@
             });
         });
     </script>
-    
 
 	<br />
-    <!-- <a href="#" id="show-table">Show Violence data</a> | <a href="#" id="hide-table">Hide Violence data</a> -->
 
-    <!-- <div class="viol"> -->
     <h2 class="block-header">Violence cases against girls</h2>
     <div class="top">
         <table class="tabulated-data">
@@ -230,7 +210,6 @@
 
         <p class="report alert-message block-message">Results for this month based on {{ gem_reporting_percentage }}% of GEM Reporters</p>
     </div>
-<!-- </div> -->
     </div>
 
 
@@ -247,6 +226,8 @@
     });
 </script>
 
-
+    <p>
+        Total number of schools that responded to all 3 questions =
+    </p>
 
 {% endblock %}
