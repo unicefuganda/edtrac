@@ -15,7 +15,7 @@ class Command(BaseCommand):
         admin.set_password('admin')
         admin.save()
         UserProfile.objects.create(
-            name='admin_profile',
+            name='Admins',
             location=Location.objects.get(
                 name='Kampala',
                 type=LocationType.objects.get(slug='district')),
