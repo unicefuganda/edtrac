@@ -19,7 +19,7 @@ class Command(BaseCommand):
             location=Location.objects.get(
                 name='Kampala',
                 type=LocationType.objects.get(slug='district')),
-            role=Role.objects.get(name='edutrac_administrators'),
+            role=Role.objects.get(name='Admins'),
             user=User.objects.get(username='admin'))
         Poll.objects.all().delete()
         Site.objects.create(id=2, domain="edtrac.unicefuganda.org", name="edtrac")
