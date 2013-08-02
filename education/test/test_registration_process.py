@@ -3,8 +3,10 @@ from unittest import TestCase
 from django.contrib.auth.models import User
 import time
 from eav.models import Attribute
-from education.models import Role
+from education.models import Role, EmisReporter, School
+from education.test.utils import create_location_type, create_location, create_school
 from poll.models import Poll, Category, Response, ResponseCategory, Rule
+from rapidsms.contrib.locations.models import LocationType, Location
 from rapidsms.models import Backend, Connection
 from rapidsms_httprouter.models import Message
 from rapidsms_httprouter.router import get_router
@@ -14,6 +16,22 @@ from script.utils.outgoing import check_progress
 
 class TestRegistrationProcess(TestCase):
     def setUp(self):
+
+        district = create_location_type("district")
+        kampala_fields = {
+            "rght": 10901,
+            "tree_parent": None,
+            "level": 1,
+            "tree_id": 1,
+            "lft": 10686,
+            }
+        kampala_point = {
+            "latitude": "0.3162800000",
+            "longitude": "32.5821900000"
+        }
+        self.kampala_district = create_location("Kampala", district, point=kampala_point, **kampala_fields)
+        self.kampala_school = create_school("St. Josephs", self.kampala_district)
+        self.kampala_school1 = create_school("St. Marys", self.kampala_district)
         user ,created = User.objects.get_or_create(username='admin')
         self.auto_reg_script = Script.objects.create(name='Edutrac Registration Script', slug='edtrac_autoreg')
         self.role_poll = Poll.objects.create(name='edtrac_role',
@@ -148,6 +166,66 @@ class TestRegistrationProcess(TestCase):
         check_progress(self.auto_reg_script)
         self.assertEqual(self.welcome_step.message,Message.objects.filter(direction='O').order_by('-date')[0].text)
 
+    def test_should_give_exact_school_match(self):
+        self.create_attribute()
+        self.create_role_categories()
+        Script.objects.filter(slug='edtrac_autoreg').update(enabled=True)
+        self.fake_incoming('join')
+        check_progress(self.auto_reg_script)
+        self.assertEqual(self.role_poll.question,Message.objects.filter(direction='O').order_by('-date')[0].text)
+        self.fake_incoming('1')
+        check_progress(self.auto_reg_script)
+        self.assertEqual(self.class_poll.question,Message.objects.filter(direction='O').order_by('-date')[0].text)
+        self.fake_incoming('P3')
+        check_progress(self.auto_reg_script)
+        self.assertEqual(self.district_poll.question,Message.objects.filter(direction='O').order_by('-date')[0].text)
+        self.fake_incoming('Kamapala')
+        check_progress(self.auto_reg_script)
+        self.assertEqual(self.subcounty_poll.question,Message.objects.filter(direction='O').order_by('-date')[0].text)
+        self.fake_incoming('Kampala')
+        check_progress(self.auto_reg_script)
+        self.assertEqual(self.school_poll.question,Message.objects.filter(direction='O').order_by('-date')[0].text)
+        self.fake_incoming('st. josephs')
+        check_progress(self.auto_reg_script)
+        self.assertEqual(self.name_poll.question,Message.objects.filter(direction='O').order_by('-date')[0].text)
+        self.fake_incoming('test mctester')
+        check_progress(self.auto_reg_script)
+        self.assertEqual(self.welcome_step.message,Message.objects.filter(direction='O').order_by('-date')[0].text)
+        check_progress(self.auto_reg_script)
+        reporter = EmisReporter.objects.get(name__iexact='test mctester')
+        self.assertEqual(self.kampala_school,reporter.schools.all()[0])
+        self.assertFalse(reporter.schools.all()[0].is_closest_match)
+
+    def test_should_add_closest_match_flag_on_school(self):
+        self.create_attribute()
+        self.create_role_categories()
+        Script.objects.filter(slug='edtrac_autoreg').update(enabled=True)
+        self.fake_incoming('join')
+        check_progress(self.auto_reg_script)
+        self.assertEqual(self.role_poll.question,Message.objects.filter(direction='O').order_by('-date')[0].text)
+        self.fake_incoming('1')
+        check_progress(self.auto_reg_script)
+        self.assertEqual(self.class_poll.question,Message.objects.filter(direction='O').order_by('-date')[0].text)
+        self.fake_incoming('P3')
+        check_progress(self.auto_reg_script)
+        self.assertEqual(self.district_poll.question,Message.objects.filter(direction='O').order_by('-date')[0].text)
+        self.fake_incoming('Kamapala')
+        check_progress(self.auto_reg_script)
+        self.assertEqual(self.subcounty_poll.question,Message.objects.filter(direction='O').order_by('-date')[0].text)
+        self.fake_incoming('Kampala')
+        check_progress(self.auto_reg_script)
+        self.assertEqual(self.school_poll.question,Message.objects.filter(direction='O').order_by('-date')[0].text)
+        self.fake_incoming('st. Marias')
+        check_progress(self.auto_reg_script)
+        self.assertEqual(self.name_poll.question,Message.objects.filter(direction='O').order_by('-date')[0].text)
+        self.fake_incoming('test mctester')
+        check_progress(self.auto_reg_script)
+        self.assertEqual(self.welcome_step.message,Message.objects.filter(direction='O').order_by('-date')[0].text)
+        check_progress(self.auto_reg_script)
+        reporter = EmisReporter.objects.get(name__iexact='test mctester')
+        self.assertTrue(reporter.schools.all()[0].is_closest_match)
+
+
     def fake_incoming(self, message, connection=None):
         if connection is None:
             connection = self.connection
@@ -181,6 +259,9 @@ class TestRegistrationProcess(TestCase):
         Message.objects.all().delete()
         User.objects.all().delete()
         Rule.objects.all().delete()
+        Location.objects.all().delete()
+        LocationType.objects.all().delete()
+
 
     def create_role_categories(self):
         self.teacher_category = Category.objects.create(name='teacher',poll=self.role_poll)

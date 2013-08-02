@@ -28,6 +28,7 @@ class School(models.Model):
     name = models.CharField(max_length=160)
     emis_id = models.CharField(max_length=10)
     location = models.ForeignKey(Location, related_name='schools')
+    is_closest_match = models.BooleanField(default=False)
 
     def __unicode__(self):
         return '%s - %s' % (self.name, self.location.name)
@@ -314,7 +315,7 @@ def edtrac_autoreg(**kwargs):
     if name:
         name = ' '.join([n.capitalize() for n in name.lower().split()])[:100]
     if district:
-        district =  find_closest_match(district.name, Location.objects.filter(type='district'))
+        district =  find_closest_match(district, Location.objects.filter(type='district'))
 
     if subcounty:
         if district:
@@ -382,8 +383,13 @@ def edtrac_autoreg(**kwargs):
     school = find_best_response(session, school_poll)
     if school:
         if district:
-            reporting_school = find_closest_match(school, School.objects.filter(location__name__in=[district],\
-                location__type__name='district'), True)
+            reporting_school = School.objects.filter(name__iexact=school)
+            if reporting_school.exists():
+                reporting_school= reporting_school[0]
+            else:
+                reporting_school = find_closest_match(school, School.objects.filter(location__name__in=[district],location__type__name='district'), True)
+                reporting_school.is_closest_match = True
+                reporting_school.save()
         elif subcounty:
             reporting_school = find_closest_match(school, School.objects.filter(location__name__in=[subcounty],\
                 location__type__name='sub_county'), True)
