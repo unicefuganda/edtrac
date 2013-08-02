@@ -895,8 +895,6 @@ def poll_response_sum(poll_name, **kwargs):
     can also be used to filter by district and create a dict with
     district vs value
     """
-#    import pdb
-#    pdb.set_trace()
     #TODO: provide querying by date too
     if kwargs:
         if ('month_filter' in kwargs):

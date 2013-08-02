@@ -1382,12 +1382,26 @@ def violence_details_dash(req):
     context_vars['monthly_violence_data_boys'] = monthly_violence_data_boys
     context_vars['monthly_violence_data_reported'] = monthly_violence_data_reported
     context_vars['monthly_data_h_teach'] = monthly_data_h_teachers
+    context_vars['schools_responding_to_all_questions'] = total_number_of_schools_that_responded_to_all_violence_questions()
 
     if profile.is_member_of('Minstry Officials') or profile.is_member_of('UNICEF Officials') or profile.is_member_of('Admins'):
         return render_to_response('education/admin/admin_violence_details.html', context_vars, RequestContext(req))
     elif profile.is_member_of('DEO'):
         context_vars['location_name'] = profile.location
         return render_to_response('education/deo/deo2_violence_details.html', context_vars, RequestContext(req))
+
+def total_number_of_schools_that_responded_to_all_violence_questions():
+    schools_responding_to_boys_violence = [__get_school_name_from(response) for response in __get_responses_for("edtrac_violence_boys")]
+    schools_responding_to_girls_violence = [__get_school_name_from(response) for response in __get_responses_for("edtrac_violence_girls")]
+    schools_that_referred_violence = [__get_school_name_from(response) for response in __get_responses_for("edtrac_violence_reported")]
+    return len(set(schools_responding_to_boys_violence).intersection(schools_responding_to_girls_violence).intersection(schools_that_referred_violence))
+
+def __get_school_name_from(response):
+    return response.contact.emisreporter.schools.all()[0].name
+
+def __get_responses_for(poll_name):
+    responses_for_all_questions = Response.objects.filter(poll__name__in =["edtrac_violence_girls","edtrac_violence_boys","edtrac_violence_reported"])
+    return responses_for_all_questions.filter(poll__name = poll_name)
 
 class DistrictViolenceDetails(TemplateView):
     template_name = "education/dashboard/district_violence_detail.html"
@@ -1662,28 +1676,8 @@ def boysp3_district_attd_detail(req, location_id):
 
 
                                                                               'headings' : ['School','Data', 'Current Week (%)', 'Week before (%)', 'Percentage change']}, RequestContext(req))
-# def boysp3_district_attd_detail(req, location_id):
-#     """
-#     This gets the details about schools in a district, the people in attedance, etc.
-#     """
-# #    location = Location.objects.exclude(type="country").filter(type="district").get(id=location_id)
-#     schools = School.objects.filter(location=locale.get(id=location_id))
-#     to_ret = []
-#     for school in schools:
-#         temp = [school]
-#         temp.extend(return_absent('edtrac_boysp3_attendance','edtrac_boysp3_enrollment', school=school))
-#
-#         to_ret.append(temp)
-#     to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
-#
-#     return render_to_response("education/boysp3_district_attd_detail.html", { 'location':locale.get(id=location_id),\
-#                                                                               'location_data':to_ret,
-#                                                                               'week':datetime.datetime.now(),
-#                                                                               'headings' : ['School', 'Current Week (%)', 'Week before (%)', 'Percentage change']}, RequestContext(req))
-
 
 @login_required
-
 def boysp6_district_attd_detail(req, location_id):
     """
     This gets the details about schools in a district, the people in attedance, etc.
@@ -1696,27 +1690,6 @@ def boysp6_district_attd_detail(req, location_id):
                                                                               'location_data':school_data,
                                                                               'week':datetime.datetime.now(),
                                                                               'headings' : ['School','Data','Current Week (%)', 'Week before (%)', 'Percentage change']}, RequestContext(req))
-#
-# def boysp6_district_attd_detail(req, location_id):
-#     """
-#     This gets the details about schools in a district, the people in attedance, etc.
-#     """
-# #    location = Location.objects.exclude(type="country").filter(type="district").get(id=location_id)
-#     schools = School.objects.filter(location=locale.get(id=location_id))
-#     to_ret = []
-#     for school in schools:
-#         temp = [school]
-#         temp.extend(return_absent('edtrac_boysp6_attendance', 'edtrac_boysp6_enrollment', school = school))
-#         to_ret.append(temp)
-#
-#     to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
-#
-#     return render_to_response("education/boysp6_district_attd_detail.html", { 'week':datetime.datetime.now(),\
-#                                                                               'location':locale.get(id=location_id),\
-#                                                                               'headings' : ['School', 'Current Week (%)', 'Week before (%)', 'Percentage change'],
-#                                                                               'location_data':to_ret },\
-#         RequestContext(req))
-#
 
 @login_required
 def girlsp3_district_attd_detail(req, location_id):
@@ -1731,24 +1704,6 @@ def girlsp3_district_attd_detail(req, location_id):
                                                                               'location_data':school_data,
                                                                               'week':datetime.datetime.now(),
                                                                               'headings' : ['School','Data','Current Week (%)', 'Week before (%)', 'Percentage change']}, RequestContext(req))
-#
-# def girlsp3_district_attd_detail(req, location_id):
-#     """
-#     This gets the details about schools in a district, the people in attedance, etc.
-#     """
-#     schools = School.objects.filter(location=locale.get(id=location_id))
-#     to_ret = []
-#     for school in schools:
-#         temp = [school]
-#         temp.extend(return_absent('edtrac_girlsp3_attendance', 'edtrac_girlsp3_enrollment', school = school))
-#         to_ret.append(temp)
-#
-#     to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
-#
-#     return render_to_response("education/girlsp3_district_attd_detail.html", { 'week':datetime.datetime.now(),\
-#                                                                                'location_data':to_ret,
-#                                                                                'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
-#                                                                                'location':locale.get(id=location_id)}, RequestContext(req))
 
 @login_required
 def girlsp6_district_attd_detail(req, location_id):
@@ -1764,26 +1719,6 @@ def girlsp6_district_attd_detail(req, location_id):
                                                                               'week':datetime.datetime.now(),
                                                                               'headings' : ['School','Data','Current Week (%)', 'Week before (%)', 'Percentage change']}, RequestContext(req))
 
-# def girlsp6_district_attd_detail(req, location_id):
-#     """
-#     This gets the details about schools in a district, the people in attedance, etc.
-#     """
-#     schools = School.objects.filter(location=locale.get(id=location_id))
-#     to_ret = []
-#     for school in schools:
-#         temp = [school]
-#         temp.extend(return_absent('edtrac_girlsp3_attendance', 'edtrac_girlsp3_enrollment', school = school))
-#         to_ret.append(temp)
-#
-#     to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
-#
-#     return render_to_response("education/girlsp6_district_attd_detail.html",
-#             { 'week':datetime.datetime.now(),\
-#               'location_data':to_ret,
-#               'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
-#               'location':locale.get(id=location_id)}, RequestContext(req))
-
-
 @login_required
 def female_t_district_attd_detail(req, location_id):
     """
@@ -1798,27 +1733,6 @@ def female_t_district_attd_detail(req, location_id):
                                                                               'week':datetime.datetime.now(),
                                                                               'headings' : ['School','Data','Current Week (%)', 'Week before (%)', 'Percentage change']}, RequestContext(req))
 
-
-# def female_t_district_attd_detail(req, location_id):
-#     """
-#     This gets the details about schools in a district, the people in attedance, etc.
-#     """
-#     schools = School.objects.filter(location=locale.get(id=location_id))
-#     to_ret = []
-#
-#     for school in schools:
-#         temp = [school]
-#         temp.extend(return_absent('edtrac_f_teachers_attendance', 'edtrac_f_teachers_deployment', school = school))
-#         to_ret.append(temp)
-#
-#     to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
-#
-#     return render_to_response("education/female_t_district_attd_detail.html",
-#             { 'week':datetime.datetime.now(),\
-#               'location_data':to_ret,
-#               'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
-#               'location':locale}, RequestContext(req))
-
 @login_required
 def male_t_district_attd_detail(req, location_id):
     """
@@ -1832,25 +1746,6 @@ def male_t_district_attd_detail(req, location_id):
                                                                               'location_data':school_data,
                                                                               'week':datetime.datetime.now(),
                                                                               'headings' : ['School','Data','Current Week (%)', 'Week before (%)', 'Percentage change']}, RequestContext(req))
-
-# def male_t_district_attd_detail(req, location_id):
-#     """
-#     This gets the details about schools in a district, the people in attedance, etc.
-#     """
-#     schools = School.objects.filter(location=locale.get(id=location_id))
-#     to_ret = []
-#     for school in schools:
-#         temp = [school]
-#         temp.extend(return_absent('edtrac_m_teachers_attendance', 'edtrac_m_teachers_deployment', school = school))
-#         to_ret.append(temp)
-#
-#     to_ret.sort(key = operator.itemgetter(1)) # sort by current month data
-#
-#     return render_to_response("education/male_t_district_attd_detail.html",
-#             { 'week':datetime.datetime.now(),\
-#               'location_data':to_ret,
-#               'headings':['School', "Current Week (%)", "Week before (%)", "Percentage change"],
-#               'location':locale.get(id=location_id)}, RequestContext(req))
 
 def boys_p3_attendance(req, **kwargs):
     profile = req.user.get_profile()
@@ -2128,12 +2023,6 @@ def time_range_boysp3(req):
         title='P3 Boys Absenteeism',
         url_name_district = "boysp3-district-attd-detail"
     )
-    # return view_generator(req,
-    #     enrol_deploy_poll='edtrac_boysp3_enrollment',
-    #     attendance_poll='edtrac_boysp3_attendance',
-    #     title='P3 Boys Absenteeism',
-    #     url_name_district = "boysp3-district-attd-detail"
-    # )
 
 @login_required
 def time_range_boysp6(req):
@@ -2144,15 +2033,6 @@ def time_range_boysp6(req):
         url_name_district = "boysp6-district-attd-detail"
     )
 
-# def time_range_boysp6(req):
-#     return view_generator(
-#         req,
-#         enrol_deploy_poll='edtrac_boysp6_enrollment',
-#         attendance_poll='edtrac_boysp3_attendance',
-#         title = 'P6 Boys Absenteeism',
-#         url_name_district = 'boysp6-district-attd-detail'
-#     )
-
 @login_required
 def time_range_girlsp3(req):
     return view_stats(req,
@@ -2161,14 +2041,6 @@ def time_range_girlsp3(req):
         title='P3 Girls Absenteeism',
         url_name_district = "girlsp3-district-attd-detail"
     )
-
-    # return view_generator(
-    #     req,
-    #     enrol_deploy_poll = 'edtrac_girlsp3_enrollment',
-    #     attendance_poll = 'edtrac_girlsp3_attendance',
-    #     title = 'P3 Girls Absenteeism',
-    #     url_name_district = 'girlsp3-district-attd-detail'
-    # )
 
 @login_required
 def time_range_girlsp6(req):
@@ -2179,21 +2051,6 @@ def time_range_girlsp6(req):
         url_name_district = "girlsp6-district-attd-detail"
     )
 
-# def time_range_girlsp6(req):
-#     """
-#     A function that compute time-ranged data for P6 girls. This function is split in two: handling of POST data and
-#     GET data. It also makes a difference between User groups so you different role players like DEO, Admins, UNICEF
-#     Officials
-#     """
-#     return view_generator(
-#         req,
-#         enrol_deploy_poll = 'edtrac_girlsp6_enrollment',
-#         attendance_poll = 'edtrac_girlsp6_attendance',
-#         title = 'P6 Girls Absenteeism',
-#         url_name_district = 'girlsp6-district-attd-detail'
-#     )
-
-
 @login_required
 def time_range_teachers_m(req):
     return view_stats(req,
@@ -2202,21 +2059,6 @@ def time_range_teachers_m(req):
         title='Male teachers absenteeism',
         url_name_district = "male-teacher-district-attd-detail"
     )
-#
-# def time_range_teachers_m(req):
-#     """
-#     A function that compute time-ranged data for male teachers. This function is split in two: handling of POST data and
-#     GET data. It also makes a difference between User groups so you different role players like DEO, Admins, UNICEF
-#     Officials
-#     """
-#
-#     return view_generator(
-#         req,
-#         enrol_deploy_poll = 'edtrac_m_teachers_deployment',
-#         attendance_poll = 'edtrac_m_teachers_attendance',
-#         title = 'Male teachers absenteeism',
-#         url_name_district = 'male-teacher-district-attd-detail'
-#     )
 
 @login_required
 def time_range_teachers_f(req):
@@ -2226,21 +2068,6 @@ def time_range_teachers_f(req):
         title='Female teachers absenteeism',
         url_name_district = "female-teacher-district-attd-detail"
     )
-
-# def time_range_teachers_f(req):
-#     """
-#     A function that compute time-ranged data for male teachers. This function is split in two: handling of POST data and
-#     GET data. It also makes a difference between User groups so you different role players like DEO, Admins, UNICEF
-#     Officials
-#     """
-#
-#     return view_generator(
-#         req,
-#         enrol_deploy_poll = 'edtrac_f_teachers_deployment',
-#         attendance_poll = 'edtrac_f_teachers_attendance',
-#         title = 'Female teachers absenteeism',
-#         url_name_district = 'female-teacher-district-attd-detail'
-#     )
 
 @login_required
 def time_range_head_teachers(req):
@@ -2266,9 +2093,6 @@ def time_range_head_teachers(req):
             to_date = time_range_form.cleaned_data['to_date']
             month_delta = abs(from_date.month - to_date.month)
 
-            # date_weeks holds the time splittings necessary to get time ranges
-            # if dates selected are under 2 months, then we populate only week ranges
-            # a week range starts on Thursday and ends on Wednesday of the next week.
             date_weeks = []
 
             if month_delta <= 2: # same month get days in between
@@ -2349,7 +2173,6 @@ def time_range_head_teachers(req):
                                                                          'url_name':"female-teacher-district-attd-detail",
                                                                          'title':'Male Teacher Absenteeism'}, RequestContext(req))
     else:
-
         # initial GET view is displays difference between 2 weeks of the attendance of female teachers as reported by the Head Teacher
         date_weeks = []
         location_data = []
@@ -2668,10 +2491,6 @@ def school_detail(request, school_id):
                 'edtrac_'+'%s'%slug + '_attendance',
                 'edtrac_'+'%s'%slug + '_deployment', month_range = month_range, school=school) for slug in slug_list_tr])
 
-     # Line was returning template syntax error on my dev box : disabled it shortly will be re-enabled
-    #reporters = school.emisreporter_set.all()
-    # if is_empty(reporters):
-    #     reporters = []
     reporters = []
 
     boys_p3_enrolled = poll_responses_term('edtrac_boysp3_enrollment', belongs_to='schools', school = school)
@@ -2680,9 +2499,6 @@ def school_detail(request, school_id):
     girls_p6_enrolled = poll_responses_term('edtrac_girlsp6_enrollment', belongs_to='schools', school = school)
     m_teachers_deployed = poll_responses_term('edtrac_m_teachers_deployment', belongs_to = 'schools', school = school)
     f_teachers_deployed = poll_responses_term('edtrac_f_teachers_deployment', belongs_to = 'schools', school = school)
-
-
-    #monthly_violence =
     return render_to_response("education/school_detail.html", {\
         'school_name': school.name,
         'months' : [d_start for d_start, d_end in month_ranges],
@@ -2902,17 +2718,10 @@ def htattendance(request, start_date=None, end_date=None, district_id=None):
         queryset = smc_htpresent,
         objects_per_page = 50,
         results_title = 'Head Teacher Presence as Reported by SMCs',
-        #      top_columns = [
-        #            ('', 1, None),
-        #            ('head teacher attendance (reported by SMCs)', 2, None),
-        #            ('head teacher attendance (reported by GEM)', 2, None),
-        #        ],
         columns = [
             ('school', False, 'school', None),
             ('present', False, 'present', None),
             ('reporting date', False, 'date', None),
-            #            ('present', False, 'present', None),
-            #            ('reporting date', False, 'date', None),
         ],
         partial_row = 'education/partials/ht_attendance_row.html',
         partial_header = 'education/partials/partial_header.html',
@@ -3012,7 +2821,6 @@ def emis_scripts_special(req):
 
         for i, li in enumerate(_poll_scripts):
             poll_id, script_slug = li
-            #            s = Script.objects.get(slug = script_slug) #script
             _script.steps.add(ScriptStep.objects.create(
                 script = _script,
                 poll = Poll.objects.get(id = poll_id),
@@ -3024,7 +2832,6 @@ def emis_scripts_special(req):
                 giveup_offset = 86400,
             ))
             _script.save()
-            # Hack!! When manager wants to select all (otherwise default will be all folks in group selected)
 
         if len(checked_numbers) < 25 and len(checked_numbers) > 0:
             # assuming that "all" is not checked
@@ -3079,7 +2886,6 @@ def emis_scripts_special(req):
 def reschedule_scripts(request, script_slug):
     grp = get_script_grp(script_slug)
     if script_slug.endswith('_weekly'):
-    #        call_command('reschedule_weekly_polls', grp)
         reschedule_weekly_polls(grp)
     elif script_slug.endswith('_monthly'):
         reschedule_monthly_polls(grp)
@@ -3097,9 +2903,6 @@ def reschedule_scripts(request, script_slug):
         return response
     else:
         return HttpResponse("This script can't be rescheduled. Try again")
-
-
-# Reporters view
 
 class EdtracReporter(ListView):
     model = EmisReporter
@@ -3138,8 +2941,6 @@ class AbsenteeismForm(forms.Form):
         if data.get('from_date') > data.get('to_date'):
             raise forms.ValidationError("To date less than from date")
         return data
-
-
 
 @login_required
 def detail_attd(request, district=None):

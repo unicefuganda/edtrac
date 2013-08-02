@@ -14,7 +14,6 @@ from rapidsms_httprouter.models import Message
 from script.models import Script, ScriptStep, ScriptProgress, ScriptSession
 from script.utils.outgoing import check_progress
 
-
 class TestSuccessfulFeedbacksToPolls(TestCase):
 
     def setUp(self):
@@ -24,7 +23,7 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
             "level": 0,
             "tree_id": 1,
             "lft": 1,
-            }
+        }
         self.uganda = create_location("uganda", country, **uganda_fields)
         admin_group = create_group("Admins")
         self.smc_group = create_group("SMC")

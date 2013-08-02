@@ -10,7 +10,7 @@ from poll.models import Poll, Category
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        Role.objects.create(name='edutrac_administrators')
+        Role.objects.create(name='Admins')
         admin = User.objects.create(username='admin')
         admin.set_password('admin')
         admin.save()
