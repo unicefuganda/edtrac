@@ -1,9 +1,13 @@
 {% extends "education/admin/admin_dashboard.html" %}
 {% block title %} Absenteeism Records for Uganda {{ block.super }} {% endblock %}
 {% block content %}
-<ul class="breadcrumb"><li><a href="{% url rapidsms-dashboard %}">← Back to the EduTrac Home Page</a></li></ul>
+<div id="content">
+
+  <div class="container">
+    <div class="row">   
+<!-- 
 <div class="general">
-<div class="attendance">
+<div class="attendance"> -->
     <div class="stats page-header">
         <h2>Absenteism Records for {{ location }}</h2><br/>
         {% ifequal role_name "Admins" %}
@@ -61,8 +65,9 @@
         </ul>
 
     </div>
-</div>
+    </div>
 
+</div>
 </div>
 <script>
     $(document).ready(function(){
