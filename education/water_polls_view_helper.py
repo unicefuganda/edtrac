@@ -22,7 +22,7 @@ def get_location_for_water_view(district_pk, request):
 
 
 def _format_to_ret_for_all_responses(month, all_responses):
-    return month[0].strftime("%B"),_extract_info(all_responses.filter(response__date__range=month))
+    return month[0].strftime("%B"),_extract_percentage_for_each_response_category_from(all_responses.filter(response__date__range=month))
 
 
 def get_reporting_school_percentage(responses, location):
@@ -38,13 +38,14 @@ def get_all_responses(poll, location, time_range):
     percent_of_schools = get_reporting_school_percentage(term_responses,location)
     months= get_months(time_range[0],time_range[1])
     months.reverse()
-    to_ret = [_format_to_ret_for_all_responses(month, all_responses)for month in months]
-    return _extract_info(term_responses).items(),to_ret ,percent_of_schools
+    monthly_result = [_format_to_ret_for_all_responses(month, all_responses)for month in months]
+    #       dictionary of category and percent, tuple of month and dict, percentage for a school
+    return _extract_percentage_for_each_response_category_from(term_responses).items(), monthly_result, percent_of_schools
 
 
 
-def _extract_info(l):
-    to_ret = [[item.get('category__name'), item.get('value')] for item in l]
+def _extract_percentage_for_each_response_category_from(responses):
+    to_ret = [[item.get('category__name'), item.get('value')] for item in responses]
     final_ret = {}
     for li in to_ret:
         final_ret[li[0]] = li[1]

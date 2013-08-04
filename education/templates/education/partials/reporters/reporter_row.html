@@ -41,6 +41,9 @@
     	<ul>
             {% for s in object.schools.all %}
                 <li>
+                    {% if not object.has_exact_matched_school %}
+                        <span style="color: #ff0000;font-size: medium">*</span>
+                    {% endif %}
                     {{ s.name }}
                 </li>
             {% endfor %}

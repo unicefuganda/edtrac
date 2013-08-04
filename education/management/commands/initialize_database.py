@@ -10,16 +10,16 @@ from poll.models import Poll, Category
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        Role.objects.create(name='edutrac_administrators')
+        Role.objects.create(name='Admins')
         admin = User.objects.create(username='admin')
         admin.set_password('admin')
         admin.save()
         UserProfile.objects.create(
-            name='admin_profile',
+            name='Admins',
             location=Location.objects.get(
                 name='Kampala',
                 type=LocationType.objects.get(slug='district')),
-            role=Role.objects.get(name='edutrac_administrators'),
+            role=Role.objects.get(name='Admins'),
             user=User.objects.get(username='admin'))
         Poll.objects.all().delete()
         Site.objects.create(id=2, domain="edtrac.unicefuganda.org", name="edtrac")

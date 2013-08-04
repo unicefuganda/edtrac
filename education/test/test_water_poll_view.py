@@ -1,5 +1,5 @@
 # vim: ai ts=4 sts=4 et sw=4 encoding=utf-8
-from datetime import datetime
+from datetime import datetime, date
 from unittest import TestCase
 import dateutils
 from django.conf import settings
@@ -65,16 +65,16 @@ class TestWaterPollView(TestCase):
         return router.handle_incoming(connection.backend.name, connection.identity, message)
 
 
-    def set_date(self, date, r):
-        r.date = date
-        r.save()
+    def set_response_date(self, date, response):
+        response.date = date
+        response.save()
 
     def set_monthly_date(self, responses):
         start_term = self.term_range[0]
         i = start_term.month
         for response in responses:
             print "setting month as %s " % i
-            self.set_date(datetime(datetime.today().year, i, start_term.day), response)
+            self.set_response_date(datetime(datetime.today().year, i, start_term.day), response)
             i += 1
 
     def test_should_reorganize_data_for_bar_chart(self):
@@ -83,16 +83,16 @@ class TestWaterPollView(TestCase):
         self.assertEqual(['March', 'February', 'January'],categories)
         self.assertEqual([0,100,50], data)
 
-    # def test_should_get_monthly_data(self):
-    #     self.water_source_poll.start()
-    #     self.fake_incoming('yes',self.emis_reporter1)
-    #     self.fake_incoming('yes',self.emis_reporter2)
-    #     self.fake_incoming('no',self.emis_reporter3)
-    #     responses = self.water_source_poll.responses.all()
-    #     self.set_monthly_date(responses)
-    #     location_result,monthly_result,percent = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
-    #     self.assertTrue((self.term_range[0].strftime("%B"),{'yes':100}) in monthly_result)
-    #     self.assertTrue((dateutils.increment(self.term_range[0],months=2).strftime("%B"),{'no':100}) in monthly_result)
+    def test_should_get_monthly_data(self):
+        self.water_source_poll.start()
+        self.fake_incoming('yes',self.emis_reporter1)
+        self.fake_incoming('yes',self.emis_reporter2)
+        self.fake_incoming('no',self.emis_reporter3)
+        responses = self.water_source_poll.responses.all()
+        self.set_monthly_date(responses)
+        location_result,monthly_result,percent = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
+        self.assertTrue((self.term_range[0].strftime("%B"),{'yes':100}) in monthly_result)
+        self.assertTrue((dateutils.increment(self.term_range[0],months=2).strftime("%B"),{'no':100}) in monthly_result)
 
 
     def test_should_get_location_termly_data(self):
@@ -123,17 +123,15 @@ class TestWaterPollView(TestCase):
         self.assertTrue(('yes', 50) in location_result)
         self.assertTrue(('no', 50) in location_result)
 
-    def test_should_exclude_unknown_responses_for_bar(self):
-        day_count=0
+    def test_should_exclude_unknown_responses_for_bar_graph(self):
         self.water_source_poll.start()
         self.fake_incoming('yes',self.emis_reporter1)
         self.fake_incoming('no',self.emis_reporter2)
         self.fake_incoming('i dont know',self.emis_reporter3)
         responses = self.water_source_poll.responses.all()
         for response in responses:
-            self.set_date(dateutils.increment(datetime(datetime.today().year, datetime.today().month, datetime.today().day),days=day_count), response)
-            day_count += 1
-        location_result,monthly_result,percent = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
+            self.set_response_date(date.today(), response)
+        location_result, monthly_result,percent = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
         self.assertTrue((datetime.today().strftime("%B"),{'yes':50,'no':50}) in monthly_result)
 
     def test_should_redirect_to_detail_view_when_form_is_valid(self):
