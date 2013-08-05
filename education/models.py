@@ -548,15 +548,15 @@ def edtrac_scriptrun_schedule(**kwargs):
     if step == 0:
         s, c = ScriptSchedule.objects.get_or_create(script=script, date__contains=date)
 
-
-def send_message_for_partial_response(**kwargs):
-    connection = kwargs['connection']
-    progress = kwargs['sender']
-    is_last_step = progress.script.steps.order_by("-order").all()[0]
-
-    if progress.step.order == is_last_step.order:
-       if not all_steps_answered(progress.script):
-           send_alert_for_expired_script(progress.script, connection)
+#
+# def send_message_for_partial_response(**kwargs):
+#     connection = kwargs['connection']
+#     progress = kwargs['sender']
+#     is_last_step = progress.script.steps.order_by("-order").all()[0]
+#
+#     if progress.step.order == is_last_step.order:
+#        if not all_steps_answered(progress.script):
+#            send_alert_for_expired_script(progress.script, connection)
 
 def send_alert_for_expired_script(script,connection):
     if not all_steps_answered(script):

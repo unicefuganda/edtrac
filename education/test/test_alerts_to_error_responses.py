@@ -125,9 +125,11 @@ class TestAlertsToErrorResponses(TestCase):
         check_progress(self.teachers_weekly_script)
         fake_incoming("3",self.emis_reporter1)
         check_progress(self.teachers_weekly_script)
-        self.assertEqual(5, Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).count())
+        # self.assertEqual(5, Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).count())
+        self.assertEqual(4, Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).count())#pausing feedback
         expected = 'Thank you for participating. Remember to answer all your questions next Thursday.'
-        self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))
+        # self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))
+        self.assertFalse(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))#pausing feedback
 
 
     def test_should_send_2_invalid_alerts_by_script_completion(self):
@@ -151,7 +153,8 @@ class TestAlertsToErrorResponses(TestCase):
         messages = Message.objects.filter(direction='O', text =alert, connection=self.emis_reporter1.connection_set.all()[0])
         self.assertEqual(2, messages.count())
         expected ='Thankyou p3 Teacher, Attendance for boys have been improved by 40percent Attendance for girls have been improved by 40percent'
-        self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))
+        # self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))
+        self.assertFalse(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))#pausing feedback
 
     def test_previous_week_attendance_against_current_week_attendance(self):
         schedule_script_now(grp = self.head_teacher_group.name, slug = self.head_teachers_termly_script.slug)
@@ -168,7 +171,8 @@ class TestAlertsToErrorResponses(TestCase):
         fake_incoming("5girls", self.emis_reporter1)
         check_progress(self.teachers_weekly_script)
         expected ='Thankyou p3 Teacher, Attendance for boys have been improved by 50percent Attendance for girls have been improved by 50percent'
-        self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))
+        # self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))
+        self.assertFalse(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))#pausing feedback
         responses = Response.objects.filter(contact__connection=self.emis_reporter1.connection_set.all()[0],
                                            has_errors=False)
         poll_list = ['edtrac_boysp3_attendance','edtrac_girlsp3_attendance']
@@ -187,7 +191,8 @@ class TestAlertsToErrorResponses(TestCase):
         check_progress(self.teachers_weekly_script)
 
         expected ='Thankyou p3 Teacher, Attendance for boys have been improved by 10percent Attendance for girls have been dropped by 10percent'
-        self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))
+        # self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))
+        self.assertFalse(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))#pausing feedback
 
 
 

@@ -163,7 +163,8 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
         self.assertEqual(2,Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).count())
         fake_incoming("3",self.emis_reporter1)#response to p3 girls poll
         check_progress(self.teachers_weekly_script)
-        self.assertEqual(3,Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).count())
+        # self.assertEqual(3,Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).count())
+        self.assertEqual(2,Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).count())#pausing feedbacks
 
     def test_should_return_10_boys_and_15_girls_given_reporter_responds_10_and_15_to_enrollment_poll(self):
         schedule_script_now(grp = self.head_teacher_group.name, slug = self.head_teachers_termly_script.slug)
@@ -262,17 +263,19 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
         fake_incoming("4", self.emis_reporter1)
         check_progress(self.head_teachers_weekly_script)
         expected ='Thankyou, Attendance for male teacher have been improved by 40percent Attendance for female teachers have been improved by 40percent'
-        self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))
+        # self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))
+        self.assertFalse(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))#pausing feedbacks
 
     def test_should_send_feedbacks_to_smc(self):
         schedule_script_now(grp= self.smc_group.name, slug=self.smc_weekly_script.slug)
         check_progress(self.smc_weekly_script)
         fake_incoming("yes", self.emis_reporter3)
         check_progress(self.smc_weekly_script)
-        print  Message.objects.filter(direction='O',connection=self.emis_reporter3.connection_set.all()[0]).values_list('text',flat=True)
-        self.assertEqual(2,Message.objects.filter(direction='O',connection=self.emis_reporter3.connection_set.all()[0]).count())
+        # self.assertEqual(2,Message.objects.filter(direction='O',connection=self.emis_reporter3.connection_set.all()[0]).count())
+        self.assertEqual(1,Message.objects.filter(direction='O',connection=self.emis_reporter3.connection_set.all()[0]).count())#paisong feedback
         expected='Thank you for your report. Please continue to visit your school and report on what is happening.'
-        self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter3.connection_set.all()[0]).values_list('text',flat=True))
+        # self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter3.connection_set.all()[0]).values_list('text',flat=True))
+        self.assertFalse(expected in Message.objects.filter(direction='O',connection=self.emis_reporter3.connection_set.all()[0]).values_list('text',flat=True))#pausing feedback
 
     def test_should_send_alert_messages_on_partial_responses(self):
         schedule_script_now(grp=self.head_teacher_group.name,slug=self.teachers_weekly_script.slug)
@@ -281,9 +284,11 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
         check_progress(self.teachers_weekly_script)
         time.sleep(3)
         check_progress(self.teachers_weekly_script)
-        self.assertEqual(3,Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).count())
+        # self.assertEqual(3,Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).count())
+        self.assertEqual(2,Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).count())#pausing feedback
         expected = 'Thank you for participating. Remember to answer all your questions next Thursday.'
-        self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))
+        # self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))
+        self.assertFalse(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))#pausing feedback
 
     def test_should_return_false_if_partial_responses_given(self):
         schedule_script_now(grp=self.head_teacher_group.name,slug=self.teachers_weekly_script.slug)
