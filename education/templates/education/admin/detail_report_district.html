@@ -21,7 +21,6 @@
                         <option value="MaleTeachers">Male Teachers</option>
                         <option value="FemaleTeachers">Female Teachers</option>
                         <option value="Teachers">Teachers</option>
-                        <option value="Teachers">Teachers</option>
                         <option value="HeadTeachers">Head Teachers</option>
 
                     </select></td>
@@ -47,21 +46,23 @@
                 $("#reportMode").val($.trim('{{ report_mode }}')).attr('selected',true);
                 $('#id_from_date').datepicker();
                 $('#id_to_date').datepicker();
-                api_url = '/edtrac/api/dashReport/?report_mode='+$('#reportMode').val();
+                api_url = '/edtrac/api/district-report/?report_mode='+$('#reportMode').val()+'&district={{ district }}';
                 $('#chart_loading').show();
                 $.ajax({
                 url: api_url,
                 type: "GET",
                 contentType: "application/json;charset=utf-8"
             }).then(function (data) {
+                            console.log(data);
                             $.each(data,function(index,dataSet){
-                                console.log(dataSet.school_percent);
+
                                 displaySchoolPercent(dataSet.school_percent);
-                                loadHighChart(dataSet.weeks,dataSet.chartData,'container','Absenteeism Over Current Month')
-                                displayTabularData(dataSet.results)
+                                loadHighChart(dataSet.weeks,dataSet.chartData,'container','Absenteeism Over Current Month ( {{ district }} district)')
+                                displayTabularData(dataSet.results);
+                                console.log(dataSet.results);
                                 highChart_tooltips = dataSet.toolTips;
                                 $('#chart_loading').hide();
-                                console.log(dataSet.logger);
+
 
                             });
              });
@@ -112,11 +113,11 @@ function displaySchoolPercent(school_percent){
 
                 $('#tableData').html('<p></p>');
                 result = '<table class="tabulated-data classy">'
-                result +='<tr><th>District</th><th>P3 Absenteeism</th><th>P6 Absenteeism</th><th>Teacher Absenteeism</th><th>Head Teacher Absenteeism</th></tr>'
+                result +='<tr><th>School</th><th>P3 Absenteeism</th><th>P6 Absenteeism</th><th>Teacher Absenteeism</th><th>Head Teacher Absenteeism</th></tr>'
                 $.each(data,function(district,dataSet){
                     result +='<tr>';
 
-                    result +='<td><a href="/edtrac/district-report/?district='+district+'&report_mode=average">'+district+'</a></td>';
+                     result +='<td>'+district+'</td>';
                     $.each(dataSet,function(k,v){
                         if(k=='P3 Pupils'){result +='<td>'+v+'</td>';}
                         if(k=='P6 Pupils'){result +='<td>'+v+'</td>';}

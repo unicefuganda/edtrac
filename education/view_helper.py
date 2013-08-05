@@ -185,7 +185,31 @@ def report_dashboard(request):
         report_mode = 'average'
     context = {}
     context['report_mode'] = report_mode
-    return render_to_response('education/admin/detail_report.html',context, RequestContext(request))
+
+    profile = request.user.get_profile()
+    if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
+        return render_to_response('education/admin/detail_report.html',context, RequestContext(request))
+    else:
+        location = [profile.location]
+        context['report_mode'] = report_mode
+        context['district'] = location[0].name
+        return render_to_response('education/admin/detail_report_district.html',context, RequestContext(request))
+
+
+
+@login_required
+def report_district_dashboard(request):
+    try:
+        report_mode = request.GET['report_mode']
+        district = request.GET['district']
+    except:
+        report_mode = 'average'
+
+    context = {}
+    context['report_mode'] = report_mode
+    context['district'] = district
+    return render_to_response('education/admin/detail_report_district.html',context, RequestContext(request))
+
 
 
 @login_required
@@ -235,6 +259,27 @@ def dash_report_api(request):
     jsonDataSource.append(
         {'results': collective_result, 'chartData': chart_data, 'school_percent': school_percent, 'weeks': weeks,
          'toolTips': tooltips,'report_mode' : report_mode, 'logger' :report_mode_log})
+    return HttpResponse(simplejson.dumps(jsonDataSource), mimetype='application/json')
+
+@login_required
+def dash_report_district(request):
+    try:
+        report_mode = request.GET['report_mode']
+        district = request.GET['district']
+    except :
+        report_mode = 'average'
+
+    jsonDataSource = []
+    config_list = get_polls_for_keyword('all')
+    time_range = get_week_date(depth=4)
+    weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in time_range]
+    time_range.reverse()
+    location = Location.objects.filter(type__in=['district'],name__in=[district])
+
+    collective_result, chart_data, school_percent, tooltips, report_mode = get_aggregated_report_for_district(location, time_range,config_list,report_mode)
+    jsonDataSource.append(
+        {'results': collective_result, 'chartData': chart_data, 'school_percent': school_percent, 'weeks': weeks,
+         'toolTips': tooltips,'report_mode' : report_mode})
     return HttpResponse(simplejson.dumps(jsonDataSource), mimetype='application/json')
 
 

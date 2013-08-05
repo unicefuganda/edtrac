@@ -128,8 +128,8 @@ function displaySchoolPercent(school_percent){
                 result +='<tr><th>District</th><th>P3 Absenteeism</th><th>P6 Absenteeism</th><th>Teacher Absenteeism</th><th>Head Teacher Absenteeism</th></tr>'
                 $.each(data,function(district,dataSet){
                     result +='<tr>';
-                    //result +='<td><a href="/edtrac/detail-attd/'+district+'/" >'+district+'</a></td>';
-                    result +='<td>'+district+'</td>';
+                    result +='<td><a href="/edtrac/district-report/?district='+district+'&report_mode=average">'+district+'</a></td>';
+
                     $.each(dataSet,function(k,v){
                         if(k=='P3 Pupils'){result +='<td>'+v+'</td>';}
                         if(k=='P6 Pupils'){result +='<td>'+v+'</td>';}

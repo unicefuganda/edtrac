@@ -6,6 +6,182 @@ from poll.models import Poll
 from .reports import *
 from education.absenteeism_view_helper import *
 
+def get_aggregated_report_for_district(locations, time_range, config_list,report_mode = None):
+    collective_result = {}
+    chart_data = []
+    head_teacher_set = []
+    tmp_data = []
+    school_report = []
+    computation_logger = {}
+    computation_logger_headTeachers = {}
+    school_with_no_zero_result = []
+    school_with_no_zero_by_indicator = {}
+    schools_by_location = []
+    high_chart_tooltip = []
+    attendance_total = [] # used for logging present values extracted from incoming messages (don't delete)
+    percent_by_indicator = {} # used for logging percent values extracted from incoming messages (don't delete)
+    enrollment_by_indicator = {}
+    attendance_by_indicator = {}
+
+    # Get term range from settings file (config file)
+    term_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
+    indicator_list = ['P3 Pupils', 'P6 Pupils', 'Teachers']
+    # Initialize chart data and school percent List / dict holder
+    for indicator in indicator_list:
+        chart_data.append({indicator: [0] * len(time_range)})
+        school_report.append({indicator: [0] * len(time_range)})
+        high_chart_tooltip.append({indicator: []})
+        enrollment_by_indicator[indicator] = 0
+        attendance_by_indicator[indicator] = []
+        percent_by_indicator[indicator] = []
+        school_with_no_zero_by_indicator[indicator] = 0
+
+    chart_data.append({'Head Teachers': [0] * len(time_range)})
+    school_report.append({'Head Teachers': [0] * len(time_range)})
+    high_chart_tooltip.append({'Head Teachers': []})
+    enrollment_by_indicator['Head Teachers'] = 0
+    attendance_by_indicator['Head Teachers'] = []
+    school_with_no_zero_by_indicator['Head Teachers'] = 0
+
+    # update tooltip list with current date ranges (high chart x - axis values)
+    for _date in time_range:
+        for tip in high_chart_tooltip:
+            for k, v in tip.items():
+                v.append({'date_range': _date, 'enrollment': 0, 'present': 0})
+
+    # update attendance by indicator with current date ranges (enable present computation along date x-axis)
+    for _date in time_range:
+        for k, v in attendance_by_indicator.items():
+            v.append({'week': _date, 'present': 0, 'enrollment': 0, 'percent': 0})
+
+    if locations:
+        headteachersSource = EmisReporter.objects.filter(reporting_location__in=locations,groups__name="Head Teachers").exclude(schools=None).select_related()
+        schoolSource = School.objects.filter(location__in=locations)
+        for school in schoolSource:
+            has_enrollment = False
+            config_set_result = {}
+            school_logger = []
+            for config in config_list:
+                if config.get('collective_dict_key') in indicator_list:
+                    enrollment_polls = Poll.objects.filter(name__in=[config.get('enrollment_poll')[0]])
+                    attendance_polls = Poll.objects.filter(name__in=[config.get('attendance_poll')[0]])
+                    enroll_data = get_numeric_data_by_school(enrollment_polls,[school],term_range)
+                    enrollment_by_indicator[config.get('collective_dict_key')] += sum(enroll_data)
+                    enroll_indicator_total = sum(enroll_data)
+                    week_count = 0
+                    weekly_results = []
+                    week_logger = []
+                    for week in time_range:
+                        week_count += 1
+                        attend_week_total = sum(get_numeric_data_by_school(attendance_polls, [school], week))
+                        week_percent = compute_absent_values(attend_week_total, enroll_indicator_total)
+                        weekly_results.append(week_percent)
+                        week_logger.append({'present' :attend_week_total, 'enrollment' : enroll_indicator_total, 'percent' : week_percent})
+
+                        if not is_empty(enroll_data):
+                            for k, v in attendance_by_indicator.items():
+                                if k == config.get('collective_dict_key'):
+                                    for val in v:
+                                        if val['week'] == week:
+                                            val['percent'] = val['percent'] + week_percent
+                                            val['present'] = val['present'] + attend_week_total
+                                            val['enrollment'] = enrollment_by_indicator[config.get('collective_dict_key')]
+
+                    if not is_empty(enroll_data):
+                        has_enrollment = True
+                        school_with_no_zero_by_indicator[config.get('collective_dict_key')] +=1
+                        config_set_result[config.get('collective_dict_key')] = round(sum(weekly_results)/len(time_range),2)
+                        school_logger.append({config.get('collective_dict_key') :week_logger })
+
+
+                        for item in chart_data:
+                            for k, v in item.items():
+                                if k == config.get('collective_dict_key'):
+                                    item[k] = [sum(a) for a in zip(*[v, weekly_results])]
+                else: # Head teachers
+                    deployedHeadTeachers = get_deployed_head_Teachers_by_school([school],locations)
+                    enrollment_by_indicator[config.get('collective_dict_key')] += deployedHeadTeachers
+                    attendance_polls = Poll.objects.filter(name__in=['edtrac_head_teachers_attendance'])
+                    weekly_present = []
+                    weekly_percent = []
+                    week_logger = []
+                    for week in time_range:
+                        present, absent = get_count_for_yes_no_by_school(attendance_polls,[school], week)
+                        week_percent = compute_absent_values(present, deployedHeadTeachers)
+                        weekly_present.append(present)
+                        weekly_percent.append(week_percent)
+                        week_logger.append({'present' :present,'deployed' : deployedHeadTeachers, 'percent' : week_percent})
+
+                        if deployedHeadTeachers == 1:
+                            for k, v in attendance_by_indicator.items():
+                                if k == config.get('collective_dict_key'):
+                                    for val in v:
+                                        if val['week'] == week:
+                                            val['percent'] = val['percent'] + week_percent
+                                            val['present'] = val['present'] + attend_week_total
+                                            val['enrollment'] = enrollment_by_indicator[config.get('collective_dict_key')]
+
+
+                    if deployedHeadTeachers ==1:
+                        school_with_no_zero_by_indicator[config.get('collective_dict_key')] +=1
+                        computation_logger_headTeachers[school.name] = week_logger
+                        has_enrollment = True
+                        percent_absent = compute_absent_values(sum(weekly_present) / len(time_range), deployedHeadTeachers)
+                        config_set_result[config.get('collective_dict_key')] = round(percent_absent, 2)
+                        for item in chart_data:
+                            for k, v in item.items():
+                                if k == 'Head Teachers':
+                                    item[k] = [sum(a) for a in zip(*[v, weekly_percent])]
+
+            if has_enrollment == True:
+                collective_result[school.name] = config_set_result
+                computation_logger[school.name] = school_logger
+                school_with_no_zero_result.append(school)
+
+    time_data_model1 = []
+    time_data_model2 = []
+    chart_results_model = []
+    tooltip = []
+    school_data = {}
+
+    for k,v in school_with_no_zero_by_indicator.items():
+        school_data[k] = round((v*100)/len(schoolSource),2)
+
+    # clean up collective_dict
+    indicator_list = ['P3 Pupils', 'P6 Pupils', 'Teachers','Head Teachers']
+    for k,v in collective_result.items():
+        for item in indicator_list:
+            v.setdefault(item,'--')
+
+    # model 1 average of percentage
+    for item in chart_data:
+        for k, v in item.items():
+            output = []
+            avg_percent = 0
+            for val in v:
+                if len(school_with_no_zero_result) > 0 and val > 0:
+                    avg_percent = round(val / school_with_no_zero_by_indicator[k], 2)
+                output.append(avg_percent)
+            time_data_model1.append({'name': k, 'data': output})
+
+    # model 2 percentage
+    for key, entry in attendance_by_indicator.items():
+        data = []
+        for item in entry:
+            percent = round(compute_absent_values(item['present'], item['enrollment']), 2)
+            data.append(percent)
+        time_data_model2.append({'name': key, 'data': data})
+
+    if report_mode == None:
+        chart_results_model = time_data_model1
+        report_mode = 'average'
+    elif report_mode == 'average':
+        chart_results_model = time_data_model1
+    elif report_mode == 'percent':
+        chart_results_model = time_data_model2
+
+    return collective_result, chart_results_model, school_data, tooltip,report_mode
+
 
 def get_aggregated_report_data(locations, time_range, config_list,report_mode = None):
     collective_result = {}
@@ -224,8 +400,6 @@ def get_aggregated_report_data(locations, time_range, config_list,report_mode = 
 
     tooltip = []
     chart_results_model = {}
-
-
     if report_mode == None:
         chart_results_model = time_data_model1
         report_mode = 'average'
@@ -235,6 +409,7 @@ def get_aggregated_report_data(locations, time_range, config_list,report_mode = 
         chart_results_model = time_data_model2
 
     return collective_result, chart_results_model, school_data, tooltip,report_mode
+
 
 
 def get_aggregated_report_data_single_indicator(locations, time_range, config_list,report_mode = None):
@@ -409,6 +584,20 @@ def get_count_for_yes_no_response(polls, locations=None, time_range=None):
     return yes, no
 
 
+def get_count_for_yes_no_by_school(polls, School=None, time_range=None):
+    yes = 0
+    no = 0
+    if time_range:
+        if School:
+            responses = Response.objects.filter(date__range=time_range, poll__in=polls, has_errors=False,contact__emisreporter__schools__in=School, message__direction='I')
+            for response in responses:
+                if 'yes' in response.message.text.lower():
+                    yes += 1
+                if 'no' in response.message.text.lower():
+                    no += 1
+    return yes, no
+
+
 #  Function called to populate in-memory Data, reduces on number of db queries per request.
 def get_record_collection(locations, time_range):
     results = []
@@ -432,6 +621,12 @@ def get_deployed_head_Teachers(dataSource, locations=None):
         result = len(deployedHeadTeachers)
     return result
 
+def get_deployed_head_Teachers_by_school(school, locations=None):
+    result = 0
+    if locations:
+        deployedHeadTeachers = EmisReporter.objects.filter(reporting_location__in=locations,schools__in=school,groups__name='SMC').distinct()
+        result = len(deployedHeadTeachers)
+    return result
 
 def get_attendance_data(polls, locations=None, time_range=None):
     results = []
@@ -468,8 +663,7 @@ def get_numeric_data_by_school(polls, schools=None, time_range=None):
     results = []
     if time_range:
         if schools:
-            responses = Response.objects.filter(date__range=time_range, poll__in=polls, has_errors=False,
-                                                contact__emisreporter__schools__in=schools, message__direction='I')
+            responses = Response.objects.filter(date__range=time_range, poll__in=polls, has_errors=False,contact__emisreporter__schools__in=schools, message__direction='I')
             for response in responses:
                 results.append(get_digit_value_from_message_text(response.message.text))
 

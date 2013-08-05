@@ -124,8 +124,7 @@ function displaySchoolPercent(school_percent){
                 $.each(set,function(index,dataObject){
                     $.each(dataObject,function(district,value){
                         result +='<tr>';
-                        //result +='<td><a href="/edtrac/detail-attd/'+district+'/" >'+district+'</a></td>';
-                        result +='<td>'+district+'</td>';
+                         result +='<td><a href="/edtrac/district-report/?district='+district+'&report_mode=average">'+district+'</a></td>';
                         result +='<td>'+value+'</td>';
                         result +='</tr>';
                     }); }); });

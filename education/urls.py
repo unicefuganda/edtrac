@@ -281,6 +281,7 @@ urlpatterns = patterns('',
     url(r'^edtrac/attdmap/$', attendance_visualization, name="attendance-visualization"),
     url(r'^edtrac/detail-attd/$', detail_attd, name="detail-attend-visualization"),
     url(r'^edtrac/detail-dash/$', report_dashboard, name="detail-attendance-visualization"),
+    url(r'^edtrac/district-report/$', report_district_dashboard, name="district-visualization"),
     url(r'^edtrac/term-dash/$', term_dashboard, name="term-dash-visualization"),
     url(r'^edtrac/filter-dash/$', time_range_dashboard, name="time-range-dash-visualization"),
     url(r'^edtrac/detail-attd/(?P<district>\w+)/$', detail_attd, name="detail-attendance-visualization"),
@@ -295,6 +296,7 @@ urlpatterns = patterns('',
     url(r"^edtrac/api/dashReport/$", dash_report_api, name="json-report-data-request"),
     url(r'^edtrac/api/dashReport/params/$',dash_report_params, name="dash_report_params"),
     url(r"^edtrac/api/dashReport/term/$", dash_report_term, name="json-report-term-data-request"),
+    url(r"^edtrac/api/district-report/$", dash_report_district, name="json-report-term-data-request"),
 
     
 # the urls for violence views that I am testing 
