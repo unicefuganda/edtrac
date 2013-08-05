@@ -1394,10 +1394,16 @@ def total_number_of_schools_that_responded_to_all_violence_questions():
     schools_responding_to_boys_violence = [__get_school_name_from(response) for response in __get_responses_for("edtrac_violence_boys")]
     schools_responding_to_girls_violence = [__get_school_name_from(response) for response in __get_responses_for("edtrac_violence_girls")]
     schools_that_referred_violence = [__get_school_name_from(response) for response in __get_responses_for("edtrac_violence_reported")]
-    return len(set(schools_responding_to_boys_violence).intersection(schools_responding_to_girls_violence).intersection(schools_that_referred_violence))
+    schools_that_answered_all_questions = list(set(schools_responding_to_boys_violence).intersection(schools_responding_to_girls_violence).intersection(schools_that_referred_violence))
+    valid_school_names = [school for school in schools_that_answered_all_questions if school is not None]
+    return len(valid_school_names)
 
 def __get_school_name_from(response):
-    return response.contact.emisreporter.schools.all()[0].name
+    try:
+        school_name = response.contact.emisreporter.schools.all()[0].name
+    except IndexError:
+        school_name = None
+    return school_name
 
 def __get_responses_for(poll_name):
     responses_for_all_questions = Response.objects.filter(poll__name__in =["edtrac_violence_girls","edtrac_violence_boys","edtrac_violence_reported"])
