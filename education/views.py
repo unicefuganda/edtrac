@@ -657,6 +657,19 @@ def head_teachers_male(locations):
             'm_head_t_class' : m_head_t_class}
 
 
+def schools_valid(locations):
+    reporters = []
+    for location in locations:
+        reporters += EmisReporter.objects.filter(groups__name__in=['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters', 'DEO', 'MEO'],
+            reporting_location__in=location.get_descendants(include_self=True)).exclude(connection__in=Blacklist.objects.all()).exclude(schools=None)
+
+    schools = []
+    for r in reporters:
+        schools = schools + list(r.schools_list())
+
+    school_valid = len(list(set(schools)))
+    return {'total_schools_valid': school_valid}
+
 def schools_active(locations):
     try:
         count_reps = EmisReporter.objects.filter(groups__name__in=['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters', 'DEO', 'MEO'],
@@ -712,8 +725,10 @@ def total_schools(locations):
     return {'total_schools' : total_schools }
 
 def total_reporters(locations):
-    total_reporters = EmisReporter.objects.filter(groups__name__in=['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters', 'DEO', 'MEO'],
-                            reporting_location__in = locations).exclude(connection__in=Blacklist.objects.all()).exclude(schools=None).count()
+    total_reporters = 0
+    for location in locations:
+        total_reporters += EmisReporter.objects.filter(groups__name__in=['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters', 'DEO', 'MEO'],
+            reporting_location__in=location.get_descendants(include_self=True)).exclude(connection__in=Blacklist.objects.all()).exclude(schools=None).count()
 
     return {'total_reporters' : total_reporters }
 
@@ -747,6 +762,9 @@ def generate_dashboard_vars(location=None):
 
     #active schools
     context_vars.update(schools_active(locations))
+
+    #valid schools
+    context_vars.update(schools_valid(locations))
 
     #SMC meetings
     context_vars.update(smc_meetings(locations))

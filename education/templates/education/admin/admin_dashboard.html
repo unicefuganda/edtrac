@@ -114,11 +114,11 @@ Dashboard - {{ block.super }}
                     <tbody>
                         <tr>
                             <td class="value">{{ total_reporters }}</td>
-                            <td class="full">Number of Valid Reporters</td>
+                            <td class="full">Valid Reporters</td>
                         </tr>
                         <tr>
-                            <td class="value">{{ total_schools }}</td>
-                            <td class="full">Number of Schools Enrolled</td>
+                            <td class="value">{{ total_schools_valid }}</td>
+                            <td class="full">Schools Tracked</td>
                         </tr>
                         <tr>
                             <td class="value"><a href="{% url emis-national-stats %}">{{ school_active|floatformat }}%</a></td>
