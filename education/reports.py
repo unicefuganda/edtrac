@@ -362,6 +362,7 @@ def messages(request):
         user_location = get_location(request)
         messages = Message.objects.select_related()\
             .exclude(connection__identity__in=getattr(settings, 'MODEM_NUMBERS'))\
+            .exclude(connection__in=Blacklist.objects.all().values_list('connection'))\
             .filter(direction='I',
                     connection__contact__emisreporter__reporting_location__in=
                     user_location.get_descendants(include_self=True).all())
