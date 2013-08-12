@@ -1456,7 +1456,7 @@ def get_count_response_to_polls(poll_queryset, location_name=None, **kwargs):
                     Contact.objects.filter(reporting_location=Location.objects.filter(type="district").get(name=key)).
                     select_related(), date__range=get_month_day_range(datetime.datetime.now())).select_related()
 
-                resp_values = [r.eav.poll_number_value for r in resps]
+                resp_values = [r.eav.poll_number_value for r in resps if hasattr(r.eav, 'poll_number_value')]
                 expected_reports = School.objects.filter(pk__in = EmisReporter.objects.exclude(schools = None).\
                     filter(reporting_location = Location.objects.filter(type="district").get(name=key)).\
                     values_list('schools__pk', flat=True)).count()

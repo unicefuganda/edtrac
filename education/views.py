@@ -690,7 +690,7 @@ def smc_meetings(locations):
                             contact__reporting_location__in=locations,
                             date__range =\
                             [getattr(settings, 'SCHOOL_TERM_START'),
-                             getattr(settings, 'SCHOOL_TERM_END')]).select_related() if r.eav.poll_number_value is not None]
+                             getattr(settings, 'SCHOOL_TERM_END')]).select_related() if hasattr(r.eav, 'poll_number_value') and r.eav.poll_number_value is not None]
     zero_count = meetings.count(0)
 
     try:
