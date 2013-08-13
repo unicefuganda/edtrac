@@ -13,6 +13,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import user_passes_test
 from django.utils.decorators import method_decorator
 from django.views.generic import DetailView, TemplateView, ListView
+from django.views.decorators.vary import vary_on_cookie
 from django.db.models import Q
 import xlwt
 from django.utils.safestring import mark_safe
@@ -297,6 +298,7 @@ def dash_district_meetings(req, district_name):
 # Dashboard specific view functions
 
 @login_required
+@vary_on_cookie
 def dashboard(request):
     return admin_dashboard(request)
 
