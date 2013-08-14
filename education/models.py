@@ -272,7 +272,7 @@ def match_group_response(session, response, poll):
         category = Category.objects.get(name='unknown', poll=poll)
         logger.info('Category not found, so defaulting to: %s corresponding to response: %s ' % (category, response))
     try:
-        #some times an answer for role might be missing    
+        #some times an answer for role might be missing
         resp = session.responses.filter(response__poll=poll, response__has_errors=False).order_by('-response__date')[0]
         logger.info('Response stored in this session: %s ' % resp.response.message)
         try:
@@ -346,9 +346,9 @@ def edtrac_autoreg(**kwargs):
 
     connection.contact = contact
     connection.save()
-    
+
     group = grp
-    if contact.groups.count() > 0: 
+    if contact.groups.count() > 0:
         for g in contact.groups.all():
             contact.groups.remove(g)
     contact.groups.add(group)
@@ -401,8 +401,8 @@ def edtrac_autoreg(**kwargs):
         if reporting_school:
             contact.schools.add(reporting_school)
             contact.save()
-            
-        
+
+
 
     if not getattr(settings, 'TRAINING_MODE', False):
         # Now that you have their roll, they should be signed up for the periodic polling
@@ -423,7 +423,7 @@ def edtrac_autoreg(**kwargs):
 def edtrac_reschedule_script(**kwargs):
     connection = kwargs['connection']
     progress = kwargs['sender']
-    
+
     slug = progress.script.slug
     if not progress.script.slug.startswith('edtrac_') or progress.script.slug == 'edtrac_autoreg':
         return
@@ -450,9 +450,9 @@ def edtrac_reschedule_script(**kwargs):
 
 
 def edtrac_autoreg_transition(**kwargs):
-    
+
     # logger.info('Keyword arguments: %s' % kwargs)
-    
+
     connection = kwargs['connection']
     progress = kwargs['sender']
     if not progress.script.slug == 'edtrac_autoreg':
@@ -472,9 +472,9 @@ def edtrac_autoreg_transition(**kwargs):
 #        group = find_closest_match(role, Group.objects) or find_closest_match(role, Group.objects, True)
     if role:
         group = match_group_response(session, role, role_poll)
-        
+
         logger.info('Identified group: %s'% group.name)
-        
+
         skipsteps = {
             'edtrac_class' : ['Teachers'],
             'edtrac_gender' : ['Head Teachers'],
@@ -487,9 +487,9 @@ def edtrac_autoreg_transition(**kwargs):
             for step_name, roles in skipsteps.items():
                 if  progress.step.poll and\
                     progress.step.poll.name == step_name and group.name not in roles:
-                    
+
                     logger.info('SKIPPED! %s -> %s:' % (step_name, progress.step.poll.question))
-                    
+
                     skipped = True
                     progress.step = progress.script.steps.get(order=progress.step.order + 1)
                     progress.save()
@@ -499,7 +499,7 @@ def edtrac_attendance_script_transition(**kwargs):
     connection = kwargs['connection']
     progress = kwargs['sender']
 #    if not progress.script.slug == 'edtrac_teachers_weekly':
-    if not progress.script.slug in ['edtrac_p3_teachers_weekly', 'edtrac_p6_teachers_weekly']:    
+    if not progress.script.slug in ['edtrac_p3_teachers_weekly', 'edtrac_p6_teachers_weekly']:
         return
     script = progress.script
     try:
@@ -578,6 +578,7 @@ def all_steps_answered(script):
 def get_message_string(atttd_diff, emisreporter_grade, keys, progress):
     if (None,'') in atttd_diff.values():
         return None
+    return None
     if progress.script.slug == 'edtrac_head_teachers_weekly':
 
        return "Thankyou, Attendance for male teacher have been %s by %spercent Attendance for female teachers have been %s by %spercent" % (
@@ -702,7 +703,7 @@ def reschedule_midterm_polls(grp = 'all', date=None):
         for rep in reps:
             if rep.default_connection and rep.groups.count() > 0:
                 _schedule_midterm_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers'], date)
-                
+
 def reschedule_termly_polls(grp = 'all', date=None):
 
     """
@@ -726,57 +727,57 @@ def reschedule_termly_polls(grp = 'all', date=None):
         for rep in reps:
             if rep.default_connection and rep.groups.count() > 0:
                 _schedule_termly_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers', 'SMC'], date)
-                
+
 def reschedule_termly_script(grp = 'all', date=None, slug=''):
-    
+
     """
     manually reschedule each of the termly scripts for headteachers
     """
-    
+
     tscript = Script.objects.get(slug=slug)
     if not grp == 'all':
         ScriptProgress.objects.filter(script=tscript).filter(connection__contact__emisreporter__groups__name__iexact=grp).delete()
     else:
         ScriptProgress.objects.filter(script=tscript).delete()
-        
+
     tscript.enabled=True
     grps = Group.objects.filter(name__iexact=grp) if not grp == 'all' else Group.objects.filter(name__in=['Head Teachers', 'SMC', 'GEM'])
     reps = EmisReporter.objects.filter(groups__in=grps)
     for rep in reps:
         if rep.default_connection and rep.groups.count() > 0:
             _schedule_termly_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers', 'SMC', 'GEM'], date)
-            
+
 def reschedule_monthly_script(grp = 'all', date=None, slug=''):
-    
+
     """
     manually reschedule each of the monthly scripts for headteachers
     """
-    
+
     tscript = Script.objects.get(slug=slug)
     if not grp == 'all':
         ScriptProgress.objects.filter(script=tscript).filter(connection__contact__emisreporter__groups__name__iexact=grp).delete()
     else:
         ScriptProgress.objects.filter(script=tscript).delete()
-        
+
     tscript.enabled=True
     grps = Group.objects.filter(name__iexact=grp) if not grp == 'all' else Group.objects.filter(name__in=['Head Teachers', 'SMC', 'GEM'])
     reps = EmisReporter.objects.filter(groups__in=grps)
     for rep in reps:
         if rep.default_connection and rep.groups.count() > 0:
             _schedule_new_monthly_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers', 'SMC', 'GEM'], date)
-    
+
 def reschedule_weekly_script(grp = 'all', date=None, slug=''):
-    
+
     """
     manually reschedule each of the termly scripts for headteachers
     """
-    
+
     tscript = Script.objects.get(slug=slug)
     if not grp == 'all':
         ScriptProgress.objects.filter(script=tscript).filter(connection__contact__emisreporter__groups__name__iexact=grp).delete()
     else:
         ScriptProgress.objects.filter(script=tscript).delete()
-        
+
     tscript.enabled=True
     grps = Group.objects.filter(name__iexact=grp) if not grp == 'all' else Group.objects.filter(name__in=['Teachers', 'Head Teachers'])
     reps = EmisReporter.objects.filter(groups__in=grps)
@@ -785,9 +786,9 @@ def reschedule_weekly_script(grp = 'all', date=None, slug=''):
             _schedule_weekly_script(rep.groups.all()[0], rep.default_connection, slug, ['Teachers', 'Head Teachers'])
             print rep.name
     print "Script sent out to " + str(reps.count()) + " reporters"
-    
+
 def schedule_script_now(grp = 'all', slug=''):
-    
+
     """
     manually reschedule script immediately
     """
@@ -795,8 +796,8 @@ def schedule_script_now(grp = 'all', slug=''):
     if not grp == 'all':
         ScriptProgress.objects.filter(script=now_script).filter(connection__contact__emisreporter__groups__name__iexact=grp).delete()
     else:
-        ScriptProgress.objects.filter(script=now_script).delete()    
-    
+        ScriptProgress.objects.filter(script=now_script).delete()
+
     now_script.enabled = True
     grps = Group.objects.filter(name__iexact=grp)
     reporters = EmisReporter.objects.filter(groups__in=grps)
