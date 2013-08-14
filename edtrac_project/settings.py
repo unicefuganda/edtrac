@@ -98,7 +98,7 @@ INSTALLED_APPS = [
     "django.contrib.humanize",
     "script",
     "poll",
-    "education", 
+    "education",
     # the rapidsms contrib apps.
     "rapidsms.contrib.default",
     "eav",
@@ -228,11 +228,13 @@ TEMPLATE_CONTEXT_PROCESSORS = [
 ]
 
 MIDDLEWARE_CLASSES = (
+    'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.transaction.TransactionMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',
     'reversion.middleware.RevisionMiddleware',
 )
 
