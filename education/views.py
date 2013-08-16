@@ -321,6 +321,7 @@ def capitation_grants(locations):
 
     return {'grant_percent': grant_percent}
 
+
 def violence_changes_girls(locations):
     """
     Percentage change in violance from the previous month
@@ -659,11 +660,11 @@ def head_teachers_male(locations):
             'm_head_t_class' : m_head_t_class}
 
 
-def schools_valid(locations):
-    reporters = []
-    for location in locations:
-        reporters += EmisReporter.objects.filter(groups__name__in=['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters', 'DEO', 'MEO'],
-            reporting_location__in=location.get_descendants(include_self=True)).exclude(connection__in=Blacklist.objects.all()).exclude(schools=None)
+def schools_valid(locations, group_names, blacklisted):
+    reporters = EmisReporter.objects.filter(
+        groups__name__in=group_names,
+        reporting_location__in=locations
+    ).exclude(connection__in=blacklisted).exclude(schools=None)
 
     schools = []
     for r in reporters:
@@ -693,6 +694,7 @@ def schools_active(locations):
 
     return {'school_active': school_active}
 
+
 def smc_meetings(locations):
     # SMC meetings are count based
     school_to_date = School.objects.filter(pk__in=EmisReporter.objects.\
@@ -713,26 +715,48 @@ def smc_meetings(locations):
     except ZeroDivisionError:
         total_meetings = 0
 
-    return {'smc_meetings' : total_meetings, 'schools_to_date': school_to_date}
+    return {'smc_meetings': total_meetings, 'schools_to_date': school_to_date}
 
-def total_schools(locations):
+
+def total_schools(locations, group_names, blacklisted):
     total_schools = 0
-    districts = Location.objects.filter(type="district").\
-                filter(name__in=EmisReporter.objects.filter(reporting_location__in = locations).exclude(schools=None).exclude(connection__in=Blacklist.objects.values_list('connection',flat=True)).values_list('reporting_location__name', flat=True))
+    districts = Location.objects.filter(
+        type="district"
+    ).filter(
+        name__in=EmisReporter.objects.filter(
+            reporting_location__in=locations
+        ).exclude(
+            schools=None
+        ).exclude(
+            connection__in=blacklisted
+        ).values_list('reporting_location__name', flat=True)
+    )
     for district in districts:
-        s_count = School.objects.filter(pk__in=EmisReporter.objects.exclude(schools=None).exclude(connection__in = Blacklist.objects.values_list('connection',flat=True)).\
-                                        filter(reporting_location__name = district.name).distinct().values_list('schools__pk',flat=True)).count()
+        s_count = School.objects.filter(
+            pk__in=EmisReporter.objects.exclude(
+                schools=None
+            ).exclude(
+                connection__in=blacklisted
+            ).filter(
+                reporting_location__name=district.name
+            ).distinct().values_list('schools__pk', flat=True)
+        ).count()
         total_schools += s_count
 
-    return {'total_schools' : total_schools }
+    return {'total_schools': total_schools}
 
-def total_reporters(locations):
-    total_reporters = 0
-    for location in locations:
-        total_reporters += EmisReporter.objects.filter(groups__name__in=['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters', 'DEO', 'MEO'],
-            reporting_location__in=location.get_descendants(include_self=True)).exclude(connection__in=Blacklist.objects.all()).exclude(schools=None).count()
 
-    return {'total_reporters' : total_reporters }
+def total_reporters(locations, group_names, blacklisted):
+    total_reporters = EmisReporter.objects.filter(
+        groups__name__in=group_names,
+        reporting_location__in=locations
+    ).exclude(
+        connection__in=blacklisted
+    ).exclude(
+        schools=None
+    ).count()
+
+    return {'total_reporters': total_reporters}
 
 # generate context vars
 def generate_dashboard_vars(location=None):
@@ -750,6 +774,10 @@ def generate_dashboard_vars(location=None):
     else:
         locations.append(location)
 
+    group_names = ['Teachers', 'Head Teachers', 'SMC', 'GEM',
+                   'Other Reporters', 'DEO', 'MEO']
+    blacklisted = Blacklist.objects.all().values_list('connection', flat=True)
+
     # violence girls
     context_vars.update(violence_changes_girls(locations))
 
@@ -766,7 +794,7 @@ def generate_dashboard_vars(location=None):
     context_vars.update(schools_active(locations))
 
     #valid schools
-    context_vars.update(schools_valid(locations))
+    context_vars.update(schools_valid(locations, group_names, blacklisted))
 
     #SMC meetings
     context_vars.update(smc_meetings(locations))
@@ -805,10 +833,10 @@ def generate_dashboard_vars(location=None):
     context_vars.update(meals_missed(locations))
 
     #Total Schools
-    context_vars.update(total_schools(locations))
+    context_vars.update(total_schools(locations, group_names, blacklisted))
 
     #Total Reporters
-    context_vars.update(total_reporters(locations))
+    context_vars.update(total_reporters(locations, group_names, blacklisted))
 
     return context_vars
 
