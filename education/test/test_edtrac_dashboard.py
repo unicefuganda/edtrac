@@ -395,11 +395,15 @@ class TestEdtracDashboard(TestCase):
         self.assertAlmostEqual(50.0, grants['grant_percent'], places=1)
 
     def test_number_of_valid_schools(self):
-        total_school = total_schools(self.root_node.get_children())
+        grp = ['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters',
+               'DEO', 'MEO']
+        total_school = total_schools(self.root_node.get_children(), grp, [])
         self.assertEqual(3, total_school['total_schools'])
 
     def test_number_of_valid_reporters(self):
-        total_reporter = total_reporters(self.root_node.get_children())
+        grp = ['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters',
+               'DEO', 'MEO']
+        total_reporter = total_reporters(self.root_node.get_children(), grp, [])
         self.assertEqual(3, total_reporter['total_reporters'])
 
     def fake_incoming(self, message, connection):
