@@ -2519,6 +2519,7 @@ def edit_school(request, school_pk):
                  'school': school},
             context_instance=RequestContext(request))
 
+
 @login_required
 def school_detail(request, school_id):
     school = School.objects.get(id=school_id)
@@ -2531,6 +2532,9 @@ def school_detail(request, school_id):
 
     monthly_data = []
     monthly_data_teachers = []
+    monthly_data_head_teachers = []
+    monthly_data_violence = []
+    monthly_data_meals = []
 
     for month_range in month_ranges:
         monthly_data.append(
@@ -2546,6 +2550,11 @@ def school_detail(request, school_id):
                 'edtrac_'+'%s'%slug + '_deployment', month_range = month_range, school=school) for slug in slug_list_tr])
 
     reporters = []
+    reps = school.emisreporter_set.values()
+    for rep in reps:
+        r = EmisReporter.objects.get(id=rep['id'])
+        reporters.append(r)
+
 
     boys_p3_enrolled = poll_responses_term('edtrac_boysp3_enrollment', belongs_to='schools', school = school)
     boys_p6_enrolled = poll_responses_term('edtrac_boysp6_enrollment', belongs_to='schools', school = school)
@@ -2558,6 +2567,9 @@ def school_detail(request, school_id):
         'months' : [d_start for d_start, d_end in month_ranges],
         'monthly_data' : monthly_data,
         'monthly_data_teachers' : monthly_data_teachers,
+        'monthly_data_head_teachers': monthly_data_head_teachers,
+        'monthly_data_violence' : monthly_data_violence,
+        'monthly_data_meals' : monthly_data_meals,
         'reporters' : reporters,
         'boys_p3_enrolled': boys_p3_enrolled,
         'boys_p6_enrolled': boys_p6_enrolled,
@@ -2839,11 +2851,12 @@ def meals(request, district_id=None):
         dates = get_xform_dates,
     )
 
+
 @super_user_required
 def edit_scripts(request):
 
     forms = []
-    for script in Script.objects.exclude(name = 'Special Script').order_by('slug'):
+    for script in Script.objects.exclude(name='Special Script').order_by('slug'):
         forms.append((script, ScriptsForm(instance=script)))
 
     if request.method == 'POST':
@@ -2851,7 +2864,7 @@ def edit_scripts(request):
         if script_form.is_valid():
             script_form.save()
 
-    return render_to_response('education/partials/edit_script.html', {'forms': forms},
+    return render_to_response('education/partials/edit_script.html', {'forms': forms, 'management_for': 'scripts'},
         context_instance=RequestContext(request))
 
 def emis_scripts_special(req):
@@ -3068,6 +3081,7 @@ def detail_attd_school(request, location):
     school_id = School.objects.get(name=name, location__name=location).id
     return redirect(reverse('school-detail',args=(school_id,)))
 
+
 class ExportPollForm(forms.Form):
     error_css_class = 'error'
     select_choices = list(Poll.objects.values_list(*['pk','name']))
@@ -3112,7 +3126,10 @@ def _format_responses(responses):
         if response.poll.type == "t":
             value = response.eav.poll_text_value
         elif response.poll.type == "n":
-            value = response.eav.poll_number_value
+            if hasattr(response.eav, 'poll_number_value'):
+                value = response.eav.poll_number_value
+            else:
+                value = 0
         elif response.poll.type == 'l':
             value = response.eav.poll_location_value.name
         category = response.categories.values_list('category__name',flat=True)
@@ -3136,9 +3153,9 @@ def _format_reporters(reporters):
 @login_required
 def edtrac_export_poll_responses(request):
     profile = request.user.get_profile()
-    if not (profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of(
-            'UNICEF Officials')):
-        return redirect('/')
+#    if not (profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of(
+#            'UNICEF Officials')):
+#        return redirect('/')
 
     if request.method == 'GET':
         form = ExportPollForm()

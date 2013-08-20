@@ -1,0 +1,14 @@
+<div class="well">
+	<h3>SMC Meetings</h3>
+	<table class="table table-condensed">
+		<tr>
+			<th>Indicator</th>
+			<th>Value</th>
+		</tr>
+		<tr>
+			<td>School Management Committee meetings</td>
+			<td>{{ smc_meetings|floatformat }} %</td>
+		</tr>
+	</table>
+	<a href="{% url emis-dash-admin-meetings %}" class="btn btn-secondary">View Details</a>
+</div>

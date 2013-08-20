@@ -1,376 +1,79 @@
-{% extends "generic/base.html" %}
+{% extends "layout.html" %}
 {% load humanize %}
 {% load i18n %}
 {% load stats_extras %}
 {% block title %}
 Dashboard - {{ block.super }}
 {% endblock %}
-{% block stylesheets %}
-<link rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/jquery-ui-1.8.19.custom.css"/>
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/bootstrap.min.css" />
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/bootstrap-responsive.min.css" />
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/application.css" />
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/dashboard.css" />
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/tablecloth.css" />
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/prettify.css" /> 
-{% endblock %}
 
 {% block javascripts %}
 {{ block.super }}
-    <script src="{{ MEDIA_URL }}education/javascripts/jquery-1.7.1.min.js" type="text/javascript"></script>
     <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-ui-1.8.19.custom.min.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-ui-1.7.3.custom.min.js"></script>
     <script src="{{ MEDIA_URL }}education/javascripts/add_datepicker.js" type="text/javascript"></script>
 {% endblock %}
 
 <div id="wrapper">
 
-
-{% block header %}
-<div id="topbar">
-  
-  <div class="container">
-    
-    <a href="javascript:;" id="menu-trigger" class="dropdown-toggle" data-toggle="dropdown" data-target="#">
-      <i class="icon-cog"></i>
-    </a>
-  
-    <div id="top-nav">      
-      <ul class="pull-right">
-        {% if user.is_authenticated %}
-        <li><a href=""><i class="icon-user"></i> Logged in as {{ user.username }}</a></li>
-        <li><a href="{% url rapidsms-logout %}">Logout</a></li>
-        {% else %}
-        <li><a href="{% url rapidsms-login %}">{% trans "Log in" %}</a></li>
-        {% endif %}
-      </ul>
-      
-    </div> <!-- /#top-nav -->
-    
-  </div> <!-- /.container -->
-  
-</div> <!-- /#topbar -->
-<div id="header">
-    
-    <div class="container">
-
-
-      <a href="{% url rapidsms-dashboard %}" style="position:relative;top:20px;display: block;overflow: hidden;width: 180px;height: 45px;margin-right: .75em;"><img src="{{MEDIA_URL }}education/icons/web_logo.png" alt="EduTrac"></a>
-    
-    <a href="javascript:;" class="btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-          <i class="icon-reorder"></i>
-    </a>
-
-    <div class="nav-collapse">
-      <ul id="main-nav" class="nav pull-right">
-        <li>
-          <a href="{% url rapidsms-dashboard %}">
-            <!-- <i class="icon-home"></i> -->
-            <span>Home</span>                 
-          </a>
-        </li>
-        
-        <li class="dropdown">         
-          <a href="/edtrac/control-panel/">
-            <span>Control Panel</span> 
-          </a>  
-        </li>
-      </ul>
-      
-    </div> <!-- /.nav-collapse -->
-    </div> 
-    
-</div>  
-
-<div id="masthead">
-    
-    <div class="container">
-        
-        <div class="masthead-pad">
-            
-            <div class="masthead-text">
-                <h2>Dashboard</h2>
-                <p>A summary of the most vital statistics.</p>
-            </div> <!-- /.masthead-text -->
-            
-        </div>
-        
-    </div> <!-- /.container --> 
-    
-</div> <!-- /#masthead -->
-
-
-
+{% block masthead %}
+<div class="page-header">
+	<h1>Dashboard<small> - A summary of the monitored indicators</small></h1>
+</div>
 {% endblock %}
+
 {% block content %}
-<div id="content">
+<div class="container">
+	<div class="row">
+		<div class="span4">{% include "education/admin/dashboard/stat_summary.html" %}</div>
+		<div class="span8">{% include "education/admin/dashboard/alerts.html" %}</div>
+	</div>
 
-  <div class="container">
-    <div class="row">
-      <h2 class="title">This Week ({{ month|date:"D d M Y" }})</h2>
-        <div class="span4">
-          <h3 class="title">Stat summary</h3>
-                <table class="table stat-table">
-                    <tbody>
-                        <tr>
-                            <td class="value">{{ total_reporters }}</td>
-                            <td class="full">Valid Reporters</td>
-                        </tr>
-                        <tr>
-                            <td class="value">{{ total_schools_valid }}</td>
-                            <td class="full">Schools Tracked</td>
-                        </tr>
-                        <tr>
-                            <td class="value"><a href="{% url emis-national-stats %}">{{ school_active|floatformat }}%</a></td>
-                            <td class="full">Percentage that recently reported</td>
-                        </tr>
-                        <!-- <tr>
-                            <td class="value">17</td>
-                            <td class="full">Support Requests</td>
-                        </tr> -->
-                    </tbody>
-                </table>
+	<div class="tabbable"> <!-- Only required for left/right tabs -->
+		<ul class="nav nav-tabs">
+			<li class="active"><a href="#this-week" data-toggle="tab">This Week</a></li>
+			<li><a href="#this-month" data-toggle="tab">This Month</a></li>
+			<li><a href="#this-term" data-toggle="tab">This Term</a></li>
+		</ul>
+		<div class="tab-content">
+			<div class="tab-pane active" id="this-week">
+				<h2>This Week ({{ month|date:"D d M Y" }})</h2>
+				<div class="row">
+					<div class="span8">{% include "education/admin/dashboard/absenteeism.html" %}</div>
+					<div class="span4">
+						{% include "education/admin/dashboard/recently_reported.html" %}
+						{% include "education/admin/dashboard/curriculum_progress.html" %}
+					</div>
+				</div>
+			</div>
+			<div class="tab-pane" id="this-month">
+				<h2>This Month ({{ month|date:"M Y" }})</h2>
+				<div class="row">
+					<div class="span6"> {% include "education/admin/dashboard/violence.html" %} </div>
+					<div class="span6"> {% include "education/admin/dashboard/meals.html" %} </div>
+				</div>
+			</div>
+			<div class="tab-pane" id="this-term">
+				<h2>This Term</h2>
+				<div class="row">
+					<div class="span6"> {% include "education/admin/dashboard/upe_grant.html" %} </div>
+					<div class="span6"> {% include "education/admin/dashboard/smc_meetings.html" %} </div>
+				</div>
+				<div class="row">
+					<div class="span6"> {% include "education/admin/dashboard/latrine_stances.html" %} </div>
+					<div class="span6"> {% include "education/admin/dashboard/water_sources.html" %} </div>
+				</div>
 
-            </div> <!-- /.span4 -->
-            <div class="span4">
-              <h3 class="title">Curriculum Progress - P3 Literacy</h3>
-                <p>Shows how far on schedule the current literacy of P3 students is.</p>
-                  <div class="curriculum-progress progress progress-primary">
-                      {% if c_mode|islist %}
-                      <div class="bar" style="width:{{ mode_progress }}%;"><b>{{ c_mode|format_mode }}</b></div>
-                          <!-- <span style="width:{{ mode_progress }}%;"><b>{{ c_mode|format_mode }}</b></span> -->
-                      {% else %}
-                          <p style="color:red;">{{ c_mode }}</p>
-                      {% endif %}
-                  </div>
-                  <div class="actions">
-                    <a href="{% url emis-admin-curriculum-progress %}" class="btn btn-secondary">View Details</a>
-                </div>
-            </div>
-
-            <div class="span4">
-
-                <h3 class="title">Alerts</h3>
-                <div id="top_5_error_messages">
-                </div>
-            </div>
-            
-            <div class="span12">
-              <h3 class="title">Absenteeism</h3>
-
-              <table class="table tabulated-data">
-            <thead>
-              <tr>
-                <th>Reporter Group</th>
-                <th>Absent This Week</th>
-                <th>Absent Last Week</th>
-                <th>Weekly Change</th>
-              </tr>           
-            </thead>
-            
-            <tbody>
-            <tr>
-                    <td><a href="{% url detail-attendance-visualization %}">Boys P3</a></td>
-                    <td>{% if boysp3 == '--' %} {{ boysp3 }} {% else %} {{ boysp3|floatformat }}% {% endif %}</td>
-                    <td>
-                        {% if boysp3_past == '--' %} {{ boysp3_past }} {% else %} {{ boysp3_past|floatformat }}% {% endif %}
-                    </td>
-
-                    <td class="{{ boysp3_data }}">
-                        <span class="{{ boysp3_class  }}">
-                            {% if boysp3_diff == '--' %}
-                            {{ boysp3_diff }}
-                            {% else %}
-                            {{ boysp3_diff|floatformat }}%
-                            {% endif %}
-                        </span>
-                    </td>
-                </tr>
-                <tr>
-                    <td><a href="{% url detail-attendance-visualization %}">Girls P3</a></td>
-                    <td>{% if girlsp3 == '--' %} {{ girlsp3 }} {% else %}{{ girlsp3|floatformat }}%{% endif %}</td>
-                    <td>{% if girlsp3_past == '--' %} {{ girlsp3_past }} {% else %}{{ girlsp3_past|floatformat }}%{% endif %}</td>
-                    <td class="{{ girlsp3_data }}"><span class="{{ girlsp3_class }}">
-                        {% if girlsp3_diff == '--' %}
-                        {{ girlsp3_diff }}
-                        {% else %}
-                        {{ girlsp3_diff|floatformat }}%
-                        {% endif %}
-                    </span></td>
-                </tr>
-                <tr>
-                    <td><a href="{% url detail-attendance-visualization %}">Boys P6</a></td>
-                    <td>{% if boysp6 == '--' %} {{ boysp6 }} {% else %} {{ boysp6|floatformat }}%{% endif %}</td>
-                    <td>{% if boysp6_past == '--' %} {{ boysp6_past }} {% else %}{{ boysp6_past|floatformat }}%{% endif %}</td>
-                    <td class="{{ boysp6_data }}">
-                        <span class="{{ boysp6_class }}">{% if boysp6_diff == '--' %} {{ boysp6_diff }} {% else %}
-                            {{ boysp6_diff|floatformat }}%{% endif %}</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td><a href="{% url detail-attendance-visualization %}">Girls P6</a></td>
-                    <td>{% if girlsp6 == '--' %}{{ girlsp6 }} {% else %}{{ girlsp6|floatformat }}%{% endif %}</td>
-                    <td>{% if girlsp6_past == '--' %}{{ girlsp6_past }} {% else %}{{ girlsp6_past|floatformat }}%{% endif %}</td>
-                    <td class="{{ girlsp6_data }}">
-                        <span class="{{ girlsp6_class }}">
-                            {% if girlsp6_diff == '--' %}
-                                {{ girlsp6_diff }}
-                            {% else %}
-                                {{ girlsp6_diff|floatformat }}%
-                            {% endif %}
-                        </span>
-                    </td>
-                </tr>
-                <tr>
-                    <td><a href="{% url detail-attendance-visualization %}">Female Teachers</a></td>
-                    <td>{% if female_teachers == '--' %} {{ female_teachers }} {% else %} {{ female_teachers|floatformat }}%{% endif %}</td>
-                    <td>{% if female_teachers_past == '--' %} {{ female_teachers_past }} {% else %}
-                        {{ female_teachers_past|floatformat }}%{% endif %}</td>
-                    <td class="{{ female_teachers_data }}">
-                        <span class="{{ female_teachers_class }}">
-                            {% if female_teachers_diff == '--' %} {{ female_teachers_diff }} {% else %}{{ female_teachers_diff|floatformat }}%{% endif %}</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td><a href="{% url detail-attendance-visualization %}">Male Teachers</a></td>
-                    <td>{% if male_teachers == '--' %} {{ male_teachers }} {% else %} {{ male_teachers|floatformat }}%{% endif %}</td>
-                    <td>{% if male_teachers_past == '--' %} {{ male_teachers_past }} {% else %} {{ male_teachers_past|floatformat }}%{% endif %}</td>
-                    <td class="{{ male_teachers_data }}">
-                        <span class="{{ male_teachers_class }}">{% if male_teachers_diff == '--' %} {{ male_teachers_diff }}
-                            {% else %} {{ male_teachers_diff|floatformat }}%{% endif %}</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td><a href="{% url detail-attendance-visualization %}">Female H Teachers</a></td>
-                    <td>{% if f_head_t_week == '--' %} {{ f_head_t_week }} {% else %} {{ f_head_t_week|floatformat }}%{% endif %}</td>
-                    <td>{% if f_head_t_week_before == '--' %}{{ f_head_t_week_before }} {% else %} {{ f_head_t_week_before|floatformat }}%{% endif %}</td>
-                    <td class="{{ f_head_t_data }}"><span class="{{ f_head_t_class }}">{% if f_head_diff == '--' %}{{ f_head_diff }}{% else %} {{ f_head_diff|floatformat }}%{% endif %}</span></td>
-                </tr>
-                <tr>
-                    <td><a href="{% url detail-attendance-visualization %}">Male H Teachers</a></td>
-                    <td>{% if m_head_t_week == '--' %} {{ m_head_t_week }} {% else %} {{ m_head_t_week|floatformat }}%{% endif %}</td>
-                    <td>{% if m_head_t_week_before == '--' %}{{ m_head_t_week_before }} {% else %} {{ m_head_t_week_before|floatformat }}%{% endif %}</td>
-                    <td class="{{ m_head_t_data }}">
-                      <span class="{{ m_head_t_class }}">
-                        {% if m_head_diff == '--' %}{{ m_head_diff }}{% else %} {{ m_head_diff|floatformat }}%{% endif %}
-                        </span>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-                <div class="actions">
-                  <a href="{% url attendance-admin-details%}" class="btn btn-secondary">View Details</a>
-                  <a href="/edtrac/detail-dash/" class="btn">View Graph</a>
-                </div>
-                </div><!-- /.span8 -->
-              </div> <!-- /.row -->
-
-        <div class="row">
-          <hr>
-        </div>
-
-          <div class="row">
-            <h2 class="title">This Month ({{ month|date:"M Y" }})</h2>
-                  <div class="span6">
-                    <h3 class="title">Violence</h3>
-                    <table class="table tabulated-data">
-                    <thead>
-                      <tr>
-                        <th>Group</th>
-                        <th>Monthly Change</th>
-                      </tr>           
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>Girls Cases</td>
-                        <td class="data {{ violence_change_girls_data }}"><span class="value {{ violence_change_girls_class }}">{{ violence_change_girls|floatformat }}% {{ violence_change_girls_class }}</span></td>
-                      </tr>
-                      <tr>
-                        <td>Boys Cases</td>
-                        <td class="data {{ violence_change_boys_data }}"><span class="value {{ violence_change_boys_class }}">{{ violence_change_boys|floatformat }}% {{ violence_change_boys_class }}</span></td>
-                      </tr>
-                      <tr>
-                        <td>Cases Referred to Police</td>
-                        <td class="data {{ violence_change_reported_data }}"><span class="value {{ violence_change_reported_class }}">{{ violence_change_reported|floatformat }}% {{ violence_change_reported_class }}</span></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                  <div class="actions">
-                  <a href="{% url violence-admin-details %}" class="btn btn-secondary">View Details</a>
-                </div>
-                  
-                  </div>
-                  <div class="span6">
-                    <h3 class="title">Meals at School</h3>
-                    <table class="table tabulated-data">
-                    <thead>
-                      <tr>
-                        <th>Detail</th>
-                        <th>Monthly Change</th>
-                      </tr>           
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>Meals Missed</td>
-                        <td class="data {{ meal_change_data }}"><span class="value {{ meal_change_class }}">{{ worst_meal.1.0.1|floatformat }}% {{ meal_change_class }}</span></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                  <div class="actions">
-                  <a href="{% url admin-meals-details %}" class="btn btn-secondary">View Details</a>
-                </div>
-                    
-                  </div>
-                </div>
-
-                <div class="row">
-                  <hr>
-                </div>
-
-                <div class="row">
-                  <h2 class="title">This Term</h2>
-                    
-                    <table class="table tabulated-data">
-                    <thead>
-                      <tr>
-                        <th>Termly Indicator</th>
-                        <th>Percentage</th>
-                        <th>Details</th>
-                      </tr>           
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>School Management Committee meetings</td>
-                        <td class="data"><span class="value zero">{{ smc_meetings|floatformat }}%</span></td>
-                        <td><a href="{% url emis-dash-admin-meetings %}" class="btn btn-secondary">View Details</a></td>
-                      </tr>
-                      <tr>
-                        <td>UPE Capitation Grants received</td>
-                        <td class="data"><span class="value increase">{{ grant_percent|floatformat }}%</span></td>
-                        <td><a href="{% url emis-grants %}" class="btn btn-secondary">View Details</a></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-            </div> 
-            
-        </div> 
+			</div>
+		</div>
+	</div>
 
 
-    </div>
-    
-</div> <!-- /.container -->
-
-</div> <!-- /#content -->
-</div> <!-- end wrapper -->
-
-<script src="{{MEDIA_URL}}contact/javascripts/messages.js" type="text/javascript"></script>
-<script src="{{MEDIA_URL}}education/javascripts/emis_reporters.js" type="text/javascript"></script>
-<script src="{{MEDIA_URL}}education/javascripts/bootstrap-modal.js" type="text/javascript"></script>
-<script src="{{MEDIA_URL}}education/javascripts/jquery.metadata.js"></script>
-<script src="{{MEDIA_URL}}education/javascripts/jquery.tablesorter.min.js"></script>
-<script src="{{MEDIA_URL}}education/javascripts/jquery.tablecloth.js"></script>
-<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/alert_messages.js"></script>
+	<script src="{{MEDIA_URL}}contact/javascripts/messages.js" type="text/javascript"></script>
+	<script src="{{MEDIA_URL}}education/javascripts/emis_reporters.js" type="text/javascript"></script>
+	<script src="{{MEDIA_URL}}education/javascripts/bootstrap-modal.js" type="text/javascript"></script>
+	<script src="{{MEDIA_URL}}education/javascripts/jquery.metadata.js"></script>
+	<script src="{{MEDIA_URL}}education/javascripts/jquery.tablesorter.min.js"></script>
+	<script src="{{MEDIA_URL}}education/javascripts/jquery.tablecloth.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/alert_messages.js"></script>
     
     <script type="text/javascript" charset="utf-8">
       $(document).ready(function() {
@@ -382,5 +85,7 @@ Dashboard - {{ block.super }}
         });
       });
     </script>
+
+</div> <!-- /.container -->
 
 {% endblock %}

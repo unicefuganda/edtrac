@@ -1,35 +1,47 @@
-{% extends "layout.html" %}
-{% load forms_tags %}
-{% block title %}Login{% endblock %}
+{% extends 'layout.html' %}
+{% block auth %}
+{% endblock %}
+
 {% block content %}
-
-{% if form.errors %}
-<p>Oops. Your username and password didn't match. Please try again.</p>
-{% endif %}
-
 {% if user.is_authenticated %}
 <p>You're already logged in!</p>
-
 {% else %}
 
-<h1>Please log in to EduTrac</h1>
+{% if form.errors %}
+<div class="alert fade in">
+	<button type="button" class="close" data-dismiss="alert">&times;</button>
+	Oops. Your username and password didn't match. Please try again.
+</div>
+{% endif %}
 
+<div class="row">
+	<div class="span5 offset3 well">
+		<form class="form-signin" method="post" action="{% url rapidsms-login %}">
+			<h2 class="form-signin-heading">Please sign into Edutrac</h2>
 
-<form method="post" action="{% url rapidsms-login %}">
-    <table>
-        <tr>
-            <td>{{ form.username.label_tag }}</td>
-            <td>{{ form.username }}</td>
-        </tr>
-        <tr>
-            <td>{{ form.password.label_tag }}</td>
-            <td>{{ form.password }}</td>
-        </tr>
-    </table>
-    {% csrf_token %}
-    <input type="submit" value="login" />
-    <input type="hidden" name="next" value="{{ next }}" />
-</form>
+			<table class="table">
+				<tr>
+					<td>{{ form.username.label_tag }}</td>
+					<td>{{ form.username }}</td>
+				</tr>
+				<tr>
+					<td>{{ form.password.label_tag }}</td>
+					<td>{{ form.password }}</td>
+				</tr>
+			</table>
+			{% csrf_token %}
+			<input type="hidden" name="next" value="{{ next }}" />
+			<button class="btn btn-large btn-primary" type="submit">Sign in</button>
+		</form>
+	</div>
+</div>
+		<hr/>
+
+<script>
+	$(function() {
+		$(".alert").alert()
+	});
+</script>
 
 {% endif %}
 {% endblock %}

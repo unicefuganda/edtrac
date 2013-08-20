@@ -16,8 +16,7 @@
     </td> -->
 
     <td>
-        <a href="{% url school-detail object.id %}">
-        {{ object.name }}</a>
+        <a href="{% url school-detail object.id %}">{{ object.name }}</a>
     </td>
     <td>
         {{ object.location|get_district }}

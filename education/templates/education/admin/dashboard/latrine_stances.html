@@ -1,0 +1,18 @@
+<div class="well">
+	<h3>Latrine Stances</h3>
+	<table class="table table-condensed">
+		<tr>
+			<th>Indicator</th>
+			<th>Value</th>
+		</tr>
+		<tr>
+			<td>Latrine Stances</td>
+			<td>{{ latrine_stances|floatformat }} %</td>
+		</tr>
+		<tr>
+			<td>Soap and Water</td>
+			<td>{{ soap_and_water|floatformat }} %</td>
+		</tr>
+	</table>
+	<a href="{% url emis-grants %}" class="btn btn-secondary">View Details</a>
+</div>

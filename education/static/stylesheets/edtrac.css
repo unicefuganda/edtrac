@@ -1,0 +1,28 @@
+.navbar-inner {
+	color: #ffffff;
+	background-color: #1d354d; 
+	background-image: none;
+	background-repeat: no-repeat;
+	filter: none;
+}
+
+.navbar .nav > li > a {
+	color: white;
+	/*
+	float: none;
+	padding: 10px 15px;
+	text-decoration: none;
+	*/
+	text-shadow: 0 0px 0 #ffffff;
+}
+
+.navbar .nav > li > a:hover {
+	color: red;
+}
+
+body {
+	background-color: #1d354d; 
+}
+.wrapper {
+	background-color: #ffffff;
+}

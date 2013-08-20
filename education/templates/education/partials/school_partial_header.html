@@ -3,9 +3,9 @@
 	<div id="add_school_form"></div>
 	<div id="add_school_anchor_row">
 		<a href="javascript:void(0)" onclick="newSchool(this, '{% url add-schools %}')">Add New School(s)</a>
-		<p></p>
+		&nbsp;|&nbsp;
+    		<a href="/static/education/spreadsheets/reporters.xls">Download as Excel</a>
 	</div>
-    <h3><a href="/static/education/spreadsheets/reporters.xls">Download as Excel</a></h3>
 {% endblock %}
 
 {% block tablehead %}

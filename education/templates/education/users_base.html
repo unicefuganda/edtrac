@@ -4,14 +4,6 @@
 {% block title %}
 Users - {{ block.super }}
 {% endblock %}
-{% block stylesheets %}
-<link rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/jquery-ui-1.8.19.custom.css"/>
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/bootstrap.min.css" />
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/bootstrap-responsive.min.css" />
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/application.css" />
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/tablecloth.css" />
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/prettify.css" /> 
-{% endblock %}
 
 {% block javascripts %}
 {{ block.super }}
@@ -24,86 +16,23 @@ Users - {{ block.super }}
 {% endblock %}
 
 <div id="wrapper">
-{% block header %}
-<div id="topbar">
-  
-  <div class="container">
-    
-    <a href="javascript:;" id="menu-trigger" class="dropdown-toggle" data-toggle="dropdown" data-target="#">
-      <i class="icon-cog"></i>
-    </a>
-  
-    <div id="top-nav">      
-      <ul class="pull-right">
-        {% if user.is_authenticated %}
-        <li><a href=""><i class="icon-user"></i> Logged in as {{ user.username }}</a></li>
-        <li><a href="{% url rapidsms-logout %}">Logout</a></li>
-        {% else %}
-        <li><a href="{% url rapidsms-login %}">{% trans "Log in" %}</a></li>
-        {% endif %}
-      </ul>
-      
-    </div> <!-- /#top-nav -->
-    
-  </div> <!-- /.container -->
-  
-</div> <!-- /#topbar -->
-<div id="header">
-    
-    <div class="container">
-
-
-      <a href="{% url rapidsms-dashboard %}" style="position:relative;top:20px;display: block;overflow: hidden;width: 180px;height: 45px;margin-right: .75em;"><img src="{{MEDIA_URL }}education/icons/web_logo.png" alt="EduTrac"></a>
-    
-    <a href="javascript:;" class="btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-          <i class="icon-reorder"></i>
-    </a>
-
-    <div class="nav-collapse">
-      <ul id="main-nav" class="nav pull-right">
-        <li>
-          <a href="{% url rapidsms-dashboard %}">
-            <!-- <i class="icon-home"></i> -->
-            <span>Home</span>                 
-          </a>
-        </li>
-        
-        <li class="dropdown">         
-          <a href="/edtrac/control-panel/">
-            <span>Control Panel</span> 
-          </a>  
-        </li>
-      </ul>
-      
-    </div> <!-- /.nav-collapse -->
-    </div> 
-    
-</div>  
-
-{% include "education/partials/messages/message_links.html" %}
-{% endblock %}
-
 {% block content %}
 <div id="content">
+	<div class="container">
+		<form action="{% url add_user %}" method="Post" >
+			<table>
+				{{ user_form.as_table }}
+				<!-- <tr><td></td><td><input type="submit" value="Save User"> </td></tr> -->
+				<tr><td></td><td><button type="submit" class="btn btn-primary">Save User</button></td></tr>
+			</table>
 
-
-  <div class="container">
-
-  <form action="{% url add_user %}" method="Post" >
-        <table >
-        {{ user_form.as_table }}
-        <!-- <tr><td></td><td><input type="submit" value="Save User"> </td></tr> -->
-        <tr><td></td><td><button type="submit" class="btn">Save User</button></td></tr>
-    </table>
-
-</form>
-<div id="object_list" class="module" style="background-color: white;">
-        {% block object_list %}
-        {% include partial_base %}
-        {% endblock %}
-    </div>
-</div> <!-- /.container -->
-
+		</form>
+		<div id="object_list" class="module" style="background-color: white;">
+			{% block object_list %}
+			{% include partial_base %}
+			{% endblock %}
+		</div>
+	</div> <!-- /.container -->
 </div> <!-- /#content -->
 </div> <!-- end wrapper -->
 
