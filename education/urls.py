@@ -289,7 +289,7 @@ urlpatterns = patterns('',
     url(r'^edtrac/detail-water-source/$', detail_water_view, name="detail-water-view"),
     url(r'^edtrac/detail-water-source/(?P<district>\d+)/$', detail_water_view, name="detail-water-view"),
     url(r'edtrac/district-water-source/', district_water_view, name="district-water-view"),
-    url(r"^edtrac/export/$", edtrac_export_poll_responses),
+    url(r"^edtrac/export/$", edtrac_export_poll_responses, name="export-poll-responses"),
     url(r"^edtrac/sub-county-reporters/$", edit_sub_county_reporters),
     url(r"^edtrac/export-sub-county-reporters/$", export_sub_county_reporters, name="export-sub-county-reporters"),
     url(r"^edtrac/schedule_water_polls/$", schedule_water_polls, name="schedule-water-polls"),
@@ -298,11 +298,11 @@ urlpatterns = patterns('',
     url(r"^edtrac/api/dashReport/term/$", dash_report_term, name="json-report-term-data-request"),
     url(r"^edtrac/api/district-report/$", dash_report_district, name="json-report-term-data-request"),
 
-    
-# the urls for violence views that I am testing 
+
+# the urls for violence views that I am testing
 #    url(r'^edtrac/violence-cases/$', violence_cases_view, name="violence-cases-view"),
-#    url(r'^edtrac/violence-cases/(?P<district>\d+)/$', violence_cases_view, name="violence-cases-view"), 
-    
+#    url(r'^edtrac/violence-cases/(?P<district>\d+)/$', violence_cases_view, name="violence-cases-view"),
+
 #more violence views being tested
     url(r'^edtrac/violence-detail/$', detailed_violence_view, name="violence-detail-visualization"),
     url(r'^edtrac/violence-detail/(?P<district>\w+)/$', detailed_violence_view, name="violence-detail-visualization"),
@@ -310,4 +310,3 @@ urlpatterns = patterns('',
     url(r'^export_error_messages/$', edtrac_export_error_messages),
 #    url(r'^edtrac/violence-detail-school/(?P<location>\w+)/$', violence_detail_school, name="violence-detail-school"),
 )
-
