@@ -24,9 +24,9 @@
         {% if filter_forms|length > 0 %}
             <div id="filters" class="module">
                 <h2>Filters</h2>
+                        <table>
                 {% for form in filter_forms %}
                     <div class="filterform" id="div_filter_{{ forloop.counter0 }}">
-                        <table>
                             {% for field in form.visible_fields %}
                                 <tr>
                                     <td>
@@ -45,9 +45,9 @@
                                     </td>
                                 </tr>
                             {% endfor %}
-                        </table>
                     </div>
                 {% endfor %}
+                        </table>
                 <div class="filterform" id="div_filter_update">
                     <a href="javascript:void(0)" onclick="filter(this)" class="btn btn-primary">Update</a>
                 </div>
@@ -69,7 +69,7 @@
                 {% block action_forms %}
                     {% for cname, form in action_forms %}
                         <div class="actionform" id="div_action_{{ forloop.counter0 }}">
-                            <table>
+				<table>
                                 {% for field in form.visible_fields %}
                                     <tr>
                                         <td>
