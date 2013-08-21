@@ -3149,13 +3149,14 @@ def _format_reporters(reporters):
     return [[r.id,r.name, _get_identity(r),r.reporting_location.type.name, r.reporting_location.name, ", ".join(r.schools.values_list('name', flat=True))] for r in reporters]
 
 
-
 @login_required
 def edtrac_export_poll_responses(request):
     profile = request.user.get_profile()
-#    if not (profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of(
-#            'UNICEF Officials')):
-#        return redirect('/')
+    if not (profile.is_member_of('Ministry Officials')
+            or profile.is_member_of('Admins')
+            or profile.is_member_of(
+            'UNICEF Officials')):
+        return redirect('/')
 
     if request.method == 'GET':
         form = ExportPollForm()
@@ -3170,14 +3171,21 @@ def edtrac_export_poll_responses(request):
             if from_date and to_date:
                 responses = responses.filter(date__range=[from_date, to_date])
 
-            resp = render_to_response('education/admin/export_poll_responses.csv', {'responses'
-                                                              : _format_responses(responses)}, mimetype='text/csv',
-                                      context_instance=RequestContext(request))
+            resp = render_to_response(
+                'education/admin/export_poll_responses.csv', {
+                    'responses': _format_responses(responses)
+                },
+                mimetype='text/csv',
+                context_instance=RequestContext(request)
+            )
             resp['Content-Disposition'] = 'attachment;filename="%s.csv"' \
                                           % poll.name
             return resp
 
-    return render_to_response('education/admin/export_poll_responses.html', {'form':form},RequestContext(request))
+    return render_to_response('education/admin/export_poll_responses.html',
+                              {'form': form},
+                              RequestContext(request),
+                              )
 
 @login_required
 def edit_sub_county_reporters(request):
