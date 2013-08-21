@@ -2606,39 +2606,51 @@ def school_reporters_to_excel(req):
     book.save(response)
     return response
 
+
 @login_required
 def system_report(req=None):
     book = xlwt.Workbook()
-    school_dates = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
+    school_dates = [
+        getattr(settings, 'SCHOOL_TERM_START'),
+        getattr(settings, 'SCHOOL_TERM_END'),
+    ]
     first_date = school_dates[0]
     last_date = school_dates[1]
     date_bunches = []
     while first_date <= last_date:
         tmp = get_day_range(first_date)
-        first_date  = tmp[0]
+        first_date = tmp[0]
         date_bunches.append(get_day_range(first_date))
-        first_date = dateutils.increment(first_date, weeks = 1)
+        first_date = dateutils.increment(first_date, weeks=1)
 
     profile = req.user.get_profile()
 
-    enrolled_answered = EnrolledDeployedQuestionsAnswered.objects.select_related()
+    enrolled_answered = \
+        EnrolledDeployedQuestionsAnswered.objects.select_related()
 
     headings = ['School'] + [d.strftime("%d/%m/%Y") for d, _ in date_bunches]
 
     if profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
-        district_names = enrolled_answered.values_list('school__location__name',flat=True).distinct()
+        district_names = enrolled_answered.values_list(
+            'school__location__name', flat=True
+        ).distinct()
     else:
         location = profile.location
         district_names = [location.name]
 
     district_schools = {}
     for dn in district_names:
-        district_schools[dn] = School.objects.select_related().filter(pk__in =\
-            enrolled_answered.filter(school__location__name = dn).values_list('school__pk',flat=True)).order_by('name')
+        district_schools[dn] = School.objects.select_related().filter(
+            pk__in=enrolled_answered.filter(
+                school__location__name=dn
+            ).values_list('school__pk', flat=True)).order_by('name')
 
-    polls = Poll.objects.select_related().filter(Q(name__icontains="boys")|Q(name__icontains="girls")|\
-                                                 Q(name = 'edtrac_f_teachers_attendance')|\
-                                                 Q(name = 'edtrac_m_teachers_attendance'))
+    polls = Poll.objects.select_related().filter(
+        Q(name__icontains="boys")
+        | Q(name__icontains="girls")
+        | Q(name='edtrac_f_teachers_attendance')
+        | Q(name='edtrac_m_teachers_attendance')
+    )
 
     for district_name in district_schools.keys():
         container = []
@@ -2648,17 +2660,23 @@ def system_report(req=None):
         for colx, val_headings in enumerate(headings):
             sheet.write(rowx, colx, val_headings)
             sheet.set_panes_frozen(True)
-            sheet.set_horz_split_pos(rowx+1) # in general, freeze after last heading row
-            sheet.set_remove_splits(True) # if user does unfreeze, don't leave a split there
 
+            # in general, freeze after last heading row
+            sheet.set_horz_split_pos(rowx + 1)
+
+            # if user does unfreeze, don't leave a split there
+            sheet.set_remove_splits(True)
 
         for school in district_schools[district_name]:
             school_vals = [school.name]
             for d_bunch in date_bunches:
                 submission_count = 0
                 for poll in polls:
-                    submission_count += poll.responses.filter(contact__in = school.emisreporter_set.values_list('connection__contact'),
-                        date__range = d_bunch).count()
+                    submission_count += poll.responses.filter(
+                            contact__in=school.emisreporter_set.values_list(
+                                'connection__contact'),
+                        date__range = d_bunch
+                        ).count()
                 school_vals.extend([submission_count])
             container.append(school_vals)
 
