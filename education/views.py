@@ -392,6 +392,8 @@ def violence_changes_reported(locations):
 def get_two_weeks_absenteeism(indicator, locations):
     date_weeks = get_week_date(depth=2)
     holiday = False
+    this_week_absent = '--'
+    past_week_absent = '--'
     if is_holiday(date_weeks[0][0], getattr(settings, 'SCHOOL_HOLIDAYS')):
         this_week_absent = '--'
         holiday = True
