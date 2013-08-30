@@ -20,48 +20,38 @@
     <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/edtrac.css" />
     {% endblock %}
 
-    {% block javascripts %}
-    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-1.7.1.min.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap.min.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-alert.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-tab.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-collapse.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}rapidsms/javascripts/collapse.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-ui-1.8.19.custom.min.js"></script>
-    {% endblock %}
-
 </head>
 <body>
 	<div class="wrapper">
 		<div class="container">
-	                {% region "top" %}
+			{% region "top" %}
 
 			{% block header %}
 			<div class="navbar">
 				<div class="navbar-inner">
-						<!-- .btn-navbar is used as the toggle for collapsed navbar content -->
-						<a class="btn btn-navbar" data-toggle="collapse" data-target="nav-collapse">
-							<span class="icon-bar"></span>
-							<span class="icon-bar"></span>
-							<span class="icon-bar"></span>
-						</a>
+					<!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+					<a class="btn btn-navbar" data-toggle="collapse" data-target="nav-collapse">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</a>
 
-						<a class="brand" href="/"><img src="{{ MEDIA_URL }}education/icons/web_logo.png" alt="EduTrac"></a>
-						{% block auth %}
-						<div class="nav-collapse collapse">
-							<ul class="nav pull-right">
-								{% if user.is_authenticated %}
-								<li><a href="{% url rapidsms-dashboard %}"><i class="icon-home icon-white"></i> Home</a></li>
-								<li><a href="/edtrac/control-panel/"><i class="icon-th icon-white"></i> Control Panel</a></li>
-								<li class="divider-vertical"></li>
-								<li><a href=""><i class="icon-user icon-white"></i> {{ user.username }}</a></li>
-								<li><a href="{% url rapidsms-logout %}"><i class="icon-lock icon-white"></i> Logout</a></li>
-								{% else %}
-								<li><a href="{% url rapidsms-login %}"><i class="icon-lock icon-white"></i> {% trans "Log in" %}</a></li>
-								{% endif %}
-							</ul>
-						</div>
-						{% endblock %}
+					<a class="brand" href="/"><img src="{{ MEDIA_URL }}education/icons/web_logo.png" alt="EduTrac"></a>
+					{% block auth %}
+					<div class="nav-collapse collapse">
+						<ul class="nav pull-right">
+							{% if user.is_authenticated %}
+							<li><a href="{% url rapidsms-dashboard %}"><i class="icon-home icon-white"></i> Home</a></li>
+							<li><a href="/edtrac/control-panel/"><i class="icon-th icon-white"></i> Control Panel</a></li>
+							<li class="divider-vertical"></li>
+							<li><a href=""><i class="icon-user icon-white"></i> {{ user.username }}</a></li>
+							<li><a href="{% url rapidsms-logout %}"><i class="icon-lock icon-white"></i> Logout</a></li>
+							{% else %}
+							<li><a href="{% url rapidsms-login %}"><i class="icon-lock icon-white"></i> {% trans "Log in" %}</a></li>
+							{% endif %}
+						</ul>
+					</div>
+					{% endblock %}
 				</div>
 			</div>
 
@@ -112,6 +102,18 @@
 			{% region "bottom" %}
 		</div> <!-- ./container -->
 	</div><!-- ./wrapper -->
+
+    {% block javascripts %}
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}rapidsms/javascripts/collapse.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap.min.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-alert.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-tab.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-collapse.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-ui-1.8.19.custom.min.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/highcharts.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/static/javascripts/emis_dashboard_charts.js"></script>
+    {% endblock %}
 </body>
 </html>
 {% endblock %}{% comment %}ends block bottom_container{% endcomment %}
