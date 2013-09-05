@@ -1,3 +1,4 @@
+{% load url from future %}
 <div class="well">
 	<h3 class="title">Violence</h3>
 	<table class="table tabulated-data">
@@ -23,6 +24,6 @@
 		</tbody>
 	</table>
 	<div class="actions">
-		<a href="{% url violence-admin-details %}" class="btn btn-secondary">View Details</a>
+		<a href="{% url 'violence-admin-details' %}" class="btn btn-secondary"><i class="icon-th-list"></i> View Details</a>
 	</div>
 </div>

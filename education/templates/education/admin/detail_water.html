@@ -51,7 +51,7 @@
                     <script type="text/javascript">
                         $(document).ready(function () {
                             pie("{{ data_dict.response|reorganize_data|join:"," }}",
-                                    "{{ data_dict.label|capfirst }} across {{ location }}",
+                                    "{{ data_dict.label|capfirst }} across {{ l.name for location }}",
                                     "--",
                                     "water_sources{{ forloop.counter }}",
                                     " responded",

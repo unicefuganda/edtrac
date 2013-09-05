@@ -1,4 +1,5 @@
 {% extends "generic/base.html" %}
+{% load url from future %}
 {% load endless %}
 {% load i18n %}
 {% block title %}
@@ -19,7 +20,7 @@ Users - {{ block.super }}
 {% block content %}
 <div id="content">
 	<div class="container">
-		<form action="{% url add_user %}" method="Post" >
+		<form action="{% url 'add_user' %}" method="Post" >
 			<table>
 				{{ user_form.as_table }}
 				<!-- <tr><td></td><td><input type="submit" value="Save User"> </td></tr> -->
