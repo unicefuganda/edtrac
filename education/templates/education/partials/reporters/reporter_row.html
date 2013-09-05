@@ -55,7 +55,7 @@
     {% endcomment %}
     <td class="button_col">
         <div class="buttons">
-            <a id='delete-reporter' alt="Delete" href="javascript:void(0)" onclick="deleteReporter(this, {{ object.pk }},'{{ object.name }}', '{% url education.views.delete_reporter object.pk %}')">
+            <a id='delete-reporter' alt="Delete" href="javascript:void(0)" onclick="deleteReporter(this, {{ object.pk }},'{{ object.name }}', '{% url 'education.views.delete_reporter' object.pk %}')">
                 <img src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png" />
             </a>
              <a id="edit-reporter" href="{% url 'edit-reporter' object.pk %}">
