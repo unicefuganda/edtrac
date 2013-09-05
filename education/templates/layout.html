@@ -1,6 +1,7 @@
 {% load region_tags %}
 {% load tabs_tags %}
 {% load i18n %}
+{% load url from future %}
 
 {% block top_container %}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
@@ -18,6 +19,18 @@
 
     <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/tablecloth.css"/>
     <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/edtrac.css" />
+    {% endblock %}
+
+    {% block javascripts %}
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}rapidsms/javascripts/collapse.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap.min.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-alert.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-tab.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-collapse.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-ui-1.8.19.custom.min.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/highcharts.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/emis_dashboard_charts.js"></script>
     {% endblock %}
 
 </head>
@@ -41,19 +54,20 @@
 					<div class="nav-collapse collapse">
 						<ul class="nav pull-right">
 							{% if user.is_authenticated %}
-							<li><a href="{% url rapidsms-dashboard %}"><i class="icon-home icon-white"></i> Home</a></li>
+							<li><a href="{% url 'rapidsms-dashboard' %}"><i class="icon-home icon-white"></i> Home</a></li>
 							<li><a href="/edtrac/control-panel/"><i class="icon-th icon-white"></i> Control Panel</a></li>
 							<li class="divider-vertical"></li>
 							<li><a href=""><i class="icon-user icon-white"></i> {{ user.username }}</a></li>
-							<li><a href="{% url rapidsms-logout %}"><i class="icon-lock icon-white"></i> Logout</a></li>
+							<li><a href="{% url 'rapidsms-logout' %}"><i class="icon-lock icon-white"></i> Logout</a></li>
 							{% else %}
-							<li><a href="{% url rapidsms-login %}"><i class="icon-lock icon-white"></i> {% trans "Log in" %}</a></li>
+							<li><a href="{% url 'rapidsms-login' %}"><i class="icon-lock icon-white"></i> {% trans "Log in" %}</a></li>
 							{% endif %}
 						</ul>
 					</div>
 					{% endblock %}
 				</div>
 			</div>
+			{% endblock %}
 
 			{% comment %}
 			This will override AUTHENTICATED_TABS if loaded...no one seems to be using this
@@ -87,6 +101,7 @@
 			</div>
 
 			{% block footer %}
+			<hr/>
 			<div id="footer">
 				<p class="rights">
 				Copyright &copy; 2008 &#8211; {% now "Y" %}
@@ -103,17 +118,5 @@
 		</div> <!-- ./container -->
 	</div><!-- ./wrapper -->
 
-    {% block javascripts %}
-    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-1.7.1.min.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}rapidsms/javascripts/collapse.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap.min.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-alert.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-tab.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-collapse.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-ui-1.8.19.custom.min.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/highcharts.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}education/static/javascripts/emis_dashboard_charts.js"></script>
-    {% endblock %}
 </body>
 </html>
-{% endblock %}{% comment %}ends block bottom_container{% endcomment %}

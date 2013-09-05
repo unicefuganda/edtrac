@@ -2,6 +2,7 @@
 {% load endless %}
 {% load stats_extras %}
 {% load i18n %}
+{% load url from future %}
 {% block title %}
 Scripts - {{ block.super }}
 {% endblock %}
@@ -49,7 +50,7 @@ Scripts - {{ block.super }}
                             </td>
                             <td>{{ script_form.enabled }}</td>
                         </tr>
-                <!-- <table width="100%" cellpadding="5" cellspacing="0" border=1 style="border-collapse:collapse;">
+			<!-- <table width="100%" cellpadding="5" cellspacing="0" border=1 style="border-collapse:collapse;"> 
                     <tr>
                         <td width="10%"><label for="name">Script Name:</label></td>
                         <td>{{ script_form.name }}</td>
@@ -78,7 +79,7 @@ Scripts - {{ block.super }}
                                 {% if script|termly %}
                                     <label for="date">Schedule Date:</label> {{ script_form.date }} |
                                 {% endif %}
-                                <a href="#" onclick="reschedule_polls('{% url emis-reschedule-scripts script.slug %}', '{{ script.pk }}');">Reschedule Questions</a>
+                                <a href="#" onclick="reschedule_polls('{% url 'emis-reschedule-scripts' script.slug %}', '{{ script.pk }}');">Reschedule Questions</a>
                                     <span id="{{ script.pk }}_results"></span>
                                 </div>
                             </td>

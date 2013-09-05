@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
 {% load endless %}
 {% load i18n %}
+{% load url from future %}
 {% block title %}
 Control Panel - {{ block.super }}
 {% endblock %}
@@ -29,56 +30,56 @@ Control Panel - {{ block.super }}
 				<tr>
 					<td>Messages</td>
 					<td>A page showing messages coming into EduTrac; you can send and receive messages using this.</td>
-					<td><a href="{%url emis-messagelog %}">Message Management</a></td>
+					<td><a href="{% url 'emis-messagelog' %}">Message Management</a></td>
 				</tr>
 				{#        #}
 				{#        <tr>#}
 					{#            <td>Other Messages</td>#}
 					{#            <td>Manage other messages sent into the system. e.g. Unsolicited messages</td>#}
-					{#            <td><a href="{% url emis-other-messages %}">Manage other messages</a></td>#}
+					{#            <td><a href="{% url 'emis-other-messages' %}">Manage other messages</a></td>#}
 					{#        </tr>#}
 				{#        #}
 				<tr>
 					<td>Reporters</td>
 					<td>Manage reporters on EduTrac</td>
-					<td><a href="{%url emis-contact %}">Reporter Management</a></td>
+					<td><a href="{% url 'emis-contact' %}">Reporter Management</a></td>
 				</tr>
 				<tr>
 					<td>Quitters</td>
 					<td>View showing quitters</td>
-					<td><a href="{% url quitters %}">quitters</a> </td>
+					<td><a href="{% url 'quitters' %}">quitters</a> </td>
 				</tr>
 				<tr>
 					<td>Users</td>
 					<td>Manage user accounts on EduTrac</td>
-					<td><a href="{% url emis-users %}">User Management</a> </td>
+					<td><a href="{% url 'emis-users' %}">User Management</a> </td>
 				</tr>
 				<tr>
 					<td>Schools</td>
 					<td>Manage schools in EduTrac</td>
-					<td><a href="{%url emis-schools %}">Schools Management</a></td>
+					<td><a href="{% url 'emis-schools' %}">Schools Management</a></td>
 				</tr>
 
 				<tr>
 					<td>Scripts</td>
 					<td>Manage scripts scheduling; e.g. set dates to send out polls, activate polls, etc.</td>
-					<td><a href="{% url emis-scripts %}">Script Management</a></td>
+					<td><a href="{% url 'emis-scripts' %}">Script Management</a></td>
 				</tr>
 
 				<tr>
 					<td>Changelog</td>
 					<td>Audit trail shows what changes have been made to EduTrac by users; and allows one to revert.</td>
-					<td><a href="{% url emis-audittrail %}">Audit Trail</a></td>
+					<td><a href="{% url 'emis-audittrail' %}">Audit Trail</a></td>
 				</tr>
 				<tr>
 					<td>Poll responses</td>
 					<td>Export poll responses</td>
-					<td><a href="{% url export-poll-responses %}">Export poll responses</a></td>
+					<td><a href="{% url 'export-poll-responses' %}">Export poll responses</a></td>
 				</tr>
 				<tr>
 					<td>System Report</td>
 					<td>Report which shows how frequently schools are submitting attendance data</td>
-					<td><a href="{%url system-report %}">Send email</a></td>
+					<td><a href="{% url 'system-report' %}">Send email</a></td>
 				</tr>
 
 			</tbody>
