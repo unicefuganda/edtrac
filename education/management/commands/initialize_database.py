@@ -13,6 +13,8 @@ class Command(BaseCommand):
         Role.objects.create(name='Admins')
         admin = User.objects.create(username='admin')
         admin.set_password('admin')
+        admin.is_staff = True
+        admin.is_superuser = True
         admin.save()
         UserProfile.objects.create(
             name='Admins',
@@ -22,7 +24,10 @@ class Command(BaseCommand):
             role=Role.objects.get(name='Admins'),
             user=User.objects.get(username='admin'))
         Poll.objects.all().delete()
-        Site.objects.create(id=2, domain="edtrac.unicefuganda.org", name="edtrac")
+        Site.objects.create(
+            id=2,
+            domain="edtrac.unicefuganda.org",
+            name="edtrac")
 
         poll_names = [
             'edtrac_violence_boys',
@@ -50,5 +55,10 @@ class Command(BaseCommand):
         ]
 
         for poll_name in poll_names:
-            Poll.objects.get_or_create(name=poll_name, start_date=datetime.datetime.now(), user=User.objects.get(id=1))
-            Category.objects.get_or_create(name='yes', poll=Poll.objects.get(name=poll_name))
+            Poll.objects.get_or_create(
+                name=poll_name,
+                start_date=datetime.datetime.now(),
+                user=User.objects.get(id=1))
+            Category.objects.get_or_create(
+                name='yes',
+                poll=Poll.objects.get(name=poll_name))
