@@ -41,4 +41,6 @@ def logout(req, template_name="rapidsms/loggedout.html"):
             audit_log(log_dict)
         except ImportError:
             pass
-    return django_logout(req, **{"template_name" : template_name})
+    from django.contrib.auth import logout as user_logout
+    user_logout(req)
+    return render_to_response(template_name, locals(), contect_instance=RequestContext(req))
