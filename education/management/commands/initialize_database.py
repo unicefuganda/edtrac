@@ -10,8 +10,8 @@ from poll.models import Poll, Category
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        Role.objects.create(name='Admins')
-        admin = User.objects.create(username='admin')
+        Role.objects.get_or_create(name='Admins')
+        admin = User.objects.get_or_create(username='admin')[0]
         admin.set_password('admin')
         admin.is_staff = True
         admin.is_superuser = True
