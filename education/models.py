@@ -24,6 +24,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class School(models.Model):
     name = models.CharField(max_length=160)
     emis_id = models.CharField(max_length=10)
@@ -31,6 +32,9 @@ class School(models.Model):
 
     def __unicode__(self):
         return '%s - %s' % (self.name, self.location.name)
+
+    def no_of_reporters(self):
+        return len(self.emisreporter_set.values_list())
 
 
 class EmisReporter(Contact):
