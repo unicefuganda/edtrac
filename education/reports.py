@@ -2,7 +2,7 @@ from __future__ import division
 from exceptions import ZeroDivisionError
 from django.conf import settings
 from django.core.serializers import serialize
-from django.core.exceptions import DoesNotExist
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from generic.reports import Report
 from generic.reporting.reports import Column
@@ -813,7 +813,7 @@ def month19to20(**kwargs):
 def get_numeric_report_data(poll_name, location=None, time_range=None, to_ret=None, **kwargs):
     try:
         poll = polls.get(name=poll_name)
-    except DoesNotExist:
+    except ObjectDoesNotExist:
         return 0
     entity_content = ContentType.objects.get_for_model(Response)
     if time_range:

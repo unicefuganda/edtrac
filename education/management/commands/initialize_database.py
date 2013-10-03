@@ -16,7 +16,7 @@ class Command(BaseCommand):
         admin.is_staff = True
         admin.is_superuser = True
         admin.save()
-        UserProfile.objects.create(
+        UserProfile.objects.get_or_create(
             name='Admins',
             location=Location.objects.get(
                 name='Kampala',
@@ -24,7 +24,7 @@ class Command(BaseCommand):
             role=Role.objects.get(name='Admins'),
             user=User.objects.get(username='admin'))
         Poll.objects.all().delete()
-        Site.objects.create(
+        Site.objects.get_or_create(
             id=2,
             domain="edtrac.unicefuganda.org",
             name="edtrac")

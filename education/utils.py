@@ -48,7 +48,7 @@ def time_to_10am(d):
 
 def previous_calendar_week(t=None):
     """
-    To education monitoring, a week runs between Thursdays, 
+    To education monitoring, a week runs between Thursdays,
     Thursday marks the beginning of a new week of data submission
     Data for a new week is accepted until Wednesday evening of the following week
     """
@@ -74,10 +74,10 @@ def next_relativedate(day_offset, month_offset=0, xdate = datetime.datetime.now(
     """
 #    d = datetime.datetime.now()
     d = xdate
-    
+
     if month_offset:
         d = d + datetime.timedelta(month_offset*31)
-        
+
     day = calendar.mdays[d.month] if day_offset == 'last' else day_offset
     if d.day >= day:
         d = d + dateutils.relativedelta(day=31)
@@ -213,9 +213,9 @@ def _schedule_report_sending():
             return
     else:
         return
-    
+
 def _date_of_monthday(day_offset):
-    
+
     """
     Find the date corresponding to day_offset of the month for example 25th day of of month
     If the 'day_offset' day of the month falls in holiday period, 'day_offset' day of
@@ -226,7 +226,7 @@ def _date_of_monthday(day_offset):
     if is_weekend(d):
         #next monday
         d = d + datetime.timedelta((0 - d.weekday()) % 7)
-        
+
     in_holiday = True
     while in_holiday:
         in_holiday = False
@@ -264,7 +264,7 @@ def _next_term_question_date(rght=None):
         elif d > first_term_qn_date and d <= second_term_qn_date:
             d = second_term_qn_date
         else:
-            d = third_term_qn_date        
+            d = third_term_qn_date
     if is_weekend(d):
         d = d + datetime.timedelta((0 - d.weekday()) % 7)
     in_holiday = True
@@ -301,7 +301,7 @@ def _next_midterm():
         d = start_of_year + datetime.timedelta(days=((6*31)+15))
     else:
         d = start_of_year + datetime.timedelta(days=((10*31)+15))
-    
+
     if is_weekend(d):
         d = d + datetime.timedelta((0 - d.weekday()) % 7)
     in_holiday = True
@@ -331,7 +331,7 @@ def _schedule_weekly_scripts(group, connection, grps):
     if group.name == 'Teachers':
         if not connection.contact.emisreporter.grade:
             return
-        
+
     if group.name in grps:
         script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
         #Since script_was_completed is sent before progress is deleted, chances are you will find connection and script existing
@@ -343,7 +343,7 @@ def _schedule_weekly_scripts(group, connection, grps):
     else:
         #Reporter is not in group that receives weekly messages so, we don't schedule them for any weekly messages
         return
-    
+
     #create new scriptprogress regardless
     sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
     sp.set_time(d)
@@ -370,8 +370,8 @@ def _schedule_teacher_weekly_scripts(group, connection, grps):
             sp.set_time(d)
         else:
             pass
-        
-        
+
+
     if group.name in grps:
         script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
         #Since script_was_completed is sent before progress is deleted, chances are you will find connection and script existing
@@ -383,7 +383,7 @@ def _schedule_teacher_weekly_scripts(group, connection, grps):
     else:
         #Reporter is not in group that receives weekly messages so, we don't schedule them for any weekly messages
         return
-    
+
     #create new scriptprogress regardless
 #    sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
 #    sp.set_time(d)
@@ -445,7 +445,7 @@ def _schedule_weekly_script(group, connection, script_slug, role_names):
         time_set = time_set if time_set.second == 0 else time_set - datetime.timedelta(seconds = time_set.second)
         time_set = time_set if time_set.minute == 0 else time_set - datetime.timedelta(minutes = time_set.minute)
         d = _this_thursday(time_set=time_set)
-        
+
         #if reporter is a teacher set in the script session only if this reporter has a grade
         if connection.contact.emisreporter.groups.filter(name='Teachers').exists():
             if connection.contact.emisreporter.grade in ['p3', 'P3'] and connection.contact.emisreporter.schools.exists():
@@ -468,12 +468,12 @@ def _schedule_weekly_report(group, connection, grps):
         for connection in connections:
             sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
             sp.set_time( _next_wednesday(sp) )
-            
+
 def _schedule_script_now(group, connection, slug, role_names):
     if group.name in role_names:
         sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=slug),language='en')
         sp.set_time(datetime.datetime.now())
-    
+
 def _schedule_monthly_script(group, connection, script_slug, day_offset, role_names):
     """
     This method is called within a loop over several connections or for an individual connection
@@ -513,7 +513,7 @@ def _schedule_midterm_script(group, connection, script_slug, role_names, date=No
     if group.name in role_names:
         sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
         sp.set_time(d)
-        
+
 def _schedule_termly_script(group, connection, script_slug, role_names, date=None):
     """
     This method is called within a loop over several connections or for an individual connection
@@ -532,7 +532,7 @@ def _schedule_termly_script(group, connection, script_slug, role_names, date=Non
     if group.name in role_names:
         sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
         sp.set_time(d)
-        
+
 def _schedule_new_monthly_script(group, connection, script_slug, role_names, date=None):
     """
     This method is called within a loop over several connections or for an individual connection
@@ -559,7 +559,7 @@ def compute_total(chunkit):
     for n, val in chunkit: new_dict[n] = 0 #placeholder
     for i in chunkit:
         if i[0] in new_dict.keys():
-            new_dict[i[0]] = new_dict[i[0]] + i[1]            
+            new_dict[i[0]] = new_dict[i[0]] + i[1]
     return new_dict
 
 def previous_calendar_week_v2(date_now):
@@ -627,7 +627,7 @@ def compute_average_percentage(list_of_percentages):
         print "non-numeric characters used"
         pass
     if len(sanitize) <= 0:
-        return 0        
+        return 0
     return sum(sanitize) / float(len(sanitize))
 
 
@@ -644,7 +644,7 @@ def list_poll_responses(poll, **kwargs):
     """
     #for location in Location.objects.filter(type__name="district"):
     #    to_ret[location.__unicode__()] = compute_average_percentage([msg.text for msg in poll.responses.filter(contact__in=Contact.objects.filter(reporting_location=location))])
-    
+
     """
     narrowed down to 3 districts (and up to 14 districts)
     """
@@ -664,7 +664,7 @@ def list_poll_responses(poll, **kwargs):
         for location in Location.objects.filter(name__in=DISTRICT):
             to_ret[location.__unicode__()] = compute_average_percentage([msg.message.text for msg in poll.responses.filter(date__gte=date_diff, contact__in=Contact.objects.filter(reporting_location=location))])
         return to_ret
-    
+
 def get_script_grp(script_slug):
     sl = script_slug.split('_')
     if sl[1] == 'head':
@@ -906,14 +906,15 @@ def poll_to_xform_submissions(message):
 
 def get_week_count(reference_date, d):
     week_count = 0
-    test_date = d
-    temp = reference_date
-    if reference_date > d:
-        temp = d
-        test_date = reference_date
-    while temp.date() <= test_date.date():
-        temp = dateutils.increment(temp,days=7)
-        week_count+=1
+    if d:
+        test_date = d
+        temp = reference_date
+        if reference_date > d:
+            temp = d
+            test_date = reference_date
+        while temp.date() <= test_date.date():
+            temp = dateutils.increment(temp, days=7)
+            week_count += 1
     return week_count
 
 

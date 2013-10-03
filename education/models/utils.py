@@ -27,6 +27,7 @@ from education.attendance_diff import calculate_attendance_difference,\
     append_time_to_week_date
 import logging
 
+<<<<<<< HEAD:education/models/utils.py
 from .emis_reporter import EmisReporter
 from .school import School
 
