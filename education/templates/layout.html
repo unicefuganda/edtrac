@@ -61,9 +61,9 @@
 							<li><a href="/admin"><i class="icon-user"></i> Admin</a></li>
 							{% endif %}
 							<li><a href=""><i class="icon-user icon-white"></i> {{ user.username }}</a></li>
-							<li><a href="{% url 'rapidsms-logout' %}"><i class="icon-lock icon-white"></i> Logout</a></li>
+							<li><a href="{% url 'rapidsms_logout' %}"><i class="icon-lock icon-white"></i> Logout</a></li>
 							{% else %}
-							<li><a href="{% url 'rapidsms-login' %}"><i class="icon-lock icon-white"></i> {% trans "Log in" %}</a></li>
+							<li><a href="{% url 'rapidsms_login' %}"><i class="icon-lock icon-white"></i> {% trans "Log in" %}</a></li>
 							{% endif %}
 						</ul>
 					</div>
