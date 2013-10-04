@@ -57,6 +57,9 @@
 							<li><a href="{% url 'rapidsms-dashboard' %}"><i class="icon-home icon-white"></i> Home</a></li>
 							<li><a href="/edtrac/control-panel/"><i class="icon-th icon-white"></i> Control Panel</a></li>
 							<li class="divider-vertical"></li>
+							{% if user.is_staff %}
+							<li><a href="/admin"><i class="icon-user"></i> Admin</a></li>
+							{% endif %}
 							<li><a href=""><i class="icon-user icon-white"></i> {{ user.username }}</a></li>
 							<li><a href="{% url 'rapidsms-logout' %}"><i class="icon-lock icon-white"></i> Logout</a></li>
 							{% else %}
