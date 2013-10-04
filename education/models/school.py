@@ -12,3 +12,6 @@ class School(models.Model):
 
     def __unicode__(self):
         return '%s - %s' % (self.name, self.location.name)
+
+    def no_of_reporters(self):
+        return len(self.reporters_set.values_list())
