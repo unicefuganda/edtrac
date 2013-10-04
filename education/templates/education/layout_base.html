@@ -41,9 +41,9 @@
             <div id="nav">
                 <ul>
                 {% if user.is_authenticated %}
-                <li><a href="{% url 'rapidsms-logout' %}">{% trans "Log out" %} {{ user.username }}</a></li>
+                <li><a href="{% url 'rapidsms_logout' %}">{% trans "Log out" %} {{ user.username }}</a></li>
                 {% else %}
-                <li><a href="{% url 'rapidsms-login' %}">{% trans "Log in" %}</a></li>
+                <li><a href="{% url 'rapidsms_login' %}">{% trans "Log in" %}</a></li>
                 {% endif %}
                 </ul>
             </div>
