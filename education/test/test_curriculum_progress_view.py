@@ -14,6 +14,7 @@ from education.models import EmisReporter, School,reschedule_monthly_script
 from django.test.client import Client
 from education.test.utils import *
 from poll.models import Poll
+from .utils import create_attribute
 
 class TestCurriculumProgressView(TestCase):
     def setUp(self):

@@ -1,5 +1,6 @@
+/*
 body {
-    background: #CCC;
+    background: blue;
     color: #371c37;
     font-family: "Aller", "Lucida Grande", sans-serif;
     font-size: 12px;
@@ -8,6 +9,8 @@ body {
     width: 100%;
     -webkit-font-smoothing: antialiased;
 }
+    */
+
 .banner {
     position:relative;
     background: url(../icons/main-content-bg.png) repeat-x #246c98;

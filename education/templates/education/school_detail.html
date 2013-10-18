@@ -1,164 +1,165 @@
 {% extends "education/admin/admin_dashboard.html" %}
 {% load humanize %}
+
 {% block title %}
-{{ school_name }} report -- {{ block.super }}
+{{ block.super }} -- School Report card {{ school_name }}
 {% endblock %}
+
+{% block masthead %}
+<div class="page-header">
+	<h2>{{ school_name }}<small> - School Report Card</small></h2>
+</div>
+{% endblock %}
+
 {% block content %}
-<ul class='breadcrumb'>
-	<li><a href="{% url rapidsms-dashboard %}">Dashboard Home</a></li>
-</ul>
-        <div class="general">
-
-            <div class="stats">
-            <h1 style="color:white; margin-bottom:5px; padding:10px;">
-                {{ school_name }} Report Card
-            </h1>
-            </div>
-
-            <div class="stats" style="width: 350px;"><h2>Absenteeism of Pupils</h2></div>
-
-            <table class="tabulated-data">
-                <tbody>
-                <tr><td></td>
-                    {% for month in months %}
-                    <th>{{ month|date:"M" }}</th>
-                    {% endfor %}
-                </tr>
-                <tr>
-                    <td>
-                        <table>
-                            <tr><td>P3 Girls</td></tr>
-                            <tr><td>P3 Boys</td></tr>
-                            <tr><td>P6 Girls</td></tr>
-                            <tr><td>P6 Boys</td></tr>
-                        </table>
-                    </td>
-                    {% for month_data in monthly_data %}
-                        <td>
-                            <table class="month_data">
-                                <tr><td style="text-align: center;">{{ month_data.0|floatformat }}%</td></tr>
-                                <tr><td style="text-align: center;">{{ month_data.1|floatformat }}%</td></tr>
-                                <tr><td style="text-align: center;">{{ month_data.2|floatformat }}%</td></tr>
-                                <tr><td style="text-align: center;">{{ month_data.3|floatformat }}%</td></tr>
-                            </table>
-                        </td>
-                    {% endfor %}
-                </tr>
-                </tbody>
-            </table>
-
-            <div class="stats" style="width: 350px;">
-                <span>Reporters</span>
-            </div>
-            <div>
-                <table class="classy tabulated-data">
-                    <tr><th>Name</th><th>Role</th></tr>
-                    {% for reporter in reporters %}
-                    <tr><td>{{ reporter }} </td><td><span style="font-style: italic;">{{ reporter.groups.all.0 }}</td></tr>
-                    {% endfor %}
-                </table>
-
-            </div>
-
-            <div class="stats" style="width: 350px;"><h2>Absenteism of Teachers</h2></div>
-            <table class="tabulated-data">
-                <tbody>
-                <tr><td colspan="1"></td>
-                    {% for month in months %}
-                    <th>{{ month|date }}</th>
-                    {% endfor %}
-                </tr>
-
-                <tr>
-                    <td>
-                        <table>
-                            <tr><td>Female</td></tr>
-                            <tr><td>Male</td></tr>
-                        </table>
-                    </td>
-                    {% for month_data in monthly_data_teachers %}
-                    <td>
-                        <table>
-                            <tr><td>{% if month_data.0 == '--' %} {{ month_data.0 }} {% else %} {{ month_data.0|floatformat }}%{% endif %}</td></tr>
-                            <tr><td>{% if month_data.1 == '--' %} {{ month_data.1 }} {% else %} {{ month_data.1|floatformat }}%{% endif %}</td></tr>
-                        </table>
-                    </td>
-                    {% endfor %}
-                </tr>
-                </tbody>
-            </table>
-
-            <div class="stats" style="width: 350px;"><h2>Absenteism of Head Teachers</h2></div>
-            <table class="tabulated-data">
-                <tbody>
-                <tr>
-                    {% for month in months %}
-                    <th>{{ month|date }}</th>
-                    {% endfor %}
-                </tr>
-                <tr>
-                    {% for month_data in monthly_data_head_teachers %}
-                    <td>{{ month_data }}</td>
-                    {% endfor %}
-                </tr>
-                </tbody>
-            </table>
-
-            <br/><br/>
-            <hr>
-            <div class="stats" style="width:350px;">
-                <h1>Monthly Reports</h1>
-            </div>
-            <div class="top">
-                <table class="tabulated-data">
-                    <tbody>
-                    <tr><td colspan="1"></td>
-                        {% for month in months %}
-                        <th>{{ month|date }}</th>
-                        {% endfor %}
-                    </tr>
-                    <tr>
-                        <td>Violence</td>
-                    </tr>
-                    <tr>
-                        <td>Meals</td>
-                    </tr>
-                    </tbody>
-                </table>
-                <div class="stats" style="width: 350px;">
-                    <h1>Termly Reports</h1>
-                </div>
-                <table class="tabulated-data">
-                    <tbody>
-                    <tr><td colspan="1"></td>
-
-                        <th>Term 1</th>
-                        <th>Term 2</th>
-                        <th>Term 3</th>
-                    </tr>
-
-                    <tr>
-                        <th>Enrollment</th>
-                    </tr>
-                    <tr><td>P3 Girls</td><td>{{ girls_p3_enrolled }}</td></tr>
-                    <tr><td>P3 Boys</td><td>{{ boys_p3_enrolled }}</td></tr>
-                    <tr><td>P6 Girls</td><td>{{ girls_p6_enrolled }}</td></tr>
-                    <tr><td>P6 Boys</td><td>{{ boys_p6_enrolled }}</td></tr>
-                    <tr>
-                        <th>Teachers</th>
-                    </tr>
-                    <tr><td>Female</td><td>{{ f_teachers_deployed }}</td></tr>
-                    <tr><td>Male</td><td>{{ m_teachers_deployed }}</td></tr>
-                    <tr>
-                        <th>UPE Grant</th>
-                    </tr>
-                    <tr>
-                        <th>SMC Meeting</th>
-                    </tr>
-                    </tbody>
-                </table>
+<div class="container">
+	<h3>Absenteeism of Pupils</h3>
+	<table class="table table-striped">
+		<tr>
+			<td></td>
+			{% for month in months %}
+			<th>{{ month|date:"M" }}</th>
+			{% endfor %}
+		</tr>
+		<tr>
+			<td>P3 Girls</td>
+			{% for month_data in monthly_data %}
+			<td>{{ month_data.0|floatformat }}%</td>
+			{% endfor %}
+		</tr>
+		<tr>
+			<td>P3 Boys</td>
+			{% for month_data in monthly_data %}
+			<td>{{ month_data.1|floatformat }}%</td>
+			{% endfor %}
+		</tr>
+		<tr>
+			<td>P6 Girls</td>
+			{% for month_data in monthly_data %}
+			<td>{{ month_data.2|floatformat }}%</td>
+			{% endfor %}
+		</tr>
+		<tr>
+			<td>P6 Boys</td>
+			{% for month_data in monthly_data %}
+			<td>{{ month_data.3|floatformat }}%</td>
+			{% endfor %}
+		</tr>
+	</table>
 
 
-            </div>
-    	</div>
+	<h3>Reporters</h3>
+	<table class="table table-striped">
+		<tr>
+			<th>Name</th>
+			<th>Role</th>
+		</tr>
+		{% for reporter in reporters %}
+		<tr>
+			<td>{{ reporter }} </td>
+			<td>{{ reporter.groups.all.0 }}</td>
+		</tr>
+		{% endfor %}
+	</table>
+
+	<h3>Absenteeism of Teachers</h3>
+	<table class="table table-striped">
+		<tbody>
+			<tr>
+				<td colspan="1"></td>
+				{% for month in months %}
+				<th>{{ month|date }}</th>
+				{% endfor %}
+			</tr>
+
+			<tr>
+				<td>Female</td>
+				{% for month_data in monthly_data_teachers %}
+				<td>
+					{% if month_data.0 == '--' %} {{ month_data.0 }} {% else %} {{ month_data.0|floatformat }}%{% endif %}
+				</td>
+				{% endfor %}
+			</tr>
+
+			<tr>
+				<td>Male</td>
+				{% for month_data in monthly_data_teachers %}
+				<td>
+					{% if month_data.1 == '--' %} {{ month_data.0 }} {% else %} {{ month_data.0|floatformat }}%{% endif %}
+				</td>
+				{% endfor %}
+			</tr>
+		</tbody>
+	</table>
+
+	<h3>Absenteeism of Head Teachers</h3>
+	<table class="table table-striped tabulated-data">
+		<tbody>
+			<tr>
+				{% for month in months %}
+				<th>{{ month|date }}</th>
+				{% endfor %}
+			</tr>
+			<tr>
+				{% for month_data in monthly_data_head_teachers %}
+				<td>{{ month_data }}</td>
+				{% endfor %}
+			</tr>
+		</tbody>
+	</table>
+
+	<h3>Monthly Reports</h3>
+	<table class="table table-striped tabulated-data">
+		<tr>
+			<td colspan="1"></td>
+			{% for month in months %}
+			<th>{{ month|date }}</th>
+			{% endfor %}
+		</tr>
+		<tr>
+			<td>Violence</td>
+			{% for month_data in monthly_data_violence %}
+			<td>{{ month_data }}</td>
+			{% endfor %}
+		</tr>
+		<tr>
+			<td>Meals</td>
+			{% for month_data in monthly_data_meals %}
+			<td>{{ month_data }}</td>
+			{% endfor %}
+		</tr>
+	</table>
+
+	<h3>Termly Reports</h3>
+
+	<table class="table">
+		<tr>
+			<td colspan="1"></td>
+			<th>This Term</th>
+		</tr>
+
+		<tr><td colspan="2"><h4>Student Enrollment</h4></td></tr>
+
+		<tr><td>P3 Girls</td><td>{{ girls_p3_enrolled }}</td></tr>
+		<tr><td>P3 Boys</td><td>{{ boys_p3_enrolled }}</td></tr>
+		<tr><td>P6 Girls</td><td>{{ girls_p6_enrolled }}</td></tr>
+		<tr><td>P6 Boys</td><td>{{ boys_p6_enrolled }}</td></tr>
+
+		<tr><td colspan="2"><h4>Teacher Enrollment</h4></td></tr>
+
+		<tr><td>Female</td><td>{{ f_teachers_deployed }}</td></tr>
+		<tr><td>Male</td><td>{{ m_teachers_deployed }}</td></tr>
+
+		<tr><td colspan="2"><h4>Other Report</h4></td></tr>
+
+		<tr>
+			<td>UPE Grant</th>
+			<td>0</td>
+		</tr>
+		<tr>
+			<td>SMC Meeting</td>
+			<td>0</td>
+		</tr>
+	</table>
+</div>
 {% endblock %}

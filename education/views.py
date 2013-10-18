@@ -2521,6 +2521,7 @@ def edit_school(request, school_pk):
                  'school': school},
             context_instance=RequestContext(request))
 
+
 @login_required
 def school_detail(request, school_id):
     school = School.objects.get(id=school_id)
@@ -2533,6 +2534,9 @@ def school_detail(request, school_id):
 
     monthly_data = []
     monthly_data_teachers = []
+    monthly_data_head_teachers = []
+    monthly_data_violence = []
+    monthly_data_meals = []
 
     for month_range in month_ranges:
         monthly_data.append(
@@ -2548,6 +2552,11 @@ def school_detail(request, school_id):
                 'edtrac_'+'%s'%slug + '_deployment', month_range = month_range, school=school) for slug in slug_list_tr])
 
     reporters = []
+    reps = school.emisreporter_set.values()
+    for rep in reps:
+        r = EmisReporter.objects.get(id=rep['id'])
+        reporters.append(r)
+
 
     boys_p3_enrolled = poll_responses_term('edtrac_boysp3_enrollment', belongs_to='schools', school = school)
     boys_p6_enrolled = poll_responses_term('edtrac_boysp6_enrollment', belongs_to='schools', school = school)
@@ -2560,6 +2569,9 @@ def school_detail(request, school_id):
         'months' : [d_start for d_start, d_end in month_ranges],
         'monthly_data' : monthly_data,
         'monthly_data_teachers' : monthly_data_teachers,
+        'monthly_data_head_teachers': monthly_data_head_teachers,
+        'monthly_data_violence' : monthly_data_violence,
+        'monthly_data_meals' : monthly_data_meals,
         'reporters' : reporters,
         'boys_p3_enrolled': boys_p3_enrolled,
         'boys_p6_enrolled': boys_p6_enrolled,
@@ -2596,39 +2608,51 @@ def school_reporters_to_excel(req):
     book.save(response)
     return response
 
+
 @login_required
 def system_report(req=None):
     book = xlwt.Workbook()
-    school_dates = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
+    school_dates = [
+        getattr(settings, 'SCHOOL_TERM_START'),
+        getattr(settings, 'SCHOOL_TERM_END'),
+    ]
     first_date = school_dates[0]
     last_date = school_dates[1]
     date_bunches = []
     while first_date <= last_date:
         tmp = get_day_range(first_date)
-        first_date  = tmp[0]
+        first_date = tmp[0]
         date_bunches.append(get_day_range(first_date))
-        first_date = dateutils.increment(first_date, weeks = 1)
+        first_date = dateutils.increment(first_date, weeks=1)
 
     profile = req.user.get_profile()
 
-    enrolled_answered = EnrolledDeployedQuestionsAnswered.objects.select_related()
+    enrolled_answered = \
+        EnrolledDeployedQuestionsAnswered.objects.select_related()
 
     headings = ['School'] + [d.strftime("%d/%m/%Y") for d, _ in date_bunches]
 
     if profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
-        district_names = enrolled_answered.values_list('school__location__name',flat=True).distinct()
+        district_names = enrolled_answered.values_list(
+            'school__location__name', flat=True
+        ).distinct()
     else:
         location = profile.location
         district_names = [location.name]
 
     district_schools = {}
     for dn in district_names:
-        district_schools[dn] = School.objects.select_related().filter(pk__in =\
-            enrolled_answered.filter(school__location__name = dn).values_list('school__pk',flat=True)).order_by('name')
+        district_schools[dn] = School.objects.select_related().filter(
+            pk__in=enrolled_answered.filter(
+                school__location__name=dn
+            ).values_list('school__pk', flat=True)).order_by('name')
 
-    polls = Poll.objects.select_related().filter(Q(name__icontains="boys")|Q(name__icontains="girls")|\
-                                                 Q(name = 'edtrac_f_teachers_attendance')|\
-                                                 Q(name = 'edtrac_m_teachers_attendance'))
+    polls = Poll.objects.select_related().filter(
+        Q(name__icontains="boys")
+        | Q(name__icontains="girls")
+        | Q(name='edtrac_f_teachers_attendance')
+        | Q(name='edtrac_m_teachers_attendance')
+    )
 
     for district_name in district_schools.keys():
         container = []
@@ -2638,17 +2662,23 @@ def system_report(req=None):
         for colx, val_headings in enumerate(headings):
             sheet.write(rowx, colx, val_headings)
             sheet.set_panes_frozen(True)
-            sheet.set_horz_split_pos(rowx+1) # in general, freeze after last heading row
-            sheet.set_remove_splits(True) # if user does unfreeze, don't leave a split there
 
+            # in general, freeze after last heading row
+            sheet.set_horz_split_pos(rowx + 1)
+
+            # if user does unfreeze, don't leave a split there
+            sheet.set_remove_splits(True)
 
         for school in district_schools[district_name]:
             school_vals = [school.name]
             for d_bunch in date_bunches:
                 submission_count = 0
                 for poll in polls:
-                    submission_count += poll.responses.filter(contact__in = school.emisreporter_set.values_list('connection__contact'),
-                        date__range = d_bunch).count()
+                    submission_count += poll.responses.filter(
+                            contact__in=school.emisreporter_set.values_list(
+                                'connection__contact'),
+                        date__range = d_bunch
+                        ).count()
                 school_vals.extend([submission_count])
             container.append(school_vals)
 
@@ -2841,11 +2871,12 @@ def meals(request, district_id=None):
         dates = get_xform_dates,
     )
 
+
 @super_user_required
 def edit_scripts(request):
 
     forms = []
-    for script in Script.objects.exclude(name = 'Special Script').order_by('slug'):
+    for script in Script.objects.exclude(name='Special Script').order_by('slug'):
         forms.append((script, ScriptsForm(instance=script)))
 
     if request.method == 'POST':
@@ -2853,7 +2884,7 @@ def edit_scripts(request):
         if script_form.is_valid():
             script_form.save()
 
-    return render_to_response('education/partials/edit_script.html', {'forms': forms},
+    return render_to_response('education/partials/edit_script.html', {'forms': forms, 'management_for': 'scripts'},
         context_instance=RequestContext(request))
 
 def emis_scripts_special(req):
@@ -3070,6 +3101,7 @@ def detail_attd_school(request, location):
     school_id = School.objects.get(name=name, location__name=location).id
     return redirect(reverse('school-detail',args=(school_id,)))
 
+
 class ExportPollForm(forms.Form):
     error_css_class = 'error'
     select_choices = list(Poll.objects.values_list(*['pk','name']))
@@ -3114,7 +3146,10 @@ def _format_responses(responses):
         if response.poll.type == "t":
             value = response.eav.poll_text_value
         elif response.poll.type == "n":
-            value = response.eav.poll_number_value
+            if hasattr(response.eav, 'poll_number_value'):
+                value = response.eav.poll_number_value
+            else:
+                value = 0
         elif response.poll.type == 'l':
             value = response.eav.poll_location_value.name
         category = response.categories.values_list('category__name',flat=True)
@@ -3134,11 +3169,12 @@ def _format_reporters(reporters):
     return [[r.id,r.name, _get_identity(r),r.reporting_location.type.name, r.reporting_location.name, ", ".join(r.schools.values_list('name', flat=True))] for r in reporters]
 
 
-
 @login_required
 def edtrac_export_poll_responses(request):
     profile = request.user.get_profile()
-    if not (profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of(
+    if not (profile.is_member_of('Ministry Officials')
+            or profile.is_member_of('Admins')
+            or profile.is_member_of(
             'UNICEF Officials')):
         return redirect('/')
 
@@ -3155,14 +3191,21 @@ def edtrac_export_poll_responses(request):
             if from_date and to_date:
                 responses = responses.filter(date__range=[from_date, to_date])
 
-            resp = render_to_response('education/admin/export_poll_responses.csv', {'responses'
-                                                              : _format_responses(responses)}, mimetype='text/csv',
-                                      context_instance=RequestContext(request))
+            resp = render_to_response(
+                'education/admin/export_poll_responses.csv', {
+                    'responses': _format_responses(responses)
+                },
+                mimetype='text/csv',
+                context_instance=RequestContext(request)
+            )
             resp['Content-Disposition'] = 'attachment;filename="%s.csv"' \
                                           % poll.name
             return resp
 
-    return render_to_response('education/admin/export_poll_responses.html', {'form':form},RequestContext(request))
+    return render_to_response('education/admin/export_poll_responses.html',
+                              {'form': form},
+                              RequestContext(request),
+                              )
 
 @login_required
 def edit_sub_county_reporters(request):

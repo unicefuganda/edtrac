@@ -1,8 +1,9 @@
 {% extends "education/partials/partial_header.html" %}
+{% load url from future %}
 {% block toprow %}
 {#	<div id="add_contact_form"></div>#}
 {#    <div id="add_contact_anchor_row">#}
-{#            <a class='btn' id="add-reporter" href="javascript:void(0)" onClick="newConnection(this, '{% url education.views.add_connection %}')">Add Reporter</a><p></p>#}
+{#            <a class='btn' id="add-reporter" href="javascript:void(0)" onClick="newConnection(this, '{% url 'education.views.add_connection' %}')">Add Reporter</a><p></p>#}
 {#    </div>#}
 {#<div id="special_script">#}
 {#    <a class="btn" id="special-scrpt" href="javascript:void(0)" onClick="scheduleSpecialScript(this)">Schedule special poll</a><p></p>#}
@@ -17,13 +18,13 @@
         <p class="scripts"></p>
         <script type="text/javascript">
             $(document).ready(function(){
-                $('p.scripts').load('{% url emis-special-scripts %}');
+                $('p.scripts').load('{% url 'emis-special-scripts' %}');
             });
         </script>
     </div>
     <div class="modal-footer">
         <a href="#" class="btn" data-dismiss="modal">Close</a>
-        <!--<a href="{% url emis-special-scripts %}" class="btn btn-primary">Save changes</a>-->
+        <!--<a href="{% url 'emis-special-scripts' %}" class="btn btn-primary">Save changes</a>-->
     </div>
 </div>
 <script type="text/javascript">

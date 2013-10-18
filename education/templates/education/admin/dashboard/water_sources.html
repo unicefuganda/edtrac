@@ -1,0 +1,19 @@
+{% load url from future %}
+<div class="well">
+	<h3>Water Source</h3>
+	<table class="table table-condensed">
+		<tr>
+			<th>Indicator</th>
+			<th>Value</th>
+		</tr>
+		<tr>
+			<td>Available</td>
+			<td>{{ water_sources_available|floatformat }} %</td>
+		</tr>
+		<tr>
+			<td>Functional</td>
+			<td>{{ water_sources_functional|floatformat }} %</td>
+		</tr>
+	</table>
+	<a href="{% url 'detail-water-view' %}" class="btn btn-secondary"><i class="icon-th-list"></i> View Details</a>
+</div>

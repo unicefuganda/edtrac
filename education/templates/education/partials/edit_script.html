@@ -2,105 +2,28 @@
 {% load endless %}
 {% load stats_extras %}
 {% load i18n %}
+{% load url from future %}
 {% block title %}
 Scripts - {{ block.super }}
-{% endblock %}
-{% block stylesheets %}
-<link rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/jquery-ui-1.8.19.custom.css"/>
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/bootstrap.min.css" />
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/bootstrap-responsive.min.css" />
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/application.css" />
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/tablecloth.css" />
-<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/prettify.css" /> 
 {% endblock %}
 
 {% block javascripts %}
 {{ block.super }}
-    <script src="{{ MEDIA_URL }}education/javascripts/jquery-1.7.1.min.js" type="text/javascript"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-ui-1.8.19.custom.min.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-ui-1.7.3.custom.min.js"></script>
     <script src="{{ MEDIA_URL }}education/javascripts/add_datepicker.js" type="text/javascript"></script>
     <script type="text/javascript" src="/admin/jsi18n/"></script>
-    <script src="{{MEDIA_URL}}generic/javascripts/generic.js" type="text/javascript"></script>
     <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/emis_schools.js"></script>
 {% endblock %}
 
-<div id="wrapper">
-{% block header %}
-<div id="topbar">
-  
-  <div class="container">
-    
-    <a href="javascript:;" id="menu-trigger" class="dropdown-toggle" data-toggle="dropdown" data-target="#">
-      <i class="icon-cog"></i>
-    </a>
-  
-    <div id="top-nav">      
-      <ul class="pull-right">
-        {% if user.is_authenticated %}
-        <li><a href=""><i class="icon-user"></i> Logged in as {{ user.username }}</a></li>
-        <li><a href="{% url rapidsms_logout %}">Logout</a></li>
-        {% else %}
-        <li><a href="{% url rapidsms_login %}">{% trans "Log in" %}</a></li>
-        {% endif %}
-      </ul>
-      
-    </div> <!-- /#top-nav -->
-    
-  </div> <!-- /.container -->
-  
-</div> <!-- /#topbar -->
-<div id="header">
-    
-    <div class="container">
-
-
-      <a href="{% url rapidsms-dashboard %}" style="position:relative;top:20px;display: block;overflow: hidden;width: 180px;height: 45px;margin-right: .75em;"><img src="{{MEDIA_URL }}education/icons/web_logo.png" alt="EduTrac"></a>
-    
-    <a href="javascript:;" class="btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-          <i class="icon-reorder"></i>
-    </a>
-
-    <div class="nav-collapse">
-      <ul id="main-nav" class="nav pull-right">
-        <li>
-          <a href="{% url rapidsms-dashboard %}">
-            <!-- <i class="icon-home"></i> -->
-            <span>Home</span>                 
-          </a>
-        </li>
-        
-        <li class="dropdown">         
-          <a href="/edtrac/control-panel/">
-            <span>Control Panel</span> 
-          </a>  
-        </li>
-      </ul>
-      
-    </div> <!-- /.nav-collapse -->
-    </div> 
-    
-</div>  
-
-{% include "education/partials/messages/message_links.html" %}
+{% block masthead %}
+	{% include "education/partials/messages/message_links.html" %}
 {% endblock %}
 
+<div id="wrapper">
 {% block content %}
 <div id="content">
 
-
   <div class="container">
-
-  <div class="general">
-        <div class="module">
-            <h2>{{ title }}</h2>
-        </div>
-        {% for script, script_form in forms %}
-        <div> 
-        <!-- <div style="padding:20px; border:1px solid #333;"> -->
-            <form action="" method="post">
-                {{ script_form.slug }}
-                <table cellspacing="1" cellpadding="3" id="quitters" class="results table table-paper tablehead table-condensed table-striped" style="background:#CCC;">
+                <table id="quitters" class="table table-paper table-condensed table-striped">
                     <thead>
                         <tr class="colhead">
                             <th>Script Name</th>
@@ -109,6 +32,10 @@ Scripts - {{ block.super }}
                         </tr>
                     </thead>
                     <tbody>
+        {% for script, script_form in forms %}
+        <!-- <div style="padding:20px; border:1px solid #333;"> -->
+            <form action="" method="post">
+                {{ script_form.slug }}
                         <tr>
                             <td>{{ script.name }}</td>
                             <td>
@@ -123,9 +50,7 @@ Scripts - {{ block.super }}
                             </td>
                             <td>{{ script_form.enabled }}</td>
                         </tr>
-                    </tbody>
-                </table>
-                <!-- <table width="100%" cellpadding="5" cellspacing="0" border=1 style="border-collapse:collapse;">
+			<!-- <table width="100%" cellpadding="5" cellspacing="0" border=1 style="border-collapse:collapse;"> 
                     <tr>
                         <td width="10%"><label for="name">Script Name:</label></td>
                         <td>{{ script_form.name }}</td>
@@ -154,7 +79,7 @@ Scripts - {{ block.super }}
                                 {% if script|termly %}
                                     <label for="date">Schedule Date:</label> {{ script_form.date }} |
                                 {% endif %}
-                                <a href="#" onclick="reschedule_polls('{% url emis-reschedule-scripts script.slug %}', '{{ script.pk }}');">Reschedule Questions</a>
+                                <a href="#" onclick="reschedule_polls('{% url 'emis-reschedule-scripts' script.slug %}', '{{ script.pk }}');">Reschedule Questions</a>
                                     <span id="{{ script.pk }}_results"></span>
                                 </div>
                             </td>
@@ -162,9 +87,10 @@ Scripts - {{ block.super }}
                     {%endifnotequal %}
                 </table> -->
             </form>
-        </div>
         {% endfor %}
-    </div>
+
+                    </tbody>
+                </table>
 </div> <!-- /.container -->
 
 </div> <!-- /#content -->
@@ -179,7 +105,7 @@ Scripts - {{ block.super }}
     
     <script type="text/javascript" charset="utf-8">
       $(document).ready(function() {
-        $("#userTable").tablecloth({
+        $("#quitters").tablecloth({
           theme: "paper",
           striped: true,
           condensed: true,

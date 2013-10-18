@@ -3,6 +3,7 @@
 {% load region_tags %}
 {% load tabs_tags %}
 {% load i18n %}
+{% load url from future %}
 <head>
     <meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
 
@@ -52,10 +53,10 @@
             <div id="title-bar">
                 {% block logo %}
                 <div id="edutrac-logo" style="margin-top:20px;">
-                    <a href="{% url rapidsms-dashboard %}"><img src="{{MEDIA_URL }}education/icons/web_logo.png" alt="EduTrac"></a>
+                    <a href="{% url 'rapidsms-dashboard' %}"><img src="{{MEDIA_URL }}education/icons/web_logo.png" alt="EduTrac"></a>
                 </div>
                 <div style="float:right;">
-                    <a href="{% url rapidsms-dashboard %}"><img src="{{ MEDIA_URL }}education/icons/coat_of_arms.png"/></a>
+                    <a href="{% url 'rapidsms-dashboard' %}"><img src="{{ MEDIA_URL }}education/icons/coat_of_arms.png"/></a>
                 </div>
 
                 {% endblock %}

@@ -4,10 +4,6 @@ from django.contrib import admin
 from .models import Role, UserProfile, School, EmisReporter
 
 
-class MembershipInline(admin.TabularInline):
-    model = EmisReporter.schools.through
-
-
 class EmisReporterAdmin(admin.ModelAdmin):
     list_display = ('name', 'gender', 'active')
     search_fields = ['name']

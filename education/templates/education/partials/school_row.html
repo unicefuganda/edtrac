@@ -1,7 +1,8 @@
 {% extends 'generic/partials/partial_row.html' %}
 {% load stats_extras %}
+{% load url from future %}
 {% block remaining_row_content %}
-	<!-- <td><a href="{% url school-detail object.id %}">{{ object.name }}</a></td>
+	<!-- <td><a href="{% url 'school-detail' object.id %}">{{ object.name }}</a></td>
     <td>{{ object.location|get_district }}</td>
     <td>{{ object.emis_id }}</td>
     <td>{{ object|headteacher }} {{ object|headteacher_connection }}</td>
@@ -16,8 +17,7 @@
     </td> -->
 
     <td>
-        <a href="{% url school-detail object.id %}">
-        {{ object.name }}</a>
+        <a href="{% url 'school-detail' object.id %}">{{ object.name }}</a>
     </td>
     <td>
         {{ object.location|get_district }}
@@ -43,11 +43,11 @@
     <td class="button_col">
         <div class="buttons">
         	{% comment %}
-            <a href="javascript:void(0)" onclick="deleteSchool(this, {{ object.pk }},'{{ object.name }}', '{% url delete-school object.pk %}')">
+            <a href="javascript:void(0)" onclick="deleteSchool(this, {{ object.pk }},'{{ object.name }}', '{% url 'delete-school' object.pk %}')">
                 <img src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png" />
             </a>
             {% endcomment %}
-             <a href="javascript:void(0)" onclick="editSchool(this, {{ object.pk }}, '{% url edit-school object.pk %}')">
+             <a href="javascript:void(0)" onclick="editSchool(this, {{ object.pk }}, '{% url 'edit-school' object.pk %}')">
                 <img src="{{ MEDIA_URL }}poll/icons/silk/pencil.png" />
             </a>
         </div>

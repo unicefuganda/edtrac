@@ -1,0 +1,15 @@
+{% load url from future %}
+<div class="well">
+	<h3>UPE Grant</h3>
+	<table class="table table-condensed">
+		<tr>
+			<th>Indicator</th>
+			<th>Value</th>
+		</tr>
+		<tr>
+			<td>UPE Capitation Grants recieved</td>
+			<td>{{ grant_percent|floatformat }} %</td>
+		</tr>
+	</table>
+	<a href="{% url 'emis-grants' %}" class="btn btn-secondary"><i class="icon-th-list"></i> View Details</a>
+</div>

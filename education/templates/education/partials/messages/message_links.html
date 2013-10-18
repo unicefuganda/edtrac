@@ -1,33 +1,21 @@
-
-<div id="masthead">
-
-    <div class="container">
-
-        <div class="masthead-pad">
-
-            <div class="masthead-text">
-                <h2>{{ management_for|capfirst }} Management</h2>
-                <p>A portal to manage {{ management_for }} on the EduTrac platform</p>
-            </div>
-            <div class="masthead-text" style="float: right">
-                <span></span>
-            </div>
-        </div>
-    </div>
-
+{% load url from future %}
+<div class="page-header">
+	<h2>{{ management_for|capfirst }} Management<small> - A portal to manage {{ management_for }} on the EduTrac platform</small></h2>
+	<div id="masthead-text"><span></span></div>
 </div>
+
 <script type="text/javascript">
-    $(document).ready(function(){
-        if(document.URL.indexOf('error_msgs')> -1){
-            $('.masthead-text span').html("<a href='{% url emis-messagelog %}'>Back to all messages</a>");
-        }
-        else
-            if(document.URL.indexOf('messages') > -1){
-                $('.masthead-text span').html("<a href='{% url emis-messagelog %}?error_msgs=True'>View unsolicitated messages</a>");
-             }
-            else
-            if(document.URL.indexOf('reporter') > -1){
-                $('.masthead-text span').html("Schools marked with (*) are assigned to reporters with close-match algorithm.(They may vary with exact school name sent by reporter)");
-            }
-    });
+$(document).ready(function(){
+	if(document.URL.indexOf('error_msgs')> -1){
+	$('.masthead-text span').html("<a href='{% url 'emis-messagelog' %}'>Back to all messages</a>");
+	}
+	else
+	if(document.URL.indexOf('messages') > -1){
+		$('.masthead-text span').html("<a href='{% url 'emis-messagelog' %}?error_msgs=True'>View unsolicitated messages</a>");
+	}
+	else
+	if(document.URL.indexOf('reporter') > -1){
+		$('.masthead-text span').html("Schools marked with (*) are assigned to reporters with close-match algorithm.(They may vary with exact school name sent by reporter)");
+	}
+});
 </script>

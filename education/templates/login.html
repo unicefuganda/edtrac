@@ -1,35 +1,62 @@
-{% extends "layout.html" %}
-{% load forms_tags %}
-{% block title %}Login{% endblock %}
+{% extends 'layout.html' %}
+{% load url from future %}
+{% block header %}
+<div class="navbar">
+	<div class="navbar-inner">
+		<a class="brand" href="/"><img src="{{ MEDIA_URL }}education/icons/web_logo.png" alt="EduTrac"></a>
+	</div>
+</div>
+{% endblock %}
+
 {% block content %}
-
-{% if form.errors %}
-<p>Oops. Your username and password didn't match. Please try again.</p>
-{% endif %}
-
 {% if user.is_authenticated %}
 <p>You're already logged in!</p>
-
 {% else %}
 
-<h1>Please log in to EduTrac</h1>
+{% if form.errors %}
+<div class="alert fade in">
+	<button type="button" class="close" data-dismiss="alert">&times;</button>
+	Oops. Your username and password didn't match. Please try again.
+</div>
+{% endif %}
 
+<div class="row">
+	<div class="span6 offset3 well">
+		<form class="form-horizontal" method="post" action="{% url 'rapidsms-login' %}">
+			<h2 class="form-signin-heading">Please sign into Edutrac</h2>
 
-<form method="post" action="{% url rapidsms_login %}">
-    <table>
-        <tr>
-            <td>{{ form.username.label_tag }}</td>
-            <td>{{ form.username }}</td>
-        </tr>
-        <tr>
-            <td>{{ form.password.label_tag }}</td>
-            <td>{{ form.password }}</td>
-        </tr>
-    </table>
-    {% csrf_token %}
-    <input type="submit" value="login" />
-    <input type="hidden" name="next" value="{{ next }}" />
-</form>
+			<div class="control-group">
+				{{ form.username.label_tag }}
+				<div class="controls">
+					{{ form.username }}
+				</div>
+			</div>
+
+			<div class="control-group">
+				{{ form.password.label_tag }}
+				<div class="controls">
+					{{ form.password }}
+				</div>
+			</div>
+
+			{% csrf_token %}
+			<input type="hidden" name="next" value="{{ next }}" />
+
+			<div class="control-group">
+				<div class="controls">
+					<button class="btn btn-large btn-primary" type="submit">Sign in</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+
+<script>
+	$(function() {
+		$(".alert").alert();
+		$("label").addClass("control-label");
+	});
+</script>
 
 {% endif %}
 {% endblock %}

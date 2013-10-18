@@ -1,6 +1,7 @@
 {% load region_tags %}
 {% load tabs_tags %}
 {% load i18n %}
+{% load url from future %}
 
 {% block top_container %}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
@@ -12,98 +13,113 @@
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 
     {% block stylesheets %}
-    <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/layout.css" />
-    <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/splits.css" />
-    <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/modules.css" />
-    <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/tables.css" />
-    <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/forms.css" />
-    <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/icons.css" />
+    <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/bootstrap.min.css" />
+    <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/bootstrap-responsive.min.css" />
+    <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/jquery-ui-1.8.19.custom.css"/>
+
+    <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/tablecloth.css"/>
+    <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}education/stylesheets/edtrac.css" />
     {% endblock %}
 
     {% block javascripts %}
-    <script type="text/javascript" src="{{ MEDIA_URL }}rapidsms/javascripts/jquery-1.3.2.min.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-1.7.1.min.js"></script>
     <script type="text/javascript" src="{{ MEDIA_URL }}rapidsms/javascripts/collapse.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap.min.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-alert.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-tab.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-collapse.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-ui-1.8.19.custom.min.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/highcharts.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/emis_dashboard_charts.js"></script>
     {% endblock %}
 
 </head>
 <body>
-<div id="wrapper">
-    {% region "top" %}
+	<div class="wrapper">
+		<div class="container">
+			{% region "top" %}
 
-    {% block header %}
-    <div id="header" style="color: blue;">
-        <div class="banner" style="color: blue;">
-            <a style="position: absolute;" href="/">
-                <img src="{{ MEDIA_URL }}education/icons/web_logo.png" alt="EduTrac">
-                <span class="brand">&nbsp;</span>
-            </a>
-            {% block auth %}
-            <div id="auth">{% if user.is_authenticated %}
-                <a href="{% url rapidsms_logout %}">{% trans "Log out" %} {{ user.username }}</a>{% else %}
-                <a href="{% url rapidsms_login %}">{% trans "Log in" %}</a>{% endif %}
-            </div>
-            {% endblock %}
-        </div>
+			{% block header %}
+			<div class="navbar">
+				<div class="navbar-inner">
+					<!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+					<a class="btn btn-navbar" data-toggle="collapse" data-target="nav-collapse">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</a>
 
-        {% comment %}
-        This will override AUTHENTICATED_TABS if loaded...no one seems to be using this
-        template, so I'm commenting it out to use authenticated tabs.
-        {% get_tabs as tabs %}
-        {% endcomment %}
-        <ul id="tabs">{% for tab in tabs %}
-            <li class="app-{{ tab.name }}{% if tab.is_active %} active{% endif %}">
-                <a href="{{ tab.url }}"><span>{{ tab.caption }}</span></a>
-            </li>{% endfor %}
-        </ul>
+					<a class="brand" href="/"><img src="{{ MEDIA_URL }}education/icons/web_logo.png" alt="EduTrac"></a>
+					{% block auth %}
+					<div class="nav-collapse collapse">
+						<ul class="nav pull-right">
+							{% if user.is_authenticated %}
+							<li><a href="{% url 'rapidsms-dashboard' %}"><i class="icon-home icon-white"></i> Home</a></li>
+							<li><a href="/edtrac/control-panel/"><i class="icon-th icon-white"></i> Control Panel</a></li>
+							<li class="divider-vertical"></li>
+							{% if user.is_staff %}
+							<li><a href="/admin"><i class="icon-user"></i> Admin</a></li>
+							{% endif %}
+							<li><a href=""><i class="icon-user icon-white"></i> {{ user.username }}</a></li>
+							<li><a href="{% url 'rapidsms_logout' %}"><i class="icon-lock icon-white"></i> Logout</a></li>
+							{% else %}
+							<li><a href="{% url 'rapidsms_login' %}"><i class="icon-lock icon-white"></i> {% trans "Log in" %}</a></li>
+							{% endif %}
+						</ul>
+					</div>
+					{% endblock %}
+				</div>
+			</div>
+			{% endblock %}
 
-        {% block page_tabs %}
-        {% endblock %}
-    </div>
-    {% endblock %}
+			{% comment %}
+			This will override AUTHENTICATED_TABS if loaded...no one seems to be using this
+			template, so I'm commenting it out to use authenticated tabs.
+			{% get_tabs as tabs %}
+			<ul id="tabs">{% for tab in tabs %}
+				<li class="app-{{ tab.name }}{% if tab.is_active %} active{% endif %}">
+				<a href="{{ tab.url }}"><span>{{ tab.caption }}</span></a>
+				</li>{% endfor %}
+			</ul>
+			{% endcomment %}
 
-    {% block breadcrumbs %}{% if breadcrumbs %}
-    <div id="breadcrumbs">{% for caption, url in breadcrumbs %}
-        <a href="{{ url }}">{{ caption }}</a>{% if not forloop.last %}
-        <span>&raquo;</span>{% endif %}{% endfor %}
-    </div>{% endif %}
-    {% endblock %}
+			{% block page_tabs %}
+			{% endblock %}
 
-    <div id="inner">
-        {% endblock %}{% comment %}ends block top_container{% endcomment %}
-        {% block content %}{% endblock %}
-        {% block bottom_container %}
-    </div>
+			{% endblock %} {% comment %}ends the header block{% endcomment %}
 
-    {% block footer %}
-    <div id="footer">
-        <p class="rights">
-            Copyright &copy; 2008 &#8211; {% now "Y" %}
-            <a href="http://unicef.org">UNICEF</a> et al.<br />
-            <a href="http://github.com/rapidsms/rapidsms">RapidSMS</a> is available under
-            <a href="http://github.com/rapidsms/rapidsms/raw/master/LICENSE">the BSD license</a>.
-        </p>
+			{% block masthead %}
+			{% endblock %}
 
-        {% region "footer" %}
-    </div>
-    {% endblock %}
+			{% block breadcrumbs %}{% if breadcrumbs %}
+			<div id="breadcrumbs">{% for caption, url in breadcrumbs %}
+				<a href="{{ url }}">{{ caption }}</a>{% if not forloop.last %}
+				<span>&raquo;</span>{% endif %}{% endfor %}
+			</div>{% endif %}
+			{% endblock %}
 
-    {% region "bottom" %}
-</div>
-<!--
-<script type="text/javascript">
+			<div id="inner">
+				{% block content %}
+				{% endblock %}
+			</div>
 
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-36286594-1']);
-  _gaq.push(['_trackPageview']);
+			{% block footer %}
+			<hr/>
+			<div id="footer">
+				<p class="rights">
+				Copyright &copy; 2008 &#8211; {% now "Y" %}
+				<a href="http://unicef.org">UNICEF</a> et al.<br />
+				<a href="http://github.com/rapidsms/rapidsms">RapidSMS</a> is available under
+				<a href="http://github.com/rapidsms/rapidsms/raw/master/LICENSE">the BSD license</a>.
+				</p>
 
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
+				{% region "footer" %}
+			</div>
+			{% endblock %}
 
-</script>
--->
+			{% region "bottom" %}
+		</div> <!-- ./container -->
+	</div><!-- ./wrapper -->
+
 </body>
 </html>
-{% endblock %}{% comment %}ends block bottom_container{% endcomment %}
