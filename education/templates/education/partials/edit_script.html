@@ -39,9 +39,9 @@ Scripts - {{ block.super }}
       <ul class="pull-right">
         {% if user.is_authenticated %}
         <li><a href=""><i class="icon-user"></i> Logged in as {{ user.username }}</a></li>
-        <li><a href="{% url rapidsms-logout %}">Logout</a></li>
+        <li><a href="{% url rapidsms_logout %}">Logout</a></li>
         {% else %}
-        <li><a href="{% url rapidsms-login %}">{% trans "Log in" %}</a></li>
+        <li><a href="{% url rapidsms_login %}">{% trans "Log in" %}</a></li>
         {% endif %}
       </ul>
       
