@@ -41,14 +41,15 @@ class DateRangeForm(forms.Form): # pragma: no cover
 
 AREAS = Location.tree.all().select_related('type')
 
+
 class ReporterFreeSearchForm(FilterForm):
 
     """ concrete implementation of filter form
         TO DO: add ability to search for multiple search terms separated by 'or'
     """
 
-    search = forms.CharField(max_length=100, required=False, label="Free-form search",help_text="Use 'or' to search for multiple names")
-    
+    search = forms.CharField(max_length=100, required=False, label="Free-form search", help_text="Use 'or' to search for multiple names")
+
     def filter(self, request, queryset):
         search = self.cleaned_data['search']
         if search == "":
@@ -58,12 +59,16 @@ class ReporterFreeSearchForm(FilterForm):
                 search = search[3:]
             elif search[:1] == '0':
                 search = search[1:]
-            queryset = queryset.exclude(connection__identity__in=\
-                Blacklist.objects.values_list('connection__identity',flat=True)).filter(Q(name__icontains=search) |\
-                                       Q(reporting_location__name__icontains=search) |\
-                                       Q(connection__identity__icontains=search) |\
-                                       Q(schools__name__icontains=search)).distinct()
+            queryset = queryset.exclude(
+                connection__identity__in=Blacklist.objects.values_list('connection__identity', flat=True)
+            ).filter(
+                Q(name__icontains=search) |
+                Q(reporting_location__name__icontains=search) |
+                Q(connection__identity__icontains=search) |
+                Q(schools__name__icontains=search)
+            ).distinct()
         return queryset
+
 
 class SchoolFilterForm(FilterForm):
     """ filter form for emis schools """
@@ -158,7 +163,7 @@ class EditReporterForm(forms.ModelForm):
         else:
             # remove all schools associated with this reporter
             [reporter_form.schools.remove(sch) for sch in reporter_form.schools.all()]
-        
+
         groups = self.cleaned_data['groups']
         if groups:
             reporter_form.groups.clear()
@@ -320,7 +325,7 @@ class ReportCommentForm(forms.ModelForm):
 
 
 class UserForm(forms.ModelForm):
-   
+
     location=forms.ModelChoiceField(queryset=Location.objects.filter(type__in=["district","country"]).order_by('name'),required=True)
     password1 = forms.CharField(label="Password", widget=forms.PasswordInput,required=False)
     password2 = forms.CharField(label="Password confirmation", widget=forms.PasswordInput,
@@ -351,7 +356,7 @@ class UserForm(forms.ModelForm):
 
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1", "")
-        
+
         password2 = self.cleaned_data.get("password2","")
         if password1 == password2 and password2 =="" and self.edit:
             return password2
@@ -368,7 +373,7 @@ class UserForm(forms.ModelForm):
         if commit:
             user.save()
         return user
-                
+
 class MassTextForm(ActionForm):
 
     text = forms.CharField(max_length=160, required=True, widget=SMSInput())
@@ -455,7 +460,7 @@ class SchoolMassTextForm(ActionForm):
             reporters = []
             for school in results:
                 for rep in school.emisreporter_set.filter(groups__name__in=['Teachers', 'Head Teachers']):
-                    reporters.append(rep) 
+                    reporters.append(rep)
             connections = \
                 list(Connection.objects.filter(contact__in=reporters).distinct())
 
