@@ -7,4 +7,5 @@ from school import School
 from script_schedule import ScriptSchedule,ScriptScheduleTime
 from user_profile import UserProfile
 from indicator import Indicator
+from term import Term
 from utils import *
