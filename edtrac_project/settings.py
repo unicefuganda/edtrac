@@ -5,7 +5,9 @@
 # -------------------------------------------------------------------- #
 #                          PATH CONFIGURATION                          #
 # -------------------------------------------------------------------- #
-import sys, os, djcelery
+import sys
+import os
+import djcelery
 from datetime import timedelta
 
 filedir = os.path.dirname(__file__)
@@ -48,14 +50,14 @@ MAX_LAT = '4.280680030820496'
 CATEGORY_COLORS = ['#AA4643', '#4572A7', '#89A54E', '#80699B', '#3D96AE', '#DB843D', '#92A8CD', '#A47D7C', '#B5CA92']
 
 # Modem numbers used by QoS
-MODEM_NUMBERS = ['256777773260', '256752145316','256711957281', '256790403038','256701205129']
+MODEM_NUMBERS = ['256777773260', '256752145316', '256711957281', '256790403038', '256701205129']
 
 # you should configure your database here before doing any real work.
 # see: http://docs.djangoproject.com/en/dev/ref/settings/#databases
 DATABASES = {
     'default': {
-        'ENGINE' : 'django.db.backends.postgresql_psycopg2',
-	'NAME': 'edtrac',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'edtrac',
         'USER': 'postgres',
         'HOST': 'dbserver',
     }
@@ -84,7 +86,7 @@ INSTALLED_APPS = [
     "djtables",
     "mptt",
     "uni_form",
-#    "debug_toolbar",
+    # "debug_toolbar",
     "django_extensions",
     "rapidsms.contrib.handlers",
     "rapidsms.contrib.locations",
@@ -132,9 +134,9 @@ SIMPLE_AUTOCOMPLETE_MODELS = ('rapidsms.models.Connection')
 CELERY_TIMEZONE = 'Africa/Kampala'
 
 CELERYBEAT_SCHEDULE = {
-    'runs-every-5-minutes':{
-        'task':'tasks.CreateRecordEnrolledDeployedQuestionsAnswered',
-        'schedule':timedelta(minutes = 5)
+    'runs-every-5-minutes': {
+        'task': 'tasks.CreateRecordEnrolledDeployedQuestionsAnswered',
+        'schedule': timedelta(minutes=5)
     },
 }
 
@@ -150,11 +152,11 @@ SMS_APPS = [
 # tabbed navigation. when adding an app to INSTALLED_APPS, you may wish
 # to add it here, also, to expose it in the rapidsms ui.
 RAPIDSMS_TABS = [
-#   ('stats', 'Stats'),
+    # ('stats', 'Stats'),
     ("rapidsms-dashboard", 'Home')
 ]
 
-gettext  = lambda s:s
+gettext = lambda s: s
 LANGUAGES = (('en', gettext('English')),)
 
 """
@@ -260,9 +262,9 @@ TEST_EXCLUDED_APPS = [
 ]
 
 TEMPLATE_LOADERS = (
-                    'django.template.loaders.filesystem.Loader',
-                    'django.template.loaders.app_directories.Loader',
-                    'django.template.loaders.eggs.Loader'
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
+    'django.template.loaders.eggs.Loader'
 )
 
 # the project-level url patterns
@@ -274,7 +276,7 @@ MESSAGELOG_APP = 'rapidsms_httprouter'
 
 try:
     import sys
-    if os.environ.has_key('LOCAL_SETTINGS'):
+    if 'LOCAL_SETTINGS' in os.environ:
         # the LOCAL_SETTINGS environment variable is used by the build server
         sys.path.insert(0, os.path.dirname(os.environ['LOCAL_SETTINGS']))
         from settings_test import *
@@ -282,4 +284,3 @@ try:
         from localsettings import *
 except ImportError:
     pass
-
