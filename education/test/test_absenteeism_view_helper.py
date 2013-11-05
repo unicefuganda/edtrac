@@ -203,7 +203,6 @@ class TestAbsenteeismViewHelper(TestAbsenteeism):
         time_data = ast.literal_eval(response.context['time_data'])
         self.assertTrue(25.0 in time_data[0]['data'])
 
-
     def test_should_calculate_attd_for_past_five_weeks(self):
         client = Client()
         client.login(username='John',password='password')
@@ -237,8 +236,6 @@ class TestAbsenteeismViewHelper(TestAbsenteeism):
         time_data = ast.literal_eval(response.context['time_data'])
         self.assertTrue(set([60.0, 100.0, 30.0, 50.0, 40.0]) < set(time_data[0]['data']))
         self.assertEqual(76.0 , round(response.context['collective_result']['Kampala']['P3 Pupils']))
-
-
 
     def set_weekly_date(self, responses):
         today = datetime.datetime.now()
