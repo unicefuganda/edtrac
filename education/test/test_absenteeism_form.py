@@ -9,12 +9,12 @@ class TestAbsenteeismForm(TestCase):
         self.assertFalse(absenteeism_form.is_valid())
 
     def test_should_validate_if_to_date_is_greater_than_from_date(self):
-        absenteeism_form = AbsenteeismForm(data={'to_date':'12/12/2013', 'from_date':'12/14/2013'})
+        absenteeism_form = AbsenteeismForm(data={'to_date':'12/12/2012', 'from_date':'12/14/2012'})
         self.assertFalse(absenteeism_form.is_valid())
 
     def test_should_get_cleaned_data_after_validation(self):
-        absenteeism_form = AbsenteeismForm(data={'to_date':'12/21/2013', 'from_date':'12/14/2013', 'indicator':'all'})
+        absenteeism_form = AbsenteeismForm(data={'to_date':'12/21/2012', 'from_date':'12/14/2012', 'indicator':'all'})
         self.assertTrue(absenteeism_form.is_valid())
-        self.assertEqual(datetime(2013,12,21), absenteeism_form.cleaned_data['to_date'])
-        self.assertEqual(datetime(2013,12,14), absenteeism_form.cleaned_data['from_date'])
+        self.assertEqual(datetime(2012,12,21), absenteeism_form.cleaned_data['to_date'])
+        self.assertEqual(datetime(2012,12,14), absenteeism_form.cleaned_data['from_date'])
         self.assertEqual('all', absenteeism_form.cleaned_data['indicator'])
