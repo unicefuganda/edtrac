@@ -99,13 +99,13 @@ def view_stats(req,
                 pk__in=EnrolledDeployedQuestionsAnswered.objects.select_related().values_list('school__pk',
                                                                                               flat=True))
             for location in locations:
-                temp = []
-                for d in date_weeks:
+                periodic_absenteeism = []
+                for period in date_weeks:
                     enrolled = sum(get_numeric_data([poll_enroll], [location], term_range))
-                    attendance_current_week = sum(get_numeric_data([poll_attendance], [location], d))
-                    percent_current_week = round(compute_absent_values(attendance_current_week, enrolled), 2)
-                    temp.append(percent_current_week)
-                to_ret.append([location, temp])
+                    attendance = sum(get_numeric_data([poll_attendance], [location], period))
+                    absenteeism = round(compute_absent_values(attendance, enrolled), 2)
+                    periodic_absenteeism.append(absenteeism)
+                to_ret.append([location, periodic_absenteeism])
 
             return render_to_response(template_name, {'form': time_range_form, 'dataset': to_ret,
                                                           'title': title, 'month_flag': month_flag,
