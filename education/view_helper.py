@@ -79,7 +79,7 @@ def view_stats(req,
             to_date = time_range_form.cleaned_data['to_date']
             month_delta = abs(from_date.month - to_date.month)
             date_weeks = []
-            month_flag = None
+
             if month_delta <= 2: # same month get days in between
                 month_flag = False # don't split data in months
                 while from_date <= to_date:
@@ -95,31 +95,26 @@ def view_stats(req,
                     delta = next_date - from_date
                     from_date += datetime.timedelta(days=abs(delta.days))
 
-                schools_temp = School.objects.filter(
-                    pk__in=EnrolledDeployedQuestionsAnswered.objects.select_related().values_list('school__pk',
-                                                                                                  flat=True))
-                for location in locations:
-                    temp = []
-                    location_schools = schools_temp.select_related().filter(location=location) # store in memory
-                    for d in date_weeks:
-                        total_attendance = 0 # per school
-                        total_enrollment = 0 # per school
-                        for school in location_schools:
-                            enrolled = sum(get_numeric_data_by_school([poll_enroll], [school], term_range))
-                            attendance = 0
-                            if enrolled > 0:
-                                if month_flag:
-                                    attendance = sum(get_numeric_data_by_school([poll_attendance], [school], d))
-                                else:
-                                    attendance = sum(get_numeric_data_by_school([poll_attendance], [school], d))
-                            total_attendance += attendance
-                            total_enrollment += enrolled
+            schools_temp = School.objects.filter(
+                pk__in=EnrolledDeployedQuestionsAnswered.objects.select_related().values_list('school__pk',
+                                                                                              flat=True))
+            for location in locations:
+                temp = []
+                location_schools = schools_temp.select_related().filter(location=location) # store in memory
+                for d in date_weeks:
+                    total_attendance = 0 # per school
+                    total_enrollment = 0 # per school
+                    for school in location_schools:
+                        enrolled = sum(get_numeric_data_by_school([poll_enroll], [school], term_range))
+                        if enrolled > 0:
+                            total_attendance += sum(get_numeric_data_by_school([poll_attendance], [school], d))
+                        total_enrollment += enrolled
 
-                        percent = compute_absent_values(total_attendance, total_enrollment)
-                        temp.append(percent)
-                    to_ret.append([location, temp])
+                    percent = compute_absent_values(total_attendance, total_enrollment)
+                    temp.append(percent)
+                to_ret.append([location, temp])
 
-                return render_to_response(template_name, {'form': time_range_form, 'dataset': to_ret,
+            return render_to_response(template_name, {'form': time_range_form, 'dataset': to_ret,
                                                           'title': title, 'month_flag': month_flag,
                                                           'url_name': url_name_district,
                                                           'date_batch': date_weeks}, RequestContext(req))
