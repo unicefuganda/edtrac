@@ -100,18 +100,11 @@ def view_stats(req,
                                                                                               flat=True))
             for location in locations:
                 temp = []
-                location_schools = schools_temp.select_related().filter(location=location) # store in memory
                 for d in date_weeks:
-                    total_attendance = 0 # per school
-                    total_enrollment = 0 # per school
-                    for school in location_schools:
-                        enrolled = sum(get_numeric_data_by_school([poll_enroll], [school], term_range))
-                        if enrolled > 0:
-                            total_attendance += sum(get_numeric_data_by_school([poll_attendance], [school], d))
-                        total_enrollment += enrolled
-
-                    percent = compute_absent_values(total_attendance, total_enrollment)
-                    temp.append(percent)
+                    enrolled = sum(get_numeric_data([poll_enroll], [location], term_range))
+                    attendance_current_week = sum(get_numeric_data([poll_attendance], [location], d))
+                    percent_current_week = round(compute_absent_values(attendance_current_week, enrolled), 2)
+                    temp.append(percent_current_week)
                 to_ret.append([location, temp])
 
             return render_to_response(template_name, {'form': time_range_form, 'dataset': to_ret,
