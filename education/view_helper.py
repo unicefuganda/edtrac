@@ -95,9 +95,6 @@ def view_stats(req,
                     delta = next_date - from_date
                     from_date += datetime.timedelta(days=abs(delta.days))
 
-            schools_temp = School.objects.filter(
-                pk__in=EnrolledDeployedQuestionsAnswered.objects.select_related().values_list('school__pk',
-                                                                                              flat=True))
             for location in locations:
                 periodic_absenteeism = []
                 for period in date_weeks:
