@@ -40,11 +40,11 @@ def view_stats(req,
 
     # No post Data
     if req.method != 'POST':
-        date_weeks = get_week_date(depth=2)
+        periods = get_week_date(depth=2)
         location_data = []
         context_vars = {}
-        current_week = date_weeks[0]
-        previous_week = date_weeks[1]
+        current_week = periods[0]
+        previous_week = periods[1]
 
         for location in locations:
             enrolled = sum(get_numeric_data([poll_enroll], [location], term_range))
@@ -78,18 +78,18 @@ def view_stats(req,
             from_date = time_range_form.cleaned_data['from_date']
             to_date = time_range_form.cleaned_data['to_date']
             month_delta = abs(from_date.month - to_date.month)
-            date_weeks = []
+            periods = []
 
             if month_delta <= 2: # same month get days in between
                 month_flag = False # don't split data in months
                 while from_date <= to_date:
                     if from_date.weekday() == 3: #is to_day a Thursday?
-                        date_weeks.append(previous_calendar_week(t=from_date)) # get range from Wed to Thur.
+                        periods.append(previous_calendar_week(t=from_date)) # get range from Wed to Thur.
                     from_date += datetime.timedelta(days=1)
             else:
                 month_flag = True # split data in months
                 while from_date <= to_date:
-                    date_weeks.append([dateutils.month_start(from_date),
+                    periods.append([dateutils.month_start(from_date),
                                        dateutils.month_end(dateutils.increment(from_date, months=1))])
                     next_date = dateutils.increment(from_date, months=1)
                     delta = next_date - from_date
@@ -97,7 +97,7 @@ def view_stats(req,
 
             for location in locations:
                 periodic_absenteeism = []
-                for period in date_weeks:
+                for period in periods:
                     enrolled = sum(get_numeric_data([poll_enroll], [location], term_range))
                     attendance = sum(get_numeric_data([poll_attendance], [location], period))
                     absenteeism = round(compute_absent_values(attendance, enrolled), 2)
@@ -107,7 +107,7 @@ def view_stats(req,
             return render_to_response(template_name, {'form': time_range_form, 'dataset': to_ret,
                                                           'title': title, 'month_flag': month_flag,
                                                           'url_name': url_name_district,
-                                                          'date_batch': date_weeks}, RequestContext(req))
+                                                          'date_batch': periods}, RequestContext(req))
 
     context_vars.update({'location_data': location_data})
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of(
