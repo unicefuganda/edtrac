@@ -30,6 +30,7 @@ sys.path.append(os.path.join(filedir, 'django_reversion', 'src'))
 sys.path.append(os.path.join(filedir, 'monitor_src'))
 sys.path.append(os.path.join(filedir, 'django_simple_autocomplete'))
 sys.path.append(os.path.join(filedir, 'endless'))
+sys.path.append(os.path.join(filedir, 'debug_toolbar'))
 
 # -------------------------------------------------------------------- #
 #                          MAIN CONFIGURATION                          #
@@ -120,7 +121,7 @@ INSTALLED_APPS = [
     "monitor",
     #leave south at the end of this list
     "south",
-
+    "debug_toolbar",
 ]
 
 INSTALLED_APPS += ['celery', "djcelery"]
@@ -178,7 +179,8 @@ AUTH_PROFILE_MODULE = 'education.UserProfile'
 # debug mode is turned on as default, since rapidsms is under heavy
 # development at the moment, and full stack traces are very useful
 # when reporting bugs. don't forget to turn this off in production.
-DEBUG = TEMPLATE_DEBUG = False
+DEBUG = True
+TEMPLATE_DEBUG = True
 
 
 # after login (which is handled by django.contrib.auth), redirect to the
@@ -230,6 +232,7 @@ TEMPLATE_CONTEXT_PROCESSORS = [
 ]
 
 MIDDLEWARE_CLASSES = (
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -250,6 +253,16 @@ MIDDLEWARE_CLASSES = (
 #        these settings are pure hackery, and will go away soon        #
 # -------------------------------------------------------------------- #
 
+#DEBUG_TOOLBAR_PANELS = (
+#    'debug_toolbar.panels.version.VersionDebugPanel',
+#    'debug_toolbar.panels.timer.TimerDebugPanel',
+#    'debug_toolbar.panels.settings_vars.SettingsVarsDebugPanel',
+#    'debug_toolbar.panels.headers.HeaderDebugPanel',
+#    'debug_toolbar.panels.request_vars.RequestVarsDebugPanel',
+#    'debug_toolbar.panels.template.TemplateDebugPanel',
+#    'debug_toolbar.panels.sql.SQLDebugPanel',
+#    'debug_toolbar.panels.logger.LoggingPanel',
+#)
 
 # these apps should not be started by rapidsms in your tests, however,
 # the models and bootstrap will still be available through django.
@@ -273,6 +286,16 @@ XFORMS_HOST = 'edutrac.unicefuganda.org:8000'
 MAP_KEY = "ABQIAAAAmd7V71yw9ZddA0s8Z3wSKBS0unaJrFIrP1vn6ZXHpuhFyvYAGhQprSjp88j18w-K_X23JU31jBikVg"
 COUNTRY = "UG"
 MESSAGELOG_APP = 'rapidsms_httprouter'
+
+def custom_show_toolbar(request):
+    return True # Always show toolbar, for example purposes only.
+
+DEBUG_TOOLBAR_CONFIG = {
+    'INTERCEPT_REDIRECTS': False,
+    'SHOW_TOOLBAR_CALLBACK': custom_show_toolbar,
+    'HIDE_DJANGO_SQL': False,
+    'TAG': 'div',
+}
 
 try:
     import sys
