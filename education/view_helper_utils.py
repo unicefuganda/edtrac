@@ -638,17 +638,19 @@ def get_numeric_data(polls, locations, time_range):
                                         message__direction = 'I')
     return [get_digit_value_from_message_text(response.message.text) for response in responses]
 
-def get_numeric_enrollment_data(polls, locations=None, time_range=None):
+def get_numeric_enrollment_data(polls, locations, time_range):
     results = []
     responsive_schools = [] # get schools that have enrollment data (Inner joins return matching data)
-    if time_range:
-        if locations:
-            responses = Response.objects.filter(date__range=time_range, poll__in=polls, has_errors=False,contact__reporting_location__in=locations, message__direction='I')
-            for response in responses:
-                if get_digit_value_from_message_text(response.message.text) != 0:
-                    if response.contact.emisreporter.schools.all():
-                        results.append(get_digit_value_from_message_text(response.message.text))
-                        responsive_schools.append(response.contact.emisreporter.schools.all()[0])
+    responses = Response.objects.filter(date__range = time_range,
+                                        poll__in = polls,
+                                        has_errors = False,
+                                        contact__reporting_location__in = locations,
+                                        message__direction = 'I')
+    for response in responses:
+        if get_digit_value_from_message_text(response.message.text) != 0:
+            if response.contact.emisreporter.schools.all():
+                results.append(get_digit_value_from_message_text(response.message.text))
+                responsive_schools.append(response.contact.emisreporter.schools.all()[0])
     return results, responsive_schools
 
 def get_numeric_data_by_school(polls, schools=None, time_range=None):
