@@ -569,18 +569,19 @@ def get_digit_value_from_message_text(messge):
     return digit_value
 
 
-def get_count_for_yes_no_response(polls, locations=None, time_range=None):
+def get_count_for_yes_no_response(polls, locations, time_range):
     yes = 0
     no = 0
-    if time_range:
-        if locations:
-            responses = Response.objects.filter(date__range=time_range, poll__in=polls, has_errors=False,
-                                                contact__reporting_location__in=locations, message__direction='I')
-            for response in responses:
-                if 'yes' in response.message.text.lower():
-                    yes += 1
-                if 'no' in response.message.text.lower():
-                    no += 1
+    responses = Response.objects.filter(date__range = time_range,
+                                        poll__in = polls,
+                                        has_errors = False,
+                                        contact__reporting_location__in = locations,
+                                        message__direction = 'I')
+    for response in responses:
+        if 'yes' in response.message.text.lower():
+            yes += 1
+        if 'no' in response.message.text.lower():
+            no += 1
     return yes, no
 
 
@@ -645,16 +646,13 @@ def get_numeric_enrollment_data(polls, locations, time_range):
                 responsive_schools.append(response.contact.emisreporter.schools.all()[0])
     return results, responsive_schools
 
-def get_numeric_data_by_school(polls, schools=None, time_range=None):
-    results = []
-    if time_range:
-        if schools:
-            responses = Response.objects.filter(date__range=time_range, poll__in=polls, has_errors=False,contact__emisreporter__schools__in=schools, message__direction='I')
-            for response in responses:
-                results.append(get_digit_value_from_message_text(response.message.text))
-
-    return results
-
+def get_numeric_data_by_school(polls, schools, time_range):
+    responses = Response.objects.filter(date__range = time_range,
+                                        poll__in = polls,
+                                        has_errors = False,
+                                        contact__emisreporter__schools__in = schools,
+                                        message__direction='I')
+    return [get_digit_value_from_message_text(response.message.text) for response in responses]
 
 def compute_absent_values(present, enrollment):
     try:
