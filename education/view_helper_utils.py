@@ -628,14 +628,9 @@ def get_deployed_head_Teachers_by_school(school, locations=None):
         result = len(deployedHeadTeachers)
     return result
 
-def get_attendance_data(polls, locations=None, time_range=None):
-    results = []
-    if time_range:
-        if locations:
-            responses = Response.objects.filter(date__range=time_range, poll__in=polls, has_errors=False,contact__reporting_location__in=locations, message__direction='I')
-            for response in responses:
-                results.append(get_digit_value_from_message_text(response.message.text))
-    return results
+def get_attendance_data(polls, locations, time_range):
+    responses = Response.objects.filter(date__range=time_range, poll__in=polls, has_errors=False,contact__reporting_location__in=locations, message__direction='I')
+    return [get_digit_value_from_message_text(response.message.text) for response in responses]
 
 def get_numeric_data(polls, locations, time_range):
     responses = Response.objects.filter(date__range=time_range, poll__in=polls, has_errors=False,contact__reporting_location__in=locations, message__direction='I')
