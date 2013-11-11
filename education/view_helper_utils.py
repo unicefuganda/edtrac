@@ -611,22 +611,12 @@ def get_record_collection(locations, time_range):
         pass # Log database errors (or lookup db error exceptions and be specific on exception)
     return results
 
+def get_deployed_head_Teachers_by_school(school, locations):
+    heads = EmisReporter.objects.filter(reporting_location__in=locations, schools__in=school, groups__name='SMC')
+    return heads.distinct().count()
 
-def get_deployed_head_Teachers(dataSource, locations=None):
-    result = 0
-    if locations:
-        deployedHeadTeachers = EmisReporter.objects.filter(reporting_location__in=locations,
-                                                           schools__in=dataSource.values_list('schools', flat=True),
-                                                           groups__name='SMC').distinct()
-        result = len(deployedHeadTeachers)
-    return result
-
-def get_deployed_head_Teachers_by_school(school, locations=None):
-    result = 0
-    if locations:
-        deployedHeadTeachers = EmisReporter.objects.filter(reporting_location__in=locations,schools__in=school,groups__name='SMC').distinct()
-        result = len(deployedHeadTeachers)
-    return result
+def get_deployed_head_Teachers(dataSource, locations):
+    return get_deployed_head_Teachers_by_school(dataSource.values_list('schools', flat=True), locations)
 
 def get_attendance_data(polls, locations, time_range):
     responses = Response.objects.filter(date__range=time_range, poll__in=polls, has_errors=False,contact__reporting_location__in=locations, message__direction='I')
