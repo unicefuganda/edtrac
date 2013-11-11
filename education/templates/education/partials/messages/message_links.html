@@ -7,15 +7,15 @@
 <script type="text/javascript">
 $(document).ready(function(){
 	if(document.URL.indexOf('error_msgs')> -1){
-	$('.masthead-text span').html("<a href='{% url 'emis-messagelog' %}'>Back to all messages</a>");
+	$('#masthead-text span').html("<a href='{% url 'emis-messagelog' %}'>Back to all messages</a>");
 	}
 	else
 	if(document.URL.indexOf('messages') > -1){
-		$('.masthead-text span').html("<a href='{% url 'emis-messagelog' %}?error_msgs=True'>View unsolicitated messages</a>");
+		$('#masthead-text span').html("<a href='{% url 'emis-messagelog' %}?error_msgs=True'>View unsolicitated messages</a>");
 	}
 	else
 	if(document.URL.indexOf('reporter') > -1){
-		$('.masthead-text span').html("Schools marked with (*) are assigned to reporters with close-match algorithm.(They may vary with exact school name sent by reporter)");
+		$('#masthead-text span').html("Schools marked with (*) are assigned to reporters with close-match algorithm.(They may vary with exact school name sent by reporter)");
 	}
 });
 </script>

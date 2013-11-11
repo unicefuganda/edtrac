@@ -2,6 +2,7 @@ import datetime
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.core.management import BaseCommand
+from django.db import IntegrityError
 from education.models import Role, UserProfile
 from rapidsms.contrib.locations.models import Location, LocationType
 from poll.models import Poll, Category
@@ -23,11 +24,13 @@ class Command(BaseCommand):
                 type=LocationType.objects.get(slug='district')),
             role=Role.objects.get(name='Admins'),
             user=User.objects.get(username='admin'))
-        Poll.objects.all().delete()
-        Site.objects.get_or_create(
-            id=2,
-            domain="edtrac.unicefuganda.org",
-            name="edtrac")
+        try:
+            Site.objects.get_or_create(
+                id=2,
+                domain="edtrac.unicefuganda.org",
+                name="edtrac")
+        except IntegrityError:
+            pass
 
         poll_names = [
             'edtrac_violence_boys',
@@ -54,11 +57,14 @@ class Command(BaseCommand):
             'edtrac_girls_violence',
         ]
 
+        Poll.objects.all().delete()
         for poll_name in poll_names:
             Poll.objects.get_or_create(
                 name=poll_name,
                 start_date=datetime.datetime.now(),
-                user=User.objects.get(id=1))
+                type='n',
+                default_response='',
+                user=User.objects.get(username='admin'))
             Category.objects.get_or_create(
                 name='yes',
                 poll=Poll.objects.get(name=poll_name))
