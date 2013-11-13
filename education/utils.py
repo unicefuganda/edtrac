@@ -921,7 +921,7 @@ def get_week_count(reference_date, d):
 def get_months(start_date,end_date):
     to_ret = []
     first_day = start_date
-    while start_date.month < end_date.month or start_date.year < end_date.year:
+    while start_date < end_date:
         last_day = start_date + relativedelta(day=1, months=+1, days=-1,hour=23,minute=59)
         start_date += relativedelta(months=1)
         to_ret.append([
