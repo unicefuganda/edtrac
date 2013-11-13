@@ -101,6 +101,7 @@ class TestWaterPollView(TestCase):
         self.fake_incoming('no',self.emis_reporter3)
         location_result , monthly_result,percent = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
         self.assertIn(('yes', 66), location_result)
+        self.assertIn(('no', 33), location_result)
 
     def test_should_responses_for_current_term_only(self):
         settings.SCHOOL_TERM_START = dateutils.increment(datetime.now(),weeks=-16)
