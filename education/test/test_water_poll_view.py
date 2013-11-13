@@ -73,7 +73,6 @@ class TestWaterPollView(TestCase):
         start_term = self.term_range[0]
         i = start_term.month
         for response in responses:
-            print "setting month as %s " % i
             self.set_response_date(datetime(datetime.today().year, i, start_term.day), response)
             i += 1
 
@@ -91,8 +90,8 @@ class TestWaterPollView(TestCase):
         responses = self.water_source_poll.responses.all()
         self.set_monthly_date(responses)
         location_result,monthly_result,percent = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
-        self.assertTrue((self.term_range[0].strftime("%B"),{'yes':100}) in monthly_result)
-        self.assertTrue((dateutils.increment(self.term_range[0],months=2).strftime("%B"),{'no':100}) in monthly_result)
+        self.assertIn((self.term_range[0].strftime("%B"),{'yes':100}), monthly_result)
+        self.assertIn((dateutils.increment(self.term_range[0],months=2).strftime("%B"),{'no':100}), monthly_result)
 
 
     def test_should_get_location_termly_data(self):
@@ -101,7 +100,7 @@ class TestWaterPollView(TestCase):
         self.fake_incoming('yes',self.emis_reporter2)
         self.fake_incoming('no',self.emis_reporter3)
         location_result , monthly_result,percent = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
-        self.assertTrue(('yes', 66) in location_result)
+        self.assertIn(('yes', 66), location_result)
 
     def test_should_responses_for_current_term_only(self):
         settings.SCHOOL_TERM_START = dateutils.increment(datetime.now(),weeks=-16)
@@ -120,8 +119,8 @@ class TestWaterPollView(TestCase):
         self.fake_incoming('no',self.emis_reporter2)
         self.fake_incoming('unknown',self.emis_reporter3)
         location_result , monthly_result,percent = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
-        self.assertTrue(('yes', 50) in location_result)
-        self.assertTrue(('no', 50) in location_result)
+        self.assertIn(('yes', 50), location_result)
+        self.assertIn(('no', 50), location_result)
 
     def test_should_exclude_unknown_responses_for_bar_graph(self):
         self.water_source_poll.start()
@@ -132,7 +131,7 @@ class TestWaterPollView(TestCase):
         for response in responses:
             self.set_response_date(date.today(), response)
         location_result, monthly_result,percent = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
-        self.assertTrue((datetime.today().strftime("%B"),{'yes':50,'no':50}) in monthly_result)
+        self.assertIn((datetime.today().strftime("%B"),{'yes':50,'no':50}), monthly_result)
 
     def test_should_redirect_to_detail_view_when_form_is_valid(self):
         client = Client()
