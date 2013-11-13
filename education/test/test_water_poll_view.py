@@ -73,7 +73,6 @@ class TestWaterPollView(TestCase):
         start_term = self.term_range[0]
         i = start_term.month
         for response in responses:
-            print "setting month as %s " % i
             self.set_response_date(datetime(datetime.today().year, i, start_term.day), response)
             i += 1
 

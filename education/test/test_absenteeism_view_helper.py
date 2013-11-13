@@ -241,7 +241,6 @@ class TestAbsenteeismViewHelper(TestAbsenteeism):
         today = datetime.datetime.now()
         i=-1
         for response in responses:
-            print "setting month as %s " % i
             self.set_date(dateutils.increment(today,weeks=i), response)
             i -= 1
 
