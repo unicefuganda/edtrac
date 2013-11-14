@@ -789,7 +789,6 @@ def reschedule_weekly_polls(grp=None):
     else:
         Group.objects.filter(name__in=['Teachers', 'Head Teachers', 'SMC'])
     # get active reporters
-    print grps
     reps = EmisReporter.objects.filter(groups__in=grps)
     for rep in reps:
         if rep.default_connection and len(rep.groups.all()) > 0:
@@ -825,7 +824,6 @@ def reschedule_teacher_weekly_polls(grp=None):
             name__in=['Teachers', 'Head Teachers', 'SMC']
         )
     # get active reporters
-    print grps
     reps = EmisReporter.objects.filter(groups__in=grps)
     for rep in reps:
         if rep.default_connection and len(rep.groups.all()) > 0:
@@ -834,8 +832,6 @@ def reschedule_teacher_weekly_polls(grp=None):
                 rep.default_connection,
                 ['Teachers', 'Head Teachers', 'SMC']
             )
-            print rep.name
-    print "Poll sent out to " + str(reps.count()) + " reporters"
 
 
 def reschedule_monthly_polls(grp=None):
@@ -867,7 +863,6 @@ def reschedule_monthly_polls(grp=None):
         # get list of active reporters
         reps = EmisReporter.objects.filter(groups__in=grps)
         for rep in reps:
-            print 'processing %s' % rep.name
             if rep.default_connection and rep.groups.count() > 0:
                 if slug == 'edtrac_smc_monthly':
                     _schedule_monthly_script(
@@ -990,8 +985,6 @@ def reschedule_weekly_script(grp = 'all', date=None, slug=''):
     for rep in reps:
         if rep.default_connection and rep.groups.count() > 0:
             _schedule_weekly_script(rep.groups.all()[0], rep.default_connection, slug, ['Teachers', 'Head Teachers'])
-            print rep.name
-    print "Script sent out to " + str(reps.count()) + " reporters"
 
 def schedule_script_now(grp = 'all', slug=''):
 
@@ -1010,7 +1003,6 @@ def schedule_script_now(grp = 'all', slug=''):
     for reporter in reporters:
         if reporter.default_connection and reporter.groups.count() > 0:
             _schedule_script_now(reporter.groups.all()[0], reporter.default_connection, slug, ['Teachers', 'Head Teachers', 'SMC', 'GEM'])
-    print "Script sent out to " + str(reporters.count()) + " reporters"
 
 
 def schedule_weekly_report(grp='DEO'):
