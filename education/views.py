@@ -389,8 +389,8 @@ def violence_changes_reported(locations):
     }
 
 
-def get_two_weeks_absenteeism(indicator, locations):
-    date_weeks = get_week_date(depth=2)
+def get_two_weeks_absenteeism(indicator, locations, get_time=datetime.datetime.now):
+    date_weeks = get_week_date(depth=2, get_time=get_time)
     holiday = False
     this_week_absent = '--'
     past_week_absent = '--'
@@ -418,12 +418,12 @@ def get_two_weeks_absenteeism(indicator, locations):
     return this_week_absent, past_week_absent
 
 
-def p3_absent_boys(locations):
+def p3_absent_boys(locations, get_time=datetime.datetime.now):
     """
     Attendance of P3 Pupils; this gets the absenteeism
     """
     indicator = 'P3Boys'
-    boysp3, boysp3_past = compute_absenteeism_summary(indicator,locations)
+    boysp3, boysp3_past = compute_absenteeism_summary(indicator,locations,get_time=get_time)
 
     try:
         boysp3_diff = boysp3 - boysp3_past
@@ -445,10 +445,10 @@ def p3_absent_boys(locations):
     return {'boysp3' : boysp3, 'boysp3_past' : boysp3_past, 'boysp3_class' : boysp3_class,
                     'boysp3_diff' : boysp3_diff, 'boysp3_data' : boysp3_data}
 
-def p6_boys_absent(locations):
+def p6_boys_absent(locations, get_time=datetime.datetime.now):
     indicator = 'P6Boys'
     #boysp6, boysp6_past = get_two_weeks_absenteeism(indicator,locations)
-    boysp6, boysp6_past =  compute_absenteeism_summary(indicator,locations)
+    boysp6, boysp6_past =  compute_absenteeism_summary(indicator,locations,get_time=get_time)
 
     try:
         boysp6_diff = boysp6 - boysp6_past
@@ -470,9 +470,9 @@ def p6_boys_absent(locations):
     return {'boysp6' : boysp6, 'boysp6_past' : boysp6_past, 'boysp6_class' : boysp6_class,
             'boysp6_diff' : boysp6_diff, 'boysp6_data' : boysp6_data}
 
-def p3_absent_girls(locations):
+def p3_absent_girls(locations, get_time=datetime.datetime.now):
     indicator ='P3Girls'
-    girlsp3 ,girlsp3_past =  compute_absenteeism_summary(indicator,locations)
+    girlsp3 ,girlsp3_past =  compute_absenteeism_summary(indicator,locations,get_time=get_time)
 
     try:
         girlsp3_diff = girlsp3 - girlsp3_past
@@ -494,11 +494,11 @@ def p3_absent_girls(locations):
     return {'girlsp3' : girlsp3, 'girlsp3_past' : girlsp3_past, 'girlsp3_class': girlsp3_class,
                     'girlsp3_diff' : girlsp3_diff, 'girlsp3_data' : girlsp3_data}
 
-def p6_girls_absent(locations):
+def p6_girls_absent(locations,get_time=datetime.datetime.now):
 
     indicator = 'P6Girls'
-    girlsp6,girlsp6_past = get_two_weeks_absenteeism(indicator,locations)
-    girlsp6,girlsp6_past =  compute_absenteeism_summary(indicator,locations)
+    girlsp6,girlsp6_past = get_two_weeks_absenteeism(indicator,locations,get_time=get_time)
+    girlsp6,girlsp6_past =  compute_absenteeism_summary(indicator,locations,get_time=get_time)
 
     try:
         girlsp6_diff = girlsp6 - girlsp6_past
@@ -521,9 +521,9 @@ def p6_girls_absent(locations):
     return {'girlsp6' : girlsp6, 'girlsp6_past' : girlsp6_past,'girlsp6_diff' : girlsp6_diff,
                     'girlsp6_class' : girlsp6_class,'girlsp6_data' : girlsp6_data}
 
-def f_teachers_absent(locations):
+def f_teachers_absent(locations, get_time=datetime.datetime.now):
     indicator ='FemaleTeachers'
-    female_teachers ,female_teachers_past =  compute_absenteeism_summary(indicator,locations)
+    female_teachers ,female_teachers_past =  compute_absenteeism_summary(indicator,locations,get_time=get_time)
     try:
         female_teachers_diff = female_teachers - female_teachers_past
 
@@ -545,10 +545,10 @@ def f_teachers_absent(locations):
             'female_teachers' :female_teachers,'female_teachers_past' : female_teachers_past,
             'female_teachers_diff' : female_teachers_diff,'female_teachers_data' : female_teachers_data}
 
-def m_teachers_absent(locations):
+def m_teachers_absent(locations, get_time=datetime.datetime.now):
     indicator = 'MaleTeachers'
     #male_teachers,male_teachers_past = get_two_weeks_absenteeism(indicator,locations)
-    male_teachers,male_teachers_past =  compute_absenteeism_summary(indicator,locations)
+    male_teachers,male_teachers_past =  compute_absenteeism_summary(indicator,locations, get_time=get_time)
 
     try:
         male_teachers_diff = male_teachers - male_teachers_past
@@ -613,9 +613,9 @@ def meals_missed(locations):
     return {'worst_meal' : worst_meal}
 
 
-def head_teachers_female(locations):
+def head_teachers_female(locations, get_time=datetime.datetime.now):
     indicator = 'FemaleHeadTeachers'
-    female_d1,female_d2 = get_two_weeks_absenteeism(indicator,locations)
+    female_d1,female_d2 = get_two_weeks_absenteeism(indicator,locations,get_time)
     try:
         f_head_diff = female_d2 - female_d1
 
@@ -637,9 +637,9 @@ def head_teachers_female(locations):
     return {'f_head_t_week' : female_d1, 'f_head_t_week_before' : female_d2, 'f_head_diff' : f_head_diff,
             'f_head_t_class' : f_head_t_class, 'f_head_t_data':f_head_t_data}
 
-def head_teachers_male(locations):
+def head_teachers_male(locations, get_time=datetime.datetime.now):
     indicator = 'MaleHeadTeachers'
-    male_d1, male_d2 = get_two_weeks_absenteeism(indicator,locations)
+    male_d1, male_d2 = get_two_weeks_absenteeism(indicator,locations,get_time=get_time)
     try:
         m_head_diff = male_d2 - male_d1
 

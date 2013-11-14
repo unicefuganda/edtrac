@@ -675,11 +675,11 @@ def get_day_range(today):
         return set_thur_wed_range(today + datetime.timedelta(days=7))
 
 
-def get_week_date(depth=None):
+def get_week_date(depth=None, get_time=datetime.datetime.now):
     """
     get_week_date returns a range of weekly dates from today when not in holiday
     """
-    now = datetime.datetime.now()
+    now = get_time()
     # clean the hour
     now = now if (now.second == 0) else (now - datetime.timedelta(seconds=now.second))
     now = now if (now.minute == 0) else (now - datetime.timedelta(minutes=now.minute))

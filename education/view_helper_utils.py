@@ -524,8 +524,8 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
 
     return collective_result, chart_results_model, school_percent,tooltip,report_mode
 
-def compute_absenteeism_summary(indicator, locations):
-    date_weeks = get_week_date(depth=2)
+def compute_absenteeism_summary(indicator, locations, get_time=datetime.datetime.now):
+    date_weeks = get_week_date(depth=2, get_time=get_time)
     term_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
     current_week_date_range = date_weeks[0]
     previous_week_date_range = date_weeks[1]

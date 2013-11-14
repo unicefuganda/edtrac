@@ -16,12 +16,13 @@ from datetime import datetime
 
 class TestEdtracDashboard(TestCase):
     def setUp(self):
-        now = lambda: datetime(2012, 9, 8)
-        settings.SCHOOL_TERM_START = dateutils.increment(now(), weeks=-2)
-        settings.SCHOOL_TERM_END = dateutils.increment(now(), weeks=2)
+        time = datetime(2012, 05, 8)
+        self.get_time = lambda: time 
+        settings.SCHOOL_TERM_START = dateutils.increment(time, weeks=-2)
+        settings.SCHOOL_TERM_END = dateutils.increment(time, weeks=2)
 
-        self.poll_response_current_week_date = dateutils.increment(now(), weeks=-1)
-        self.poll_response_past_week_date = dateutils.increment(now())
+        self.poll_response_current_week_date = dateutils.increment(time, weeks=-1)
+        self.poll_response_past_week_date = dateutils.increment(time)
 
         htg = Group.objects.create(name='Head Teachers')
         country = LocationType.objects.create(name='country', slug='country')
@@ -179,7 +180,7 @@ class TestEdtracDashboard(TestCase):
         self.fake_incoming_with_date('2', self.connection3, self.poll_response_past_week_date)
 
         self.poll_for_p6boys_absent.end()
-        result_p6_boys = p6_boys_absent(self.root_node.get_children())
+        result_p6_boys = p6_boys_absent(self.root_node.get_children(), get_time=self.get_time)
         self.assertAlmostEqual(72.97, result_p6_boys['boysp6'], places=1)
         self.assertAlmostEqual(67.56, result_p6_boys['boysp6_past'], places=1)
         self.assertAlmostEqual(5.4, result_p6_boys['boysp6_diff'], places=1)
@@ -208,7 +209,7 @@ class TestEdtracDashboard(TestCase):
         self.fake_incoming_with_date('5', self.connection3, self.poll_response_past_week_date)
         self.poll_for_p3boys_absent.end()
 
-        result_p3_boys = p3_absent_boys(self.root_node.get_children())
+        result_p3_boys = p3_absent_boys(self.root_node.get_children(), self.get_time)
         self.assertAlmostEqual(55.88, result_p3_boys['boysp3'], places=1)
         self.assertAlmostEqual(47.05, result_p3_boys['boysp3_past'], places=1)
         self.assertAlmostEqual(8.82, result_p3_boys['boysp3_diff'], places=1)
@@ -237,7 +238,7 @@ class TestEdtracDashboard(TestCase):
         self.fake_incoming_with_date('5', self.connection3, self.poll_response_past_week_date)
         self.poll_for_p6girls_absent.end()
 
-        result_p6_girls = p6_girls_absent(self.root_node.get_children())
+        result_p6_girls = p6_girls_absent(self.root_node.get_children(), get_time=self.get_time)
         self.assertAlmostEqual(58.33, result_p6_girls['girlsp6'], places=1)
         self.assertAlmostEqual(52.77, result_p6_girls['girlsp6_past'], places=1)
         self.assertAlmostEqual(5.55, result_p6_girls['girlsp6_diff'], places=1)
@@ -266,7 +267,7 @@ class TestEdtracDashboard(TestCase):
         self.fake_incoming_with_date('5', self.connection3, self.poll_response_past_week_date)
         self.poll_for_p3girls_absent.end()
 
-        result_p3_girls = p3_absent_girls(self.root_node.get_children())
+        result_p3_girls = p3_absent_girls(self.root_node.get_children(), get_time=self.get_time)
         self.assertAlmostEqual(55.88, result_p3_girls['girlsp3'], places=1)
         self.assertAlmostEqual(82.35, result_p3_girls['girlsp3_past'], places=1)
         self.assertAlmostEqual(-26.47, result_p3_girls['girlsp3_diff'], places=1)
@@ -293,7 +294,7 @@ class TestEdtracDashboard(TestCase):
         self.fake_incoming_with_date('6', self.connection2, self.poll_response_past_week_date)
         self.fake_incoming_with_date('0', self.connection3, self.poll_response_past_week_date)
         self.f_teacher_absent_poll.end()
-        result_f_teachers=f_teachers_absent(self.root_node.get_children())
+        result_f_teachers=f_teachers_absent(self.root_node.get_children(), get_time=self.get_time)
         self.assertAlmostEqual(80.55,result_f_teachers['female_teachers'],places=1)
         self.assertAlmostEqual(72.22,result_f_teachers['female_teachers_past'],places=1)
         self.assertAlmostEqual(8.33,result_f_teachers['female_teachers_diff'],places=1)
@@ -320,7 +321,7 @@ class TestEdtracDashboard(TestCase):
         self.fake_incoming_with_date('6', self.connection2, self.poll_response_past_week_date)
         self.fake_incoming_with_date('3', self.connection3, self.poll_response_past_week_date)
         self.m_teacher_absent_poll.end()
-        result_m_teachers=m_teachers_absent(self.root_node.get_children())
+        result_m_teachers=m_teachers_absent(self.root_node.get_children(), self.get_time)
         self.assertAlmostEqual(63.15,result_m_teachers['male_teachers'],places=1)
         self.assertAlmostEqual(71.05,result_m_teachers['male_teachers_past'],places=1)
         self.assertAlmostEqual(-7.89,result_m_teachers['male_teachers_diff'],places=1)
@@ -343,8 +344,8 @@ class TestEdtracDashboard(TestCase):
         self.fake_incoming_with_date('no', self.connection4, self.poll_response_past_week_date)
         self.fake_incoming_with_date('no', self.connection5, self.poll_response_past_week_date)
         self.fake_incoming_with_date('yes', self.connection6, self.poll_response_past_week_date)
-        result_m_head_teachers=head_teachers_male(self.root_node.get_children())
-        result_f_head_teachers=head_teachers_female(self.root_node.get_children())
+        result_m_head_teachers=head_teachers_male(self.root_node.get_children(), self.get_time)
+        result_f_head_teachers=head_teachers_female(self.root_node.get_children(), self.get_time)
 
         self.assertAlmostEqual(100.00,result_m_head_teachers['m_head_t_week'],places=1)
         self.assertAlmostEqual(0.00,result_m_head_teachers['m_head_t_week_before'],places=1)
