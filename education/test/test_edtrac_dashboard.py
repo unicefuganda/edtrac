@@ -16,11 +16,12 @@ from datetime import datetime
 
 class TestEdtracDashboard(TestCase):
     def setUp(self):
-        settings.SCHOOL_TERM_START = dateutils.increment(datetime.now(), weeks=-2)
-        settings.SCHOOL_TERM_END = dateutils.increment(datetime.now(), weeks=2)
+        now = lambda: datetime(2012, 9, 8)
+        settings.SCHOOL_TERM_START = dateutils.increment(now(), weeks=-2)
+        settings.SCHOOL_TERM_END = dateutils.increment(now(), weeks=2)
 
-        self.poll_response_current_week_date = dateutils.increment(datetime.now(), weeks=-1)
-        self.poll_response_past_week_date = dateutils.increment(datetime.now())
+        self.poll_response_current_week_date = dateutils.increment(now(), weeks=-1)
+        self.poll_response_past_week_date = dateutils.increment(now())
 
         htg = Group.objects.create(name='Head Teachers')
         country = LocationType.objects.create(name='country', slug='country')
