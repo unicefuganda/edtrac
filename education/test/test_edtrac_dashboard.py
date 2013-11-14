@@ -320,7 +320,6 @@ class TestEdtracDashboard(TestCase):
         self.fake_incoming_with_date('3', self.connection3, self.poll_response_past_week_date)
         self.m_teacher_absent_poll.end()
         result_m_teachers=m_teachers_absent(self.root_node.get_children())
-        print result_m_teachers
         self.assertAlmostEqual(63.15,result_m_teachers['male_teachers'],places=1)
         self.assertAlmostEqual(71.05,result_m_teachers['male_teachers_past'],places=1)
         self.assertAlmostEqual(-7.89,result_m_teachers['male_teachers_diff'],places=1)
