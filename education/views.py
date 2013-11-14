@@ -389,7 +389,7 @@ def violence_changes_reported(locations):
     }
 
 
-def get_two_weeks_absenteeism(indicator, locations, get_time=datetime.datetime.now):
+def get_two_weeks_absenteeism(indicator, locations, get_time):
     date_weeks = get_week_date(depth=2, get_time=get_time)
     holiday = False
     this_week_absent = '--'
@@ -447,7 +447,7 @@ def p3_absent_boys(locations, get_time=datetime.datetime.now):
 
 def p6_boys_absent(locations, get_time=datetime.datetime.now):
     indicator = 'P6Boys'
-    #boysp6, boysp6_past = get_two_weeks_absenteeism(indicator,locations)
+    #boysp6, boysp6_past = get_two_weeks_absenteeism(indicator,locations,get_time=get_time)
     boysp6, boysp6_past =  compute_absenteeism_summary(indicator,locations,get_time=get_time)
 
     try:
@@ -547,7 +547,7 @@ def f_teachers_absent(locations, get_time=datetime.datetime.now):
 
 def m_teachers_absent(locations, get_time=datetime.datetime.now):
     indicator = 'MaleTeachers'
-    #male_teachers,male_teachers_past = get_two_weeks_absenteeism(indicator,locations)
+    #male_teachers,male_teachers_past = get_two_weeks_absenteeism(indicator,locations, get_time=get_time)
     male_teachers,male_teachers_past =  compute_absenteeism_summary(indicator,locations, get_time=get_time)
 
     try:
