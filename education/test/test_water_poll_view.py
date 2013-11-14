@@ -69,13 +69,6 @@ class TestWaterPollView(TestCase):
         response.date = date
         response.save()
 
-    def set_monthly_date(self, responses):
-        start_term = self.term_range[0]
-        i = start_term.month
-        for response in responses:
-            self.set_response_date(datetime(datetime.today().year, i, start_term.day), response)
-            i += 1
-
     def test_should_reorganize_data_for_bar_chart(self):
         responses= [('January',{'yes':50,'no':50}),('February',{'yes':100}),('March',{'no':100})]
         categories,data = get_categories_and_data(responses)
@@ -87,11 +80,13 @@ class TestWaterPollView(TestCase):
         self.fake_incoming('yes',self.emis_reporter1)
         self.fake_incoming('yes',self.emis_reporter2)
         self.fake_incoming('no',self.emis_reporter3)
-        responses = self.water_source_poll.responses.all()
-        self.set_monthly_date(responses)
-        location_result,monthly_result,percent = get_all_responses(self.water_source_poll, [self.kampala_district], self.term_range)
-        self.assertIn((self.term_range[0].strftime("%B"),{'yes':100}), monthly_result)
-        self.assertIn((dateutils.increment(self.term_range[0],months=2).strftime("%B"),{'no':100}), monthly_result)
+
+        for (i,response) in enumerate(self.water_source_poll.responses.all()):
+            self.set_response_date(datetime(2012, i+2, i+2), response)
+
+        location_result,monthly_result,percent = get_all_responses(self.water_source_poll, [self.kampala_district], (datetime(2012, 1, 1), datetime(2012, 5, 5)))
+        self.assertIn(("February",{'yes':100}), monthly_result)
+        self.assertIn(("April",{'no':100}), monthly_result)
 
 
     def test_should_get_location_termly_data(self):
