@@ -681,9 +681,9 @@ def get_week_date(depth=None, get_time=datetime.datetime.now):
     """
     now = get_time()
     # clean the hour
-    now = now if (now.second == 0) else (now - datetime.timedelta(seconds=now.second))
-    now = now if (now.minute == 0) else (now - datetime.timedelta(minutes=now.minute))
-    now = now if (now.microsecond == 0) else (now - datetime.timedelta(microseconds=now.microsecond))
+    now = now - datetime.timedelta(seconds=now.second)
+    now = now - datetime.timedelta(minutes=now.minute)
+    now = now - datetime.timedelta(microseconds=now.microsecond)
     if now.hour == 8:
         pass
     elif now.hour > 8:
