@@ -16,6 +16,8 @@ from rapidsms_httprouter.models import Message
 from django.contrib.auth.views import login_required
 from django.contrib.auth.models import User
 
+from .views import ReporterDetailView
+
 urlpatterns = patterns('',
     url(r'^edtrac/messages/$', login_required(generic), {
         'model':Message,
@@ -115,6 +117,7 @@ urlpatterns = patterns('',
     url(r'^edtrac/comments/$', comments, name='comments'),
     url(r'^edtrac/reporter/(\d+)/edit/', edit_reporter, name='edit-reporter'),
     url(r'^edtrac/reporter/(\d+)/delete/', delete_reporter, name='delete-reporter'),
+    url(r'^edtrac/reporter/(?P<pk>\d+)/$', ReporterDetailView.as_view(), name="reporter-detail"),
     url(r'^edtrac/reporter/(?P<pk>\d+)/show', generic_row, {'model':EmisReporter, 'partial_row':'education/partials/reporters/reporter_row.html'}),
     url(r'^edtrac/ht_attendance/$', htattendance, {}, name='ht-attendance-stats'),
     url(r'^edtrac/ht_attendance/(?P<start_date>[0-9\-]+)/(?P<end_date>[0-9\-]+)$', htattendance, {}, name='ht-attendance-stats'),

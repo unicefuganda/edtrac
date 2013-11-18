@@ -3,13 +3,7 @@
 {% load stats_extras %}
 {% block remaining_row_content %}
     <td>
-        {% if object.default_connection %}
-            <a href="/contact/{{ object.default_connection.pk }}/message_history/">
-        {% endif %}
-        {{ object.name }}
-        {% if object.default_connection %}
-            </a>
-        {% endif %}
+	<a href="{{ object.pk }}">{{ object.name }}</a>
     </td>
     <td>
         <ul>

@@ -164,6 +164,10 @@ class CurriculumForm(forms.Form):
     choose_week_to_view = forms.ChoiceField(choices=SELECT_CHOICES, required=False)
 
 
+class ReporterDetailView(DetailView):
+    model = EmisReporter
+
+
 def format_to_datetime_object(week_as_string):
     day1 = week_as_string.split()[0]
     day2 = week_as_string.split()[2]
@@ -2450,7 +2454,7 @@ def edit_reporter(request, reporter_pk):
                     _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_p6_enrollment_headteacher_termly', ['Head Teachers'])
                     _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_teacher_deployment_headteacher_termly', ['Head Teachers'])
 
-            return redirect("emis-contact")
+            return redirect("reporter-detail", pk=reporter.pk)
     else:
         if reporter.schools.exists():
             reporter_form = EditReporterForm(instance=reporter, initial={'schools':reporter.schools.all()[0]})
