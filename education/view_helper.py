@@ -47,12 +47,12 @@ def view_stats(req,
         previous_week = periods[1]
 
         for location in locations:
-            enrolled = sum(get_numeric_data([poll_enroll], [location], term_range))
+            enrolled = get_numeric_data([poll_enroll], [location], term_range)
             #current week
-            attendance_current_week = sum(get_numeric_data([poll_attendance], [location], current_week))
+            attendance_current_week = get_numeric_data([poll_attendance], [location], current_week)
             percent_current_week = round(compute_absent_values(attendance_current_week, enrolled), 2)
             #previous week
-            attendance_previous_week = sum(get_numeric_data([poll_attendance], [location], previous_week))
+            attendance_previous_week = get_numeric_data([poll_attendance], [location], previous_week)
             percent_previous_week = round(compute_absent_values(attendance_previous_week, enrolled), 2)
 
             try:
@@ -98,8 +98,8 @@ def view_stats(req,
             for location in locations:
                 periodic_absenteeism = []
                 for period in periods:
-                    enrolled = sum(get_numeric_data([poll_enroll], [location], term_range))
-                    attendance = sum(get_numeric_data([poll_attendance], [location], period))
+                    enrolled = get_numeric_data([poll_enroll], [location], term_range)
+                    attendance = get_numeric_data([poll_attendance], [location], period)
                     absenteeism = round(compute_absent_values(attendance, enrolled), 2)
                     periodic_absenteeism.append(absenteeism)
                 to_ret.append([location, periodic_absenteeism])

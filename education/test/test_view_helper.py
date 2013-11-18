@@ -135,7 +135,7 @@ class TestViewHelper(TestCase):
         fake_incoming("10 boys", self.emis_reporter2)
         results = get_numeric_data([self.p3_boys_absent_poll, self.p3_girls_absent_poll], [self.kampala_district],
                                    self.term_range)
-        self.assertEqual(30, sum(results))
+        self.assertEqual(30, results)
 
     def test_should_return_get_numeric_data_by_school(self):
         schedule_script_now(self.head_teacher_group.name, slug=self.teachers_weekly_script.slug)

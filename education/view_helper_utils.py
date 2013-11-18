@@ -529,33 +529,19 @@ def compute_absenteeism_summary(indicator, locations, get_time=datetime.datetime
     term_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
     current_week_date_range = date_weeks[0]
     previous_week_date_range = date_weeks[1]
-    enrollment_total = 0
-    current_week_present_total = 0
-    previous_week_present_total = 0
-    present_by_time = []
 
     config_list = get_polls_for_keyword(indicator)
     poll_enrollment = Poll.objects.get(name=config_list[0].get('enrollment_poll')[0])
     poll_attendance = Poll.objects.get(name=config_list[0].get('attendance_poll')[0])
 
-    results = get_numeric_data([poll_enrollment], locations, term_range)
-    if not is_empty(results):
-        enrollment_total = sum(results)
-
-    results = get_numeric_data([poll_attendance], locations, current_week_date_range)
-    if not is_empty(results):
-        current_week_present_total = sum(results)
-
-    results = get_numeric_data([poll_attendance], locations, previous_week_date_range)
-    if not is_empty(results):
-        previous_week_present_total = sum(results)
+    enrollment_total = get_numeric_data([poll_enrollment], locations, term_range)
+    current_week_present_total = get_numeric_data([poll_attendance], locations, current_week_date_range)
+    previous_week_present_total= get_numeric_data([poll_attendance], locations, previous_week_date_range)
 
     absent_current_week = round(compute_absent_values(current_week_present_total, enrollment_total), 2)
     absent_previous_week = round(compute_absent_values(previous_week_present_total, enrollment_total), 2)
-    present_by_time.append(absent_current_week)
-    present_by_time.append(absent_previous_week)
 
-    return present_by_time
+    return (absent_current_week, absent_previous_week)
 
 
 def get_digit_value_from_message_text(messge):
@@ -629,7 +615,7 @@ def get_numeric_data(polls, locations, time_range):
                                         has_errors = False,
                                         contact__reporting_location__in = locations,
                                         message__direction = 'I')
-    return [get_digit_value_from_message_text(response.message.text) for response in responses]
+    return sum([get_digit_value_from_message_text(response.message.text) for response in responses])
 
 def get_numeric_enrollment_data(polls, locations, time_range):
     results = []
