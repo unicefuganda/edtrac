@@ -82,7 +82,7 @@ def create_attribute():
         "slug": "poll_number_value",
         "name": "Number"
     }
-    Attribute.objects.all() or Attribute.objects.create(**params)
+    Attribute.objects.exists() or Attribute.objects.create(**params)
 
 def fake_incoming(message, reporter):
     router = get_router()
