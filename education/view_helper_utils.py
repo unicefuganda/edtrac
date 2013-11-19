@@ -634,8 +634,10 @@ def get_numeric_data_by_school(polls, schools, time_range):
                                       poll__in = polls,
                                       has_errors = False,
                                       contact__emisreporter__schools__in = schools,
-                                      message__direction = 'I').annotate(total=Sum('eav_values__value_float'))
-    return [school.total for school in schools]
+                                      message__direction = 'I')                     \
+                              .values('contact__emisreporter__schools')             \
+                              .annotate(total=Sum('eav_values__value_float'))
+    return [school['total'] for school in schools]
 
 def compute_absent_values(present, enrollment):
     if enrollment == 0:
