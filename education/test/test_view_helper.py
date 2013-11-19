@@ -6,7 +6,7 @@ import dateutils
 from django.conf import settings
 from django.contrib.auth.models import Group, User
 from education.models import schedule_script_now, EmisReporter, School, all_steps_answered
-from education.test.utils import create_poll_with_reporters, create_group, create_location_type, create_location, create_school, create_emis_reporters, create_user_with_group, fake_incoming
+from education.test.utils import create_poll_with_reporters, create_group, create_location_type, create_location, create_school, create_emis_reporters, create_user_with_group, fake_incoming, create_attribute
 from poll.models import Poll
 from rapidsms.contrib.locations.models import Location, LocationType
 from rapidsms_httprouter.models import Message
@@ -129,13 +129,14 @@ class TestViewHelper(TestCase):
         self.assertEqual(50, get_digit_value_from_message_text(msg.text))
 
     def test_should_return_numeric_data_given_a_poll_location_and_time_range(self):
+        create_attribute()
         schedule_script_now(self.head_teacher_group.name, slug=self.teachers_weekly_script.slug)
         check_progress(self.teachers_weekly_script)
         fake_incoming("20 boys", self.emis_reporter1)
         fake_incoming("10 boys", self.emis_reporter2)
-        results = get_numeric_data([self.p3_boys_absent_poll, self.p3_girls_absent_poll], [self.kampala_district],
+        result = get_numeric_data([self.p3_boys_absent_poll, self.p3_girls_absent_poll], [self.kampala_district],
                                    self.term_range)
-        self.assertEqual(30, results)
+        self.assertEqual(30, result)
 
     def test_should_return_get_numeric_data_by_school(self):
         schedule_script_now(self.head_teacher_group.name, slug=self.teachers_weekly_script.slug)

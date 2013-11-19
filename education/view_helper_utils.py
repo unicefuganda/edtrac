@@ -245,10 +245,8 @@ def get_aggregated_report_data(locations, time_range, config_list,report_mode = 
                 enrollment_polls = Poll.objects.filter(name__in=[config.get('enrollment_poll')[0]])
                 attendance_polls = Poll.objects.filter(name__in=[config.get('attendance_poll')[0]])
                 # get both enroll list and schools that responded
-                enroll_data, responsive_schools = get_numeric_enrollment_data(enrollment_polls,[location],term_range)
-                if not is_empty(enroll_data):
-                    has_enrollment = True
-                enroll_indicator_total = sum(enroll_data)
+                enroll_indicator_total, responsive_schools = get_numeric_enrollment_data(enrollment_polls,[location],term_range)
+                has_enrollment = enroll_indicator_total > 0
                 enrollment_by_indicator[config.get('collective_dict_key')] += enroll_indicator_total
 
                 absenteeism_percent = 0
@@ -447,8 +445,7 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
         if config_list[0].get('collective_dict_key') != 'Head Teachers':
             enrollment_polls = Poll.objects.filter(name__in=config_list[0].get('enrollment_poll'))
             attendance_polls = Poll.objects.filter(name__in=config_list[0].get('attendance_poll'))
-            enroll_data, responsive_schools = get_numeric_enrollment_data(enrollment_polls,[location],term_range)
-            enroll_indicator_total = sum(enroll_data)
+            enroll_indicator_total, responsive_schools = get_numeric_enrollment_data(enrollment_polls,[location],term_range)
             enrollment_by_location.append(enroll_indicator_total)
             for week in time_range:
                 # get attendance total for week by indicator from config file
@@ -610,12 +607,12 @@ def get_deployed_head_Teachers(dataSource, locations):
                                                 locations)
 
 def get_numeric_data(polls, locations, time_range):
-    responses = Response.objects.filter(date__range = time_range,
-                                        poll__in = polls,
-                                        has_errors = False,
-                                        contact__reporting_location__in = locations,
-                                        message__direction = 'I')
-    return sum([get_digit_value_from_message_text(response.message.text) for response in responses])
+    result = Response.objects.filter(date__range = time_range,
+                                    poll__in = polls,
+                                    has_errors = False,
+                                    contact__reporting_location__in = locations,
+                                    message__direction = 'I').aggregate(total=Sum('eav_values__value_float'))
+    return result['total'] or 0
 
 def get_numeric_enrollment_data(polls, locations, time_range):
     results = []
@@ -630,7 +627,7 @@ def get_numeric_enrollment_data(polls, locations, time_range):
             if response.contact.emisreporter.schools.all():
                 results.append(get_digit_value_from_message_text(response.message.text))
                 responsive_schools.append(response.contact.emisreporter.schools.all()[0])
-    return results, responsive_schools
+    return sum(results), responsive_schools
 
 def get_numeric_data_by_school(polls, schools, time_range):
     responses = Response.objects.filter(date__range = time_range,
@@ -641,13 +638,7 @@ def get_numeric_data_by_school(polls, schools, time_range):
     return [get_digit_value_from_message_text(response.message.text) for response in responses]
 
 def compute_absent_values(present, enrollment):
-    try:
-        if present != 0:
-            return round(((enrollment - present) * 100 / enrollment), 2)
-        elif present == 0 and enrollment > 0:
-            return 100
-        else:
-            return 0
-    except ZeroDivisionError:
+    if enrollment == 0:
         return 0
-
+    else:
+        return round(((enrollment - present) * 100 / enrollment), 2)
