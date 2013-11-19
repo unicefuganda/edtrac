@@ -630,12 +630,12 @@ def get_numeric_enrollment_data(polls, locations, time_range):
     return sum(results), responsive_schools
 
 def get_numeric_data_by_school(polls, schools, time_range):
-    responses = Response.objects.filter(date__range = time_range,
-                                        poll__in = polls,
-                                        has_errors = False,
-                                        contact__emisreporter__schools__in = schools,
-                                        message__direction='I')
-    return [get_digit_value_from_message_text(response.message.text) for response in responses]
+    schools = Response.objects.filter(date__range = time_range,
+                                      poll__in = polls,
+                                      has_errors = False,
+                                      contact__emisreporter__schools__in = schools,
+                                      message__direction = 'I').annotate(total=Sum('eav_values__value_float'))
+    return [school.total for school in schools]
 
 def compute_absent_values(present, enrollment):
     if enrollment == 0:

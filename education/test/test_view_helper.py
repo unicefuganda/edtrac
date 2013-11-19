@@ -115,6 +115,8 @@ class TestViewHelper(TestCase):
         settings.SCHOOL_TERM_END = dateutils.increment(datetime.datetime.today(), weeks=8)
         self.term_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
 
+        create_attribute()
+
     def test_calculate_percent_should_return_50_when_given_1_and_2(self):
         self.assertEqual(50, compute_absent_values(1, 2))
 
@@ -129,7 +131,6 @@ class TestViewHelper(TestCase):
         self.assertEqual(50, get_digit_value_from_message_text(msg.text))
 
     def test_should_return_numeric_data_given_a_poll_location_and_time_range(self):
-        create_attribute()
         schedule_script_now(self.head_teacher_group.name, slug=self.teachers_weekly_script.slug)
         check_progress(self.teachers_weekly_script)
         fake_incoming("20 boys", self.emis_reporter1)
