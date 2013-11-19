@@ -622,12 +622,12 @@ def get_numeric_enrollment_data(polls, locations, time_range):
                                         poll__in = polls,
                                         has_errors = False,
                                         contact__reporting_location__in = locations,
-                                        message__direction = 'I')
+                                        message__direction = 'I',
+                                        eav_values__value_float__gt = 0)
     for response in responses:
-        if get_digit_value_from_message_text(response.message.text) != 0:
-            if response.contact.emisreporter.schools.exists():
-                results.append(get_digit_value_from_message_text(response.message.text))
-                responsive_schools.append(response.contact.emisreporter.schools.all()[0])
+        if response.contact.emisreporter.schools.exists():
+            results.append(get_digit_value_from_message_text(response.message.text))
+            responsive_schools.append(response.contact.emisreporter.schools.all()[0])
     return sum(results), responsive_schools
 
 def get_numeric_data_by_school(polls, schools, time_range):
