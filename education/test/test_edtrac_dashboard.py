@@ -17,7 +17,7 @@ from datetime import datetime
 class TestEdtracDashboard(TestCase):
     def setUp(self):
         time = datetime(2012, 05, 8)
-        self.get_time = lambda: time 
+        self.get_time = lambda: time
         settings.SCHOOL_TERM_START = dateutils.increment(time, weeks=-2)
         settings.SCHOOL_TERM_END = dateutils.increment(time, weeks=2)
 
@@ -409,11 +409,10 @@ class TestEdtracDashboard(TestCase):
 
     def fake_incoming(self, message, connection):
         router = get_router()
-        router.handle_incoming(connection.backend.name, connection.identity, message)
+        return router.handle_incoming(connection.backend.name, connection.identity, message)
 
     def fake_incoming_with_date(self, message, connection, date):
-        router = get_router()
-        handled = router.handle_incoming(connection.backend.name, connection.identity, message)
+        handled = self.fake_incoming(message, connection)
         for response in handled.poll_responses.all():
             response.date = date
             response.save()
