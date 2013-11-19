@@ -623,11 +623,13 @@ def get_numeric_enrollment_data(polls, locations, time_range):
                                         has_errors = False,
                                         contact__reporting_location__in = locations,
                                         message__direction = 'I',
-                                        eav_values__value_float__gt = 0)
+                                        eav_values__value_float__gt = 0) \
+                                .annotate(schools=Count('contact__emisreporter__schools')) \
+                                .filter(schools__gt = 0) \
+                                .annotate(total=Sum('eav_values__value_float'))
     for response in responses:
-        if response.contact.emisreporter.schools.exists():
-            results.append(get_digit_value_from_message_text(response.message.text))
-            responsive_schools.append(response.contact.emisreporter.schools.all()[0])
+        results.append(response.total)
+        responsive_schools.append(response.contact.emisreporter.schools.all()[0])
     return sum(results), responsive_schools
 
 def get_numeric_data_by_school(polls, schools, time_range):
