@@ -606,14 +606,25 @@ def get_deployed_head_Teachers(dataSource, locations):
     return get_deployed_head_Teachers_by_school(dataSource.values_list('schools', flat=True),
                                                 locations)
 
-def get_numeric_data(polls, locations, time_range):
+def get_numeric_data(polls, location, time_range):
     result = Response.objects.filter(date__range = time_range,
                                     poll__in = polls,
                                     has_errors = False,
-                                    contact__reporting_location__in = locations,
+                                    contact__reporting_location__in = location,
                                     message__direction = 'I') \
                              .aggregate(total=Sum('eav_values__value_float'))
     return result['total'] or 0
+
+def get_numeric_data_all_locations(polls, time_range):
+    result_all = Response.objects.filter(date__range = time_range,
+                                    poll__in = polls,
+                                    has_errors = False,
+                                    message__direction = 'I').values('contact__reporting_location').annotate(total = Sum('eav_values__value_float'))
+    result = {}
+    for result_location in result_all:
+        result[result_location['contact__reporting_location']] = result_location['total']
+
+    return result
 
 def get_numeric_enrollment_data(polls, locations, time_range):
     results = []

@@ -46,14 +46,25 @@ def view_stats(req,
         current_week = periods[0]
         previous_week = periods[1]
 
+        enrolled = get_numeric_data_all_locations([poll_enroll], term_range)
+        #current week
+        attendance_current_week = get_numeric_data_all_locations([poll_attendance], current_week)
+        #previous week
+        attendance_previous_week = get_numeric_data_all_locations([poll_attendance], previous_week)
+
         for location in locations:
-            enrolled = get_numeric_data([poll_enroll], [location], term_range)
-            #current week
-            attendance_current_week = get_numeric_data([poll_attendance], [location], current_week)
-            percent_current_week = round(compute_absent_values(attendance_current_week, enrolled), 2)
-            #previous week
-            attendance_previous_week = get_numeric_data([poll_attendance], [location], previous_week)
-            percent_previous_week = round(compute_absent_values(attendance_previous_week, enrolled), 2)
+            location_enrolled = 0
+            location_attendance_current_week = 0
+            location_attendance_previous_week = 0
+            if location.id in enrolled:
+                location_enrolled = enrolled[location.id]
+            if location.id in attendance_current_week:
+                location_attendance_current_week = attendance_current_week[location.id]
+            if location.id in attendance_previous_week:
+                location_attendance_previous_week = attendance_previous_week[location.id]
+
+            percent_current_week = round(compute_absent_values(location_attendance_current_week, location_enrolled), 2)
+            percent_previous_week = round(compute_absent_values(location_attendance_previous_week, location_enrolled), 2)
 
             try:
                 diff = (percent_current_week - percent_previous_week)
@@ -95,14 +106,26 @@ def view_stats(req,
                     delta = next_date - from_date
                     from_date += datetime.timedelta(days=abs(delta.days))
 
-            for location in locations:
-                periodic_absenteeism = []
-                for period in periods:
-                    enrolled = get_numeric_data([poll_enroll], [location], term_range)
-                    attendance = get_numeric_data([poll_attendance], [location], period)
-                    absenteeism = round(compute_absent_values(attendance, enrolled), 2)
-                    periodic_absenteeism.append(absenteeism)
-                to_ret.append([location, periodic_absenteeism])
+            all_locations_periodic_absenteeism = {}
+            for period in periods:
+                enrolled = get_numeric_data_all_locations([poll_enroll], term_range)
+                attendance = get_numeric_data_all_locations([poll_attendance], period)
+
+                for location in locations:
+                    location_enrolled = 0
+                    location_attendance = 0
+                    if location.id in enrolled:
+                        location_enrolled = enrolled[location.id]
+                    if location.id in attendance:
+                        location_attendance = attendance[location.id]
+
+                    location_periodic_absenteeism_value = round(compute_absent_values(location_attendance, location_enrolled), 2)
+                    if location.id not in all_locations_periodic_absenteeism:
+                        all_locations_periodic_absenteeism[location.id] = {'location': location, 'periodic_absenteeism':[]}
+                    all_locations_periodic_absenteeism[location.id]['periodic_absenteeism'].append(location_periodic_absenteeism_value)
+
+            for location_id, location_periodic_absenteeism in all_locations_periodic_absenteeism.iteritems():
+                to_ret.append([location_periodic_absenteeism['location'], location_periodic_absenteeism['periodic_absenteeism']])
 
             return render_to_response(template_name, {'form': time_range_form, 'dataset': to_ret,
                                                           'title': title, 'month_flag': month_flag,

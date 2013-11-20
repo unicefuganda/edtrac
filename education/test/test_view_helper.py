@@ -139,6 +139,15 @@ class TestViewHelper(TestCase):
                                    self.term_range)
         self.assertEqual(30, result)
 
+    def test_should_return_all_location_numeric_data_given_a_poll_and_time_range(self):
+        schedule_script_now(self.head_teacher_group.name, slug=self.teachers_weekly_script.slug)
+        check_progress(self.teachers_weekly_script)
+        fake_incoming("20 boys", self.emis_reporter1)
+        fake_incoming("10 boys", self.emis_reporter2)
+        result = get_numeric_data_all_locations([self.p3_boys_absent_poll, self.p3_girls_absent_poll],
+                                   self.term_range)
+        self.assertEqual(30, result[self.kampala_district.id])
+
     def test_should_return_get_numeric_data_by_school(self):
         schedule_script_now(self.head_teacher_group.name, slug=self.teachers_weekly_script.slug)
         check_progress(self.teachers_weekly_script)
@@ -185,8 +194,6 @@ class TestViewHelper(TestCase):
         collective_result, chart_results_model, school_percent,tooltip,report_mode = get_aggregated_report_data_single_indicator([self.kampala_district], [self.term_range], config_list)
 
         self.assertEqual(80.0, collective_result['P3 Girls'][0].values()[0])
-
-
 
 
     def tearDown(self):
