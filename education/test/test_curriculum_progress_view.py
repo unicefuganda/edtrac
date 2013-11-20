@@ -199,18 +199,4 @@ class TestCurriculumProgressView(TestCase):
             response.date = date
             response.save()
 
-    def tearDown(self):
-        Location.objects.all().delete()
-        LocationType.objects.all().delete()
-        School.objects.all().delete()
-        EmisReporter.objects.all().delete()
-        Connection.objects.all().delete()
-        Backend.objects.all().delete()
-        Poll.objects.all().delete()
-        User.objects.all().delete()
-        Group.objects.all().delete()
-        Attribute.objects.all().delete()
-        Script.objects.all().delete()
-        ScriptProgress.objects.all().delete()
-        ScriptStep.objects.all().delete()
-        ScriptSession.objects.all().delete()
+
