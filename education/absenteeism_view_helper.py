@@ -212,18 +212,14 @@ def get_head_teachers_absent_over_time(locations, config, date_weeks):
     return absent_percent_by_location, absent_percent_by_time ,school_percent
 
 
-def compute_percent_out_of_total(x, y):
-    try:
-        return (100 * (y - x)) / y
-    except ZeroDivisionError:
-        return 0
-
 def compute_percent(x,y):
-    try:
-        return (100 * x)/y
-    except ZeroDivisionError:
+    if y != 0:
+        return (100 * x) / y
+    else:
         return 0
 
+def compute_percent_out_of_total(x, y):
+    return compute_percent(y-x, y)
 
 def get_collective_result(location_configs, time_configs,reporting_school_percent):
     location_result = defaultdict(lambda: {})
