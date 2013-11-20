@@ -619,9 +619,9 @@ def get_numeric_data(poll, locations, time_range):
     return result['total'] or 0
 
 
-def get_numeric_data_all_locations(polls, time_range):
+def get_numeric_data_all_locations(poll, time_range):
     result_all = Response.objects.filter(date__range = time_range,
-                                    poll__in = polls,
+                                    poll = poll,
                                     has_errors = False,
                                     message__direction = 'I').values('contact__reporting_location').annotate(total = Sum('eav_values__value_float'))
     result = {}

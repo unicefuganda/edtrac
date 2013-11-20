@@ -46,11 +46,11 @@ def view_stats(req,
         current_week = periods[0]
         previous_week = periods[1]
 
-        enrolled = get_numeric_data_all_locations([poll_enroll], term_range)
+        enrolled = get_numeric_data_all_locations(poll_enroll, term_range)
         #current week
-        attendance_current_week = get_numeric_data_all_locations([poll_attendance], current_week)
+        attendance_current_week = get_numeric_data_all_locations(poll_attendance, current_week)
         #previous week
-        attendance_previous_week = get_numeric_data_all_locations([poll_attendance], previous_week)
+        attendance_previous_week = get_numeric_data_all_locations(poll_attendance, previous_week)
 
         for location in locations:
             location_enrolled = 0
@@ -108,8 +108,8 @@ def view_stats(req,
 
             all_locations_periodic_absenteeism = {}
             for period in periods:
-                enrolled = get_numeric_data_all_locations([poll_enroll], term_range)
-                attendance = get_numeric_data_all_locations([poll_attendance], period)
+                enrolled = get_numeric_data_all_locations(poll_enroll, term_range)
+                attendance = get_numeric_data_all_locations(poll_attendance, period)
 
                 for location in locations:
                     location_enrolled = 0

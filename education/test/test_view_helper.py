@@ -143,7 +143,7 @@ class TestViewHelper(TestCase):
         check_progress(self.teachers_weekly_script)
         fake_incoming("20 boys", self.emis_reporter1)
         fake_incoming("10 boys", self.emis_reporter2)
-        result = get_numeric_data_all_locations([self.p3_boys_absent_poll, self.p3_girls_absent_poll],
+        result = get_numeric_data_all_locations(self.p3_boys_absent_poll,
                                    self.term_range)
         self.assertEqual(30, result[self.kampala_district.id])
 
