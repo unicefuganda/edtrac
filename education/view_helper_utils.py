@@ -531,9 +531,9 @@ def compute_absenteeism_summary(indicator, locations, get_time=datetime.datetime
     poll_enrollment = Poll.objects.get(name=config_list[0].get('enrollment_poll')[0])
     poll_attendance = Poll.objects.get(name=config_list[0].get('attendance_poll')[0])
 
-    enrollment_total = get_numeric_data([poll_enrollment], locations, term_range)
-    current_week_present_total = get_numeric_data([poll_attendance], locations, current_week_date_range)
-    previous_week_present_total= get_numeric_data([poll_attendance], locations, previous_week_date_range)
+    enrollment_total = get_numeric_data(poll_enrollment, locations, term_range)
+    current_week_present_total = get_numeric_data(poll_attendance, locations, current_week_date_range)
+    previous_week_present_total= get_numeric_data(poll_attendance, locations, previous_week_date_range)
 
     absent_current_week = round(compute_absent_values(current_week_present_total, enrollment_total), 2)
     absent_previous_week = round(compute_absent_values(previous_week_present_total, enrollment_total), 2)
@@ -609,9 +609,9 @@ def get_deployed_head_Teachers(dataSource, locations):
     return get_deployed_head_Teachers_by_school(dataSource.values_list('schools', flat=True),
                                                 locations)
 
-def get_numeric_data(polls, locations, time_range):
+def get_numeric_data(poll, locations, time_range):
     result = Response.objects.filter(date__range = time_range,
-                                    poll__in = polls,
+                                    poll = poll,
                                     has_errors = False,
                                     contact__reporting_location__in = locations,
                                     message__direction = 'I') \
