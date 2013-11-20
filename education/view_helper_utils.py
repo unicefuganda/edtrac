@@ -676,10 +676,10 @@ def get_numeric_enrollment_data(polls, locations, time_range):
     return sum(results), responsive_schools
 
 def get_numeric_data_by_school(poll, schools, time_range):
-    results = NumericResponsesFor(poll).forDateRange(time_range) \
-                                       .forSchools(schools) \
-                                       .groupBySchools()
-    return results.values()
+    return NumericResponsesFor(poll).forDateRange(time_range) \
+                                    .forSchools(schools) \
+                                    .groupBySchools() \
+                                    .values()
 
 def compute_absent_values(present, enrollment):
     if enrollment == 0:
