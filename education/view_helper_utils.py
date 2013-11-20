@@ -634,6 +634,10 @@ class NumericResponsesFor():
         self.query = self.query.filter(contact__emisreporter__schools__in = schools)
         return self
 
+    def excludeZeros(self):
+        self.query = self.query.filter(eav_values__value_float__gt = 0)
+        return self
+
     def groupByLocation(self):
         results = self.query.values('contact__reporting_location') \
                             .annotate(total = Sum('eav_values__value_float'))
@@ -659,21 +663,12 @@ def get_numeric_data_all_locations(poll, time_range):
     return NumericResponsesFor(poll).forDateRange(time_range).groupByLocation()
 
 def get_numeric_enrollment_data(poll, locations, time_range):
-    results = []
-    responsive_schools = [] # get schools that have enrollment data (Inner joins return matching data)
-    responses = Response.objects.filter(date__range = time_range,
-                                        poll = poll,
-                                        has_errors = False,
-                                        contact__reporting_location__in = locations,
-                                        message__direction = 'I',
-                                        eav_values__value_float__gt = 0) \
-                                .annotate(schools=Count('contact__emisreporter__schools')) \
-                                .filter(schools__gt = 0) \
-                                .annotate(total=Sum('eav_values__value_float'))
-    for response in responses:
-        results.append(response.total)
-        responsive_schools.append(response.contact.emisreporter.schools.all()[0])
-    return sum(results), responsive_schools
+    results = NumericResponsesFor(poll).forDateRange(time_range) \
+                                       .forLocations(locations) \
+                                       .excludeZeros() \
+                                       .groupBySchools()
+
+    return sum(results.values()), results.keys()
 
 def get_numeric_data_by_school(poll, schools, time_range):
     return NumericResponsesFor(poll).forDateRange(time_range) \
