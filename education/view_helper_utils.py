@@ -586,17 +586,13 @@ def get_count_for_yes_no_by_school(polls, School, time_range):
 
 #  Function called to populate in-memory Data, reduces on number of db queries per request.
 def get_record_collection(locations, time_range):
-    results = []
     try:
-        if time_range:
-            if locations:
-                results = Response.objects.filter(date__range = time_range,
-                                                  has_errors = False,
-                                                  contact__reporting_location__in = locations,
-                                                  message__direction = 'I').select_related()
+        return Response.objects.filter(date__range = time_range,
+                                       has_errors = False,
+                                       contact__reporting_location__in = locations,
+                                       message__direction = 'I').select_related()
     except:
-        pass # Log database errors (or lookup db error exceptions and be specific on exception)
-    return results
+        return [] # Log database errors (or lookup db error exceptions and be specific on exception)
 
 def get_deployed_head_Teachers_by_school(school, locations):
     heads = EmisReporter.objects.filter(reporting_location__in = locations,
