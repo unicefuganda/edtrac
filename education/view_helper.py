@@ -162,9 +162,9 @@ def view_stats_by_school(location_id, enrollment_poll_name, attendance_poll_name
     previous_week = date_weeks[1]
 
     for school in _schools:
-        enrollment = sum(get_numeric_data_by_school([poll_enroll], [school], term_range))
-        attendance_current_week = sum(get_numeric_data_by_school([poll_attendance], [school], current_week))
-        attendance_previous_week = sum(get_numeric_data_by_school([poll_attendance], [school], previous_week))
+        enrollment = sum(get_numeric_data_by_school(poll_enroll, [school], term_range))
+        attendance_current_week = sum(get_numeric_data_by_school(poll_attendance, [school], current_week))
+        attendance_previous_week = sum(get_numeric_data_by_school(poll_attendance, [school], previous_week))
         # percent computation
         percent_current_week = round(compute_absent_values(attendance_current_week, enrollment), 2)
         percent_previous_week = round(compute_absent_values(attendance_previous_week, enrollment), 2)

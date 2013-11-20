@@ -143,15 +143,14 @@ class TestViewHelper(TestCase):
         check_progress(self.teachers_weekly_script)
         fake_incoming("20 boys", self.emis_reporter1)
         fake_incoming("10 boys", self.emis_reporter2)
-        result = get_numeric_data_all_locations(self.p3_boys_absent_poll,
-                                   self.term_range)
+        result = get_numeric_data_all_locations(self.p3_boys_absent_poll, self.term_range)
         self.assertEqual(30, result[self.kampala_district.id])
 
     def test_should_return_get_numeric_data_by_school(self):
         schedule_script_now(self.head_teacher_group.name, slug=self.teachers_weekly_script.slug)
         check_progress(self.teachers_weekly_script)
         fake_incoming("20 boys", self.emis_reporter1)
-        school_results = get_numeric_data_by_school([self.p3_boys_absent_poll], [self.kampala_school], self.term_range)
+        school_results = get_numeric_data_by_school(self.p3_boys_absent_poll, [self.kampala_school], self.term_range)
         self.assertEqual(20, sum(school_results))
 
     def test_should_get_deployed_head_teachers(self):

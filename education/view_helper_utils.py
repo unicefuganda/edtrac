@@ -65,7 +65,7 @@ def get_aggregated_report_for_district(locations, time_range, config_list,report
                 if config.get('collective_dict_key') in indicator_list:
                     enrollment_polls = Poll.objects.filter(name__in=[config.get('enrollment_poll')[0]])
                     attendance_polls = Poll.objects.filter(name__in=[config.get('attendance_poll')[0]])
-                    enroll_data = get_numeric_data_by_school(enrollment_polls,[school],term_range)
+                    enroll_data = get_numeric_data_by_school(enrollment_polls[0],[school],term_range)
                     enrollment_by_indicator[config.get('collective_dict_key')] += sum(enroll_data)
                     enroll_indicator_total = sum(enroll_data)
                     week_count = 0
@@ -73,7 +73,7 @@ def get_aggregated_report_for_district(locations, time_range, config_list,report
                     week_logger = []
                     for week in time_range:
                         week_count += 1
-                        attend_week_total = sum(get_numeric_data_by_school(attendance_polls, [school], week))
+                        attend_week_total = sum(get_numeric_data_by_school(attendance_polls[0], [school], week))
                         week_percent = compute_absent_values(attend_week_total, enroll_indicator_total)
                         weekly_results.append(week_percent)
                         week_logger.append({'present' :attend_week_total, 'enrollment' : enroll_indicator_total, 'percent' : week_percent})
@@ -258,10 +258,10 @@ def get_aggregated_report_data(locations, time_range, config_list,report_mode = 
                 for week in time_range:
                     week_count += 1
                     # get attendance total for week by indicator from config file
-                    attend_week_total = sum(get_numeric_data_by_school(attendance_polls, responsive_schools, week))
+                    attend_week_total = sum(get_numeric_data_by_school(attendance_polls[0], responsive_schools, week))
                     attendance_total.append(attend_week_total)
                     # get schools that Responded
-                    schools_that_responded = len(get_numeric_data_by_school(attendance_polls, schools_in_location, week))
+                    schools_that_responded = len(get_numeric_data_by_school(attendance_polls[0], schools_in_location, week))
                     week_percent = compute_absent_values(attend_week_total, enroll_indicator_total)
                     absenteeism_percent += week_percent
                     weekly_school_count.append(schools_that_responded)
@@ -317,7 +317,7 @@ def get_aggregated_report_data(locations, time_range, config_list,report_mode = 
                 for week in time_range:
                     present, absent = get_count_for_yes_no_response(attendance_polls, [location], week)
                     schools_that_responded = len(
-                        get_numeric_data_by_school(attendance_polls, schools_in_location, week))
+                        get_numeric_data_by_school(attendance_polls[0], schools_in_location, week))
                     week_percent = compute_absent_values(present, deployedHeadTeachers)
                     weekly_present.append(present)
                     weekly_percent.append(week_percent)
@@ -449,11 +449,11 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
             enrollment_by_location.append(enroll_indicator_total)
             for week in time_range:
                 # get attendance total for week by indicator from config file
-                attend_week_total = sum(get_numeric_data_by_school(attendance_polls,responsive_schools,week))
+                attend_week_total = sum(get_numeric_data_by_school(attendance_polls[0],responsive_schools,week))
                 weekly_present_result.append(attend_week_total)
                 # get schools that Responded
                 # suspect (can be replaced by count of response values on weekly attendance above)
-                schools_that_responded = len(get_numeric_data_by_school(attendance_polls, schools_in_location, week))
+                schools_that_responded = len(get_numeric_data_by_school(attendance_polls[0], schools_in_location, week))
                 week_percent = compute_absent_values(attend_week_total, enroll_indicator_total)
                 weekly_percent_results.append(week_percent)
                 absenteeism_percent_by_week[week_position] += week_percent
@@ -478,7 +478,7 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
 
             for week in time_range:
                 present, absent = get_count_for_yes_no_response(attendance_polls, [location], week)
-                schools_that_responded = len(get_numeric_data_by_school(attendance_polls, schools_in_location, week))
+                schools_that_responded = len(get_numeric_data_by_school(attendance_polls[0], schools_in_location, week))
                 week_percent = compute_absent_values(present, deployedHeadTeachers)
                 weekly_percent_results.append(week_percent)
                 weekly_present_result.append(present)
@@ -619,18 +619,46 @@ def get_numeric_data(poll, locations, time_range):
     return result['total'] or 0
 
 
-def get_numeric_data_all_locations(poll, time_range):
-    result_all = Response.objects.filter(date__range = time_range,
-                                    poll = poll,
-                                    has_errors = False,
-                                    message__direction = 'I').values('contact__reporting_location').annotate(total = Sum('eav_values__value_float'))
+def collapse(key_vals):
     result = {}
-    for result_location in result_all:
-        if result_location['total']:
-            result[result_location['contact__reporting_location']] = result_location['total']
-        else:
-            result[result_location['contact__reporting_location']] = 0
+    for (key, value) in key_vals:
+        result[key] = value
     return result
+
+
+class NumericResponsesFor():
+    def __init__(self, poll):
+        self.query = Response.objects.filter(poll = poll,
+                                             has_errors = False,
+                                             message__direction = 'I')
+
+    def forDateRange(self, range):
+        self.query = self.query.filter(date__range = range)
+        return self
+
+    def forLocations(self, locations):
+        self.query = self.query.filter(reporting_location__in = locations)
+        return self
+
+    def forSchools(self, schools):
+        self.query = self.query.filter(contact__emisreporter__schools__in = schools)
+        return self
+
+    def groupByLocation(self):
+        results = self.query.values('contact__reporting_location') \
+                            .annotate(total = Sum('eav_values__value_float'))
+        location_totals = [(result['contact__reporting_location'], result['total'] or 0) for result in results]
+        return collapse(location_totals)
+
+    def groupBySchools(self):
+        results = self.query.values('contact__emisreporter__schools') \
+                            .annotate(total = Sum('eav_values__value_float'))
+        school_totals = [(result['contact__emisreporter__schools'], result['total'] or 0) for result in results]
+        return collapse(school_totals)
+
+
+def get_numeric_data_all_locations(poll, time_range):
+    return NumericResponsesFor(poll).forDateRange(time_range).groupByLocation()
 
 def get_numeric_enrollment_data(polls, locations, time_range):
     results = []
@@ -649,15 +677,11 @@ def get_numeric_enrollment_data(polls, locations, time_range):
         responsive_schools.append(response.contact.emisreporter.schools.all()[0])
     return sum(results), responsive_schools
 
-def get_numeric_data_by_school(polls, schools, time_range):
-    schools = Response.objects.filter(date__range = time_range,
-                                      poll__in = polls,
-                                      has_errors = False,
-                                      contact__emisreporter__schools__in = schools,
-                                      message__direction = 'I')                     \
-                              .values('contact__emisreporter__schools')             \
-                              .annotate(total=Sum('eav_values__value_float'))
-    return [school['total'] for school in schools]
+def get_numeric_data_by_school(poll, schools, time_range):
+    results = NumericResponsesFor(poll).forDateRange(time_range) \
+                                       .forSchools(schools) \
+                                       .groupBySchools()
+    return results.values()
 
 def compute_absent_values(present, enrollment):
     if enrollment == 0:
