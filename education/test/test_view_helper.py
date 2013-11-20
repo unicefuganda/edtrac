@@ -135,8 +135,7 @@ class TestViewHelper(TestCase):
         check_progress(self.teachers_weekly_script)
         fake_incoming("20 boys", self.emis_reporter1)
         fake_incoming("10 boys", self.emis_reporter2)
-        result = get_numeric_data([self.p3_boys_absent_poll, self.p3_girls_absent_poll], [self.kampala_district],
-                                   self.term_range)
+        result = get_numeric_data([self.p3_boys_absent_poll], [self.kampala_district], self.term_range)
         self.assertEqual(30, result)
 
     def test_should_return_all_location_numeric_data_given_a_poll_and_time_range(self):

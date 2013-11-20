@@ -604,18 +604,20 @@ def get_deployed_head_Teachers_by_school(school, locations):
                                         groups__name = 'SMC')
     return heads.distinct().count()
 
+
 def get_deployed_head_Teachers(dataSource, locations):
     return get_deployed_head_Teachers_by_school(dataSource.values_list('schools', flat=True),
                                                 locations)
 
-def get_numeric_data(polls, location, time_range):
+def get_numeric_data(polls, locations, time_range):
     result = Response.objects.filter(date__range = time_range,
                                     poll__in = polls,
                                     has_errors = False,
-                                    contact__reporting_location__in = location,
+                                    contact__reporting_location__in = locations,
                                     message__direction = 'I') \
                              .aggregate(total=Sum('eav_values__value_float'))
     return result['total'] or 0
+
 
 def get_numeric_data_all_locations(polls, time_range):
     result_all = Response.objects.filter(date__range = time_range,
