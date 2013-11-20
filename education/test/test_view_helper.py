@@ -123,13 +123,6 @@ class TestViewHelper(TestCase):
     def test_calculate_percent_should_return_0_when_given_denominator_0(self):
         self.assertEqual(0, compute_absent_values(1, 0))
 
-    def test_get_digit_value_from_message_text_should_return_50(self):
-        schedule_script_now(grp=self.head_teacher_group.name, slug=self.head_teachers_termly_script.slug)
-        check_progress(self.head_teachers_termly_script)
-        fake_incoming("50 boys", self.emis_reporter1)
-        msg = Message.objects.filter(direction='I', connection=self.emis_reporter1.connection_set.all()[0])[0]
-        self.assertEqual(50, get_digit_value_from_message_text(msg.text))
-
     def test_should_return_numeric_data_given_a_poll_location_and_time_range(self):
         schedule_script_now(self.head_teacher_group.name, slug=self.teachers_weekly_script.slug)
         check_progress(self.teachers_weekly_script)

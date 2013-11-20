@@ -541,17 +541,6 @@ def compute_absenteeism_summary(indicator, locations, get_time=datetime.datetime
     return (absent_current_week, absent_previous_week)
 
 
-def get_digit_value_from_message_text(messge):
-    regex = re.compile(r"(-?\d+(\.\d+)?)")
-    #split the text on number regex. if the msg is of form
-    #'19'or '19 years' or '19years' or 'age19'or 'ugx34.56shs' it returns a list of length 4
-    msg_parts = regex.split(messge)
-    if len(msg_parts) == 4:
-        return round(float(msg_parts[1]), 3)
-    else:
-        return 0
-
-
 def get_count_for_yes_no_response(polls, locations, time_range):
     yes = 0
     no = 0
