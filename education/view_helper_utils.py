@@ -622,8 +622,10 @@ def get_numeric_data_all_locations(polls, time_range):
                                     message__direction = 'I').values('contact__reporting_location').annotate(total = Sum('eav_values__value_float'))
     result = {}
     for result_location in result_all:
-        result[result_location['contact__reporting_location']] = result_location['total']
-
+        if result_location['total']:
+            result[result_location['contact__reporting_location']] = result_location['total']
+        else:
+            result[result_location['contact__reporting_location']] = 0
     return result
 
 def get_numeric_enrollment_data(polls, locations, time_range):
