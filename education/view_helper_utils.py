@@ -568,17 +568,19 @@ def get_count_for_yes_no_response(polls, locations, time_range):
     return yes, no
 
 
-def get_count_for_yes_no_by_school(polls, School=None, time_range=None):
+def get_count_for_yes_no_by_school(polls, School, time_range):
     yes = 0
     no = 0
-    if time_range:
-        if School:
-            responses = Response.objects.filter(date__range=time_range, poll__in=polls, has_errors=False,contact__emisreporter__schools__in=School, message__direction='I')
-            for response in responses:
-                if 'yes' in response.message.text.lower():
-                    yes += 1
-                if 'no' in response.message.text.lower():
-                    no += 1
+    responses = Response.objects.filter(date__range=time_range,
+                                        poll__in=polls,
+                                        has_errors=False,
+                                        contact__emisreporter__schools__in=School,
+                                        message__direction='I')
+    for response in responses:
+        if 'yes' in response.message.text.lower():
+            yes += 1
+        if 'no' in response.message.text.lower():
+            no += 1
     return yes, no
 
 
