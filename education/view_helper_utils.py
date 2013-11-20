@@ -245,7 +245,7 @@ def get_aggregated_report_data(locations, time_range, config_list,report_mode = 
                 enrollment_polls = Poll.objects.filter(name__in=[config.get('enrollment_poll')[0]])
                 attendance_polls = Poll.objects.filter(name__in=[config.get('attendance_poll')[0]])
                 # get both enroll list and schools that responded
-                enroll_indicator_total, responsive_schools = get_numeric_enrollment_data(enrollment_polls,[location],term_range)
+                enroll_indicator_total, responsive_schools = get_numeric_enrollment_data(enrollment_polls[0],[location],term_range)
                 has_enrollment = enroll_indicator_total > 0
                 enrollment_by_indicator[config.get('collective_dict_key')] += enroll_indicator_total
 
@@ -445,7 +445,7 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
         if config_list[0].get('collective_dict_key') != 'Head Teachers':
             enrollment_polls = Poll.objects.filter(name__in=config_list[0].get('enrollment_poll'))
             attendance_polls = Poll.objects.filter(name__in=config_list[0].get('attendance_poll'))
-            enroll_indicator_total, responsive_schools = get_numeric_enrollment_data(enrollment_polls,[location],term_range)
+            enroll_indicator_total, responsive_schools = get_numeric_enrollment_data(enrollment_polls[0],[location],term_range)
             enrollment_by_location.append(enroll_indicator_total)
             for week in time_range:
                 # get attendance total for week by indicator from config file
@@ -658,11 +658,11 @@ def get_numeric_data(poll, locations, time_range):
 def get_numeric_data_all_locations(poll, time_range):
     return NumericResponsesFor(poll).forDateRange(time_range).groupByLocation()
 
-def get_numeric_enrollment_data(polls, locations, time_range):
+def get_numeric_enrollment_data(poll, locations, time_range):
     results = []
     responsive_schools = [] # get schools that have enrollment data (Inner joins return matching data)
     responses = Response.objects.filter(date__range = time_range,
-                                        poll__in = polls,
+                                        poll = poll,
                                         has_errors = False,
                                         contact__reporting_location__in = locations,
                                         message__direction = 'I',
