@@ -609,16 +609,6 @@ def get_deployed_head_Teachers(dataSource, locations):
     return get_deployed_head_Teachers_by_school(dataSource.values_list('schools', flat=True),
                                                 locations)
 
-def get_numeric_data(poll, locations, time_range):
-    result = Response.objects.filter(date__range = time_range,
-                                    poll = poll,
-                                    has_errors = False,
-                                    contact__reporting_location__in = locations,
-                                    message__direction = 'I') \
-                             .aggregate(total=Sum('eav_values__value_float'))
-    return result['total'] or 0
-
-
 def collapse(key_vals):
     result = {}
     for (key, value) in key_vals:
@@ -637,7 +627,7 @@ class NumericResponsesFor():
         return self
 
     def forLocations(self, locations):
-        self.query = self.query.filter(reporting_location__in = locations)
+        self.query = self.query.filter(contact__reporting_location__in = locations)
         return self
 
     def forSchools(self, schools):
@@ -655,6 +645,14 @@ class NumericResponsesFor():
                             .annotate(total = Sum('eav_values__value_float'))
         school_totals = [(result['contact__emisreporter__schools'], result['total'] or 0) for result in results]
         return collapse(school_totals)
+
+    def total(self):
+        result = self.query.aggregate(total=Sum('eav_values__value_float'))
+        return result['total'] or 0
+
+
+def get_numeric_data(poll, locations, time_range):
+    return NumericResponsesFor(poll).forDateRange(time_range).forLocations(locations).total()
 
 
 def get_numeric_data_all_locations(poll, time_range):
