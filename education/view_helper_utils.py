@@ -54,89 +54,88 @@ def get_aggregated_report_for_district(locations, time_range, config_list,report
         for v in attendance_by_indicator.values():
             v.append({'week': _date, 'present': 0, 'enrollment': 0, 'percent': 0})
 
-    if locations:
-        headteachersSource = EmisReporter.objects.filter(reporting_location__in=locations,groups__name="Head Teachers").exclude(schools=None).select_related()
-        schoolSource = School.objects.filter(location__in=locations)
-        for school in schoolSource:
-            has_enrollment = False
-            config_set_result = {}
-            school_logger = []
-            for config in config_list:
-                if config.get('collective_dict_key') in indicator_list:
-                    enrollment_polls = Poll.objects.filter(name__in=[config.get('enrollment_poll')[0]])
-                    attendance_polls = Poll.objects.filter(name__in=[config.get('attendance_poll')[0]])
-                    enroll_data = get_numeric_data_by_school(enrollment_polls[0],[school],term_range)
-                    enrollment_by_indicator[config.get('collective_dict_key')] += sum(enroll_data)
-                    enroll_indicator_total = sum(enroll_data)
-                    week_count = 0
-                    weekly_results = []
-                    week_logger = []
-                    for week in time_range:
-                        week_count += 1
-                        attend_week_total = sum(get_numeric_data_by_school(attendance_polls[0], [school], week))
-                        week_percent = compute_absent_values(attend_week_total, enroll_indicator_total)
-                        weekly_results.append(week_percent)
-                        week_logger.append({'present' :attend_week_total, 'enrollment' : enroll_indicator_total, 'percent' : week_percent})
-
-                        if not is_empty(enroll_data):
-                            for k, v in attendance_by_indicator.items():
-                                if k == config.get('collective_dict_key'):
-                                    for val in v:
-                                        if val['week'] == week:
-                                            val['percent'] = val['percent'] + week_percent
-                                            val['present'] = val['present'] + attend_week_total
-                                            val['enrollment'] = enrollment_by_indicator[config.get('collective_dict_key')]
+    headteachersSource = EmisReporter.objects.filter(reporting_location__in=locations,groups__name="Head Teachers").exclude(schools=None).select_related()
+    schoolSource = School.objects.filter(location__in=locations)
+    for school in schoolSource:
+        has_enrollment = False
+        config_set_result = {}
+        school_logger = []
+        for config in config_list:
+            if config.get('collective_dict_key') in indicator_list:
+                enrollment_polls = Poll.objects.filter(name__in=[config.get('enrollment_poll')[0]])
+                attendance_polls = Poll.objects.filter(name__in=[config.get('attendance_poll')[0]])
+                enroll_data = get_numeric_data_by_school(enrollment_polls[0],[school],term_range)
+                enrollment_by_indicator[config.get('collective_dict_key')] += sum(enroll_data)
+                enroll_indicator_total = sum(enroll_data)
+                week_count = 0
+                weekly_results = []
+                week_logger = []
+                for week in time_range:
+                    week_count += 1
+                    attend_week_total = sum(get_numeric_data_by_school(attendance_polls[0], [school], week))
+                    week_percent = compute_absent_values(attend_week_total, enroll_indicator_total)
+                    weekly_results.append(week_percent)
+                    week_logger.append({'present' :attend_week_total, 'enrollment' : enroll_indicator_total, 'percent' : week_percent})
 
                     if not is_empty(enroll_data):
-                        has_enrollment = True
-                        school_with_no_zero_by_indicator[config.get('collective_dict_key')] +=1
-                        config_set_result[config.get('collective_dict_key')] = round(sum(weekly_results)/len(time_range),2)
-                        school_logger.append({config.get('collective_dict_key') :week_logger })
+                        for k, v in attendance_by_indicator.items():
+                            if k == config.get('collective_dict_key'):
+                                for val in v:
+                                    if val['week'] == week:
+                                        val['percent'] = val['percent'] + week_percent
+                                        val['present'] = val['present'] + attend_week_total
+                                        val['enrollment'] = enrollment_by_indicator[config.get('collective_dict_key')]
+
+                if not is_empty(enroll_data):
+                    has_enrollment = True
+                    school_with_no_zero_by_indicator[config.get('collective_dict_key')] +=1
+                    config_set_result[config.get('collective_dict_key')] = round(sum(weekly_results)/len(time_range),2)
+                    school_logger.append({config.get('collective_dict_key') :week_logger })
 
 
-                        for item in chart_data:
-                            for k, v in item.items():
-                                if k == config.get('collective_dict_key'):
-                                    item[k] = [sum(a) for a in zip(*[v, weekly_results])]
-                else: # Head teachers
-                    deployedHeadTeachers = get_deployed_head_Teachers_by_school([school],locations)
-                    enrollment_by_indicator[config.get('collective_dict_key')] += deployedHeadTeachers
-                    attendance_polls = Poll.objects.filter(name__in=['edtrac_head_teachers_attendance'])
-                    weekly_present = []
-                    weekly_percent = []
-                    week_logger = []
-                    for week in time_range:
-                        present, absent = get_count_for_yes_no_by_school(attendance_polls,[school], week)
-                        week_percent = compute_absent_values(present, deployedHeadTeachers)
-                        weekly_present.append(present)
-                        weekly_percent.append(week_percent)
-                        week_logger.append({'present' :present,'deployed' : deployedHeadTeachers, 'percent' : week_percent})
+                    for item in chart_data:
+                        for k, v in item.items():
+                            if k == config.get('collective_dict_key'):
+                                item[k] = [sum(a) for a in zip(*[v, weekly_results])]
+            else: # Head teachers
+                deployedHeadTeachers = get_deployed_head_Teachers_by_school([school],locations)
+                enrollment_by_indicator[config.get('collective_dict_key')] += deployedHeadTeachers
+                attendance_polls = Poll.objects.filter(name__in=['edtrac_head_teachers_attendance'])
+                weekly_present = []
+                weekly_percent = []
+                week_logger = []
+                for week in time_range:
+                    present, absent = get_count_for_yes_no_by_school(attendance_polls,[school], week)
+                    week_percent = compute_absent_values(present, deployedHeadTeachers)
+                    weekly_present.append(present)
+                    weekly_percent.append(week_percent)
+                    week_logger.append({'present' :present,'deployed' : deployedHeadTeachers, 'percent' : week_percent})
 
-                        if deployedHeadTeachers == 1:
-                            for k, v in attendance_by_indicator.items():
-                                if k == config.get('collective_dict_key'):
-                                    for val in v:
-                                        if val['week'] == week:
-                                            val['percent'] = val['percent'] + week_percent
-                                            val['present'] = val['present'] + attend_week_total
-                                            val['enrollment'] = enrollment_by_indicator[config.get('collective_dict_key')]
+                    if deployedHeadTeachers == 1:
+                        for k, v in attendance_by_indicator.items():
+                            if k == config.get('collective_dict_key'):
+                                for val in v:
+                                    if val['week'] == week:
+                                        val['percent'] = val['percent'] + week_percent
+                                        val['present'] = val['present'] + attend_week_total
+                                        val['enrollment'] = enrollment_by_indicator[config.get('collective_dict_key')]
 
 
-                    if deployedHeadTeachers ==1:
-                        school_with_no_zero_by_indicator[config.get('collective_dict_key')] +=1
-                        computation_logger_headTeachers[school.name] = week_logger
-                        has_enrollment = True
-                        percent_absent = compute_absent_values(sum(weekly_present) / len(time_range), deployedHeadTeachers)
-                        config_set_result[config.get('collective_dict_key')] = round(percent_absent, 2)
-                        for item in chart_data:
-                            for k, v in item.items():
-                                if k == 'Head Teachers':
-                                    item[k] = [sum(a) for a in zip(*[v, weekly_percent])]
+                if deployedHeadTeachers ==1:
+                    school_with_no_zero_by_indicator[config.get('collective_dict_key')] +=1
+                    computation_logger_headTeachers[school.name] = week_logger
+                    has_enrollment = True
+                    percent_absent = compute_absent_values(sum(weekly_present) / len(time_range), deployedHeadTeachers)
+                    config_set_result[config.get('collective_dict_key')] = round(percent_absent, 2)
+                    for item in chart_data:
+                        for k, v in item.items():
+                            if k == 'Head Teachers':
+                                item[k] = [sum(a) for a in zip(*[v, weekly_percent])]
 
-            if has_enrollment == True:
-                collective_result[school.name] = config_set_result
-                computation_logger[school.name] = school_logger
-                school_with_no_zero_result.append(school)
+        if has_enrollment == True:
+            collective_result[school.name] = config_set_result
+            computation_logger[school.name] = school_logger
+            school_with_no_zero_result.append(school)
 
     time_data_model1 = []
     time_data_model2 = []
