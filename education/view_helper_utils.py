@@ -1,6 +1,4 @@
 from __future__ import division
-import re
-#from .forms import *
 from education.models import *
 from poll.models import Poll
 from .reports import *
@@ -34,7 +32,6 @@ def get_aggregated_report_for_district(locations, time_range, config_list,report
         for v in attendance_by_indicator.values():
             v.append({'week': _date, 'present': 0, 'enrollment': 0, 'percent': 0})
 
-    headteachersSource = EmisReporter.objects.filter(reporting_location__in=locations,groups__name="Head Teachers").exclude(schools=None).select_related()
     schoolSource = School.objects.filter(location__in=locations)
     for school in schoolSource:
         has_enrollment = False
@@ -105,7 +102,7 @@ def get_aggregated_report_for_district(locations, time_range, config_list,report
                             if k == 'Head Teachers':
                                 item[k] = [sum(a) for a in zip(*[v, weekly_percent])]
 
-        if has_enrollment == True:
+        if has_enrollment:
             collective_result[school.name] = config_set_result
             school_with_no_zero_result.append(school)
 
@@ -282,7 +279,7 @@ def get_aggregated_report_data(locations, time_range, config_list,report_mode = 
                         if k == config.get('collective_dict_key'):
                             item[k] = [sum(a) for a in zip(*[v, weekly_school_count])]
 
-        if has_enrollment == True:
+        if has_enrollment:
             location_with_no_zero_result.append(location)
             collective_result[location.name] = config_set_result
 
