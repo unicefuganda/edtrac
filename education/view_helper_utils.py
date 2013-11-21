@@ -92,8 +92,8 @@ def get_aggregated_report_for_district(locations, time_range, config_list,report
                                         val['enrollment'] = enrollment_by_indicator[config.get('collective_dict_key')]
 
 
-                if deployedHeadTeachers ==1:
-                    school_with_no_zero_by_indicator[config.get('collective_dict_key')] +=1
+                if deployedHeadTeachers == 1:
+                    school_with_no_zero_by_indicator[config.get('collective_dict_key')] += 1
                     has_enrollment = True
                     percent_absent = compute_absent_values(sum(weekly_present) / len(time_range), deployedHeadTeachers)
                     config_set_result[config.get('collective_dict_key')] = round(percent_absent, 2)
