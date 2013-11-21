@@ -2088,7 +2088,7 @@ def time_range_boysp3(req):
 def time_range_boysp6(req):
     return view_stats(req,
         enrol_deploy_poll='edtrac_boysp6_enrollment',
-        attendance_poll='edtrac_boysp3_attendance',
+        attendance_poll='edtrac_boysp6_attendance',
         title='P6 Boys Absenteeism',
         url_name_district = "boysp6-district-attd-detail"
     )
