@@ -17,8 +17,6 @@ def get_aggregated_report_for_district(locations, time_range, config_list,report
     school_with_no_zero_by_indicator = {}
     schools_by_location = []
     high_chart_tooltip = []
-    attendance_total = [] # used for logging present values extracted from incoming messages (don't delete)
-    percent_by_indicator = {} # used for logging percent values extracted from incoming messages (don't delete)
     enrollment_by_indicator = {}
     attendance_by_indicator = {}
 
@@ -32,7 +30,6 @@ def get_aggregated_report_for_district(locations, time_range, config_list,report
         high_chart_tooltip.append({indicator: []})
         enrollment_by_indicator[indicator] = 0
         attendance_by_indicator[indicator] = []
-        percent_by_indicator[indicator] = []
         school_with_no_zero_by_indicator[indicator] = 0
 
     chart_data.append({'Head Teachers': [0] * len(time_range)})
@@ -190,8 +187,6 @@ def get_aggregated_report_data(locations, time_range, config_list,report_mode = 
     location_with_no_zero_result = []
     schools_by_location = []
     high_chart_tooltip = []
-    attendance_total = [] # used for logging present values extracted from incoming messages (don't delete)
-    percent_by_indicator = {} # used for logging percent values extracted from incoming messages (don't delete)
     enrollment_by_indicator = {}
     attendance_by_indicator = {}
 
@@ -211,7 +206,6 @@ def get_aggregated_report_data(locations, time_range, config_list,report_mode = 
         high_chart_tooltip.append({indicator: []})
         enrollment_by_indicator[indicator] = 0
         attendance_by_indicator[indicator] = []
-        percent_by_indicator[indicator] = []
 
     chart_data.append({'Head Teachers': [0] * len(time_range)})
     school_report.append({'Head Teachers': [0] * len(time_range)})
@@ -256,7 +250,6 @@ def get_aggregated_report_data(locations, time_range, config_list,report_mode = 
                     week_count += 1
                     # get attendance total for week by indicator from config file
                     attend_week_total = sum(get_numeric_data_by_school(attendance_polls[0], responsive_schools, week))
-                    attendance_total.append(attend_week_total)
                     # get schools that Responded
                     schools_that_responded = len(get_numeric_data_by_school(attendance_polls[0], schools_in_location, week))
                     week_percent = compute_absent_values(attend_week_total, enroll_indicator_total)
@@ -287,7 +280,6 @@ def get_aggregated_report_data(locations, time_range, config_list,report_mode = 
                                         values['enrollment'] = enrollment_by_indicator[
                                             config.get('collective_dict_key')]
 
-                percent_by_indicator[config.get('collective_dict_key')].append(weekly_results_log)
                 # update high chart data collection with new values
                 for item in chart_data:
                     for k, v in item.items():
@@ -396,7 +388,6 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
     computation_logger = [] # used for logging values used in computation (don't delete)
     location_with_no_zero_result = []
     absenteeism_percent_by_week = {}
-    attendance_total_by_week = {}
     avg_percent_by_location = []
     avg_school_responses = []
     total_responsive_schools = []
@@ -412,7 +403,6 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
     week_position = 0
     for _date in time_range:
         absenteeism_percent_by_week[week_position] = 0
-        attendance_total_by_week[week_position] = 0
         week_position += 1
 
     for location in locations:
@@ -439,7 +429,6 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
                 weekly_percent_results.append(week_percent)
                 absenteeism_percent_by_week[week_position] += week_percent
                 weekly_school_responses.append(schools_that_responded)
-                attendance_total_by_week[week_position] += attend_week_total
                 week_position += 1
             if sum(weekly_percent_results) != 0:
                 aggregated_enrollment.append(enroll_indicator_total)
