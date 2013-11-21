@@ -46,12 +46,12 @@ def get_aggregated_report_for_district(locations, time_range, config_list,report
     # update tooltip list with current date ranges (high chart x - axis values)
     for _date in time_range:
         for tip in high_chart_tooltip:
-            for k, v in tip.items():
+            for v in tip.values():
                 v.append({'date_range': _date, 'enrollment': 0, 'present': 0})
 
     # update attendance by indicator with current date ranges (enable present computation along date x-axis)
     for _date in time_range:
-        for k, v in attendance_by_indicator.items():
+        for v in attendance_by_indicator.values():
             v.append({'week': _date, 'present': 0, 'enrollment': 0, 'percent': 0})
 
     if locations:
