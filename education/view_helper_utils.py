@@ -507,20 +507,13 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
 
 #Model 1 : Average percentage computation. get total of averages by location by indicator and divide by total locations
 def time_data_model1(absenteeism_percent_by_week, config_list, num_non_zero_results):
-    time_data_model = []
-    output = []
-    for k, v in absenteeism_percent_by_week.items():
-        output.append(round(v / num_non_zero_results, 2))
-    time_data_model.append({'name': config_list[0].get('collective_dict_key'), 'data': output})
-
-    return time_data_model
+    output = [round(v / num_non_zero_results, 2) for v in absenteeism_percent_by_week.values()]
+    return [{'name': config_list[0].get('collective_dict_key'), 'data': output}]
 
 # Model 2 : get percentage for aggregated results i.e. total enrollment, total attendance by week
 def time_data_model2(aggregated_enrollment, aggregated_attendance, config_list):
-    time_data_model = []
-    output =   [compute_absent_values(a,sum(aggregated_enrollment)) for a in aggregated_attendance]
-    time_data_model.append({'name' :config_list[0].get('collective_dict_key'), 'data' : output })
-    return time_data_model
+    output = [compute_absent_values(a,sum(aggregated_enrollment)) for a in aggregated_attendance]
+    return [{'name' :config_list[0].get('collective_dict_key'), 'data' : output }]
 
 
 def compute_absenteeism_summary(indicator, locations, get_time=datetime.datetime.now):
