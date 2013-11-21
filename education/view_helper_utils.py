@@ -362,31 +362,20 @@ def get_aggregated_report_data(locations, time_range, config_list,report_mode = 
 
     time_data_model1 = []
     school_data = {}
-    tip_for_time_data1 = []
 
     # Absenteeism Computation Model 1 : problem : some locations return very high negative values, makes the dashboard look messy (but represent actual state of data)
     # get averages to display on chart (formula : divide the aggregated percent value along each week for each indicator in each location and divide by location count )
     for item in chart_data:
         for k, v in item.items():
-            output = []
-            for val in v:
-                avg_percent = round(val / len(location_with_no_zero_result), 2)
-                output.append(avg_percent)
+            output = [round(val / len(location_with_no_zero_result), 2) for val in v]
             time_data_model1.append({'name': k, 'data': output})
 
     #absenteeism computation model 2 : problem : hides some facts a long each location and computes at global count across all locations
     # get sum of present values for all locations, sum of  enrollment values for all locations, all accross each indicator
     time_data_model2 = []
-    tip_for_time_data2 = []
     for key, entry in attendance_by_indicator.items():
-        data = []
-        tip = []
-        for item in entry:
-            percent = round(compute_absent_values(item['present'], item['enrollment']), 2)
-            tip.append({'enrollment': item['enrollment'], 'present': item['present'], 'percent': percent})
-            data.append(percent)
+        data = [round(compute_absent_values(item['present'], item['enrollment']), 2) for item in entry]
         time_data_model2.append({'name': key, 'data': data})
-        tip_for_time_data2.append({'name': key, 'tooltip': tip})
 
     # get school response average
     for item in school_report:
