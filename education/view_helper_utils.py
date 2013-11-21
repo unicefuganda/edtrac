@@ -10,7 +10,6 @@ def get_aggregated_report_for_district(locations, time_range, config_list,report
     collective_result = {}
     chart_data = []
     head_teacher_set = []
-    tmp_data = []
     school_report = []
     computation_logger = {}
     computation_logger_headTeachers = {}
@@ -186,7 +185,6 @@ def get_aggregated_report_data(locations, time_range, config_list,report_mode = 
     collective_result = {}
     chart_data = []
     head_teacher_set = []
-    tmp_data = []
     school_report = []
     computation_logger = []
     location_with_no_zero_result = []
