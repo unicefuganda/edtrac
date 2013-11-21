@@ -161,9 +161,7 @@ def get_aggregated_report_data(locations, time_range, config_list,report_mode = 
     # Get term range from settings file (config file)
     term_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
 
-    headteachersSource = EmisReporter.objects.filter(reporting_location__in=locations,
-                                                     groups__name="Head Teachers").exclude(
-        schools=None).select_related()
+    headteachersSource = EmisReporter.objects.filter(reporting_location__in=locations, groups__name="Head Teachers").exclude(schools=None).select_related()
     schoolSource = School.objects.filter(location__in=locations).select_related()
     indicator_list = ['P3 Pupils', 'P6 Pupils', 'Teachers']
     schools_total = len(schoolSource)

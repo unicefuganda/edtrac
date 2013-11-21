@@ -71,17 +71,17 @@ def view_stats(req,
             except (TypeError, IndexError):
                 diff = '--'
 
-            if enrolled > 0:
-                real_data.append([location, percent_current_week, percent_previous_week, diff, enrolled])
+            if location_enrolled > 0:
+                real_data.append([location, percent_current_week, percent_previous_week, diff, location_enrolled])
 
-            if location.type_id == 'sub_county' and enrolled > 0:
+            if location.type_id == 'sub_county' and location_enrolled > 0:
                 location_data.append(
-                    [location, percent_current_week, percent_previous_week, diff, enrolled, attendance_current_week,
-                     attendance_previous_week])
+                    [location, percent_current_week, percent_previous_week, diff, location_enrolled, location_attendance_current_week,
+                     location_attendance_previous_week])
             elif location.type_id == 'district':
                 location_data.append(
-                    [location, percent_current_week, percent_previous_week, diff, enrolled, attendance_current_week,
-                     attendance_previous_week])
+                    [location, percent_current_week, percent_previous_week, diff, location_enrolled, location_attendance_current_week,
+                     location_attendance_previous_week])
     else:
         time_range_form = ResultForm(data=req.POST)
         to_ret = []
