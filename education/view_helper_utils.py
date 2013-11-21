@@ -360,11 +360,10 @@ def get_aggregated_report_data(locations, time_range, config_list,report_mode = 
             location_with_no_zero_result.append(location)
             collective_result[location.name] = config_set_result
 
-    time_data_model1 = []
-    school_data = {}
 
     # Absenteeism Computation Model 1 : problem : some locations return very high negative values, makes the dashboard look messy (but represent actual state of data)
     # get averages to display on chart (formula : divide the aggregated percent value along each week for each indicator in each location and divide by location count )
+    time_data_model1 = []
     for item in chart_data:
         for k, v in item.items():
             output = [round(val / len(location_with_no_zero_result), 2) for val in v]
@@ -378,6 +377,7 @@ def get_aggregated_report_data(locations, time_range, config_list,report_mode = 
         time_data_model2.append({'name': key, 'data': data})
 
     # get school response average
+    school_data = {}
     for item in school_report:
         for k, v in item.items():
             school_data[k] = round(((sum(v) / len(time_range)) / schools_total) * 100, 2)
