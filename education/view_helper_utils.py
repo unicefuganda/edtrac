@@ -396,8 +396,6 @@ def get_aggregated_report_data(locations, time_range, config_list,report_mode = 
                 output.append(val)
                 school_data[k] = round(((sum(output) / len(time_range)) / schools_total) * 100, 2)
 
-    tooltip = []
-    chart_results_model = {}
     if report_mode == None:
         chart_results_model = time_data_model1
         report_mode = 'average'
@@ -406,7 +404,7 @@ def get_aggregated_report_data(locations, time_range, config_list,report_mode = 
     elif report_mode == 'percent':
         chart_results_model = time_data_model2
 
-    return collective_result, chart_results_model, school_data, tooltip,report_mode
+    return collective_result, chart_results_model, school_data, [], report_mode
 
 
 
@@ -497,9 +495,6 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
     # percentage of schools that responded : add up weekly response average by selected locations and divide by total number of schools
     school_percent = round((sum(avg_school_responses) / len(schoolSource)) * 100, 2)
 
-    tooltip = {}
-    chart_results_model = {}
-
     if report_mode == None:
         chart_results_model = time_data_model1(absenteeism_percent_by_week, config_list, len(location_with_no_zero_result))
         report_mode = 'average'
@@ -508,7 +503,7 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
     elif report_mode == 'percent':
         chart_results_model = time_data_model2(aggregated_enrollment, aggregated_attendance, config_list)
 
-    return collective_result, chart_results_model, school_percent,tooltip,report_mode
+    return collective_result, chart_results_model, school_percent, {}, report_mode
 
 #Model 1 : Average percentage computation. get total of averages by location by indicator and divide by total locations
 def time_data_model1(absenteeism_percent_by_week, config_list, num_non_zero_results):
