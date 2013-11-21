@@ -496,30 +496,35 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
 
     # percentage of schools that responded : add up weekly response average by selected locations and divide by total number of schools
     school_percent = round((sum(avg_school_responses) / len(schoolSource)) * 100, 2)
-    #Model 1 : Average percentage computation. get total of averages by location by indicator and divide by total locations
-    time_data_model1 = []
-    output = []
-    for k, v in absenteeism_percent_by_week.items():
-        output.append(round(v / len(location_with_no_zero_result), 2))
-    time_data_model1.append({'name': config_list[0].get('collective_dict_key'), 'data': output})
 
     # model 2 : get percentage for aggregated results i.e. total enrollment, total attendance by week
     time_data_model2 = []
     output =   [compute_absent_values(a,sum(aggregated_enrollment)) for a in aggregated_attendance]
     time_data_model2.append({'name' :config_list[0].get('collective_dict_key'), 'data' : output })
 
-
     tooltip = {}
     chart_results_model = {}
+
     if report_mode == None:
-        chart_results_model = time_data_model1
+        chart_results_model = time_data_model1(absenteeism_percent_by_week, config_list, len(location_with_no_zero_result))
         report_mode = 'average'
     elif report_mode == 'average':
-        chart_results_model = time_data_model1
+        chart_results_model = time_data_model1(absenteeism_percent_by_week, config_list, len(location_with_no_zero_result))
     elif report_mode == 'percent':
         chart_results_model = time_data_model2
 
     return collective_result, chart_results_model, school_percent,tooltip,report_mode
+
+#Model 1 : Average percentage computation. get total of averages by location by indicator and divide by total locations
+def time_data_model1(absenteeism_percent_by_week, config_list, num_non_zero_results):
+    time_data_model = []
+    output = []
+    for k, v in absenteeism_percent_by_week.items():
+        output.append(round(v / num_non_zero_results, 2))
+    time_data_model.append({'name': config_list[0].get('collective_dict_key'), 'data': output})
+
+    return time_data_model
+
 
 def compute_absenteeism_summary(indicator, locations, get_time=datetime.datetime.now):
     date_weeks = get_week_date(depth=2, get_time=get_time)
