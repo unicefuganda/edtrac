@@ -497,11 +497,6 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
     # percentage of schools that responded : add up weekly response average by selected locations and divide by total number of schools
     school_percent = round((sum(avg_school_responses) / len(schoolSource)) * 100, 2)
 
-    # model 2 : get percentage for aggregated results i.e. total enrollment, total attendance by week
-    time_data_model2 = []
-    output =   [compute_absent_values(a,sum(aggregated_enrollment)) for a in aggregated_attendance]
-    time_data_model2.append({'name' :config_list[0].get('collective_dict_key'), 'data' : output })
-
     tooltip = {}
     chart_results_model = {}
 
@@ -511,7 +506,7 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
     elif report_mode == 'average':
         chart_results_model = time_data_model1(absenteeism_percent_by_week, config_list, len(location_with_no_zero_result))
     elif report_mode == 'percent':
-        chart_results_model = time_data_model2
+        chart_results_model = time_data_model2(aggregated_enrollment, aggregated_attendance, config_list)
 
     return collective_result, chart_results_model, school_percent,tooltip,report_mode
 
@@ -523,6 +518,13 @@ def time_data_model1(absenteeism_percent_by_week, config_list, num_non_zero_resu
         output.append(round(v / num_non_zero_results, 2))
     time_data_model.append({'name': config_list[0].get('collective_dict_key'), 'data': output})
 
+    return time_data_model
+
+# Model 2 : get percentage for aggregated results i.e. total enrollment, total attendance by week
+def time_data_model2(aggregated_enrollment, aggregated_attendance, config_list):
+    time_data_model = []
+    output =   [compute_absent_values(a,sum(aggregated_enrollment)) for a in aggregated_attendance]
+    time_data_model.append({'name' :config_list[0].get('collective_dict_key'), 'data' : output })
     return time_data_model
 
 
