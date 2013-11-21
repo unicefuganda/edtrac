@@ -391,10 +391,7 @@ def get_aggregated_report_data(locations, time_range, config_list,report_mode = 
     # get school response average
     for item in school_report:
         for k, v in item.items():
-            output = []
-            for val in v:
-                output.append(val)
-                school_data[k] = round(((sum(output) / len(time_range)) / schools_total) * 100, 2)
+            school_data[k] = round(((sum(v) / len(time_range)) / schools_total) * 100, 2)
 
     if report_mode == None:
         chart_results_model = time_data_model1
