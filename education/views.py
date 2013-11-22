@@ -611,11 +611,9 @@ def meals_missed(locations, get_time=datetime.datetime.now):
     p = sorted(response_to_meals.items(), key=lambda(k,v):(v[0][1], k))
 
     if p:
-        worst_meal = p[-1]
+        return {'worst_meal' : p[-1]}
     else:
-        worst_meal = None
-
-    return {'worst_meal' : worst_meal}
+        return {'worst_meal' : None}
 
 
 def head_teachers_female(locations, get_time=datetime.datetime.now):
