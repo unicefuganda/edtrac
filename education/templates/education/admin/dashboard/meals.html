@@ -5,13 +5,12 @@
 		<thead>
 			<tr>
 				<th>Detail</th>
-				<th>Monthly Change</th>
 			</tr>           
 		</thead>
 		<tbody>
 			<tr>
 				<td>Meals Missed</td>
-				<td class="data {{ meal_change_data }}"><span class="value {{ meal_change_class }}">{{ worst_meal.1.0.1|floatformat }}% {{ meal_change_class }}</span></td>
+				<td class="data {{ meal_change_data }}"><span class="value {{ meal_change_class }}">{{ meals_missed }}% {{ meal_change_class }}</span></td>
 			</tr>
 		</tbody>
 	</table>

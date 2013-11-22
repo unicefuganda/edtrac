@@ -530,6 +530,10 @@ class NumericResponsesFor():
         result = self.query.aggregate(total=Sum('eav_values__value_float'))
         return result['total'] or 0
 
+    def mean(self):
+        result = self.query.aggregate(total=Avg('eav_values__value_float'))
+        return result['total'] or 0
+
 
 def get_numeric_data(poll, locations, time_range):
     return NumericResponsesFor(poll).forDateRange(time_range).forLocations(locations).total()

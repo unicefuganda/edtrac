@@ -600,20 +600,14 @@ def p3_curriculum(locations):
 
     return {'mode_progress' : mode_progress, 'c_mode' : current_mode}
 
-def meals_missed(locations, get_time=datetime.datetime.now):
-    if len(locations) == 1:
-        response_to_meals = get_count_response_to_polls(Poll.objects.get(name = "edtrac_headteachers_meals"),
-            time_range = get_week_date(get_time = get_time)[0], choices = [0], location_name = locations[0].name)
-    else:
-        response_to_meals = get_count_response_to_polls(Poll.objects.get(name = "edtrac_headteachers_meals"),
-            time_range = get_week_date(get_time = get_time)[0], choices = [0])
+def meals_missed(locations, get_time):
+    poll = Poll.objects.get(name = "edtrac_headteachers_meals")
+    average_percentage = NumericResponsesFor(poll) \
+                            .forLocations(locations) \
+                            .forDateRange(get_week_date(get_time = get_time)) \
+                            .mean()
 
-    p = sorted(response_to_meals.items(), key=lambda(k,v):(v[0][1], k))
-
-    if p:
-        return {'worst_meal' : p[-1]}
-    else:
-        return {'worst_meal' : None}
+    return {'meals_missed' : average_percentage}
 
 
 def head_teachers_female(locations, get_time=datetime.datetime.now):
@@ -802,7 +796,7 @@ def generate_dashboard_vars(location):
     context_vars.update(p6_boys_absent(locations))
 
     #Meals
-    context_vars.update(meals_missed(locations))
+    context_vars.update(meals_missed(locations, get_time = datetime.datetime.now))
 
     #Total Reporters
     context_vars.update(total_reporters(locations, group_names, blacklisted))
