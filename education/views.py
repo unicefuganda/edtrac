@@ -765,7 +765,7 @@ def total_reporters(locations, group_names, blacklisted):
     return {'total_reporters': total_reporters}
 
 # generate context vars
-def generate_dashboard_vars(location=None):
+def generate_dashboard_vars(location):
     """
     An overly ambitious function that generates context variables for a location if provided
     This gets populated in the dashboard.
