@@ -600,19 +600,20 @@ def p3_curriculum(locations):
 
     return {'mode_progress' : mode_progress, 'c_mode' : current_mode}
 
-def meals_missed(locations):
+def meals_missed(locations, get_time=datetime.datetime.now):
     if len(locations) == 1:
         response_to_meals = get_count_response_to_polls(Poll.objects.get(name = "edtrac_headteachers_meals"),
-            time_range = get_week_date()[0], choices = [0], location_name = locations[0].name)
+            time_range = get_week_date(get_time = get_time)[0], choices = [0], location_name = locations[0].name)
     else:
         response_to_meals = get_count_response_to_polls(Poll.objects.get(name = "edtrac_headteachers_meals"),
-            time_range = get_week_date()[0], choices = [0])
+            time_range = get_week_date(get_time = get_time)[0], choices = [0])
 
     p = sorted(response_to_meals.items(), key=lambda(k,v):(v[0][1], k))
 
-    worst_meal = None
-    if len(p):
-        worst_meal = p[len(p)-1]
+    if p:
+        worst_meal = p[-1]
+    else:
+        worst_meal = None
 
     return {'worst_meal' : worst_meal}
 
