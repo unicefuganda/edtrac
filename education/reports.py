@@ -650,15 +650,14 @@ def set_thur_wed_range(thursday):
     # however we want to change the weeknumber a bit to get a `new` thursday
     # move thursday to last week
 
-    thursday = thursday - datetime.timedelta(days=7)
+    last_thursday = thursday - datetime.timedelta(days=7)
     # set times
     # 0800hrs EAT
-    thursday = datetime.datetime(thursday.year, thursday.month, thursday.day, 8, 0)
-    diff = thursday + datetime.timedelta(days=6)
+    thursday_morning = datetime.datetime(last_thursday.year, last_thursday.month, last_thursday.day, 8, 0)
+    wednesday = thursday_morning + datetime.timedelta(days=6)
     # 1900hrs
-    diff = datetime.datetime(diff.year, diff.month, diff.day, 19, 0)
-    to_ret_week = [thursday, diff]
-    return to_ret_week
+    wednesday_evening = datetime.datetime(wednesday.year, wednesday.month, wednesday.day, 19, 0)
+    return thursday_morning,wednesday_evening
 
 
 def get_day_range(today):
