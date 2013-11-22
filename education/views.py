@@ -724,34 +724,6 @@ def smc_meetings(locations):
     return {'smc_meetings': total_meetings, 'schools_to_date': school_to_date}
 
 
-def total_schools(locations, group_names, blacklisted):
-    total_schools = 0
-    districts = Location.objects.filter(
-        type="district"
-    ).filter(
-        name__in=EmisReporter.objects.filter(
-            reporting_location__in=locations
-        ).exclude(
-            schools=None
-        ).exclude(
-            connection__in=blacklisted
-        ).values_list('reporting_location__name', flat=True)
-    )
-    for district in districts:
-        s_count = School.objects.filter(
-            pk__in=EmisReporter.objects.exclude(
-                schools=None
-            ).exclude(
-                connection__in=blacklisted
-            ).filter(
-                reporting_location__name=district.name
-            ).distinct().values_list('schools__pk', flat=True)
-        ).count()
-        total_schools += s_count
-
-    return {'total_schools': total_schools}
-
-
 def total_reporters(locations, group_names, blacklisted):
     total_reporters = EmisReporter.objects.filter(
         groups__name__in=group_names,
@@ -836,9 +808,6 @@ def generate_dashboard_vars(location):
 
     #Meals
     context_vars.update(meals_missed(locations))
-
-    #Total Schools
-    context_vars.update(total_schools(locations, group_names, blacklisted))
 
     #Total Reporters
     context_vars.update(total_reporters(locations, group_names, blacklisted))

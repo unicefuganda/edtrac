@@ -5,7 +5,7 @@ from unittest import TestCase
 from django.contrib.auth.models import User, Group
 from education.models import School, EmisReporter
 from education.reports import get_week_date
-from education.views import capitation_grants, total_schools, total_reporters, p3_absent_boys, p6_boys_absent, p3_absent_girls, p6_girls_absent,f_teachers_absent,m_teachers_absent,head_teachers_female,head_teachers_male
+from education.views import schools_valid, capitation_grants, total_reporters, p3_absent_boys, p6_boys_absent, p3_absent_girls, p6_girls_absent,f_teachers_absent,m_teachers_absent,head_teachers_female,head_teachers_male
 from poll.models import Poll,Response
 from rapidsms.contrib.locations.models import Location, LocationType, Point
 from rapidsms.models import Backend, Connection
@@ -398,8 +398,8 @@ class TestEdtracDashboard(TestCase):
     def test_number_of_valid_schools(self):
         grp = ['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters',
                'DEO', 'MEO']
-        total_school = total_schools(self.root_node.get_children(), grp, [])
-        self.assertEqual(3, total_school['total_schools'])
+        total_school = schools_valid(self.root_node.get_children(), grp, [])
+        self.assertEqual(2, total_school['total_schools_valid'])
 
     def test_number_of_valid_reporters(self):
         grp = ['Teachers', 'Head Teachers', 'SMC', 'GEM', 'Other Reporters',
