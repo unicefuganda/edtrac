@@ -697,16 +697,14 @@ def smc_meetings(locations):
         values_list('schools__pk', flat=True)).count()
 
     smc_meeting_poll = Poll.objects.get(name = 'edtrac_smc_meetings')
-    meetings = [r.eav.poll_number_value
-                for r in smc_meeting_poll.responses.filter(
-                            contact__reporting_location__in=locations,
-                            date__range =\
-                            [getattr(settings, 'SCHOOL_TERM_START'),
-                             getattr(settings, 'SCHOOL_TERM_END')]).select_related() if hasattr(r.eav, 'poll_number_value') and r.eav.poll_number_value is not None]
-    zero_count = meetings.count(0)
+    meetings = NumericResponsesFor(smc_meeting_poll) \
+                    .excludeZeros() \
+                    .forDateRange([getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]) \
+                    .forLocations(locations) \
+                    .total()
 
     try:
-        total_meetings = 100 * (len(meetings) - zero_count) / school_to_date
+        total_meetings = 100 * meetings / school_to_date
     except ZeroDivisionError:
         total_meetings = 0
 
