@@ -667,16 +667,12 @@ def head_teachers_male(locations, get_time=datetime.datetime.now):
 
 
 def schools_valid(locations, group_names, blacklisted):
-    reporters = EmisReporter.objects.filter(
+    school_valid = EmisReporter.objects.filter(
         groups__name__in=group_names,
         reporting_location__in=locations
-    ).exclude(connection__in=blacklisted).exclude(schools=None)
+    ).exclude(connection__in=blacklisted).exclude(schools=None) \
+     .values('schools__id').distinct().count()
 
-    schools = []
-    for r in reporters:
-        schools = schools + [school.id for school in r.schools.all()]
-
-    school_valid = len(list(set(schools)))
     return {'total_schools_valid': school_valid}
 
 def schools_active(locations):
