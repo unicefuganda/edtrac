@@ -772,13 +772,12 @@ def generate_dashboard_vars(location):
     """
 
     context_vars = {}
-    locations = []
     if location.name == "Uganda":
         # get locations from active districts only
         locations = Location.objects.filter(pk__in=EmisReporter.objects.\
             values_list('reporting_location__pk', flat=True)).distinct()
     else:
-        locations.append(location)
+        locations = [location]
 
     group_names = ['Teachers', 'Head Teachers', 'SMC', 'GEM',
                    'Other Reporters', 'DEO', 'MEO']
