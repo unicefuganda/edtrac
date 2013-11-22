@@ -674,7 +674,7 @@ def schools_valid(locations, group_names, blacklisted):
 
     schools = []
     for r in reporters:
-        schools = schools + list(r.schools_list())
+        schools = schools + [school.id for school in r.schools.all()]
 
     school_valid = len(list(set(schools)))
     return {'total_schools_valid': school_valid}
