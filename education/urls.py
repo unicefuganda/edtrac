@@ -219,8 +219,6 @@ urlpatterns = patterns('',
         'management_for': 'users',
         }, name="emis-users"),
 
-    url(r'^edtrac/alerts_detail/(?P<alert>\d+)/$', login_required(alerts_detail), {}, name="emis-alerts"),
-
     #Admin Dashboard
     #TODO protect views here...
 

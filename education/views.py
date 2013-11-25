@@ -2568,61 +2568,6 @@ def edit_user(request, user_pk=None):
     return render_to_response('education/partials/edit_user.html', {'user_form': user_form,'title':title},
         context_instance=RequestContext(request))
 
-@login_required
-def alerts_detail(request, alert, district_id=None):
-    user_location = get_location(request, district_id)
-    schools_queryset = School.objects.filter(location__in=user_location.get_descendants(include_self=True).all())
-    start_date = datetime.datetime(datetime.datetime.now().year, 1, 1)
-    end_date = datetime.datetime.now()
-    if int(alert) == 1:
-        results_title = "Schools which didn't send in Pupil Attendance Data this Week"
-        start_date, end_date = previous_calendar_week()
-        responsive_schools = XFormSubmissionValue.objects.all()\
-        .filter(Q(submission__xform__keyword__icontains='boys')|Q(submission__xform__keyword__icontains='girls'))\
-        .filter(created__range=(start_date, end_date))\
-        .filter(submission__connection__contact__emisreporter__schools__location__in=user_location.get_descendants(include_self=True).all())\
-        .values_list('submission__connection__contact__emisreporter__schools__name', flat=True)
-        schools_queryset = schools_queryset.exclude(name__in=responsive_schools)
-
-    if int(alert) == 2:
-        results_title = "Schools which have not sent in Pupil Enrollment Data this Year"
-        responsive_schools = XFormSubmissionValue.objects.all()\
-        .filter(Q(submission__xform__keyword__icontains='enrolledb')|Q(submission__xform__keyword__icontains='enrolledg'))\
-        .filter(created__range=(start_date, end_date))\
-        .filter(submission__connection__contact__emisreporter__schools__location__in=user_location.get_descendants(include_self=True).all())\
-        .values_list('submission__connection__contact__emisreporter__schools__name', flat=True)
-        schools_queryset = schools_queryset.exclude(name__in=responsive_schools)
-
-    if int(alert) == 3:
-        results_title = "Schools which have not sent in Teacher Deployment Data this Year"
-        responsive_schools = XFormSubmissionValue.objects.all()\
-        .filter(submission__xform__keyword__icontains='deploy')\
-        .filter(created__range=(start_date, end_date))\
-        .filter(submission__connection__contact__emisreporter__schools__location__in=user_location.get_descendants(include_self=True).all())\
-        .values_list('submission__connection__contact__emisreporter__schools__name', flat=True)
-        schools_queryset = schools_queryset.exclude(name__in=responsive_schools)
-
-    return generic(request,
-        model = School,
-        queryset = schools_queryset,
-        filter_forms = [FreeSearchSchoolsForm, SchoolDistictFilterForm],
-        action_forms = [SchoolMassTextForm],
-        objects_per_page = 25,
-        results_title = results_title,
-        partial_row = 'education/partials/alerts_row.html',
-        partial_header = 'education/partials/partial_header.html',
-        base_template = 'education/schools_base.html',
-        columns = [('Name', True, 'name', SimpleSorter()),
-            ('District', True, 'location__name', None,),
-            ('Head Teacher', False, 'emisreporter', None,),
-            ('Reporters', False, 'emisreporter', None,),
-            ('Last Report Date ', True, 'report_date', None,)
-        ],
-        sort_column = 'date',
-        sort_ascending = False,
-        alert = alert,
-    )
-
 def htattendance(request, start_date=None, end_date=None, district_id=None):
     user_location = get_location(request, district_id)
     dates = get_xform_dates(request)
