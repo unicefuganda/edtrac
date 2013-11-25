@@ -590,21 +590,14 @@ def p3_curriculum(locations):
 
     return {'mode_progress' : mode_progress, 'c_mode' : current_mode}
 
-def meals_missed(locations):
-    if len(locations) == 1:
-        response_to_meals = get_count_response_to_polls(Poll.objects.get(name = "edtrac_headteachers_meals"),
-            time_range = get_week_date()[0], choices = [0], location_name = locations[0].name)
-    else:
-        response_to_meals = get_count_response_to_polls(Poll.objects.get(name = "edtrac_headteachers_meals"),
-            time_range = get_week_date()[0], choices = [0])
-    p = sorted(response_to_meals.items(), key=lambda(k,v):(v[0][1], k))
+def meals_missed(locations, get_time):
+    poll = Poll.objects.get(name = "edtrac_headteachers_meals")
+    average_percentage = NumericResponsesFor(poll) \
+                            .forLocations(locations) \
+                            .forDateRange(get_week_date(get_time = get_time)) \
+                            .mean()
 
-
-    worst_meal = None
-    if len(p):
-        worst_meal = p[len(p)-1]
-
-    return {'worst_meal' : worst_meal}
+    return {'meals_missed' : average_percentage}
 
 
 def head_teachers_female(locations, get_time=datetime.datetime.now):
@@ -694,16 +687,14 @@ def smc_meetings(locations):
         values_list('schools__pk', flat=True)).count()
 
     smc_meeting_poll = Poll.objects.get(name = 'edtrac_smc_meetings')
-    meetings = [r.eav.poll_number_value
-                for r in smc_meeting_poll.responses.filter(
-                            contact__reporting_location__in=locations,
-                            date__range =\
-                            [getattr(settings, 'SCHOOL_TERM_START'),
-                             getattr(settings, 'SCHOOL_TERM_END')]).select_related() if hasattr(r.eav, 'poll_number_value') and r.eav.poll_number_value is not None]
-    zero_count = meetings.count(0)
+    meetings = NumericResponsesFor(smc_meeting_poll) \
+                    .excludeZeros() \
+                    .forDateRange([getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]) \
+                    .forLocations(locations) \
+                    .total()
 
     try:
-        total_meetings = 100 * (len(meetings) - zero_count) / school_to_date
+        total_meetings = 100 * meetings / school_to_date
     except ZeroDivisionError:
         total_meetings = 0
 
@@ -793,7 +784,7 @@ def generate_dashboard_vars(location):
     context_vars.update(p6_boys_absent(locations))
 
     #Meals
-    context_vars.update(meals_missed(locations))
+    context_vars.update(meals_missed(locations, get_time = datetime.datetime.now))
 
     #Total Reporters
     context_vars.update(total_reporters(locations, group_names, blacklisted))
