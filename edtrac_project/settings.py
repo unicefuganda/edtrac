@@ -135,8 +135,12 @@ CELERY_TIMEZONE = 'Africa/Kampala'
 
 CELERYBEAT_SCHEDULE = {
     'runs-every-5-minutes': {
-        'task': 'tasks.CreateRecordEnrolledDeployedQuestionsAnswered',
+        'task': 'education.tasks.CreateRecordEnrolledDeployedQuestionsAnswered',
         'schedule': timedelta(minutes=5)
+    },
+    'runs-every-30-minutes': {
+        'task': 'education.tasks.UpdateDashboardVarsCache',
+        'schedule': timedelta(minutes=30)
     },
 }
 
