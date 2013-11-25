@@ -15,6 +15,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic import DetailView, TemplateView, ListView
 from django.views.decorators.vary import vary_on_cookie
 from django.db.models import Q
+from django.core.cache import cache
 import xlwt
 from django.utils.safestring import mark_safe
 from education.curriculum_progress_helper import get_target_value, get_location_for_curriculum_view, get_curriculum_data, target
@@ -871,8 +872,14 @@ def admin_dashboard(request):
     else:
         location = request.user.get_profile().location
 
-    return render_to_response("education/admin/admin_dashboard.html", generate_dashboard_vars(location=location),
-        RequestContext(request))
+    key = "context-vars-for-location-" + str(location.id)
+    context_vars = cache.get(key)
+
+    if not context_vars:
+        context_vars = generate_dashboard_vars(location=location)
+        cache.set(key, context_vars, 60 * 60)
+
+    return render_to_response("education/admin/admin_dashboard.html", context_vars, RequestContext(request))
 
 
 class NationalStatistics(TemplateView):
