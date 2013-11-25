@@ -419,151 +419,33 @@ def p3_absent_boys(locations, get_time=datetime.datetime.now):
     """
     Attendance of P3 Pupils; this gets the absenteeism
     """
-    indicator = 'P3Boys'
-    boysp3, boysp3_past = compute_absenteeism_summary(indicator,locations,get_time=get_time)
+    boysp3, boysp3_past = compute_absenteeism_summary('P3Boys',locations,get_time=get_time)
+    return {'boysp3' : boysp3, 'boysp3_past' : boysp3_past,}
 
-    try:
-        boysp3_diff = boysp3 - boysp3_past
-
-        if boysp3_diff > 0:
-            boysp3_class = 'increase'
-            boysp3_data = 'data-green'
-        elif boysp3_diff < 0:
-            boysp3_class = 'decrease'
-            boysp3_data = 'data-red'
-        else:
-            boysp3_class = 'zero'
-            boysp3_data = 'data-white'
-    except:
-        boysp3_diff = '--'
-        boysp3_class = 'zero'
-        boysp3_data = 'data-white'
-
-    return {'boysp3' : boysp3, 'boysp3_past' : boysp3_past, 'boysp3_class' : boysp3_class,
-                    'boysp3_diff' : boysp3_diff, 'boysp3_data' : boysp3_data}
 
 def p6_boys_absent(locations, get_time=datetime.datetime.now):
-    indicator = 'P6Boys'
-    boysp6, boysp6_past =  compute_absenteeism_summary(indicator,locations,get_time=get_time)
+    boysp6, boysp6_past =  compute_absenteeism_summary('P6Boys',locations,get_time=get_time)
+    return {'boysp6' : boysp6, 'boysp6_past' : boysp6_past}
 
-    try:
-        boysp6_diff = boysp6 - boysp6_past
-
-        if boysp6_diff > 0:
-            boysp6_class = 'increase'
-            boysp6_data = 'data-green'
-        elif boysp6_diff < 0:
-            boysp6_class = 'decrease'
-            boysp6_data = 'data-red'
-        else:
-            boysp6_class = 'zero'
-            boysp6_data = 'data-white'
-    except:
-        boysp6_diff = '--'
-        boysp6_class = 'zero'
-        boysp6_data = 'data-white'
-
-    return {'boysp6' : boysp6, 'boysp6_past' : boysp6_past, 'boysp6_class' : boysp6_class,
-            'boysp6_diff' : boysp6_diff, 'boysp6_data' : boysp6_data}
 
 def p3_absent_girls(locations, get_time=datetime.datetime.now):
-    indicator ='P3Girls'
-    girlsp3 ,girlsp3_past =  compute_absenteeism_summary(indicator,locations,get_time=get_time)
+    girlsp3 ,girlsp3_past =  compute_absenteeism_summary('P3Girls',locations,get_time=get_time)
+    return {'girlsp3' : girlsp3, 'girlsp3_past' : girlsp3_past}
 
-    try:
-        girlsp3_diff = girlsp3 - girlsp3_past
-
-        if girlsp3_diff > 0:
-            girlsp3_class = "increase"
-            girlsp3_data = 'data-green'
-        elif girlsp3_diff < 0:
-            girlsp3_class = "decrease"
-            girlsp3_data = 'data-red'
-        else:
-            girlsp3_class = "zero"
-            girlsp3_data = 'data-white'
-    except:
-        girlsp3_diff = '--'
-        girlsp3_class = 'zero'
-        girlsp3_data = 'data-white'
-
-    return {'girlsp3' : girlsp3, 'girlsp3_past' : girlsp3_past, 'girlsp3_class': girlsp3_class,
-                    'girlsp3_diff' : girlsp3_diff, 'girlsp3_data' : girlsp3_data}
 
 def p6_girls_absent(locations,get_time=datetime.datetime.now):
+    girlsp6,girlsp6_past =  compute_absenteeism_summary('P6Girls',locations,get_time=get_time)
+    return {'girlsp6' : girlsp6, 'girlsp6_past' : girlsp6_past}
 
-    indicator = 'P6Girls'
-    girlsp6,girlsp6_past =  compute_absenteeism_summary(indicator,locations,get_time=get_time)
-
-    try:
-        girlsp6_diff = girlsp6 - girlsp6_past
-
-        if girlsp6_diff > 0:
-            girlsp6_class = "increase"
-            girlsp6_data = 'data-green'
-
-        elif girlsp6_diff < 0:
-            girlsp6_class = 'decrease'
-            girlsp6_data = 'data-red'
-        else:
-            girlsp6_data = 'data-white'
-            girlsp6_class = "zero"
-    except:
-        girlsp6_diff = '--'
-        girlsp6_data = 'data-white'
-        girlsp6_class = "zero"
-
-    return {'girlsp6' : girlsp6, 'girlsp6_past' : girlsp6_past,'girlsp6_diff' : girlsp6_diff,
-                    'girlsp6_class' : girlsp6_class,'girlsp6_data' : girlsp6_data}
 
 def f_teachers_absent(locations, get_time=datetime.datetime.now):
-    indicator ='FemaleTeachers'
-    female_teachers ,female_teachers_past =  compute_absenteeism_summary(indicator,locations,get_time=get_time)
-    try:
-        female_teachers_diff = female_teachers - female_teachers_past
+    female_teachers ,female_teachers_past =  compute_absenteeism_summary('FemaleTeachers',locations,get_time=get_time)
+    return {'female_teachers' :female_teachers,'female_teachers_past' : female_teachers_past,}
 
-        if female_teachers_diff > 0:
-            female_teachers_class = "increase"
-            female_teachers_data = 'data-green'
-        elif female_teachers_diff < 0:
-            female_teachers_class = "decrease"
-            female_teachers_data = 'data-red'
-        else:
-            female_teachers_data = "data-white"
-            female_teachers_class = "zero"
-    except:
-        female_teachers_diff = '--'
-        female_teachers_data = "data-white"
-        female_teachers_class = "zero"
-
-    return {'female_teachers_class' : female_teachers_class,
-            'female_teachers' :female_teachers,'female_teachers_past' : female_teachers_past,
-            'female_teachers_diff' : female_teachers_diff,'female_teachers_data' : female_teachers_data}
 
 def m_teachers_absent(locations, get_time=datetime.datetime.now):
-    indicator = 'MaleTeachers'
-    male_teachers,male_teachers_past =  compute_absenteeism_summary(indicator,locations, get_time=get_time)
-
-    try:
-        male_teachers_diff = male_teachers - male_teachers_past
-
-        if male_teachers_diff < 0:
-            male_teachers_class = "decrease"
-            male_teachers_data = 'data-red'
-        elif male_teachers_diff > 0:
-            male_teachers_class = "increase"
-            male_teachers_data = 'data-green'
-        else:
-            male_teachers_class = "zero"
-            male_teachers_data = 'data-white'
-    except:
-        male_teachers_diff = '--'
-        male_teachers_class = "zero"
-        male_teachers_data = 'data-white'
-
-    return {'male_teachers' : male_teachers, 'male_teachers_past' : male_teachers_past,
-            'male_teachers_diff' : male_teachers_diff, 'male_teachers_class' : male_teachers_class,
-            'male_teachers_data' : male_teachers_data,}
+    male_teachers,male_teachers_past =  compute_absenteeism_summary('MaleTeachers',locations, get_time=get_time)
+    return {'male_teachers' : male_teachers, 'male_teachers_past' : male_teachers_past}
 
 
 def get_target_week():
