@@ -2585,7 +2585,6 @@ def alerts_detail(request, alert, district_id=None):
         schools_queryset = schools_queryset.exclude(name__in=responsive_schools)
 
     if int(alert) == 2:
-        print 2
         results_title = "Schools which have not sent in Pupil Enrollment Data this Year"
         responsive_schools = XFormSubmissionValue.objects.all()\
         .filter(Q(submission__xform__keyword__icontains='enrolledb')|Q(submission__xform__keyword__icontains='enrolledg'))\
