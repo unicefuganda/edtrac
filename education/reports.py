@@ -377,8 +377,10 @@ def messages(request):
 def error_messages(request, all_messages = Message.objects.none()):
     if all_messages.count() == 0:
         all_messages = messages(request).order_by('-date')
-    errornous_messages = all_messages.filter(poll_responses=None) | all_messages.filter(poll_responses__has_errors=True)
-    return errornous_messages[0:5]
+    erroneous_messages = all_messages.filter(poll_responses=None) | all_messages.filter(poll_responses__has_errors=True)
+    minimum_length = 20
+    interesting_messages = erroneous_messages.filter(text__regex=r'^.{' + str(minimum_length) + ',}$')
+    return interesting_messages[0:5]
 
 def error_messages_as_json(request):
     messages = error_messages(request)

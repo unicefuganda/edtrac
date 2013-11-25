@@ -102,6 +102,16 @@ class TestErrorMessages(TestAbsenteeism):
         list_of_error_messages = error_messages(request)
         self.assertEquals(3, list_of_error_messages.count())
 
+    def test_should_ignore_short_messages(self):
+        schedule_script_now(grp=self.smc_group.name, slug='edtrac_head_teachers_weekly')
+        check_progress(self.head_teachers_script)
+        self.fake_incoming("No one in school today", self.emis_reporter9)
+        self.fake_incoming("No one in school to", self.emis_reporter8)
+        request = self.factory.get('/edtrac/error_messages/')
+        request.user = self.admin_user
+        list_of_error_messages = error_messages(request)
+        self.assertEquals(1, list_of_error_messages.count())
+
     def test_should_convert_error_messages_to_json(self):
         schedule_script_now(grp=self.smc_group.name, slug='edtrac_head_teachers_weekly')
         check_progress(self.head_teachers_script)
