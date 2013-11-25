@@ -374,9 +374,8 @@ def messages(request):
     else:
         return messages
 
-def error_messages(request, all_messages = Message.objects.none()):
-    if all_messages.count() == 0:
-        all_messages = messages(request).order_by('-date')
+def error_messages(request):
+    all_messages = messages(request).order_by('-date')
     erroneous_messages = all_messages.filter(poll_responses=None) | all_messages.filter(poll_responses__has_errors=True)
     minimum_length = 20
     interesting_messages = erroneous_messages.filter(text__regex=r'^.{' + str(minimum_length) + ',}$')

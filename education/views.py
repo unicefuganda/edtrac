@@ -475,12 +475,14 @@ def p3_curriculum(locations):
 
 def meals_missed(locations, get_time):
     poll = Poll.objects.get(name = "edtrac_headteachers_meals")
-    average_percentage = NumericResponsesFor(poll) \
-                            .forLocations(locations) \
-                            .forDateRange(get_week_date(get_time = get_time)) \
-                            .mean()
+    this_month = get_month_day_range(get_time())
+    schools_without_meals = NumericResponsesFor(poll) \
+                                .forLocations(locations) \
+                                .forDateRange(this_month) \
+                                .excludeGreaterThan(0) \
+                                .groupBySchools()
 
-    return {'meals_missed' : average_percentage}
+    return {'meals_missed' : len(schools_without_meals)}
 
 
 def head_teachers_female(locations, get_time=datetime.datetime.now):

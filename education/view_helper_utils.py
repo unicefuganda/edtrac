@@ -514,6 +514,10 @@ class NumericResponsesFor():
         self.query = self.query.filter(eav_values__value_float__gt = 0)
         return self
 
+    def excludeGreaterThan(self, number):
+        self.query = self.query.filter(eav_values__value_float__lte = number)
+        return self
+
     def groupByLocation(self):
         results = self.query.values('contact__reporting_location') \
                             .annotate(total = Sum('eav_values__value_float'))
