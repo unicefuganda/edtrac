@@ -59,7 +59,7 @@ class TestErrorMessages(TestAbsenteeism):
         schedule_script_now(grp=self.smc_group.name,slug='edtrac_head_teachers_weekly')
         check_progress(self.head_teachers_script)
         self.fake_incoming("2", self.emis_reporter6)
-        self.fake_incoming("NO one in school today", self.emis_reporter7) #error msg
+        self.fake_incoming("No one in school today", self.emis_reporter7) #error msg
         request = self.factory.get('/customer/messages/?error_msgs=True')
         request.user = self.admin_user
         resp = messages(request)
@@ -79,12 +79,12 @@ class TestErrorMessages(TestAbsenteeism):
     def test_should_return_top_5_error_messages_given_6_incoming_error_messages(self):
         schedule_script_now(grp=self.smc_group.name, slug='edtrac_head_teachers_weekly')
         check_progress(self.head_teachers_script)
-        self.fake_incoming("NO one in school today", self.emis_reporter7)
-        self.fake_incoming("NO one in school today", self.emis_reporter8)
-        self.fake_incoming("NO one in school today", self.emis_reporter6)
-        self.fake_incoming("NO one in school today", self.emis_reporter6)
-        self.fake_incoming("NO one in school today", self.emis_reporter6)
-        self.fake_incoming("NO one in school today", self.emis_reporter6)
+        self.fake_incoming("No one in school today", self.emis_reporter7)
+        self.fake_incoming("No one in school today", self.emis_reporter8)
+        self.fake_incoming("No one in school today", self.emis_reporter6)
+        self.fake_incoming("No one in school today", self.emis_reporter6)
+        self.fake_incoming("No one in school today", self.emis_reporter6)
+        self.fake_incoming("No one in school today", self.emis_reporter6)
         request = self.factory.get('/edtrac/error_messages/')
         request.user = self.admin_user
         response = error_messages(request)
@@ -93,9 +93,9 @@ class TestErrorMessages(TestAbsenteeism):
     def test_should_return_3_error_messages_given_4_messages_with_3_error_messages(self):
         schedule_script_now(grp=self.smc_group.name, slug='edtrac_head_teachers_weekly')
         check_progress(self.head_teachers_script)
-        self.fake_incoming("NO one in school today", self.emis_reporter9)
-        self.fake_incoming("NO one in school today", self.emis_reporter8)
-        self.fake_incoming("NO one in school today", self.emis_reporter7)
+        self.fake_incoming("No one in school today", self.emis_reporter9)
+        self.fake_incoming("No one in school today", self.emis_reporter8)
+        self.fake_incoming("No one in school today", self.emis_reporter7)
         self.fake_incoming("2", self.emis_reporter6)
         request = self.factory.get('/edtrac/error_messages/')
         request.user = self.admin_user
