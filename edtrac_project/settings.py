@@ -229,6 +229,12 @@ TEMPLATE_CONTEXT_PROCESSORS = [
     "generic.context_processors.map_params",
 ]
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
+
 MIDDLEWARE_CLASSES = (
     'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.common.CommonMiddleware',
