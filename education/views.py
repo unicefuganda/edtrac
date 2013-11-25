@@ -95,7 +95,6 @@ def dash_attdance(request):
     girlsp6_enrolled = get_responses_to_polls(poll_name="edtrac_girlsp6_enrollment")
     girlsp6_absent = girlsp6_enrolled - girlsp6_attendance
 
-
     total_male_teachers = get_responses_to_polls(poll_name="edtrac_m_teachers_deployment")
     total_female_teachers = get_responses_to_polls(poll_name="edtrac_f_teachers_deployment")
 
@@ -104,8 +103,6 @@ def dash_attdance(request):
 
     female_teachers_present = get_responses_to_polls(poll_name="edtrac_f_teachers_attendance")
     female_teachers_absent = total_female_teachers - female_teachers_present
-
-    head_teachers_attendance = get_responses_to_polls(poll_name="edtrac_head_teachers_attendance")
 
     return render_to_response('education/dashboard/attdance.html', {
         'girlsp3_present' : girlsp3_attendance, 'girlsp3_absent' : girlsp3_absent,
@@ -231,10 +228,6 @@ def curriculum_progress(request,district_pk=None):
 def dash_admin_meetings(req):
     profile = req.user.get_profile()
     location = profile.location
-    if location.name == 'Uganda':
-        locations = Location.objects.filter(type='district')
-    else:
-        locations = [location]
 
     p = Poll.objects.get(name = 'edtrac_smc_meetings')
 
@@ -451,7 +444,6 @@ def p3_absent_boys(locations, get_time=datetime.datetime.now):
 
 def p6_boys_absent(locations, get_time=datetime.datetime.now):
     indicator = 'P6Boys'
-    #boysp6, boysp6_past = get_two_weeks_absenteeism(indicator,locations,get_time=get_time)
     boysp6, boysp6_past =  compute_absenteeism_summary(indicator,locations,get_time=get_time)
 
     try:
@@ -501,7 +493,6 @@ def p3_absent_girls(locations, get_time=datetime.datetime.now):
 def p6_girls_absent(locations,get_time=datetime.datetime.now):
 
     indicator = 'P6Girls'
-    girlsp6,girlsp6_past = get_two_weeks_absenteeism(indicator,locations,get_time=get_time)
     girlsp6,girlsp6_past =  compute_absenteeism_summary(indicator,locations,get_time=get_time)
 
     try:
@@ -551,7 +542,6 @@ def f_teachers_absent(locations, get_time=datetime.datetime.now):
 
 def m_teachers_absent(locations, get_time=datetime.datetime.now):
     indicator = 'MaleTeachers'
-    #male_teachers,male_teachers_past = get_two_weeks_absenteeism(indicator,locations, get_time=get_time)
     male_teachers,male_teachers_past =  compute_absenteeism_summary(indicator,locations, get_time=get_time)
 
     try:
@@ -607,8 +597,8 @@ def meals_missed(locations):
     else:
         response_to_meals = get_count_response_to_polls(Poll.objects.get(name = "edtrac_headteachers_meals"),
             time_range = get_week_date()[0], choices = [0])
-
     p = sorted(response_to_meals.items(), key=lambda(k,v):(v[0][1], k))
+
 
     worst_meal = None
     if len(p):
@@ -1458,8 +1448,6 @@ class DistrictViolenceDetails(TemplateView):
 
             if now_data > 0 or before_data > 0:
                 school_case.append((school, now_data, before_data, data))
-        emis_reporters = EmisReporter.objects.exclude(connection__in=\
-            Blacklist.objects.values_list('connection')).filter(schools__in=schools)
 
         context['totalViolence'] = totalViolence
         context['nowViolence'] = nowViolence
@@ -1490,8 +1478,6 @@ class AttendanceAdminDetails(TemplateView):
             values_list('reporting_location__name',flat=True)))
             locations = Location.objects.filter(name__in=names).order_by("name")
             context['total_disticts'] = locations.count()
-        else:
-            locations = [profile.location]
 
         headings = [ 'Location', 'Boys P3', 'Boys P6', 'Girls P3', 'Girls P6', 'Female Teachers', "Male Teachers"]
         context['headings'] = headings
