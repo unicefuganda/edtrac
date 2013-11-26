@@ -46,4 +46,16 @@ class TestMealsMissedDetailsDashView(TestCase):
         fake_incoming('0%', self.emis_reporter1)
         self.assertEquals({"meals_missed": 1}, meals_missed([self.kampala_district], datetime.datetime.now))
 
-
+    def tearDown(self):
+        Message.objects.all().delete()
+        ScriptProgress.objects.all().delete()
+        ScriptStep.objects.all().delete()
+        ScriptSession.objects.all().delete()
+        Script.objects.all().delete()
+        Poll.objects.all().delete()
+        EmisReporter.objects.all().delete()
+        Location.objects.all().delete()
+        LocationType.objects.all().delete()
+        School.objects.all().delete()
+        User.objects.all().delete()
+        Group.objects.all().delete()
