@@ -506,6 +506,10 @@ class NumericResponsesFor():
         self.query = self.query.filter(contact__reporting_location__in = locations)
         return self
 
+    def forValues(self, values):
+        self.query = self.query.filter(eav_values__value_float__in = values)
+        return self
+
     def forSchools(self, schools):
         self.query = self.query.filter(contact__emisreporter__schools__in = schools)
         return self
@@ -537,6 +541,17 @@ class NumericResponsesFor():
     def mean(self):
         result = self.query.aggregate(total=Avg('eav_values__value_float'))
         return result['total'] or 0
+
+    def mode(self):
+        results = self.query.values('eav_values__value_float') \
+                            .annotate(frequency = Count('eav_values__value_float'))
+        totals = [(result['eav_values__value_float'], result['frequency'] or 0) for result in results]
+
+        if totals:
+            stage,frequency = max(totals, key=lambda x: x[1])
+            return stage
+        else:
+            return 0
 
 
 def get_numeric_data(poll, locations, time_range):

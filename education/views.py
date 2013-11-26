@@ -455,23 +455,25 @@ def get_target_week():
             return week
 
 
+def progress(stages, stage):
+    numerator = stages.index(stage) + 1
+    denominator = len(stages)
+    return 100 * numerator / denominator
+
 def p3_curriculum(locations):
-    mode_progress = 0
     target_week = get_week_date()
-    loc_data , valid_responses = get_curriculum_data(locations,target_week)
-    try:
-        current_mode = Statistics(valid_responses).mode
-    except StatisticsException:
-        current_mode = get_mode_if_exception_thrown(loc_data)
+    poll = Poll.objects.get(name='edtrac_p3curriculum_progress')
 
-    if isinstance(current_mode,list):
-        if len(current_mode) == 0:
-            current_mode = "Progress undetermined this week"
-        else:
-            max_mode =  max([i[0] for i in current_mode])
-            mode_progress = (100 * sorted(themes.keys()).index(max_mode)+1) / float(len(themes.keys()))
+    mode = NumericResponsesFor(poll) \
+                .forDateRange(target_week) \
+                .forLocations(locations) \
+                .forValues(themes.keys()) \
+                .mode()
 
-    return {'mode_progress' : mode_progress, 'c_mode' : current_mode}
+    if mode:
+        return {'mode_progress' : progress(sorted(themes.keys()), mode), 'c_mode' : [[mode]]}
+    else:
+        return {'mode_progress' : 0, 'c_mode' : "Progress undetermined this week"}
 
 def meals_missed(locations, get_time):
     poll = Poll.objects.get(name = "edtrac_headteachers_meals")

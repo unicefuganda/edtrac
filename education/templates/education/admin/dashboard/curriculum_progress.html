@@ -6,7 +6,6 @@
 	<div class="curriculum-progress progress progress-primary">
 		{% if c_mode|islist %}
 		<div class="bar" style="width:{{ mode_progress }}%;"><b>{{ c_mode|format_mode }}</b></div>
-		<!-- <span style="width:{{ mode_progress }}%;"><b>{{ c_mode|format_mode }}</b></span> -->
 		{% else %}
 		<p style="color:red;">{{ c_mode }}</p>
 		{% endif %}
