@@ -5,21 +5,21 @@
 		<thead>
 			<tr>
 				<th>Group</th>
-				<th>Monthly Change</th>
+				<th>Monthly Numbers</th>
 			</tr>           
 		</thead>
 		<tbody>
 			<tr>
 				<td>Girls Cases</td>
-				<td class="data {{ violence_change_girls_data }}"><span class="value {{ violence_change_girls_class }}">{{ violence_change_girls|floatformat }}% {{ violence_change_girls_class }}</span></td>
+				<td>{{ violence_numbers_girls|floatformat:0 }}</td>
 			</tr>
 			<tr>
 				<td>Boys Cases</td>
-				<td class="data {{ violence_change_boys_data }}"><span class="value {{ violence_change_boys_class }}">{{ violence_change_boys|floatformat }}% {{ violence_change_boys_class }}</span></td>
+				<td>{{ violence_numbers_boys|floatformat:0 }}</td>
 			</tr>
 			<tr>
 				<td>Cases Referred to Police</td>
-				<td class="data {{ violence_change_reported_data }}"><span class="value {{ violence_change_reported_class }}">{{ violence_change_reported|floatformat }}% {{ violence_change_reported_class }}</span></td>
+				<td>{{ violence_numbers_reported|floatformat:0 }}</td>
 			</tr>
 		</tbody>
 	</table>

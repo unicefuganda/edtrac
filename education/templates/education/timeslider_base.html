@@ -38,8 +38,6 @@
 			</script>
 		</div>
 
-		<span class="label label-info"><strong>Data Column Abbreviation</strong> E: Enrollment, C: Current Week, P: Previous Week</span>
-
             {% if dataset %}
             <!--{{data_set}} variable is produced when the form has been POSTed-->
 	    <table class="table">
@@ -70,6 +68,7 @@
 	    </table>
 
             {% else %}
+                <span class="label label-info"><strong>Data Column Abbreviation</strong> E: Enrollment, C: Current Week, P: Previous Week</span>
 
                 <div class="attendance" style="clear:both;">
                     <h2>Weekly Change in {{ title }} {{ week|date:"D d M Y" }}</h2>
@@ -90,7 +89,6 @@
                                     <td><a href="">{{ entity_attribute }}</a>
                                     <!--<td>{% if cur_value == '--' or cur_value == 0%} {{ cur_value }} {% else %} {{ cur_value|floatformat }} {% endif %}</td>-->
                                     <!--<td>{% if prev_value == '--' or prev_value == 0%} {{ prev_value }} {% else %} {{ prev_value|floatformat }} {% endif %}</td>-->
-                                    <!--<td>{% if diff == '--' or diff == 0 %} {{ diff }} {% else %} {{ diff|floatformat }}{% endif %}</td>-->
                                     <td>{{ vals.0 }}</td>
                                     <td>{{ vals.1 }}</td>
                                 </tr>
@@ -111,7 +109,7 @@
 
                                 </thead>
                                 <tbody>
-                                {% for entity_attribute, cur_value, prev_value, diff,enrolled,current,previous in location_data %}
+                                {% for entity_attribute, cur_value, prev_value, enrolled,current,previous in location_data %}
                                 <tr>
                                     <td><a href="{% url url_name entity_attribute.id %}">{{ entity_attribute }}</a> ({{ entity_attribute.type_id }})</td>
                                      <td> E: {% if enrolled == '--' or enrolled == 0%} {{ enrolled }} {% else %} {{ enrolled|floatformat }} {% endif %}
@@ -120,7 +118,6 @@
                                      </td>
                                     <td>{% if cur_value == '--' or cur_value == 0%} {{ cur_value }} {% else %} {{ cur_value|floatformat }} {% endif %}</td>
                                     <td>{% if prev_value == '--' or prev_value == 0%} {{ prev_value }} {% else %} {{ prev_value|floatformat }} {% endif %}</td>
-                                    <td>{% if diff == '--' or diff == 0 %} {{ diff }} {% else %} {{ diff|floatformat }}{% endif %}</td>
                                 </tr>
                                 {% endfor %}
                                 </tbody>

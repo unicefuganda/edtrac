@@ -68,23 +68,6 @@
                             {{ week_before|floatformat }}
                         {% endif %}
                     </td>
-                    {% if diff == '--' %}
-                    <td></td>
-                    {% else %}
-                    <td class="
-                    {% if diff > 0.0 %}
-                        positive
-                    {% endif %}
-
-                    {% if diff < 0.0 %}
-                        negative
-                    {% endif %}
-
-                    {% if diff == 0.0 %}
-                        zero
-                    {% endif %}">
-                        {{ diff|floatformat }}</td>
-                    {% endif %}
                 </tr>
             {% endfor %}
             </tbody>

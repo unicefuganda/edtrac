@@ -320,71 +320,26 @@ def capitation_grants(locations):
     return {'grant_percent': grant_percent}
 
 
-def violence_changes_girls(locations):
+def violence_numbers_girls(locations):
     """
     Percentage change in violance from the previous month
     """
-    responses_to_violence_girls = poll_response_sum("edtrac_violence_girls", month_filter = 'monthly',\
-        locations = locations, month_20to19=True)
-    violence_change_girls = cleanup_sums(responses_to_violence_girls)
-    if violence_change_girls > 0:
-        violence_change_girls_class = "decrease"
-        violence_change_girls_data = "data-green"
-    elif violence_change_girls < 0:
-        violence_change_girls_class = "increase"
-        violence_change_girls_data = "data-red"
-    else:
-        violence_change_girls_class = "zero"
-        violence_change_girls_data = "data-white"
-    return {
-            'violence_change_girls' : abs(violence_change_girls),
-            'violence_change_girls_class' : violence_change_girls_class,
-            'violence_change_girls_data' : violence_change_girls_data
-    }
+    responses_to_violence_girls = poll_response_sum("edtrac_violence_girls", month_filter = 'monthly', locations = locations)
+    return {'violence_numbers_girls' : abs(responses_to_violence_girls[0])}
 
-def violence_changes_boys(locations):
+def violence_numbers_boys(locations):
     """
     Percentage change in violance from the previous month
     """
-    responses_to_violence_boys = poll_response_sum("edtrac_violence_boys", month_filter = 'monthly',\
-        locations = locations, month_20to19=True)
-    violence_change_boys = cleanup_sums(responses_to_violence_boys)
-    if violence_change_boys > 0:
-        violence_change_boys_class = "decrease"
-        violence_change_boys_data = "data-green"
-    elif violence_change_boys < 0:
-        violence_change_boys_class = "increase"
-        violence_change_boys_data = "data-red"
-    else:
-        violence_change_boys_class = "zero"
-        violence_change_boys_data = "data-white"
-    return {
-            'violence_change_boys' : abs(violence_change_boys),
-            'violence_change_boys_class' : violence_change_boys_class,
-            'violence_change_boys_data' : violence_change_boys_data
-    }
+    responses_to_violence_boys = poll_response_sum("edtrac_violence_boys", month_filter = 'monthly', locations = locations)
+    return {'violence_numbers_boys': abs(responses_to_violence_boys[0])}
 
-def violence_changes_reported(locations):
+def violence_numbers_reported(locations):
     """
     Percentage change in violance from the previous month
     """
-    responses_to_violence_reported = poll_response_sum("edtrac_violence_reported", month_filter = 'monthly',\
-        locations = locations, month_20to19=True)
-    violence_change_reported = cleanup_sums(responses_to_violence_reported)
-    if violence_change_reported > 0:
-        violence_change_reported_class = "decrease"
-        violence_change_reported_data = "data-green"
-    elif violence_change_reported < 0:
-        violence_change_reported_class = "increase"
-        violence_change_reported_data = "data-red"
-    else:
-        violence_change_reported_class = "zero"
-        violence_change_reported_data = "data-white"
-    return {
-            'violence_change_reported' : abs(violence_change_reported),
-            'violence_change_reported_class' : violence_change_reported_class,
-            'violence_change_reported_data' : violence_change_reported_data
-    }
+    responses_to_violence_reported = poll_response_sum("edtrac_violence_reported", month_filter = 'monthly', locations = locations)
+    return {'violence_numbers_reported': abs(responses_to_violence_reported[0])}
 
 
 def get_two_weeks_absenteeism(indicator, locations, get_time):
@@ -620,13 +575,13 @@ def generate_dashboard_vars(location):
     blacklisted = Blacklist.objects.all().values_list('connection', flat=True)
 
     # violence girls
-    context_vars.update(violence_changes_girls(locations))
+    context_vars.update(violence_numbers_girls(locations))
 
     #violence boys
-    context_vars.update(violence_changes_boys(locations))
+    context_vars.update(violence_numbers_boys(locations))
 
     #violence_reported
-    context_vars.update(violence_changes_reported(locations))
+    context_vars.update(violence_numbers_reported(locations))
 
     # capitations grants
     context_vars.update(capitation_grants(locations))
@@ -1549,7 +1504,7 @@ class DistrictProgressDetails(DetailView):
 ##########################################################################################################
 ##########################################################################################################
 
-HEADINGS = ['District', 'Absent (%) This week', 'Absent (%) Last week', 'Change (%) for absenteeism from last week']
+HEADINGS = ['District', 'Absent (%) This week', 'Absent (%) Last week']
 #define location and school for p3 and p6 students
 locale = Location.objects.exclude(type="country").filter(type="district")
 
@@ -1566,10 +1521,7 @@ def boysp3_district_attd_detail(req, location_id):
     return render_to_response("education/boysp3_district_attd_detail.html", { 'location':select_location,\
                                                                               'location_data':school_data,
                                                                               'week':datetime.datetime.now(),
-
-
-
-                                                                              'headings' : ['School','Data', 'Current Week (%)', 'Week before (%)', 'Percentage change']}, RequestContext(req))
+                                                                              'headings' : ['School','Data', 'Current Week (%)', 'Week before (%)']}, RequestContext(req))
 
 @login_required
 def boysp6_district_attd_detail(req, location_id):
@@ -1583,7 +1535,7 @@ def boysp6_district_attd_detail(req, location_id):
     return render_to_response("education/boysp6_district_attd_detail.html", { 'location':select_location,\
                                                                               'location_data':school_data,
                                                                               'week':datetime.datetime.now(),
-                                                                              'headings' : ['School','Data','Current Week (%)', 'Week before (%)', 'Percentage change']}, RequestContext(req))
+                                                                              'headings' : ['School','Data','Current Week (%)', 'Week before (%)']}, RequestContext(req))
 
 @login_required
 def girlsp3_district_attd_detail(req, location_id):
@@ -1597,7 +1549,7 @@ def girlsp3_district_attd_detail(req, location_id):
     return render_to_response("education/girlsp3_district_attd_detail.html", { 'location':select_location,\
                                                                               'location_data':school_data,
                                                                               'week':datetime.datetime.now(),
-                                                                              'headings' : ['School','Data','Current Week (%)', 'Week before (%)', 'Percentage change']}, RequestContext(req))
+                                                                              'headings' : ['School','Data','Current Week (%)', 'Week before (%)']}, RequestContext(req))
 
 @login_required
 def girlsp6_district_attd_detail(req, location_id):
@@ -1611,7 +1563,7 @@ def girlsp6_district_attd_detail(req, location_id):
     return render_to_response("education/girlsp6_district_attd_detail.html", { 'location':select_location,\
                                                                               'location_data':school_data,
                                                                               'week':datetime.datetime.now(),
-                                                                              'headings' : ['School','Data','Current Week (%)', 'Week before (%)', 'Percentage change']}, RequestContext(req))
+                                                                              'headings' : ['School','Data','Current Week (%)', 'Week before (%)']}, RequestContext(req))
 
 @login_required
 def female_t_district_attd_detail(req, location_id):
@@ -1625,7 +1577,7 @@ def female_t_district_attd_detail(req, location_id):
     return render_to_response("education/female_t_district_attd_detail.html", { 'location':select_location,\
                                                                               'location_data':school_data,
                                                                               'week':datetime.datetime.now(),
-                                                                              'headings' : ['School','Data','Current Week (%)', 'Week before (%)', 'Percentage change']}, RequestContext(req))
+                                                                              'headings' : ['School','Data','Current Week (%)', 'Week before (%)']}, RequestContext(req))
 
 @login_required
 def male_t_district_attd_detail(req, location_id):
@@ -1639,7 +1591,7 @@ def male_t_district_attd_detail(req, location_id):
     return render_to_response("education/male_t_district_attd_detail.html", { 'location':select_location,\
                                                                               'location_data':school_data,
                                                                               'week':datetime.datetime.now(),
-                                                                              'headings' : ['School','Data','Current Week (%)', 'Week before (%)', 'Percentage change']}, RequestContext(req))
+                                                                              'headings' : ['School','Data','Current Week (%)', 'Week before (%)']}, RequestContext(req))
 
 def boys_p3_attendance(req, **kwargs):
     profile = req.user.get_profile()

@@ -29,7 +29,6 @@ def view_stats(req,
     context_vars = {}
     poll_enroll = Poll.objects.get(name=enrol_deploy_poll)
     poll_attendance = Poll.objects.get(name=attendance_poll)
-    real_data = []
     term_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of(
@@ -66,21 +65,13 @@ def view_stats(req,
             percent_current_week = round(compute_absent_values(location_attendance_current_week, location_enrolled), 2)
             percent_previous_week = round(compute_absent_values(location_attendance_previous_week, location_enrolled), 2)
 
-            try:
-                diff = (percent_current_week - percent_previous_week)
-            except (TypeError, IndexError):
-                diff = '--'
-
-            if location_enrolled > 0:
-                real_data.append([location, percent_current_week, percent_previous_week, diff, location_enrolled])
-
             if location.type_id == 'sub_county' and location_enrolled > 0:
                 location_data.append(
-                    [location, percent_current_week, percent_previous_week, diff, location_enrolled, location_attendance_current_week,
+                    [location, percent_current_week, percent_previous_week, location_enrolled, location_attendance_current_week,
                      location_attendance_previous_week])
             elif location.type_id == 'district':
                 location_data.append(
-                    [location, percent_current_week, percent_previous_week, diff, location_enrolled, location_attendance_current_week,
+                    [location, percent_current_week, percent_previous_week, location_enrolled, location_attendance_current_week,
                      location_attendance_previous_week])
     else:
         time_range_form = ResultForm(data=req.POST)
@@ -136,10 +127,10 @@ def view_stats(req,
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of(
             'UNICEF Officials'):
         x = {'url_name': url_name_district,
-             'headings': ['District', 'Data', 'Current week', 'Previous week', 'Percentage difference']}
+             'headings': ['District', 'Data', 'Current week', 'Previous week']}
     else:
         x = {'url_name': url_name_school,
-             'headings': ['School', 'Current week', 'Previous week', 'Percentage difference']}
+             'headings': ['School', 'Current week', 'Previous week']}
     if context_vars.has_key('form') == False and context_vars.has_key('title') == False:
         context_vars.update({'form': time_range_form, 'title': title}) # add the keys to context_vars dict
 
@@ -169,17 +160,12 @@ def view_stats_by_school(location_id, enrollment_poll_name, attendance_poll_name
         percent_current_week = round(compute_absent_values(attendance_current_week, enrollment), 2)
         percent_previous_week = round(compute_absent_values(attendance_previous_week, enrollment), 2)
 
-        try:
-            diff = percent_current_week - percent_previous_week
-        except (TypeError, IndexError):
-            diff = '--'
-
         if enrollment > 0:
             existing_data.append(
-                [school, percent_current_week, percent_previous_week, diff, enrollment, attendance_current_week,
+                [school, percent_current_week, percent_previous_week, enrollment, attendance_current_week,
                  attendance_previous_week])
         school_data.append(
-            [school, percent_current_week, percent_previous_week, diff, enrollment, attendance_current_week,
+            [school, percent_current_week, percent_previous_week, enrollment, attendance_current_week,
              attendance_previous_week])
 
     return school_data, existing_data
