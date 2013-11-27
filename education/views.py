@@ -344,18 +344,11 @@ def violence_numbers_reported(locations):
 
 def get_two_weeks_absenteeism(indicator, locations, get_time):
     date_weeks = get_week_date(depth=2, get_time=get_time)
-    holiday = False
-    this_week_absent = '--'
-    past_week_absent = '--'
-    if is_holiday(date_weeks[0][0], getattr(settings, 'SCHOOL_HOLIDAYS')):
-        this_week_absent = '--'
-        holiday = True
 
-    if is_holiday(date_weeks[1][0], getattr(settings, 'SCHOOL_HOLIDAYS')):
-        past_week_absent = '--'
-        holiday = True
-
-    if not holiday:
+    if is_holiday(date_weeks[0][0], getattr(settings, 'SCHOOL_HOLIDAYS')) \
+       or is_holiday(date_weeks[1][0], getattr(settings, 'SCHOOL_HOLIDAYS')):
+        return '--','--'
+    else:
         config_list = get_polls_for_keyword(indicator)
         function_to_invoke = config_list[0].get('func')
         absent_by_location, absent_by_time, school_percent = function_to_invoke(locations, config_list[0],
@@ -370,7 +363,7 @@ def get_two_weeks_absenteeism(indicator, locations, get_time):
         except IndexError:
             past_week_absent = 0
 
-    return this_week_absent, past_week_absent
+        return this_week_absent, past_week_absent
 
 
 def p3_absent_boys(locations, get_time=datetime.datetime.now):
