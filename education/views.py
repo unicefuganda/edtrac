@@ -1064,79 +1064,55 @@ def violence_details_dash(req):
 
     girls_total = []
     for name, list_val in violence_cases_girls:
-        try:
-            diff = (list_val[0] - list_val[1]) / list_val[0]
-        except ZeroDivisionError:
-            diff = '--'
-        girls_total.append((list_val[0], list_val[1], diff))
-        list_val.append(diff)
+        girls_total.append((list_val[0], list_val[1]))
     context_vars['violence_cases_girls'] = violence_cases_girls
 
-    girls_first_col, girls_second_col, girls_third_col = [],[],[]
-    for first, second, third in girls_total:
-        girls_first_col.append(first), girls_second_col.append(second), girls_third_col.append(third)
+    girls_first_col, girls_second_col = [],[]
+    for first, second in girls_total:
+        girls_first_col.append(first), girls_second_col.append(second)
     girls_first_col = [i for i in girls_first_col if i != '--']
     girls_second_col = [i for i in girls_second_col if i != '--']
-    girls_third_col = [i for i in girls_third_col if i != '--']
 
-    context_vars['girls_totals'] = [sum(girls_first_col), sum(girls_second_col), sum(girls_third_col)]
+    context_vars['girls_totals'] = [sum(girls_first_col), sum(girls_second_col)]
 
     boys_total = []
     for name, list_val in violence_cases_boys:
-        try:
-            diff = (list_val[0] - list_val[1]) / list_val[0]
-        except ZeroDivisionError:
-            diff = '--'
-        boys_total.append((list_val[0], list_val[1], diff))
-        list_val.append(diff)
+        boys_total.append((list_val[0], list_val[1]))
     context_vars['violence_cases_boys'] = violence_cases_boys
 
-    boys_first_col, boys_second_col, boys_third_col = [],[],[]
-    for first, second, third in boys_total:
-        boys_first_col.append(first), boys_second_col.append(second), boys_third_col.append(third)
+    boys_first_col, boys_second_col = [],[]
+    for first, second in boys_total:
+        boys_first_col.append(first), boys_second_col.append(second)
     boys_first_col = [i for i in boys_first_col if i != '--']
     boys_second_col = [i for i in boys_second_col if i != '--']
-    boys_third_col = [i for i in boys_third_col if i != '--']
 
-    context_vars['boys_totals'] = [sum(boys_first_col), sum(boys_second_col), sum(boys_third_col)]
+    context_vars['boys_totals'] = [sum(boys_first_col), sum(boys_second_col)]
 
     reported_total = []
     for name, list_val in violence_cases_reported:
-        try:
-            diff = (list_val[0] - list_val[1]) / list_val[0]
-        except ZeroDivisionError:
-            diff = '--'
-        reported_total.append((list_val[0], list_val[1], diff))
-        list_val.append(diff)
+        reported_total.append((list_val[0], list_val[1]))
     context_vars['violence_cases_reported'] = violence_cases_reported
 
-    reported_first_col, reported_second_col, reported_third_col = [],[],[]
-    for first, second, third in reported_total:
-        reported_first_col.append(first), reported_second_col.append(second), reported_third_col.append(third)
+    reported_first_col, reported_second_col = [],[]
+    for first, second in reported_total:
+        reported_first_col.append(first), reported_second_col.append(second)
     reported_first_col = [i for i in reported_first_col if i != '--']
     reported_second_col = [i for i in reported_second_col if i != '--']
-    reported_third_col = [i for i in reported_third_col if i != '--']
 
-    context_vars['reported_totals'] = [sum(reported_first_col), sum(reported_second_col), sum(reported_third_col)]
+    context_vars['reported_totals'] = [sum(reported_first_col), sum(reported_second_col)]
 
     gem_total = [] # total violence cases reported by school
     for name, list_val in violence_cases_gem:
-        try:
-            diff = (list_val[0] - list_val[1]) / list_val[0]
-        except ZeroDivisionError:
-            diff = '--'
-        gem_total.append((list_val[0], list_val[1], diff))
-        list_val.append(diff)
+        gem_total.append((list_val[0], list_val[1]))
 
     context_vars['violence_cases_reported_by_gem'] = violence_cases_gem
 
-    first_col, second_col, third_col = [],[],[]
-    for first, second, third in gem_total:
-        first_col.append(first), second_col.append(second), third_col.append(third)
+    first_col, second_col = [],[]
+    for first, second in gem_total:
+        first_col.append(first), second_col.append(second)
     first_col = [i for i in first_col if i != '--']
     second_col = [i for i in second_col if i != '--']
-    third_col = [i for i in third_col if i != '--']
-    context_vars['gem_totals'] = [sum(first_col), sum(second_col), sum(third_col)]
+    context_vars['gem_totals'] = [sum(first_col), sum(second_col)]
     context_vars['report_dates'] = [start for start, end in get_month_day_range(datetime.datetime.now(), depth=2)]
     school_report_count = 0
     gem_report_count = 0

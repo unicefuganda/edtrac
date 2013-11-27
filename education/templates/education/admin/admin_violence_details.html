@@ -59,7 +59,6 @@
                 <th>District</th>
                 <th>Cases recorded in {{ report_dates.0|date:"M Y"}}</th>
                 <th>Cases recorded in {{ report_dates.1|date:"M Y"}}</th>
-                <th>Percentage change (%)</th>
             </tr>
             {% if violence_cases_girls %}
                 {% for name, list in violence_cases_girls %}
@@ -69,14 +68,6 @@
                             <td><a href="{% url district-violence list.2.pk %}">{{ list.2 }}</a></td>
                             <td>{{ list.0 }}</td> <!-- current month -->
                             <td>{{ list.1 }}</td>
-                            <!-- TODO check if list.3 is a decimal and limit dps -->
-                            <td>
-                                {% if list.3 == '--' %}
-                                    {{ list.3 }}
-                                {% else %}
-                                {{ list.3|floatformat }}
-                                {% endif %}
-                            </td>
                         </tr>
                     {% endif %}
               {% endfor %}
@@ -99,7 +90,6 @@
                 <th>District</th>
                 <th>Cases recorded in {{ report_dates.0|date:"M Y"}}</th>
                 <th>Cases recorded in {{ report_dates.1|date:"M Y"}}</th>
-                <th>Percentage change (%)</th>
             </tr>
             {% if violence_cases_boys %}
                 {% for name, list in violence_cases_boys %}
@@ -109,14 +99,6 @@
                             <td><a href="{% url district-violence list.2.pk %}">{{ list.2 }}</a></td>
                             <td>{{ list.0 }}</td> <!-- current month -->
                             <td>{{ list.1 }}</td>
-                            <!-- TODO check if list.3 is a decimal and limit dps -->
-                            <td>
-                                {% if list.3 == '--' %}
-                                    {{ list.3 }}
-                                {% else %}
-                                {{ list.3|floatformat }}
-                                {% endif %}
-                            </td>
                         </tr>
                     {% endif %}
               {% endfor %}
@@ -140,7 +122,6 @@
                 <th>District</th>
                 <th>Cases referred in {{ report_dates.0|date:"M Y"}}</th>
                 <th>Cases referred in {{ report_dates.1|date:"M Y"}}</th>
-                <th>Percentage change (%)</th>
             </tr>
             {% if violence_cases_reported %}
                 {% for name, list in violence_cases_reported %}
@@ -150,14 +131,6 @@
                             <td><a href="{% url district-violence list.2.pk %}">{{ list.2 }}</a></td>
                             <td>{{ list.0 }}</td> <!-- current month -->
                             <td>{{ list.1 }}</td>
-                            <!-- TODO check if list.3 is a decimal and limit dps -->
-                            <td>
-                                {% if list.3 == '--' %}
-                                    {{ list.3 }}
-                                {% else %}
-                                {{ list.3|floatformat }}
-                                {% endif %}
-                            </td>
                         </tr>
                     {% endif %}
               {% endfor %}
@@ -182,7 +155,6 @@
                 <th>District</th>
                 <th>Violence cases recorded in {{ report_dates.0|date:"M Y"}}</th>
                 <th>Violence cases recorded in {{ report_dates.1|date:"M Y"}}</th>
-                <th>Percentage change (%)</th>
             </tr>
             {% if violence_cases_reported_by_gem %}
             {% for name, list in violence_cases_reported_by_gem %}
@@ -192,8 +164,6 @@
                 <td><a href="{% url district-violence-community list.2.pk %}">{{ list.2 }}</a></td>
                 <td>{{ list.0 }}</td> <!-- current month -->
                 <td>{{ list.1 }}</td>
-                <!-- TODO check if list.3 is a decimal and limit dps -->
-                <td>{{ list.3 }}</td>
             </tr>
             {% endif %}
             {% endfor %}

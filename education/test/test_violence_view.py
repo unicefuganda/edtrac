@@ -75,17 +75,12 @@ class TestViolenceView(TestSetup):
             self.assertEqual(response, violence_case)
 
     def assert_each_response_for_last_two_months(self,kampala_response,gulu_response,responses):
-        diff_kampala = (kampala_response[0] - kampala_response[1]) / (kampala_response[0])
-        diff_gulu = (gulu_response[0] - gulu_response[1]) / (gulu_response[0])
         if self.kampala_district not in responses[0][1]:
             gulu_response,kampala_response=kampala_response,gulu_response
-            diff_kampala,diff_gulu=diff_gulu,diff_kampala
         self.assertEqual(kampala_response[0], responses[0][1][0])
         self.assertEqual(kampala_response[1], responses[0][1][1])
-        self.assertEqual(diff_kampala, responses[0][1][3])
         self.assertEqual(gulu_response[0], responses[1][1][0])
         self.assertEqual(gulu_response[1], responses[1][1][1])
-        self.assertEqual(diff_gulu, responses[1][1][3])
 
     def get_fake_responses_for_each_month_till_date_for_a_given_poll(self, poll):
         response_for_each_month = []
