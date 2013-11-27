@@ -350,9 +350,11 @@ def get_two_weeks_absenteeism(indicator, locations, get_time):
     if is_holiday(date_weeks[0][0], getattr(settings, 'SCHOOL_HOLIDAYS')):
         this_week_absent = '--'
         holiday = True
+
     if is_holiday(date_weeks[1][0], getattr(settings, 'SCHOOL_HOLIDAYS')):
         past_week_absent = '--'
         holiday = True
+
     if not holiday:
         config_list = get_polls_for_keyword(indicator)
         function_to_invoke = config_list[0].get('func')
@@ -443,8 +445,7 @@ def meals_missed(locations, get_time):
 
 
 def head_teachers_female(locations, get_time=datetime.datetime.now):
-    indicator = 'FemaleHeadTeachers'
-    female_d1,female_d2 = get_two_weeks_absenteeism(indicator,locations,get_time)
+    female_d1,female_d2 = get_two_weeks_absenteeism('FemaleHeadTeachers',locations,get_time)
     try:
         f_head_diff = female_d2 - female_d1
 
@@ -467,8 +468,7 @@ def head_teachers_female(locations, get_time=datetime.datetime.now):
             'f_head_t_class' : f_head_t_class, 'f_head_t_data':f_head_t_data}
 
 def head_teachers_male(locations, get_time=datetime.datetime.now):
-    indicator = 'MaleHeadTeachers'
-    male_d1, male_d2 = get_two_weeks_absenteeism(indicator,locations,get_time=get_time)
+    male_d1, male_d2 = get_two_weeks_absenteeism('MaleHeadTeachers',locations,get_time=get_time)
     try:
         m_head_diff = male_d2 - male_d1
 
