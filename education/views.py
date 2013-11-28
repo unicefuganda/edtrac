@@ -845,7 +845,7 @@ def admin_dashboard(request):
 
     if not context_vars:
         context_vars = generate_dashboard_vars(location=location)
-        cache.set(key, context_vars, 60 * 60)
+        cache.set(key, context_vars)
 
     return render_to_response("education/admin/admin_dashboard.html", context_vars, RequestContext(request))
 
