@@ -322,15 +322,15 @@ def capitation_grants(locations):
 
 def violence_numbers_girls(locations):
     responses_to_violence_girls = poll_response_sum("edtrac_violence_girls", month_filter = 'monthly', locations = locations)
-    return {'violence_numbers_girls' : abs(responses_to_violence_girls[0])}
+    return {'violence_numbers_girls' : responses_to_violence_girls[0]}
 
 def violence_numbers_boys(locations):
     responses_to_violence_boys = poll_response_sum("edtrac_violence_boys", month_filter = 'monthly', locations = locations)
-    return {'violence_numbers_boys': abs(responses_to_violence_boys[0])}
+    return {'violence_numbers_boys': responses_to_violence_boys[0]}
 
 def violence_numbers_reported(locations):
     responses_to_violence_reported = poll_response_sum("edtrac_violence_reported", month_filter = 'monthly', locations = locations)
-    return {'violence_numbers_reported': abs(responses_to_violence_reported[0])}
+    return {'violence_numbers_reported': responses_to_violence_reported[0]}
 
 
 def gendered_text_responses(date_weeks, locations, options, gender):
