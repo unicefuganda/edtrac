@@ -132,7 +132,7 @@ class TestAbsenteeismViewHelper(TestAbsenteeism):
         config = get_polls_for_keyword('MaleHeadTeachers')
         result_by_location, result_by_time,school_percent = get_head_teachers_absent_over_time(locations,config[0], self.date_week)
         self.assertEqual(50, result_by_location.get('Kampala'))
-        self.assertTrue(50 in result_by_time)
+        self.assertIn(50, result_by_time)
         self.assertEqual(25,school_percent) #n four weeks only once replies were sent
 
     def test_should_return_proper_result_on_POST_request(self):
