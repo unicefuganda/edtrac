@@ -320,17 +320,24 @@ def capitation_grants(locations):
     return {'grant_percent': grant_percent}
 
 
+def month_total(poll_name, locations):
+    poll = Poll.objects.get(name=poll_name)
+    return NumericResponsesFor(poll) \
+               .forLocations(locations) \
+               .forDateRange(get_month_day_range(datetime.datetime.now(), depth=1)[0]) \
+               .total()
+
+
 def violence_numbers_girls(locations):
-    responses_to_violence_girls = poll_response_sum("edtrac_violence_girls", month_filter = 'monthly', locations = locations)
-    return {'violence_numbers_girls' : responses_to_violence_girls[0]}
+    return {'violence_numbers_girls' : month_total('edtrac_violence_girls', locations)}
+
 
 def violence_numbers_boys(locations):
-    responses_to_violence_boys = poll_response_sum("edtrac_violence_boys", month_filter = 'monthly', locations = locations)
-    return {'violence_numbers_boys': responses_to_violence_boys[0]}
+    return {'violence_numbers_boys' : month_total('edtrac_violence_boys', locations)}
+
 
 def violence_numbers_reported(locations):
-    responses_to_violence_reported = poll_response_sum("edtrac_violence_reported", month_filter = 'monthly', locations = locations)
-    return {'violence_numbers_reported': responses_to_violence_reported[0]}
+    return {'violence_numbers_reported' : month_total('edtrac_violence_reported', locations)}
 
 
 def gendered_text_responses(date_weeks, locations, options, gender):
