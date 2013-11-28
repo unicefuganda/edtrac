@@ -29,7 +29,7 @@ Reports that are gathered include:
 Requirements
 ============
  - Python 2.7 (www.python.org/download/) : On linux machines, you can usually use your system's package manager to perform the installation
- - MySQL or PostgreSQL are recommended
+ - PostgreSQL
  - All other python libraries will be installed as part of the setup and configuration process
  - Some sort of SMS Connectivity, via an HTTP gateway.  By default,
    Rapidsms-EMIS comes configured to work with a two-way clickatell number
