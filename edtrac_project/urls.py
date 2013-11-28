@@ -19,7 +19,6 @@ urlpatterns = patterns('',
 
     # RapidSMS core URLs
     (r'^account/', include('rapidsms.urls.login_logout')),
-#    url(r'^$', 'rapidsms.views.dashboard', name='rapidsms-dashboard'),
     url('^accounts/login', 'rapidsms.views.login', name="login"),
     url('^accounts/logout', 'rapidsms.views.logout', name="logout"),
     # RapidSMS contrib app URLs
@@ -33,7 +32,6 @@ urlpatterns = patterns('',
     (r'^polls/', include('poll.urls')),
     (r'^simple-autocomplete/', include('simple_autocomplete.urls')),
     # testing excel export
-    
 ) + router_urls + xform_urls + contact_urls + edtrac_urls
 
 if settings.DEBUG:
