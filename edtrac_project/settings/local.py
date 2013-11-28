@@ -16,6 +16,7 @@ DATABASES = {
 }
 
 INSTALLED_APPS += (
+   'django.contrib.staticfiles',
    'debug_toolbar',
 )
 
@@ -23,6 +24,7 @@ MIDDLEWARE_CLASSES += (
    'debug_toolbar.middleware.DebugToolbarMiddleware',
 )
 
+STATIC_URL = '/assets/'
 
 INTERNAL_IPS += ('127.0.0.1', '::1')
 DEBUG_TOOLBAR_CONFIG = {
