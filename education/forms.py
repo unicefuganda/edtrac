@@ -72,9 +72,11 @@ class ReporterFreeSearchForm(FilterForm):
 
 class SchoolFilterForm(FilterForm):
     """ filter form for emis schools """
-    school = forms.ChoiceField(choices=(('', '-----'), (-1, 'Has No School'),) +\
+    def __init__(self):
+        self.school = forms.ChoiceField(choices=(('', '-----'), (-1, 'Has No School'),) +\
                                        tuple(School.objects.filter(location__name__in=\
                                        EmisReporter.objects.values_list('reporting_location__name',flat=True)).values_list('pk', 'name').order_by('name')))
+
     def filter(self, request, queryset):
         school_pk = self.cleaned_data['school']
         if school_pk == '':
@@ -176,25 +178,24 @@ class EditReporterForm(forms.ModelForm):
             reporter_form.save()
 
 
-
 class DistrictFilterForm(forms.Form):
-    """ filter form for districts """
-    locs = Location.objects.filter(name__in=XFormSubmissionValue.objects.values_list('submission__connection__contact__reporting_location__name', flat=True))
-    locs_list = []
-    for loc in locs:
-        if not Location.tree.root_nodes()[0].pk == loc.pk and loc.type.name == 'district':
-            locs_list.append((loc.pk, loc.name))
-    district = forms.ChoiceField(choices=(('', '-----'),) + tuple(locs_list))
+    def __init__(self):
+        locs = Location.objects.filter(name__in=XFormSubmissionValue.objects.values_list('submission__connection__contact__reporting_location__name', flat=True))
+        locs_list = []
+        for loc in locs:
+            if not Location.tree.root_nodes()[0].pk == loc.pk and loc.type.name == 'district':
+                locs_list.append((loc.pk, loc.name))
+        self.district = forms.ChoiceField(choices=(('', '-----'),) + tuple(locs_list))
 
 class LimitedDistictFilterForm(FilterForm):
-
     """ filter Emis Reporters on their districts """
-    locs = Location.objects.filter(name__in=EmisReporter.objects.values_list('reporting_location__name',flat=True).distinct())
-    locs_list = []
-    for loc in locs:
-        if not Location.tree.root_nodes()[0].pk == loc.pk and loc.type.name == 'district':
-            locs_list.append((loc.pk, loc.name))
-    district = forms.ChoiceField(choices=(('', '-----'),) + tuple(locs_list))
+    def __init__(self):
+        locs = Location.objects.filter(name__in=EmisReporter.objects.values_list('reporting_location__name',flat=True).distinct())
+        locs_list = []
+        for loc in locs:
+            if not Location.tree.root_nodes()[0].pk == loc.pk and loc.type.name == 'district':
+                locs_list.append((loc.pk, loc.name))
+        self.district = forms.ChoiceField(choices=(('', '-----'),) + tuple(locs_list))
 
     def filter(self, request, queryset):
         district_pk = self.cleaned_data['district']
@@ -242,12 +243,11 @@ class SchoolForm(forms.ModelForm):
 
 
 class FreeSearchSchoolsForm(FilterForm):
-
     """ concrete implementation of filter form
         TO DO: add ability to search for multiple search terms separated by 'or'
     """
-
-    search = forms.CharField(max_length=100, required=False, label="Free-form search",
+    def __init__(self):
+        self.search = forms.CharField(max_length=100, required=False, label="Free-form search",
                              help_text="Use 'or' to search for multiple names")
 
     def filter(self, request, queryset):
@@ -260,15 +260,14 @@ class FreeSearchSchoolsForm(FilterForm):
                                    | Q(location__name__icontains=search))
 
 class SchoolDistictFilterForm(FilterForm):
-
     """ filter Schools on their districts """
-
-    locs = Location.objects.filter(name__in=School.objects.values_list('location__name', flat=True)).order_by('name')
-    locs_list = []
-    for loc in locs:
-        if not Location.tree.root_nodes()[0].pk == loc.pk and loc.type.name == 'district':
-            locs_list.append((loc.pk, loc.name))
-    district = forms.ChoiceField(choices=(('', '-----'),) + tuple(locs_list))
+    def __init__(self):
+        locs = Location.objects.filter(name__in=School.objects.values_list('location__name', flat=True)).order_by('name')
+        locs_list = []
+        for loc in locs:
+            if not Location.tree.root_nodes()[0].pk == loc.pk and loc.type.name == 'district':
+                locs_list.append((loc.pk, loc.name))
+        self.district = forms.ChoiceField(choices=(('', '-----'),) + tuple(locs_list))
 
     def filter(self, request, queryset):
         district_pk = self.cleaned_data['district']
@@ -296,8 +295,6 @@ class ReportCommentForm(forms.ModelForm):
         super(ReportCommentForm, self).__init__(*args, **kwargs)
         self.fields['report_date'].required = False
         self.fields['reporting_period'].required = False
-
-
 
     def save(self, commit=True):
         # do all that funky saving
