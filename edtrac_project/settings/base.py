@@ -10,7 +10,7 @@ import os
 import djcelery
 from datetime import timedelta
 
-filedir = os.path.dirname(__file__)
+filedir = os.path.dirname(os.path.dirname(__file__))
 sys.path.append(os.path.join(filedir))
 sys.path.append(os.path.join(filedir, 'rapidsms', 'lib'))
 sys.path.append(os.path.join(filedir, 'rapidsms_auth'))
@@ -279,14 +279,3 @@ XFORMS_HOST = 'edutrac.unicefuganda.org:8000'
 MAP_KEY = "ABQIAAAAmd7V71yw9ZddA0s8Z3wSKBS0unaJrFIrP1vn6ZXHpuhFyvYAGhQprSjp88j18w-K_X23JU31jBikVg"
 COUNTRY = "UG"
 MESSAGELOG_APP = 'rapidsms_httprouter'
-
-try:
-    import sys
-    if 'LOCAL_SETTINGS' in os.environ:
-        # the LOCAL_SETTINGS environment variable is used by the build server
-        sys.path.insert(0, os.path.dirname(os.environ['LOCAL_SETTINGS']))
-        from settings_test import *
-    else:
-        from localsettings import *
-except ImportError:
-    pass
