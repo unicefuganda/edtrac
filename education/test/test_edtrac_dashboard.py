@@ -321,6 +321,18 @@ class TestEdtracDashboard(TestCase):
         self.assertAlmostEqual(71.05,result_m_teachers['male_teachers_past'],places=1)
 
     def test_male_and_female_head_teachers_attendance(self):
+
+        params = {
+            "description": "A response value for a Poll with expected text responses",
+            "datatype": "text",
+            "enum_group": None,
+            "required": False,
+            "type": None,
+            "slug": "poll_text_value",
+            "name": "Text"
+        }
+        Attribute.objects.create(**params)
+
         settings.SCHOOL_HOLIDAYS = []
         self.create_emisreporters_of_smc_group()
         self.m_head_teachers_attendance_poll=create_poll_with_reporters("edtrac_head_teachers_attendance",

@@ -342,26 +342,44 @@ def violence_numbers_reported(locations):
     return {'violence_numbers_reported': abs(responses_to_violence_reported[0])}
 
 
-def get_two_weeks_absenteeism(indicator, locations, get_time):
+def gendered_text_responses(date_weeks, locations, options, gender):
+    poll = Poll.objects.get(name='edtrac_head_teachers_attendance')
+    gendered_schools = EmisReporter.objects.filter(reporting_location__in = locations,
+                                                   gender = gender,
+                                                   groups__name = "Head Teachers") \
+                                           .exclude(schools = None) \
+                                           .values('reporting_location__id')
+
+    result =  Response.objects.filter(poll = poll,
+                                      has_errors = False,
+                                      message__direction = 'I',
+                                      date__range = date_weeks,
+                                      eav_values__value_text__in = options,
+                                      contact__reporting_location__id__in = gendered_schools) \
+                              .values('contact__reporting_location__id').count()
+    return result or 0
+
+def compute_percent(x,y):
+    if y != 0:
+        return (100 * x) / y
+    else:
+        return 0
+
+def get_two_weeks_absenteeism(gender, locations, get_time):
     date_weeks = get_week_date(depth=2, get_time=get_time)
 
     if is_holiday(date_weeks[0][0], getattr(settings, 'SCHOOL_HOLIDAYS')) \
        or is_holiday(date_weeks[1][0], getattr(settings, 'SCHOOL_HOLIDAYS')):
         return '--','--'
     else:
-        config_list = get_polls_for_keyword(indicator)
-        function_to_invoke = config_list[0].get('func')
-        absent_by_location, absent_by_time, school_percent = function_to_invoke(locations, config_list[0],
-                                                                                       date_weeks)
-        try:
-            this_week_absent = absent_by_time[0]
-        except IndexError:
-            this_week_absent = 0
+        poll = Poll.objects.get(name='edtrac_head_teachers_attendance')
+        yesses_this_week = gendered_text_responses(date_weeks[0], locations, ['Yes', 'YES', 'yes'], gender)
+        yesses_last_week = gendered_text_responses(date_weeks[1], locations, ['Yes', 'YES', 'yes'], gender)
+        noes_this_week = gendered_text_responses(date_weeks[0], locations, ['No', 'NO', 'no'], gender)
+        noes_last_week = gendered_text_responses(date_weeks[1], locations, ['No', 'NO', 'no'], gender)
 
-        try:
-            past_week_absent = absent_by_time[1]
-        except IndexError:
-            past_week_absent = 0
+        this_week_absent = compute_percent(noes_this_week, yesses_this_week + noes_this_week)
+        past_week_absent = compute_percent(noes_last_week, yesses_last_week + noes_last_week)
 
         return this_week_absent, past_week_absent
 
@@ -438,7 +456,7 @@ def meals_missed(locations, get_time):
 
 
 def head_teachers_female(locations, get_time=datetime.datetime.now):
-    female_d1,female_d2 = get_two_weeks_absenteeism('FemaleHeadTeachers',locations,get_time)
+    female_d1,female_d2 = get_two_weeks_absenteeism('F', locations, get_time)
     try:
         f_head_diff = female_d2 - female_d1
 
@@ -461,7 +479,7 @@ def head_teachers_female(locations, get_time=datetime.datetime.now):
             'f_head_t_class' : f_head_t_class, 'f_head_t_data':f_head_t_data}
 
 def head_teachers_male(locations, get_time=datetime.datetime.now):
-    male_d1, male_d2 = get_two_weeks_absenteeism('MaleHeadTeachers',locations,get_time=get_time)
+    male_d1, male_d2 = get_two_weeks_absenteeism('M', locations, get_time=get_time)
     try:
         m_head_diff = male_d2 - male_d1
 
