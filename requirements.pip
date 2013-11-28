@@ -25,3 +25,4 @@ dateutils
 django_digest
 python_digest
 python-coveralls
+django-debug-toolbar==0.9.4
