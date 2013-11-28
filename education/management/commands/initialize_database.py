@@ -55,6 +55,7 @@ class Command(BaseCommand):
             'edtrac_headteachers_meals',
             'edtrac_gem_abuse',
             'edtrac_girls_violence',
+            'edtrac_p3curriculum_progress',
         ]
 
         Poll.objects.all().delete()
