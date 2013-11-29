@@ -7,22 +7,23 @@ from eav.models import *
 
 class TestResults(TestCase):
 
-    def test_gathers_only_error_free_incoming_messages(self):
-        attribute = create_attribute()
+    def setUp(self):
+        self.attribute = create_attribute()
         user = User.objects.create(username="peter")
-        contact = Contact.objects.create()
-        poll = Poll.objects.create(name="foo", user=user, response_type=Poll.TYPE_NUMERIC)
         backend = Backend.objects.create()
-        connection = Connection.objects.create(contact=contact, backend=backend)
+        self.contact = Contact.objects.create()
+        self.poll = Poll.objects.create(name="foo", user=user, response_type=Poll.TYPE_NUMERIC)
+        self.connection = Connection.objects.create(contact=self.contact, backend=backend)
+        self.content_type = ContentType.objects.create()
 
-        erroring_incoming_message = Message.objects.create(direction="I", text="10", connection=connection)
-        incoming_message = Message.objects.create(direction="I", text="8", connection=connection)
-        outgoing_message = Message.objects.create(direction="O", text="9", connection=connection)
-        content_type = ContentType.objects.create()
+    def record_response(self, text, value_float, direction='I', has_errors=False):
+        message = Message.objects.create(direction=direction, text=text, connection=self.connection)
+        response = Response.objects.create(contact=self.contact, poll=self.poll, message=message, has_errors=has_errors)
+        value = Value.objects.create(entity_ct=self.content_type, attribute=self.attribute, entity=response, value_float=value_float)
+        return response
 
-        valued_response = Response.objects.create(contact=contact, poll=poll, message=incoming_message, has_errors=False)
-        value = Value.objects.create(entity_ct=content_type, attribute=attribute, entity=valued_response, value_float=8.0)
-        Response.objects.create(contact=contact, poll=poll, message=erroring_incoming_message, has_errors=True)
-        Response.objects.create(contact=contact, poll=poll, message=outgoing_message)
-
-        self.assertEqual(8, NumericResponsesFor(poll).total())
+    def test_gathers_only_error_free_incoming_messages(self):
+        self.record_response("Hello world!", None, direction='I', has_errors=True)
+        self.record_response("8 boys", 8, direction='I', has_errors=False)
+        self.record_response("Do you have more than 1 latrine?", None, direction='O', has_errors=True)
+        self.assertEqual(8, NumericResponsesFor(self.poll).total())
