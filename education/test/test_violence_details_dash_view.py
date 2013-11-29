@@ -9,6 +9,7 @@ from poll.models import Poll
 from rapidsms_httprouter.models import Message
 from script.models import Script, ScriptStep, ScriptProgress
 from script.utils.outgoing import check_progress
+from education.reports import get_month_day_range
 
 class TestViolenceDetailsDashView(TestCase):
     def setUp(self):
@@ -117,6 +118,7 @@ class TestViolenceDetailsDashView(TestCase):
         )
 
     def test_returns_3_as_number_of_schools_that_responded_to_all_violence_questions_if_3_schools_respond(self):
+        month_day_range = get_month_day_range(datetime.datetime.now(), depth=1)[0]
         schedule_script_now(self.head_teacher_group.name, slug=self.p3_violence_script.slug)
         check_progress(self.p3_violence_script)
         fake_incoming('6', self.emis_reporter1)
@@ -127,10 +129,13 @@ class TestViolenceDetailsDashView(TestCase):
         check_progress(self.p3_violence_script)
         fake_incoming('0', self.emis_reporter1)
         fake_incoming('1', self.emis_reporter2)
-        self.assertEquals(2, total_number_of_schools_that_responded_to_all_violence_questions())
+        self.assertEquals(2, total_number_of_schools_that_responded_to_all_violence_questions([self.emis_reporter1.reporting_location,\
+                                                                                               self.emis_reporter2.reporting_location],\
+                                                                                              month_day_range))
 
 
     def test_returns_the_number_of_schools_that_responded_to_all_the_three_questions(self):
+        month_day_range = get_month_day_range(datetime.datetime.now(), depth=1)[0]
         schedule_script_now(self.head_teacher_group.name, slug=self.p3_violence_script.slug)
         check_progress(self.p3_violence_script)
         fake_incoming('6', self.emis_reporter1)
@@ -144,9 +149,13 @@ class TestViolenceDetailsDashView(TestCase):
         fake_incoming('0', self.emis_reporter1)
         fake_incoming('1', self.emis_reporter2)
         fake_incoming('2', self.emis_reporter3)
-        self.assertEquals(3, total_number_of_schools_that_responded_to_all_violence_questions())
+        self.assertEquals(3, total_number_of_schools_that_responded_to_all_violence_questions([self.emis_reporter1.reporting_location,\
+                                                                                               self.emis_reporter2.reporting_location,\
+                                                                                              self.emis_reporter3.reporting_location],\
+                                                                                              month_day_range))
 
     def test_that_2_reporters_responded_to_all_the_three_questions_given_one_responds_to_only_two_questions(self):
+        month_day_range = get_month_day_range(datetime.datetime.now(), depth=1)[0]
         schedule_script_now(self.head_teacher_group.name, slug=self.p3_violence_script.slug)
         check_progress(self.p3_violence_script)
         fake_incoming('6', self.emis_reporter1)
@@ -159,27 +168,14 @@ class TestViolenceDetailsDashView(TestCase):
         check_progress(self.p3_violence_script)
         fake_incoming('0', self.emis_reporter1)
         fake_incoming('1', self.emis_reporter2)
-        self.assertEquals(2, total_number_of_schools_that_responded_to_all_violence_questions())
+        self.assertEquals(2, total_number_of_schools_that_responded_to_all_violence_questions([self.emis_reporter1.reporting_location,\
+                                                                                               self.emis_reporter2.reporting_location,\
+                                                                                              self.emis_reporter3.reporting_location],\
+                                                                                              month_day_range))
 
-    def test_should_not_break_when_reporter_has_no_school(self):
-        self.emis_reporter1.schools.all().delete()
-        print self.emis_reporter1.schools.all()
-        schedule_script_now(self.head_teacher_group.name, slug=self.p3_violence_script.slug)
-        check_progress(self.p3_violence_script)
-        fake_incoming('4', self.emis_reporter1)
-        fake_incoming('0', self.emis_reporter2)
-        fake_incoming('1', self.emis_reporter3)
-        check_progress(self.p3_violence_script)
-        fake_incoming('1', self.emis_reporter1)
-        fake_incoming('3', self.emis_reporter2)
-        fake_incoming('0', self.emis_reporter3)
-        check_progress(self.p3_violence_script)
-        fake_incoming('1', self.emis_reporter1)
-        fake_incoming('3', self.emis_reporter2)
-        fake_incoming('0', self.emis_reporter3)
-        self.assertEquals(2, total_number_of_schools_that_responded_to_all_violence_questions())
 
     def test_that_0_reporters_responded_to_all_the_three_questions_given_all_respond_to_only_two_questions(self):
+        month_day_range = get_month_day_range(datetime.datetime.now(), depth=1)[0]
         schedule_script_now(self.head_teacher_group.name, slug=self.p3_violence_script.slug)
         check_progress(self.p3_violence_script)
         fake_incoming('6', self.emis_reporter1)
@@ -190,7 +186,10 @@ class TestViolenceDetailsDashView(TestCase):
         fake_incoming('2', self.emis_reporter3)
         check_progress(self.p3_violence_script)
         fake_incoming('9', self.emis_reporter1)
-        self.assertEquals(0, total_number_of_schools_that_responded_to_all_violence_questions())
+        self.assertEquals(0, total_number_of_schools_that_responded_to_all_violence_questions([self.emis_reporter1.reporting_location,\
+                                                                                               self.emis_reporter2.reporting_location,\
+                                                                                              self.emis_reporter3.reporting_location],\
+                                                                                              month_day_range))
 
     def tearDown(self):
         Message.objects.all().delete()

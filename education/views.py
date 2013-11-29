@@ -1066,62 +1066,90 @@ def violence_details_dash(req):
     context_vars = {}
     location = set_logged_in_users_location(profile)
 
-    violence_cases_girls = poll_response_sum("edtrac_violence_girls", location=location, month_filter='monthly', months=2, ret_type=list)
-    violence_cases_boys = poll_response_sum("edtrac_violence_boys", location=location, month_filter='monthly', months=2, ret_type=list)
-    violence_cases_reported = poll_response_sum("edtrac_violence_reported", location=location, month_filter='monthly', months=2, ret_type=list)
-    violence_cases_gem = poll_response_sum('edtrac_gem_abuse', location=location, month_filter='monthly', months=2, ret_type=list)
+    if isinstance(location, list) and len(location) > 1:
+        #for the curious case that location actually returns a list of locations
+        locations = location
+    if isinstance(location, Location):
+        if location.type.name == 'country':
+            locations = Location.objects.select_related().get(name=location).get_descendants().filter(type="district")
+            locations = list(locations)
+        else:
+            locations = [locations]
 
-    girls_total = []
-    for name, list_val in violence_cases_girls:
-        girls_total.append((list_val[0], list_val[1]))
+    month_day_range = get_month_day_range(datetime.datetime.now(), depth=2)
+    current_month = month_day_range[0]
+    previous_month  = month_day_range[1]
+
+    edtrac_violence_girls_poll = Poll.objects.get(name="edtrac_violence_girls")
+    edtrac_violence_boys_poll  = Poll.objects.get(name="edtrac_violence_boys")
+    edtrac_violence_reported_poll = Poll.objects.get(name="edtrac_violence_reported")
+    edtrac_gem_abuse_poll = Poll.objects.get(name="edtrac_gem_abuse")
+
+    violence_cases_girls_current_month = get_numeric_data_for_location(edtrac_violence_girls_poll, locations, current_month)
+    violence_cases_girls_previous_month = get_numeric_data_for_location(edtrac_violence_girls_poll, locations, previous_month)
+    violence_cases_boys_current_month = get_numeric_data_for_location(edtrac_violence_boys_poll, locations, current_month)
+    violence_cases_boys_previous_month = get_numeric_data_for_location(edtrac_violence_boys_poll, locations, previous_month)
+    violence_cases_reported_current_month = get_numeric_data_for_location(edtrac_violence_reported_poll, locations, current_month)
+    violence_cases_reported_previous_month = get_numeric_data_for_location(edtrac_violence_reported_poll, locations, previous_month)
+    violence_cases_gem_current_month = get_numeric_data_for_location(edtrac_gem_abuse_poll, locations, current_month)
+    violence_cases_gem_previous_month = get_numeric_data_for_location(edtrac_gem_abuse_poll, locations, previous_month)
+
+    violence_cases_girls = []
+    girls_current_month_total, girls_previous_month_total = 0, 0
+    for location in locations:
+        violence_current_month_value, violence_previous_month_value = 0, 0
+        if location.id in violence_cases_girls_current_month:
+            girls_current_month_total += violence_cases_girls_current_month[location.id]
+            violence_current_month_value = violence_cases_girls_current_month[location.id]
+        if location.id in violence_cases_girls_previous_month:
+            girls_previous_month_total += violence_cases_girls_previous_month[location.id]
+            violence_previous_month_value = violence_cases_girls_previous_month[location.id]
+        violence_cases_girls.append((location.name, (violence_current_month_value, violence_previous_month_value, location)))
     context_vars['violence_cases_girls'] = violence_cases_girls
+    context_vars['girls_totals'] = [girls_current_month_total, girls_previous_month_total]
 
-    girls_first_col, girls_second_col = [],[]
-    for first, second in girls_total:
-        girls_first_col.append(first), girls_second_col.append(second)
-    girls_first_col = [i for i in girls_first_col if i != '--']
-    girls_second_col = [i for i in girls_second_col if i != '--']
-
-    context_vars['girls_totals'] = [sum(girls_first_col), sum(girls_second_col)]
-
-    boys_total = []
-    for name, list_val in violence_cases_boys:
-        boys_total.append((list_val[0], list_val[1]))
+    violence_cases_boys = []
+    boys_current_month_total, boys_previous_month_total = 0, 0
+    for location in locations:
+        violence_current_month_value, violence_previous_month_value = 0, 0
+        if location.id in violence_cases_boys_current_month:
+            boys_current_month_total += violence_cases_boys_current_month[location.id]
+            violence_current_month_value = violence_cases_boys_current_month[location.id]
+        if location.id in violence_cases_boys_previous_month:
+            boys_previous_month_total += violence_cases_boys_previous_month[location.id]
+            violence_previous_month_value = violence_cases_boys_previous_month[location.id]
+        violence_cases_boys.append((location.name, (violence_current_month_value, violence_previous_month_value, location)))
     context_vars['violence_cases_boys'] = violence_cases_boys
+    context_vars['boys_totals'] = [boys_current_month_total, boys_previous_month_total]
 
-    boys_first_col, boys_second_col = [],[]
-    for first, second in boys_total:
-        boys_first_col.append(first), boys_second_col.append(second)
-    boys_first_col = [i for i in boys_first_col if i != '--']
-    boys_second_col = [i for i in boys_second_col if i != '--']
-
-    context_vars['boys_totals'] = [sum(boys_first_col), sum(boys_second_col)]
-
-    reported_total = []
-    for name, list_val in violence_cases_reported:
-        reported_total.append((list_val[0], list_val[1]))
+    violence_cases_reported = []
+    reported_current_month_total, reported_previous_month_total = 0, 0
+    for location in locations:
+        violence_current_month_value, violence_previous_month_value = 0, 0
+        if location.id in violence_cases_reported_current_month:
+            reported_current_month_total += violence_cases_reported_current_month[location.id]
+            violence_current_month_value = violence_cases_reported_current_month[location.id]
+        if location.id in violence_cases_reported_previous_month:
+            reported_previous_month_total += violence_cases_reported_previous_month[location.id]
+            violence_previous_month_value = violence_cases_reported_previous_month[location.id]
+        violence_cases_reported.append((location.name, (violence_current_month_value, violence_previous_month_value, location)))
     context_vars['violence_cases_reported'] = violence_cases_reported
+    context_vars['reported_totals'] = [reported_current_month_total, reported_previous_month_total]
 
-    reported_first_col, reported_second_col = [],[]
-    for first, second in reported_total:
-        reported_first_col.append(first), reported_second_col.append(second)
-    reported_first_col = [i for i in reported_first_col if i != '--']
-    reported_second_col = [i for i in reported_second_col if i != '--']
-
-    context_vars['reported_totals'] = [sum(reported_first_col), sum(reported_second_col)]
-
-    gem_total = [] # total violence cases reported by school
-    for name, list_val in violence_cases_gem:
-        gem_total.append((list_val[0], list_val[1]))
-
+    violence_cases_gem = []
+    gem_current_month_total, gem_previous_month_total = 0, 0
+    for location in locations:
+        violence_current_month_value, violence_previous_month_value = 0, 0
+        if location.id in violence_cases_gem_current_month:
+            gem_current_month_total += violence_cases_gem_current_month[location.id]
+            violence_current_month_value = violence_cases_gem_current_month[location.id]
+        if location.id in violence_cases_gem_previous_month:
+            gem_previous_month_total += violence_cases_gem_previous_month[location.id]
+            violence_previous_month_value = violence_cases_gem_previous_month[location.id]
+        violence_cases_gem.append((location.name, (violence_current_month_value, violence_previous_month_value, location)))
     context_vars['violence_cases_reported_by_gem'] = violence_cases_gem
+    context_vars['gem_totals'] = [gem_current_month_total, gem_previous_month_total]
 
-    first_col, second_col = [],[]
-    for first, second in gem_total:
-        first_col.append(first), second_col.append(second)
-    first_col = [i for i in first_col if i != '--']
-    second_col = [i for i in second_col if i != '--']
-    context_vars['gem_totals'] = [sum(first_col), sum(second_col)]
     context_vars['report_dates'] = [start for start, end in get_month_day_range(datetime.datetime.now(), depth=2)]
     school_report_count = 0
     gem_report_count = 0
@@ -1164,49 +1192,48 @@ def violence_details_dash(req):
     girls_violence_month = []
     boys_violence_month =[]
     reported_violence_month = []
+    gem_month = []
 
     h_teach_data = []
     gem_data = []
-
     girls_violence_data = []
     boys_violence_data = []
     reported_violence_data = []
 
     if profile.is_member_of('Minstry Officials') or profile.is_member_of('UNICEF Officials') or profile.is_member_of('Admins'):
-
         for month_range in month_ranges:
-            h_teach_month.append(month_range[0].strftime('%B'))
-            h_teach_data.append(get_numeric_report_data('edtrac_violence_girls',time_range=month_range, to_ret = 'sum'))
-
-            gem_data.append(get_numeric_report_data('edtrac_gem_abuse',time_range=month_range, to_ret = 'sum'))
+            gem_month.append(month_range[0].strftime('%B'))
+            gem_data.append(get_numeric_data(edtrac_gem_abuse_poll, locations, month_range))
 
             girls_violence_month.append(month_range[0].strftime('%B'))
-            girls_violence_data.append(get_numeric_report_data('edtrac_violence_girls', time_range=month_range, to_ret='sum'))
-            boys_violence_month.append(month_range[0].strftime('%B'))
-            boys_violence_data.append(get_numeric_report_data('edtrac_violence_boys', time_range=month_range, to_ret='sum'))
-            reported_violence_month.append(month_range[0].strftime('%B'))
-            reported_violence_data.append(get_numeric_report_data('edtrac_violence_reported', time_range=month_range, to_ret='sum'))
+            girls_violence_data.append(get_numeric_data(edtrac_violence_girls_poll, locations, month_range))
 
+            boys_violence_month.append(month_range[0].strftime('%B'))
+            boys_violence_data.append(get_numeric_data(edtrac_violence_boys_poll, locations, month_range))
+
+            reported_violence_month.append(month_range[0].strftime('%B'))
+            reported_violence_data.append(get_numeric_data(edtrac_violence_reported_poll, locations, month_range))
     else:
         for month_range in month_ranges:
             h_teach_month.append(month_range[0].strftime('%B'))
-            h_teach_data.append(get_numeric_report_data('edtrac_girls_violence',time_range=month_range, to_ret = 'sum', location=profile.location))
+            h_teach_data.append(get_numeric_data(edtrac_violence_girls_poll, locations, month_range))
 
-            gem_data.append(get_numeric_report_data('edtrac_gem_abuse',time_range=month_range, to_ret = 'sum', location=profile.location))
+            gem_month.append(month_range[0].strftime('%B'))
+            gem_data.append(get_numeric_data(edtrac_gem_abuse_poll, locations, month_range))
 
             girls_violence_month.append(month_range[0].strftime('%B'))
-            girls_violence_data.append(get_numeric_report_data('edtrac_violence_girls', time_range=month_range, to_ret='sum', location=profile.location))
+            girls_violence_data.append(get_numeric_data(edtrac_violence_girls_poll, locations, month_range))
+
             boys_violence_month.append(month_range[0].strftime('%B'))
-            boys_violence_data.append(get_numeric_report_data('edtrac_violence_boys', time_range=month_range, to_ret='sum', location=profile.location))
+            boys_violence_data.append(get_numeric_data(edtrac_violence_boys_poll, locations, month_range))
+
             reported_violence_month.append(month_range[0].strftime('%B'))
-            reported_violence_data.append(get_numeric_report_data('edtrac_violence_reported', time_range=month_range, to_ret='sum', location=profile.location))
+            reported_violence_data.append(get_numeric_data(edtrac_violence_reported_poll, locations, month_range))
 
     monthly_data_h_teachers = ';'.join([str(item[0])+'-'+str(item[1]) for item in zip(h_teach_month, h_teach_data)])
     monthly_violence_data_girls = ';'.join([str(item[0])+'-'+str(item[1]) for item in zip(girls_violence_month, girls_violence_data)])
     monthly_violence_data_boys = ';'.join([str(item[0])+'-'+str(item[1]) for item in zip(boys_violence_month, boys_violence_data)])
     monthly_violence_data_reported = ';'.join([str(item[0])+'-'+str(item[1]) for item in zip(reported_violence_month, reported_violence_data)])
-
-    gem_month = copy.deepcopy(h_teach_month)
     monthly_data_gem = ';'.join([str(item[0])+'-'+str(item[1]) for item in zip(gem_month, gem_data)])
 
     context_vars['monthly_data_gem'] = monthly_data_gem
@@ -1214,7 +1241,7 @@ def violence_details_dash(req):
     context_vars['monthly_violence_data_boys'] = monthly_violence_data_boys
     context_vars['monthly_violence_data_reported'] = monthly_violence_data_reported
     context_vars['monthly_data_h_teach'] = monthly_data_h_teachers
-    context_vars['schools_responding_to_all_questions'] = total_number_of_schools_that_responded_to_all_violence_questions()
+    context_vars['schools_responding_to_all_questions'] = total_number_of_schools_that_responded_to_all_violence_questions(locations, current_month)
 
     if profile.is_member_of('Minstry Officials') or profile.is_member_of('UNICEF Officials') or profile.is_member_of('Admins'):
         return render_to_response('education/admin/admin_violence_details.html', context_vars, RequestContext(req))
@@ -1222,13 +1249,12 @@ def violence_details_dash(req):
         context_vars['location_name'] = profile.location
         return render_to_response('education/deo/deo2_violence_details.html', context_vars, RequestContext(req))
 
-def total_number_of_schools_that_responded_to_all_violence_questions():
-    schools_responding_to_boys_violence = [__get_school_name_from(response) for response in __get_responses_for("edtrac_violence_boys")]
-    schools_responding_to_girls_violence = [__get_school_name_from(response) for response in __get_responses_for("edtrac_violence_girls")]
-    schools_that_referred_violence = [__get_school_name_from(response) for response in __get_responses_for("edtrac_violence_reported")]
-    schools_that_answered_all_questions = list(set(schools_responding_to_boys_violence).intersection(schools_responding_to_girls_violence).intersection(schools_that_referred_violence))
-    valid_school_names = [school for school in schools_that_answered_all_questions if school is not None]
-    return len(valid_school_names)
+def total_number_of_schools_that_responded_to_all_violence_questions(locations, month_range):
+    schools_responding_to_boys_violence = get_numeric_data_for_location(Poll.objects.get(name="edtrac_violence_boys"), locations, month_range)
+    schools_responding_to_girls_violence = get_numeric_data_for_location(Poll.objects.get(name="edtrac_violence_girls"), locations, month_range)
+    schools_that_referred_violence = get_numeric_data_for_location(Poll.objects.get(name="edtrac_violence_reported"), locations, month_range)
+    schools_that_answered_all_questions = list(set(schools_responding_to_boys_violence.keys()).intersection(schools_responding_to_girls_violence.keys()).intersection(schools_that_referred_violence.keys()))
+    return len(schools_that_answered_all_questions)
 
 def __get_school_name_from(response):
     try:

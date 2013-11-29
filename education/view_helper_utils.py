@@ -488,6 +488,8 @@ def get_deployed_head_Teachers(dataSource, locations):
 def get_numeric_data(poll, locations, time_range):
     return NumericResponsesFor(poll).forDateRange(time_range).forLocations(locations).total()
 
+def get_numeric_data_for_location(poll, locations, time_range):
+    return NumericResponsesFor(poll).forDateRange(time_range).forLocations(locations).groupByLocation()
 
 def get_numeric_data_all_locations(poll, time_range):
     return NumericResponsesFor(poll).forDateRange(time_range).groupByLocation()
