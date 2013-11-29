@@ -11,11 +11,6 @@ capitation grants made to the schools. Other data that can be collected
 by the education monitoring system include data on teacher attendance,
 presense of amenities such as hygienic facilities at schools.
 
-The Education monitoring application is closely linked and some of its
-data is directly drawn from Ureport (www.ureport.ug) - a community
-focused social monitoring tool from which RapidSMS-EMIS mines for
-education related issues sent in by youth in their communities.
-
 Technically speaking, RapidSMS-EMIS leverages the work of rapidsms-script
 (github.com/daveycrockett/rapidsms-script/) to provide an easy system
 for automated conversation-like communication between the rapidsms-emis
