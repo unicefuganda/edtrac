@@ -84,6 +84,8 @@ def create_attribute():
     }
     Attribute.objects.exists() or Attribute.objects.create(**params) # Only create it once.
 
+    return Attribute.objects.get(slug="poll_number_value")
+
 def fake_incoming(message, reporter):
     router = get_router()
     connection = reporter.default_connection
