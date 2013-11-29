@@ -14,16 +14,50 @@ class TestResults(TestCase):
         self.contact = Contact.objects.create()
         self.poll = Poll.objects.create(name="foo", user=user, response_type=Poll.TYPE_NUMERIC)
         self.connection = Connection.objects.create(contact=self.contact, backend=backend)
-        self.content_type = ContentType.objects.create()
+
 
     def record_response(self, text, value_float, direction='I', has_errors=False):
         message = Message.objects.create(direction=direction, text=text, connection=self.connection)
         response = Response.objects.create(contact=self.contact, poll=self.poll, message=message, has_errors=has_errors)
-        value = Value.objects.create(entity_ct=self.content_type, attribute=self.attribute, entity=response, value_float=value_float)
+        value = Value.objects.create(attribute=self.attribute, entity=response, value_float=value_float)
         return response
 
-    def test_gathers_only_error_free_incoming_messages(self):
-        self.record_response("Hello world!", None, direction='I', has_errors=True)
+
+    def test_gathers_only_incoming_messages(self):
         self.record_response("8 boys", 8, direction='I', has_errors=False)
         self.record_response("Do you have more than 1 latrine?", None, direction='O', has_errors=True)
+        self.assertEqual(1, NumericResponsesFor(self.poll).query.count())
         self.assertEqual(8, NumericResponsesFor(self.poll).total())
+
+
+    def test_calculates_mode(self):
+        self.record_response("8 boys", 8, direction='I', has_errors=False)
+        self.record_response("9 boys", 9, direction='I', has_errors=False)
+        self.record_response("9 boys", 9, direction='I', has_errors=False)
+        self.record_response("10 boys", 10, direction='I', has_errors=False)
+        self.record_response("10 boys", 10, direction='I', has_errors=False)
+        self.record_response("10 boys", 10, direction='I', has_errors=False)
+        self.assertEqual(10, NumericResponsesFor(self.poll).mode())
+
+
+    def test_gathers_only_error_free_messages(self):
+        self.record_response("8 boys", 8, direction='I', has_errors=False)
+        self.record_response("My phone number is 0794443337", 794443337, direction='I', has_errors=True)
+        self.assertEqual(1, NumericResponsesFor(self.poll).query.count())
+        self.assertEqual(8, NumericResponsesFor(self.poll).total())
+
+
+    def test_calculates_mean(self):
+        self.record_response("6 boys", 6, direction='I', has_errors=False)
+        self.record_response("10 boys", 10, direction='I', has_errors=False)
+        self.assertEqual(8, NumericResponsesFor(self.poll).mean())
+
+
+    def tearDown(self):
+        User.objects.all().delete()
+        Backend.objects.all().delete()
+        Contact.objects.all().delete()
+        Poll.objects.all().delete()
+        Message.objects.all().delete()
+        Response.objects.all().delete()
+        Value.objects.all().delete()
