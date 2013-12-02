@@ -22,7 +22,7 @@ Reports that are gathered include:
  - Cases of abuse
 
 Requirements
-============
+------------
  - Python 2.7 (www.python.org/download/) : On linux machines, you can usually use your system's package manager to perform the installation
  - PostgreSQL
  - All other python libraries will be installed as part of the setup and configuration process
@@ -36,10 +36,10 @@ Requirements
 
 
 Installation
-============
+------------
 
-Git
----
+##Git
+
         git clone https://github.com/unicefuganda/edtrac
 
         cd edtrac
@@ -64,14 +64,13 @@ Git
 
         python manage.py runserver
 
-Settings
---------
+##Settings
 
 Set the environment variable `$DJANGO_SETTINGS_FILE` to e.g. `settings.local`.
 
 
 Continuous Integration
-======================
+----------------------
 
 [![build status][build-status]](https://travis-ci.org/unicefuganda/edtrac)
 
