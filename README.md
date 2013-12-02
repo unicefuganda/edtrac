@@ -38,6 +38,8 @@ Requirements
 Installation
 ============
 
+Git
+---
         git clone https://github.com/unicefuganda/edtrac
 
         cd edtrac
@@ -62,6 +64,14 @@ Installation
 
         python manage.py runserver
 
+Settings
+--------
+
+Set the environment variable `$DJANGO_SETTINGS_FILE` to e.g. `settings.local`.
+
+
+Continuous Integration
+======================
 
 [![build status][build-status]](https://travis-ci.org/unicefuganda/edtrac)
 
