@@ -10,8 +10,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'edtrac',
-        'USER': '',
-        'HOST': '',
+        'USER': 'postgres',
+        'HOST': 'localhost',
     }
 }
 
