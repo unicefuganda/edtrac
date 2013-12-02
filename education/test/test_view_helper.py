@@ -172,17 +172,15 @@ class TestViewHelper(TestCase):
         fake_incoming("8 boys", self.emis_reporter1)
         check_progress(self.teachers_weekly_script)
         fake_incoming("1 girls", self.emis_reporter1)
-        report_mode = 'average'
 
         config_list = get_polls_for_keyword('P3Boys')
-        collective_result, chart_results_model, school_percent,tooltip,report_mode = \
-            get_aggregated_report_data_single_indicator([self.kampala_district],
-                                                                                                                                 [self.term_range], config_list,report_mode)
+        collective_result, chart_results_model, school_percent,tooltip = \
+            get_aggregated_report_data_single_indicator([self.kampala_district], [self.term_range], config_list)
 
         self.assertEqual(20.0, collective_result['P3 Boys'][0].values()[0])
 
         config_list = get_polls_for_keyword('P3Girls')
-        collective_result, chart_results_model, school_percent,tooltip,report_mode = get_aggregated_report_data_single_indicator([self.kampala_district], [self.term_range], config_list)
+        collective_result, chart_results_model, school_percent,tooltip = get_aggregated_report_data_single_indicator([self.kampala_district], [self.term_range], config_list)
 
         self.assertEqual(80.0, collective_result['P3 Girls'][0].values()[0])
 

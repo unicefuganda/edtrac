@@ -27,10 +27,6 @@
                     <td><input type="submit" value="Search" id="btnSearch"/></td>
                      <td><input type="submit" value="Current Month" id="btnCurrentMonth"/></td>
                      <td><input type="submit" value="Current Term" id="btnCurrentTerm"/></td>
-                     <td><select id='reportMode'>
-                        <option value="average" selected="True">Average</option>
-                        <option value="percent">Percentage</option>
-                         </select></td>
                 </tr></table>
                 </div>
         <div id="chart_loading" style="margin-left:40%;margin-top: 20%;"><img src="{{ MEDIA_URL }}education/icons/highchart_loader.gif"
@@ -43,10 +39,9 @@
         <script>
         highChart_tooltips = null;
             $(function(){
-                $("#reportMode").val($.trim('{{ report_mode }}')).attr('selected',true);
                 $('#id_from_date').datepicker();
                 $('#id_to_date').datepicker();
-                api_url = '/edtrac/api/district-report/?report_mode='+$('#reportMode').val()+'&district={{ district }}';
+                api_url = '/edtrac/api/district-report/?district={{ district }}';
                 $('#chart_loading').show();
                 $.ajax({
                 url: api_url,
@@ -68,18 +63,17 @@
              });
 
  $('#btnCurrentTerm').click(function(){
-     window.location.href = '/edtrac/term-dash/?report_mode='+$('#reportMode').val();
+     window.location.href = '/edtrac/term-dash';
  });
 
  $('#btnCurrentMonth').click(function(){
-     window.location.href = '/edtrac/detail-dash/?report_mode='+$('#reportMode').val();
+     window.location.href = '/edtrac/detail-dash';
  });
 $('#btnSearch').click(function(){
                    if($('#id_from_date').val() == '' ||  $('#id_to_date').val()==''){
                         alert('Please provide both From Date and To Date in order to proceed ');
                    }else{
                         var params = '?start_date='+$('#id_from_date').val()+'&end_date='+$('#id_to_date').val()+'&indicator='+$("#indicatorList").val();
-                       params +='&report_mode='+$('#reportMode').val();
                        window.location.href = '/edtrac/filter-dash/'+params;
                    }
                 });

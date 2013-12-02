@@ -27,10 +27,6 @@
                     <td><input type="submit" value="Search" id="btnSearch"/></td>
                      <td><input type="submit" value="Current Month" id="btnCurrentMonth"/></td>
                      <td><input type="submit" value="Current Term" id="btnCurrentTerm"/></td>
-                    <td><select id='reportMode'>
-                        <option value="average" selected="True">Average</option>
-                        <option value="percent">Percentage</option>
-                         </select></td>
                 </tr></table>
                 </div>
 
@@ -44,10 +40,9 @@
         <script>
         highChart_tooltips = null;
             $(function(){
-                $("#reportMode").val($.trim('{{ report_mode }}')).attr('selected',true);
                 $('#id_from_date').datepicker();
                 $('#id_to_date').datepicker();
-                api_url = '/edtrac/api/dashReport/term/?report_mode='+$('#reportMode').val();
+                api_url = '/edtrac/api/dashReport/term';
                 $('#chart_loading').show();
                 $.ajax({
                 url: api_url,
@@ -65,11 +60,11 @@
              });
 
  $('#btnCurrentTerm').click(function(){
-     window.location.href = '/edtrac/term-dash/?report_mode='+$('#reportMode').val();
+     window.location.href = '/edtrac/term-dash';
  });
 
  $('#btnCurrentMonth').click(function(){
-     window.location.href = '/edtrac/detail-dash/?report_mode='+$('#reportMode').val();
+     window.location.href = '/edtrac/detail-dash';
  });
 
 $('#btnSearch').click(function(){
@@ -77,7 +72,6 @@ $('#btnSearch').click(function(){
                         alert('Please provide both From Date and To Date in order to proceed ');
                    }else{
                         var params = '?start_date='+$('#id_from_date').val()+'&end_date='+$('#id_to_date').val()+'&indicator='+$("#indicatorList").val();
-                       params +='&report_mode='+$('#reportMode').val();
                        window.location.href = '/edtrac/filter-dash/'+params;
                    }
                 });
@@ -128,7 +122,7 @@ function displaySchoolPercent(school_percent){
                 result +='<tr><th>District</th><th>P3 Absenteeism</th><th>P6 Absenteeism</th><th>Teacher Absenteeism</th><th>Head Teacher Absenteeism</th></tr>'
                 $.each(data,function(district,dataSet){
                     result +='<tr>';
-                    result +='<td><a href="/edtrac/district-report/?district='+district+'&report_mode=average">'+district+'</a></td>';
+                    result +='<td><a href="/edtrac/district-report/?district='+district+'">'+district+'</a></td>';
 
                     $.each(dataSet,function(k,v){
                         if(k=='P3 Pupils'){result +='<td>'+v+'</td>';}

@@ -173,19 +173,12 @@ def view_stats_by_school(location_id, enrollment_poll_name, attendance_poll_name
 
 @login_required
 def report_dashboard(request):
-    try:
-        report_mode = request.GET['report_mode']
-    except:
-        report_mode = 'average'
     context = {}
-    context['report_mode'] = report_mode
-
     profile = request.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
         return render_to_response('education/admin/detail_report.html',context, RequestContext(request))
     else:
         location = [profile.location]
-        context['report_mode'] = report_mode
         context['district'] = location[0].name
         return render_to_response('education/admin/detail_report_district.html',context, RequestContext(request))
 
@@ -193,14 +186,7 @@ def report_dashboard(request):
 
 @login_required
 def report_district_dashboard(request):
-    try:
-        report_mode = request.GET['report_mode']
-        district = request.GET['district']
-    except:
-        report_mode = 'average'
-
     context = {}
-    context['report_mode'] = report_mode
     context['district'] = district
     return render_to_response('education/admin/detail_report_district.html',context, RequestContext(request))
 
@@ -208,12 +194,7 @@ def report_district_dashboard(request):
 
 @login_required
 def term_dashboard(request):
-    try:
-        report_mode = request.GET['report_mode']
-    except:
-        report_mode = 'average'
     context = {}
-    context['report_mode'] = report_mode
     return render_to_response('education/admin/detail_term_report.html',context, RequestContext(request))
 
 
@@ -223,20 +204,12 @@ def time_range_dashboard(request):
     context['start_date'] = request.GET['start_date']
     context['end_date'] = request.GET['end_date']
     context['indicator'] = request.GET['indicator']
-    context['report_mode'] = request.GET['report_mode']
     return render_to_response('education/admin/detail_timefilter_report.html', context, RequestContext(request))
 
 
 #   Reporting API
 @login_required
 def dash_report_api(request):
-    try:
-        report_mode = request.GET['report_mode']
-    except :
-        report_mode = 'average'
-
-    report_mode_log = report_mode
-
     jsonDataSource = []
     config_list = get_polls_for_keyword('all')
     time_range = get_week_date(depth=4)
@@ -248,21 +221,14 @@ def dash_report_api(request):
     else:
         locations = [profile.location]
 
-    collective_result, chart_data, school_percent, tooltips, report_mode = get_aggregated_report_data(locations, time_range,
-                                                                                         config_list,report_mode)
+    collective_result, chart_data, school_percent, tooltips = get_aggregated_report_data(locations, time_range, config_list)
     jsonDataSource.append(
         {'results': collective_result, 'chartData': chart_data, 'school_percent': school_percent, 'weeks': weeks,
-         'toolTips': tooltips,'report_mode' : report_mode, 'logger' :report_mode_log})
+         'toolTips': tooltips})
     return HttpResponse(simplejson.dumps(jsonDataSource), mimetype='application/json')
 
 @login_required
 def dash_report_district(request):
-    try:
-        report_mode = request.GET['report_mode']
-        district = request.GET['district']
-    except :
-        report_mode = 'average'
-
     jsonDataSource = []
     config_list = get_polls_for_keyword('all')
     time_range = get_week_date(depth=4)
@@ -270,21 +236,15 @@ def dash_report_district(request):
     time_range.reverse()
     location = Location.objects.filter(type__in=['district'],name__in=[district])
 
-    collective_result, chart_data, school_percent, tooltips, report_mode = get_aggregated_report_for_district(location, time_range,config_list,report_mode)
+    collective_result, chart_data, school_percent, tooltips, = get_aggregated_report_for_district(location, time_range,config_list)
     jsonDataSource.append(
         {'results': collective_result, 'chartData': chart_data, 'school_percent': school_percent, 'weeks': weeks,
-         'toolTips': tooltips,'report_mode' : report_mode})
+         'toolTips': tooltips})
     return HttpResponse(simplejson.dumps(jsonDataSource), mimetype='application/json')
 
 
 @login_required
 def dash_report_term(request):
-
-    try:
-        report_mode = request.GET['report_mode']
-    except:
-        report_mode = 'average'
-
     jsonDataSource = []
     config_list = get_polls_for_keyword('all')
     time_depth = 4
@@ -304,11 +264,10 @@ def dash_report_term(request):
     else:
         locations = [profile.location]
 
-    collective_result, chart_data, school_percent, tooltips,report_mode = get_aggregated_report_data(locations, time_range,
-                                                                                         config_list,report_mode)
+    collective_result, chart_data, school_percent, tooltips = get_aggregated_report_data(locations, time_range, config_list)
     jsonDataSource.append(
         {'results': collective_result, 'chartData': chart_data, 'school_percent': school_percent, 'weeks': weeks,
-         'toolTips': tooltips, 'report_mode' : report_mode})
+         'toolTips': tooltips})
 
     return HttpResponse(simplejson.dumps(jsonDataSource), mimetype='application/json')
 
@@ -320,7 +279,6 @@ def dash_report_params(request):
     start_date = parser.parse(request.GET['start_date'])
     end_date = parser.parse(request.GET['end_date'])
     indicator = request.GET['indicator']
-    report_mode = request.GET['report_mode']
     time_range = get_date_range(start_date, end_date, time_depth)
     config_list = get_polls_for_keyword(indicator)
     weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in time_range]
@@ -333,12 +291,12 @@ def dash_report_params(request):
         locations = [profile.location]
 
     if indicator =='all':
-        collective_result, chart_data, school_percent, tooltips, report_mode = get_aggregated_report_data(locations, time_range,config_list,report_mode)
+        collective_result, chart_data, school_percent, tooltips = get_aggregated_report_data(locations, time_range,config_list)
         jsonDataSource.append(
         {'results': collective_result, 'chartData': chart_data, 'school_percent': school_percent, 'weeks': weeks,
-         'toolTips': tooltips, 'report_mode':report_mode})
+         'toolTips': tooltips})
     else:
-        collective_result, chart_data, school_percent, tooltips,report_mode = get_aggregated_report_data_single_indicator(locations, time_range,config_list,report_mode)
+        collective_result, chart_data, school_percent, tooltips = get_aggregated_report_data_single_indicator(locations, time_range,config_list)
         jsonDataSource.append(
         {'results': collective_result, 'chartData': chart_data, 'school_percent': school_percent, 'weeks': weeks,
          'toolTips': tooltips})
