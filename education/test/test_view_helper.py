@@ -131,6 +131,16 @@ class TestViewHelper(TestCase):
         result = get_numeric_data(self.p3_boys_absent_poll, [self.kampala_district], self.term_range)
         self.assertEqual(30, result)
 
+
+    def test_should_reject_numeric_data_thats_implausibly_large(self):
+        schedule_script_now(self.head_teacher_group.name, slug=self.teachers_weekly_script.slug)
+        check_progress(self.teachers_weekly_script)
+        fake_incoming("20 boys", self.emis_reporter1)
+        fake_incoming("10001 boys", self.emis_reporter2)
+        result = get_numeric_data(self.p3_boys_absent_poll, [self.kampala_district], self.term_range)
+        self.assertEqual(20, result)
+
+
     def test_should_return_all_location_numeric_data_given_a_poll_and_time_range(self):
         schedule_script_now(self.head_teacher_group.name, slug=self.teachers_weekly_script.slug)
         check_progress(self.teachers_weekly_script)
