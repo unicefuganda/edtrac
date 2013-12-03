@@ -81,7 +81,7 @@ class TestWaterPollView(TestCase):
         self.fake_incoming('yes',self.emis_reporter2)
         self.fake_incoming('no',self.emis_reporter3)
 
-        for (i,response) in enumerate(self.water_source_poll.responses.all()):
+        for (i,response) in enumerate(self.water_source_poll.responses.all().order_by('id')):
             self.set_response_date(datetime(2012, i+2, i+2), response)
 
         location_result,monthly_result,percent = get_all_responses(self.water_source_poll, [self.kampala_district], (datetime(2012, 1, 1), datetime(2012, 5, 5)))
