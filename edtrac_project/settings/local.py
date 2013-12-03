@@ -57,5 +57,5 @@ SCHOOL_HOLIDAYS = [
     (datetime.datetime(2012, 6, 9), '1d'), #Heroe's day
     (datetime.datetime(2012, 10, 26), '1d'), #Idd Adhua
     (datetime.datetime(2012, 10, 9), '1d'), #Independence Day
-    (datetime.datetime(2012, 12, 25), datetime.datetime(2012, 12, 26)), #xmas holiday
+    (datetime.datetime(2012, 12, 25), datetime.datetime(2012, 12, 26)), #Xmas holiday
 ]
