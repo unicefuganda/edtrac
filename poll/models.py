@@ -39,7 +39,7 @@ STARTSWITH_PATTERN_TEMPLATE = '^\s*(%s)(\s|[^a-zA-Z]|$)'
 
 CONTAINS_PATTERN_TEMPLATE = '^.*\s*(%s)(\s|[^a-zA-Z]|$)'
 
-# This can be configurable from settings, but here's a default list of 
+# This can be configurable from settings, but here's a default list of
 # accepted yes keywords
 YES_WORDS = ['yes', 'yeah', 'yep', 'yay', 'y']
 
@@ -79,15 +79,15 @@ class Poll(models.Model):
     Polls represent a simple-question, simple-response communication modality
     via SMS.  They can be thought of as a similar to a single datum in an XForm,
     although for now the only data types available are yes/no, free-form text, and
-    numeric response.  Fairly simple idea, a poll is created, containing a question 
+    numeric response.  Fairly simple idea, a poll is created, containing a question
     (the outgoing messages), a list of contacts (those to poll) and an expected
     *type* of response.  The poll can be edited, contact lists modified, etc. via
     the web (the "user"), until it is eventually *started.*  When a poll is started,
     the outgoing question will be sent to all contacts, and any subsequent messages
     coming in from the contacts associated with this poll (until they are polled again)
-    will be parsed (or attempted to be parsed) by this poll, and bucketed into a 
+    will be parsed (or attempted to be parsed) by this poll, and bucketed into a
     particular category.
-    
+
     FIXME: contact groups, if implemented in core or contrib, should be used here,
            instead of a many-to-many field
     """
@@ -262,7 +262,7 @@ class Poll(models.Model):
                 regex=(STARTSWITH_PATTERN_TEMPLATE % no_rule_string),
                 rule_type=Rule.TYPE_REGEX,
                 rule_string=(STARTSWITH_PATTERN_TEMPLATE % no_rule_string))
-            
+
     def is_yesno_poll(self):
         return self.categories.count() == 3 and \
             self.categories.filter(name='yes').count() and \
@@ -406,6 +406,9 @@ class Poll(models.Model):
                 if respcategory.category.response:
                     outgoing_message = respcategory.category.response
                     break
+
+        invalid = getattr(settings, "INVALID_RESPONSE", lambda response: False)
+        resp.has_errors = resp.has_errors or invalid(resp)
         resp.save()
         if not outgoing_message:
             return (resp, None,)
@@ -590,7 +593,7 @@ class Poll(models.Model):
 class Category(models.Model):
     """
     A category is a 'bucket' that an incoming poll response is placed into.
-    
+
     Categories have rules, which are regular expressions that a message must
     satisfy to belong to a particular category (otherwise a response will have
     None for its category). FIXME does this make sense, or should all polls
