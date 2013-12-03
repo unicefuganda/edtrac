@@ -41,6 +41,11 @@ OPT_IN_WORDS = ['join']
 OPT_OUT_WORDS = ['quit']
 OPT_OUT_MESSAGE = 'You have just quit.If you want to re-register,or register to a new location,please send the word JOIN to 6767.'
 
+# Responses bigger than this will be deemed to be errors.
+PLAUSIBLY_LARGE = 10000
+INVALID_RESPONSE = lambda response: (response.poll.type == 'n') \
+                                and (response.eav.poll_number_value > PLAUSIBLY_LARGE)
+
 # map bounding box
 MIN_LON = '29.55322265625'
 MAX_LON = '33.92578125'
