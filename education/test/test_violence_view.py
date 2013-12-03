@@ -101,7 +101,7 @@ class TestViolenceView(TestSetup):
         previous_year = start_date.year - 1
         while start_date.year != previous_year:
             self.generate_script_progress_and_session("edtrac_headteacher_violence_monthly", start_date, poll)
-            values = self.generate_random_replies()
+            values = ["1", "2", "3"]
             fake_responses.append(values)
             if (start_date.month==datetime.datetime.now().month) or (start_date.month==(datetime.datetime.now().month-1)):
                 kampala_responses.append(float(values[0])+float(values[1]))
@@ -111,12 +111,6 @@ class TestViolenceView(TestSetup):
             self.fake_incoming_with_date(values[2], self.connection3, start_date)
             start_date = dateutils.increment(start_date, months=-1)
         return fake_responses,kampala_responses,gulu_responses
-
-    def generate_random_replies(self):
-        random_replies = []
-        for reps in EmisReporter.objects.filter(groups__name="Head Teachers"):
-            random_replies.append(str(random.randrange(2,20)))
-        return random_replies
 
     def generate_script_progress_and_session(self, slug, date, poll):
         script_progress_list = list(ScriptProgress.objects.all().values_list('pk', flat=True))
