@@ -1,3 +1,3 @@
-* * * * * root flock -n /tmp/edutrac-check-script-progress -c "/var/www/env/prod_edutrac/bin/python /var/www/prod_edtrac/edtrac/edtrac_project/manage.py check_script_progress -e 8 -l 19"
-* * * * * root flock -n /tmp/edutrac-clear-special-script -c "/var/www/env/prod_edtrac/bin/python /var/www/prod_edtrac/edtrac/edtrac_project/manage.py clear_special_script"
-0 0 * * * root /var/www/env/prod_edutrac/bin/python /var/www/prod_edtrac/edtrac_project/manage.py export_reporters
+* * * * * root flock -n /tmp/edtrac-check-script-progress -c "/var/www/env/prod_edtrac/bin/python /var/www/prod_edtrac/edtrac/edtrac_project/manage.py check_script_progress -e 8 -l 19"
+* * * * * root flock -n /tmp/edtrac-clear-special-script -c "/var/www/env/prod_edtrac/bin/python /var/www/prod_edtrac/edtrac/edtrac_project/manage.py clear_special_script"
+0 0 * * * root /var/www/env/prod_edtrac/bin/python /var/www/prod_edtrac/edtrac_project/manage.py export_reporters
