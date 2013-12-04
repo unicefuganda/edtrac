@@ -4,6 +4,9 @@ from education.test.utils import create_attribute
 from education.models import *
 from rapidsms.models import *
 from eav.models import *
+from datetime import datetime, timedelta
+
+now = datetime(2013, 9, 12)
 
 class TestResults(TestCase):
 
@@ -16,9 +19,14 @@ class TestResults(TestCase):
         self.connection = Connection.objects.create(contact=self.contact, backend=backend)
 
 
-    def record_response(self, text, value_float, direction='I', has_errors=False):
+    def record_response(self, text, value_float, direction='I', has_errors=False, date=now):
         message = Message.objects.create(direction=direction, text=text, connection=self.connection)
-        response = Response.objects.create(contact=self.contact, poll=self.poll, message=message, has_errors=has_errors)
+        response = Response.objects.create(contact=self.contact,
+                                           poll=self.poll,
+                                           message=message,
+                                           has_errors=has_errors)
+        response.date = date # auto_now_add doesn't let us set date on creation.
+        response.save()
         value = Value.objects.create(attribute=self.attribute, entity=response, value_float=value_float)
         return response
 
@@ -51,6 +59,18 @@ class TestResults(TestCase):
         self.record_response("6 boys", 6)
         self.record_response("10 boys", 10)
         self.assertEqual(8, NumericResponsesFor(self.poll).mean())
+
+
+    def test_filters_by_date_range(self):
+        today = now
+        yesterday = today - timedelta(days=1)
+        tomorrow = today + timedelta(days=1)
+        next_week = today + timedelta(days=7)
+
+        self.record_response("6 boys", 6, date=yesterday)
+        self.record_response("10 boys", 10, date=tomorrow)
+
+        self.assertEqual(10, NumericResponsesFor(self.poll).forDateRange((today,next_week)).total())
 
 
     def tearDown(self):
