@@ -2934,6 +2934,7 @@ def edtrac_export_poll_responses(request):
             to_date = form.cleaned_data['to_date']
             from_date = form.cleaned_data['from_date']
             if from_date and to_date:
+                to_date = to_date + timedelta(days=1)
                 responses = responses.filter(date__range=[from_date, to_date])
 
             resp = render_to_response(
