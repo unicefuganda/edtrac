@@ -14,9 +14,13 @@ class TestResults(TestCase):
         self.attribute = create_attribute()
         user = User.objects.create(username="peter")
         backend = Backend.objects.create()
-        self.contact = Contact.objects.create()
+        self.contact = EmisReporter.objects.create()
         self.poll = Poll.objects.create(name="foo", user=user, response_type=Poll.TYPE_NUMERIC)
         self.connection = Connection.objects.create(contact=self.contact, backend=backend)
+
+
+    def reporter_for(self, location):
+        return EmisReporter.objects.create(reporting_location = location)
 
 
     def record_response(self, text, value_float, direction='I', has_errors=False, date=now):
@@ -28,6 +32,13 @@ class TestResults(TestCase):
         response.date = date # auto_now_add doesn't let us set date on creation.
         response.save()
         value = Value.objects.create(attribute=self.attribute, entity=response, value_float=value_float)
+        return response
+
+
+    def record_response_for(self, contact, text, value_float):
+        response = self.record_response(text, value_float)
+        response.contact = contact
+        response.save()
         return response
 
 
@@ -71,6 +82,14 @@ class TestResults(TestCase):
         self.record_response("10 boys", 10, date=tomorrow)
 
         self.assertEqual(10, NumericResponsesFor(self.poll).forDateRange((today,next_week)).total())
+
+    def test_filters_by_location(self):
+        gulu = Location.objects.create(name="Gulu")
+        kampala = Location.objects.create(name="Kampala")
+        self.record_response_for(self.reporter_for(kampala), "6 boys", 6)
+        self.record_response_for(self.reporter_for(gulu), "9 boys", 9)
+        self.assertEqual(9, NumericResponsesFor(self.poll).forLocations([gulu]).total())
+
 
 
     def tearDown(self):
