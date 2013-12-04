@@ -108,9 +108,10 @@ class TestResults(TestCase):
         gulu = Location.objects.create(name="Gulu")
         kampala = Location.objects.create(name="Kampala")
         self.record_response_for(self.reporter_for(kampala), "6 boys", 6)
+        self.record_response_for(self.reporter_for(kampala), "7 boys", 7)
         self.record_response_for(self.reporter_for(gulu), "9 boys", 9)
         results = NumericResponsesFor(self.poll).groupByLocation()
-        self.assertEqual(6, results[kampala.id])
+        self.assertEqual(13, results[kampala.id])
         self.assertEqual(9, results[gulu.id])
 
 
@@ -146,10 +147,11 @@ class TestResults(TestCase):
         mark.save()
 
         self.record_response_for(mary, "3 girls", 3)
+        self.record_response_for(mary, "4 girls", 4)
         self.record_response_for(mark, "2 boys", 2)
         results = NumericResponsesFor(self.poll).groupBySchools()
 
-        self.assertEqual(3, results[st_marys.id])
+        self.assertEqual(7, results[st_marys.id])
         self.assertEqual(2, results[st_marks.id])
 
     def tearDown(self):
