@@ -102,6 +102,14 @@ class TestAlertsToErrorResponses(TestCase):
         expected = 'The answer you have provided is not in the correct format. use figures like 3 to answer the question'
         self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))
 
+    def test_should_send_message_if_number_too_large(self):
+        schedule_script_now(grp=self.head_teacher_group.name,slug=self.teachers_weekly_script.slug)
+        check_progress(self.teachers_weekly_script)
+        fake_incoming("10001 boys",self.emis_reporter1)
+        check_progress(self.teachers_weekly_script)
+        expected = 'The answer you have provided is not in the correct format. use figures like 3 to answer the question'
+        self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))
+
     def test_should_resend_poll_question_on_invalid_responses(self):
         schedule_script_now(grp=self.head_teacher_group.name,slug=self.teachers_weekly_script.slug)
         check_progress(self.teachers_weekly_script)

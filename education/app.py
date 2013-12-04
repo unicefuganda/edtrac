@@ -16,7 +16,7 @@ class App (AppBase):
             return True
 
         if message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_OUT_WORDS', ['quit'])]:
-            
+
             if Blacklist.objects.filter(connection=message.connection).exists():
                 message.respond('You cannot send Quit to 6200 (EduTrac) more than once.')
                 return True
@@ -36,7 +36,7 @@ class App (AppBase):
                 return True
 
         elif message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', ['join'])]:
-            
+
             if not message.connection.contact:
                 if ScriptProgress.objects.filter(script__slug='edtrac_autoreg', connection=message.connection).count() == 0:
                     ScriptProgress.objects.create(script=Script.objects.get(slug="edtrac_autoreg"),\
