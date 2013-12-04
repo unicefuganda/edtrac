@@ -136,7 +136,7 @@ class TestViewHelper(TestCase):
         schedule_script_now(self.head_teacher_group.name, slug=self.teachers_weekly_script.slug)
         check_progress(self.teachers_weekly_script)
         fake_incoming("20 boys", self.emis_reporter1)
-        fake_incoming("10001 boys", self.emis_reporter2)
+        fake_incoming("5001 boys", self.emis_reporter2)
         result = get_numeric_data(self.p3_boys_absent_poll, [self.kampala_district], self.term_range)
         self.assertEqual(20, result)
 
