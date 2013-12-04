@@ -99,7 +99,7 @@ class TestAlertsToErrorResponses(TestCase):
         check_progress(self.teachers_weekly_script)
         fake_incoming("dummy response",self.emis_reporter1)
         check_progress(self.teachers_weekly_script)
-        expected = 'The answer you have provided is not in the correct format. use figures like 3 to answer the question'
+        expected = 'The answer you have provided is not in the correct format. Use figures like 3 to answer the question'
         self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))
 
     def test_should_send_message_if_number_too_large(self):
@@ -107,7 +107,7 @@ class TestAlertsToErrorResponses(TestCase):
         check_progress(self.teachers_weekly_script)
         fake_incoming("10001 boys",self.emis_reporter1)
         check_progress(self.teachers_weekly_script)
-        expected = 'The answer you have provided is not in the correct format. use figures like 3 to answer the question'
+        expected = 'The answer you have provided is not in the correct format. Use figures like 3 to answer the question'
         self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))
 
     def test_should_resend_poll_question_on_invalid_responses(self):
@@ -127,7 +127,7 @@ class TestAlertsToErrorResponses(TestCase):
         check_progress(self.teachers_weekly_script)
         fake_incoming("Invalid", self.emis_reporter1)
         check_progress(self.teachers_weekly_script)
-        expected = 'The answer you have provided is not in the correct format. use figures like 3 to answer the question'
+        expected = 'The answer you have provided is not in the correct format. Use figures like 3 to answer the question'
         self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))
         time.sleep(3)
         check_progress(self.teachers_weekly_script)
@@ -157,7 +157,7 @@ class TestAlertsToErrorResponses(TestCase):
         check_progress(self.teachers_weekly_script)
         fake_incoming("4", self.emis_reporter1)
         check_progress(self.teachers_weekly_script)
-        alert = 'The answer you have provided is not in the correct format. use figures like 3 to answer the question'
+        alert = 'The answer you have provided is not in the correct format. Use figures like 3 to answer the question'
         messages = Message.objects.filter(direction='O', text =alert, connection=self.emis_reporter1.connection_set.all()[0])
         self.assertEqual(2, messages.count())
         expected ='Thankyou p3 Teacher, Attendance for boys have been improved by 40percent Attendance for girls have been improved by 40percent'

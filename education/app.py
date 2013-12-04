@@ -59,8 +59,8 @@ class App (AppBase):
         else:
             try:
                 progress = ScriptProgress.objects.filter(connection=message.connection, time__lte=datetime.datetime.now()).order_by('-time')
-                response_message_string = {"n":"The answer you have provided is not in the correct format. use figures like 3 to answer the question",
-                                 "t":"The answer you have provided is not in the correct format. please follow instructions that were given to you"}
+                response_message_string = {"n":"The answer you have provided is not in the correct format. Use figures like 3 to answer the question",
+                                 "t":"The answer you have provided is not in the correct format. Please follow instructions that were given to you"}
                 if progress.count():
                     progress = progress[0]
                     script_last_step = ScriptStep.objects.filter(script=progress.script).order_by('-order')[0]
