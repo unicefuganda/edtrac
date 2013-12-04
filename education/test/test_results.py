@@ -24,32 +24,32 @@ class TestResults(TestCase):
 
 
     def test_gathers_only_incoming_messages(self):
-        self.record_response("8 boys", 8, direction='I', has_errors=False)
-        self.record_response("Do you have more than 1 latrine?", None, direction='O', has_errors=True)
+        self.record_response("8 boys", 8, direction='I')
+        self.record_response("Do you have more than 1 latrine?", None, direction='O')
         self.assertEqual(1, NumericResponsesFor(self.poll).query.count())
         self.assertEqual(8, NumericResponsesFor(self.poll).total())
 
 
     def test_calculates_mode(self):
-        self.record_response("8 boys", 8, direction='I', has_errors=False)
-        self.record_response("9 boys", 9, direction='I', has_errors=False)
-        self.record_response("9 boys", 9, direction='I', has_errors=False)
-        self.record_response("10 boys", 10, direction='I', has_errors=False)
-        self.record_response("10 boys", 10, direction='I', has_errors=False)
-        self.record_response("10 boys", 10, direction='I', has_errors=False)
+        self.record_response("8 boys", 8)
+        self.record_response("9 boys", 9)
+        self.record_response("9 boys", 9)
+        self.record_response("10 boys", 10)
+        self.record_response("10 boys", 10)
+        self.record_response("10 boys", 10)
         self.assertEqual(10, NumericResponsesFor(self.poll).mode())
 
 
     def test_gathers_only_error_free_messages(self):
-        self.record_response("8 boys", 8, direction='I', has_errors=False)
-        self.record_response("My phone number is 0794443337", 794443337, direction='I', has_errors=True)
+        self.record_response("8 boys", 8, has_errors=False)
+        self.record_response("My phone number is 0794443337", 794443337, has_errors=True)
         self.assertEqual(1, NumericResponsesFor(self.poll).query.count())
         self.assertEqual(8, NumericResponsesFor(self.poll).total())
 
 
     def test_calculates_mean(self):
-        self.record_response("6 boys", 6, direction='I', has_errors=False)
-        self.record_response("10 boys", 10, direction='I', has_errors=False)
+        self.record_response("6 boys", 6)
+        self.record_response("10 boys", 10)
         self.assertEqual(8, NumericResponsesFor(self.poll).mean())
 
 
