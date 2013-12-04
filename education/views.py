@@ -1249,12 +1249,16 @@ def violence_details_dash(req):
         context_vars['location_name'] = profile.location
         return render_to_response('education/deo/deo2_violence_details.html', context_vars, RequestContext(req))
 
+def __schools_reporting(poll_name, time_range, locations):
+    poll = Poll.objects.get(name=poll_name)
+    schools = NumericResponsesFor(poll).forDateRange(time_range).forLocations(locations).groupBySchools().keys()
+    return set(schools)
+
 def total_number_of_schools_that_responded_to_all_violence_questions(locations, month_range):
-    schools_responding_to_boys_violence = get_numeric_data_for_location(Poll.objects.get(name="edtrac_violence_boys"), locations, month_range)
-    schools_responding_to_girls_violence = get_numeric_data_for_location(Poll.objects.get(name="edtrac_violence_girls"), locations, month_range)
-    schools_that_referred_violence = get_numeric_data_for_location(Poll.objects.get(name="edtrac_violence_reported"), locations, month_range)
-    schools_that_answered_all_questions = list(set(schools_responding_to_boys_violence.keys()).intersection(schools_responding_to_girls_violence.keys()).intersection(schools_that_referred_violence.keys()))
-    return len(schools_that_answered_all_questions)
+    schools_responding_re_boys = __schools_reporting("edtrac_violence_boys", month_range, locations)
+    schools_responding_re_girls = __schools_reporting("edtrac_violence_girls", month_range, locations)
+    schools_responding_re_reporting = __schools_reporting("edtrac_violence_reported", month_range, locations)
+    return len(schools_responding_re_boys & schools_responding_re_girls & schools_responding_re_reporting)
 
 def __get_school_name_from(response):
     try:
