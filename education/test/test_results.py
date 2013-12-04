@@ -104,6 +104,16 @@ class TestResults(TestCase):
         self.assertEqual(9, NumericResponsesFor(self.poll).forLocations([gulu]).total())
 
 
+    def test_groups_by_location(self):
+        gulu = Location.objects.create(name="Gulu")
+        kampala = Location.objects.create(name="Kampala")
+        self.record_response_for(self.reporter_for(kampala), "6 boys", 6)
+        self.record_response_for(self.reporter_for(gulu), "9 boys", 9)
+        results = NumericResponsesFor(self.poll).groupByLocation()
+        self.assertEqual(6, results[kampala.id])
+        self.assertEqual(9, results[gulu.id])
+
+
     def test_filters_by_school(self):
         gulu = Location.objects.create(name="Gulu")
 
@@ -121,6 +131,26 @@ class TestResults(TestCase):
         self.record_response_for(mark, "2 boys", 2)
         self.assertEqual(3, NumericResponsesFor(self.poll).forSchools([st_marys]).total())
 
+
+    def test_groups_by_school(self):
+        gulu = Location.objects.create(name="Gulu")
+
+        mary = EmisReporter.objects.create()
+        st_marys = School.objects.create(name="St Marys", location=gulu)
+        mary.schools = [st_marys]
+        mary.save()
+
+        mark = EmisReporter.objects.create()
+        st_marks = School.objects.create(name="St Marks", location=gulu)
+        mark.schools = [st_marks]
+        mark.save()
+
+        self.record_response_for(mary, "3 girls", 3)
+        self.record_response_for(mark, "2 boys", 2)
+        results = NumericResponsesFor(self.poll).groupBySchools()
+
+        self.assertEqual(3, results[st_marys.id])
+        self.assertEqual(2, results[st_marks.id])
 
     def tearDown(self):
         User.objects.all().delete()
