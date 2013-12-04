@@ -72,6 +72,18 @@ class TestResults(TestCase):
         self.assertEqual(8, NumericResponsesFor(self.poll).mean())
 
 
+    def test_excludes_zeros(self):
+        self.record_response("0 boys", 0)
+        self.record_response("10 boys", 10)
+        self.assertEqual(1, NumericResponsesFor(self.poll).excludeZeros().query.count())
+
+
+    def test_excludes_greater_than(self):
+        self.record_response("6 boys", 6)
+        self.record_response("10 boys", 10)
+        self.assertEqual(6, NumericResponsesFor(self.poll).excludeGreaterThan(6).total())
+
+
     def test_filters_by_date_range(self):
         today = now
         yesterday = today - timedelta(days=1)
