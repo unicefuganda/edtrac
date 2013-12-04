@@ -272,7 +272,7 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
         weekly_present_result = []
         weekly_school_responses = []
 
-        if config_list[0].get('collective_dict_key') != 'Head Teachers':
+        if config_list[0].get('collective_dict_key') not in  ['Male Head Teachers', 'Female Head Teachers', 'Head Teachers']:
             enrollment_polls = Poll.objects.filter(name__in=config_list[0].get('enrollment_poll'))
             attendance_polls = Poll.objects.filter(name__in=config_list[0].get('attendance_poll'))
             enroll_indicator_total, responsive_schools = get_numeric_enrollment_data(enrollment_polls[0],[location],term_range)
@@ -296,6 +296,19 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
                 avg_percent_by_location.append({location.name: round(sum(weekly_percent_results) / len(time_range),2)})
 
             avg_school_responses.append(sum(weekly_school_responses) / len(time_range))
+        elif config_list[0].get('collective_dict_key') in ['Male Head Teachers', 'Female Head Teachers']:
+            for week in time_range:
+                present, absent = get_count_for_yes_no_response(attendance_polls, [location], week)
+                schools_that_responded = len(get_numeric_data_by_school(attendance_polls[0], schools_in_location, week))
+                week_percent = compute_absent_values(present, deployedHeadTeachers)
+                weekly_percent_results.append(week_percent)
+                weekly_present_result.append(present)
+                weekly_school_responses.append(schools_that_responded)
+            if sum(weekly_percent_results) != 0: # eliminate districts that have nothing to present
+                location_with_no_zero_result.append(location)
+                avg_percent_by_location.append({location.name: round(sum(weekly_percent_results) / len(time_range),2)})
+            avg_school_responses.append(sum(weekly_school_responses) / len(time_range))
+
         else: # compute head teacher absenteeism
             deployedHeadTeachers = get_deployed_head_Teachers(headteachersSource, [location])
             attendance_polls = Poll.objects.filter(name__in=['edtrac_head_teachers_attendance'])
@@ -348,35 +361,52 @@ def compute_absenteeism_summary(indicator, locations, get_time=datetime.datetime
 
 
 def get_count_for_yes_no_response(polls, locations, time_range):
-    yes = 0
-    no = 0
-    responses = Response.objects.filter(date__range = time_range,
-                                        poll__in = polls,
-                                        has_errors = False,
-                                        contact__reporting_location__in = locations,
-                                        message__direction = 'I')
-    for response in responses:
-        if 'yes' in response.message.text.lower():
-            yes += 1
-        if 'no' in response.message.text.lower():
-            no += 1
-    return yes, no
+    responses = Response.objects.filter(poll__in = polls,
+                                      eav_values__value_text__in = ['Yes', 'YES', 'yes'])
+
+    yes_result =  Response.objects.filter(poll__in = polls,
+                                      has_errors = False,
+                                      message__direction = 'I',
+                                      date__range = time_range,
+                                      eav_values__value_text__in = ['Yes', 'YES', 'yes'],
+                                      contact__reporting_location__in = locations) \
+                              .values('contact__reporting_location__id').count()
+    no_result =  Response.objects.filter(poll__in = polls,
+                                      has_errors = False,
+                                      message__direction = 'I',
+                                      date__range = time_range,
+                                      eav_values__value_text__in = ['No', 'NO', 'no'],
+                                      contact__reporting_location__in = locations) \
+                              .values('contact__reporting_location__id').count()
+    if not yes_result:
+        yes_result = 0
+    if not no_result:
+        no_result = 0
+
+    return yes_result, no_result
 
 
 def get_count_for_yes_no_by_school(polls, School, time_range):
-    yes = 0
-    no = 0
-    responses = Response.objects.filter(date__range=time_range,
-                                        poll__in=polls,
-                                        has_errors=False,
-                                        contact__emisreporter__schools__in=School,
-                                        message__direction='I')
-    for response in responses:
-        if 'yes' in response.message.text.lower():
-            yes += 1
-        if 'no' in response.message.text.lower():
-            no += 1
-    return yes, no
+    yes_result =  Response.objects.filter(poll__in = polls,
+                                      has_errors = False,
+                                      message__direction = 'I',
+                                      date__range = time_range,
+                                      eav_values__value_text__in = ['Yes', 'YES', 'yes'],
+                                      contact__emisreporter__schools__in=School,) \
+                              .values('contact__reporting_location__id').count()
+    no_result =  Response.objects.filter(poll__in = polls,
+                                      has_errors = False,
+                                      message__direction = 'I',
+                                      date__range = time_range,
+                                      eav_values__value_text__in = ['No', 'NO', 'no'],
+                                      contact__emisreporter__schools__in=School,) \
+                              .values('contact__reporting_location__id').count()
+    if not yes_result:
+        yes_result = 0
+    if not no_result:
+        no_result = 0
+
+    return yes_result, no_result
 
 
 #  Function called to populate in-memory Data, reduces on number of db queries per request.
@@ -397,8 +427,7 @@ def get_deployed_head_Teachers_by_school(school, locations):
 
 
 def get_deployed_head_Teachers(dataSource, locations):
-    return get_deployed_head_Teachers_by_school(dataSource.values_list('schools', flat=True),
-                                                locations)
+    return get_deployed_head_Teachers_by_school(dataSource.values_list('schools', flat=True), locations)
 
 def get_numeric_data(poll, locations, time_range):
     return NumericResponsesFor(poll).forDateRange(time_range).forLocations(locations).total()

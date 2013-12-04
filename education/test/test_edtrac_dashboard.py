@@ -331,7 +331,7 @@ class TestEdtracDashboard(TestCase):
             "slug": "poll_text_value",
             "name": "Text"
         }
-        Attribute.objects.create(**params)
+        Attribute.objects.get_or_create(**params)
 
         settings.SCHOOL_HOLIDAYS = []
         self.create_emisreporters_of_smc_group()

@@ -161,6 +161,17 @@ class TestViewHelper(TestCase):
         self.assertEqual(1, result)
 
     def test_get_count_for_yes_no_response(self):
+        params = {
+            "description": "A response value for a Poll with expected text responses",
+            "datatype": "text",
+            "enum_group": None,
+            "required": False,
+            "type": None,
+            "slug": "poll_text_value",
+            "name": "Text"
+        }
+        Attribute.objects.get_or_create(**params)
+
         schedule_script_now(self.smc_group.name, slug=self.head_teacher_weekly_script.slug)
         check_progress(self.head_teacher_weekly_script)
         fake_incoming("yes", self.emis_reporter3)
