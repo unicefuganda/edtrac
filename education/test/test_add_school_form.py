@@ -4,19 +4,12 @@ from rapidsms.contrib.locations.models import Location
 from education.models import School
 from education.test.utils import create_location_type, create_location
 
-
-def create_country(param):
-    pass
-
-
 class TestAddSchoolForm(TestCase):
 
     def setUp(self):
-        uganda = create_country("uganda")
         district = create_location_type("district")
         kampala_fields = {
             "rght": 10901,
-            "tree_parent": uganda,
             "level": 1,
             "tree_id": 1,
             "lft": 10686,
