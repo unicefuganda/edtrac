@@ -20,7 +20,7 @@ class TestResults(TestCase):
 
 
     def reporter_for(self, location):
-        return EmisReporter.objects.create(reporting_location = location)
+        return EmisReporter.objects.create(reporting_location=location)
 
 
     def record_response(self, text, value_float, direction='I', has_errors=False, date=now):
@@ -83,6 +83,7 @@ class TestResults(TestCase):
 
         self.assertEqual(10, NumericResponsesFor(self.poll).forDateRange((today,next_week)).total())
 
+
     def test_filters_by_location(self):
         gulu = Location.objects.create(name="Gulu")
         kampala = Location.objects.create(name="Kampala")
@@ -90,6 +91,23 @@ class TestResults(TestCase):
         self.record_response_for(self.reporter_for(gulu), "9 boys", 9)
         self.assertEqual(9, NumericResponsesFor(self.poll).forLocations([gulu]).total())
 
+
+    def test_filters_by_school(self):
+        gulu = Location.objects.create(name="Gulu")
+
+        mary = EmisReporter.objects.create()
+        st_marys = School.objects.create(name="St Marys", location=gulu)
+        mary.schools = [st_marys]
+        mary.save()
+
+        mark = EmisReporter.objects.create()
+        st_marks = School.objects.create(name="St Marks", location=gulu)
+        mark.schools = [st_marks]
+        mark.save()
+
+        self.record_response_for(mary, "3 girls", 3)
+        self.record_response_for(mark, "2 boys", 2)
+        self.assertEqual(3, NumericResponsesFor(self.poll).forSchools([st_marys]).total())
 
 
     def tearDown(self):
