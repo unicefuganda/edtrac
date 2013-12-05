@@ -73,6 +73,3 @@ Continuous Integration
 ----------------------
 
 [![build status][build-status]](https://travis-ci.org/unicefuganda/edtrac)
-
-[build-status]: https://travis-ci.org/unicefuganda/edtrac.png "build status"
-[![Coverage Status](https://coveralls.io/repos/unicefuganda/edtrac/badge.png)](https://coveralls.io/r/unicefuganda/edtrac)

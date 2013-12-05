@@ -18,8 +18,4 @@ script:
   - cd edtrac_project
   - python manage.py syncdb --noinput
   - python manage.py migrate
-  - coverage run manage.py test education.test --settings=settings.travis
-
-after_success:
- - coveralls
-
+  - python manage.py test education.test --settings=settings.travis
