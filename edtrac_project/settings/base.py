@@ -42,7 +42,7 @@ OPT_OUT_WORDS = ['quit']
 OPT_OUT_MESSAGE = 'You have just quit.If you want to re-register,or register to a new location,please send the word JOIN to 6767.'
 
 # Responses bigger than this will be deemed to be errors.
-PLAUSIBLY_LARGE = 10000
+PLAUSIBLY_LARGE = 5000
 INVALID_RESPONSE = lambda response: (response.poll.type == 'n') \
                                 and (response.eav.poll_number_value > PLAUSIBLY_LARGE)
 
