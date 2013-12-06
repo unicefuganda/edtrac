@@ -298,9 +298,12 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
             avg_school_responses.append(sum(weekly_school_responses) / len(time_range))
         elif config_list[0].get('collective_dict_key') in ['Male Head Teachers', 'Female Head Teachers']:
             for week in time_range:
-                present, absent = get_count_for_yes_no_response(attendance_polls, [location], week)
-                schools_that_responded = len(get_numeric_data_by_school(attendance_polls[0], schools_in_location, week))
-                week_percent = compute_absent_values(present, deployedHeadTeachers)
+                present = gendered_text_responses(week, [location], ['Yes', 'YES', 'yes'], config_list[0].get('gender'))
+                absent = gendered_text_responses(week, [location], ['No', 'NO', 'no'], config_list[0].get('gender'))
+                total_gender_teachers = present + absent
+
+                schools_that_responded = total_gender_teachers
+                week_percent = compute_absent_values(present, total_gender_teachers)
                 weekly_percent_results.append(week_percent)
                 weekly_present_result.append(present)
                 weekly_school_responses.append(schools_that_responded)
@@ -361,9 +364,6 @@ def compute_absenteeism_summary(indicator, locations, get_time=datetime.datetime
 
 
 def get_count_for_yes_no_response(polls, locations, time_range):
-    responses = Response.objects.filter(poll__in = polls,
-                                      eav_values__value_text__in = ['Yes', 'YES', 'yes'])
-
     yes_result =  Response.objects.filter(poll__in = polls,
                                       has_errors = False,
                                       message__direction = 'I',
@@ -457,3 +457,20 @@ def compute_absent_values(present, enrollment):
         return 0
     else:
         return round(((enrollment - present) * 100 / enrollment), 2)
+
+def gendered_text_responses(date_weeks, locations, options, gender):
+    poll = Poll.objects.get(name='edtrac_head_teachers_attendance')
+    gendered_schools = EmisReporter.objects.filter(reporting_location__in = locations,
+                                                   gender = gender,
+                                                   groups__name = "Head Teachers") \
+                                           .exclude(schools = None) \
+                                           .values('reporting_location__id')
+
+    result =  Response.objects.filter(poll = poll,
+                                      has_errors = False,
+                                      message__direction = 'I',
+                                      date__range = date_weeks,
+                                      eav_values__value_text__in = options,
+                                      contact__reporting_location__id__in = gendered_schools) \
+                              .values('contact__reporting_location__id').count()
+    return result or 0

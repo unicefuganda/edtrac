@@ -340,23 +340,6 @@ def violence_numbers_reported(locations):
     return {'violence_numbers_reported' : month_total('edtrac_violence_reported', locations)}
 
 
-def gendered_text_responses(date_weeks, locations, options, gender):
-    poll = Poll.objects.get(name='edtrac_head_teachers_attendance')
-    gendered_schools = EmisReporter.objects.filter(reporting_location__in = locations,
-                                                   gender = gender,
-                                                   groups__name = "Head Teachers") \
-                                           .exclude(schools = None) \
-                                           .values('reporting_location__id')
-
-    result =  Response.objects.filter(poll = poll,
-                                      has_errors = False,
-                                      message__direction = 'I',
-                                      date__range = date_weeks,
-                                      eav_values__value_text__in = options,
-                                      contact__reporting_location__id__in = gendered_schools) \
-                              .values('contact__reporting_location__id').count()
-    return result or 0
-
 def compute_percent(x,y):
     if y != 0:
         return (100 * x) / y
