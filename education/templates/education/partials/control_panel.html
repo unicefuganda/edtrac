@@ -81,6 +81,11 @@ Control Panel - {{ block.super }}
 					<td>Report which shows how frequently schools are submitting attendance data</td>
 					<td><a href="{% url 'system-report' %}">Send email</a></td>
 				</tr>
+                <tr>
+					<td>Alerts</td>
+					<td>Report which shows unsolicited messages sent in</td>
+					<td><a href="{% url 'alert-messages' %}">Alerts Report</a></td>
+				</tr>
 
 			</tbody>
 		</table>
