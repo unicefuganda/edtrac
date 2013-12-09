@@ -1,7 +1,6 @@
 from django.db import models
 from script.models import Script
 
-
 class ScriptSchedule(models.Model):
     script = models.ForeignKey(Script)
     date = models.DateTimeField(auto_now=True)

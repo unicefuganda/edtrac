@@ -26,5 +26,4 @@ class Command(BaseCommand):
             slug = options['slug']
 
         schedule_script_now(grp=group, slug=slug)
-        self.stdout.write('')
         self.stdout.write('done!')
