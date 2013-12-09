@@ -198,8 +198,6 @@ urlpatterns = patterns('',
     url(r'^edtrac/toexcel/(?P<start_date>[0-9\-]+)/(?P<end_date>[0-9\-]+)$',to_excel, name="to-excel"),
     url(r'^edtrac/users/(\d+)/edit/', edit_user, name='edit_user'),
     url(r'^edtac/users/add/', edit_user, name='add_user'),
-    #user alerts
-    url(r'^edtrac/alert-messages/$', alert_messages, name='alert-messages'),
 
     url(r'^edtrac/user/$', generic, {
         'model':User,
