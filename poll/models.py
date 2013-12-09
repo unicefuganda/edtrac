@@ -14,7 +14,8 @@ from django.utils.translation import ugettext as _
 from mptt.forms import TreeNodeChoiceField
 from rapidsms.models import Contact, Connection
 
-from eav import register
+import eav
+# from eav import register
 from eav.models import Value, Attribute
 
 from generic.sorters import SimpleSorter
@@ -620,6 +621,7 @@ class Category(models.Model):
         return u'%s' % self.name
 
 class Response(models.Model):
+
     """
     Responses tie incoming messages from poll participants to a particular
     bucket that their response is associated with.  Web users may also be
@@ -640,7 +642,9 @@ class Response(models.Model):
             if not rc.category in categories:
                 rc.delete()
 
-register(Response)
+eav.register(Response)
+
+# Attribute.objects.create(name='poll_text_value', datatype=Attribute.TYPE_TEXT)
 
 class Rule(models.Model):
     """
