@@ -29,7 +29,7 @@ def view_stats(req,
     context_vars = {}
     poll_enroll = Poll.objects.get(name=enrol_deploy_poll)
     poll_attendance = Poll.objects.get(name=attendance_poll)
-    term_range = [getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]
+    term_range = (getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END'))
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of(
             'UNICEF Officials'):
