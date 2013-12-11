@@ -8,6 +8,9 @@ install:
   - pip install -r requirements.pip --use-mirrors
   - sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm
 
+env:
+  - DJANGO_SETTINGS_MODULE=settings.travis
+
 before_script:
   - psql -c 'create database edtrac;' -U postgres
   - git submodule init
@@ -18,4 +21,4 @@ script:
   - cd edtrac_project
   - python manage.py syncdb --noinput
   - python manage.py migrate
-  - python manage.py test education.test --settings=settings.travis
+  - python manage.py test education.test
