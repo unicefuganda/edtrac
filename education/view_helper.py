@@ -52,27 +52,17 @@ def view_stats(req,
         attendance_previous_week = get_numeric_data_all_locations(poll_attendance, previous_week)
 
         for location in locations:
-            location_enrolled = 0
-            location_attendance_current_week = 0
-            location_attendance_previous_week = 0
-            if location.id in enrolled:
-                location_enrolled = enrolled[location.id]
-            if location.id in attendance_current_week:
-                location_attendance_current_week = attendance_current_week[location.id]
-            if location.id in attendance_previous_week:
-                location_attendance_previous_week = attendance_previous_week[location.id]
+            location_enrolled = enrolled[location.id] or 0
+            location_attendance_current_week = attendance_current_week[location.id] or 0
+            location_attendance_previous_week = attendance_previous_week[location.id] or 0
 
             percent_current_week = round(compute_absent_values(location_attendance_current_week, location_enrolled), 2)
             percent_previous_week = round(compute_absent_values(location_attendance_previous_week, location_enrolled), 2)
 
-            if location.type_id == 'sub_county' and location_enrolled > 0:
+            if location_enrolled > 0 and (location.type_id == 'sub_county' or location.type_id == 'district'):
                 location_data.append(
-                    [location, percent_current_week, percent_previous_week, location_enrolled, location_attendance_current_week,
-                     location_attendance_previous_week])
-            elif location.type_id == 'district':
-                location_data.append(
-                    [location, percent_current_week, percent_previous_week, location_enrolled, location_attendance_current_week,
-                     location_attendance_previous_week])
+                    (location, percent_current_week, percent_previous_week, location_enrolled, location_attendance_current_week,
+                     location_attendance_previous_week))
     else:
         time_range_form = ResultForm(data=req.POST)
         to_ret = []
