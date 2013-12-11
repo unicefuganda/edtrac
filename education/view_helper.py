@@ -93,12 +93,8 @@ def view_stats(req,
                 attendance = get_numeric_data_all_locations(poll_attendance, period)
 
                 for location in locations:
-                    location_enrolled = 0
-                    location_attendance = 0
-                    if location.id in enrolled:
-                        location_enrolled = enrolled[location.id]
-                    if location.id in attendance:
-                        location_attendance = attendance[location.id]
+                    location_enrolled = enrolled[location.id] or 0
+                    location_attendance = attendance[location.id] or 0
 
                     location_periodic_absenteeism_value = round(compute_absent_values(location_attendance, location_enrolled), 2)
                     if location.id not in all_locations_periodic_absenteeism:
