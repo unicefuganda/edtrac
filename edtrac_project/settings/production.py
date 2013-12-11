@@ -55,10 +55,9 @@ FIRST_TERM_BEGINS =  datetime.datetime(2013, 2, 4)
 SECOND_TERM_BEGINS =  datetime.datetime(2013, 5, 27)
 THIRD_TERM_BEGINS =  datetime.datetime(2013, 9, 16)
 
-#second term start and end dates
-
-SCHOOL_TERM_START=datetime.datetime(2013, 5,27)
-SCHOOL_TERM_END = datetime.datetime(2013, 8,23)
+# Current term start and end dates
+SCHOOL_TERM_START = SECOND_TERM_BEGINS
+SCHOOL_TERM_END   = datetime.datetime(2013, 8, 23)
 
 SCHOOL_HOLIDAYS=[
     # (start_of_holiday_datetime, end_of_holidate_datetime),
