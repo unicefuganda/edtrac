@@ -66,7 +66,7 @@ Installation
 
 ##Settings
 
-Set the environment variable `$DJANGO_SETTINGS_FILE` to e.g. `settings.local`.
+Set the environment variable `$DJANGO_SETTINGS_MODULE` to e.g. `settings.local`.
 
 
 Continuous Integration
