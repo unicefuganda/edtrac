@@ -146,93 +146,100 @@ def get_aggregated_report_data(locations, time_range, config_list):
         for v in attendance_by_indicator.values():
             v.append({'week': _date, 'present': 0, 'enrollment': 0, 'percent': 0})
 
-    for location in locations:
-        config_set_result = {}
-        has_enrollment = False
-        # get school in current location
-        schools_in_location = schoolSource.filter(location__in=[location])
+    location_absenteeism_percent_values = {}
+    for config in config_list:
+        if config.get('collective_dict_key') in indicator_list:
+            enrollment_polls = Poll.objects.filter(name__in = [config.get('enrollment_poll')[0]])
+            attendance_polls = Poll.objects.filter(name__in = [config.get('attendance_poll')[0]])
+            # get both enroll list and schools that responded
+            enroll_indicator_totals  = get_numeric_data_all_locations(enrollment_polls[0], term_range)
+            enroll_indicator_total = sum(enroll_indicator_totals)
+            enrollment_by_indicator[config.get('collective_dict_key')] = enroll_indicator_total
 
-        for config in config_list:
-            if config.get('collective_dict_key') in indicator_list:
-                enrollment_polls = Poll.objects.filter(name__in=[config.get('enrollment_poll')[0]])
-                attendance_polls = Poll.objects.filter(name__in=[config.get('attendance_poll')[0]])
-                # get both enroll list and schools that responded
-                enroll_indicator_total, responsive_schools = get_numeric_enrollment_data(enrollment_polls[0],[location],term_range)
-                has_enrollment = enroll_indicator_total > 0
-                enrollment_by_indicator[config.get('collective_dict_key')] += enroll_indicator_total
+            weekly_school_count = []
+            for week in time_range:
+                # get attendance total for week by indicator from config file
+                attendance_data_totals = get_numeric_data_all_locations(attendance_polls[0], week)
+                attend_week_total = sum(attendance_data_totals)
+                # get schools that Responded
+                schools_that_responded = len(attendance_data_totals)
+                week_percent = compute_absent_values(attend_week_total, enroll_indicator_total)
+                weekly_school_count.append(schools_that_responded)
 
-                absenteeism_percent = 0
-                week_count = 0
-                weekly_results = []
-                weekly_results_log = []
-                weekly_school_count = []
+                #Loop through locations and determine weekly location absenteeism values
+                for location in locations:
+                    location_enrollment = 0
+                    location_attendance = 0
+                    location_absenteeism_percent_values[location.name] = {config.get('collective_dict_key'): 0}
 
-                for week in time_range:
-                    week_count += 1
-                    # get attendance total for week by indicator from config file
-                    attend_week_total = sum(get_numeric_data_by_school(attendance_polls[0], responsive_schools, week))
-                    # get schools that Responded
-                    schools_that_responded = len(get_numeric_data_by_school(attendance_polls[0], schools_in_location, week))
-                    week_percent = compute_absent_values(attend_week_total, enroll_indicator_total)
-                    absenteeism_percent += week_percent
-                    weekly_school_count.append(schools_that_responded)
-                    weekly_results.append(week_percent)
-                    weekly_results_log.append(week_percent)
-                    weekly_results_log.append('P' + str(attend_week_total))
-                    weekly_results_log.append('E' + str(enroll_indicator_total))
+                    if location.id in enroll_indicator_totals:
+                        location_enrollment = enroll_indicator_totals[location.id]
+                        if location.id in attendance_data_totals:
+                            location_attendance = attendance_data_totals[location.id]
+                        location_absenteeism_percent_values[location.name][config.get('collective_dict_key')] += compute_absent_values(location_attendance, location_enrollment)
 
+                # update attendance by indicator collection with values per week
+                for k, v in attendance_by_indicator.items():
+                    if k == config.get('collective_dict_key'):
+                        for val in v:
+                            if val['week'] == week:
+                                val['percent'] = week_percent
+                                val['present'] = attend_week_total
+                                val['enrollment'] = enrollment_by_indicator[config.get('collective_dict_key')]
 
-                    # update attendance by indicator collection with values per week
-                    for k, v in attendance_by_indicator.items():
-                        if k == config.get('collective_dict_key'):
-                            for val in v:
-                                if val['week'] == week:
-                                    val['percent'] = val['percent'] + week_percent
-                                    val['present'] = val['present'] + attend_week_total
-                                    val['enrollment'] = enrollment_by_indicator[config.get('collective_dict_key')]
+            # update school reporting summary collection
+            for item in school_report:
+                for k, v in item.items():
+                    if k == config.get('collective_dict_key'):
+                        item[k] = [sum(a) for a in zip(*[v, weekly_school_count])]
 
-                # update school reporting summary collection
-                for item in school_report:
-                    for k, v in item.items():
-                        if k == config.get('collective_dict_key'):
-                            item[k] = [sum(a) for a in zip(*[v, weekly_school_count])]
+        else: # used to compute head teachers absenteeism
+            deployedHeadTeachers = get_all_deployed_head_teachers(headteachersSource)
+            deployedHeadTeachersTotal = sum(deployedHeadTeachers)
+            enrollment_by_indicator[config.get('collective_dict_key')] = deployedHeadTeachersTotal
+            attendance_polls = Poll.objects.filter(name__in=['edtrac_head_teachers_attendance'])
+            weekly_present = []
+            weekly_school_count = []
+            for week in time_range:
+                present, absent = get_count_for_yes_no_response_all_locations(attendance_polls, week)
+                attendance_data_totals = get_numeric_data_all_locations(attendance_polls[0], week)
+                schools_that_responded = len(attendance_data_totals)
 
-                # adds average percentage to dict_key
-                config_set_result[config.get('collective_dict_key')] = round(absenteeism_percent / len(time_range),2)
+                week_percent = compute_absent_values(present, deployedHeadTeachersTotal)
+                weekly_present.append(present)
+                weekly_school_count.append(schools_that_responded)
 
-            else: # used to compute head teachers absenteeism
-                deployedHeadTeachers = get_deployed_head_Teachers(headteachersSource, [location])
-                enrollment_by_indicator[config.get('collective_dict_key')] += deployedHeadTeachers
-                attendance_polls = Poll.objects.filter(name__in=['edtrac_head_teachers_attendance'])
-                weekly_present = []
-                weekly_percent = []
-                weekly_school_count = []
-                for week in time_range:
-                    present, absent = get_count_for_yes_no_response(attendance_polls, [location], week)
-                    schools_that_responded = len(
-                        get_numeric_data_by_school(attendance_polls[0], schools_in_location, week))
-                    week_percent = compute_absent_values(present, deployedHeadTeachers)
-                    weekly_present.append(present)
-                    weekly_percent.append(week_percent)
-                    weekly_school_count.append(schools_that_responded)
-                    # update attendance by indicator collection with values per week
-                    for k, v in attendance_by_indicator.items():
-                        if k == config.get('collective_dict_key'):
-                            for val in v:
-                                if val['week'] == week:
-                                    val['percent'] = val['percent'] + week_percent
-                                    val['present'] = val['present'] + present
-                                    val['enrollment'] = enrollment_by_indicator[config.get('collective_dict_key')]
+                #Loop through locations and determine weekly location absenteeism values
+                for location in locations:
+                    location_enrollment = 0
+                    location_attendance = 0
+                    location_absenteeism_percent_values[location.name] = {config.get('collective_dict_key'): 0}
 
-                percent_absent = compute_absent_values(sum(weekly_present) / len(time_range), deployedHeadTeachers)
-                config_set_result[config.get('collective_dict_key')] = round(percent_absent, 2)
-                for item in school_report:
-                    for k, v in item.items():
-                        if k == config.get('collective_dict_key'):
-                            item[k] = [sum(a) for a in zip(*[v, weekly_school_count])]
+                    if location.id in enroll_indicator_totals:
+                        location_enrollment = enroll_indicator_totals[location.id]
+                        if location.id in attendance_data_totals:
+                            location_attendance = attendance_data_totals[location.id]
+                        location_absenteeism_percent_values[location.name][config.get('collective_dict_key')] += compute_absent_values(location_attendance, location_enrollment)
 
-        if has_enrollment:
-            collective_result[location.name] = config_set_result
+                # update attendance by indicator collection with values per week
+                for k, v in attendance_by_indicator.items():
+                    if k == config.get('collective_dict_key'):
+                        for val in v:
+                            if val['week'] == week:
+                                val['percent'] = week_percent
+                                val['present'] = present
+                                val['enrollment'] = enrollment_by_indicator[config.get('collective_dict_key')]
+
+            for item in school_report:
+                for k, v in item.items():
+                    if k == config.get('collective_dict_key'):
+                        item[k] = [sum(a) for a in zip(*[v, weekly_school_count])]
+
+        # adds average percentage to dict_key
+        for location, location_absenteeism_percent in location_absenteeism_percent_values.items():
+            location_absenteeism_percent[config.get('collective_dict_key')] = round(location_absenteeism_percent[config.get('collective_dict_key')] / len(time_range),2)
+
+    collective_result = location_absenteeism_percent
 
     #absenteeism computation model : problem : hides some facts a long each location and computes at global count across all locations
     # get sum of present values for all locations, sum of  enrollment values for all locations, all accross each indicator
@@ -300,10 +307,10 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
             for week in time_range:
                 present = gendered_text_responses(week, [location], ['Yes', 'YES', 'yes'], config_list[0].get('gender'))
                 absent = gendered_text_responses(week, [location], ['No', 'NO', 'no'], config_list[0].get('gender'))
-                total_gender_teachers = present + absent
+                total_head_teachers = present + absent
 
-                schools_that_responded = total_gender_teachers
-                week_percent = compute_absent_values(present, total_gender_teachers)
+                schools_that_responded = total_head_teachers
+                week_percent = compute_absent_values(present, total_head_teachers)
                 weekly_percent_results.append(week_percent)
                 weekly_present_result.append(present)
                 weekly_school_responses.append(schools_that_responded)
@@ -385,6 +392,26 @@ def get_count_for_yes_no_response(polls, locations, time_range):
 
     return yes_result, no_result
 
+def get_count_for_yes_no_response_all_locations(polls, time_range):
+    yes_result =  Response.objects.filter(poll__in = polls,
+                                      has_errors = False,
+                                      message__direction = 'I',
+                                      date__range = time_range,
+                                      eav_values__value_text__in = ['Yes', 'YES', 'yes']) \
+                              .values('contact__reporting_location__id').count()
+    no_result =  Response.objects.filter(poll__in = polls,
+                                      has_errors = False,
+                                      message__direction = 'I',
+                                      date__range = time_range,
+                                      eav_values__value_text__in = ['No', 'NO', 'no']) \
+                              .values('contact__reporting_location__id').count()
+    if not yes_result:
+        yes_result = 0
+    if not no_result:
+        no_result = 0
+
+    return yes_result, no_result
+
 
 def get_count_for_yes_no_by_school(polls, School, time_range):
     yes_result =  Response.objects.filter(poll__in = polls,
@@ -428,6 +455,16 @@ def get_deployed_head_Teachers_by_school(school, locations):
 
 def get_deployed_head_Teachers(dataSource, locations):
     return get_deployed_head_Teachers_by_school(dataSource.values_list('schools', flat=True), locations)
+
+def get_all_deployed_head_teachers(dataSource):
+    heads = EmisReporter.objects.filter(schools__in = dataSource.values_list('schools', flat=True),
+                                        groups__name = 'SMC').values('reporting_location') \
+                            .annotate(total = Sum('id'))
+    location_totals = [(result['reporting_location'], result['total'] or 0) for result in heads]
+    result = {}
+    for (key, value) in location_totals:
+        result[key] = value
+    return result
 
 def get_numeric_data(poll, locations, time_range):
     return NumericResponsesFor(poll).forDateRange(time_range).forLocations(locations).total()
