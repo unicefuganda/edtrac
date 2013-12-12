@@ -169,10 +169,10 @@ def report_dashboard(request):
         return render_to_response('education/admin/detail_report_district.html',context, RequestContext(request))
 
 
-
 @login_required
 def report_district_dashboard(request):
     context = {}
+    district = Location.objects.get(name=request.GET['district'], type='district')
     context['district'] = district
     return render_to_response('education/admin/detail_report_district.html',context, RequestContext(request))
 
@@ -220,6 +220,7 @@ def dash_report_district(request):
     time_range = get_week_date(depth=4)
     weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in time_range]
     time_range.reverse()
+    district = Location.objects.get(name=request.GET['district'], type='district')
     location = Location.objects.filter(type__in=['district'],name__in=[district])
 
     collective_result, chart_data, school_percent, tooltips, = get_aggregated_report_for_district(location, time_range,config_list)
