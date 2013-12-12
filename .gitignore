@@ -13,4 +13,4 @@ Vagrantfile
 .vagrant
 .vagrant/*
 .coverage
-
+static/

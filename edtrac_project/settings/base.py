@@ -83,6 +83,7 @@ INSTALLED_BACKENDS = {
     },
 }
 
+STATIC_ROOT = os.path.join(filedir, 'static')
 
 # to help you get started quickly, many django/rapidsms apps are enabled
 # by default. you may wish to remove some and/or add your own.
@@ -103,6 +104,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sites",
     "django.contrib.humanize",
+    "django.contrib.staticfiles",
     "script",
     "poll",
     "education",
