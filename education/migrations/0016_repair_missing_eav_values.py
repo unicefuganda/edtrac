@@ -28,4 +28,4 @@ class Migration(DataMigration):
             invalid = getattr(settings, "INVALID_RESPONSE", lambda response: False)
             response.has_errors = response.has_errors or invalid(response)
 
-            response.save(force_update=True)
+            response.save()
