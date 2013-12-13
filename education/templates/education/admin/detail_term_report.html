@@ -126,12 +126,11 @@ function displaySchoolPercent(school_percent){
                     result +='<tr>';
                     result +='<td><a href="/edtrac/district-report/?district='+district+'">'+district+'</a></td>';
 
-                    $.each(dataSet,function(k,v){
-                        if(k=='P3 Pupils'){result +='<td>'+v+'</td>';}
-                        if(k=='P6 Pupils'){result +='<td>'+v+'</td>';}
-                        if(k=='Teachers'){result +='<td>'+v+'</td>';}
-                        if(k=='Head Teachers'){result +='<td>'+v+'</td>';}
-                    })
+                    if('P3 Pupils' in dataSet){ result +='<td>'+dataSet['P3 Pupils']+'</td>'; }
+                    if('P6 Pupils' in dataSet){ result +='<td>'+dataSet['P6 Pupils']+'</td>'; }
+                    if('Teachers' in dataSet){ result +='<td>'+dataSet['Teachers']+'</td>'; }
+                    if('Head Teachers' in dataSet){ result +='<td>'+dataSet['Head Teachers']+'</td>'; }
+
                     result +='</tr>';
                 })
                 result +='</table>';

@@ -137,14 +137,13 @@ function displaySchoolPercent(school_percent){
                 result +='<tr><th>District</th><th>P3 Absenteeism</th><th>P6 Absenteeism</th><th>Teacher Absenteeism</th><th>Head Teacher Absenteeism</th></tr>'
                 $.each(data,function(district,dataSet){
                     result +='<tr>';
-                    //result +='<td><a href="/edtrac/detail-attd/'+district+'/" >'+district+'</a></td>';
-                    result +='<td>'+district+'</td>';
-                    $.each(dataSet,function(k,v){
-                        if(k=='P3 Pupils'){result +='<td>'+v+'</td>';}
-                        if(k=='P6 Pupils'){result +='<td>'+v+'</td>';}
-                        if(k=='Teachers'){result +='<td>'+v+'</td>';}
-                        if(k=='Head Teachers'){result +='<td>'+v+'</td>';}
-                    })
+                    result +='<td><a href="/edtrac/detail-attd/'+district+'/" >'+district+'</a></td>';
+
+                    if('P3 Pupils' in dataSet){ result +='<td>'+dataSet['P3 Pupils']+'</td>'; }
+                    if('P6 Pupils' in dataSet){ result +='<td>'+dataSet['P6 Pupils']+'</td>'; }
+                    if('Teachers' in dataSet){ result +='<td>'+dataSet['Teachers']+'</td>'; }
+                    if('Head Teachers' in dataSet){ result +='<td>'+dataSet['Head Teachers']+'</td>'; }
+
                     result +='</tr>';
                 })
                 result +='</table>';
