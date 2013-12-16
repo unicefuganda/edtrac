@@ -181,6 +181,28 @@ class TestViewHelper(TestCase):
         self.assertEqual(1, yes)
         self.assertEqual(0, no)
 
+    def test_get_count_for_yes_no_response_all_locations(self):
+        params = {
+            "description": "A response value for a Poll with expected text responses",
+            "datatype": "text",
+            "enum_group": None,
+            "required": False,
+            "type": None,
+            "slug": "poll_text_value",
+            "name": "Text"
+        }
+        Attribute.objects.get_or_create(**params)
+
+        schedule_script_now(self.smc_group.name, slug=self.head_teacher_weekly_script.slug)
+        check_progress(self.head_teacher_weekly_script)
+        fake_incoming("yes", self.emis_reporter3)
+
+        yes, no = get_count_for_yes_no_response_all_locations([self.head_teacher_monitoring_poll], self.term_range)
+        print yes
+        print no
+        self.assertEqual({self.kampala_district.id : 1}, yes)
+        self.assertEqual({}, no)
+
     def test_get_aggregated_report_data_single_indicator(self):
         schedule_script_now(self.head_teacher_group.name, slug=self.head_teachers_termly_script.slug)
         check_progress(self.head_teachers_termly_script)
