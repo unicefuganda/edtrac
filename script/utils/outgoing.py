@@ -7,20 +7,7 @@ from rapidsms.models import Connection
 from poll.models import gettext_db
 import logging
 module_name = __name__
-# logger = logging.getLogger(module_name)
-
-#==========trying to log to script progress================#
 logger = logging.getLogger(module_name)
-logging.basicConfig(filename="script.log", level=logging.INFO)
-# Add the log message handler to the logger
-handler = logging.handlers.RotatingFileHandler("script.log", maxBytes=5242880, backupCount=5)
-
-formatter = logging.Formatter("%(asctime)-15s  %(name)-8s  %(levelname)-20s  %(message)s")
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-#==========trying to log to script progress================#
-
-
 def check_progress(script):
     """
     This function should check if a given script has script progress
@@ -46,7 +33,7 @@ def check_progress(script):
 
         # This happens unconditionally, to shortcircuit the case
         # where an expired step, set to COMPLETE above,
-        # can immediately transition to the next step
+        # can immidately transition to the next step
         to_transition = ScriptProgress.objects.need_to_transition(script, step)
         to_trans_list = list(to_transition.values_list('pk', flat=True))
         if to_transition.exists():
