@@ -61,7 +61,7 @@
                             $.each(data,function(index,dataSet){
                                 displaySchoolPercent(dataSet.school_percent);
                                 loadHighChart(dataSet.weeks,dataSet.chartData,'container','Absenteeism Over Current Month')
-                                displayTabularData(data)
+                                displayTabularData(dataSet.results)
                                 highChart_tooltips = dataSet.toolTips;
                                 $('#chart_loading').hide();
                             });
