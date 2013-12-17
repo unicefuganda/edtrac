@@ -48,15 +48,19 @@ class TestViewHelper(TestCase):
         self.emis_reporter1 = create_emis_reporters("dummy1", self.kampala_district, self.kampala_school, 12345,
                                                     self.head_teacher_group)
         self.emis_reporter1.grade = 'P3'
+        self.emis_reporter1.gender = 'M'
         self.emis_reporter1.save()
         self.emis_reporter2 = create_emis_reporters("dummy2", self.kampala_district, self.kampala_school, 12346,
                                                     self.head_teacher_group)
 
         self.emis_reporter2.grade = 'P3'
+        self.emis_reporter2.gender = 'M'
         self.emis_reporter2.save()
 
         self.emis_reporter3 = create_emis_reporters("dummy1", self.kampala_district, self.kampala_school, 12347,
                                                     self.smc_group)
+        self.emis_reporter3.gender = 'F'
+        self.emis_reporter3.save()
 
         self.p3_boys_absent_poll = create_poll_with_reporters("edtrac_boysp3_attendance",
                                                               "How many P3 boys are at school today?",
@@ -158,7 +162,21 @@ class TestViewHelper(TestCase):
 
     def test_should_get_deployed_head_teachers(self):
         result = get_deployed_head_Teachers(EmisReporter.objects.all(), [self.kampala_district])
-        self.assertEqual(1, result)
+        self.assertEqual(2, result)
+
+    def test_get_deployed_head_teachers_by_school(self):
+        result = get_deployed_head_Teachers_by_school([self.kampala_school], [self.kampala_district])
+        self.assertEqual(2, result)
+
+    def test_get_count_deployed_head_teachers_by_location(self):
+        result = get_count_deployed_head_teachers_by_location(EmisReporter.objects.all())
+        self.assertEqual({self.kampala_district.id: 2}, result)
+
+    def test_get_count_gender_deployed_head_teachers_by_location(self):
+        male_result = get_count_gender_deployed_head_teachers_by_location(EmisReporter.objects.all(), 'M')
+        female_result = get_count_gender_deployed_head_teachers_by_location(EmisReporter.objects.all(), 'F')
+        self.assertEqual({self.kampala_district.id: 2}, male_result)
+        self.assertEqual({}, female_result)
 
     def test_get_count_for_yes_no_response(self):
         params = {
@@ -198,10 +216,126 @@ class TestViewHelper(TestCase):
         fake_incoming("yes", self.emis_reporter3)
 
         yes, no = get_count_for_yes_no_response_all_locations([self.head_teacher_monitoring_poll], self.term_range)
-        print yes
-        print no
         self.assertEqual({self.kampala_district.id : 1}, yes)
         self.assertEqual({}, no)
+
+    def test_get_count_for_yes_no_by_school(self):
+        params = {
+            "description": "A response value for a Poll with expected text responses",
+            "datatype": "text",
+            "enum_group": None,
+            "required": False,
+            "type": None,
+            "slug": "poll_text_value",
+            "name": "Text"
+        }
+        Attribute.objects.get_or_create(**params)
+
+        schedule_script_now(self.smc_group.name, slug=self.head_teacher_weekly_script.slug)
+        check_progress(self.head_teacher_weekly_script)
+        fake_incoming("yes", self.emis_reporter3)
+
+        yes, no = get_count_for_yes_no_by_school([self.head_teacher_monitoring_poll], [self.kampala_school], self.term_range)
+        self.assertEqual(1, yes)
+        self.assertEqual(0, no)
+
+    def test_get_count_for_yes_no_response_all_schools(self):
+        params = {
+            "description": "A response value for a Poll with expected text responses",
+            "datatype": "text",
+            "enum_group": None,
+            "required": False,
+            "type": None,
+            "slug": "poll_text_value",
+            "name": "Text"
+        }
+        Attribute.objects.get_or_create(**params)
+
+        schedule_script_now(self.smc_group.name, slug=self.head_teacher_weekly_script.slug)
+        check_progress(self.head_teacher_weekly_script)
+        fake_incoming("yes", self.emis_reporter3)
+
+        yes, no = get_count_for_yes_no_response_all_schools([self.head_teacher_monitoring_poll], self.term_range)
+        self.assertEqual({self.kampala_school.id: 1}, yes)
+        self.assertEqual({}, no)
+
+    def test_gendered_text_responses(self):
+        params = {
+            "description": "A response value for a Poll with expected text responses",
+            "datatype": "text",
+            "enum_group": None,
+            "required": False,
+            "type": None,
+            "slug": "poll_text_value",
+            "name": "Text"
+        }
+        Attribute.objects.get_or_create(**params)
+
+        schedule_script_now(self.smc_group.name, slug=self.head_teacher_weekly_script.slug)
+        check_progress(self.head_teacher_weekly_script)
+        fake_incoming("yes", self.emis_reporter3)
+
+        male_yes_result = gendered_text_responses(self.term_range, [self.kampala_district], ['Yes', 'YES', 'yes'], 'M')
+        male_no_result = gendered_text_responses(self.term_range, [self.kampala_district], ['No', 'NO', 'no'], 'M')
+        female_yes_result = gendered_text_responses(self.term_range, [self.kampala_district], ['Yes', 'YES', 'yes'], 'F')
+        female_no_result = gendered_text_responses(self.term_range, [self.kampala_district],  ['No', 'NO', 'no'], 'F')
+
+        self.assertEqual(1, male_yes_result)
+        self.assertEqual(0, male_no_result)
+        self.assertEqual(0, female_yes_result)
+        self.assertEqual(0, female_no_result)
+
+    def test_gendered_text_responses_all_locations(self):
+        params = {
+            "description": "A response value for a Poll with expected text responses",
+            "datatype": "text",
+            "enum_group": None,
+            "required": False,
+            "type": None,
+            "slug": "poll_text_value",
+            "name": "Text"
+        }
+        Attribute.objects.get_or_create(**params)
+
+        schedule_script_now(self.smc_group.name, slug=self.head_teacher_weekly_script.slug)
+        check_progress(self.head_teacher_weekly_script)
+        fake_incoming("yes", self.emis_reporter3)
+
+        male_yes_result = gendered_text_responses_all_locations(self.term_range, ['Yes', 'YES', 'yes'], 'M')
+        male_no_result = gendered_text_responses_all_locations(self.term_range, ['No', 'NO', 'no'], 'M')
+        female_yes_result = gendered_text_responses_all_locations(self.term_range, ['Yes', 'YES', 'yes'], 'F')
+        female_no_result = gendered_text_responses_all_locations(self.term_range,  ['No', 'NO', 'no'], 'F')
+
+        self.assertEqual({self.kampala_district.id: 1}, male_yes_result)
+        self.assertEqual({}, male_no_result)
+        self.assertEqual({}, female_yes_result)
+        self.assertEqual({}, female_no_result)
+
+    def test_gendered_text_responses_all_schools(self):
+        params = {
+            "description": "A response value for a Poll with expected text responses",
+            "datatype": "text",
+            "enum_group": None,
+            "required": False,
+            "type": None,
+            "slug": "poll_text_value",
+            "name": "Text"
+        }
+        Attribute.objects.get_or_create(**params)
+
+        schedule_script_now(self.smc_group.name, slug=self.head_teacher_weekly_script.slug)
+        check_progress(self.head_teacher_weekly_script)
+        fake_incoming("yes", self.emis_reporter3)
+
+        male_yes_result = gendered_text_responses_all_schools(self.term_range, ['Yes', 'YES', 'yes'], 'M')
+        male_no_result = gendered_text_responses_all_schools(self.term_range, ['No', 'NO', 'no'], 'M')
+        female_yes_result = gendered_text_responses_all_schools(self.term_range, ['Yes', 'YES', 'yes'], 'F')
+        female_no_result = gendered_text_responses_all_schools(self.term_range,  ['No', 'NO', 'no'], 'F')
+
+        self.assertEqual({self.kampala_school.id: 1}, male_yes_result)
+        self.assertEqual({}, male_no_result)
+        self.assertEqual({}, female_yes_result)
+        self.assertEqual({}, female_no_result)
 
     def test_get_aggregated_report_data_single_indicator(self):
         schedule_script_now(self.head_teacher_group.name, slug=self.head_teachers_termly_script.slug)

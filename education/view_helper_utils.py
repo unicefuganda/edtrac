@@ -195,7 +195,7 @@ def get_aggregated_report_data(locations, time_range, config_list):
 
         else: # used to compute head teachers absenteeism
             headteachersSource = EmisReporter.objects.filter(reporting_location__in=locations, groups__name="Head Teachers").exclude(schools=None).select_related()
-            enroll_indicator_totals = get_all_deployed_head_teachers(headteachersSource)
+            enroll_indicator_totals = get_count_deployed_head_teachers_by_location(headteachersSource)
             totalCount = sum(enroll_indicator_totals.values())
             enrollment_by_indicator[config.get('collective_dict_key')] = totalCount
             attendance_polls = Poll.objects.filter(name__in=['edtrac_head_teachers_attendance'])
@@ -304,7 +304,7 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
                     location_absenteeism_percent_values[location.name] += compute_absent_values(location_attendance, location_enrollment)
 
     elif config_list[0].get('collective_dict_key') in ['Male Head Teachers', 'Female Head Teachers']:
-        enroll_indicator_totals = get_all_gender_deployed_head_teachers(headteachersSource, config_list[0].get('gender'))
+        enroll_indicator_totals = get_count_gender_deployed_head_teachers_by_location(headteachersSource, config_list[0].get('gender'))
         totalCount = sum(enroll_indicator_totals.values())
 
         for week in time_range:
@@ -332,7 +332,7 @@ def get_aggregated_report_data_single_indicator(locations, time_range, config_li
                     location_absenteeism_percent_values[location.name] += compute_absent_values(location_attendance, location_enrollment)
 
     else: # compute head teacher absenteeism
-        enroll_indicator_totals = get_all_deployed_head_teachers(headteachersSource)
+        enroll_indicator_totals = get_count_deployed_head_teachers_by_location(headteachersSource)
         totalCount = sum(enroll_indicator_totals.values())
         attendance_polls = Poll.objects.filter(name__in=['edtrac_head_teachers_attendance'])
 
@@ -496,24 +496,24 @@ def get_record_collection(locations, time_range):
 def get_deployed_head_Teachers_by_school(school, locations):
     heads = EmisReporter.objects.filter(reporting_location__in = locations,
                                         schools__in = school,
-                                        groups__name = 'SMC')
+                                        groups__name = 'Head Teachers')
     return heads.distinct().count()
 
 
 def get_deployed_head_Teachers(dataSource, locations):
     return get_deployed_head_Teachers_by_school(dataSource.values_list('schools', flat=True), locations)
 
-def get_all_deployed_head_teachers(dataSource):
+def get_count_deployed_head_teachers_by_location(dataSource):
     heads = EmisReporter.objects.filter(schools__in = dataSource.values_list('schools', flat=True),
-                                        groups__name = 'SMC').values('reporting_location') \
+                                        groups__name = 'Head Teachers').values('reporting_location') \
                             .order_by().annotate(total = Count('reporting_location'))
 
     location_totals = [(result['reporting_location'], result['total'] or 0) for result in heads]
     return collapse(location_totals)
 
-def get_all_gender_deployed_head_teachers(dataSource, gender):
+def get_count_gender_deployed_head_teachers_by_location(dataSource, gender):
     gendered_heads = EmisReporter.objects.filter(schools__in = dataSource.values_list('schools', flat=True),
-                                        groups__name = 'SMC', gender = gender,).values('reporting_location') \
+                                        groups__name = 'Head Teachers', gender = gender,).values('reporting_location') \
                             .order_by().annotate(total = Count('reporting_location'))
 
 
