@@ -52,9 +52,9 @@ def view_stats(req,
         attendance_previous_week = get_numeric_data_all_locations(poll_attendance, previous_week)
 
         for location in locations:
-            location_enrolled = enrolled[location.id] or 0
-            location_attendance_current_week = attendance_current_week[location.id] or 0
-            location_attendance_previous_week = attendance_previous_week[location.id] or 0
+            location_enrolled = enrolled[location.id] if location.id in enrolled else 0
+            location_attendance_current_week = attendance_current_week[location.id] if location.id in attendance_current_week else 0
+            location_attendance_previous_week = attendance_previous_week[location.id] if location.id in attendance_previous_week else 0
 
             percent_current_week = round(compute_absent_values(location_attendance_current_week, location_enrolled), 2)
             percent_previous_week = round(compute_absent_values(location_attendance_previous_week, location_enrolled), 2)
@@ -93,8 +93,8 @@ def view_stats(req,
                 attendance = get_numeric_data_all_locations(poll_attendance, period)
 
                 for location in locations:
-                    location_enrolled = enrolled[location.id] or 0
-                    location_attendance = attendance[location.id] or 0
+                    location_enrolled = enrolled[location.id] if location.id in enrolled else 0
+                    location_attendance = attendance[location.id] if location.id in attendance else 0
 
                     location_periodic_absenteeism_value = round(compute_absent_values(location_attendance, location_enrolled), 2)
                     if location.id not in all_locations_periodic_absenteeism:
