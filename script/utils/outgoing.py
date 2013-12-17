@@ -37,7 +37,7 @@ def check_progress(script):
         to_transition = ScriptProgress.objects.need_to_transition(script, step)
         to_trans_list = list(to_transition.values_list('pk', flat=True))
         if to_transition.exists():
-            logger.info("[%s] Need to transition %d steps for script: %s\n" % (module_name,len(to_transition_list),script.slug))
+            logger.info("[%s] Need to transition %d steps for script: %s\n" % (module_name,len(to_trans_list),script.slug))
             to_transition.moveon(script, step)
             ScriptProgress.objects.filter(pk__in=to_trans_list).filter(num_tries=None).update(num_tries=0)
             ScriptProgress.objects.filter(pk__in=to_trans_list).update(num_tries=F('num_tries') + 1, time=datetime.datetime.now())
