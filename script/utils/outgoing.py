@@ -25,7 +25,7 @@ def check_progress(script):
 
         to_resend = ScriptProgress.objects.need_to_resend(script, step)
         if to_resend.exists():
-            logger.debug("[%s] Resending %d messages for script: %s\n" % (module_name,to_resend.count(),script.slug))
+            logger.info("[%s] Resending %d messages for script: %s\n" % (module_name,to_resend.count(),script.slug))
             to_resend_list = list(to_resend.values_list('pk', flat=True))
             to_resend.filter(num_tries=None).update(num_tries=0)
             to_resend.update(num_tries=F('num_tries') + 1, time=datetime.datetime.now())
@@ -37,7 +37,7 @@ def check_progress(script):
         to_transition = ScriptProgress.objects.need_to_transition(script, step)
         to_trans_list = list(to_transition.values_list('pk', flat=True))
         if to_transition.exists():
-            logger.debug("[%s] Need to transition %d steps for script: %s\n" % (module_name,len(to_start_list),script.slug))
+            logger.info("[%s] Need to transition %d steps for script: %s\n" % (module_name,len(to_start_list),script.slug))
             to_transition.moveon(script, step)
             ScriptProgress.objects.filter(pk__in=to_trans_list).filter(num_tries=None).update(num_tries=0)
             ScriptProgress.objects.filter(pk__in=to_trans_list).update(num_tries=F('num_tries') + 1, time=datetime.datetime.now())
@@ -46,7 +46,7 @@ def check_progress(script):
     to_start = ScriptProgress.objects.need_to_start(script)
     to_start_list = list(to_start.values_list('pk', flat=True))
     if to_start.exists():
-        logger.debug("[%s] Starting script %d times: %s\n" % (module_name,len(to_start_list),script.slug))
+        logger.info("[%s] Starting script %d times: %s\n" % (module_name,len(to_start_list),script.slug))
         for sp in to_start:
             ScriptSession.objects.create(script=sp.script, connection=sp.connection)
 
