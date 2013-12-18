@@ -95,8 +95,8 @@ def get_aggregated_report_for_district(locations, time_range, config_list):
 
                     if school.id in enroll_indicator_totals:
                         school_enrollment = enroll_indicator_totals[school.id]
-                        if school.id in attendance_data_totals:
-                            school_attendance = attendance_data_totals[school.id]
+                        if school.id in present_data_totals:
+                            school_attendance = present_data_totals[school.id]
                         school_absenteeism_percent_values[school.name][config.get('collective_dict_key')] += compute_absent_values(school_attendance, school_enrollment)
 
                 for k, v in attendance_by_indicator.items():
