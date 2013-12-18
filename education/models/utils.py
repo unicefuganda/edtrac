@@ -936,7 +936,6 @@ def reschedule_weekly_script(grp = 'all', date=None, slug=''):
             _schedule_weekly_script(rep.groups.all()[0], rep.default_connection, slug, ['Teachers', 'Head Teachers'])
 
 def schedule_script_now(grp = 'all', slug=''):
-
     """
     manually reschedule script immediately
     """
@@ -949,6 +948,8 @@ def schedule_script_now(grp = 'all', slug=''):
     now_script.enabled = True
     grps = Group.objects.filter(name__iexact=grp)
     reporters = EmisReporter.objects.filter(groups__in=grps)
+
+    logger.info("Scheduling the %s script at %s \n " % (now_script.slug, datetime.datetime.now()))
     for reporter in reporters:
         if reporter.default_connection and reporter.groups.count() > 0:
             _schedule_script_now(reporter.groups.all()[0], reporter.default_connection, slug, ['Teachers', 'Head Teachers', 'SMC', 'GEM'])
