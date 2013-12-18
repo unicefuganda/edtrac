@@ -37,7 +37,7 @@ from unregister.models import Blacklist
 from .utils import themes
 from education.absenteeism_view_helper import *
 import datetime
-from datetime import date
+from datetime import date, timedelta
 from education.view_helper import *
 from education.view_helper_utils import *
 
@@ -1416,6 +1416,29 @@ def quitters(req):
     quitters = EmisReporter.objects.filter(connection__identity__in=Blacklist.objects.values_list('connection__identity',flat=True))
     return render_to_response('education/partials/reporters/quitters.html',{'quitters':quitters}, RequestContext(req))
 
+@login_required
+def alert_messages(req):
+    # pull messages for the last 3 months
+    time_range = [datetime.datetime.now() - timedelta(days=90), datetime.datetime.now()]
+    all_messages_filtered = messages(req).filter(date__range=time_range).order_by('-date')
+    erroneous_messages = all_messages_filtered.filter(poll_responses=None) | all_messages_filtered.filter(poll_responses__has_errors=True)
+    minimum_length = 20
+    unsolicited_messages = erroneous_messages.filter(text__regex=r'^.{' + str(minimum_length) + ',}$')
+    alerts=[]
+    for message in unsolicited_messages:
+        phone_numbers = ','.join(message.connection.contact.emisreporter.connection_set.all().values_list('identity', flat=True))
+        schools = ','.join(message.connection.contact.emisreporter.schools.all().values_list('name', flat=True))
+        alerts.append({
+            'name'     : message.connection.contact.emisreporter.name,
+            'number'   : phone_numbers,
+            'location' : message.connection.contact.emisreporter.reporting_location,
+            'school'   : schools,
+            'date'     : message.date,
+            'message'  : message.text
+        })
+
+    return render_to_response('education/partials/messages/alerts.html',{'alerts':alerts},RequestContext(req))
+
 class ViolenceDeoDetails(TemplateView):
     template_name = "education/deo/deo_violence_details.html"
 
@@ -2479,7 +2502,6 @@ def system_report(req=None):
     response['Content-Disposition'] = 'attachment; filename=SystemReport.xls'
     book.save(response)
     return response
-
 
 @login_required
 def excel_reports(req):
