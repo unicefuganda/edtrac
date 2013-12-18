@@ -47,13 +47,13 @@ TRAINING_MODE=False
 #these dates are necessary for the system to work properly and
 #should be entered every beginning of year. See _next_term_question_date()
 FIRST_TERM_BEGINS =  datetime.datetime(2013, 2, 4)
-SECOND_TERM_BEGINS =  datetime.datetime(2013, 5, 27)
+SECOND_TERM_BEGINS = datetime.datetime(2013, 5, 27)
 THIRD_TERM_BEGINS =  datetime.datetime(2013, 9, 16)
 
 #second term start and end dates
 
-SCHOOL_TERM_START=datetime.datetime(2013, 5,27)
-SCHOOL_TERM_END = datetime.datetime(2013, 8,23)
+SCHOOL_TERM_START= SECOND_TERM_BEGINS
+SCHOOL_TERM_END =  datetime.datetime(2013, 8, 23)
 
 SCHOOL_HOLIDAYS=[
     # (start_of_holiday_datetime, end_of_holidate_datetime),
