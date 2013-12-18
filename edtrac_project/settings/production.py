@@ -9,11 +9,6 @@ TEMPLATE_DEBUG = DEBUG
 EMAIL_HOST_USER = 'no-reply@uganda.rapidsms.org'
 EMAIL_HOST = '127.0.0.1'
 ADMINS = (
-#    ('Victor Miclovich', 'vicmiclovich@gmail.com'),
-#    ('Alfred Assey', 'asseym@gmail.com'),
-#    ('Raymond Besiga', 'raybesiga@gmail.com'),
-#    ('Augustine', 'kaugust@thoughtworks.com'),
-#    ('pooja', 'poojasal@thoughtworks.com'),
     ('Neil Couthinho', 'ncoutin@thoughtworks.com'),
     ('Chris Ford', 'cford@thoughtworks.com'),
     ('matlads', 'matlads@gmail.com'),
