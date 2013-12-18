@@ -132,7 +132,7 @@ class TestViewHelper(TestCase):
         check_progress(self.teachers_weekly_script)
         fake_incoming("20 boys", self.emis_reporter1)
         fake_incoming("10 boys", self.emis_reporter2)
-        result = get_numeric_data(self.p3_boys_absent_poll, [self.kampala_district], self.term_range)
+        result = get_numeric_data([self.p3_boys_absent_poll], [self.kampala_district], self.term_range)
         self.assertEqual(30, result)
 
 
@@ -141,24 +141,31 @@ class TestViewHelper(TestCase):
         check_progress(self.teachers_weekly_script)
         fake_incoming("20 boys", self.emis_reporter1)
         fake_incoming("5001 boys", self.emis_reporter2)
-        result = get_numeric_data(self.p3_boys_absent_poll, [self.kampala_district], self.term_range)
+        result = get_numeric_data([self.p3_boys_absent_poll], [self.kampala_district], self.term_range)
         self.assertEqual(20, result)
 
 
-    def test_should_return_all_location_numeric_data_given_a_poll_and_time_range(self):
+    def test_should_return_location_numeric_data_given_a_poll_and_time_range(self):
         schedule_script_now(self.head_teacher_group.name, slug=self.teachers_weekly_script.slug)
         check_progress(self.teachers_weekly_script)
         fake_incoming("20 boys", self.emis_reporter1)
         fake_incoming("10 boys", self.emis_reporter2)
-        result = get_numeric_data_all_locations(self.p3_boys_absent_poll, self.term_range)
+        result = get_numeric_data_for_location([self.p3_boys_absent_poll], [self.kampala_district], self.term_range)
         self.assertEqual(30, result[self.kampala_district.id])
 
     def test_should_return_get_numeric_data_by_school(self):
         schedule_script_now(self.head_teacher_group.name, slug=self.teachers_weekly_script.slug)
         check_progress(self.teachers_weekly_script)
         fake_incoming("20 boys", self.emis_reporter1)
-        school_results = get_numeric_data_by_school(self.p3_boys_absent_poll, [self.kampala_school], self.term_range)
+        school_results = get_numeric_data_by_school([self.p3_boys_absent_poll], [self.kampala_school], self.term_range)
         self.assertEqual(20, sum(school_results))
+
+    def test_should_return_get_numeric_data_all_schools_for_locations(self):
+        schedule_script_now(self.head_teacher_group.name, slug=self.teachers_weekly_script.slug)
+        check_progress(self.teachers_weekly_script)
+        fake_incoming("20 boys", self.emis_reporter1)
+        school_results = get_numeric_data_all_schools_for_locations([self.p3_boys_absent_poll], [self.kampala_district], self.term_range)
+        self.assertEqual({self.kampala_school.id: 20}, school_results)
 
     def test_should_get_deployed_head_teachers(self):
         result = get_deployed_head_Teachers(EmisReporter.objects.all(), [self.kampala_district])
@@ -172,13 +179,17 @@ class TestViewHelper(TestCase):
         result = get_count_deployed_head_teachers_by_location(EmisReporter.objects.all())
         self.assertEqual({self.kampala_district.id: 2}, result)
 
+    def test_get_count_deployed_head_teachers_by_school(self):
+        result = get_count_deployed_head_teachers_by_school(EmisReporter.objects.all())
+        self.assertEqual({self.kampala_school.id: 2}, result)
+
     def test_get_count_gender_deployed_head_teachers_by_location(self):
         male_result = get_count_gender_deployed_head_teachers_by_location(EmisReporter.objects.all(), 'M')
         female_result = get_count_gender_deployed_head_teachers_by_location(EmisReporter.objects.all(), 'F')
         self.assertEqual({self.kampala_district.id: 2}, male_result)
         self.assertEqual({}, female_result)
 
-    def test_get_count_for_yes_no_response(self):
+    def test_get_count_for_yes_no_response_by_location(self):
         params = {
             "description": "A response value for a Poll with expected text responses",
             "datatype": "text",
@@ -194,32 +205,11 @@ class TestViewHelper(TestCase):
         check_progress(self.head_teacher_weekly_script)
         fake_incoming("yes", self.emis_reporter3)
 
-        yes, no = get_count_for_yes_no_response([self.head_teacher_monitoring_poll], [self.kampala_district],
-                                                self.term_range)
-        self.assertEqual(1, yes)
-        self.assertEqual(0, no)
-
-    def test_get_count_for_yes_no_response_all_locations(self):
-        params = {
-            "description": "A response value for a Poll with expected text responses",
-            "datatype": "text",
-            "enum_group": None,
-            "required": False,
-            "type": None,
-            "slug": "poll_text_value",
-            "name": "Text"
-        }
-        Attribute.objects.get_or_create(**params)
-
-        schedule_script_now(self.smc_group.name, slug=self.head_teacher_weekly_script.slug)
-        check_progress(self.head_teacher_weekly_script)
-        fake_incoming("yes", self.emis_reporter3)
-
-        yes, no = get_count_for_yes_no_response_all_locations([self.head_teacher_monitoring_poll], self.term_range)
+        yes, no = get_count_for_yes_no_response_by_location([self.head_teacher_monitoring_poll], [self.kampala_district], self.term_range)
         self.assertEqual({self.kampala_district.id : 1}, yes)
         self.assertEqual({}, no)
 
-    def test_get_count_for_yes_no_by_school(self):
+    def test_get_count_for_yes_no_response_by_school(self):
         params = {
             "description": "A response value for a Poll with expected text responses",
             "datatype": "text",
@@ -235,29 +225,10 @@ class TestViewHelper(TestCase):
         check_progress(self.head_teacher_weekly_script)
         fake_incoming("yes", self.emis_reporter3)
 
-        yes, no = get_count_for_yes_no_by_school([self.head_teacher_monitoring_poll], [self.kampala_school], self.term_range)
-        self.assertEqual(1, yes)
-        self.assertEqual(0, no)
-
-    def test_get_count_for_yes_no_response_all_schools(self):
-        params = {
-            "description": "A response value for a Poll with expected text responses",
-            "datatype": "text",
-            "enum_group": None,
-            "required": False,
-            "type": None,
-            "slug": "poll_text_value",
-            "name": "Text"
-        }
-        Attribute.objects.get_or_create(**params)
-
-        schedule_script_now(self.smc_group.name, slug=self.head_teacher_weekly_script.slug)
-        check_progress(self.head_teacher_weekly_script)
-        fake_incoming("yes", self.emis_reporter3)
-
-        yes, no = get_count_for_yes_no_response_all_schools([self.head_teacher_monitoring_poll], self.term_range)
-        self.assertEqual({self.kampala_school.id: 1}, yes)
+        yes, no = get_count_for_yes_no_response_by_school([self.head_teacher_monitoring_poll], [self.kampala_district], self.term_range)
+        self.assertEqual({self.kampala_school.id : 1}, yes)
         self.assertEqual({}, no)
+
 
     def test_gendered_text_responses(self):
         params = {
@@ -285,57 +256,6 @@ class TestViewHelper(TestCase):
         self.assertEqual(0, female_yes_result)
         self.assertEqual(0, female_no_result)
 
-    def test_gendered_text_responses_all_locations(self):
-        params = {
-            "description": "A response value for a Poll with expected text responses",
-            "datatype": "text",
-            "enum_group": None,
-            "required": False,
-            "type": None,
-            "slug": "poll_text_value",
-            "name": "Text"
-        }
-        Attribute.objects.get_or_create(**params)
-
-        schedule_script_now(self.smc_group.name, slug=self.head_teacher_weekly_script.slug)
-        check_progress(self.head_teacher_weekly_script)
-        fake_incoming("yes", self.emis_reporter3)
-
-        male_yes_result = gendered_text_responses_all_locations(self.term_range, ['Yes', 'YES', 'yes'], 'M')
-        male_no_result = gendered_text_responses_all_locations(self.term_range, ['No', 'NO', 'no'], 'M')
-        female_yes_result = gendered_text_responses_all_locations(self.term_range, ['Yes', 'YES', 'yes'], 'F')
-        female_no_result = gendered_text_responses_all_locations(self.term_range,  ['No', 'NO', 'no'], 'F')
-
-        self.assertEqual({self.kampala_district.id: 1}, male_yes_result)
-        self.assertEqual({}, male_no_result)
-        self.assertEqual({}, female_yes_result)
-        self.assertEqual({}, female_no_result)
-
-    def test_gendered_text_responses_all_schools(self):
-        params = {
-            "description": "A response value for a Poll with expected text responses",
-            "datatype": "text",
-            "enum_group": None,
-            "required": False,
-            "type": None,
-            "slug": "poll_text_value",
-            "name": "Text"
-        }
-        Attribute.objects.get_or_create(**params)
-
-        schedule_script_now(self.smc_group.name, slug=self.head_teacher_weekly_script.slug)
-        check_progress(self.head_teacher_weekly_script)
-        fake_incoming("yes", self.emis_reporter3)
-
-        male_yes_result = gendered_text_responses_all_schools(self.term_range, ['Yes', 'YES', 'yes'], 'M')
-        male_no_result = gendered_text_responses_all_schools(self.term_range, ['No', 'NO', 'no'], 'M')
-        female_yes_result = gendered_text_responses_all_schools(self.term_range, ['Yes', 'YES', 'yes'], 'F')
-        female_no_result = gendered_text_responses_all_schools(self.term_range,  ['No', 'NO', 'no'], 'F')
-
-        self.assertEqual({self.kampala_school.id: 1}, male_yes_result)
-        self.assertEqual({}, male_no_result)
-        self.assertEqual({}, female_yes_result)
-        self.assertEqual({}, female_no_result)
 
     def test_get_aggregated_report_data_single_indicator(self):
         schedule_script_now(self.head_teacher_group.name, slug=self.head_teachers_termly_script.slug)

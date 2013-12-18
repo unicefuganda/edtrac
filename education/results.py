@@ -2,8 +2,8 @@ from education.models import *
 from django.db.models import *
 
 class NumericResponsesFor():
-    def __init__(self, poll):
-        self.query = Response.objects.filter(poll = poll,
+    def __init__(self, polls):
+        self.query = Response.objects.filter(poll__in = polls,
                                              has_errors = False,
                                              message__direction = 'I')
 

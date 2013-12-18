@@ -27,8 +27,8 @@ def view_stats(req,
     location_data = []
     time_range_form = ResultForm()
     context_vars = {}
-    poll_enroll = Poll.objects.get(name=enrol_deploy_poll)
-    poll_attendance = Poll.objects.get(name=attendance_poll)
+    poll_enroll = Poll.objects.filter(name=enrol_deploy_poll)
+    poll_attendance = Poll.objects.filter(name=attendance_poll)
     term_range = (getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END'))
     profile = req.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of(
@@ -45,11 +45,11 @@ def view_stats(req,
         current_week = periods[0]
         previous_week = periods[1]
 
-        enrolled = get_numeric_data_all_locations(poll_enroll, term_range)
+        enrolled = get_numeric_data_for_location(poll_enroll, locations, term_range)
         #current week
-        attendance_current_week = get_numeric_data_all_locations(poll_attendance, current_week)
+        attendance_current_week = get_numeric_data_for_location(poll_attendance, locations, current_week)
         #previous week
-        attendance_previous_week = get_numeric_data_all_locations(poll_attendance, previous_week)
+        attendance_previous_week = get_numeric_data_for_location(poll_attendance, locations, previous_week)
 
         for location in locations:
             location_enrolled = enrolled[location.id] if location.id in enrolled else 0
@@ -89,8 +89,8 @@ def view_stats(req,
 
             all_locations_periodic_absenteeism = {}
             for period in periods:
-                enrolled = get_numeric_data_all_locations(poll_enroll, term_range)
-                attendance = get_numeric_data_all_locations(poll_attendance, period)
+                enrolled = get_numeric_data_for_location(poll_enroll, locations, term_range)
+                attendance = get_numeric_data_for_location(poll_attendance, locations, period)
 
                 for location in locations:
                     location_enrolled = enrolled[location.id] if location.id in enrolled else 0
@@ -129,8 +129,8 @@ def view_stats_by_school(location_id, enrollment_poll_name, attendance_poll_name
     #locale = Location.objects.exclude(type="country").filter(type__in=['district','sub_county'])
     locale = Location.objects.get(id=location_id)
     _schools = School.objects.filter(location=locale)
-    poll_enroll = Poll.objects.get(name=enrollment_poll_name)
-    poll_attendance = Poll.objects.get(name=attendance_poll_name)
+    poll_enroll = Poll.objects.filter(name=enrollment_poll_name)
+    poll_attendance = Poll.objects.filter(name=attendance_poll_name)
     date_weeks = get_week_date(depth=2)
     school_data = []
     existing_data = []
@@ -199,8 +199,8 @@ def dash_report_api(request):
     jsonDataSource = []
     config_list = get_polls_for_keyword('all')
     time_range = get_week_date(depth=4)
-    weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in time_range]
     time_range.reverse()
+    weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in time_range]
     profile = request.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of('UNICEF Officials'):
         locations = Location.objects.filter(type__in=['district'])
@@ -218,8 +218,8 @@ def dash_report_district(request):
     jsonDataSource = []
     config_list = get_polls_for_keyword('all')
     time_range = get_week_date(depth=4)
-    weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in time_range]
     time_range.reverse()
+    weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in time_range]
     district = Location.objects.get(name=request.GET['district'], type='district')
     location = Location.objects.filter(type__in=['district'],name__in=[district])
 
@@ -241,8 +241,8 @@ def dash_report_term(request):
         current_term_range.append(datetime.datetime.today())
 
     time_range = get_date_range(current_term_range[0], current_term_range[1], time_depth)
-    weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in time_range]
     time_range.reverse()
+    weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in time_range]
 
     profile = request.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of(
@@ -268,8 +268,8 @@ def dash_report_params(request):
     indicator = request.GET['indicator']
     time_range = get_date_range(start_date, end_date, time_depth)
     config_list = get_polls_for_keyword(indicator)
-    weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in time_range]
     time_range.reverse()
+    weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in time_range]
     profile = request.user.get_profile()
     if profile.is_member_of('Ministry Officials') or profile.is_member_of('Admins') or profile.is_member_of(
             'UNICEF Officials'):

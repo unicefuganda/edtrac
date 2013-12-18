@@ -321,7 +321,7 @@ def capitation_grants(locations):
 
 
 def month_total(poll_name, locations):
-    poll = Poll.objects.get(name=poll_name)
+    poll = Poll.objects.filter(name=poll_name)
     return NumericResponsesFor(poll) \
                .forLocations(locations) \
                .forDateRange(get_month_day_range(datetime.datetime.now(), depth=1)[0]) \
@@ -411,7 +411,7 @@ def progress(stages, stage):
 
 def p3_curriculum(locations):
     target_week = get_week_date()
-    poll = Poll.objects.get(name='edtrac_p3curriculum_progress')
+    poll = Poll.objects.filter(name='edtrac_p3curriculum_progress')
 
     mode = NumericResponsesFor(poll) \
                 .forDateRange(target_week) \
@@ -425,7 +425,7 @@ def p3_curriculum(locations):
         return {'mode_progress' : 0, 'c_mode' : "Progress undetermined this week"}
 
 def meals_missed(locations, get_time):
-    poll = Poll.objects.get(name = "edtrac_headteachers_meals")
+    poll = Poll.objects.filter(name = "edtrac_headteachers_meals")
     this_month = get_month_day_range(get_time())
     schools_without_meals = NumericResponsesFor(poll) \
                                 .forLocations(locations) \
@@ -520,7 +520,7 @@ def smc_meetings(locations):
         filter(reporting_location__name__in = [loc.name for loc in locations]).select_related().\
         values_list('schools__pk', flat=True)).count()
 
-    smc_meeting_poll = Poll.objects.get(name = 'edtrac_smc_meetings')
+    smc_meeting_poll = Poll.objects.filter(name = 'edtrac_smc_meetings')
     meetings = NumericResponsesFor(smc_meeting_poll) \
                     .excludeZeros() \
                     .forDateRange([getattr(settings, 'SCHOOL_TERM_START'), getattr(settings, 'SCHOOL_TERM_END')]) \
@@ -1063,10 +1063,10 @@ def violence_details_dash(req):
     current_month = month_day_range[0]
     previous_month  = month_day_range[1]
 
-    edtrac_violence_girls_poll = Poll.objects.get(name="edtrac_violence_girls")
-    edtrac_violence_boys_poll  = Poll.objects.get(name="edtrac_violence_boys")
-    edtrac_violence_reported_poll = Poll.objects.get(name="edtrac_violence_reported")
-    edtrac_gem_abuse_poll = Poll.objects.get(name="edtrac_gem_abuse")
+    edtrac_violence_girls_poll = Poll.objects.filter(name="edtrac_violence_girls")
+    edtrac_violence_boys_poll  = Poll.objects.filter(name="edtrac_violence_boys")
+    edtrac_violence_reported_poll = Poll.objects.filter(name="edtrac_violence_reported")
+    edtrac_gem_abuse_poll = Poll.objects.filter(name="edtrac_gem_abuse")
 
     violence_cases_girls_current_month = get_numeric_data_for_location(edtrac_violence_girls_poll, locations, current_month)
     violence_cases_girls_previous_month = get_numeric_data_for_location(edtrac_violence_girls_poll, locations, previous_month)
@@ -1233,7 +1233,7 @@ def violence_details_dash(req):
         return render_to_response('education/deo/deo2_violence_details.html', context_vars, RequestContext(req))
 
 def __schools_reporting(poll_name, time_range, locations):
-    poll = Poll.objects.get(name=poll_name)
+    poll = Poll.objects.filter(name=poll_name)
     schools = NumericResponsesFor(poll).forDateRange(time_range).forLocations(locations).groupBySchools().keys()
     return set(schools)
 
