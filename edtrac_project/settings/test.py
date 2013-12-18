@@ -95,14 +95,13 @@ SPREADSHEETS_PATH = "/var/www/test_edutrac/edtrac/edtrac_project/rapidsms_edtrac
 LOG_LEVEL = "DEBUG"
 LOG_SIZE = 8192  # 8192 bits = 8 kb
 LOG_BACKUPS = 256  # number of logs to keep
-#LOG_FILE = '/home/asseym/edtrac.log'
 LOG_FILE = '/var/log/edtrac/edtrac-test.log'
 import logging
-logging.basicConfig(
-    level = logging.DEBUG,
-    format = '%(asctime)s [%(name)s] %(levelname)s: %(message)s',
-    filename = LOG_FILE,
-)
+#logging.basicConfig(
+#    level = logging.DEBUG,
+#    format = '%(asctime)s [%(name)s] %(levelname)s: %(message)s',
+#    filename = LOG_FILE,
+#)
 
 CACHES = {
     'default': {
