@@ -3,10 +3,19 @@ Created on Apr 15, 2013
 
 @author: raybesiga
 '''
+import logging
 
 from django.core.management.base import BaseCommand
 from education.models import schedule_script_now
 from optparse import OptionParser, make_option
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename="script.log", level=logging.INFO)
+
+handler = logging.handlers.RotatingFileHandler("script.log", maxBytes=5242880, backupCount=5)
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 class Command(BaseCommand):
 
