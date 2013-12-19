@@ -31,7 +31,6 @@ BAD_WORDS = ['fuck', 'shit', 'ass', 'damn', 'hell', 'nigger', 'cunt', 'fucker', 
              'tomanyiira', 'koma nyoko', 'ttumbavu', 'mussilu', 'bassilu', "wakalyaab'ewammwe", 'mbwa gwe', 'ebinyo',
              'mmana']
 
-SITE_ID = 5
 import datetime
 
 TRAINING_MODE = False
