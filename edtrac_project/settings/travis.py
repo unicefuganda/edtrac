@@ -15,11 +15,7 @@ TEMPLATE_DEBUG = DEBUG
 
 EMAIL_HOST_USER = 'no-reply@uganda.rapidsms.org'
 EMAIL_HOST = '127.0.0.1'
-ADMINS = (
-    #    ('Victor Miclovich', 'vicmiclovich@gmail.com'),
-    ('Alfred Assey', 'asseym@gmail.com'),
-    ('Ray Besiga', 'raybesiga@gmail.com'),
-    )
+ADMINS = []
 SMS_APPS = [
     "education",
     "script",
