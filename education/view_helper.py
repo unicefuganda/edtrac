@@ -192,6 +192,15 @@ def time_range_dashboard(request):
     context['indicator'] = request.GET['indicator']
     return render_to_response('education/admin/detail_timefilter_report.html', context, RequestContext(request))
 
+@login_required
+def time_range_district_dashboard(request):
+    context = {}
+    context['district'] = request.GET['district']
+    context['start_date'] = request.GET['start_date']
+    context['end_date'] = request.GET['end_date']
+    context['indicator'] = request.GET['indicator']
+    return render_to_response('education/admin/detail_report_district.html', context, RequestContext(request))
+
 
 #   Reporting API
 @login_required
@@ -216,8 +225,16 @@ def dash_report_api(request):
 @login_required
 def dash_report_district(request):
     jsonDataSource = []
-    config_list = get_polls_for_keyword('all')
+    time_depth = 4
+    indicator = request.GET['indicator']
     time_range = get_week_date(depth=4)
+
+    if request.GET['start_date'] and request.GET['end_date']:
+        start_date = parser.parse(request.GET['start_date'])
+        end_date = parser.parse(request.GET['end_date'])
+        time_range = get_date_range(start_date, end_date, time_depth)
+    config_list = get_polls_for_keyword(indicator)
+
     time_range.reverse()
     weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in time_range]
     district = Location.objects.get(name=request.GET['district'], type='district')
