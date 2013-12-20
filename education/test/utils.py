@@ -10,7 +10,6 @@ from rapidsms.models import Backend
 from rapidsms_httprouter.router import get_router
 from script.models import ScriptSession
 
-
 def create_user_with_group(username,group=None, location=None):
     user = User.objects.create(username=username)
     user.set_password('password')
