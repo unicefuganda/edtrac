@@ -31,9 +31,9 @@ def check_progress(script):
             to_resend.update(num_tries=F('num_tries') + 1, time=datetime.datetime.now())
             ScriptProgress.objects.filter(pk__in=to_resend_list).mass_text()
 
-        # This happens unconditionally, to shortcircuit the case
+        # This happens unconditionally, to short circuit the case
         # where an expired step, set to COMPLETE above,
-        # can immidately transition to the next step
+        # can immediately transition to the next step
         to_transition = ScriptProgress.objects.need_to_transition(script, step)
         to_trans_list = list(to_transition.values_list('pk', flat=True))
         if to_transition.exists():
