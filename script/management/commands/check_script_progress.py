@@ -29,7 +29,7 @@ except ImportError:
         def emit(self, record):
             pass
 logger = logging.getLogger(__name__)
-logging.basicConfig(filename="script.log", level=logging.DEBUG)
+logging.basicConfig(filename="script.log", level=logging.INFO)
 # Add the log message handler to the logger
 handler = logging.handlers.RotatingFileHandler("script.log", maxBytes=5242880, backupCount=5)
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
