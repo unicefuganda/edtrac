@@ -31,7 +31,6 @@ BAD_WORDS = ['fuck', 'shit', 'ass', 'damn', 'hell', 'nigger', 'cunt', 'fucker', 
 
 import datetime
 
-SITE_ID = 5
 TRAINING_MODE = False
 #All term schedulled polls are computed based on these dates
 #these dates are necessary for the system to work properly and
