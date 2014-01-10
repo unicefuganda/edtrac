@@ -55,7 +55,7 @@ def init_attributes(sender, **kwargs):
         site_table_created = True
 
     if site_table_created:
-        if 'django.contrib.sites' not in settings.INSTALLED_APPS or (not settings.SITE_ID and Site.objects.filter(pk=settings.SITE_ID).count()):
+        if 'django.contrib.sites' not in settings.INSTALLED_APPS or (getattr(settings, 'SITE_ID', False) and Site.objects.filter(pk=settings.SITE_ID).count()):
             create_attributes(sender)
 
 post_syncdb.connect(init_attributes, weak=True)
