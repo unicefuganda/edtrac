@@ -98,8 +98,8 @@ class TestViolenceView(TestSetup):
         kampala_responses=[]
         gulu_responses=[]
         start_date = datetime.datetime(datetime.datetime.now().year, datetime.datetime.now().month, 15)
-        previous_year = start_date.year - 1
-        while start_date.year != previous_year:
+        one_year_ago = dateutils.increment(start_date, years=-1)
+        while start_date >= one_year_ago:
             self.generate_script_progress_and_session("edtrac_headteacher_violence_monthly", start_date, poll)
             values = ["1", "2", "3"]
             fake_responses.append(values)
