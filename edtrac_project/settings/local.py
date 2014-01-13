@@ -2,7 +2,7 @@ import datetime
 
 from .base import *
 
-
+SITE_ID = 5
 DEBUG = True
 TEMPLATE_DEBUG = True
 
