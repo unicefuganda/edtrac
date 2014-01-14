@@ -1,22 +1,14 @@
 from django.db.models.signals import post_syncdb
 from django.contrib.sites.models import Site
 from django.conf import settings
-from django.db.models import get_models
-
+from django.db import connection
 from eav.models import Attribute
-from eav import models as  eav_app
 
-
-site_table_created = False
-models_created = []
 def create_attributes(app):
-    global models_created
-    models_created = models_created + get_models(app)
-    required_models = get_models(eav_app)
 
-    for model in  required_models:
-        if not model in models_created:
-            return
+    if not db_table_exists("eav_attribute"):
+        return
+
     Attribute.on_site.get_or_create(slug="poll_number_value",
         defaults={
             "slug": "poll_number_value",
@@ -46,9 +38,10 @@ def create_attributes(app):
             "datatype": "object",
         }
     )
-    
+
 def init_attributes(sender, **kwargs):
-    global site_table_created
+    site_table_created = False
+
     if sender.__name__ == 'django.contrib.sites.models':
         site_table_created = True
     elif 'django.contrib.sites' not in settings.INSTALLED_APPS:
@@ -58,12 +51,7 @@ def init_attributes(sender, **kwargs):
         if 'django.contrib.sites' not in settings.INSTALLED_APPS or (getattr(settings, 'SITE_ID', False) and Site.objects.filter(pk=settings.SITE_ID).count()):
             create_attributes(sender)
 
+def db_table_exists(table_name):
+    return table_name in connection.introspection.table_names()
+
 post_syncdb.connect(init_attributes, weak=True)
-
-
-
-
-
-
-
-
