@@ -201,7 +201,7 @@ urlpatterns = patterns('',
     #user alerts
     url(r'^edtrac/alert-messages/$', alert_messages, name='alert-messages'),
 
-    url(r'^edtrac/user/$', generic, {
+    url(r'^edtrac/user/$', login_required(generic), {
         'model':User,
         'objects_per_page':25,
         'partial_row':'education/partials/user_row.html',
