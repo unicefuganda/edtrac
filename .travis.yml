@@ -19,6 +19,6 @@ before_script:
 # command to run tests
 script:
   - cd edtrac_project
-  - python manage.py syncdb --noinput --settings=settings.local
-  - python manage.py migrate --settings=settings.local
+  - python manage.py syncdb --noinput
+  - python manage.py migrate
   - python manage.py test
