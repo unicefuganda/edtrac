@@ -4,6 +4,7 @@ from poll.models import Poll
 from .reports import *
 from education.results import NumericResponsesFor,collapse
 from education.absenteeism_view_helper import *
+import pprint
 
 def get_aggregated_report_for_district(locations, time_range, config_list):
     school_absenteeism_percent_values = {}
@@ -61,6 +62,7 @@ def get_aggregated_report_for_district(locations, time_range, config_list):
                         if school.id in attendance_data_totals:
                             school_attendance = attendance_data_totals[school.id]
                         school_absenteeism_percent_values[school.name][config.get('collective_dict_key')] += compute_absent_values(school_attendance, school_enrollment)
+                    school_absenteeism_percent_values[school.name]['id'] = school.id
 
                 # update attendance by indicator collection with values per week
                 for k, v in attendance_by_indicator.items():
@@ -81,7 +83,9 @@ def get_aggregated_report_for_district(locations, time_range, config_list):
             for week in time_range:
                 present_data_totals, no_data_totals = get_count_for_yes_no_response_by_school(attendance_polls, locations, week)
                 schools_that_responded = len(present_data_totals) + len(no_data_totals)
+
                 school_with_no_zero_by_indicator[config.get('collective_dict_key')] += schools_that_responded
+
                 week_percent = compute_absent_values(sum(present_data_totals.values()), totalCount)
 
                 #Loop through schools and determine weekly location absenteeism values

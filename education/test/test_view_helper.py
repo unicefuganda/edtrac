@@ -282,6 +282,19 @@ class TestViewHelper(TestCase):
         self.assertEqual(80.0, collective_result['P3 Girls'][0].values()[0])
 
 
+    def test_aggregated_report_has_school_id(self):
+        schedule_script_now(self.head_teacher_group.name, slug=self.head_teachers_termly_script.slug)
+        check_progress(self.head_teachers_termly_script)
+        fake_incoming("10 boys", self.emis_reporter1)
+
+        config_list = get_polls_for_keyword('all')
+
+        collective_result, chart_results_model, school_percent,tooltip = \
+            get_aggregated_report_for_district([self.kampala_district], [self.term_range], config_list)
+
+        self.assertEqual(self.kampala_school_lubaga.id, collective_result['UMHS Lubaga']['id'])
+
+
     def tearDown(self):
         Message.objects.all().delete()
         ScriptProgress.objects.all().delete()
