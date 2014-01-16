@@ -4,7 +4,7 @@ from poll.models import Poll
 from .reports import *
 from education.results import NumericResponsesFor,collapse
 from education.absenteeism_view_helper import *
-import pprint
+
 
 def get_aggregated_report_for_district(locations, time_range, config_list):
     school_absenteeism_percent_values = {}

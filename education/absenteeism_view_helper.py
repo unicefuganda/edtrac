@@ -121,6 +121,7 @@ def get_responses_by_location(locations, config_list, date_weeks):
         absent_by_location[key] = round(
             compute_percent_out_of_total(total_present_by_location[key], total_enrollment_by_location[key] * len(date_weeks)), 2)
 
+
     return absent_by_location, absent_by_time,school_percent
 
 

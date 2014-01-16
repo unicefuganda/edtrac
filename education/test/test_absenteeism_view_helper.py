@@ -171,8 +171,11 @@ class TestAbsenteeismViewHelper(TestAbsenteeism):
         self.fake_incoming('4', self.emis_reporter8)
         config_data = get_polls_for_keyword('P3Boys')
         config=config_data[0]
+
         absent_by_loc, absent_by_time, school_percent = get_responses_by_location(locations,config,self.date_week)
+
         self.assertEqual(25,school_percent)
+
 
     def test_should_ignore_attd_if_no_enrollment_found(self):
         client = Client()
