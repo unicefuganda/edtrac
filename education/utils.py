@@ -177,9 +177,6 @@ def _is_wednesday():
     WEDNESDAY = 2
     return (today, WEDNESDAY == today.weekday())
 
-def _send_report(connections=None, report=None):
-    pass
-
 
 def _schedule_report_sending():
     holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
@@ -193,20 +190,13 @@ def _schedule_report_sending():
         if can_send:
             from .reports import generate_deo_report
             from .models import EmisReporter
-            all_repoters = EmisReporter.objects.filter(groups__name="DEO")
-            for reporter in all_repoters:
 
+            all_reporters = EmisReporter.objects.filter(groups__name="DEO")
+            for reporter in all_reporters:
                 deo_report_connections, deo_report = generate_deo_report(location_name=reporter.reporting_location.name)
-                #attendance_template = "%s% of %s% were absent this week. Attendance is %s %s than it was last week"
                 attendance_template = "%s% were absent this week."
                 literacy_template = "An average of %s of %s covered"
 
-                for current_week, previous_week in deo_report:
-
-                    if 'pupils' in key.split():
-                        _send_report(connections = deo_report_connections, report= attendance_template % report)
-                    elif 'progress' in key.split():
-                                _send_report(connections = deo_report_connections, report = literacy_template % report)
         else:
             return
     else:
