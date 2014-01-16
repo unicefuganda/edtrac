@@ -114,10 +114,11 @@ function displaySchoolPercent(school_percent){
                 $('#tableData').html('<p></p>');
                 result = '<table class="tabulated-data classy">'
                 result +='<tr><th>School</th><th>P3 Absenteeism</th><th>P6 Absenteeism</th><th>Teacher Absenteeism</th><th>Head Teacher Absenteeism</th></tr>'
-                $.each(data,function(district,dataSet){
+                $.each(data,function(schoolName,dataSet){
+                    var school_id = dataSet['id']
                     result +='<tr>';
 
-                     result +='<td>'+district+'</td>';
+                     result +='<td><a href="/edtrac/'+school_id+'/school_detail/">'+schoolName+'</td>';
                     $.each(dataSet,function(k,v){
                         if(k=='P3 Pupils'){result +='<td>'+v+'</td>';}
                         if(k=='P6 Pupils'){result +='<td>'+v+'</td>';}
