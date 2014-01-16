@@ -174,10 +174,8 @@ def _next_wednesday(sp = None):
 
 def _is_wednesday():
     today = datetime.datetime.now()
-    WEDNESDAY_WEEKDAY = 2
-    if today.weekday() == WEDNESDAY_WEEKDAY:
-        return (today, True)
-    return (today, False)
+    WEDNESDAY = 2
+    return (today, WEDNESDAY == today.weekday())
 
 def _send_report(connections=None, report=None):
     pass
