@@ -316,9 +316,8 @@ def _schedule_weekly_scripts(group, connection, grps):
     or the date that is currently in ScriptProgress
     """
     #Short curcuit scheduling teachers without grades
-    if group.name == 'Teachers':
-        if not connection.contact.emisreporter.grade:
-            return
+    if group.name == 'Teachers' and not connection.contact.emisreporter.grade:
+        return
 
     if group.name in grps:
         script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
