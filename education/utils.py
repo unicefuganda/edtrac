@@ -372,11 +372,6 @@ def _schedule_teacher_weekly_scripts(group, connection, grps):
         #Reporter is not in group that receives weekly messages so, we don't schedule them for any weekly messages
         return
 
-    #create new scriptprogress regardless
-#    sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-#    sp.set_time(d)
-
-
 
 def _schedule_weekly_scripts_now(group, connection, grps):
     """
@@ -627,11 +622,6 @@ def list_poll_responses(poll, **kwargs):
     #forceful import
     from poll.models import Poll
     to_ret = {}
-    """
-    To get all districts
-    """
-    #for location in Location.objects.filter(type__name="district"):
-    #    to_ret[location.__unicode__()] = compute_average_percentage([msg.text for msg in poll.responses.filter(contact__in=Contact.objects.filter(reporting_location=location))])
 
     """
     narrowed down to 3 districts (and up to 14 districts)
@@ -885,11 +875,6 @@ def extract_key_count(list, key=None):
                 return dict.get('value')
     else:
         return 0
-
-
-def poll_to_xform_submissions(message):
-    pass
-    return True
 
 
 def get_week_count(reference_date, d):
