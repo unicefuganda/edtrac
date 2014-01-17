@@ -1,10 +1,10 @@
 # vim: ai ts=4 sts=4 et sw=4 encoding=utf-8
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from unittest import TestCase
 import dateutils
 from django.conf import settings
 from education.reports import is_holiday
-from education.utils import get_week_count, get_months
+from education.utils import get_week_count, get_months, _next_thursday
 
 
 class TestUtilFunctions(TestCase):
@@ -37,3 +37,13 @@ class TestUtilFunctions(TestCase):
 
         settings.SCHOOL_HOLIDAYS = [(holiday_date,'1d')]
         self.assertFalse(is_holiday(not_holiday_date,getattr(settings,'SCHOOL_HOLIDAYS')))
+
+    def test_should_determine_next_thursday(self):
+        monday = date(2013, 8, 26)
+        thursday = monday + timedelta(3)
+        self.assertEqual(thursday, _next_thursday(get_time = lambda : monday).date())
+
+    def test_next_thursday_is_next_week_on_thursday(self):
+        thursday = date(2013, 8, 29)
+        next_thursday = date(2013, 9, 5)
+        self.assertEqual(next_thursday, _next_thursday(get_time = lambda : thursday).date())

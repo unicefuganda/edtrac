@@ -86,7 +86,7 @@ def next_relativedate(day_offset, month_offset=0, xdate = datetime.datetime.now(
     d = time_to_10am(d)
     return d + datetime.timedelta(day)
 
-def _next_thursday(sp=None, **kwargs):
+def _next_thursday(sp=None,get_time=datetime.datetime.now, **kwargs):
     """
     Next Thursday is the very next Thursday of the week which is not a school holiday
     """
@@ -96,7 +96,7 @@ def _next_thursday(sp=None, **kwargs):
     elif kwargs.get('time_set'):
         d = time_to_10am(kwargs.has_key('time_set'))
     else:
-        d = time_to_10am(datetime.datetime.now())
+        d = time_to_10am(get_time())
 
     if d.weekday() == 3: # if a thursday
         d = d + datetime.timedelta(days = 7)
