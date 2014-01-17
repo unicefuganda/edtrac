@@ -82,7 +82,6 @@ def parse_date_value(value):
         date_expr2 = re.compile(r"\d{1,2}/\d{1,2}/\d{2,4}")
         date_expr3 = re.compile(r"\d{1,2}\.\d{1,2}\.\d{2,4}")
         date_expr4 = re.compile(r"\d{2,4}\.\d{1,2}\.\d{1,2}")
-        #date_expr5 = re.compile(r"\d{2,4}-\d{1,2}-\d{1,2}")
 
         if date_expr.match(value):
             dt_obj = datetime.datetime.strptime(value, "%d %b %Y")
@@ -210,7 +209,6 @@ def edtrac_autoreg(**kwargs):
     role = find_best_response(session, role_poll)
     gender = find_best_response(session, gender_poll)
     grade = find_best_response(session, class_poll)
-    #default_group = Group.objects.get(name='Other Reporters')
     subcounty = find_best_response(session, subcounty_poll)
     district = find_best_response(session, district_poll)
 
@@ -235,8 +233,6 @@ def edtrac_autoreg(**kwargs):
             )
 
     grp = match_group_response(session, role, role_poll)
-#    grp = find_closest_match(role, Group.objects)
-#    grp = grp if grp else default_group
 
     if subcounty:
         rep_location = subcounty
@@ -318,42 +314,10 @@ def edtrac_autoreg(**kwargs):
                 ),
                 True
             )
-#        elif district:
-#            reporting_school = find_closest_match(
-#                school,
-#                School.objects.filter(
-#                    location__name__in=[district.name],
-#                    location__type__name='district'
-#                ),
-#                True
-#            )
-        else:
-            reporting_school = find_closest_match(
-                school,
-                School.objects.filter(
-                    location__name=Location.tree.root_nodes()[0].name
-                )
-            )
-        if reporting_school:
-            contact.schools.add(reporting_school)
-            contact.save()
 
     if not getattr(settings, 'TRAINING_MODE', False):
         # Now that you have their roll, they should be signed up for
         # the periodic polling
-
-#        _schedule_weekly_scripts(
-#            group,
-#            connection,
-#            ['Teachers', 'Head Teachers', 'SMC']
-#        )
-
-#        _schedule_weekly_script(
-#            group,
-#            connection,
-#            'edtrac_p3_teachers_weekly',
-#            ['Teachers']
-#        )
 
         _schedule_weekly_script(
             group,
@@ -400,13 +364,6 @@ def edtrac_autoreg(**kwargs):
 
         #termly messages go out mid April, July or November by default,
         #this can be overwridden by manual process
-
-#        _schedule_termly_script(
-#            group,
-#            connection,
-#            'edtrac_upe_grant',
-#            ['Head Teachers']
-#        )
 
         _schedule_termly_script(
             group,
@@ -544,7 +501,6 @@ def edtrac_autoreg_transition(**kwargs):
 def edtrac_attendance_script_transition(**kwargs):
     connection = kwargs['connection']
     progress = kwargs['sender']
-#    if not progress.script.slug == 'edtrac_teachers_weekly':
     if not progress.script.slug in [
         'edtrac_p3_teachers_weekly',
         'edtrac_p6_teachers_weekly'
