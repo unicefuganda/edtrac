@@ -483,8 +483,6 @@ def edtrac_reschedule_script(**kwargs):
 
 def edtrac_autoreg_transition(**kwargs):
 
-    # logger.info('Keyword arguments: %s' % kwargs)
-
     connection = kwargs['connection']
     progress = kwargs['sender']
     if not progress.script.slug == 'edtrac_autoreg':
@@ -507,9 +505,6 @@ def edtrac_autoreg_transition(**kwargs):
     if role:
         logger.info('Role: %s' % role)
 
-#    if role:
-#        group = find_closest_match(role, Group.objects) or
-#                find_closest_match(role, Group.objects, True)
     if role:
         group = match_group_response(session, role, role_poll)
 
@@ -613,16 +608,6 @@ def edtrac_scriptrun_schedule(**kwargs):
             script=script,
             date__contains=date
         )
-
-#
-# def send_message_for_partial_response(**kwargs):
-#     connection = kwargs['connection']
-#     progress = kwargs['sender']
-#     is_last_step = progress.script.steps.order_by("-order").all()[0]
-#
-#     if progress.step.order == is_last_step.order:
-#        if not all_steps_answered(progress.script):
-#            send_alert_for_expired_script(progress.script, connection)
 
 
 def send_alert_for_expired_script(script, connection):
@@ -790,7 +775,6 @@ def reschedule_monthly_polls(grp=None):
     monthly_scripts = Script.objects.filter(slug__endswith='_monthly')
     if grp:
         slg_start = 'edtrac_%s' % grp.replace(' ', '_').lower()
-#        monthly_scripts = monthly_scripts.filter(slug__startswith=slg_start)
         monthly_scripts = monthly_scripts.filter(
             slug__in=['edtrac_smc_monthly', 'edtrac_gem_monthly']
         )
