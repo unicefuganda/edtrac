@@ -16,7 +16,7 @@ from rapidsms_xforms.models import XFormSubmissionValue, XForm, XFormSubmission
 from uganda_common.reports import PollNumericResultsColumn
 from uganda_common.utils import total_submissions, reorganize_location
 from uganda_common.utils import reorganize_dictionary
-from education.utils import previous_calendar_week, Statistics
+from education.utils import previous_calendar_week, Statistics, is_holiday
 from education.models import EmisReporter, School
 from poll.models import Response, Poll
 import datetime
@@ -1074,14 +1074,6 @@ def cleanup_differences_on_poll(responses):
     return percent
 
 
-def is_holiday(date1, dates):
-    for date_start, date_end in dates:
-        if isinstance(date_end, str):
-            if date1 == date_start:
-                return True
-        elif date1 >= date_start and date1 <= date_end:
-            return True
-    return False
 
 
 def poll_responses_past_week_sum(poll_name, **kwargs):

@@ -20,6 +20,15 @@ from django.contrib.auth.models import Group
 from django.conf import settings
 from unregister.models import Blacklist
 
+def is_holiday(date1, dates):
+    for date_start, date_end in dates:
+        if isinstance(date_end, str):
+            if date1.date() == date_start.date():
+                return True
+        elif date1.date() >= date_start.date() and date1.date() <= date_end.date():
+            return True
+    return False
+
 def is_empty(arg):
     """
     Generalizes 'empty' checks on Strings, sequences, and dicts.
@@ -106,20 +115,9 @@ def _next_thursday(sp=None,
     else:
         d = d + datetime.timedelta(days = 7 - d.weekday() + thursday)
 
-    in_holiday = True
-    while in_holiday:
-        in_holiday = False
-        for start, end in holidays:
-            if type(end) == str:
-                if d.date() == start.date():
-                    in_holiday = True
-                    break
-            else:
-                if d >= start and d <= end:
-                    in_holiday = True
-                    break
-        if in_holiday:
-            d = d + datetime.timedelta(days = 7)
+    while is_holiday(d, holidays):
+        d = d + datetime.timedelta(days = 7)
+
     return d
 
 
