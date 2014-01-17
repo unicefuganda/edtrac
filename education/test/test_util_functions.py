@@ -52,3 +52,9 @@ class TestUtilFunctions(TestCase):
         monday_night = datetime(2013, 8, 26, 23, 0, 0)
         ten_am = time(10, 0, 0)
         self.assertEqual(ten_am, _next_thursday(get_time = lambda : monday_night).time())
+
+    def test_next_thursday_skips_holidays(self):
+        thursday_holiday = (datetime(2013, 8, 29), '1d')
+        thursday_after_holiday = date(2013, 9, 5)
+        monday = date(2013, 8, 26)
+        self.assertEqual(thursday_after_holiday, _next_thursday(get_time = lambda : monday, holidays = [thursday_holiday]).date())
