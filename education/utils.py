@@ -100,12 +100,11 @@ def _next_thursday(sp=None,
     else:
         d = time_to_10am(get_time())
 
-    if d.weekday() == 3: # if a thursday
-        d = d + datetime.timedelta(days = 7)
-    elif d.weekday() < 3:
-        d = d + datetime.timedelta(days = (3 - d.weekday()))
+    thursday = 3
+    if d.weekday() < thursday:
+        d = d + datetime.timedelta(days = thursday - d.weekday())
     else:
-        d = d + (datetime.timedelta(days = (7 - d.weekday()) + 3))
+        d = d + datetime.timedelta(days = 7 - d.weekday() + thursday)
 
     in_holiday = True
     while in_holiday:
