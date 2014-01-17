@@ -1,5 +1,5 @@
 # vim: ai ts=4 sts=4 et sw=4 encoding=utf-8
-from datetime import date, datetime, timedelta
+from datetime import date, time, datetime, timedelta
 from unittest import TestCase
 import dateutils
 from django.conf import settings
@@ -47,3 +47,8 @@ class TestUtilFunctions(TestCase):
         thursday = date(2013, 8, 29)
         next_thursday = date(2013, 9, 5)
         self.assertEqual(next_thursday, _next_thursday(get_time = lambda : thursday).date())
+
+    def test_time_of_next_thursday_is_ten_in_the_morning(self):
+        monday_night = datetime(2013, 8, 26, 23, 0, 0)
+        ten_am = time(10, 0, 0)
+        self.assertEqual(ten_am, _next_thursday(get_time = lambda : monday_night).time())
