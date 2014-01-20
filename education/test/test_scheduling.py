@@ -12,6 +12,7 @@ from education.models import EmisReporter, School, schedule_script_now
 from rapidsms.contrib.locations.models import Location, LocationType
 from django.contrib.auth.models import User, Group
 from script.utils.outgoing import check_progress
+from script.management.commands import check_script_progress
 from edtrac_project.rapidsms_edtrac.education.attendance_diff import get_enrolled_pupils, calculate_attendance_difference
 
 
@@ -53,6 +54,19 @@ class TestScheduling(TestCase):
         check_progress(self.teachers_weekly_script)
         fake_incoming("4", self.reporter)
         self.assertEqual(1, ScriptProgress.objects.count())
+
+
+    def test_no_enabled_scripts_doesnt_crash(self):
+        Script.objects.update(enabled = False)
+        command = check_script_progress.Command()
+        command.handle(e=0, l=25)
+        self.assertEqual(0, ScriptProgress.objects.count())
+
+
+    def test_doesnt_run_outside_hours(self):
+        command = check_script_progress.Command()
+        command.handle(e=25, l=0)
+        self.assertEqual(0, ScriptProgress.objects.count())
 
 
     def tearDown(self):
