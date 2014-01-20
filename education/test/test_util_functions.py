@@ -31,6 +31,14 @@ class TestUtilFunctions(TestCase):
         settings.SCHOOL_HOLIDAYS = [(holiday_date, '1d')]
         self.assertTrue(is_holiday(holiday_date,getattr(settings,'SCHOOL_HOLIDAYS')))
 
+    def test_should_return_true_if_given_date_is_in_holidays(self):
+        holidays = [(datetime(2012, 1, 1), datetime(2012, 1, 3))]
+        self.assertTrue(is_holiday(datetime(2012,1,2), holidays))
+
+    def test_should_return_true_if_given_date_is_not_in_holidays(self):
+        holidays = [(datetime(2012, 1, 1), datetime(2012, 1, 3))]
+        self.assertFalse(is_holiday(datetime(2012,1,4), holidays))
+
     def test_should_return_false_if_given_date_is_not_holiday(self):
         holiday_date = datetime(2012, 1, 1)
         not_holiday_date = datetime(2012, 2, 1)
