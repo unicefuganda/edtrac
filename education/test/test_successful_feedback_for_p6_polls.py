@@ -3,7 +3,6 @@ from unittest import TestCase
 import datetime
 import dateutils
 from django.contrib.auth.models import User, Group
-#from education.attendance_diff import calculate_attendance_diff, get_enrolled_boys_and_girls
 from rapidsms_httprouter.models import Message
 from django.conf import settings
 from education.models import EmisReporter, School, schedule_script_now
