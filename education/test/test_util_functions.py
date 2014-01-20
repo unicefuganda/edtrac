@@ -2,7 +2,6 @@
 from datetime import date, time, datetime, timedelta
 from unittest import TestCase
 import dateutils
-from django.conf import settings
 from education.reports import is_holiday
 from education.utils import get_week_count, get_months, _next_thursday
 
