@@ -284,7 +284,6 @@ class PollsColumn(Column, SchoolMixin):
             val['poll'] = p
             x = p_list[1].split('p')
             val['value'] = '%s %s%s' % (x[0].title(), 'P', x[1])
-            print val
 
 
 class WeeklyPollSchoolColumn(PollNumericResultsColumn, SchoolMixin):
@@ -1540,7 +1539,6 @@ def return_absent(poll_name, enrollment, locations=None, school=None, **kwargs):
                 except:
                     percent_absent_before = '--'
                 school_filter[school] = (percent_absent_now, percent_absent_before)
-#            print loc, "schools", len(school_filter.values())
             now, before = [], []
             for now_temp, before_temp in school_filter.values():
                 now.append(now_temp)
@@ -1566,7 +1564,6 @@ def return_absent(poll_name, enrollment, locations=None, school=None, **kwargs):
     if school and ('date_week' in kwargs):
         current_enrollment = poll_responses_term(enrollment, school=school, belongs_to='schools')
         in_class = poll_response_sum(poll_name, month_filter='weekly', date_week=kwargs.get('date_week'), school=school)
-        print current_enrollment, in_class
         try:
             x = 100 * (current_enrollment - in_class) / current_enrollment
         except Exception as e:
