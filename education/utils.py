@@ -76,12 +76,13 @@ def is_weekend(date):
     """
     return date.weekday() in [5, 6]
 
-def next_relativedate(day_offset, month_offset=0, xdate = datetime.datetime.now()):
+def next_relativedate(day_offset, month_offset=0, xdate = None):
     """
     Find the date corresponding to day_offset of the month for example 25th day of of month
     you can also give month offsets, ie date of the 25th day of the next month
     """
 
+    xdate = xdate or datetime.datetime.now()
     d = xdate
     d = d + dateutils.relativedelta(months=month_offset)
 
@@ -211,6 +212,7 @@ def _date_of_monthday(day_offset):
     """
     holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
     d = next_relativedate(day_offset)
+
     if is_weekend(d):
         #next monday
         d = d + datetime.timedelta((0 - d.weekday()) % 7)
