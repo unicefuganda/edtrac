@@ -3,7 +3,7 @@ from datetime import date, time, datetime, timedelta
 from unittest import TestCase
 import dateutils
 from education.reports import is_holiday
-from education.utils import get_week_count, get_months, _next_thursday
+from education.utils import get_week_count, get_months, _next_thursday, next_relativedate
 
 
 class TestUtilFunctions(TestCase):
@@ -63,3 +63,28 @@ class TestUtilFunctions(TestCase):
         thursday_after_holiday = date(2013, 9, 5)
         monday = date(2013, 8, 26)
         self.assertEqual(thursday_after_holiday, _next_thursday(get_time = lambda : monday, holidays = [thursday_holiday]).date())
+
+    def test_finds_next_relativedate(self):
+        someday_in_august = datetime(2013, 8, 7)
+        next_day = next_relativedate(29, xdate = someday_in_august)
+        self.assertEqual(date(2013, 8, 29), next_day.date())
+
+    def test_finds_next_relativedate_with_month_offset(self):
+        someday_in_august = datetime(2013, 8, 7)
+        next_day = next_relativedate(29, month_offset = 2, xdate = someday_in_august)
+        self.assertEqual(date(2013, 10, 29), next_day.date())
+
+    def test_finds_next_relativedate_in_next_month(self):
+        someday_in_august = datetime(2013, 8, 7)
+        next_day = next_relativedate(5, xdate = someday_in_august)
+        self.assertEqual(date(2013, 9, 5), next_day.date())
+
+    def test_finds_last_day_of_the_month(self):
+        someday_in_august = datetime(2013, 8, 7)
+        next_day = next_relativedate('last', xdate = someday_in_august)
+        self.assertEqual(date(2013, 8, 31), next_day.date())
+
+    def test_finds_last_day_of_the_next_month(self):
+        someday_in_august = datetime(2013, 8, 31)
+        next_day = next_relativedate('last', xdate = someday_in_august)
+        self.assertEqual(date(2013, 9, 30), next_day.date())

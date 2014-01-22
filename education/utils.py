@@ -81,19 +81,20 @@ def next_relativedate(day_offset, month_offset=0, xdate = datetime.datetime.now(
     Find the date corresponding to day_offset of the month for example 25th day of of month
     you can also give month offsets, ie date of the 25th day of the next month
     """
-#    d = datetime.datetime.now()
+
     d = xdate
+    d = d + dateutils.relativedelta(months=month_offset)
 
-    if month_offset:
-        d = d + datetime.timedelta(month_offset*31)
-
-    day = calendar.mdays[d.month] if day_offset == 'last' else day_offset
-    if d.day >= day:
-        d = d + dateutils.relativedelta(day=31)
+    if day_offset == 'last':
+        d = d + dateutils.relativedelta(months=1)
+        d = d - datetime.timedelta(days=d.day)
     else:
-        d = datetime.datetime(d.year, d.month, 1, d.hour, d.minute, d.second, d.microsecond)
-    d = time_to_10am(d)
-    return d + datetime.timedelta(day)
+        d = d - datetime.timedelta(days=d.day) + datetime.timedelta(days=day_offset)
+
+    if d.date() <= xdate.date():
+        d = d + dateutils.relativedelta(months=1)
+
+    return d
 
 def _next_thursday(sp=None,
                    get_time=datetime.datetime.now,
