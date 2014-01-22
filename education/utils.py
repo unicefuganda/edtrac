@@ -176,15 +176,13 @@ def _next_term_question_date(rght=None):
     third_term_qn_date = getattr(settings, 'THIRD_TERM_BEGINS', datetime.datetime.now()) + delta
     holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
     d = datetime.datetime.now()
-    if first_term_qn_date == second_term_qn_date == third_term_qn_date == datetime.datetime.now() + delta:
-        d = d + delta
+
+    if d <= first_term_qn_date:
+        d = first_term_qn_date
+    elif d <= second_term_qn_date:
+        d = second_term_qn_date
     else:
-        if d <= first_term_qn_date:
-            d = first_term_qn_date
-        elif d <= second_term_qn_date:
-            d = second_term_qn_date
-        else:
-            d = third_term_qn_date
+        d = third_term_qn_date
 
     while(is_holiday(d, holidays) or is_weekend(d)):
         d = d + datetime.timedelta(days=1)
