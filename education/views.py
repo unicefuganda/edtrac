@@ -139,7 +139,7 @@ def get_weeks_in_term():
     weeks = []
     for term_starts in [first_term_start, second_term_start, third_term_start]:
         if term_start == term_starts:
-            weeks.extend(get_weeks(get_week_date()[1],depth=get_week_count(get_week_date()[0],term_starts)))
+            weeks.extend(get_weeks(get_week_date()[1],depth=get_week_count(term_starts,get_week_date()[0])))
             break
         weeks.extend(get_weeks(dateutils.increment(term_starts, weeks=12),depth=12))
     return weeks

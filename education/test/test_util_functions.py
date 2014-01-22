@@ -10,14 +10,9 @@ from education.utils import get_week_count, get_months, _next_thursday, next_rel
 class TestUtilFunctions(TestCase):
 
     def test_should_return_week_count_between_two_dates(self):
-        start_date = datetime(2012,1,1)
-        four_weeks_before = dateutils.increment(start_date, weeks=-4)
-        self.assertEqual(5, get_week_count(four_weeks_before, start_date))
-
-    def test_should_return_week_count_between_two_dates_passed_in_any_order(self):
-        start_date = datetime(2012, 1, 1)
-        four_weeks_before = dateutils.increment(start_date, weeks=-4)
-        self.assertEqual(5, get_week_count(start_date, four_weeks_before))
+        now  = datetime(2012,1,1)
+        four_weeks_before = dateutils.increment(now , weeks=-4)
+        self.assertEqual(5, get_week_count(four_weeks_before, now ))
 
     def test_should_give_proper_month_data_starting_from_today(self):
         start_date = datetime(2012, 1, 1)
@@ -111,3 +106,12 @@ class TestUtilFunctions(TestCase):
         someday_in_august = datetime(2013, 8, 31)
         next_day = next_relativedate('last', xdate = someday_in_august)
         self.assertEqual(date(2013, 9, 30), next_day.date())
+
+    def test_week_count(self):
+        start = datetime(2013, 2, 2)
+        now = datetime(2013, 4, 4)
+        self.assertEqual(9, get_week_count(start, now))
+
+    def test_week_count_starts_from_one(self):
+        start = datetime(2013, 2, 2)
+        self.assertEqual(1, get_week_count(start, start))

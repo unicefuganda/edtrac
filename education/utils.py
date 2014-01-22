@@ -733,16 +733,12 @@ def extract_key_count(list, key=None):
 
 
 def get_week_count(reference_date, d):
+
     week_count = 0
-    if d:
-        test_date = d
-        temp = reference_date
-        if reference_date > d:
-            temp = d
-            test_date = reference_date
-        while temp.date() <= test_date.date():
-            temp = dateutils.increment(temp, days=7)
-            week_count += 1
+    while(reference_date.date() <= d.date()):
+        d = d - datetime.timedelta(days=7)
+        week_count = week_count + 1
+
     return week_count
 
 
