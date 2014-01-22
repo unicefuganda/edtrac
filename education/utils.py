@@ -244,14 +244,12 @@ def _schedule_teacher_weekly_scripts(group, connection, grps):
                 # get rid of any existing script progress; this is a one time thing
                 ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug='edtrac_p3_teachers_weekly')).delete()
                 sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug='edtrac_p3_teachers_weekly'))
-                d = _next_thursday()
-                sp.set_time(d)
+                sp.set_time(_next_thursday())
         elif connection.contact.emisreporter.grade in ['p6', 'P6'] and connection.contact.emisreporter.schools.exists():
             # get rid of existing ScriptProgresses and assign it to p6 teachers
             ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug='edtrac_p6_teachers_weekly')).delete()
             sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug='edtrac_p6_teachers_weekly'))
-            d = _next_thursday()
-            sp.set_time(d)
+            sp.set_time(_next_thursday())
         else:
             pass
 
