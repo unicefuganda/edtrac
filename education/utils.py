@@ -192,24 +192,10 @@ def _next_term_question_date(rght=None):
             d = second_term_qn_date
         else:
             d = third_term_qn_date
-    if is_weekend(d):
-        d = d + datetime.timedelta((0 - d.weekday()) % 7)
-    in_holiday = True
-    while in_holiday:
-        in_holiday = False
-        for start, end in holidays:
-            if type(end) == str:
-                if d.date() == start.date():
-                    in_holiday = True
-                    break
-            else:
-                if d >= start and d <= end:
-                    in_holiday = True
-                    break
-        if in_holiday:
-            d = d + datetime.timedelta(days=1)
-            if is_weekend(d):
-                d = d + datetime.timedelta((0 - d.weekday()) % 7)
+
+    while(is_holiday(d, holidays) or is_weekend(d)):
+        d = d + datetime.timedelta(days=1)
+
     return d
 
 def _next_midterm():
@@ -229,23 +215,9 @@ def _next_midterm():
     else:
         d = start_of_year + datetime.timedelta(days=((10*31)+15))
 
-    if is_weekend(d):
-        d = d + datetime.timedelta((0 - d.weekday()) % 7)
-    in_holiday = True
-    while in_holiday:
-        in_holiday = False
-        for start, end in holidays:
-            if type(end) == str:
-                if d.date() == start.date():
-                    in_holiday = True
-                    break
-            else:
-                if d >= start and d <= end:
-                    in_holiday = True
-                    break
-        if in_holiday:
-            if is_weekend(d):
-                d = d + datetime.timedelta((0 - d.weekday()) % 7)
+    while(is_holiday(d, holidays) or is_weekend(d)):
+        d = d + datetime.timedelta(days=1)
+
     return d
 
 def _schedule_weekly_scripts(group, connection, grps):
