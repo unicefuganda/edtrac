@@ -69,6 +69,11 @@ class TestUtilFunctions(TestCase):
         next_day = next_relativedate(29, xdate = someday_in_august)
         self.assertEqual(date(2013, 8, 29), next_day.date())
 
+    def test_sets_relative_date_to_ten_am(self):
+        someday_in_august = datetime(2013, 8, 7)
+        next_day = next_relativedate(29, xdate = someday_in_august)
+        self.assertEqual(time(10, 0, 0), next_day.time())
+
     def test_finds_next_relativedate_with_month_offset(self):
         someday_in_august = datetime(2013, 8, 7)
         next_day = next_relativedate(29, month_offset = 2, xdate = someday_in_august)

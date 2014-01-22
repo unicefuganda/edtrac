@@ -94,7 +94,7 @@ def next_relativedate(day_offset, month_offset=0, xdate = datetime.datetime.now(
     if d.date() <= xdate.date():
         d = d + dateutils.relativedelta(months=1)
 
-    return d
+    return time_to_10am(d)
 
 def _next_thursday(sp=None,
                    get_time=datetime.datetime.now,
