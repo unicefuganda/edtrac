@@ -233,17 +233,25 @@ def dash_report_district(request):
         start_date = parser.parse(request.GET['start_date'])
         end_date = parser.parse(request.GET['end_date'])
         time_range = get_date_range(start_date, end_date, time_depth)
+    
     config_list = get_polls_for_keyword(indicator)
 
     time_range.reverse()
     weeks = ["%s - %s" % (i[0].strftime("%m/%d/%Y"), i[1].strftime("%m/%d/%Y")) for i in time_range]
     district = Location.objects.get(name=request.GET['district'], type='district')
-    location = Location.objects.filter(type__in=['district'],name__in=[district])
+    location = Location.objects.filter(type__in=['district'], name__in=[district])
 
-    collective_result, chart_data, school_percent, tooltips, = get_aggregated_report_for_district(location, time_range,config_list)
-    jsonDataSource.append(
+    if indicator =='all':
+        collective_result, chart_data, school_percent, tooltips, = get_aggregated_report_for_district(location, time_range, config_list)
+        jsonDataSource.append(
         {'results': collective_result, 'chartData': chart_data, 'school_percent': school_percent, 'weeks': weeks,
          'toolTips': tooltips})
+    else:
+        collective_result, chart_data, school_percent, tooltips = get_aggregated_report_for_district_single_indicator(location, time_range, config_list)
+        jsonDataSource.append(
+        {'results': collective_result, 'chartData': chart_data, 'school_percent': school_percent, 'weeks': weeks,
+         'toolTips': tooltips})
+
     return HttpResponse(simplejson.dumps(jsonDataSource), mimetype='application/json')
 
 
@@ -306,8 +314,3 @@ def dash_report_params(request):
          'toolTips': tooltips})
 
     return HttpResponse(simplejson.dumps(jsonDataSource), mimetype='application/json')
-
-
-
-
-
