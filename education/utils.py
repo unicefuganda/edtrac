@@ -138,35 +138,21 @@ def _this_thursday(sp=None, **kwargs):
     return d
 
 
-def _is_wednesday():
-    today = datetime.datetime.now()
-    WEDNESDAY = 2
-    return (today, WEDNESDAY == today.weekday())
-
-
 def _schedule_report_sending():
     holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
-    current_day, current_day_wednesday = _is_wednesday()
-    can_send = True
-    if current_day_wednesday:
-        for start, end in holidays:
-            if current_day >= start and current_day <= end:
-                can_send = False
-                break
-        if can_send:
-            from .reports import generate_deo_report
-            from .models import EmisReporter
+    today = datetime.datetime.now()
+    WEDNESDAY = 2
 
-            all_reporters = EmisReporter.objects.filter(groups__name="DEO")
-            for reporter in all_reporters:
-                deo_report_connections, deo_report = generate_deo_report(location_name=reporter.reporting_location.name)
-                attendance_template = "%s% were absent this week."
-                literacy_template = "An average of %s of %s covered"
+    if today.day == WEDNESDAY and not is_holiday(today, holidays):
+        from .reports import generate_deo_report
+        from .models import EmisReporter
 
-        else:
-            return
-    else:
-        return
+        all_reporters = EmisReporter.objects.filter(groups__name="DEO")
+        for reporter in all_reporters:
+            deo_report_connections, deo_report = generate_deo_report(location_name=reporter.reporting_location.name)
+            attendance_template = "%s% were absent this week."
+            literacy_template = "An average of %s of %s covered"
+
 
 def _date_of_monthday(day_offset, get_time = datetime.datetime.now, holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])):
 
