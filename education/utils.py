@@ -138,29 +138,6 @@ def _this_thursday(sp=None, **kwargs):
     return d
 
 
-def _next_wednesday(sp = None):
-    """
-    Next Wednesday is the very next Wednesday of the week which is not a school holiday
-    """
-    holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
-    d = sp.time if sp else datetime.datetime.now()
-    d = d + datetime.timedelta((2 - day.weekday()) % 7)
-    in_holiday = True
-    while in_holiday:
-        in_holiday = False
-        for start, end in holidays:
-            if type(end) == str:
-                if d.date() == start.date():
-                    in_holiday = True
-                    break
-            else:
-                if d >= start and d <= end:
-                    in_holiday = True
-                    break
-        if in_holiday:
-            day = day + datetime.timedelta(7)
-    return day
-
 def _is_wednesday():
     today = datetime.datetime.now()
     WEDNESDAY = 2
