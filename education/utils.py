@@ -203,36 +203,22 @@ def _schedule_report_sending():
     else:
         return
 
-def _date_of_monthday(day_offset):
+def _date_of_monthday(day_offset, get_time = datetime.datetime.now, holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])):
 
     """
     Find the date corresponding to day_offset of the month for example 25th day of of month
     If the 'day_offset' day of the month falls in holiday period, 'day_offset' day of
     the following month is returned
     """
-    holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
-    d = next_relativedate(day_offset)
 
-    if is_weekend(d):
-        #next monday
-        d = d + datetime.timedelta((0 - d.weekday()) % 7)
+    d = next_relativedate(day_offset, xdate=get_time())
 
-    in_holiday = True
-    while in_holiday:
-        in_holiday = False
-        for start, end in holidays:
-            if type(end) == str:
-                if d.date() == start.date():
-                    in_holiday = True
-                    break
-            else:
-                if d >= start and d <= end:
-                    in_holiday = True
-                    break
-        if in_holiday:
-            d = next_relativedate(day_offset, 0, d)
-            if is_weekend(d):
-                d = d + datetime.timedelta((0 - d.weekday()) % 7)
+    while(is_holiday(d, holidays)):
+          d = next_relativedate(day_offset, xdate=d)
+
+    while(is_weekend(d)):
+          d = d + datetime.timedelta(days=1)
+
     return d
 
 def _next_term_question_date(rght=None):
