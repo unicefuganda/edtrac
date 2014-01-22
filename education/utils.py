@@ -291,15 +291,7 @@ def _schedule_weekly_scripts_now(group, connection, grps):
     """
     if group.name in grps:
         script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
-        now = datetime.datetime.now()
-        if now.hour > 10:
-            time_set = now - datetime.timedelta(hours = now.hour - 10)
-        elif now.hour < 10:
-            time_set = now + datetime.timedelta(hours = 10 - now.hour)
-        else:
-            time_set = now
-        time_set = time_set - datetime.timedelta(seconds = time_set.second)
-        time_set = time_set - datetime.timedelta(minutes = time_set.minute)
+        time_set = time_to_10am(datetime.datetime.now())
         d = _this_thursday(time_set=time_set)
         #if reporter is a teacher set in the script session only if this reporter has a grade
         if connection.contact.emisreporter.groups.filter(name='Teachers').exists():
@@ -326,15 +318,7 @@ def _schedule_weekly_script(group, connection, script_slug, role_names):
     the new date is computed relative datetime.datetime.now()
     """
     if group.name in role_names:
-        now  = datetime.datetime.now()
-        if now.hour > 10:
-            time_set = now - datetime.timedelta(hours = now.hour - 10)
-        elif now.hour < 10:
-            time_set = now + datetime.timedelta(hours = 10 - now.hour)
-        else:
-            time_set = now
-        time_set = time_set - datetime.timedelta(seconds = time_set.second)
-        time_set = time_set - datetime.timedelta(minutes = time_set.minute)
+        time_set = time_to_10am(datetime.datetime.now())
         d = _this_thursday(time_set=time_set)
 
         #if reporter is a teacher set in the script session only if this reporter has a grade
