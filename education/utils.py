@@ -99,15 +99,12 @@ def next_relativedate(day_offset, month_offset=0, xdate = None):
 
 def _next_thursday(sp=None,
                    get_time=datetime.datetime.now,
-                   holidays=getattr(settings, 'SCHOOL_HOLIDAYS', []),
-                   **kwargs):
+                   holidays=getattr(settings, 'SCHOOL_HOLIDAYS', [])):
     """
     Next Thursday is the very next Thursday of the week which is not a school holiday
     """
     if sp:
         d = time_to_10am(sp.time)
-    elif kwargs.get('time_set'):
-        d = time_to_10am(kwargs.has_key('time_set'))
     else:
         d = time_to_10am(get_time())
 
@@ -478,9 +475,8 @@ def retrieve_poll(request, pks=None):
     else:
         return Poll.objects.filter(pk__in=[pks]).exclude(pk__in=script_polls)
 
-def get_flagged_messages(**kwargs):
+def get_flagged_messages():
     return MessageFlag.objects.all()
-
 
 
 def compute_average_percentage(list_of_percentages):
