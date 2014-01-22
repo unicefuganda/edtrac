@@ -449,10 +449,6 @@ def retrieve_poll(request, pks=None):
     else:
         return Poll.objects.filter(pk__in=[pks]).exclude(pk__in=script_polls)
 
-def get_flagged_messages():
-    return MessageFlag.objects.all()
-
-
 def compute_average_percentage(list_of_percentages):
     """
     Average percentage
