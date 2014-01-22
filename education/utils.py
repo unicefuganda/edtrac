@@ -181,7 +181,7 @@ def _next_term_question_date(rght=None):
     else:
         if d <= first_term_qn_date:
             d = first_term_qn_date
-        elif d > first_term_qn_date and d <= second_term_qn_date:
+        elif d <= second_term_qn_date:
             d = second_term_qn_date
         else:
             d = third_term_qn_date
