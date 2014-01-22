@@ -61,7 +61,7 @@ def previous_calendar_week(t=None):
     Thursday marks the beginning of a new week of data submission
     Data for a new week is accepted until Wednesday evening of the following week
     """
-    d = t if t else datetime.datetime.now()
+    d = t or datetime.datetime.now()
     if not d.weekday() == 3:
         # last Thursday == next Thursday minus 7 days.
         last_thursday = d + (datetime.timedelta((3-d.weekday())%7) - (datetime.timedelta(days=7)))
@@ -369,15 +369,14 @@ def _schedule_weekly_scripts_now(group, connection, grps):
     if group.name in grps:
         script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
         now = datetime.datetime.now()
-        time_set = None
         if now.hour > 10:
             time_set = now - datetime.timedelta(hours = now.hour - 10)
         elif now.hour < 10:
             time_set = now + datetime.timedelta(hours = 10 - now.hour)
         else:
             time_set = now
-        time_set = time_set if time_set.second == 0 else time_set - datetime.timedelta(seconds = time_set.second)
-        time_set = time_set if time_set.minute == 0 else time_set - datetime.timedelta(minutes = time_set.minute)
+        time_set = time_set - datetime.timedelta(seconds = time_set.second)
+        time_set = time_set - datetime.timedelta(minutes = time_set.minute)
         d = _this_thursday(time_set=time_set)
         #if reporter is a teacher set in the script session only if this reporter has a grade
         if connection.contact.emisreporter.groups.filter(name='Teachers').exists():
@@ -405,15 +404,14 @@ def _schedule_weekly_script(group, connection, script_slug, role_names):
     """
     if group.name in role_names:
         now  = datetime.datetime.now()
-        time_set = None
         if now.hour > 10:
             time_set = now - datetime.timedelta(hours = now.hour - 10)
         elif now.hour < 10:
             time_set = now + datetime.timedelta(hours = 10 - now.hour)
         else:
             time_set = now
-        time_set = time_set if time_set.second == 0 else time_set - datetime.timedelta(seconds = time_set.second)
-        time_set = time_set if time_set.minute == 0 else time_set - datetime.timedelta(minutes = time_set.minute)
+        time_set = time_set - datetime.timedelta(seconds = time_set.second)
+        time_set = time_set - datetime.timedelta(minutes = time_set.minute)
         d = _this_thursday(time_set=time_set)
 
         #if reporter is a teacher set in the script session only if this reporter has a grade
@@ -473,7 +471,6 @@ def _schedule_midterm_script(group, connection, script_slug, role_names, date=No
     and it sets the start time for a script to _next_midterm() or to date passed to it as a String argument
     in the format YYYY-mm-dd
     """
-#    d = None
     if date:
         now = datetime.datetime.now()
         dl = date.split('-')
@@ -490,7 +487,6 @@ def _schedule_termly_script(group, connection, script_slug, role_names, date=Non
     and it sets the start time for a script to _next_term_question_date() or _next_midterm() or to date passed to it as a String argument
     in the format YYYY-mm-dd
     """
-#    d = None
     if date:
         now = datetime.datetime.now()
         dl = date.split('-')
@@ -509,7 +505,6 @@ def _schedule_new_monthly_script(group, connection, script_slug, role_names, dat
     and it sets the start time for a script to _next_term_question_date() or _next_midterm() or to date passed to it as a String argument
     in the format YYYY-mm-dd
     """
-#    d = None
     if date:
         now = datetime.datetime.now()
         dl = date.split('-')
