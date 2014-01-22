@@ -131,23 +131,11 @@ def _this_thursday(sp=None, **kwargs):
     time_schedule = kwargs.get('time_set') if kwargs.has_key('time_set') else datetime.datetime.now()
     d = sp.time if sp else time_schedule
     d = d + datetime.timedelta((3 - d.weekday()) % 7)
-    in_holiday = True
-    while in_holiday:
-        in_holiday = False
-        for start, end in holidays:
-            if type(end) == str:
-                if d.date() == start.date():
-                    in_holiday = True
-                    break
-            else:
-                if d >= start and d <= end:
-                    in_holiday = True
-                    break
-        if in_holiday:
-            d = d + datetime.timedelta(1) # try next day
+
+    while(is_holiday(d, holidays)):
+        d = d + datetime.timedelta(1) # try next day
+
     return d
-
-
 
 
 def _next_wednesday(sp = None):
