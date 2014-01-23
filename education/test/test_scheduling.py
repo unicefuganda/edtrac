@@ -35,9 +35,9 @@ class TestScheduling(TestCase):
 
         today = date(2013, 3, 30)
 
-        self.assertEquals(datetime(2013, 4, 4, 10, 0, 0), upcoming_for('p3_girls', roster = roster, get_day = lambda: today))
+        self.assertEquals(datetime(2013, 4, 4, 10, 0, 0), next_scheduled('p3_girls', roster = roster, get_day = lambda: today))
 
     def test_finds_when_no_upcoming_date_and_time_for_specific_poll(self):
         today = date(2013, 3, 30)
-        self.assertEquals(None, upcoming_for('p3_girls', roster = {}, get_day = lambda: today))
+        self.assertEquals(None, next_scheduled('p3_girls', roster = {}, get_day = lambda: today))
 

@@ -17,7 +17,7 @@ def current_period(dates, get_day = date.today):
     end = _first(lambda d: d > get_day(), dates)
     return (start, end - timedelta(days=1) if end else None)
 
-def upcoming_for(poll_id, roster=getattr(settings, 'POLL_DATES', {}), get_day = date.today):
+def next_scheduled(poll_id, roster=getattr(settings, 'POLL_DATES', {}), get_day = date.today):
     """
     Returns the datetime the specified poll should next run on.
     """
