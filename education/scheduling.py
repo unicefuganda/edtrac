@@ -1,4 +1,5 @@
-from datetime import date, timedelta
+from datetime import date, time, timedelta, datetime
+from django.conf import settings
 
 def upcoming(dates, get_day = date.today):
     """
@@ -16,7 +17,17 @@ def current_period(dates, get_day = date.today):
     end = _first(lambda d: d > get_day(), dates)
     return (start, end - timedelta(days=1) if end else None)
 
+def upcoming_for(poll_id, roster=getattr(settings, 'POLL_DATES', {}), get_day = date.today):
+    """
+    Returns the datetime the specified poll should next run on.
+    """
+    dates = roster.get(poll_id) or []
+    date = upcoming(dates, get_day = get_day)
+    return _at(date, 10) if date else None
+
+def _at(date, oclock):
+    return datetime.combine(date, time(oclock, 0, 0))
+
 def _first(predicate, sequence):
     filtered = filter(predicate, sequence)
     return filtered[0] if filtered else None
-
