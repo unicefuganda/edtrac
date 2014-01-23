@@ -9,6 +9,11 @@ class TestScheduling(TestCase):
         dates = [date(2013, 12, 26), date(2014, 1, 2), date(2014, 1, 9)]
         self.assertEquals(date(2014, 1, 2), upcoming(dates, get_day = lambda: today))
 
+    def test_current_date_doesnt_count_as_upcoming(self):
+        today = date(2013, 12, 26)
+        dates = [date(2013, 12, 26), date(2014, 1, 2), date(2014, 1, 9)]
+        self.assertEquals(date(2014, 1, 2), upcoming(dates, get_day = lambda: today))
+
     def test_finds_when_no_upcoming_date(self):
         today = date(2014, 1, 29)
         dates = [date(2013, 12, 26), date(2014, 1, 2), date(2014, 1, 9)]
@@ -40,4 +45,3 @@ class TestScheduling(TestCase):
     def test_finds_when_no_upcoming_date_and_time_for_specific_poll(self):
         today = date(2013, 3, 30)
         self.assertEquals(None, next_scheduled('p3_girls', roster = {}, get_day = lambda: today))
-
