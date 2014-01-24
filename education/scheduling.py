@@ -34,6 +34,12 @@ def schedule(connection, script, get_day = date.today, roster = getattr(settings
         progress = ScriptProgress.objects.create(connection=connection, script=script)
         progress.set_time(time)
 
+def schedule_all(connection, groups=getattr(settings, 'GROUPS', {}), get_day = date.today, roster = getattr(settings, 'POLL_DATES', {})):
+    group = connection.contact.groups.all()[0]
+    scripts = Script.objects.filter(slug = group.name)
+    for script in scripts:
+        schedule(connection, script, get_day=get_day, roster=roster)
+
 def _at(date, oclock):
     return datetime.combine(date, time(oclock, 0, 0))
 

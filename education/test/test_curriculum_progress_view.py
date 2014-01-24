@@ -8,13 +8,14 @@ from rapidsms_xforms.models import *
 from rapidsms.contrib.locations.models import Location, LocationType
 from rapidsms.models import Connection, Backend
 from script.utils.outgoing import check_progress
-from script.models import Script, ScriptProgress, ScriptStep,ScriptSession
+from script.models import Script, ScriptProgress, ScriptStep, ScriptSession
 from rapidsms_httprouter.router import get_router
-from education.models import EmisReporter, School,reschedule_monthly_script
+from education.models import EmisReporter, School, Response
 from django.test.client import Client
 from education.test.utils import *
 from poll.models import Poll
 from .utils import create_attribute
+from education.scheduling import *
 
 class TestCurriculumProgressView(TestCase):
     def setUp(self):
@@ -32,12 +33,12 @@ class TestCurriculumProgressView(TestCase):
             11:4.2,
             12:4.3
         }
-        settings.FIRST_TERM_BEGINS = dateutils.increment(datetime.datetime.now(),weeks=-16)
-        settings.SECOND_TERM_BEGINS = dateutils.increment(datetime.datetime.now(),weeks=-4)
-        settings.THIRD_TERM_BEGINS =  dateutils.increment(datetime.datetime.now(),weeks=8)
+        settings.FIRST_TERM_BEGINS = dateutils.increment(datetime.now(),weeks=-16)
+        settings.SECOND_TERM_BEGINS = dateutils.increment(datetime.now(),weeks=-4)
+        settings.THIRD_TERM_BEGINS =  dateutils.increment(datetime.now(),weeks=8)
 
         settings.SCHOOL_TERM_START = settings.SECOND_TERM_BEGINS
-        self.poll_response_current_week_date = self.get_thursday(datetime.datetime.today())
+        self.poll_response_current_week_date = self.get_thursday(datetime.today())
         self.poll_response_previous_week_date = dateutils.increment(self.poll_response_current_week_date,weeks=-2)
 
         ht = Group.objects.create(name='Head Teachers')
@@ -133,24 +134,17 @@ class TestCurriculumProgressView(TestCase):
             week_count+=1
         return add_offset_according_to_term_number(self.target[week_count],settings.SECOND_TERM_BEGINS)
 
-    def test_curriculum_progress_view_for_current_week(self):
-        reschedule_monthly_script('Head Teachers',self.poll_response_current_week_date.strftime("%Y-%m-%d"),'edtrac_p3_teachers_weekly')
+    def reschedule(self):
+        roster = {'edtrac_p3_teachers_weekly' : [self.poll_response_current_week_date.date()]}
+        get_day = lambda : self.poll_response_current_week_date.date() - timedelta(days=1)
+        schedule(self.connection1, self.script, roster=roster, get_day=get_day)
+        schedule(self.connection2, self.script, roster=roster, get_day=get_day)
+        schedule(self.connection3, self.script, roster=roster, get_day=get_day)
         check_progress(self.script)
-        self.fake_incoming_with_date('5.3',self.connection1,self.poll_response_current_week_date)
-        self.fake_incoming_with_date('5.3',self.connection2,self.poll_response_current_week_date)
-        self.fake_incoming_with_date('5.2',self.connection3,self.poll_response_current_week_date)
-        client=Client()
-        client.login(username='John',password='password')
-        response=client.get('/edtrac/dash-admin-progress/')
-        target_value,term=self.get_term_target(self.poll_response_current_week_date)
-        self.assertEqual(target_value,response.context['target'])
-        self.assertEqual('second',term)
-        self.assertEqual(5.3,response.context['current_mode'][0][0])
 
     def test_curriculum_progress_view_for_specified_week(self):
         specified_week=self.poll_response_previous_week_date.strftime("%Y-%m-%d")
-        reschedule_monthly_script('Head Teachers',specified_week,'edtrac_p3_teachers_weekly')
-        check_progress(self.script)
+        self.reschedule()
         self.fake_incoming_with_date('5.1',self.connection1,self.poll_response_previous_week_date)
         self.fake_incoming_with_date('5.1',self.connection2,self.poll_response_previous_week_date)
         self.fake_incoming_with_date('5.1',self.connection3,self.poll_response_previous_week_date)
@@ -166,9 +160,9 @@ class TestCurriculumProgressView(TestCase):
         self.assertEqual(5.1,response.context['current_mode'][0][0])
 
     def test_should_give_target_for_previous_terms(self):
-        settings.FIRST_TERM_BEGINS = dateutils.increment(datetime.datetime.now(),weeks=-13)
-        settings.SCHOOL_TERM_START = datetime.datetime.now()
-        settings.SCHOOL_TERM_END = dateutils.increment(datetime.datetime.now(),weeks=12)
+        settings.FIRST_TERM_BEGINS = dateutils.increment(datetime.now(),weeks=-13)
+        settings.SCHOOL_TERM_START = datetime.now()
+        settings.SCHOOL_TERM_END = dateutils.increment(datetime.now(),weeks=12)
         client = Client()
         client.login(username='John',password='password')
         this_thursday = _this_thursday()
@@ -179,10 +173,8 @@ class TestCurriculumProgressView(TestCase):
         self.assertEqual('No Reports made this week',response.context['current_mode'])
         self.assertEqual(1.2,response.context['target'])
 
-
     def test_mode_by_district(self):
-        reschedule_monthly_script('Head Teachers',self.poll_response_current_week_date.strftime("%Y-%m-%d"),'edtrac_p3_teachers_weekly')
-        check_progress(self.script)
+        self.reschedule()
         self.fake_incoming_with_date('5.3',self.connection1,self.poll_response_current_week_date)
         self.fake_incoming_with_date('5.3',self.connection2,self.poll_response_current_week_date)
         self.fake_incoming_with_date('5.2',self.connection3,self.poll_response_current_week_date)

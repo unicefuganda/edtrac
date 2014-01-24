@@ -1,7 +1,8 @@
 from unittest import TestCase
 from education.scheduling import *
 from datetime import date
-from rapidsms.models import Connection, Backend
+from rapidsms.models import Connection, Backend, Contact
+from django.contrib.auth.models import Group
 from script.models import Script, ScriptProgress
 
 class TestScheduling(TestCase):
@@ -66,3 +67,26 @@ class TestScheduling(TestCase):
        future = ScriptProgress.objects.get(connection=connection, script=script)
 
        self.assertEquals(datetime(2013, 8, 29, 10, 0, 0), future.time)
+
+    def test_schedules_all_polls_for_connection(self):
+       roster = {'p6_girls': [date(2013, 8, 29)]}
+       groups = {'Teachers': ['p6_girls']}
+       today = date(2013, 8, 23)
+
+       script = Script.objects.create(name='edtrac_p6_girls', slug='p6_girls')
+       backend = Backend.objects.create(name='foo')
+       contact = Contact.objects.create()
+       connection = Connection.objects.create(backend=backend, contact=contact)
+       connection.contact.groups.add(Group.objects.create(name='p6_girls'))
+       connection.save()
+       current = ScriptProgress.objects.create(connection=connection, script=script)
+
+       schedule_all(connection, groups=groups, roster=roster, get_day=lambda: today)
+       future = ScriptProgress.objects.get(connection=connection, script=script)
+
+       self.assertEquals(datetime(2013, 8, 29, 10, 0, 0), future.time)
+
+    def tearDown(self):
+        Backend.objects.all().delete()
+        Script.objects.all().delete()
+        Group.objects.all().delete()

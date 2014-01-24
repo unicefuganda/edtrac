@@ -8,6 +8,7 @@ from education.utils import get_week_count, get_months, _next_thursday, next_rel
         _date_of_monthday
 from education.models.utils import should_reschedule
 from unregister.models import Blacklist
+from rapidsms.models import Connection, Backend
 
 class TestUtilFunctions(TestCase):
 
@@ -124,13 +125,15 @@ class TestUtilFunctions(TestCase):
         self.assertFalse(should_reschedule(connection, script))
 
     def test_doesnt_reschedule_blacklisted(self):
-        connection = Connection.objects.create()
-        script = Script.objects.create(slug='edtrac_p6_boys')
+        backend = Backend.objects.create(name='bar')
+        connection = Connection.objects.create(backend=backend)
+        script = Script.objects.create(slug='edtrac_water_points')
         Blacklist.objects.create(connection=connection)
         self.assertFalse(should_reschedule(connection, script))
 
     def test_schedules_other_polls(self):
         connection = None
-        script = Script.objects.create(slug='edtrac_p6_boys')
+        script = Script.objects.create(slug='edtrac_monthly_violence')
         self.assertTrue(should_reschedule(connection, script))
+
 
