@@ -378,10 +378,10 @@ def edtrac_autoreg(**kwargs):
 def edtrac_reschedule_script(**kwargs):
     connection = kwargs['connection']
     script = kwargs['sender'].script
-    if _enabled(connection, script):
+    if should_reschedule(connection, script):
         schedule(connection, script)
 
-def _enabled(connection, script):
+def should_reschedule(connection, script):
     return script.slug != 'edtrac_autoreg'
 
 

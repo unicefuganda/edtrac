@@ -3,8 +3,10 @@ from datetime import date, time, datetime, timedelta
 from unittest import TestCase
 import dateutils
 from education.reports import is_holiday
+from script.models import Script
 from education.utils import get_week_count, get_months, _next_thursday, next_relativedate, \
         _date_of_monthday
+from education.models.utils import should_reschedule
 
 
 class TestUtilFunctions(TestCase):
@@ -115,3 +117,9 @@ class TestUtilFunctions(TestCase):
     def test_week_count_starts_from_one(self):
         start = datetime(2013, 2, 2)
         self.assertEqual(1, get_week_count(start, start))
+
+    def test_doesnt_reschedule_autoreg(self):
+        connection = None
+        script = Script.objects.create(slug='edtrac_autoreg')
+        self.assertFalse(should_reschedule(connection, script))
+
