@@ -26,12 +26,12 @@ def next_scheduled(poll_id, roster=getattr(settings, 'POLL_DATES', {}), get_day 
     date = upcoming(dates, get_day = get_day)
     return _at(date, 10) if date else None
 
-def schedule(connection, sender, get_day = date.today, roster = getattr(settings, 'POLL_DATES', {})):
-    ScriptProgress.objects.filter(connection=connection, script=sender.script).delete()
+def schedule(connection, script, get_day = date.today, roster = getattr(settings, 'POLL_DATES', {})):
+    ScriptProgress.objects.filter(connection=connection, script=script).delete()
     time = next_scheduled(sender.script.slug, roster=roster, get_day=get_day)
 
     if time:
-        progress = ScriptProgress.objects.create(connection=connection, script=sender.script)
+        progress = ScriptProgress.objects.create(connection=connection, script=script)
         progress.set_time(time)
 
 def _at(date, oclock):

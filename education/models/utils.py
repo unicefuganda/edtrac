@@ -377,12 +377,12 @@ def edtrac_autoreg(**kwargs):
 
 def edtrac_reschedule_script(**kwargs):
     connection = kwargs['connection']
-    sender = kwargs['sender']
-    if _enabled(connection, sender):
-        schedule(connection, progress)
+    script = kwargs['sender'].script
+    if _enabled(connection, script):
+        schedule(connection, script)
 
-def _enabled(connection, progress):
-    return progress.script.slug != 'edtrac_autoreg'
+def _enabled(connection, script):
+    return script.slug != 'edtrac_autoreg'
 
 
 def edtrac_autoreg_transition(**kwargs):

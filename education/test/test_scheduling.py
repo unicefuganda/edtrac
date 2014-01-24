@@ -60,9 +60,9 @@ class TestScheduling(TestCase):
        script = Script.objects.create(slug='p6_girls')
        backend = Backend.objects.create(name='foo')
        connection = Connection.objects.create(backend=backend)
-       sender = ScriptProgress.objects.create(connection=connection, script=script)
+       current = ScriptProgress.objects.create(connection=connection, script=script)
 
-       schedule(connection, sender, roster=roster, get_day=lambda: today)
+       schedule(connection, script, roster=roster, get_day=lambda: today)
        future = ScriptProgress.objects.get(connection=connection, script=script)
 
        self.assertEquals(datetime(2013, 8, 29, 10, 0, 0), future.time)
