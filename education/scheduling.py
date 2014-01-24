@@ -26,10 +26,7 @@ def next_scheduled(poll_id, roster=getattr(settings, 'POLL_DATES', {}), get_day 
     date = upcoming(dates, get_day = get_day)
     return _at(date, 10) if date else None
 
-def reschedule(get_day = date.today, roster = getattr(settings, 'POLL_DATES', {}), **kwargs):
-    connection = kwargs['connection']
-    sender = kwargs['sender']
-
+def schedule(connection, sender, get_day = date.today, roster = getattr(settings, 'POLL_DATES', {})):
     ScriptProgress.objects.filter(connection=connection, script=sender.script).delete()
     time = next_scheduled(sender.script.slug, roster=roster, get_day=get_day)
 

@@ -48,12 +48,12 @@ class TestScheduling(TestCase):
         today = date(2013, 3, 30)
         self.assertEquals(None, next_scheduled('p3_girls', roster = {}, get_day = lambda: today))
 
-    def test_schedules_poll(self):
+    def test_finds_next_scheduled_poll(self):
        roster = {'p6_girls': [date(2013, 8, 29)]}
        today = date(2013, 8, 23)
        self.assertEquals(datetime(2013, 8, 29, 10, 0, 0), next_scheduled('p6_girls', roster=roster, get_day=lambda: today))
 
-    def test_reschedules_poll_for_connection(self):
+    def test_schedules_poll_for_connection(self):
        roster = {'p6_girls': [date(2013, 8, 29)]}
        today = date(2013, 8, 23)
 
@@ -62,7 +62,7 @@ class TestScheduling(TestCase):
        connection = Connection.objects.create(backend=backend)
        sender = ScriptProgress.objects.create(connection=connection, script=script)
 
-       reschedule(sender=sender, connection=connection, roster=roster, get_day=lambda: today)
+       schedule(connection, sender, roster=roster, get_day=lambda: today)
        future = ScriptProgress.objects.get(connection=connection, script=script)
 
        self.assertEquals(datetime(2013, 8, 29, 10, 0, 0), future.time)

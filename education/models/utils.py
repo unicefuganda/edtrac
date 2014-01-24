@@ -30,7 +30,7 @@ import logging
 from .emis_reporter import EmisReporter
 from .school import School
 
-from education.scheduling import reschedule
+from education.scheduling import schedule
 
 logger = logging.getLogger(__name__)
 
@@ -377,67 +377,12 @@ def edtrac_autoreg(**kwargs):
 
 def edtrac_reschedule_script(**kwargs):
     connection = kwargs['connection']
-    progress = kwargs['sender']
+    sender = kwargs['sender']
+    if _enabled(connection, sender):
+        schedule(connection, progress)
 
-    slug = progress.script.slug
-    if not progress.script.slug.startswith('edtrac_'):
-        return
-    if progress.script.slug == 'edtrac_autoreg':
-        return
-    if not connection.contact:
-        return
-    if not connection.contact.groups.count():
-        return
-    group = connection.contact.groups.all()[0]
-    if slug in [
-        "edtrac_%s" % g.lower().replace(' ', '_') + '_weekly'
-            for g in ['Teachers', 'Head Teachers', 'SMC']
-    ]:
-        _schedule_weekly_scripts(
-            group,
-            connection,
-            ['Teachers', 'Head Teachers', 'SMC']
-        )
-    elif slug == 'edtrac_head_teachers_monthly':
-        _schedule_monthly_script(
-            group,
-            connection,
-            'edtrac_head_teachers_monthly',
-            'last',
-            ['Head Teachers']
-        )
-    elif slug == 'edtrac_smc_monthly':
-        _schedule_monthly_script(
-            group,
-            connection,
-            'edtrac_smc_monthly',
-            5,
-            ['SMC']
-        )
-    elif slug == 'edtrac_gem_monthly':
-        _schedule_monthly_script(
-            group,
-            connection,
-            'edtrac_gem_monthly',
-            20,
-            ['GEM']
-        )
-    elif slug == 'edtrac_head_teachers_termly':
-        _schedule_termly_script(
-            group,
-            connection,
-            'edtrac_head_teachers_termly',
-            ['Head Teachers']
-        )
-    elif slug == 'edtrac_smc_termly':
-        _schedule_termly_script(
-            group,
-            connection,
-            'edtrac_smc_termly',
-            ['SMC']
-        )
-    else:
-        pass
+def _enabled(connection, progress):
+    return progress.script.slug != 'edtrac_autoreg'
 
 
 def edtrac_autoreg_transition(**kwargs):
@@ -956,8 +901,7 @@ def create_record_enrolled_deployed_questions_answered(model=None):
 Poll.register_poll_type('date', 'Date Response', parse_date_value, db_type=Attribute.TYPE_OBJECT)
 
 script_progress_was_completed.connect(edtrac_autoreg, weak=False)
-#script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)
-script_progress_was_completed.connect(reschedule, weak=False)
+script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)
 script_progress.connect(edtrac_autoreg_transition, weak=False)
 script_progress.connect(edtrac_attendance_script_transition, weak=False)
 #script_progress_was_completed.connect(send_feedback_on_complete,weak=True)
