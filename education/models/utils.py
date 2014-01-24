@@ -31,6 +31,7 @@ from .emis_reporter import EmisReporter
 from .school import School
 
 from education.scheduling import schedule
+from unregister.models import Blacklist
 
 logger = logging.getLogger(__name__)
 
@@ -382,8 +383,7 @@ def edtrac_reschedule_script(**kwargs):
         schedule(connection, script)
 
 def should_reschedule(connection, script):
-    return script.slug != 'edtrac_autoreg'
-
+    return script.slug != 'edtrac_autoreg' and not Blacklist.objects.filter(connection=connection).exists()
 
 def edtrac_autoreg_transition(**kwargs):
 

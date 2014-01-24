@@ -7,7 +7,7 @@ from script.models import Script
 from education.utils import get_week_count, get_months, _next_thursday, next_relativedate, \
         _date_of_monthday
 from education.models.utils import should_reschedule
-
+from unregister.models import Blacklist
 
 class TestUtilFunctions(TestCase):
 
@@ -121,6 +121,12 @@ class TestUtilFunctions(TestCase):
     def test_doesnt_reschedule_autoreg(self):
         connection = None
         script = Script.objects.create(slug='edtrac_autoreg')
+        self.assertFalse(should_reschedule(connection, script))
+
+    def test_doesnt_reschedule_blacklisted(self):
+        connection = Connection.objects.create()
+        script = Script.objects.create(slug='edtrac_p6_boys')
+        Blacklist.objects.create(connection=connection)
         self.assertFalse(should_reschedule(connection, script))
 
     def test_schedules_other_polls(self):
