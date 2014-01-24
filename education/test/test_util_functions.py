@@ -123,3 +123,8 @@ class TestUtilFunctions(TestCase):
         script = Script.objects.create(slug='edtrac_autoreg')
         self.assertFalse(should_reschedule(connection, script))
 
+    def test_schedules_other_polls(self):
+        connection = None
+        script = Script.objects.create(slug='edtrac_p6_boys')
+        self.assertTrue(should_reschedule(connection, script))
+

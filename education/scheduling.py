@@ -28,7 +28,7 @@ def next_scheduled(poll_id, roster=getattr(settings, 'POLL_DATES', {}), get_day 
 
 def schedule(connection, script, get_day = date.today, roster = getattr(settings, 'POLL_DATES', {})):
     ScriptProgress.objects.filter(connection=connection, script=script).delete()
-    time = next_scheduled(sender.script.slug, roster=roster, get_day=get_day)
+    time = next_scheduled(script.slug, roster=roster, get_day=get_day)
 
     if time:
         progress = ScriptProgress.objects.create(connection=connection, script=script)
