@@ -8,7 +8,7 @@
 import sys
 import os
 import djcelery
-from datetime import timedelta
+from datetime import timedelta, date
 
 filedir = os.path.dirname(os.path.dirname(__file__))
 sys.path.append(os.path.join(filedir))
@@ -333,3 +333,31 @@ XFORMS_HOST = 'edutrac.unicefuganda.org:8000'
 MAP_KEY = "ABQIAAAAmd7V71yw9ZddA0s8Z3wSKBS0unaJrFIrP1vn6ZXHpuhFyvYAGhQprSjp88j18w-K_X23JU31jBikVg"
 COUNTRY = "UG"
 MESSAGELOG_APP = 'rapidsms_httprouter'
+
+WEEKLY = [
+    date(2014, 2, 14),
+    date(2014, 2, 21),
+    date(2014, 2, 28),
+]
+
+MONTHLY = [
+    date(2014, 2, 24),
+    date(2014, 3, 24),
+    date(2014, 4, 14),
+]
+
+TERMLY = [
+    date(2014, 2, 21),
+]
+
+POLL_DATES = {
+    'edtrac_p3_teachers_weekly':               WEEKLY,
+    'edtrac_p6_teachers_weekly':               WEEKLY,
+    'edtrac_smc_weekly':                       WEEKLY,
+    'edtrac_head_teachers_weekly':             WEEKLY,
+
+    'edtrac_headteacher_violence_monthly':     MONTHLY,
+
+    'edtrac_school_enrollment_termly':         TERMLY,
+    'edtrac_p6_enrollment_headteacher_termly': TERMLY,
+}
