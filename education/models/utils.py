@@ -30,6 +30,8 @@ import logging
 from .emis_reporter import EmisReporter
 from .school import School
 
+from education.scheduling import reschedule
+
 logger = logging.getLogger(__name__)
 
 
@@ -954,7 +956,8 @@ def create_record_enrolled_deployed_questions_answered(model=None):
 Poll.register_poll_type('date', 'Date Response', parse_date_value, db_type=Attribute.TYPE_OBJECT)
 
 script_progress_was_completed.connect(edtrac_autoreg, weak=False)
-script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)
+#script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)
+script_progress_was_completed.connect(reschedule, weak=False)
 script_progress.connect(edtrac_autoreg_transition, weak=False)
 script_progress.connect(edtrac_attendance_script_transition, weak=False)
 #script_progress_was_completed.connect(send_feedback_on_complete,weak=True)
