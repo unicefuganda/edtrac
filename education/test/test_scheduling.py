@@ -86,6 +86,19 @@ class TestScheduling(TestCase):
 
        self.assertEquals(datetime(2013, 8, 29, 10, 0, 0), future.time)
 
+    def test_schedules_at_specified_time(self):
+       time = datetime(2013, 8, 23, 11, 33)
+
+       script = Script.objects.create(slug='p6_girls')
+       backend = Backend.objects.create(name='foo')
+       connection = Connection.objects.create(backend=backend)
+       current = ScriptProgress.objects.create(connection=connection, script=script)
+
+       schedule_at(connection, script, time)
+       future = ScriptProgress.objects.get(connection=connection, script=script)
+
+       self.assertEquals(datetime(2013, 8, 23, 11, 33), future.time)
+
     def tearDown(self):
         Backend.objects.all().delete()
         Script.objects.all().delete()
