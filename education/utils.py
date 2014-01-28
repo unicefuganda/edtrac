@@ -211,15 +211,7 @@ def _schedule_teacher_weekly_scripts(group, connection, grps):
     """
     #Short curcuit scheduling teachers without grades
     if group.name == 'Teachers':
-        slugs = {'p3' : 'edtrac_p3_teachers_weekly',
-                 'p6' : 'edtrac_p3_teachers_weekly'}
-
-        reporter = connection.contact.emisreporter
-        slug = slugs.get(reporter.grade.lower())
-
-        if slug and reporter.schools.exists():
-            script=Script.objects.get(slug=slug)
-            schedule_at(connection, script, _next_thursday())
+        schedule_all(connection)
 
 def _schedule_weekly_scripts_now(group, connection, grps):
     """
