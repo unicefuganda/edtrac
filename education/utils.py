@@ -132,22 +132,6 @@ def _this_thursday(sp=None, **kwargs):
     return d
 
 
-def _schedule_report_sending():
-    holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
-    today = datetime.datetime.now()
-    WEDNESDAY = 2
-
-    if today.day == WEDNESDAY and not is_holiday(today, holidays):
-        from .reports import generate_deo_report
-        from .models import EmisReporter
-
-        all_reporters = EmisReporter.objects.filter(groups__name="DEO")
-        for reporter in all_reporters:
-            deo_report_connections, deo_report = generate_deo_report(location_name=reporter.reporting_location.name)
-            attendance_template = "%s% were absent this week."
-            literacy_template = "An average of %s of %s covered"
-
-
 def _date_of_monthday(day_offset, get_time = datetime.datetime.now, holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])):
 
     """
@@ -273,15 +257,6 @@ def _schedule_weekly_script(group, connection, script_slug, role_names):
                 script=Script.objects.get(slug='edtrac_p6_teachers_weekly')
                 schedule_at(connection, script, _next_thursday())
 
-def _schedule_weekly_report(group, connection, grps):
-    if group.name in grps:
-        slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + 'report_weekly'
-        script = Script.objects.get(slug=slug)
-
-        connections = Connection.objects.filter(contact__in=Group.objects.get(name=group.name).contact_set.all())
-        for connection in connections:
-            schedule_at(connection, script, _next_wednesday(sp))
-
 def _schedule_script_now(group, connection, slug, role_names):
     if group.name in role_names:
         script = Script.objects.get(slug=slug)
@@ -297,18 +272,6 @@ def _schedule_monthly_script(group, connection, script_slug, day_offset, role_na
         d = _date_of_monthday(day_offset)
         script = Script.objects.get(slug=script_slug)
         schedule_at(connection, script, d)
-
-def _schedule_monthly_report(group, connection, script_slug, day_offset, role_names):
-    """
-    This is method is called within a loop of several connections or an individual connection; it stes the time
-    to a particular date in the month and sends of a report as message
-    """
-    if group.name in role_names:
-        connections = Connection.objects.filter(contact__in=Group.objects.get(name=group.name).contact_set.all())
-        for connection in connections:
-            d = _date_of_monthday(day_offset)
-            script = Script.objects.get(slug=script_slug)
-            schedule_at(connection, script, d)
 
 def _schedule_midterm_script(group, connection, script_slug, role_names, date=None):
     """

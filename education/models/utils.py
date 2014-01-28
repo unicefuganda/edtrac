@@ -825,11 +825,6 @@ def schedule_script_now(grp = 'all', slug=''):
             _schedule_script_now(reporter.groups.all()[0], reporter.default_connection, slug, ['Teachers', 'Head Teachers', 'SMC', 'GEM'])
 
 
-def schedule_weekly_report(grp='DEO'):
-    from .utils import _schedule_report_sending
-    _schedule_report_sending()
-
-
 def create_record_enrolled_deployed_questions_answered(model=None):
     """
     This function is run in a periodic task to create instances of the EnrolledDeployedQuestionsAnswered class that
@@ -887,5 +882,3 @@ script_progress_was_completed.connect(edtrac_autoreg, weak=False)
 script_progress_was_completed.connect(edtrac_reschedule_script, weak=False)
 script_progress.connect(edtrac_autoreg_transition, weak=False)
 script_progress.connect(edtrac_attendance_script_transition, weak=False)
-#script_progress_was_completed.connect(send_feedback_on_complete,weak=True)
-#script_progress.connect(edtrac_scriptrun_schedule, weak=False)
