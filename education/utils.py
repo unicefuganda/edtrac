@@ -53,9 +53,6 @@ def is_empty(arg):
 
     return False
 
-def time_to_10am(d):
-    return at(d, 10)
-
 def previous_calendar_week(t=None):
     """
     To education monitoring, a week runs between Thursdays,
@@ -84,8 +81,7 @@ def next_relativedate(day_offset, month_offset=0, xdate = None):
     """
 
     xdate = xdate or datetime.datetime.now()
-    d = xdate
-    d = d + dateutils.relativedelta(months=month_offset)
+    d = xdate + dateutils.relativedelta(months=month_offset)
 
     if day_offset == 'last':
         d = d + dateutils.relativedelta(months=1)
@@ -96,14 +92,14 @@ def next_relativedate(day_offset, month_offset=0, xdate = None):
     if d.date() <= xdate.date():
         d = d + dateutils.relativedelta(months=1)
 
-    return time_to_10am(d)
+    return at(d, 10)
 
 def _next_thursday(get_time=datetime.datetime.now,
                    holidays=getattr(settings, 'SCHOOL_HOLIDAYS', [])):
     """
     Next Thursday is the very next Thursday of the week which is not a school holiday
     """
-    d = time_to_10am(get_time())
+    d = at(get_time(), 10)
 
     thursday = 3
     if d.weekday() < thursday:
