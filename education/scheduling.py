@@ -43,10 +43,24 @@ def schedule_at(connection, script, time):
         progress.set_time(time)
 
 def schedule_all(connection, groups=getattr(settings, 'GROUPS', {}), get_day = date.today, roster = getattr(settings, 'POLL_DATES', {})):
-    group = connection.contact.groups.all()[0]
-    scripts = Script.objects.filter(slug = group.name)
+    scripts = Script.objects.filter(slug__in = scripts_for(connection, groups=groups))
     for script in scripts:
         schedule(connection, script, get_day=get_day, roster=roster)
+
+def scripts_for(connection, groups = getattr(settings, 'GROUPS', {})):
+    """
+    Returns slugs for all the scripts the connection is subscribed to.
+    """
+
+    ids = [group.name for group in connection.contact.groups.all()]
+
+    grade = connection.contact.emisreporter.grade
+
+    if 'Teachers' in ids and grade:
+        ids.append(grade.lower())
+
+    slug_lists = [groups.get(id) or [] for id in ids]
+    return reduce(list.__add__, slug_lists)
 
 def at(date, oclock):
     return datetime.combine(date, time(oclock, 0, 0))

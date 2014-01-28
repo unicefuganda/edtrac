@@ -4,6 +4,7 @@ from datetime import date
 from rapidsms.models import Connection, Backend, Contact
 from django.contrib.auth.models import Group
 from script.models import Script, ScriptProgress
+from education.models import EmisReporter
 
 class TestScheduling(TestCase):
 
@@ -74,10 +75,13 @@ class TestScheduling(TestCase):
        today = date(2013, 8, 23)
 
        script = Script.objects.create(name='edtrac_p6_girls', slug='p6_girls')
+       reporter = EmisReporter.objects.create(grade='P6')
        backend = Backend.objects.create(name='foo')
        contact = Contact.objects.create()
+       contact.emisreporter = reporter
+       contact.save()
        connection = Connection.objects.create(backend=backend, contact=contact)
-       connection.contact.groups.add(Group.objects.create(name='p6_girls'))
+       connection.contact.groups.add(Group.objects.create(name='Teachers'))
        connection.save()
        current = ScriptProgress.objects.create(connection=connection, script=script)
 
@@ -98,6 +102,38 @@ class TestScheduling(TestCase):
        future = ScriptProgress.objects.get(connection=connection, script=script)
 
        self.assertEquals(datetime(2013, 8, 23, 11, 33), future.time)
+
+    def test_scripts_are_derived_from_a_connections_groups(self):
+       groups = {'Head Teachers': ['water points']}
+
+       reporter = EmisReporter.objects.create()
+       backend = Backend.objects.create(name='foo')
+       contact = Contact.objects.create()
+       contact.emisreporter = reporter
+       contact.save()
+       connection = Connection.objects.create(backend=backend, contact=contact)
+       connection.contact.groups.add(Group.objects.create(name='Head Teachers'))
+       connection.save()
+
+       script_slugs = scripts_for(connection, groups=groups)
+
+       self.assertEquals(['water points'], script_slugs)
+
+    def test_teachers_belong_to_virtual_groups_with_their_grade(self):
+       groups = {'p6': ['p6_girls']}
+
+       reporter = EmisReporter.objects.create(grade='P6')
+       backend = Backend.objects.create(name='foo')
+       contact = Contact.objects.create()
+       contact.emisreporter = reporter
+       contact.save()
+       connection = Connection.objects.create(backend=backend, contact=contact)
+       connection.contact.groups.add(Group.objects.create(name='Teachers'))
+       connection.save()
+
+       script_slugs = scripts_for(connection, groups=groups)
+
+       self.assertEquals(['p6_girls'], script_slugs)
 
     def tearDown(self):
         Backend.objects.all().delete()
