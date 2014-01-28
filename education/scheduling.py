@@ -24,7 +24,7 @@ def next_scheduled(poll_id, roster=getattr(settings, 'POLL_DATES', {}), get_day 
     """
     dates = roster.get(poll_id) or []
     date = upcoming(dates, get_day = get_day)
-    return _at(date, 10) if date else None
+    return at(date, 10) if date else None
 
 def schedule(connection, script, get_day = date.today, roster = getattr(settings, 'POLL_DATES', {})):
     """
@@ -48,7 +48,7 @@ def schedule_all(connection, groups=getattr(settings, 'GROUPS', {}), get_day = d
     for script in scripts:
         schedule(connection, script, get_day=get_day, roster=roster)
 
-def _at(date, oclock):
+def at(date, oclock):
     return datetime.combine(date, time(oclock, 0, 0))
 
 def _first(predicate, sequence):

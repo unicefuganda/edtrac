@@ -112,7 +112,7 @@ class TestCurriculumProgressView(TestCase):
             today = dateutils.increment(today,days=-(today.weekday()+4))
 
         if today.hour < 8:
-            today = today + datetime.timedelta(hours=(8 - today.hour))
+            today = today + timedelta(hours=(8 - today.hour))
         return today
 
     def get_term_target(self,given_date):

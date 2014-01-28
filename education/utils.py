@@ -19,6 +19,7 @@ from django.db.models import Count
 from django.contrib.auth.models import Group
 from django.conf import settings
 from unregister.models import Blacklist
+from education.scheduling import schedule_at, at
 
 def is_holiday(date1, dates):
     for date_start, date_end in dates:
@@ -53,7 +54,7 @@ def is_empty(arg):
     return False
 
 def time_to_10am(d):
-    return datetime.datetime(d.year, d.month, d.day, 10, 0, 0, 0)
+    return at(d, 10)
 
 def previous_calendar_week(t=None):
     """
@@ -223,14 +224,8 @@ def _schedule_weekly_scripts(group, connection, grps):
 
     if group.name in grps:
         script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
-        d = _next_thursday()
-    else:
-        #Reporter is not in group that receives weekly messages so, we don't schedule them for any weekly messages
-        return
-
-    #create new scriptprogress regardless
-    sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-    sp.set_time(d)
+        script=Script.objects.get(slug=script_slug)
+        schedule_at(connection, script, _next_thursday())
 
 def _schedule_teacher_weekly_scripts(group, connection, grps):
     """
@@ -241,18 +236,11 @@ def _schedule_teacher_weekly_scripts(group, connection, grps):
     #Short curcuit scheduling teachers without grades
     if group.name == 'Teachers':
         if connection.contact.emisreporter.grade in ['p3', 'P3'] and connection.contact.emisreporter.schools.exists():
-                # get rid of any existing script progress; this is a one time thing
-                ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug='edtrac_p3_teachers_weekly')).delete()
-                sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug='edtrac_p3_teachers_weekly'))
-                sp.set_time(_next_thursday())
+            script=Script.objects.get(slug='edtrac_p3_teachers_weekly')
+            schedule_at(connection, script, _next_thursday())
         elif connection.contact.emisreporter.grade in ['p6', 'P6'] and connection.contact.emisreporter.schools.exists():
-            # get rid of existing ScriptProgresses and assign it to p6 teachers
-            ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug='edtrac_p6_teachers_weekly')).delete()
-            sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug='edtrac_p6_teachers_weekly'))
-            sp.set_time(_next_thursday())
-        else:
-            pass
-
+            script=Script.objects.get(slug='edtrac_p6_teachers_weekly')
+            schedule_at(connection, script, _next_thursday())
 
 def _schedule_weekly_scripts_now(group, connection, grps):
     """
@@ -262,25 +250,7 @@ def _schedule_weekly_scripts_now(group, connection, grps):
     """
     if group.name in grps:
         script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
-        time_set = time_to_10am(datetime.datetime.now())
-        d = _this_thursday(time_set=time_set)
-        #if reporter is a teacher set in the script session only if this reporter has a grade
-        if connection.contact.emisreporter.groups.filter(name='Teachers').exists():
-            if connection.contact.emisreporter.grade and connection.contact.emisreporter.schools.exists():
-                # get rid of any existing script progress; this is a one time thing
-                ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug=script_slug)).delete()
-                sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-                sp.set_time(d)
-            else:
-                pass # do nothing, jump to next iteration
-        elif connection.contact.emisreporter.groups.filter(name__in = ["Head Teachers", "SMC", "GEM"]).exists() and\
-             connection.contact.emisreporter.groups.filter(name__in = ["Head Teachers", "SMC", "GEM"]).count()==1 and\
-             not Blacklist.objects.filter(connection=connection).exists():
-            ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug=script_slug)).delete()
-            sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-            sp.set_time(d)
-        else:
-            pass # do nothing if reporter has no recognizable group. e.g. Other Reporters or unessential sms receiver groups like DEO/MEO, UNICEF Officials, etc.
+        _schedule_weekly_script(group, connection, script_slug, grps)
 
 def _schedule_weekly_script(group, connection, script_slug, role_names):
     """
@@ -289,36 +259,30 @@ def _schedule_weekly_script(group, connection, script_slug, role_names):
     the new date is computed relative datetime.datetime.now()
     """
     if group.name in role_names:
-        time_set = time_to_10am(datetime.datetime.now())
-        d = _this_thursday(time_set=time_set)
+        d = time-to_10am(_this_thursday())
 
         #if reporter is a teacher set in the script session only if this reporter has a grade
         if connection.contact.emisreporter.groups.filter(name='Teachers').exists():
             if connection.contact.emisreporter.grade in ['p3', 'P3'] and connection.contact.emisreporter.schools.exists():
-                # get rid of any existing script progress; this is a one time thing
-                ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug=script_slug)).delete()
-                sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-                sp.set_time(d)
+                script=Script.objects.get(slug='edtrac_p3_teachers_weekly')
+                schedule_at(connection, script, _next_thursday())
             elif connection.contact.emisreporter.grade in ['p6', 'P6'] and connection.contact.emisreporter.schools.exists():
-                # get rid of existing ScriptProgresses and assign it to p6 teachers
-                ScriptProgress.objects.filter(connection=connection,script=Script.objects.get(slug='edtrac_p6_teachers_weekly')).delete()
-                sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug='edtrac_p6_teachers_weekly'))
-                sp.set_time(d)
-            else:
-                pass
+                script=Script.objects.get(slug='edtrac_p6_teachers_weekly')
+                schedule_at(connection, script, _next_thursday())
 
 def _schedule_weekly_report(group, connection, grps):
     if group.name in grps:
-        script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + 'report_weekly'
+        slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + 'report_weekly'
+        script = Script.objects.get(slug=slug)
+
         connections = Connection.objects.filter(contact__in=Group.objects.get(name=group.name).contact_set.all())
         for connection in connections:
-            sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-            sp.set_time( _next_wednesday(sp) )
+            schedule_at(connection, script, _next_wednesday(sp))
 
 def _schedule_script_now(group, connection, slug, role_names):
     if group.name in role_names:
-        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=slug),language='en')
-        sp.set_time(datetime.datetime.now())
+        script = Script.objects.get(slug=slug)
+        schedule_at(connection, script, datetime.datetime.now())
 
 def _schedule_monthly_script(group, connection, script_slug, day_offset, role_names):
     """
@@ -328,8 +292,8 @@ def _schedule_monthly_script(group, connection, script_slug, day_offset, role_na
     """
     if group.name in role_names:
         d = _date_of_monthday(day_offset)
-        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-        sp.set_time(d)
+        script = Script.objects.get(slug=script_slug)
+        schedule_at(connection, script, d)
 
 def _schedule_monthly_report(group, connection, script_slug, day_offset, role_names):
     """
@@ -340,8 +304,8 @@ def _schedule_monthly_report(group, connection, script_slug, day_offset, role_na
         connections = Connection.objects.filter(contact__in=Group.objects.get(name=group.name).contact_set.all())
         for connection in connections:
             d = _date_of_monthday(day_offset)
-            sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-            sp.set_time(d)
+            script = Script.objects.get(slug=script_slug)
+            schedule_at(connection, script, d)
 
 def _schedule_midterm_script(group, connection, script_slug, role_names, date=None):
     """
@@ -350,14 +314,12 @@ def _schedule_midterm_script(group, connection, script_slug, role_names, date=No
     in the format YYYY-mm-dd
     """
     if date:
-        now = datetime.datetime.now()
-        dl = date.split('-')
-        d = datetime.datetime(int(dl[0]), int(dl[1]), int(dl[2]), now.hour, now.minute, now.second, now.microsecond)
+        d = at(date, datetime.datetime.now().time.hour)
     else:
         d = _next_midterm()
     if group.name in role_names:
-        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-        sp.set_time(d)
+        script = Script.objects.get(slug=script_slug)
+        schedule_at(connection, script, d)
 
 def _schedule_termly_script(group, connection, script_slug, role_names, date=None):
     """
@@ -366,16 +328,12 @@ def _schedule_termly_script(group, connection, script_slug, role_names, date=Non
     in the format YYYY-mm-dd
     """
     if date:
-        now = datetime.datetime.now()
-        dl = date.split('-')
-        d = datetime.datetime(int(dl[0]), int(dl[1]), int(dl[2]), now.hour, now.minute, now.second, now.microsecond)
+        d = at(date, datetime.datetime.now().time.hour)
     else:
-        d = _next_term_question_date()
-        if group.name == 'SMC':
-            d = _next_term_question_date(True)
+        d = _next_term_question_date(group.name == 'SMC')
     if group.name in role_names:
-        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-        sp.set_time(d)
+        script = Script.objects.get(slug=script_slug)
+        schedule_at(connection, script, d)
 
 def _schedule_new_monthly_script(group, connection, script_slug, role_names, date=None):
     """
@@ -384,17 +342,12 @@ def _schedule_new_monthly_script(group, connection, script_slug, role_names, dat
     in the format YYYY-mm-dd
     """
     if date:
-        now = datetime.datetime.now()
-        dl = date.split('-')
-        d = datetime.datetime(int(dl[0]), int(dl[1]), int(dl[2]), now.hour, now.minute, now.second, now.microsecond)
+        d = at(date, datetime.datetime.now().time.hour)
     else:
-        d = _next_term_question_date()
-        if group.name == 'SMC':
-            d = _next_term_question_date(True)
+        d = _next_term_question_date(group.name == 'SMC')
     if group.name in role_names:
-        sp = ScriptProgress.objects.create(connection=connection, script=Script.objects.get(slug=script_slug))
-        sp.set_time(d)
-
+        script = Script.objects.get(slug=script_slug)
+        schedule_at(connection, script, d)
 
 def compute_total(chunkit):
     # function takes in a list of tuples (school_name,value) ---> all grades p1 to p7
