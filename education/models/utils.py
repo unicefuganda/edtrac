@@ -13,7 +13,7 @@ from django.forms import ValidationError
 from eav.models import Attribute
 from education.utils import _schedule_weekly_scripts, \
     _schedule_monthly_script, _schedule_termly_script, \
-    _schedule_midterm_script, _schedule_weekly_script, \
+    _schedule_midterm_script, \
     _schedule_teacher_weekly_scripts, _schedule_new_monthly_script, \
     _schedule_script_now, _this_thursday
 from rapidsms_httprouter.models import Message
@@ -30,7 +30,7 @@ import logging
 from .emis_reporter import EmisReporter
 from .school import School
 
-from education.scheduling import schedule
+from education.scheduling import schedule, schedule_all
 from unregister.models import Blacklist
 
 logger = logging.getLogger(__name__)
@@ -318,64 +318,7 @@ def edtrac_autoreg(**kwargs):
                 True
             )
 
-    #schedule_all(connection)
-
-    if not getattr(settings, 'TRAINING_MODE', False):
-        # Now that you have their roll, they should be signed up for
-        # the periodic polling
-
-        _schedule_weekly_script(
-            group,
-            connection,
-            'edtrac_p3_teachers_weekly',
-            ['Teachers']
-        )
-
-        _schedule_weekly_scripts(
-            group,
-            connection,
-            ['Head Teachers', 'SMC']
-        )
-
-        _schedule_new_monthly_script(
-            group,
-            connection,
-            'edtrac_headteacher_violence_monthly',
-            ['Head Teachers']
-        )
-
-        _schedule_new_monthly_script(
-            group,
-            connection,
-            'edtrac_headteacher_meals_monthly',
-            ['Head Teachers']
-        )
-
-        _schedule_monthly_script(
-            group,
-            connection,
-            'edtrac_smc_monthly',
-            5,
-            ['SMC']
-        )
-
-        _schedule_monthly_script(
-            group,
-            connection,
-            'edtrac_gem_monthly',
-            20,
-            ['GEM']
-        )
-
-        #termly messages go out mid April, July or November by default,
-        #this can be overwridden by manual process
-
-        _schedule_termly_script(
-            group,
-            connection,
-            'edtrac_smc_termly',
-            ['SMC']
-        )
+    schedule_all(connection)
 
 
 def edtrac_reschedule_script(**kwargs):
@@ -803,7 +746,7 @@ def reschedule_weekly_script(grp = 'all', date=None, slug=''):
     reps = EmisReporter.objects.filter(groups__in=grps)
     for rep in reps:
         if rep.default_connection and rep.groups.count() > 0:
-            _schedule_weekly_script(rep.groups.all()[0], rep.default_connection, slug, ['Teachers', 'Head Teachers'])
+            schedule(rep.default_connection, Script.objects.get(slug=slug))
 
 def schedule_script_now(grp = 'all', slug=''):
     """
