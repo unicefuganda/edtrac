@@ -21,8 +21,8 @@ from django.conf import settings
 from unregister.models import Blacklist
 from education.scheduling import schedule_at, at
 
-def is_holiday(date1, dates):
-    for date_start, date_end in dates:
+def is_holiday(date1, holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])):
+    for date_start, date_end in holidays:
         if isinstance(date_end, str):
             if date1.date() == date_start.date():
                 return True
@@ -94,8 +94,7 @@ def next_relativedate(day_offset, month_offset=0, xdate = None):
 
     return at(d, 10)
 
-def _next_thursday(get_time=datetime.datetime.now,
-                   holidays=getattr(settings, 'SCHOOL_HOLIDAYS', [])):
+def _next_thursday(get_time=datetime.datetime.now, holidays=getattr(settings, 'SCHOOL_HOLIDAYS', [])):
     """
     Next Thursday is the very next Thursday of the week which is not a school holiday
     """
@@ -107,7 +106,7 @@ def _next_thursday(get_time=datetime.datetime.now,
     else:
         d = d + datetime.timedelta(days = 7 - d.weekday() + thursday)
 
-    while is_holiday(d, holidays):
+    while is_holiday(d, holidays=holidays):
         d = d + datetime.timedelta(days = 7)
 
     return d
@@ -117,12 +116,11 @@ def _this_thursday(sp=None, **kwargs):
     """
     This Thursday of the week which is not a school holiday
     """
-    holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
     time_schedule = kwargs.get('time_set') if kwargs.has_key('time_set') else datetime.datetime.now()
     d = sp.time if sp else time_schedule
     d = d + datetime.timedelta((3 - d.weekday()) % 7)
 
-    while(is_holiday(d, holidays)):
+    while(is_holiday(d)):
         d = d + datetime.timedelta(1) # try next day
 
     return d
@@ -138,7 +136,7 @@ def _date_of_monthday(day_offset, get_time = datetime.datetime.now, holidays = g
 
     d = next_relativedate(day_offset, xdate=get_time())
 
-    while(is_holiday(d, holidays)):
+    while(is_holiday(d, holidays=holidays)):
           d = next_relativedate(day_offset, xdate=d)
 
     while(is_weekend(d)):
@@ -155,7 +153,6 @@ def _next_term_question_date(rght=None):
     first_term_qn_date = getattr(settings, 'FIRST_TERM_BEGINS', datetime.datetime.now()) + delta
     second_term_qn_date = getattr(settings, 'SECOND_TERM_BEGINS', datetime.datetime.now()) + delta
     third_term_qn_date = getattr(settings, 'THIRD_TERM_BEGINS', datetime.datetime.now()) + delta
-    holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
     d = datetime.datetime.now()
 
     if d <= first_term_qn_date:
@@ -165,7 +162,7 @@ def _next_term_question_date(rght=None):
     else:
         d = third_term_qn_date
 
-    while(is_holiday(d, holidays) or is_weekend(d)):
+    while(is_holiday(d) or is_weekend(d)):
         d = d + datetime.timedelta(days=1)
 
     return d
@@ -176,7 +173,6 @@ def _next_midterm():
     This function returns the approximate date of the next mid term depending on the current date.
     """
 
-    holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])
     d = datetime.datetime.now()
     start_of_year = datetime.datetime(d.year, 1, 1, d.hour, d.minute, d.second, d.microsecond)
     if d.month in [12, 1, 2, 3, 4]:
@@ -187,7 +183,7 @@ def _next_midterm():
     else:
         d = start_of_year + datetime.timedelta(days=((10*31)+15))
 
-    while(is_holiday(d, holidays) or is_weekend(d)):
+    while(is_holiday(d) or is_weekend(d)):
         d = d + datetime.timedelta(days=1)
 
     return d
