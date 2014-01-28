@@ -361,3 +361,10 @@ POLL_DATES = {
     'edtrac_school_enrollment_termly':         TERMLY,
     'edtrac_p6_enrollment_headteacher_termly': TERMLY,
 }
+
+GROUPS = {'Teachers' :  [],
+          'Head Teachers' : ['edtrac_head_teachers_weekly',
+                             'edtrac_headteacher_violence_monthly'],
+          'SMC' : ['edtrac_smc_weekly'],
+          'p3' : ['edtrac_p3_teachers_weekly'],
+          'p6' : ['edtrac_p6_teachers_weekly']}
