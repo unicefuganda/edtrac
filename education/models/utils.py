@@ -548,35 +548,6 @@ def send_feedback_on_complete(**kwargs):
         Message.mass_text(message_string, [connection])
 
 
-def reschedule_weekly_polls(grp=None):
-    """
-    manually reschedule all weekly polls or for a specified group
-    """
-    weekly_scripts = Script.objects.filter(slug__endswith='_weekly')
-    if grp:
-        slg_start = 'edtrac_%s' % grp.replace(' ', '_').lower()
-        weekly_scripts = weekly_scripts.filter(slug__startswith=slg_start)
-        ScriptProgress.objects.filter(
-            script__in=weekly_scripts
-        ).filter(
-            connection__contact__emisreporter__groups__name__iexact=grp
-        ).delete()
-    else:
-        ScriptProgress.objects.filter(script__in=weekly_scripts).delete()
-    Script.objects.filter(
-        slug__in=weekly_scripts.values_list('slug', flat=True)
-    ).update(enabled=True)
-    if grp:
-        grps = Group.objects.filter(name__iexact=grp)
-    else:
-        Group.objects.filter(name__in=['Teachers', 'Head Teachers', 'SMC'])
-    # get active reporters
-    reps = EmisReporter.objects.filter(groups__in=grps)
-    for rep in reps:
-        if rep.default_connection and len(rep.groups.all()) > 0:
-            schedule_all(rep.default_connection)
-
-
 def reschedule_teacher_weekly_polls(grp=None):
     """
     manually reschedule all weekly polls or for a specified group
