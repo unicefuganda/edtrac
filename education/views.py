@@ -39,7 +39,7 @@ import datetime
 from datetime import date, timedelta
 from education.view_helper import *
 from education.view_helper_utils import *
-from education.scheduling import schedule_all
+from education.scheduling import schedule_all, schedule_script, schedule_script_at
 
 Num_REG = re.compile('\d+')
 
@@ -2708,25 +2708,15 @@ def emis_scripts_special(req):
 
 
 def reschedule_scripts(request, script_slug):
-    grp = get_script_grp(script_slug)
-    if script_slug.endswith('_weekly'):
-        reschedule_weekly_polls(grp)
-    elif script_slug.endswith('_monthly'):
-        reschedule_monthly_polls(grp)
-    else:
-        if request.POST.has_key('date'):
-            date = request.POST.get('date')
-        else:
-            date = None
-        reschedule_termly_polls(grp, date)
+    date = request.POST.get('date')
+    script = Script.objects.get(slug=script_slug)
 
-    new_scripts = ScriptProgress.objects.filter(script__slug=script_slug)
-    if new_scripts:
-        new_script_date = new_scripts[0].time
-        response = HttpResponse("This Script has been rescheduled to: %s " % new_script_date.strftime("%d-%m-%Y %H:%M"))
-        return response
+    if date:
+        schedule_script_at(script, date)
     else:
-        return HttpResponse("This script can't be rescheduled. Try again")
+        schedule_script(script)
+
+    return HttpResponse("This Script has been rescheduled.")
 
 class EdtracReporter(ListView):
     model = EmisReporter

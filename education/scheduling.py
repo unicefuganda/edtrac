@@ -54,6 +54,16 @@ def schedule_at(connection, script, time):
         progress = ScriptProgress.objects.create(connection=connection, script=script)
         progress.set_time(time)
 
+def schedule_script_at(script, time, groups=getattr(settings, 'GROUPS', {})):
+    """
+    Schedules the script for all subscribed connections at the specified time.
+    """
+    names = [name for name in groups.keys() if script.slug in groups.get(name)]
+    connections = Connection.objects.filter(contact__groups__name__in = names)
+
+    for connection in connections:
+        schedule_at(connection, script, time)
+
 def schedule_all(connection, groups=getattr(settings, 'GROUPS', {}), get_day = date.today, roster = getattr(settings, 'POLL_DATES', {})):
     """
     Schedules all scripts the connection is subscribed to.

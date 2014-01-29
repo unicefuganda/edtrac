@@ -152,6 +152,21 @@ class TestScheduling(TestCase):
 
        self.assertEquals(datetime(2013, 8, 29, 10, 0, 0), future.time)
 
+    def test_schedules_all_connections_for_a_script_at_the_specified_time(self):
+       groups = {'Head Teachers': ['p7_girls']}
+
+       script = Script.objects.create(slug='p7_girls')
+       backend = Backend.objects.create(name='foo')
+       contact = Contact.objects.create()
+       contact.groups.add(Group.objects.create(name='Head Teachers'))
+       contact.save()
+       connection = Connection.objects.create(backend=backend, contact=contact)
+
+       schedule_script_at(script, datetime(2013, 8, 28, 11, 0, 3), groups=groups)
+       future = ScriptProgress.objects.get(connection=connection, script=script)
+
+       self.assertEquals(datetime(2013, 8, 28, 11, 0, 3), future.time)
+
     def tearDown(self):
         Backend.objects.all().delete()
         Script.objects.all().delete()
