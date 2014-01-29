@@ -1,7 +1,6 @@
 from django.core.exceptions import MultipleObjectsReturned
 
 from django.core.management.base import BaseCommand
-from education.models import reschedule_termly_polls
 from optparse import OptionParser, make_option
 from poll.models import Poll, Response, ResponseCategory
 from education.models import EmisReporter

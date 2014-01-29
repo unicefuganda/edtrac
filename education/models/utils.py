@@ -682,30 +682,6 @@ def reschedule_midterm_polls(grp = 'all', date=None):
             if rep.default_connection and rep.groups.count() > 0:
                 _schedule_midterm_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers'], date)
 
-def reschedule_termly_polls(grp = 'all', date=None):
-
-    """
-    manually reschedule all termly polls or for a specified group
-    """
-
-    termly_scripts = Script.objects.filter(slug__endswith='_termly')
-    if not grp == 'all':
-        slg_start = 'edtrac_%s'%grp.replace(' ','_').lower()
-        termly_scripts = termly_scripts.filter(slug__startswith=slg_start)
-        ScriptProgress.objects.filter(script__in=termly_scripts)\
-            .filter(connection__contact__emisreporter__groups__name__iexact=grp).delete()
-    else:
-        ScriptProgress.objects.filter(script__in=termly_scripts).delete()
-
-    Script.objects.filter(slug__in=termly_scripts.values_list('slug', flat=True)).update(enabled=True)
-    for slug in termly_scripts.values_list('slug', flat=True):
-        grps = Group.objects.filter(name__iexact=grp) if not grp == 'all' else Group.objects.filter(name__in=['Head Teachers', 'SMC'])
-        # send poll questions to active reporters
-        reps = EmisReporter.objects.filter(groups__in=grps)
-        for rep in reps:
-            if rep.default_connection and rep.groups.count() > 0:
-                _schedule_termly_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers', 'SMC'], date)
-
 def reschedule_termly_script(grp = 'all', date=None, slug=''):
 
     """
