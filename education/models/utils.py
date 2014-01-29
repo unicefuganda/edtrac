@@ -11,11 +11,7 @@ from django.contrib.auth.models import Group
 from django.db.models import Q
 from django.forms import ValidationError
 from eav.models import Attribute
-from education.utils import \
-    _schedule_monthly_script, _schedule_termly_script, \
-    _schedule_midterm_script, \
-    _schedule_teacher_weekly_scripts, _schedule_new_monthly_script, \
-    _schedule_script_now, _this_thursday
+from education.utils import _schedule_script_now, _this_thursday
 from rapidsms_httprouter.models import Message
 from rapidsms.contrib.locations.models import Location
 from poll.models import Poll

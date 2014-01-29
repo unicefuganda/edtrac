@@ -167,137 +167,10 @@ def _next_term_question_date(rght=None):
 
     return d
 
-def _next_midterm():
-    """
-    The middle of school term is either in mid April, July or Nov for Term 1, 2 and 3 respectively.
-    This function returns the approximate date of the next mid term depending on the current date.
-    """
-
-    d = datetime.datetime.now()
-    start_of_year = datetime.datetime(d.year, 1, 1, d.hour, d.minute, d.second, d.microsecond)
-    if d.month in [12, 1, 2, 3, 4]:
-        #todo: handle this better/// revert after head teacher poll
-        d = start_of_year + datetime.timedelta(days=58)
-    elif d.month in [ 5, 6]:
-        d = start_of_year + datetime.timedelta(days=((6*31)+15))
-    else:
-        d = start_of_year + datetime.timedelta(days=((10*31)+15))
-
-    while(is_holiday(d) or is_weekend(d)):
-        d = d + datetime.timedelta(days=1)
-
-    return d
-
-def _schedule_weekly_scripts(group, connection, grps):
-    """
-    This method is called within a loop over several connections or for an individual connection
-    and it sets the start time for a script to _next_thursday() relative to either current date
-    or the date that is currently in ScriptProgress
-    """
-    #Short curcuit scheduling teachers without grades
-    if group.name == 'Teachers' and not connection.contact.emisreporter.grade:
-        return
-
-    if group.name in grps:
-        script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
-        script=Script.objects.get(slug=script_slug)
-        schedule_at(connection, script, _next_thursday())
-
-def _schedule_teacher_weekly_scripts(group, connection, grps):
-    """
-    This method is called within a loop over several connections or for an individual connection
-    and it sets the start time for a script to _next_thursday() relative to either current date
-    or the date that is currently in ScriptProgress for teachers
-    """
-    #Short curcuit scheduling teachers without grades
-    if group.name == 'Teachers':
-        schedule_all(connection)
-
-def _schedule_weekly_scripts_now(group, connection, grps):
-    """
-    This method is called within a loop over several connections or for an individual connection
-    and it sets the start time for a script to _next_thursday() relative to either current date
-    or the date that is currently in ScriptProgress
-    """
-    if group.name in grps:
-        script_slug = "edtrac_%s" % group.name.lower().replace(' ', '_') + '_weekly'
-        _schedule_weekly_script(group, connection, script_slug, grps)
-
-def _schedule_weekly_script(group, connection, script_slug, role_names):
-    """
-    This method is called within a loop over several connections or for an individual connection
-    and it sets the start time for a script to _date_of_monthday() corresponding to day_offset
-    the new date is computed relative datetime.datetime.now()
-    """
-    if group.name in role_names:
-        d = time-to_10am(_this_thursday())
-
-        #if reporter is a teacher set in the script session only if this reporter has a grade
-        if connection.contact.emisreporter.groups.filter(name='Teachers').exists():
-            if connection.contact.emisreporter.grade in ['p3', 'P3'] and connection.contact.emisreporter.schools.exists():
-                script=Script.objects.get(slug='edtrac_p3_teachers_weekly')
-                schedule_at(connection, script, _next_thursday())
-            elif connection.contact.emisreporter.grade in ['p6', 'P6'] and connection.contact.emisreporter.schools.exists():
-                script=Script.objects.get(slug='edtrac_p6_teachers_weekly')
-                schedule_at(connection, script, _next_thursday())
-
 def _schedule_script_now(group, connection, slug, role_names):
     if group.name in role_names:
         script = Script.objects.get(slug=slug)
         schedule_at(connection, script, datetime.datetime.now())
-
-def _schedule_monthly_script(group, connection, script_slug, day_offset, role_names):
-    """
-    This method is called within a loop over several connections or for an individual connection
-    and it sets the start time for a script to _date_of_monthday() corresponding to day_offset
-    the new date is computed relative datetime.datetime.now()
-    """
-    if group.name in role_names:
-        d = _date_of_monthday(day_offset)
-        script = Script.objects.get(slug=script_slug)
-        schedule_at(connection, script, d)
-
-def _schedule_midterm_script(group, connection, script_slug, role_names, date=None):
-    """
-    This method is called within a loop over several connections or for an individual connection
-    and it sets the start time for a script to _next_midterm() or to date passed to it as a String argument
-    in the format YYYY-mm-dd
-    """
-    if date:
-        d = at(date, datetime.datetime.now().time.hour)
-    else:
-        d = _next_midterm()
-    if group.name in role_names:
-        script = Script.objects.get(slug=script_slug)
-        schedule_at(connection, script, d)
-
-def _schedule_termly_script(group, connection, script_slug, role_names, date=None):
-    """
-    This method is called within a loop over several connections or for an individual connection
-    and it sets the start time for a script to _next_term_question_date() or _next_midterm() or to date passed to it as a String argument
-    in the format YYYY-mm-dd
-    """
-    if date:
-        d = at(date, datetime.datetime.now().time.hour)
-    else:
-        d = _next_term_question_date(group.name == 'SMC')
-    if group.name in role_names:
-        script = Script.objects.get(slug=script_slug)
-        schedule_at(connection, script, d)
-
-def _schedule_new_monthly_script(group, connection, script_slug, role_names, date=None):
-    """
-    This method is called within a loop over several connections or for an individual connection
-    and it sets the start time for a script to _next_term_question_date() or _next_midterm() or to date passed to it as a String argument
-    in the format YYYY-mm-dd
-    """
-    if date:
-        d = at(date, datetime.datetime.now().time.hour)
-    else:
-        d = _next_term_question_date(group.name == 'SMC')
-    if group.name in role_names:
-        script = Script.objects.get(slug=script_slug)
-        schedule_at(connection, script, d)
 
 def compute_total(chunkit):
     # function takes in a list of tuples (school_name,value) ---> all grades p1 to p7
@@ -307,25 +180,6 @@ def compute_total(chunkit):
         if i[0] in new_dict.keys():
             new_dict[i[0]] = new_dict[i[0]] + i[1]
     return new_dict
-
-def previous_calendar_week_v2(date_now):
-    if not date_now.weekday() == 2:
-        last_wednesday = date_now + (datetime.timedelta((2-date_now.weekday())%7) - (datetime.timedelta(days=7)))
-    else:
-        last_wednesday = date_now
-    end_date = last_wednesday + datetime.timedelta(days=7)
-    return (last_wednesday, end_date)
-
-def previous_calendar_month_week_chunks():
-    end_date = datetime.datetime.now()
-    start_date = end_date - datetime.timedelta(29)
-    month_in_fours = []
-    for i in range(4):
-        start_date = start_date + datetime.timedelta(7)
-        if start_date < end_date:
-            month_in_fours.append(list(previous_calendar_week_v2(start_date))) #might have to miss out on the thursdays???
-    return month_in_fours
-
 
 def get_contacts(**kwargs):
     request = kwargs.pop('request')
