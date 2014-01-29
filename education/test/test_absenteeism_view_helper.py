@@ -8,7 +8,7 @@ from django.test import Client
 from mock import patch
 
 from education.absenteeism_view_helper import get_responses_over_depth, get_responses_by_location, get_head_teachers_absent_over_time, get_date_range, get_polls_for_keyword
-from education.models import EnrolledDeployedQuestionsAnswered, create_record_enrolled_deployed_questions_answered, schedule_script_now, reschedule_weekly_script
+from education.models import EnrolledDeployedQuestionsAnswered, create_record_enrolled_deployed_questions_answered, schedule_script_now
 from education.reports import get_week_date
 from education.test.abstract_clases_for_tests import TestAbsenteeism
 from education.test.utils import create_attribute, create_group, create_poll_with_reporters, create_emis_reporters, create_school
