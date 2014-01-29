@@ -1,6 +1,5 @@
 
 from django.core.management.base import BaseCommand
-from education.models import reschedule_monthly_polls
 from script.models import Script
 
 class Command(BaseCommand):
