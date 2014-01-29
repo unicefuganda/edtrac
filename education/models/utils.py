@@ -30,7 +30,7 @@ import logging
 from .emis_reporter import EmisReporter
 from .school import School
 
-from education.scheduling import schedule, schedule_all
+from education.scheduling import schedule, schedule_all, schedule_script_at
 from unregister.models import Blacklist
 
 logger = logging.getLogger(__name__)
@@ -548,66 +548,7 @@ def send_feedback_on_complete(**kwargs):
         Message.mass_text(message_string, [connection])
 
 
-def reschedule_teacher_weekly_polls(grp=None):
-    """
-    manually reschedule all weekly polls or for a specified group
-    """
-    weekly_scripts = Script.objects.filter(
-        slug__in=['edtrac_p3_teachers_weekly', 'edtrac_p6_teachers_weekly']
-    )
-    if grp:
-        ScriptProgress.objects.filter(
-            script__in=weekly_scripts
-        ).filter(
-            connection__contact__emisreporter__groups__name__iexact=grp
-        ).delete()
-    else:
-        ScriptProgress.objects.filter(script__in=weekly_scripts).delete()
-    Script.objects.filter(
-        slug__in=weekly_scripts.values_list('slug', flat=True)
-    ).update(enabled=True)
-    if grp:
-        grps = Group.objects.filter(name__iexact=grp)
-    else:
-        grps = Group.objects.filter(
-            name__in=['Teachers', 'Head Teachers', 'SMC']
-        )
-    # get active reporters
-    reps = EmisReporter.objects.filter(groups__in=grps)
-    for rep in reps:
-        if rep.default_connection and len(rep.groups.all()) > 0:
-            _schedule_teacher_weekly_scripts(
-                rep.groups.all()[0],
-                rep.default_connection,
-                ['Teachers', 'Head Teachers', 'SMC']
-            )
-
-
-def reschedule_midterm_polls(grp = 'all', date=None):
-
-    """
-    manually reschedule all mid-term polls or for a specified group
-    """
-
-    midterm_scripts = Script.objects.filter(slug__endswith='_midterm')
-    if not grp == 'all':
-        slg_start = 'edtrac_%s'%grp.replace(' ','_').lower()
-        midterm_scripts = midterm_scripts.filter(slug__startswith=slg_start)
-        ScriptProgress.objects.filter(script__in=midterm_scripts)\
-            .filter(connection__contact__emisreporter__groups__name__iexact=grp).delete()
-    else:
-        ScriptProgress.objects.filter(script__in=midterm_scripts).delete()
-
-    Script.objects.filter(slug__in=midterm_scripts.values_list('slug', flat=True)).update(enabled=True)
-    for slug in midterm_scripts.values_list('slug', flat=True):
-        grps = Group.objects.filter(name__iexact=grp) if not grp == 'all' else Group.objects.filter(name__in=['Head Teachers'])
-        # send poll questions to active reporters
-        reps = EmisReporter.objects.filter(groups__in=grps)
-        for rep in reps:
-            if rep.default_connection and rep.groups.count() > 0:
-                _schedule_midterm_script(rep.groups.all()[0], rep.default_connection, slug, ['Head Teachers'], date)
-
-def schedule_script_now(grp = 'all', slug=''):
+def schedule_script_now(grp='all', slug=''):
     """
     manually reschedule script immediately
     """
@@ -626,6 +567,9 @@ def schedule_script_now(grp = 'all', slug=''):
         if reporter.default_connection and reporter.groups.count() > 0:
             _schedule_script_now(reporter.groups.all()[0], reporter.default_connection, slug, ['Teachers', 'Head Teachers', 'SMC', 'GEM'])
 
+    #script = Script.objects.get(slug=slug)
+    #logger.info("Scheduling the %s script at %s \n " % (script.slug, datetime.datetime.now()))
+    #schedule_script_at(script, datetime.datetime.now())
 
 def create_record_enrolled_deployed_questions_answered(model=None):
     """
