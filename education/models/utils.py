@@ -11,7 +11,7 @@ from django.contrib.auth.models import Group
 from django.db.models import Q
 from django.forms import ValidationError
 from eav.models import Attribute
-from education.utils import _schedule_weekly_scripts, \
+from education.utils import \
     _schedule_monthly_script, _schedule_termly_script, \
     _schedule_midterm_script, \
     _schedule_teacher_weekly_scripts, _schedule_new_monthly_script, \
@@ -574,11 +574,7 @@ def reschedule_weekly_polls(grp=None):
     reps = EmisReporter.objects.filter(groups__in=grps)
     for rep in reps:
         if rep.default_connection and len(rep.groups.all()) > 0:
-            _schedule_weekly_scripts(
-                rep.groups.all()[0],
-                rep.default_connection,
-                ['Teachers', 'Head Teachers', 'SMC']
-            )
+            schedule_all(rep.default_connection)
 
 
 def reschedule_teacher_weekly_polls(grp=None):

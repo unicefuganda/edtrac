@@ -135,7 +135,25 @@ class TestScheduling(TestCase):
 
        self.assertEquals(['p6_girls'], script_slugs)
 
+
+    def test_schedules_all_connections_for_a_script(self):
+       groups = {'Head Teachers': ['p8_girls']}
+       roster = {'p8_girls': [date(2013, 8, 29)]}
+
+       script = Script.objects.create(slug='p8_girls')
+       backend = Backend.objects.create(name='foo')
+       contact = Contact.objects.create()
+       contact.groups.add(Group.objects.create(name='Head Teachers'))
+       contact.save()
+       connection = Connection.objects.create(backend=backend, contact=contact)
+
+       schedule_script(script, roster=roster, get_day=lambda: date(2013, 8, 28), groups=groups)
+       future = ScriptProgress.objects.get(connection=connection, script=script)
+
+       self.assertEquals(datetime(2013, 8, 29, 10, 0, 0), future.time)
+
     def tearDown(self):
         Backend.objects.all().delete()
         Script.objects.all().delete()
         Group.objects.all().delete()
+        EmisReporter.objects.all().delete()
