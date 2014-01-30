@@ -38,7 +38,7 @@ def schedule(connection, script, get_day=date.today, roster=roster):
     time = next_scheduled(script.slug, roster=roster, get_day=get_day)
     schedule_at(connection, script, time)
 
-def schedule_script(script, get_day = date.today, groups=getattr(settings, 'GROUPS', {}), roster = getattr(settings, 'POLL_DATES', {})):
+def schedule_script(script, get_day = date.today, groups=groups, roster = roster):
     """
     Schedules the script for each connection belonging to a subscribed group.
     """
