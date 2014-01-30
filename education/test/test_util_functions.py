@@ -43,13 +43,13 @@ class TestUtilFunctions(TestCase):
         self.assertFalse(is_holiday(not_holiday_date, [(holiday_date, '1d')]))
 
     def test_should_determine_next_thursday(self):
-        monday = date(2013, 8, 26)
+        monday = date(2013, 8, 19)
         thursday = monday + timedelta(3)
         self.assertEqual(thursday, _next_thursday(get_time = lambda : monday).date())
 
     def test_next_thursday_is_next_week_on_thursday(self):
-        thursday = date(2013, 8, 29)
-        next_thursday = date(2013, 9, 5)
+        thursday = date(2013, 9, 15)
+        next_thursday = date(2013, 9, 19)
         self.assertEqual(next_thursday, _next_thursday(get_time = lambda : thursday).date())
 
     def test_time_of_next_thursday_is_ten_in_the_morning(self):
