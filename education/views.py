@@ -152,7 +152,10 @@ def format_week(week,sep):
     return formated_week
 
 def _get_formated_date_choice(week):
-    if week[0] < datetime.datetime.today() < week[1]:
+
+    today = datetime.datetime.today()
+    in_week = week[0] < today and today < week[1]
+    if in_week:
         return format_week(week, ","), "current week( %s )" % format_week(week, "-")
     return format_week(week, ","), format_week(week, "-")
 
