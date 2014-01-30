@@ -4,13 +4,16 @@ from script.models import Script, ScriptProgress
 from rapidsms.models import Connection
 from django.contrib.auth.models import Group
 
-def upcoming(dates, get_day = date.today):
+roster = getattr(settings, 'POLL_DATES', {})
+groups = getattr(settings, 'GROUPS', {})
+
+def upcoming(dates, get_day=date.today):
     """
     Returns the next date, or None.
     """
     return _first(lambda d: d > get_day(), dates)
 
-def current_period(dates, get_day = date.today):
+def current_period(dates, get_day=date.today):
     """
     Returns a tuple of the current period, with a non-inclusive end date.
 
@@ -20,7 +23,7 @@ def current_period(dates, get_day = date.today):
     end = _first(lambda d: d > get_day(), dates)
     return (start, end - timedelta(days=1) if end else None)
 
-def next_scheduled(poll_id, roster=getattr(settings, 'POLL_DATES', {}), get_day = date.today):
+def next_scheduled(poll_id, roster=roster, get_day=date.today):
     """
     Returns the datetime the specified poll should next run on.
     """
@@ -28,7 +31,7 @@ def next_scheduled(poll_id, roster=getattr(settings, 'POLL_DATES', {}), get_day 
     date = upcoming(dates, get_day = get_day)
     return at(date, 10) if date else None
 
-def schedule(connection, script, get_day = date.today, roster = getattr(settings, 'POLL_DATES', {})):
+def schedule(connection, script, get_day=date.today, roster=roster):
     """
     Schedules the script for the current connection according to roster.
     """
@@ -54,7 +57,7 @@ def schedule_at(connection, script, time):
         progress = ScriptProgress.objects.create(connection=connection, script=script)
         progress.set_time(time)
 
-def schedule_script_at(script, time, groups=getattr(settings, 'GROUPS', {})):
+def schedule_script_at(script, time, groups=groups):
     """
     Schedules the script for all subscribed connections at the specified time.
     """
@@ -64,7 +67,7 @@ def schedule_script_at(script, time, groups=getattr(settings, 'GROUPS', {})):
     for connection in connections:
         schedule_at(connection, script, time)
 
-def schedule_all(connection, groups=getattr(settings, 'GROUPS', {}), get_day = date.today, roster = getattr(settings, 'POLL_DATES', {})):
+def schedule_all(connection, groups=groups, get_day=date.today, roster=roster):
     """
     Schedules all scripts the connection is subscribed to.
     """
@@ -72,7 +75,7 @@ def schedule_all(connection, groups=getattr(settings, 'GROUPS', {}), get_day = d
     for script in scripts:
         schedule(connection, script, get_day=get_day, roster=roster)
 
-def scripts_for(connection, groups = getattr(settings, 'GROUPS', {})):
+def scripts_for(connection, groups=groups):
     """
     Returns slugs for all the scripts the connection is subscribed to.
     """
