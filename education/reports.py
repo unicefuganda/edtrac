@@ -1525,15 +1525,11 @@ def return_absent(poll_name, enrollment, locations=None, school=None, **kwargs):
 #                print school, week_now_temp, week_before_temp, current_enrollment
                 try:
                     percent_absent_now = 100 * (current_enrollment - week_now_temp) / current_enrollment
-                except ZeroDivisionError:
-                    percent_absent_now = '--'
                 except:
                     percent_absent_now = '--'
 
                 try:
                     percent_absent_before = 100 * (current_enrollment - week_before_temp) / current_enrollment
-                except ZeroDivisionError:
-                    percent_absent_before = '--'
                 except:
                     percent_absent_before = '--'
                 school_filter[school] = (percent_absent_now, percent_absent_before)
@@ -1574,15 +1570,11 @@ def return_absent(poll_name, enrollment, locations=None, school=None, **kwargs):
         current_enrollment = poll_responses_term(enrollment, school=school, belongs_to='schools')
         try:
             now_percentage = 100 * (current_enrollment - now) / current_enrollment
-        except exceptions.ZeroDivisionError:
-            now_percentage = '--'
         except:
             now_percentage = '--'
 
         try:
             before_percentage = 100 * (current_enrollment - before) / current_enrollment
-        except exceptions.ZeroDivisionError:
-            before_percentage = '--'
         except:
             before_percentage = '--'
 
