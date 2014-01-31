@@ -11,7 +11,7 @@ from django.contrib.auth.models import Group
 from django.db.models import Q
 from django.forms import ValidationError
 from eav.models import Attribute
-from education.utils import _schedule_script_now, _this_thursday
+from education.utils import _this_thursday
 from rapidsms_httprouter.models import Message
 from rapidsms.contrib.locations.models import Location
 from poll.models import Poll
@@ -26,7 +26,7 @@ import logging
 from .emis_reporter import EmisReporter
 from .school import School
 
-from education.scheduling import schedule, schedule_all, schedule_script_at
+from education.scheduling import schedule, schedule_all, schedule_script_at, schedule_at
 from unregister.models import Blacklist
 
 logger = logging.getLogger(__name__)
@@ -548,24 +548,14 @@ def schedule_script_now(grp='all', slug=''):
     """
     manually reschedule script immediately
     """
-    now_script = Script.objects.get(slug=slug)
-    if not grp == 'all':
-        ScriptProgress.objects.filter(script=now_script).filter(connection__contact__emisreporter__groups__name__iexact=grp).delete()
-    else:
-        ScriptProgress.objects.filter(script=now_script).delete()
-
-    now_script.enabled = True
+    script = Script.objects.get(slug=slug)
     grps = Group.objects.filter(name__iexact=grp)
     reporters = EmisReporter.objects.filter(groups__in=grps)
 
-    logger.info("Scheduling the %s script at %s \n " % (now_script.slug, datetime.datetime.now()))
+    logger.info("Scheduling the %s script at %s \n " % (script.slug, datetime.datetime.now()))
     for reporter in reporters:
-        if reporter.default_connection and reporter.groups.count() > 0:
-            _schedule_script_now(reporter.groups.all()[0], reporter.default_connection, slug, ['Teachers', 'Head Teachers', 'SMC', 'GEM'])
-
-    #script = Script.objects.get(slug=slug)
-    #logger.info("Scheduling the %s script at %s \n " % (script.slug, datetime.datetime.now()))
-    #schedule_script_at(script, datetime.datetime.now())
+        if reporter.default_connection:
+            schedule_at(reporter.default_connection, script, datetime.datetime.now())
 
 def create_record_enrolled_deployed_questions_answered(model=None):
     """

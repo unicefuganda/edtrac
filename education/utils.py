@@ -126,24 +126,6 @@ def _this_thursday(sp=None, **kwargs):
     return d
 
 
-def _date_of_monthday(day_offset, get_time = datetime.datetime.now, holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])):
-
-    """
-    Find the date corresponding to day_offset of the month for example 25th day of of month
-    If the 'day_offset' day of the month falls in holiday period, 'day_offset' day of
-    the following month is returned
-    """
-
-    d = next_relativedate(day_offset, xdate=get_time())
-
-    while(is_holiday(d, holidays=holidays)):
-          d = next_relativedate(day_offset, xdate=d)
-
-    while(is_weekend(d)):
-          d = d + datetime.timedelta(days=1)
-
-    return d
-
 def _next_term_question_date(rght=None):
     """
     The termly questions are sent out on the 12th day of each term and computed based on the beginning of term date
@@ -166,11 +148,6 @@ def _next_term_question_date(rght=None):
         d = d + datetime.timedelta(days=1)
 
     return d
-
-def _schedule_script_now(group, connection, slug, role_names):
-    if group.name in role_names:
-        script = Script.objects.get(slug=slug)
-        schedule_at(connection, script, datetime.datetime.now())
 
 def compute_total(chunkit):
     # function takes in a list of tuples (school_name,value) ---> all grades p1 to p7

@@ -4,8 +4,7 @@ from unittest import TestCase
 import dateutils
 from education.reports import is_holiday
 from script.models import Script
-from education.utils import get_week_count, get_months, _next_thursday, next_relativedate, \
-        _date_of_monthday
+from education.utils import get_week_count, get_months, _next_thursday, next_relativedate
 from education.models.utils import should_reschedule
 from unregister.models import Blacklist
 from rapidsms.models import Connection, Backend
@@ -63,23 +62,6 @@ class TestUtilFunctions(TestCase):
         monday = date(2013, 8, 26)
         self.assertEqual(thursday_after_holiday, _next_thursday(get_time = lambda : monday, holidays = [thursday_holiday]).date())
 
-    def test_date_of_monthday_skips_holidays(self):
-        holiday = (datetime(2013, 8, 27), '1d')
-        month_day_after_holiday = date(2013, 9, 27)
-        today = datetime(2013, 8, 26)
-        self.assertEqual(month_day_after_holiday, _date_of_monthday(27, get_time = lambda : today, holidays = [holiday]).date())
-
-    def test_date_of_monthday_skips_long_holidays(self):
-        holiday = (datetime(2013, 8, 27), datetime(2013, 8, 29))
-        month_day_after_holiday = date(2013, 9, 27)
-        today = datetime(2013, 8, 26)
-        self.assertEqual(month_day_after_holiday, _date_of_monthday(27, get_time = lambda : today, holidays = [holiday]).date())
-
-    def test_date_of_monthday_skips_weekends(self):
-        month_day_after_holiday = date(2013, 9, 30)
-        today = datetime(2013, 9, 26)
-        self.assertEqual(month_day_after_holiday, _date_of_monthday(29, get_time = lambda : today).date())
-
     def test_finds_next_relativedate(self):
         someday_in_august = datetime(2013, 8, 7)
         next_day = next_relativedate(29, xdate = someday_in_august)
@@ -135,5 +117,4 @@ class TestUtilFunctions(TestCase):
         connection = None
         script = Script.objects.create(slug='edtrac_monthly_violence')
         self.assertTrue(should_reschedule(connection, script))
-
 
