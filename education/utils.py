@@ -74,26 +74,6 @@ def is_weekend(date):
     """
     return date.weekday() in [5, 6]
 
-def next_relativedate(day_offset, month_offset=0, xdate = None):
-    """
-    Find the date corresponding to day_offset of the month for example 25th day of of month
-    you can also give month offsets, ie date of the 25th day of the next month
-    """
-
-    xdate = xdate or datetime.datetime.now()
-    d = xdate + dateutils.relativedelta(months=month_offset)
-
-    if day_offset == 'last':
-        d = d + dateutils.relativedelta(months=1)
-        d = d - datetime.timedelta(days=d.day)
-    else:
-        d = d - datetime.timedelta(days=d.day) + datetime.timedelta(days=day_offset)
-
-    if d.date() <= xdate.date():
-        d = d + dateutils.relativedelta(months=1)
-
-    return at(d, 10)
-
 def _next_thursday(get_time=datetime.datetime.now, holidays=getattr(settings, 'SCHOOL_HOLIDAYS', [])):
     """
     Next Thursday is the very next Thursday of the week which is not a school holiday
@@ -231,15 +211,6 @@ def list_poll_responses(poll, **kwargs):
         for location in Location.objects.filter(name__in=DISTRICT):
             to_ret[location.__unicode__()] = compute_average_percentage([msg.message.text for msg in poll.responses.filter(date__gte=date_diff, contact__in=Contact.objects.filter(reporting_location=location))])
         return to_ret
-
-def get_script_grp(script_slug):
-    sl = script_slug.split('_')
-    if sl[1] == 'head':
-        return '%s %s' % (sl[1], sl[2])
-    else:
-        return sl[1]
-
-# Themes
 
 themes = {
     1.1 : "Name and location of our Sub-county/Division",
