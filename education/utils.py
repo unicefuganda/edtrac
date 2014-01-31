@@ -1,16 +1,7 @@
-'''
-Created on Sep 15, 2011
-
-@author: asseym
-'''
-from __future__ import division
 from dateutil.relativedelta import relativedelta
 from script.models import Script, ScriptProgress
 from rapidsms.models import Connection
 import datetime
-import calendar
-import dateutils
-from contact.models import MessageFlag
 from rapidsms.models import Contact
 from rapidsms.contrib.locations.models import Location
 from poll.models import Poll
@@ -18,7 +9,6 @@ from script.models import ScriptStep
 from django.db.models import Count
 from django.contrib.auth.models import Group
 from django.conf import settings
-from unregister.models import Blacklist
 from education.scheduling import schedule_at, at
 
 def is_holiday(date1, holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])):
