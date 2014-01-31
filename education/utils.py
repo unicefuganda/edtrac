@@ -68,12 +68,6 @@ def previous_calendar_week(t=None):
     end_date = last_thursday + datetime.timedelta(days=6)
     return (last_thursday.date(), end_date)
 
-def is_weekend(date):
-    """
-    Find out if supplied date is a Saturday or Sunday, return True/False
-    """
-    return date.weekday() in [5, 6]
-
 def _next_thursday(get_time=datetime.datetime.now, holidays=getattr(settings, 'SCHOOL_HOLIDAYS', [])):
     """
     Next Thursday is the very next Thursday of the week which is not a school holiday
@@ -106,62 +100,9 @@ def _this_thursday(sp=None, **kwargs):
     return d
 
 
-def _next_term_question_date(rght=None):
-    """
-    The termly questions are sent out on the 12th day of each term and computed based on the beginning of term date
-    """
-
-    delta = datetime.timedelta(days=68) if rght else datetime.timedelta(12)
-    first_term_qn_date = getattr(settings, 'FIRST_TERM_BEGINS', datetime.datetime.now()) + delta
-    second_term_qn_date = getattr(settings, 'SECOND_TERM_BEGINS', datetime.datetime.now()) + delta
-    third_term_qn_date = getattr(settings, 'THIRD_TERM_BEGINS', datetime.datetime.now()) + delta
-    d = datetime.datetime.now()
-
-    if d <= first_term_qn_date:
-        d = first_term_qn_date
-    elif d <= second_term_qn_date:
-        d = second_term_qn_date
-    else:
-        d = third_term_qn_date
-
-    while(is_holiday(d) or is_weekend(d)):
-        d = d + datetime.timedelta(days=1)
-
-    return d
-
-def compute_total(chunkit):
-    # function takes in a list of tuples (school_name,value) ---> all grades p1 to p7
-    new_dict = {}
-    for n, val in chunkit: new_dict[n] = 0 #placeholder
-    for i in chunkit:
-        if i[0] in new_dict.keys():
-            new_dict[i[0]] = new_dict[i[0]] + i[1]
-    return new_dict
-
-def get_contacts(**kwargs):
-    request = kwargs.pop('request')
-    if request.user.is_authenticated() and hasattr(Contact, 'groups'):
-        return Contact.objects.filter(groups__in=request.user.groups.all()).distinct().annotate(Count('responses'))
-    else:
-        return Contact.objects.annotate(Count('responses'))
-
 def get_polls(**kwargs):
     script_polls = ScriptStep.objects.values_list('poll', flat=True).exclude(poll=None)
     return Poll.objects.exclude(pk__in=script_polls).annotate(Count('responses'))
-
-def get_script_polls(**kwargs):
-    script_polls = ScriptStep.objects.exclude(poll=None).values_list('poll', flat=True)
-    return Poll.objects.filter(pk__in=script_polls).annotate(Count('responses'))
-
-
-def retrieve_poll(request, pks=None):
-    script_polls = ScriptStep.objects.exclude(poll=None).values_list('poll', flat=True)
-    if pks == None:
-        pks = request.GET.get('pks', '')
-    if pks == 'l':
-        return [Poll.objects.exclude(pk__in=script_polls).latest('start_date')]
-    else:
-        return Poll.objects.filter(pk__in=[pks]).exclude(pk__in=script_polls)
 
 def compute_average_percentage(list_of_percentages):
     """
