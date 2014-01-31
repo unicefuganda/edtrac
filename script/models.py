@@ -90,7 +90,7 @@ class ScriptProgress(models.Model):
     and upon script completion the Connection is deleted from this table.
     """
     # each connection should belong to only ONE script at a time,
-    # and only be at ONE point in the script.  However, due to 
+    # and only be at ONE point in the script.  However, due to
     # the convenience of queueing up several scripts known not
     # to clash, you can add as many as you want
     connection = models.ForeignKey(Connection)
@@ -106,7 +106,7 @@ class ScriptProgress(models.Model):
                 max_length=1,
                 choices=((COMPLETE, 'Complete'),
                          (PENDING, 'In Progress'),))
-    time = models.DateTimeField(auto_now=True)
+    time = models.DateTimeField(default=datetime.datetime.now)
     num_tries = models.IntegerField(blank=True, null=True)
     language = models.CharField(max_length=5, choices=settings.LANGUAGES, null=True)
 
@@ -259,7 +259,7 @@ class ScriptProgress(models.Model):
         """
         The time attribute is normally auto_now, for convenience (it's supposed to store
         the last time that something happened in the script).  However, for scheduling
-        purposes, it's sometimes convenient to change it to something else manually. 
+        purposes, it's sometimes convenient to change it to something else manually.
         """
         cursor = connection.cursor()
         cursor.execute("update script_scriptprogress set time = '%s' where id = %d" %
