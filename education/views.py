@@ -1093,6 +1093,10 @@ def set_logged_in_users_location(profile):
     return location
 
 
+month_day_range = get_month_day_range(datetime.datetime.now(), depth=2)
+current_month = month_day_range[0]
+previous_month = month_day_range[1]
+
 def violence_cases_gem_in_two_months(poll, context_vars, locations):
     violence_cases = []
 
@@ -1120,11 +1124,6 @@ def violence_cases_gem_in_two_months(poll, context_vars, locations):
         totals_for_violence_cases_for_two_months = [current_month_total, previous_month_total]
 
     return violence_cases, totals_for_violence_cases_for_two_months
-
-
-month_day_range = get_month_day_range(datetime.datetime.now(), depth=2)
-current_month = month_day_range[0]
-previous_month = month_day_range[1]
 
 
 def violence_details_dash(req):
