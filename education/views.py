@@ -2664,9 +2664,8 @@ def emis_scripts_special(req):
         if len(checked_numbers) < 25 and len(checked_numbers) > 0:
             # assuming that "all" is not checked
             for reporter in EmisReporter.objects.filter(id__in=checked_numbers).exclude(connection=None):
-                sp = ScriptProgress.objects.create(connection=reporter.default_connection, script=_script)
-                sp.set_time(datetime.datetime.now()+datetime.timedelta(seconds=90)) # 30s after default cron wait time
-                sp.save()
+                time = datetime.datetime.now()+datetime.timedelta(seconds=90) # 30s after default cron wait time
+                sp = ScriptProgress.objects.create(time=time, connection=reporter.default_connection, script=_script)
         else:
             # what if the reporting location is different? Would you instead want to poll the different districts?
             single_reporter_location = True # flag
@@ -2696,15 +2695,13 @@ def emis_scripts_special(req):
                     reporting_location__name__in = reporter_location, groups__name =\
                     ' '.join([i.capitalize() for i in reporter_group_name.replace('_',' ').split()])).\
                 exclude(connection=None):
-                    sp = ScriptProgress.objects.create(connection=reporter.default_connection, script=_script)
-                    sp.set_time(datetime.datetime.now()+datetime.timedelta(seconds=90)) # 30s after default cron wait time
-                    sp.save()
+                    time = datetime.datetime.now()+datetime.timedelta(seconds=90) # 30s after default cron wait time
+                    sp = ScriptProgress.objects.create(time=time, connection=reporter.default_connection, script=_script)
             else:
                 for reporter in EmisReporter.objects.filter(groups__name =\
                 ' '.join([i.capitalize() for i in reporter_group_name.replace('_',' ').split()])).exclude(connection=None):
-                    sp = ScriptProgress.objects.create(connection=reporter.default_connection, script=_script)
-                    sp.set_time(datetime.datetime.now()+datetime.timedelta(seconds=90)) # 30s after default cron wait time
-                    sp.save()
+                    time = datetime.datetime.now()+datetime.timedelta(seconds=90) # 30s after default cron wait time
+                    sp = ScriptProgress.objects.create(time=time, connection=reporter.default_connection, script=_script)
 
         return HttpResponseRedirect(reverse('emis-contact'))
     else:

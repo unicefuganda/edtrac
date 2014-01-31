@@ -73,8 +73,7 @@ def schedule_script(date, reporters, script):
     count = 0
     for reporter in reporters:
         if reporter.default_connection is not None:
-            sp = ScriptProgress.objects.create(connection=reporter.default_connection, script=script)
-            sp.set_time(date)
+            sp = ScriptProgress.objects.create(time=date, connection=reporter.default_connection, script=script)
             count += 1
     return count
 

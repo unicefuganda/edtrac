@@ -119,9 +119,8 @@ class TestViolenceView(TestSetup):
         reps = EmisReporter.objects.filter(groups__name="Head Teachers")
         for rep in reps:
             if rep.default_connection and rep.groups.count() > 0:
-                sp = ScriptProgress.objects.create(connection=rep.default_connection,
+                sp = ScriptProgress.objects.create(time=date, connection=rep.default_connection,
                                                    script=Script.objects.get(slug=slug))
-                sp.set_time(date)
         ScriptProgress.objects.filter(connection=rep.default_connection).filter(num_tries=None).update(num_tries=0)
         ScriptProgress.objects.filter(connection=rep.default_connection).update(num_tries=F('num_tries') + 1,
                                                                                 time=datetime.datetime.now())
