@@ -62,10 +62,13 @@ def schedule_script_at(script, time, groups=groups):
     Schedules the script for all subscribed connections at the specified time.
     """
     names = [name for name in groups.keys() if script.slug in groups.get(name)]
-    connections = Connection.objects.filter(contact__groups__name__in = names)
-
-    for connection in connections:
+    for connection in Connection.objects.filter(contact__groups__name__in = names):
         schedule_at(connection, script, time)
+
+    # Teachers are also in a virtual group named the same as their grade.
+    if 'p6' in names or 'p3' in names:
+        for connection in Connection.objects.filter(contact__groups__name = 'Teachers'):
+            schedule_at(connection, script, time)
 
 def schedule_all(connection, groups=groups, get_day=date.today, roster=roster):
     """
