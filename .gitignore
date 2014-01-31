@@ -14,3 +14,5 @@ Vagrantfile
 .vagrant/*
 .coverage
 static/
+edtrac_project/.DS_Store
+edtrac_20140114.sql
