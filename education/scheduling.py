@@ -45,8 +45,10 @@ def schedule_script(script, get_day = date.today, groups=groups, roster = roster
     names = [name for name in groups.keys() if script.slug in groups.get(name)]
     connections = Connection.objects.filter(contact__groups__name__in = names)
 
-    for connection in connections:
-        schedule(connection, script, get_day=get_day, roster=roster)
+    # Teachers are also in a virtual group named the same as their grade.
+    if 'p6' in names or 'p3' in names:
+        for connection in Connection.objects.filter(contact__groups__name = 'Teachers'):
+            schedule(connection, script)
 
 def schedule_at(connection, script, time):
     """
