@@ -9,7 +9,7 @@ groups = getattr(settings, 'GROUPS', {})
 
 def upcoming(dates, get_day=date.today):
     """
-    Returns the next date, or None.
+    Returns the next date, or None if there is no next date.
     """
     return _first(lambda d: d > get_day(), dates)
 
@@ -87,8 +87,11 @@ def scripts_for(connection, groups=groups):
     slug_lists = [groups.get(name) or [] for name in names]
     return reduce(list.__add__, slug_lists)
 
-def at(date, oclock):
-    return datetime.combine(date, time(oclock, 0, 0))
+def at(date, hour):
+    """
+    Returns a datetime of the date at the specified hour.
+    """
+    return datetime.combine(date, time(hour, 0, 0))
 
 def _first(predicate, sequence):
     filtered = filter(predicate, sequence)
