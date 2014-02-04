@@ -8,7 +8,7 @@ Technically speaking, RapidSMS-EMIS leverages the work of rapidsms-script (githu
 
 Requirements
 ============
- - Python 2.6 (www.python.org/download/) : On linux machines, you can usually use your system's package manager to perform the installation
+ - Python 2.7 (www.python.org/download/) : On linux machines, you can usually use your system's package manager to perform the installation
  - MySQL or PostgreSQL are recommended
  - All other python libraries will be installed as part of the setup and configuration process
  - Some sort of SMS Connectivity, via an HTTP gateway.  By default, Rapidsms-EMIS comes configured to work with a two-way clickatell number (see http://www.clickatell.com/downloads/http/Clickatell_HTTP.pdf and http://www.clickatell.com/downloads/Clickatell_two-way_technical_guide.pdf).  Ideally, you want to obtain a local short code in your country of operation, or configure Rapidsms-EMIS to use a GSM modem (see http://docs.rapidsms.org for more information on how to do this).
