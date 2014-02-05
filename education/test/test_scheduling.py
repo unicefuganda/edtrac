@@ -61,8 +61,7 @@ class TestScheduling(TestCase):
        today = date(2013, 8, 23)
 
        script = Script.objects.create(slug='p6_girls')
-       backend = Backend.objects.create(name='foo')
-       connection = Connection.objects.create(backend=backend)
+       connection = _connection(None)
        current = ScriptProgress.objects.create(connection=connection, script=script)
 
        schedule(connection, script, roster=roster, get_day=lambda: today)
@@ -75,8 +74,7 @@ class TestScheduling(TestCase):
        today = date(2013, 8, 23)
 
        script = Script.objects.create(slug='p6_girls')
-       backend = Backend.objects.create(name='foo')
-       connection = Connection.objects.create(backend=backend)
+       connection = _connection(None)
        Blacklist.objects.create(connection=connection)
        current = ScriptProgress.objects.create(connection=connection, script=script)
 
@@ -91,9 +89,8 @@ class TestScheduling(TestCase):
        today = date(2013, 8, 23)
 
        script = Script.objects.create(name='edtrac_p6_girls', slug='p6_girls')
-       backend = Backend.objects.create(name='foo')
        contact = _contact(group='Teachers')
-       connection = Connection.objects.create(backend=backend, contact=contact)
+       connection = _connection(contact)
        current = ScriptProgress.objects.create(connection=connection, script=script)
 
        schedule_all(connection, groups=groups, roster=roster, get_day=lambda: today)
@@ -105,8 +102,7 @@ class TestScheduling(TestCase):
        time = datetime(2013, 8, 23, 11, 33)
 
        script = Script.objects.create(slug='p6_girls')
-       backend = Backend.objects.create(name='foo')
-       connection = Connection.objects.create(backend=backend)
+       connection = _connection(None)
        current = ScriptProgress.objects.create(connection=connection, script=script)
 
        schedule_at(connection, script, time)
@@ -117,9 +113,8 @@ class TestScheduling(TestCase):
     def test_scripts_are_derived_from_a_connections_groups(self):
        groups = {'Head Teachers': ['water points']}
 
-       backend = Backend.objects.create(name='foo')
        contact = _contact(group='Head Teachers')
-       connection = Connection.objects.create(backend=backend, contact=contact)
+       connection = _connection(contact)
 
        script_slugs = scripts_for(connection, groups=groups)
 
@@ -128,9 +123,8 @@ class TestScheduling(TestCase):
     def test_teachers_belong_to_virtual_groups_with_their_grade(self):
        groups = {'p6': ['p6_girls']}
 
-       backend = Backend.objects.create(name='foo')
        contact = _contact(grade='P6', group='Teachers')
-       connection = Connection.objects.create(backend=backend, contact=contact)
+       connection = _connection(contact)
 
        script_slugs = scripts_for(connection, groups=groups)
 
@@ -141,9 +135,8 @@ class TestScheduling(TestCase):
        roster = {'p8_girls': [date(2013, 8, 29)]}
 
        script = Script.objects.create(slug='p8_girls')
-       backend = Backend.objects.create(name='foo')
        contact = _contact(group='Head Teachers')
-       connection = Connection.objects.create(backend=backend, contact=contact)
+       connection = _connection(contact)
 
        schedule_script(script, roster=roster, get_day=lambda: date(2013, 8, 28), groups=groups)
        future = ScriptProgress.objects.get(connection=connection, script=script)
@@ -154,9 +147,8 @@ class TestScheduling(TestCase):
        groups = {'Head Teachers': ['p7_girls']}
 
        script = Script.objects.create(slug='p7_girls')
-       backend = Backend.objects.create(name='foo')
        contact = _contact(group='Head Teachers')
-       connection = Connection.objects.create(backend=backend, contact=contact)
+       connection = _connection(contact)
 
        schedule_script_at(script, datetime(2013, 8, 28, 11, 0, 3), groups=groups)
        future = ScriptProgress.objects.get(connection=connection, script=script)
@@ -167,9 +159,8 @@ class TestScheduling(TestCase):
        groups = {'p6': ['p6_girls']}
 
        script = Script.objects.create(slug='p6_girls')
-       backend = Backend.objects.create(name='foo')
        contact = _contact(grade='p6', group='Teachers')
-       connection = Connection.objects.create(backend=backend, contact=contact)
+       connection = _connection(contact)
 
        schedule_script_at(script, datetime(2013, 8, 28, 11, 0, 3), groups=groups)
        future = ScriptProgress.objects.get(connection=connection, script=script)
@@ -193,3 +184,7 @@ def _contact(grade=None, group=None):
     contact.save()
 
     return contact
+
+def _connection(contact):
+    backend = Backend.objects.create(name='foo')
+    return Connection.objects.create(backend=backend, contact=contact)
