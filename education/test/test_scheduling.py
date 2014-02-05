@@ -91,14 +91,9 @@ class TestScheduling(TestCase):
        today = date(2013, 8, 23)
 
        script = Script.objects.create(name='edtrac_p6_girls', slug='p6_girls')
-       reporter = EmisReporter.objects.create(grade='P6')
        backend = Backend.objects.create(name='foo')
-       contact = Contact.objects.create()
-       contact.emisreporter = reporter
-       contact.save()
+       contact = _contact(group='Teachers')
        connection = Connection.objects.create(backend=backend, contact=contact)
-       connection.contact.groups.add(Group.objects.create(name='Teachers'))
-       connection.save()
        current = ScriptProgress.objects.create(connection=connection, script=script)
 
        schedule_all(connection, groups=groups, roster=roster, get_day=lambda: today)
@@ -122,14 +117,9 @@ class TestScheduling(TestCase):
     def test_scripts_are_derived_from_a_connections_groups(self):
        groups = {'Head Teachers': ['water points']}
 
-       reporter = EmisReporter.objects.create()
        backend = Backend.objects.create(name='foo')
-       contact = Contact.objects.create()
-       contact.emisreporter = reporter
-       contact.save()
+       contact = _contact(group='Head Teachers')
        connection = Connection.objects.create(backend=backend, contact=contact)
-       connection.contact.groups.add(Group.objects.create(name='Head Teachers'))
-       connection.save()
 
        script_slugs = scripts_for(connection, groups=groups)
 
@@ -138,19 +128,13 @@ class TestScheduling(TestCase):
     def test_teachers_belong_to_virtual_groups_with_their_grade(self):
        groups = {'p6': ['p6_girls']}
 
-       reporter = EmisReporter.objects.create(grade='P6')
        backend = Backend.objects.create(name='foo')
-       contact = Contact.objects.create()
-       contact.emisreporter = reporter
-       contact.save()
+       contact = _contact(grade='P6', group='Teachers')
        connection = Connection.objects.create(backend=backend, contact=contact)
-       connection.contact.groups.add(Group.objects.create(name='Teachers'))
-       connection.save()
 
        script_slugs = scripts_for(connection, groups=groups)
 
        self.assertEquals(['p6_girls'], script_slugs)
-
 
     def test_schedules_all_connections_for_a_script(self):
        groups = {'Head Teachers': ['p8_girls']}
@@ -158,9 +142,7 @@ class TestScheduling(TestCase):
 
        script = Script.objects.create(slug='p8_girls')
        backend = Backend.objects.create(name='foo')
-       contact = Contact.objects.create()
-       contact.groups.add(Group.objects.create(name='Head Teachers'))
-       contact.save()
+       contact = _contact(group='Head Teachers')
        connection = Connection.objects.create(backend=backend, contact=contact)
 
        schedule_script(script, roster=roster, get_day=lambda: date(2013, 8, 28), groups=groups)
@@ -173,9 +155,7 @@ class TestScheduling(TestCase):
 
        script = Script.objects.create(slug='p7_girls')
        backend = Backend.objects.create(name='foo')
-       contact = Contact.objects.create()
-       contact.groups.add(Group.objects.create(name='Head Teachers'))
-       contact.save()
+       contact = _contact(group='Head Teachers')
        connection = Connection.objects.create(backend=backend, contact=contact)
 
        schedule_script_at(script, datetime(2013, 8, 28, 11, 0, 3), groups=groups)
@@ -188,10 +168,7 @@ class TestScheduling(TestCase):
 
        script = Script.objects.create(slug='p6_girls')
        backend = Backend.objects.create(name='foo')
-       contact = Contact.objects.create()
-       contact.groups.add(Group.objects.create(name='Teachers'))
-       contact.grade = 'p6'
-       contact.save()
+       contact = _contact(grade='p6', group='Teachers')
        connection = Connection.objects.create(backend=backend, contact=contact)
 
        schedule_script_at(script, datetime(2013, 8, 28, 11, 0, 3), groups=groups)
@@ -199,9 +176,20 @@ class TestScheduling(TestCase):
 
        self.assertEquals(datetime(2013, 8, 28, 11, 0, 3), future.time)
 
-
     def tearDown(self):
         Backend.objects.all().delete()
         Script.objects.all().delete()
         Group.objects.all().delete()
         EmisReporter.objects.all().delete()
+
+def _contact(grade=None, group=None):
+    reporter = EmisReporter.objects.create(grade=grade)
+    contact = Contact.objects.create()
+    contact.emisreporter = reporter
+
+    if group:
+        contact.groups.add(Group.objects.create(name=group))
+
+    contact.save()
+
+    return contact
