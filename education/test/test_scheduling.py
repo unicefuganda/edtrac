@@ -5,6 +5,7 @@ from rapidsms.models import Connection, Backend, Contact
 from django.contrib.auth.models import Group
 from script.models import Script, ScriptProgress
 from education.models import EmisReporter
+from unregister.models import Blacklist
 
 class TestScheduling(TestCase):
 
@@ -68,6 +69,21 @@ class TestScheduling(TestCase):
        future = ScriptProgress.objects.get(connection=connection, script=script)
 
        self.assertEquals(datetime(2013, 8, 29, 10, 0, 0), future.time)
+
+    def test_doesnt_schedule_blacklisted_connections(self):
+       roster = {'p6_girls': [date(2013, 8, 29)]}
+       today = date(2013, 8, 23)
+
+       script = Script.objects.create(slug='p6_girls')
+       backend = Backend.objects.create(name='foo')
+       connection = Connection.objects.create(backend=backend)
+       Blacklist.objects.create(connection=connection)
+       current = ScriptProgress.objects.create(connection=connection, script=script)
+
+       schedule(connection, script, roster=roster, get_day=lambda: today)
+       future_scheduled = ScriptProgress.objects.filter(connection=connection, script=script).exists()
+
+       self.assertFalse(future_scheduled)
 
     def test_schedules_all_polls_for_connection(self):
        roster = {'p6_girls': [date(2013, 8, 29)]}

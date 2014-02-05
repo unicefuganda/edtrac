@@ -3,6 +3,7 @@ from django.conf import settings
 from script.models import Script, ScriptProgress
 from rapidsms.models import Connection
 from django.contrib.auth.models import Group
+from unregister.models import Blacklist
 
 roster = getattr(settings, 'POLL_DATES', {})
 groups = getattr(settings, 'GROUPS', {})
@@ -50,7 +51,7 @@ def schedule_at(connection, script, time):
     Schedules the script for the connection, if time is set.
     """
     ScriptProgress.objects.filter(connection=connection, script=script).delete()
-    if time:
+    if time and not Blacklist.objects.filter(connection=connection).exists():
         progress = ScriptProgress.objects.create(connection=connection, script=script, time=time)
 
 def schedule_script_at(script, time, groups=groups):
