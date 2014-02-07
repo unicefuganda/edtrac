@@ -149,6 +149,7 @@ def get_aggregated_report_for_district(locations, time_range, config_list):
     return school_absenteeism_percent_values, chart_results_model, school_data, []
 
 
+
 def weekly_school_absenteeism(attendance_data_totals, enroll_indicator_totals, schoolSource,
                                  school_absenteeism_percent_values):
     for school in schoolSource:
@@ -163,6 +164,7 @@ def weekly_school_absenteeism(attendance_data_totals, enroll_indicator_totals, s
                                                                                                    school_enrollment)
 
         school_absenteeism_percent_values[school.name]['id'] = school.id
+
 
 
 def get_aggregated_report_for_district_single_indicator(locations, time_range, config_list):
@@ -195,6 +197,24 @@ def get_aggregated_report_for_district_single_indicator(locations, time_range, c
             weekly_school_absenteeism(attendance_data_totals, enroll_indicator_totals, schoolSource,
                                          school_absenteeism_percent_values)
 
+
+            #Loop through schools and determine weekly location absenteeism values
+            for school in schoolSource:
+                school_enrollment = 0
+                school_attendance = 0
+                if school.name not in school_absenteeism_percent_values:
+                    school_absenteeism_percent_values[school.name] = {}
+                    school_absenteeism_percent_values[school.name]['absenteeism'] = 0
+
+                if school.id in enroll_indicator_totals:
+                    school_enrollment = enroll_indicator_totals[school.id]
+                    school_attendance = attendance_data_totals[school.id] if school.id in attendance_data_totals else 0
+                    school_absenteeism_percent_values[school.name]['absenteeism'] += compute_absent_values(
+                        school_attendance, school_enrollment)
+
+                school_absenteeism_percent_values[school.name]['id'] = school.id
+
+
     elif config_list[0].get('collective_dict_key') in ['Male Head Teachers', 'Female Head Teachers']:
         headteachersSource = EmisReporter.objects.filter(reporting_location__in=locations,
                                                          groups__name="Head Teachers").exclude(
@@ -210,9 +230,7 @@ def get_aggregated_report_for_district_single_indicator(locations, time_range, c
                                                                            config_list[0].get('gender'))
             schools_that_responded = len(present_data_totals_schools) + len(absent_data_totals_schools)
             weekly_school_responses.append(schools_that_responded)
-            weekly_school_absenteeism(present_data_totals_schools, enroll_indicator_totals, schoolSource,
-                                         school_absenteeism_percent_values)
-
+            weekly_school_absenteeism(present_data_totals_schools, enroll_indicator_totals, schoolSource, school_absenteeism_percent_values)
     else:
         headteachersSource = EmisReporter.objects.filter(reporting_location__in=locations,
                                                          groups__name="Head Teachers").exclude(
@@ -229,6 +247,23 @@ def get_aggregated_report_for_district_single_indicator(locations, time_range, c
             weekly_school_responses.append(schools_that_responded)
             weekly_school_absenteeism(present_data_totals, enroll_indicator_totals, schoolSource,
                                          school_absenteeism_percent_values)
+
+            #Loop through schools and determine weekly location absenteeism values
+            for school in schoolSource:
+                school_enrollment = 0
+                school_attendance = 0
+                if school.name not in school_absenteeism_percent_values:
+                    school_absenteeism_percent_values[school.name] = {}
+                    school_absenteeism_percent_values[school.name]['absenteeism'] = 0
+
+                if school.id in enroll_indicator_totals:
+                    school_enrollment = enroll_indicator_totals[school.id]
+                    school_attendance = present_data_totals[school.id] if school.id in present_data_totals else 0
+                    school_absenteeism_percent_values[school.name]['absenteeism'] += compute_absent_values(
+                        school_attendance, school_enrollment)
+
+                school_absenteeism_percent_values[school.name]['id'] = school.id
+
 
     aggregated_enrollment = [totalCount]
     aggregated_attendance = weekly_present_result

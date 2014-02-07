@@ -16,6 +16,8 @@
         <li><a href="#" id="reported">Referred to Police</a></li>
         |
         <li><a href="#" id="gem">Reports by GEM</a></li>
+        |
+        <li><a href="#" id="term">Term</a></li>
     </ul>
 
     <div id="violence"></div>
@@ -49,6 +51,13 @@
                 violence_cases(
                         '{{ monthly_data_gem }}',
                         title = "Violence in Uganda (GEM reports)"
+                );
+            });
+            $('a#term').click(function (event) {
+                violence_cases(
+                        '{{ termly_violence_data }}',
+                        title = "Termly average violence cases"
+
                 );
             });
         });

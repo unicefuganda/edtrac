@@ -11,6 +11,7 @@ from django.test.client import Client
 from poll.models import Poll
 from script.models import Script, ScriptStep, ScriptProgress, ScriptSession
 from script.signals import script_progress_pre_change, script_progress
+from education.views import termly_violence_data
 
 class TestViolenceView(TestSetup):
     def setUp(self):
@@ -119,8 +120,9 @@ class TestViolenceView(TestSetup):
         reps = EmisReporter.objects.filter(groups__name="Head Teachers")
         for rep in reps:
             if rep.default_connection and rep.groups.count() > 0:
-                sp = ScriptProgress.objects.create(time=date, connection=rep.default_connection,
+                sp = ScriptProgress.objects.create(connection=rep.default_connection,
                                                    script=Script.objects.get(slug=slug))
+                sp.set_time(date)
         ScriptProgress.objects.filter(connection=rep.default_connection).filter(num_tries=None).update(num_tries=0)
         ScriptProgress.objects.filter(connection=rep.default_connection).update(num_tries=F('num_tries') + 1,
                                                                                 time=datetime.datetime.now())
@@ -144,3 +146,8 @@ class TestViolenceView(TestSetup):
             months.append(split_data[0])
             violence_cases.append(float(split_data[1]))
         return months, violence_cases
+
+
+    def test_termly_violence_data(self):
+        self.generate_fake_responses_for_a_given_poll("edtrac_violence_girls")
+        termly_violence_data([self.kampala_district])

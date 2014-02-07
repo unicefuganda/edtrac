@@ -1093,11 +1093,31 @@ def set_logged_in_users_location(profile):
     return location
 
 
+def termly_violence_data(locations):
+    time_ranges = [get_term_range("first"), get_term_range("second"), get_term_range("third")]
+    terms = ["Term one", "Term two", "Term three"]
+    current_term_violence_totals = []
+    polls = [edtrac_violence_girls_poll[0], edtrac_violence_boys_poll[0]]
+
+    for time_range in time_ranges:
+
+        term_violence_cases = NumericResponsesFor(polls) \
+                                .forDateRange(time_range) \
+                                .forLocations(locations) \
+                                .total()
+        current_term_violence_totals.append(term_violence_cases)
+
+    term_violence_data = ';'.join([str(item[0]) + '-' + str(item[1]) for item in zip(terms, current_term_violence_totals)])
+
+    return term_violence_data
+
+
 month_day_range = get_month_day_range(datetime.datetime.now(), depth=2)
 current_month = month_day_range[0]
 previous_month = month_day_range[1]
 
-def violence_cases_gem_in_two_months(poll, context_vars, locations):
+
+def monthly_violence_cases_for(poll, context_vars, locations):
     violence_cases = []
 
     violence_cases_for_previous_month = get_numeric_data_for_location(poll, locations, previous_month)
@@ -1126,39 +1146,7 @@ def violence_cases_gem_in_two_months(poll, context_vars, locations):
     return violence_cases, totals_for_violence_cases_for_two_months
 
 
-def violence_details_dash(req):
-    profile = req.user.get_profile()
-    context_vars = {}
-    location = set_logged_in_users_location(profile)
-
-    if isinstance(location, list) and len(location) > 1:
-        #for the curious case that location actually returns a list of locations
-        locations = location
-    if isinstance(location, Location):
-        if location.type.name == 'country':
-            locations = Location.objects.select_related().get(name=location).get_descendants().filter(type="district")
-            locations = list(locations)
-        else:
-            locations = [locations]
-
-    edtrac_violence_girls_poll = Poll.objects.filter(name="edtrac_violence_girls")
-    edtrac_violence_boys_poll = Poll.objects.filter(name="edtrac_violence_boys")
-    edtrac_violence_reported_poll = Poll.objects.filter(name="edtrac_violence_reported")
-    edtrac_gem_abuse_poll = Poll.objects.filter(name="edtrac_gem_abuse")
-
-    context_vars['violence_cases_girls'], context_vars['girls_totals'] = violence_cases_gem_in_two_months(
-        edtrac_violence_girls_poll, context_vars, locations)
-
-    context_vars['violence_cases_boys'], context_vars['boys_totals'] = violence_cases_gem_in_two_months(
-        edtrac_violence_boys_poll, context_vars, locations)
-
-    context_vars['violence_cases_reported'], context_vars['reported_totals'] = violence_cases_gem_in_two_months(
-        edtrac_violence_reported_poll, context_vars, locations)
-
-    context_vars['violence_cases_reported_by_gem'], context_vars['gem_totals'] = violence_cases_gem_in_two_months(
-        edtrac_gem_abuse_poll, context_vars, locations)
-
-    context_vars['report_dates'] = [start for start, end in get_month_day_range(datetime.datetime.now(), depth=2)]
+def contacts_within_two_months(profile):
     school_report_count = 0
     gem_report_count = 0
     for dr in get_month_day_range(datetime.datetime.now(), depth=2):
@@ -1179,6 +1167,47 @@ def violence_details_dash(req):
 
         school_report_count += school_resp_count
         gem_report_count += gem_resp_count
+    return gem_report_count, school_report_count
+
+edtrac_violence_girls_poll = Poll.objects.filter(name="edtrac_violence_girls")
+edtrac_violence_boys_poll = Poll.objects.filter(name="edtrac_violence_boys")
+
+
+def violence_details_dash(req):
+    profile = req.user.get_profile()
+    context_vars = {}
+    location = set_logged_in_users_location(profile)
+
+    if isinstance(location, list) and len(location) > 1:
+        #for the curious case that location actually returns a list of locations
+        locations = location
+    if isinstance(location, Location):
+        if location.type.name == 'country':
+            locations = Location.objects.select_related().get(name=location).get_descendants().filter(type="district")
+            locations = list(locations)
+        else:
+            locations = [locations]
+
+    edtrac_violence_reported_poll = Poll.objects.filter(name="edtrac_violence_reported")
+    edtrac_gem_abuse_poll = Poll.objects.filter(name="edtrac_gem_abuse")
+
+    context_vars['violence_cases_girls'], context_vars['girls_totals'] = monthly_violence_cases_for(
+        edtrac_violence_girls_poll, context_vars, locations)
+
+    context_vars['violence_cases_boys'], context_vars['boys_totals'] = monthly_violence_cases_for(
+        edtrac_violence_boys_poll, context_vars, locations)
+
+    context_vars['violence_cases_reported'], context_vars['reported_totals'] = monthly_violence_cases_for(
+        edtrac_violence_reported_poll, context_vars, locations)
+
+    context_vars['violence_cases_reported_by_gem'], context_vars['gem_totals'] = monthly_violence_cases_for(
+        edtrac_gem_abuse_poll, context_vars, locations)
+
+    context_vars['termly_violence_data'] = termly_violence_data(locations)
+
+    context_vars['report_dates'] = [start for start, end in get_month_day_range(datetime.datetime.now(), depth=2)]
+
+    gem_report_count, school_report_count = contacts_within_two_months(profile)
 
     try:
         context_vars['sch_reporting_percentage'] = 100 * (
@@ -2388,8 +2417,37 @@ def edit_reporter(request, reporter_pk):
 
             old_reporter_group = EmisReporter.objects.get(pk=reporter_pk).groups.all()[0].name
             if reporter.default_connection and reporter.groups.count() > 0:
+
                 if reporter_group_name != old_reporter_group:
                     schedule_all(reporter.default_connection)
+
+                # remove from other scripts
+                # if reporter's groups remain the same.
+                if reporter_group_name == saved_reporter_grp:
+                    pass
+                else:
+                    ScriptProgress.objects.exclude(script__slug="edtrac_autoreg").filter(
+                        connection=reporter.default_connection).delete()
+                    _schedule_teacher_weekly_scripts(reporter.groups.all()[0], reporter.default_connection,
+                                                     ['Teachers'])
+                    _schedule_weekly_scripts(reporter.groups.all()[0], reporter.default_connection,
+                                             ['Head Teachers', 'SMC'])
+
+                    _schedule_monthly_script(reporter.groups.all()[0], reporter.default_connection,
+                                             'edtrac_head_teachers_monthly', 'last', ['Head Teachers'])
+                    _schedule_monthly_script(reporter.groups.all()[0], reporter.default_connection,
+                                             'edtrac_gem_monthly', 20, ['GEM'])
+                    _schedule_monthly_script(reporter.groups.all()[0], reporter.default_connection,
+                                             'edtrac_smc_monthly', 5, ['SMC'])
+
+                    _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_smc_termly',
+                                            ['SMC'])
+                    _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection,
+                                            'edtrac_p3_enrollment_headteacher_termly', ['Head Teachers'])
+                    _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection,
+                                            'edtrac_p6_enrollment_headteacher_termly', ['Head Teachers'])
+                    _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection,
+                                            'edtrac_teacher_deployment_headteacher_termly', ['Head Teachers'])
 
             return redirect("reporter-detail", pk=reporter.pk)
     else:
@@ -2824,8 +2882,9 @@ def emis_scripts_special(req):
         if len(checked_numbers) < 25 and len(checked_numbers) > 0:
             # assuming that "all" is not checked
             for reporter in EmisReporter.objects.filter(id__in=checked_numbers).exclude(connection=None):
-                time = datetime.datetime.now()+datetime.timedelta(seconds=90) # 30s after default cron wait time
-                sp = ScriptProgress.objects.create(time=time, connection=reporter.default_connection, script=_script)
+                sp = ScriptProgress.objects.create(connection=reporter.default_connection, script=_script)
+                sp.set_time(datetime.datetime.now() + datetime.timedelta(seconds=90)) # 30s after default cron wait time
+                sp.save()
         else:
             # what if the reporting location is different? Would you instead want to poll the different districts?
             single_reporter_location = True # flag
@@ -2853,16 +2912,24 @@ def emis_scripts_special(req):
 
             if single_reporter_location or single_school:
                 for reporter in EmisReporter.objects.filter(schools__name__in=reporter_schools,
-                    reporting_location__name__in = reporter_location, groups__name =\
-                    ' '.join([i.capitalize() for i in reporter_group_name.replace('_',' ').split()])).\
-                exclude(connection=None):
-                    time = datetime.datetime.now()+datetime.timedelta(seconds=90) # 30s after default cron wait time
-                    sp = ScriptProgress.objects.create(time=time, connection=reporter.default_connection, script=_script)
+                                                            reporting_location__name__in=reporter_location,
+                                                            groups__name= \
+                                                                ' '.join([i.capitalize() for i in
+                                                                          reporter_group_name.replace('_',
+                                                                                                      ' ').split()])). \
+                    exclude(connection=None):
+                    sp = ScriptProgress.objects.create(connection=reporter.default_connection, script=_script)
+                    sp.set_time(
+                        datetime.datetime.now() + datetime.timedelta(seconds=90)) # 30s after default cron wait time
+                    sp.save()
             else:
-                for reporter in EmisReporter.objects.filter(groups__name =\
-                ' '.join([i.capitalize() for i in reporter_group_name.replace('_',' ').split()])).exclude(connection=None):
-                    time = datetime.datetime.now()+datetime.timedelta(seconds=90) # 30s after default cron wait time
-                    sp = ScriptProgress.objects.create(time=time, connection=reporter.default_connection, script=_script)
+                for reporter in EmisReporter.objects.filter(groups__name= \
+                    ' '.join([i.capitalize() for i in reporter_group_name.replace('_', ' ').split()])).exclude(
+                        connection=None):
+                    sp = ScriptProgress.objects.create(connection=reporter.default_connection, script=_script)
+                    sp.set_time(
+                        datetime.datetime.now() + datetime.timedelta(seconds=90)) # 30s after default cron wait time
+                    sp.save()
 
         return HttpResponseRedirect(reverse('emis-contact'))
     else:
@@ -3186,6 +3253,7 @@ def edtrac_export_error_messages(request):
                                                                                     : _format_messages(messages)},
                                       mimetype='text/csv',
                                       context_instance=RequestContext(request))
+            
             resp['Content-Disposition'] = 'attachment;filename="error_messages.csv"'
             return resp
 
