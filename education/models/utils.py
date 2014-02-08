@@ -11,7 +11,6 @@ from django.contrib.auth.models import Group
 from django.db.models import Q
 from django.forms import ValidationError
 from eav.models import Attribute
-from education.utils import _this_thursday
 from rapidsms_httprouter.models import Message
 from rapidsms.contrib.locations.models import Location
 from poll.models import Poll
