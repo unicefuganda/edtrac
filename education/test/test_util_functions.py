@@ -4,7 +4,7 @@ from unittest import TestCase
 import dateutils
 from education.reports import is_holiday
 from script.models import Script
-from education.utils import get_week_count, get_months, _next_thursday
+from education.utils import get_week_count, get_months, _this_thursday
 from education.models.utils import should_reschedule
 from rapidsms.models import Connection, Backend
 
@@ -40,26 +40,26 @@ class TestUtilFunctions(TestCase):
         not_holiday_date = datetime(2012, 2, 1)
         self.assertFalse(is_holiday(not_holiday_date, [(holiday_date, '1d')]))
 
-    def test_should_determine_next_thursday(self):
-        monday = date(2013, 8, 19)
+    def test_should_determine_this_thursday(self):
+        monday = datetime(2013, 8, 19, 1, 12)
         thursday = monday + timedelta(3)
-        self.assertEqual(thursday, _next_thursday(get_time = lambda : monday).date())
+        self.assertEqual(thursday.date(), _this_thursday(get_time = lambda : monday).date())
 
-    def test_next_thursday_is_next_week_on_thursday(self):
-        thursday = date(2013, 9, 15)
+    def test_this_thursday_is_next_week_on_thursday(self):
+        thursday = datetime(2013, 9, 15, 11, 23)
         next_thursday = date(2013, 9, 19)
-        self.assertEqual(next_thursday, _next_thursday(get_time = lambda : thursday).date())
+        self.assertEqual(next_thursday, _this_thursday(get_time = lambda : thursday).date())
 
-    def test_time_of_next_thursday_is_ten_in_the_morning(self):
+    def test_time_of_this_thursday_is_ten_in_the_morning(self):
         monday_night = datetime(2013, 8, 26, 23, 0, 0)
         ten_am = time(10, 0, 0)
-        self.assertEqual(ten_am, _next_thursday(get_time = lambda : monday_night).time())
+        self.assertEqual(ten_am, _this_thursday(get_time = lambda : monday_night).time())
 
-    def test_next_thursday_skips_holidays(self):
+    def test_this_thursday_skips_holidays(self):
         thursday_holiday = (datetime(2013, 8, 29), '1d')
-        thursday_after_holiday = date(2013, 9, 5)
-        monday = date(2013, 8, 26)
-        self.assertEqual(thursday_after_holiday, _next_thursday(get_time = lambda : monday, holidays = [thursday_holiday]).date())
+        friday_after_holiday = date(2013, 8, 30)
+        monday = datetime(2013, 8, 26, 12, 33)
+        self.assertEqual(friday_after_holiday, _this_thursday(get_time = lambda : monday, holidays = [thursday_holiday]).date())
 
     def test_week_count(self):
         start = datetime(2013, 2, 2)

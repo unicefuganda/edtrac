@@ -7,7 +7,6 @@ from rapidsms.contrib.locations.models import Location
 from poll.models import Poll
 from script.models import ScriptStep
 from django.db.models import Count
-from django.contrib.auth.models import Group
 from django.conf import settings
 from education.scheduling import schedule_at, at
 
@@ -58,36 +57,18 @@ def previous_calendar_week(t=None):
     end_date = last_thursday + datetime.timedelta(days=6)
     return (last_thursday.date(), end_date)
 
-def _next_thursday(get_time=datetime.datetime.now, holidays=getattr(settings, 'SCHOOL_HOLIDAYS', [])):
+def _this_thursday(sp=None, get_time=datetime.datetime.now, time_set=None, holidays=getattr(settings, 'SCHOOL_HOLIDAYS', [])):
     """
-    Next Thursday is the very next Thursday of the week which is not a school holiday
+    This Thursday of the week which is not a school holiday.
     """
-    d = at(get_time(), 10)
-
-    thursday = 3
-    if d.weekday() < thursday:
-        d = d + datetime.timedelta(days = thursday - d.weekday())
-    else:
-        d = d + datetime.timedelta(days = 7 - d.weekday() + thursday)
-
-    while is_holiday(d, holidays=holidays):
-        d = d + datetime.timedelta(days = 7)
-
-    return d
-
-
-def _this_thursday(sp=None, **kwargs):
-    """
-    This Thursday of the week which is not a school holiday
-    """
-    time_schedule = kwargs.get('time_set') if kwargs.has_key('time_set') else datetime.datetime.now()
-    d = sp.time if sp else time_schedule
+    schedule = time_set or get_time()
+    d = sp.time if sp else schedule
     d = d + datetime.timedelta((3 - d.weekday()) % 7)
 
-    while(is_holiday(d)):
+    while(is_holiday(d, holidays)):
         d = d + datetime.timedelta(1) # try next day
 
-    return d
+    return at(d.date(), 10)
 
 
 def get_polls(**kwargs):
