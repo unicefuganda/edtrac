@@ -1394,20 +1394,6 @@ class AttendanceAdminDetails(TemplateView):
         return context
 
 
-# search functionality
-def search_form(req):
-    searchform = SearchForm()
-    if req.method == 'POST':
-        searchform = SearchForm(req.POST)
-        if searchform.is_valid():
-            searchform.save()
-    return render_to_response(
-        'education/partials/search-form.html',
-        {'form': searchform},
-        RequestContext(req)
-    )
-
-
 class ProgressAdminDetails(TemplateView):
     template_name = "education/progress/admin_progress_details.html"
 
@@ -3253,7 +3239,7 @@ def edtrac_export_error_messages(request):
                                                                                     : _format_messages(messages)},
                                       mimetype='text/csv',
                                       context_instance=RequestContext(request))
-            
+
             resp['Content-Disposition'] = 'attachment;filename="error_messages.csv"'
             return resp
 

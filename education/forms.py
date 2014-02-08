@@ -493,13 +493,6 @@ class ScriptsForm(forms.ModelForm):
             'enabled':forms.CheckboxInput(attrs={'onclick':'check_clicked(this);'})
         }
 
-class SearchForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super(SearchForm, self).__init__(*args, **kwargs)
-        self.fields['name'].widget.attrs['class'] = 'autocomplete'
-    class Meta:
-        model = Location
-        fields = ('name',)
 
 class ResultForm(forms.Form):
     from_date = forms.DateTimeField()

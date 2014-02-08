@@ -247,7 +247,6 @@ urlpatterns = patterns('',
 
     url(r'^edtrac/violence-admin-details/$', violence_details_dash, name="violence-admin-details"),
     url(r'^edtrac/attendance-admin-details/$', AttendanceAdminDetails.as_view(), name="attendance-admin-details"),
-    url(r'^edtrac/attd_admin_details/search$', search_form, name="attendance-search"),
     # to find out about violence in a district
     url(r'^edtrac/violence/district/(?P<pk>\d+)/$', DistrictViolenceDetails.as_view(), name="district-violence"),
     url(r'^edtrac/violence-community/district/(?P<pk>\d+)/$', DistrictViolenceCommunityDetails.as_view(template_name =\
