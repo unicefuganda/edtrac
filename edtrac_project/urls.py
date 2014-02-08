@@ -30,7 +30,6 @@ urlpatterns = patterns('',
     (r'^registration/', include('auth.urls')),
     (r'^scheduler/', include('rapidsms.contrib.scheduler.urls')),
     (r'^polls/', include('poll.urls')),
-    (r'^simple-autocomplete/', include('simple_autocomplete.urls')),
     # testing excel export
 ) + router_urls + xform_urls + contact_urls + edtrac_urls
 
