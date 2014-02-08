@@ -36,6 +36,14 @@ GEOSERVER_URL = "http://cvs.rapidsms.org/geoserver/"
 MODEM_NUMBERS = ['256777773260', '256752145316', '256711957281', '256790403038', '256701205129', '256792197598']
 BLACKLIST_MODEL = "unregister.Blacklist"
 
+FIRST_TERM_BEGINS =  datetime.datetime(2013, 2, 4)
+SECOND_TERM_BEGINS =  datetime.datetime(2013, 5, 27)
+THIRD_TERM_BEGINS =  datetime.datetime(2013, 9, 16)
+
+# Current term start and end dates
+SCHOOL_TERM_START = SECOND_TERM_BEGINS
+SCHOOL_TERM_END   = datetime.datetime(2013, 8, 23)
+
 SCHOOL_HOLIDAYS = [
         # (start_of_holiday_datetime, end_of_holidate_datetime),
         # (start_of_holiday2_datetime...),
