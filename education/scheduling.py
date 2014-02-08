@@ -2,7 +2,6 @@ from datetime import date, time, timedelta, datetime
 from django.conf import settings
 from script.models import Script, ScriptProgress
 from rapidsms.models import Connection
-from django.contrib.auth.models import Group
 from unregister.models import Blacklist
 
 roster = getattr(settings, 'POLL_DATES', {})
