@@ -5,7 +5,7 @@ from unittest import TestCase
 import dateutils
 from django.conf import settings
 from django.contrib.auth.models import Group, User
-from education.models import schedule_script_now, EmisReporter, School, all_steps_answered
+from education.models import schedule_script_now, EmisReporter, School
 from education.test.utils import create_poll_with_reporters, create_group, create_location_type, create_location, create_school, create_emis_reporters, create_user_with_group, fake_incoming, create_attribute
 from poll.models import Poll
 from rapidsms.contrib.locations.models import Location, LocationType

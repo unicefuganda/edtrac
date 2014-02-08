@@ -453,32 +453,6 @@ def edtrac_scriptrun_schedule(**kwargs):
         )
 
 
-def send_alert_for_expired_script(script, connection):
-    if not all_steps_answered(script):
-        if script.slug in [
-            'edtrac_p3_teachers_weekly',
-            'edtrac_p6_teachers_weekly',
-            'edtrac_smc_weekly'
-        ]:
-            message_string = 'Thank you for participating. Remember to '
-            'answer all your questions next Thursday.'
-            Message.mass_text(message_string, [connection])
-
-
-def all_steps_answered(script):
-    this_thursday = _this_thursday().date()
-    week_start = dateutils.increment(this_thursday, days=-6)
-    current_week = append_time_to_week_date(this_thursday, week_start)
-    for step in script.steps.all():
-        if not Response.objects.filter(
-            poll=step.poll,
-            date__range=current_week,
-            has_errors=False
-        ).exists():
-            return False
-    return True
-
-
 def get_message_string(atttd_diff, emisreporter_grade, keys, progress):
     if (None, '') in atttd_diff.values():
         return None
@@ -502,45 +476,6 @@ def get_message_string(atttd_diff, emisreporter_grade, keys, progress):
         atttd_diff[keys[emisreporter_grade][1]][1],
         atttd_diff[keys[emisreporter_grade][1]][0]
     )
-
-
-def send_feedback_on_complete(**kwargs):
-    connection = kwargs['connection']
-    progress = kwargs['sender']
-    message_string = None
-    if (
-        progress.script.slug not in [
-            'edtrac_head_teachers_weekly',
-            'edtrac_smc_weekly',
-            'edtrac_p3_teachers_weekly',
-            'edtrac_p6_teachers_weekly'
-        ]
-    ):
-        return
-    if not all_steps_answered(progress.script):
-        send_alert_for_expired_script(progress.script, connection)
-        return
-    keys = {'p3': ['edtrac_boysp3_attendance', 'edtrac_girlsp3_attendance'],
-            'p6': ['edtrac_boysp6_attendance', 'edtrac_girlsp6_attendance']}
-    if progress.script.slug in [
-        'edtrac_p3_teachers_weekly',
-        'edtrac_p6_teachers_weekly',
-        'edtrac_head_teachers_weekly'
-    ]:
-        atttd_diff = calculate_attendance_difference(connection, progress)
-        if not connection.contact.emisreporter.grade is None:
-            emisreporter_grade = connection.contact.emisreporter.grade.lower()
-            message_string = get_message_string(
-                atttd_diff,
-                emisreporter_grade,
-                keys,
-                progress
-            )
-    if progress.script.slug == 'edtrac_smc_weekly':
-        message_string = "Thank you for your report. Please continue to visit"
-        "your school and report on what is happening."
-    if message_string is not None:
-        Message.mass_text(message_string, [connection])
 
 
 def schedule_script_now(grp='all', slug=''):

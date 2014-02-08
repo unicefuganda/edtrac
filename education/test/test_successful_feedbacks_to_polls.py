@@ -6,7 +6,7 @@ import dateutils
 from django.conf import settings
 from django.contrib.auth.models import Group, User
 from education.attendance_diff import calculate_percent, get_enrolled_boys_and_girls, calculate_attendance_difference
-from education.models import schedule_script_now, EmisReporter, School, all_steps_answered
+from education.models import schedule_script_now, EmisReporter, School
 from education.test.utils import create_poll_with_reporters, create_group, create_location_type, create_location, create_school, create_emis_reporters, create_user_with_group, fake_incoming
 from poll.models import Poll
 from rapidsms.contrib.locations.models import Location, LocationType
@@ -289,24 +289,6 @@ class TestSuccessfulFeedbacksToPolls(TestCase):
         expected = 'Thank you for participating. Remember to answer all your questions next Thursday.'
         # self.assertTrue(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))
         self.assertFalse(expected in Message.objects.filter(direction='O',connection=self.emis_reporter1.connection_set.all()[0]).values_list('text',flat=True))#pausing feedback
-
-    def test_should_return_false_if_partial_responses_given(self):
-        schedule_script_now(grp=self.head_teacher_group.name,slug=self.teachers_weekly_script.slug)
-        check_progress(self.teachers_weekly_script)
-        fake_incoming("3",self.emis_reporter1)
-        check_progress(self.teachers_weekly_script)
-        time.sleep(3)
-        check_progress(self.teachers_weekly_script)
-        self.assertFalse(all_steps_answered(self.teachers_weekly_script))
-
-    def test_should_return_true_if_all_responses_given(self):
-        schedule_script_now(grp=self.head_teacher_group.name,slug=self.teachers_weekly_script.slug)
-        check_progress(self.teachers_weekly_script)
-        fake_incoming("3",self.emis_reporter1)
-        check_progress(self.teachers_weekly_script)
-        fake_incoming("4",self.emis_reporter1)
-        check_progress(self.teachers_weekly_script)
-        self.assertTrue(all_steps_answered(self.teachers_weekly_script))
 
     def test_should_not_send_absenteeism_calculation_if_partial_responses_sent(self):
         schedule_script_now(grp=self.head_teacher_group.name,slug=self.teachers_weekly_script.slug)
