@@ -16,3 +16,9 @@ Vagrantfile
 static/
 edtrac_project/.DS_Store
 edtrac_20140114.sql
+~*
+*.orig
+*.db
+*.sqlite*
+_build
+build
