@@ -22,9 +22,6 @@
 [submodule "edtrac_project/rapidsms_xforms_src"]
 	path = edtrac_project/rapidsms_xforms_src
 	url = git://github.com/unicefuganda/rapidsms-xforms.git
-[submodule "edtrac_project/django_eav"]
-	path = edtrac_project/django_eav
-	url = git://github.com/unicefuganda/django-eav.git
 [submodule "edtrac_project/rapidsms_edtrac"]
 	path = edtrac_project/rapidsms_edtrac
 	url = git://github.com/unicefuganda/rapidsms-edtrac.git
