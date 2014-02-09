@@ -1,6 +1,6 @@
+*.pyc
 .idea/*
 .idea/
-*.pyc
 localsettings.py
 testSettings.py
 edtrac_projects/media
