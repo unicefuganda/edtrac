@@ -4,9 +4,6 @@
 [submodule "edtrac_project/rapidsms_unregister"]
 	path = edtrac_project/rapidsms_unregister
 	url = git://github.com/unicefuganda/rapidsms-unregister
-[submodule "edtrac_project/rapidsms_contact"]
-	path = edtrac_project/rapidsms_contact
-	url = git://github.com/unicefuganda/rapidsms-contact.git
 [submodule "edtrac_project/rapidsms_generic"]
 	path = edtrac_project/rapidsms_generic
 	url = git://github.com/unicefuganda/rapidsms-generic.git
