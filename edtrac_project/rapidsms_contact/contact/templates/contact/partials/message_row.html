@@ -1,0 +1,83 @@
+{% extends 'generic/partials/partial_row.html' %}
+{% block remaining_row_content %}
+{% load extra_tags %}
+<td>
+	{% if object|flags %}
+	<span class="messageflag">
+        <img src="{{MEDIA_URL}}ureport/images/flagged.png" width="15" height="15" />
+    </span>
+	{% endif %}
+    <span class="textmessage">
+    {% if object.text|length >= 40 %}
+    	{{ object.text|slice:":40" }}...
+    {% else %}
+    	{{ object.text }}
+    {% endif %}
+    </span>
+</td>
+<td><span class="small">
+        {% if object.connection.contact %}
+            {{ object.connection.contact.name }} ({% endif %}{{ object.connection.identity }}{% if object.connection.contact %}){% endif %}
+    <ul>
+        <li>
+            <a href="/contact/{{ object.connection.pk }}/message_history/">
+                Show history
+            </a>
+        </li>
+    </ul>
+    </span>
+</td>
+<td>
+    <span class="small">
+        {{ object.date|date:"m/d/Y H:i:s" }}
+    </span>
+</td>
+<td>
+    {% if object.application %}
+        {% ifequal object.application 'poll' %}
+            Poll Response
+        {% else %}
+            {% ifequal object.application 'rapidsms_xforms' %}
+                Report
+            {% else %}
+                Other
+            {% endifequal %}
+        {% endifequal %}
+    {% else %}
+        Other
+    {% endif %}
+</td>
+<td>
+    {% if object.responses %}
+        <ul>
+            {% for r in object.responses.all %}
+                <li>&lt;&lt;
+                {% ifequal object.application r.application %}
+                    {% if object.application == 'poll' %}
+                        {% if object.poll_responses.all.0.has_errors %}
+                            <span class="errormessage">
+                        {% else %}
+                            <span class="successmessage">
+                        {% endif %}
+                    {% else %}
+                        {% if object.application == 'rapidsms_xforms' %}
+                            {% if object.submissions.all.0.has_errors %}
+                                <span class="errormessage">
+                            {% else %}
+                                <span class="successmessage">
+                            {% endif %}
+                        {% else %}
+                            <span class="othermessage">
+                        {% endif %}
+                    {% endif %}
+                {% else %}
+                    <span class="othermessage">
+                {% endifequal %}
+                {{ r.text }}
+                </span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</td>
+{% endblock %}
