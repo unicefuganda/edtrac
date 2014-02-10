@@ -223,6 +223,8 @@ POLL_DATES = {
     'edtrac_p3_teachers_weekly':                    WEEKLY,
 
     'edtrac_p6_teachers_weekly':                    WEEKLY,
+
+    'edtrac_gem_monthly':                           GEM,
 }
 
 GROUPS = {'Teachers' :  [],
