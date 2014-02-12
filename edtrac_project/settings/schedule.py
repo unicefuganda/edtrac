@@ -69,7 +69,7 @@ WEEKLY = [
     date(2014, 9, 25),
     date(2014, 10, 2),
     #date(2014, 10, 9), Independence Day
-    #date(2014, 10, 10),
+    date(2014, 10, 10),
     date(2014, 10, 16),
     date(2014, 10, 23),
     date(2014, 10, 30),
