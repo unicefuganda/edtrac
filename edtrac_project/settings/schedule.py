@@ -69,10 +69,10 @@ WEEKLY = [
     date(2014, 9, 25),
     date(2014, 10, 2),
     #date(2014, 10, 9), Independence Day
-    date(2014, 10, 10),
-    date(2014, 10, 17),
-    date(2014, 10, 24),
-    date(2014, 10, 31),
+    #date(2014, 10, 10),
+    date(2014, 10, 16),
+    date(2014, 10, 23),
+    date(2014, 10, 30),
     date(2014, 11, 6),
     date(2014, 11, 13),
     date(2014, 11, 20),
@@ -99,46 +99,46 @@ VIOLENCE = [
 
 HEAD_MEALS = [
     # Term one
-    date(2014, 2, 17),
-    date(2014, 3, 17),
-    date(2014, 4, 14),
-
-    # Term two
-    date(2014, 5, 21),
-    date(2014, 6, 30),
-    date(2014, 7, 29),
-
-    # Term three
-    date(2014, 9, 22),
-    date(2014, 10, 20),
-    date(2014, 11, 17),
-]
-
-SMC_MEALS = [
-    # Term one
-    date(2014, 2, 18),
-    date(2014, 3, 18),
-    date(2014, 4, 15),
-
-    # Term two
-    date(2014, 5, 23),
-    date(2014, 6, 24),
-    date(2014, 7, 22),
-
-    # Term three
-    date(2014, 9, 23),
-    date(2014, 10, 21),
-    date(2014, 11, 18),
-]
-
-GEM = [
-    # Term one
-    date(2014, 2, 28),
+    date(2014, 2, 21),
     date(2014, 3, 28),
     date(2014, 4, 25),
 
     # Term two
-    date(2014, 5, 30),
+    date(2014, 5, 23),
+    date(2014, 6, 27),
+    date(2014, 7, 25),
+
+    # Term three
+    date(2014, 9, 26),
+    date(2014, 10, 24),
+    date(2014, 11, 28),
+]
+
+SMC_MEALS = [
+    # Term one
+    date(2014, 2, 24),
+    date(2014, 3, 24),
+    date(2014, 4, 22),
+
+    # Term two
+    date(2014, 5, 26),
+    date(2014, 6, 23),
+    date(2014, 7, 28),
+
+    # Term three
+    date(2014, 9, 29),
+    date(2014, 10, 27),
+    date(2014, 11, 24),
+]
+
+GEM = [
+    # Term one
+    date(2014, 2, 21),
+    date(2014, 3, 28),
+    date(2014, 4, 25),
+
+    # Term two
+    date(2014, 5, 23),
     date(2014, 6, 27),
     date(2014, 7, 25),
 
@@ -161,8 +161,8 @@ P6_ENROLLMENT = [
 ]
 
 P3_ENROLLMENT = [
-    date(2014, 2, 19),
-    date(2014, 5, 20),
+    date(2014, 2, 28),
+    date(2014, 5, 30),
     date(2014, 9, 19),
 ]
 
@@ -185,9 +185,9 @@ SMC_MONITORING = [
 ]
 
 MONITORING = [
-    date(2014, 3, 12),
-    date(2014, 6, 20),
-    date(2014, 10, 15),
+    date(2014, 4, 23),
+    date(2014, 8, 1),
+    date(2014, 11, 26),
 ]
 
 WATER_SOURCE = [
