@@ -13,3 +13,16 @@ class TestScheduling(TestCase):
 	text = "Happy New Year!"
         broadcast(text)	
 	self.assertEquals(2, Message.objects.filter(text = text, direction = 'O').count())
+
+    def test_doesnt_send_to_blacklisted_connections(self):
+        fake = Backend.objects.create(name='fake')
+        connection1 = Connection.objects.create(identity="02022222220", backend=fake)
+	Blacklist.objects.create(connection = connection1)
+        broadcast("Happy New Year!")	
+	self.assertFalse(Message.objects.filter(direction = 'O', connection = connection1).exists())
+
+    def tearDown(self):
+        Connection.objects.all().delete()
+        Message.objects.all().delete()
+        Blacklist.objects.all().delete()
+        Backend.objects.all().delete()
