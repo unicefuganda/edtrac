@@ -10,15 +10,20 @@ class TestScheduling(TestCase):
         fake = Backend.objects.create(name='fake')
         connection1 = Connection.objects.create(identity="02022222220", backend=fake)
         connection2 = Connection.objects.create(identity="02022222221", backend=fake)
+
 	text = "Happy New Year!"
         broadcast(text)	
-	self.assertEquals(2, Message.objects.filter(text = text, direction = 'O').count())
+
+	messages = Message.objects.filter(text = text, direction = 'O').order_by('connection__identity')
+	self.assertEquals([connection1, connection2], [m.connection for m in messages])
 
     def test_doesnt_send_to_blacklisted_connections(self):
         fake = Backend.objects.create(name='fake')
         connection1 = Connection.objects.create(identity="02022222220", backend=fake)
+
 	Blacklist.objects.create(connection = connection1)
         broadcast("Happy New Year!")	
+
 	self.assertFalse(Message.objects.filter(direction = 'O', connection = connection1).exists())
 
     def tearDown(self):

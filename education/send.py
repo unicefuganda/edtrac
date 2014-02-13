@@ -5,4 +5,4 @@ from unregister.models import Blacklist
 def broadcast(text):
     for connection in Connection.objects.all(): 
         if not Blacklist.objects.filter(connection = connection).exists():
-            Message.objects.create(connection_id = connection.id, text = text, direction='O')
+            Message.objects.create(connection = connection, text = text, direction='O')
