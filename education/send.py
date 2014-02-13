@@ -8,4 +8,4 @@ def broadcast(text):
     """
     for connection in Connection.objects.all(): 
         if not Blacklist.objects.filter(connection = connection).exists():
-            Message.objects.create(connection = connection, text = text, direction='O')
+            Message.objects.create(connection = connection, text = text, direction='O', status='Q')
