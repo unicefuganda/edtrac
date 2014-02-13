@@ -111,8 +111,6 @@ urlpatterns = patterns('',
         'management_for': 'reporters'
         }, name="emis-contact"),
 
-    url(r'^edtrac/scripts-special/$', emis_scripts_special, name='emis-special-scripts'),
-
     url(r'^edtrac/new-comment/$', new_comment, name='new-comment'),
     url(r'^edtrac/comments/$', comments, name='comments'),
     url(r'^edtrac/reporter/(\d+)/edit/', edit_reporter, name='edit-reporter'),
