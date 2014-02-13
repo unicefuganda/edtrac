@@ -37,7 +37,7 @@ SCHOOL_HOLIDAYS=[
 
 WEEKLY = [
     # Term one
-    date(2014, 2, 13),
+    date(2014, 2, 14), # First poll delayed by a day.
     date(2014, 2, 20),
     date(2014, 2, 27),
     date(2014, 3, 6),
