@@ -11,17 +11,10 @@ class Command(BaseCommand):
     )
 
     def handle(self, **options):
-        if not options['phone']:
-            phone = raw_input('Phone number you wish the message to appear to come from: ')
-        else:
-            phone = options['phone']
+	phone = options['phone'] or raw_input('Phone number you wish the message to appear to come from: ')
+        text = options['text'] or raw_input('Text of the message: ')
 
-        if not options['text']:
-            text = raw_input('Text of the message: ')
-        else:
-            text = options['text']
-
-	connection  = Connection.object.get(identity = phone)
+	connection  = Connection.objects.get(identity = phone)
         router = get_router()
         handled = router.handle_incoming(connection.backend.name, connection.identity, text)
         self.stdout.write('Done!\n')
