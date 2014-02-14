@@ -1,6 +1,3 @@
-[submodule "edtrac_project/rapidsms_generic"]
-	path = edtrac_project/rapidsms_generic
-	url = git://github.com/unicefuganda/rapidsms-generic.git
 [submodule "edtrac_project/rapidsms_uganda_common"]
 	path = edtrac_project/rapidsms_uganda_common
 	url = git://github.com/unicefuganda/rapidsms-uganda-common
