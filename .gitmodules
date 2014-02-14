@@ -1,6 +1,3 @@
-[submodule "edtrac_project/rapidsms_polls"]
-	path = edtrac_project/rapidsms_polls
-	url = git://github.com/unicefuganda/rapidsms-polls.git
 [submodule "edtrac_project/rapidsms_script"]
 	path = edtrac_project/rapidsms_script
 	url = git://github.com/unicefuganda/rapidsms-script.git
