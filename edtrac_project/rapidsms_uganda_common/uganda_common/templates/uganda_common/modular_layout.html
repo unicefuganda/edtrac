@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+{% block top_container %}
+    {% if not as_module %}
+        {{ block.super }}
+    {% endif %}
+{% endblock %}
+{% block bottom_container %}
+    {% if not as_module %}
+        {{ block.super }}
+    {% endif %}
+{% endblock %}
