@@ -1,0 +1,51 @@
+<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:jr="http://openrosa.org/javarosa">
+  <h:head>
+    <h:title>{{ xform.name }}</h:title>
+    <model>
+      <instance>
+        <data>
+	  {% for field in xform.fields.all %}
+	  <{{ field.command }}/>
+	  {% endfor %}
+	  <xform-keyword>{{ xform.keyword }}</xform-keyword>
+        </data>
+      </instance>
+      <itext>
+        <translation lang="eng">
+	  {% for field in xform.fields.all %}
+          <text id="/data/{{ field.command }}:label">
+            <value>{{ field.name }}</value>
+          </text>
+          <text id="/data/{{ field.command }}:hint">
+            <value>{{ field.description }}</value>
+          </text>
+	  {% endfor %}
+        </translation>
+      </itext>
+      {% for field in xform.fields.all %}
+      <bind nodeset="/data/{{ field.command }}" type="{{ field.xform_type }}" {{ field.constraints_as_xform|safe }} />
+      {% endfor %}
+    </model>
+  </h:head>
+  <h:body>
+    {# first output all the normal fields, we'll do media next #}
+    {% for field in xform.fields.all %}
+    {% if field.xform_type != 'binary' %}
+    <input ref="{{ field.command }}">
+      <label ref="jr:itext('/data/{{ field.command }}:label')"/>
+      <hint ref="jr:itext('/data/{{ field.command }}:hint')"/>
+    </input>
+    {% endif %}
+    {% endfor %}
+
+    {# now all the upload fields, these are all binary (photos and the like) #}
+    {% for field in xform.fields.all %}
+    {% if field.xform_type == 'binary' %}
+    <upload ref="{{ field.command }}" mediatype="{{ field.field_type }}/*">
+      <label ref="jr:itext('/data/{{ field.command }}:label')"/>
+      <hint ref="jr:itext('/data/{{ field.command }}:hint')"/>
+    </upload>
+    {% endif %}
+    {% endfor %}
+  </h:body>
+</h:html>

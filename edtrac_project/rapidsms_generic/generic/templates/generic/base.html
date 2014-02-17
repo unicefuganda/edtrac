@@ -1,0 +1,112 @@
+{% extends "layout.html" %}
+{% block title %}
+    {{ block.super }}
+{% endblock %}
+
+{% block stylesheets %}
+    {{ block.super }}
+    <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/layout.css" />
+    <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/splits.css" />
+    <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/modules.css" />
+    <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms/stylesheets/icons.css" />
+    <link type="text/css" rel="stylesheet" href="{{MEDIA_URL}}generic/stylesheets/generic.css"/>
+{% endblock %}
+
+{% block javascripts %}
+    {{ block.super }}
+    <script src="{{MEDIA_URL}}generic/javascripts/generic.js?001" type="text/javascript"></script>
+{% endblock %}
+
+{% block content %}
+    <form method="POST">
+        {% csrf_token %}
+        {% block filters %}
+        {% if filter_forms|length > 0 %}
+            <div id="filters" class="module">
+                <h2>Filters</h2>
+                        <table>
+                {% for form in filter_forms %}
+                    <div class="filterform" id="div_filter_{{ forloop.counter0 }}">
+                            {% for field in form.visible_fields %}
+                                <tr>
+                                    <td>
+                                        {% if forloop.first %}
+                                            {% for hidden in form.hidden_fields %}
+                                                {{ hidden }}
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ field.label_tag }}
+                                        {% if field.help_text %}
+                                            <p><span class="filter_form_help">{{ field.help_text }}</span></p>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ field }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                    </div>
+                {% endfor %}
+                        </table>
+                <div class="filterform" id="div_filter_update">
+                    <a href="javascript:void(0)" onclick="filter(this)" class="btn btn-primary">Update</a>
+                </div>
+                <div class="filterform" id="div_filter_clear">
+                    <a href="./" class="btn btn-primary">Clear</a>
+                </div>
+            </div>
+            <br/>
+        {% endif %}
+        {% endblock %}
+    </form>
+    <form method="POST">
+        {% csrf_token %}
+        {% block actions %}
+        {% if action_forms|length > 0 %}
+            <input type="hidden" id="input_action" name="action" value=""/>
+            <div class="module" id="actions">
+                <h2>Actions</h2>
+                {% block action_forms %}
+                    {% for cname, form in action_forms %}
+                        <div class="actionform" id="div_action_{{ forloop.counter0 }}">
+				<table>
+                                {% for field in form.visible_fields %}
+                                    <tr>
+                                        <td>
+                                            {% if forloop.first %}
+                                                {% for hidden in form.hidden_fields %}
+                                                    {{ hidden }}
+                                                {% endfor %}
+                                            {% endif %}
+                                            {{ field.label_tag }}
+                                            {% if field.help_text %}
+                                                <span class="action_form_help">{{ field.help_text }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {{ field }}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                <tr>
+                                    <td colspan="2">
+                                        <a class="{{ form.action_class }} btn" href="javascript:void(0)" onclick="actionx(this, '{{ cname }}',{{ page }})">{{ form.action_label }}</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    {% endfor %}
+                {% endblock %}
+            </div>
+        {% endif %}
+        <script language="javascript">
+            disable_enter();
+        </script>
+        {% endblock %}
+        <div id="object_list" class="module">
+            {% block object_list %}
+                {% include partial_base %}
+            {% endblock %}
+        </div>
+    </form>
+{% endblock %}

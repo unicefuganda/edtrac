@@ -1,0 +1,57 @@
+{% block toprow %}
+{% endblock %}
+<thead>
+{% block tablehead %}
+    <tr>
+        {% if selectable %}
+            <td>&nbsp;</td>
+        {% endif %}
+        {% if columns %}
+            {% for column_name, sortable, sort_param, sorter in columns %}
+                <td>
+                    {% if sortable %}
+                        {% if sort_param == sort_column and sort_ascending %}
+                            <a href="javascript:void(0)" onclick="sort(this, '{{ sort_param }}', 'False')">
+                        {% else %}
+                            <a href="javascript:void(0)" onclick="sort(this, '{{ sort_param }}', 'True')">
+                        {% endif %}
+                    {% endif %}
+                        {{ column_name }}
+                    {% if sortable %}
+                        {% if sort_param == sort_column %}
+                            {% if not sort_ascending %}
+                                <img align="absmiddle" src="{{ MEDIA_URL }}rapidsms/icons/silk/sort_descending.png"/>
+                            {% else %}
+                                <img align="absmiddle" src="{{ MEDIA_URL }}rapidsms/icons/silk/sort_ascending.png"/>
+                            {% endif %}
+                        {% endif %}
+                        </a>
+                    {% endif %}
+                </td>
+            {% endfor %}
+        {% endif %}
+    </tr>
+{% endblock %}
+</thead>
+{% ifnotequal object_list|length 0 %}
+	{% block firstrow %}
+	    <tr>
+	        {% if selectable %}
+	            {% block select_header %}
+	                <td>
+	                    <input type="checkbox" id="input_select_all" onclick="select_all()" {% if selected %}checked="true"{% endif %}/>
+	                </td>
+	                <td {% if columns %}colspan="{{ columns|length }}"{% endif %}>
+	                    <span id="span_select_all">Select all</span>
+	                    {% if paginated %}
+	                        <span id="span_select_everything" {% if not selected %}style="display:none"{% endif %}>You have selected all items on this page.  <a href="javascript:void(0)" onclick="select_everything('{{ total }}')">Click here</a> to select all {{ total }} items.</span>
+	                        <input type="hidden" id="input_select_everything" name="select_everythingx" value=""/>
+	                    {% endif %}
+	                </td>
+	            {% endblock %}
+	        {% endif %}
+	    </tr>
+	{% endblock firstrow %}
+{% endifnotequal %}
+{% block secondrow %}
+{% endblock %}

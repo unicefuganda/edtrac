@@ -1,0 +1,185 @@
+/*.img {
+	padding: 0 8px 8px 0;
+	float: left;
+}
+
+.img2 {
+	padding: 0 0 3px 3px;
+	float: right;
+}
+
+*/
+
+/* HEADER
+-----------------------------------------------------------------------------------------------------------------------------------------------
+*/
+img{
+    padding: 0;
+    border: 0;
+}
+#top {
+	padding: 0;
+	margin: 0;
+	background: #000 url(top.jpg) no-repeat top;
+	height: 44px;
+}
+
+#top .padding { 
+	float: right;
+	color: #808080;
+	padding: 20px 25px 0 0;
+	font-size: 90%;
+}
+
+#top a { color: #E0F5FF; }
+
+
+#header { 
+	margin: 0; 
+	width: 800px; 
+	background: #036EB4 url(header.jpg) no-repeat center top;  
+	height: 149px; 
+	color: #FFF;
+}
+
+#header .f_search { float: right; padding: 70px 50px 0 0; }
+#header .title {	padding: 45px 0 0 50px; }
+#header h1 {
+		font-family: Arial, Verdana, Helvetica, sans-serif;
+		font-size: 22px; font-weight: bold;
+		margin: 0;
+		padding: 0; 
+}
+
+#header h2 {
+		font-family: Arial, Verdana, Helvetica, sans-serif;
+		font-size: 10px; 
+		background-image: none;
+		color: #075181;
+		margin: 0;
+		padding: 0 0 0 2px;
+}
+
+
+/* SUBHEADER 
+---------------------------------------------------------------------------------------------------------------------------------------------------*/
+#subheader { 
+	background: #000 repeat-y center;
+	height: 35px;
+	color: #FFF;
+	margin: 0 0 20px;
+	
+}
+#subheader h2 { color: #FEAB06; }
+#subheader a {color: #FECF5F; }
+
+/* MAIN
+---------------------------------------------------------------------------------------------------------------------------------------------------*/
+#main { background: #FFF; margin: 0 20px 0 20px; color: #000000; }  
+#main h3 {  font: 120% Arial, Sans-Serif; margin: 0 0 10px 0px; padding: 0; color: #075181; background: inherit; 
+			border-bottom: 1px solid #036CB4;
+}
+/* FOOTER
+---------------------------------------------------------------------------------------------------------------------------------------------------*/
+/*  Top Menu */
+#menu {
+	background: #000 url(../images/navBarBg.gif) repeat-x center bottom;
+	/*width: 760px;*/
+	height: 38px;
+	/*margin: 0 0 20px;*/
+	padding: 0;
+}
+
+#menu ul { margin:0; list-style:none; padding: 0px 5px 0 0}
+#menu a, #nav strong, #nav span { float:left; display:block; color:#fff; padding:5px; text-decoration:none;  }
+#menu a { float:none; font-weight:bold}
+#menu li { float:left; color: #FFF; background: none; line-height: 27px; margin:0; padding:0 0 0 0px; }
+#menu a:hover { text-decoration:none; background: none repeat scroll 0 0 #0B4682;}  
+/*#menu .padding { padding: 5px 0 0 10px; font-weight: bold; }*/
+
+#bodyBackground{background:#fff url('../images/bg.png') repeat-x top;}
+
+
+
+/* ---------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+ul { margin-left: 0; padding-left: 5px; list-style : square; }
+li { 	margin: 0 0 5px 15px; padding: 0 0 0 0px;	
+color: #555; }
+.sub  {margin: 0 0 2px 30px; padding: 0 0 0 0px;  color: #888; }
+
+p { margin: 0 0 5px 0; padding: 0; color: #000; background: inherit; }
+a { color: #075181; background: inherit; text-decoration:none; }
+a:hover { background: inherit; text-decoration:underline; }
+
+h1 { 
+	padding:0; 
+	margin:0; 
+	color: #FFF; 
+	background: inherit;
+	font: bold 1.8em Arial, Sans-Serif; 
+	letter-spacing: -1px;
+}
+
+h1 a { color: #FFF; background: inherit; }
+fieldset {	border: 1px solid #075181; }
+legend {color: #075181; }
+
+.date { 
+	color: #808080; 
+	background: #FFFFFF;
+	text-align: right; 
+	margin: 4px 0 5px 0; 
+	padding: 0.4em 0 0 0; 
+	border-top: 1px solid #eee;
+}
+
+.comments { 
+	padding: 10px 10px 8px 10px; 
+	margin: 0 0 7px 0; 
+	background: #f8f8f8; 
+	color: #000;
+}
+
+.commentsbox { 
+	padding: 8px 0 10px 10px; 
+	margin: 0 0 10px 0; 
+	background: #f4f4f4;
+	color: #000;
+}
+
+.error {
+	color: #990000;
+	background-color: #FFF0F0;
+	padding: 7px;
+	margin-top: 5px;
+	margin-bottom: 10px;
+	border: 1px dashed #990000;
+}
+.error h2 {
+	color: #990000;
+	background: inherit;
+}
+
+.success {
+	color: #000000;
+	background: #F5FBE1;
+	padding: 7px;
+	margin-top: 5px;
+	margin-bottom: 5px;
+	border: 1px dashed #7BA813;
+}
+.success h2 {
+	color: #7BA813;
+	background: inherit;
+}
+/*---------------------------------------------------------------------------*/
+.ftext{
+	border: solid 1px #dddddd;
+	background-color:#fff;
+	min-width: 181px;
+	font-size: 90%
+}
+.icheck{
+	border: solid 1px #dddddd;
+}

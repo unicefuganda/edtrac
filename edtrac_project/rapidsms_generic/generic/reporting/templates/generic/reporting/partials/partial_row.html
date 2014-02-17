@@ -1,0 +1,15 @@
+{% load reportdict %}
+{% block row_heading %}
+<td><a href="javascript:void(0)" onclick="drill(this, '{{ d|reportdict:drill_key }}')">{{ d|reportdict:row_name_key }}</a></td>
+{% endblock %}
+{% block remaining_content %}
+	{% for attname, colinstance in columns %}
+	    {% if not attname == drill_key %}
+	       {% if not attname == row_name_key %}
+	            <td>
+	                   {{ d|reportdict:attname }}
+	            </td>
+	       {% endif %}
+	    {% endif %}
+	{% endfor %}
+{% endblock %}

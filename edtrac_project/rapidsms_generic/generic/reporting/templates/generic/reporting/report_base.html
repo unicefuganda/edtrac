@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% block title %}
+    {{ block.super }}
+{% endblock %}
+
+{% block stylesheets %}
+   {{ block.super }}
+    <link type="text/css" rel="stylesheet" href="{{MEDIA_URL}}generic/stylesheets/generic.css"/>
+    {% if needs_date %}
+        <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}generic/stylesheets/jquery-ui-1.7.3.custom.css"/>
+    {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ block.super }}
+    <script src="{{MEDIA_URL}}generic/javascripts/generic.js" type="text/javascript"></script>
+    <script src="{{MEDIA_URL}}reporting/javascripts/reports.js" type="text/javascript"></script>
+    {% if needs_date %}
+        <script type="text/javascript" src="{{ MEDIA_URL }}generic/javascripts/selectToUiSlider.jquery.js"></script>
+        <script type="text/javascript" src="{{ MEDIA_URL }}generic/javascripts/slider.js"></script>
+    {% endif %}
+    {% if has_chart %}
+        <script type="text/javascript" src="{{ MEDIA_URL }}generic/javascripts/highcharts.js"></script>
+    {% endif %}
+    <script type="text/javascript" src="{{ MEDIA_URL }}generic/javascripts/jquery-ui-1.7.3.custom.min.js"></script>
+{% endblock %}
+
+{% block content %}
+    <form method="POST">
+        <input type="hidden" name="drill_key" id="drill_key"/>
+	    {% include "generic/partials/time_slider.html" %}
+	    <div id="object_list" class="module">
+	        {% block report_content %}
+	            {% include partial_base %}
+	        {% endblock %}
+	    </div>
+    </form>
+	{% if has_chart %}
+	    <div id="chart" style="width:100%">
+	    </div>
+        <script language="javascript">
+        CURRENT_CHART_URL = '{{ chart_url }}';
+        $(function() {
+            plot_chart({% autoescape off %}{{ chart }}{% endautoescape %});
+        });
+        </script>
+	{% endif %}
+{% endblock %}

@@ -1,0 +1,14 @@
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+    <h3>Modem Status</h3>
+    <table>
+        <tr style="text-align:left"><th>Modem</th><th>Status</th></tr>
+        % for k,v in res.iteritems():
+        <tr><td>${k}</td><td>${v}</td></tr>
+        % endfor
+    </table>
+</body>
+</html>

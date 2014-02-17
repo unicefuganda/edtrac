@@ -1,0 +1,3 @@
+sender,time,value,categories
+{% for response in responses %}"{% if response.message.contact %}{{ response.message.contact }}{% else %}{{ response.message.connection.identity }}{% endif %}","{{ response.message.date|date:"d/m/Y H:i" }}","{% ifequal response.poll.type "t" %}{{ response.eav.poll_text_value }}{% else %}{% ifequal response.poll.type "n" %}{{ response.eav.poll_number_value }}{% else %}{% ifequal response.poll.type 'l' %}{{ response.eav.poll_location_value.name }}{% endifequal %}{% endifequal %}{% endifequal %}","{% if response.categories %}{% for responsecategory in response.categories.all %}{{ responsecategory.category.name }},{% endfor %}{% endif %}"
+{% endfor %}
