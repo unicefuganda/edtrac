@@ -1,0 +1,31 @@
+{% block partial_base_content %}
+<table style="width:100%">
+    <thead>
+	    {% if top_columns %}
+	        <tr>
+		        <th>
+		            &nbsp;
+		        </th>
+	            {% for title, link, colspan in top_columns %}
+	                <th colspan="{{ colspan }}"><a href="{{ link }}">{{ title }}</a></th>
+	            {% endfor %}
+	        </tr>
+	    {% endif %}
+	    <tr>
+	        <th>
+	            &nbsp;
+	        </th>
+	        {% for attname, colinstance in columns %}
+		        <th>
+		               <a onclick="load_chart('column/{{ attname }}/')">{{ colinstance.get_title }}</a>
+		        </th>
+	        {% endfor %}
+	    </tr>
+    </thead>
+    {% for d in report %}
+	    <tr>
+	        {% include partial_row %}
+	    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

@@ -1,0 +1,6 @@
+<div class="widget" id="{{ mod.pk }}">
+    {% include module_header_partial_template %}
+    <div class="widget-content" id="content{{ mod.pk }}">
+    </div>
+</div>
+<script language="JavaScript">$('#content{{ mod.pk }}').load('{{ mod.get_absolute_url }}');</script>

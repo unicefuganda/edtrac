@@ -1,0 +1,42 @@
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="/static/css/style.css" media="screen"/>
+    <script type="text/javascript" src="/static/js/jquery-1.7.2.min.js"></script>
+</head>
+<body id="bodyBackground">
+    <div class="content">
+        <%block name="content">
+        </%block>
+        <div id="footer">
+            <%block name="footer">
+                <div class="padding">
+                    Copyright &copy; 2012 Jennifer
+                </div>
+            </%block>
+        </div>
+    </div>
+</body>
+</html>
+<%def name="subheader()">
+    <div id="subheader">
+        <div id="menu">
+            <ul>
+                ${caller.body()}
+            </ul>
+        </div>
+    </div>
+</%def>
+<%def name="mylinks()">
+    <div id="subheader">
+        <div id="menu">
+            <ul>
+                <li><a href="/reports">Message Log</a></li>
+                <li><a href="/check">Kannel Status</a></li>
+                <li><a href="/logs">Logs</a></li>
+                <li><a href="/stats">Statistics</a></li>
+                ${caller.body()}
+            </ul>
+        </div>
+    </div>
+</%def>
