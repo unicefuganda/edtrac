@@ -17,9 +17,9 @@ before_script:
   - git submodule update
 
 # command to run tests
-# script:
-   - cd edtrac_project
-   - python manage.py syncdb --noinput
-   - python manage.py migrate
-   - coverage run manage.py test
-   - coverage -m
+script:
+  - cd edtrac_project
+  - python manage.py syncdb --noinput
+  - python manage.py migrate
+  - coverage run manage.py test
+  - coverage -m
