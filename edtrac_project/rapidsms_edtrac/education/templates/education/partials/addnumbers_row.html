@@ -1,0 +1,16 @@
+{% extends 'generic/partials/partial_row.html' %}
+{% load stats_extras %}
+{% block remaining_row_content %}
+	    <td>
+	    	{% for obj in object %}
+	    		<p>
+		            {{ obj.identity }} - Added to White List
+			        <span class="buttons">
+                        <button class="btn"> <a href="javascript:void(0)" onclick="deleteConnection(this, '{% url education.views.delete_connection obj.pk %}','{{ obj.identity }}')">
+			                <img src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png" />
+                    </a></button>
+			        </span>
+		    	</p>
+	        {% endfor %}	
+	    </td>   
+{% endblock %}

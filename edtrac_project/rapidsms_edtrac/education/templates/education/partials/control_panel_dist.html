@@ -1,0 +1,60 @@
+{% extends "education/admin/admin_dashboard.html" %}
+{% block title %} Control Panel -- {{ block.super }} {% endblock %}
+
+{% block masthead %}
+<div class="page-header"><h2>Management Control Panel</h2></div>
+{% endblock %}
+
+{% block content %}
+<div id="content">
+	<div class="container">
+		<div class="well">
+			<table class="table">
+				<thead>
+					<tr class="colhead">
+						<th>Name</th>
+						<th>Description</th>
+						<th>Action</th>
+					</tr>
+				</thead>
+				<tbody>
+					<!--
+					<tr>
+						<td>Messages</td>
+						<td>A page showing messages coming into EduTrac; you can send and receive messages using this.</td>
+						<td><a href="{%url emis-messagelog %}">message management...</a></td>
+					</tr>
+					-->     
+					<tr>
+						<td>Reporters</td>
+						<td>Manage reporters on EduTrac</td>
+						<td><a href="{%url emis-contact %}">Reporters</a></td>
+					</tr>
+					<!--        <tr>
+						<td>Users</td>
+						<td>Manage user accounts on EduTrac</td>
+						<td><a href="{% url emis-users %}">user management...</a> </td>
+					</tr>
+					-->
+					<tr>
+						<td>Schools</td>
+						<td>Manage schools in EduTrac</td>
+						<td><a href="{%url emis-schools %}">Schools</a></td>
+					</tr>
+					<tr>
+						<td>Data Export</td>
+						<td>Export data for various indicators</td>
+						<td><a href="/edtrac/export">Export</a></td>
+					</tr>
+					<tr>
+						<td>System Report</td>
+						<td>Report which shows how frequently schools are submitting attendance data</td>
+						<td><a href="{%url system-report %}">Send Report</a></td>
+					</tr>
+
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+{% endblock %}

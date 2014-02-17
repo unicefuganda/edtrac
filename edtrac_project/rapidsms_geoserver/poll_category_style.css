@@ -1,0 +1,74 @@
+mapCanvas {
+    background-color: #ddeeff;
+}
+
+* {
+fill: blue;
+    fill-opacity: 0.7;
+    stroke-width: 0.2;
+}
+
+[top_category = 0]
+{
+ fill:#AA4643; 
+}
+
+[top_category = 1]
+{
+ fill:#4572A7; 
+}
+
+[top_category = 2]
+{
+ fill:#89A54E; 
+}
+
+[top_category = 3]
+{
+ fill:#80699B; 
+}
+
+[top_category = 4]
+{
+ fill:#3D96AE; 
+}
+
+[top_category = 5]
+{
+ fill:#DB843D; 
+}
+
+[top_category = 6]
+{
+ fill:#92A8CD; 
+}
+
+[top_category = 7]
+{
+ fill:#A47D7C; 
+}
+
+[top_category = 8]
+{
+ fill:#B5CA92; 
+}
+
+country{
+    stroke-width: 0.9;
+    stroke:black;
+}
+
+dname_2010{
+    stroke-width: 0.3;
+    stroke:#ccc;
+}
+
+/* @title Boundaries */
+[@scale < 20000000] {
+    label: [dname_2010];
+    font-family: "Arial";
+    font-style: normal;
+    font-size: 14;
+}
+
+

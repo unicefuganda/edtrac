@@ -1,0 +1,111 @@
+{% extends "layout.html" %}
+{% block title %}
+    Message History - {{ block.super }}
+{% endblock %}
+{% block stylesheets %}
+    {{ block.super }}
+    <link type="text/css" rel="stylesheet" href="{{MEDIA_URL}}contact/stylesheets/jquery-ui.css"/>
+{% endblock %}
+{% block javascripts %}
+    {{ block.super }}
+    <script src="{{MEDIA_URL}}contact/javascripts/jquery-ui.js" type="text/javascript"></script>
+    <script src="{{MEDIA_URL}}contact/javascripts/message_history.js" type="text/javascript"></script>
+{% endblock %}
+{% block content %}
+	<div class="module">
+        <h2 style="white-space:normal">Messaging History for <span class="message_history_contact">{{ connection.contact }} ({{ connection.identity }})</span>
+            <img id="collapse_img" style="float:right" src="{{ MEDIA_URL }}rapidsms/icons/silk/section_expanded--bright.png" onclick="collapse()"/>
+            <img id="expand_img" style="float:right;display:none" src="{{ MEDIA_URL }}rapidsms/icons/silk/section_collapsed--bright.png" onclick="expand()"/>            
+        </h2>
+    </div>
+    {% if connection %}
+    <div class="message_history"><br />
+    <span class="message_history_stats">
+    {% if stats_latest_message %}Latest Message: {{ stats_latest_message.text|truncatewords:15 }} - received on: {{ stats_latest_message.date|date:"D d M Y H:i:s A" }}<br />{% endif %}
+    Total Outgoing Messages: {{ stats_total_outgoing }}<br />
+    Total Incoming Messages: {{ stats_total_incoming }}</span>
+    <p>&nbsp;</p>
+    <div id="accordion">
+	{% for msg in messages %}
+		{% ifequal msg.direction "I" %}
+			<h3><a href="#"><img style="float:left" src="{{ MEDIA_URL }}rapidsms/icons/silk/phone.png" border="0" />
+						{% for key, direction in direction_choices %} 
+						{% ifequal key msg.direction %} <span class="message_history_incoming"> &raquo;&raquo; </span> {% endifequal %}
+						{% endfor %} 
+						{{ msg.text|truncatewords:9 }} (from {{ connection.identity }}) 
+						<span class="message_history_date">
+						(
+						{% for key, status in status_choices %} 
+						{% ifequal key msg.status %} {{ status }} {% endifequal %}
+						{% endfor %}
+						) {{ msg.date|date:"D d M Y" }}</span>
+						{% for response in msg.responses.all %}
+							<br /><span class="message_history_replies">
+								{% for key, direction in direction_choices %} 
+								{% ifequal key response.direction %} <span class="message_history_outgoing"> &laquo;&laquo; </span> {% endifequal %}
+								{% endfor %} 
+								{{ response.text|truncatewords:12 }}
+							</span>
+						{% endfor %}
+						</a>
+			</h3>
+			<div class="message_history_small">
+				<p class="message_history_basemessage">
+				Message:{{ msg.text }}<br />
+				Date:	{{ msg.date|date:"D d M Y" }}<br />
+				Status: {% for key, status in status_choices %} 
+						{% ifequal key msg.status %} {{ status }} {% endifequal %}
+						{% endfor %}
+				</p>
+				{% for response in msg.responses.all %}
+					<p>
+					( 
+						{% for key, direction in direction_choices %} 
+						{% ifequal key response.direction %} {{ direction }} {% endifequal %}
+						{% endfor %} 
+					) {{ response.text }}<br />
+					Date: 	{{ response.date|date:"D d M Y" }}<br />
+					Status: {% for key, status in status_choices %} 
+						   	{% ifequal key response.status %} {{ status }} {% endifequal %}
+						   	{% endfor %}
+					</p>
+				{% endfor %}
+				<div class="message_history_replyForm" id="message_history_replyForm{{ msg.pk }}">
+				  	<a href="#" onclick="javascript:toggleReplyBox(this, {{ connection.identity }}, {{ msg.pk }});return false;" class="send_message">- send message -</a>
+				  	<div class="replyForm" id="replyForm_{{ msg.pk }}"></div>
+				</div>
+			</div>
+		{% else %}
+			{% if not msg.in_response_to %}
+				<h3><a href="#"><img style="float:left" src="{{ MEDIA_URL }}rapidsms/icons/silk/phone.png" />
+							{% for key, direction in direction_choices %} 
+							{% ifequal key msg.direction %}<span class="message_history_outgoing"> &laquo;&laquo; </span>{% endifequal %}
+							{% endfor %} 
+							{{ msg.text|truncatewords:9 }} (to {{ connection.identity }})
+							<span class="message_history_date">
+							(
+							{% for key, status in status_choices %} 
+							{% ifequal key msg.status %} {{ status }} {% endifequal %}
+							{% endfor %}
+							)
+							{{ msg.date|date:"D d M Y" }}</span></a></h3>
+				<div class="message_history_small">
+					<p class="message_history_basemessage">
+					Message:{{ msg.text }}<br />
+					Date: 	{{ msg.date|date:"D d M Y" }}<br />
+					Status:	{% for key, status in status_choices %} 
+							{% ifequal key msg.status %} {{ status }} {% endifequal %}
+							{% endfor %}
+					</p>
+				</div>
+			{% endif %}
+		{% endifequal %}
+	{% endfor %}
+	</div></div>
+    {% else %}
+        <p>The requested connection does not exist!</p>
+    {% endif %}
+	<div id="formcontent" style="display:none">
+	<form method="POST" class="sender-form"> {{ replyForm }}<input type="hidden" name="action" value="reply" /><input type="submit" value="send" /><input type="hidden" name="csrfmiddlewaretoken" value="{% with csrf_token as csrf_token_clean %}{{ csrf_token_clean }}{% endwith %}" /></form>
+	</div>
+{% endblock %}

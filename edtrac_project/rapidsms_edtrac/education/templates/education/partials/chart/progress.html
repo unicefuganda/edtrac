@@ -1,0 +1,34 @@
+<script type="text/javascript">
+$(document.ready()
+</script>
+
+<div class="progress">
+    <div class="align_progress">
+        <span>
+            ENGLISH - Curriculum Progress for P3 <span class="inner_span">(week 8 of Second School Term)</span>
+        </span>
+    </div>
+    <div id="p3"></div>
+        <!-- TODO: context var to get current term week -->
+    <script type="text/javascript">
+        $(document).ready(function(){$("#p3").progressBar(
+                // TODO replace 35 with a context variable representing the progress of the curriculum
+                35, {showText:true, barImage: '{{ MEDIA_URL }}education/icons/progressbg_green.gif'}
+        );});
+    </script>
+
+    <!-- TODO: context var to get current term week -->
+    <div class="align_progress">
+        <span>
+            ENGLISH - Curriculum Progress for P6 <span class="inner_span">(week 8 of Second School Term)</span>
+        </span>
+    </div>
+    <div id="p6"></div>
+    <script type="text/javascript">
+        $(document).ready(function(){$("#p6").progressBar(
+                // TODO replace 52 with a context variable representing the progress of the curriculum
+                52, {showText:true, barImage: '{{ MEDIA_URL }}education/icons/progressbg_green.gif'}
+        );});
+    </script>
+
+</div>

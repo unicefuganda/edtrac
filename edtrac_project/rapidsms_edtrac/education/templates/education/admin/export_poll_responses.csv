@@ -1,0 +1,3 @@
+Sender,Location Type,District,School,Time,Value,Categories
+{% for response in responses %}"{{ response.0 }}","{{ response.1 }}","{{ response.2 }}","{{ response.3 }}","{{ response.4|date:"d/m/Y H:i" }}","{{ response.5 }}","{{ response.6 }}"
+{% endfor %}

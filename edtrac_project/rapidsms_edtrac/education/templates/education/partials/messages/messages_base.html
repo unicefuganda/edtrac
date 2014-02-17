@@ -1,0 +1,9 @@
+{% extends "generic/partials/partial_base.html" %}
+{% load endless %}
+{% paginate filtered_list %}
+{% block pagination %}
+{% paginate filtered_list %}
+<div class="paginator">
+    {% showpages %}
+</div>
+{% endblock %}

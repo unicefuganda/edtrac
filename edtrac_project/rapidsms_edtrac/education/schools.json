@@ -1,0 +1,56 @@
+[
+    {
+        "pk": 1,
+        "model": "education.school",
+        "fields": {
+            "emis_id": "",
+            "name": "Kakamar P.S.",
+            "location": 1143
+        }
+    },
+    {
+        "pk": 2,
+        "model": "education.school",
+        "fields": {
+            "emis_id": "",
+            "name": "Kakore P.S",
+            "location": 1143
+        }
+    },
+    {
+        "pk": 3,
+        "model": "education.school",
+        "fields": {
+            "emis_id": "",
+            "name": "Kakwanga P.S.",
+            "location": 1143
+        }
+    },
+    {
+        "pk": 4,
+        "model": "education.school",
+        "fields": {
+            "emis_id": "",
+            "name": "Kalapata P.S.",
+            "location": 1143
+        }
+    },
+    {
+        "pk": 5,
+        "model": "education.school",
+        "fields": {
+            "emis_id": "",
+            "name": "Kalimon P.S.",
+            "location": 1143
+        }
+    },
+    {
+        "pk": 6,
+        "model": "education.school",
+        "fields": {
+            "emis_id": "",
+            "name": "Kalokudo P.S",
+            "location": 1143
+        }
+    }
+]

@@ -1,0 +1,20 @@
+{% extends 'generic/partials/partial_row.html' %}
+{% load url from future %}
+
+{% block remaining_row_content %}
+	<td>{{ object.username }}</td>
+    <td>{{ object.email }}</td>
+    <td>{{ object.first_name }} {{  object.last_name }}</td>
+    <td>{{ object.profile.all.0.role }}</td>
+    <td>
+       {{ object.profile.all.0.location }}
+    </td>
+    <td >
+
+        	
+             <a href='{% url 'edit_user' object.pk %}'>
+edit
+            </a>
+        </div>
+    </td>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "education/admin/admin_dashboard.html" %}
+{% load humanize %}
+{% block content %}
+
+        <div class="general">
+            <div class="top">
+                <table class="tabular-data">
+                    <tbody>
+
+                    <tr>
+                        <th>
+                            District
+                        </th>
+                        <th>
+                            Mode
+                        </th>
+                    </tr>
+
+                    {% for district, mode in location_data %}
+                    <tr>
+
+                    </tr>
+                    {% endfor %}
+
+                    </tbody>
+                </table>
+            </div>
+            
+            <p>{{ mode }}</p>
+            
+            
+        </div>
+
+
+{% endblock %}

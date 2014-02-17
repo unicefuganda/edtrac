@@ -1,0 +1,27 @@
+#actions a{
+    margin-top: 60px;
+}
+label{
+    margin-top: 15px;
+}
+
+div.special-script-form form, div.special-script-form label{
+    color:black;
+}
+
+div.special-script-form ul{
+    list-style: none;
+}
+
+table.results thead{
+    background-color: #2b2b2b;
+    color:white;
+    font-size: 1.2em;
+}
+table.results thead a, table.results thead a:after,table.results thead a:active{
+    color:white;
+}
+
+span#span_select_all{
+    color:#000;
+}

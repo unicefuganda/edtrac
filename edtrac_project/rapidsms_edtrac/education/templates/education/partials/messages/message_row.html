@@ -1,0 +1,50 @@
+{% extends 'generic/partials/partial_row.html' %}
+{% load stats_extras %}
+{% block remaining_row_content %}
+<td>
+    <span class="textmessage">
+    {% if user.is_authenticated %}
+        {{ object.text }}
+        {% ifequal object.direction "I" %}
+                {% ifequal object.connection.backend.name "yo6200" %}
+                    ( via 6200 )
+                {% else %}
+                    ( via Other )
+                {% endifequal %}
+        {% endifequal %}
+    {% endif %}
+    </span>
+</td>
+<td>
+    {% if object.connection.contact %}
+        <a href="/contact/{{ object.connection.pk }}/message_history/">
+    {% endif %}
+    {{ object.connection.contact.name }}
+    {% if object.connection.contact %}
+        </a>
+    {% endif %}
+</td>
+
+<td>
+        {{ object.connection.identity }}
+</td>
+
+
+<td>
+    {% if object.poll_responses.all.0.poll %}
+        {{ object.poll_responses.all.0.poll.name }}
+    {% endif %}
+</td>
+<td>
+    {% if object.responses %}
+        {{ object.connection.contact.emisreporter.schools.all.0.name }}
+    {% endif %}
+</td>
+<td>
+    {% if object.responses %}
+        {{ object.connection.contact.reporting_location }}
+    {% endif %}
+</td>
+<td>{{ object.date|date:"d-m-Y" }}</td>
+
+{% endblock %}

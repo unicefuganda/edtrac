@@ -1,0 +1,60 @@
+{% extends 'generic/partials/partial_row.html' %}
+{% load url from future %}
+{% load stats_extras %}
+{% block remaining_row_content %}
+    <td>
+	<a href="{{ object.pk }}">{{ object.name }}</a>
+    </td>
+    <td>
+        <ul>
+            {% for c in object.connection_set.all %}
+                <li>
+                    {{ c.identity }}
+                </li>
+            {% endfor %}
+        </ul>
+    </td>
+
+	<td>
+        {% if object.get_grade_display %}
+		{{ object.get_grade_display }}
+        {% endif %}
+	</td>
+        <td>
+            {% if object.get_gender_display %}
+            {{ object.get_gender_display }}
+            {% endif %}
+        </td>
+    <td>
+        <ul>
+            {{ object.groups.all|first }}
+        </ul>
+    </td>
+    <td>{{ object.reporting_location|get_district }}</td>
+    <td>{{ object|latest|date:"d-m-Y" }}</td>
+    <td>
+    	<ul>
+            {% for s in object.schools.all %}
+                <li>
+                    {% if not object.has_exact_matched_school %}
+                        <span style="color: #ff0000;font-size: medium">*</span>
+                    {% endif %}
+                    {{ s.name }}
+                </li>
+            {% endfor %}
+        </ul>
+     </td>
+    {% comment %} 
+    <td id="row_{{ object.pk }}">{{ object.reporting_location.name }}</td>
+    {% endcomment %}
+    <td class="button_col">
+        <div class="buttons">
+            <a id='delete-reporter' alt="Delete" href="javascript:void(0)" onclick="deleteReporter(this, {{ object.pk }},'{{ object.name }}', '{% url 'education.views.delete_reporter' object.pk %}')">
+                <img src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png" />
+            </a>
+             <a id="edit-reporter" href="{% url 'edit-reporter' object.pk %}">
+                <img src="{{ MEDIA_URL }}poll/icons/silk/pencil.png" />
+            </a>
+        </div>
+    </td>
+{% endblock %}

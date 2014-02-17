@@ -1,0 +1,43 @@
+{% extends "education/admin/admin_dashboard.html" %}
+{% block title %} SMC Meetings -- {{ block.super }} {% endblock %}
+{% block content %}
+<ul class="breadcrumb">
+    <li>
+        <a href="{% url rapidsms-dashboard %}" style="text-decoration: none; line-height: inherit;">← Back to EdTrac Home Page</a>
+    </li>
+</ul>
+<div id="smc_meetings_container">
+    <div id="smc_meetings"></div>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            smc_meetings("{{ titles }}","{{ meetings }}");
+        });
+    </script>
+    <div class="alert-message" style="width:150px;">
+        <p>Report based on {{ meeting_basis|floatformat }}% of Total Reporters (Schools)</p>
+    </div>
+</div>
+
+<div>
+    <div class="stats"><h1>SMC Meetings</h1></div>
+        <table class="tabulated-data classy smc_meetings">
+            <tr>
+                <th>Districts</th>
+                <th>No meetings were held</th>
+                <th>1 meeting was held</th>
+                <th>2 meetings were held</th>
+                <th>3 meetings were held</th>
+            </tr>
+            {% for item in meeting_count %}
+            <tr>
+                <td><a href="{% url emis-district-meetings item.0 %}">{{ item.0 }}</a></td>
+                <td>{{ item.1.0.1|floatformat }}%</td>
+                <td>{{ item.1.1.1|floatformat }}%</td>
+                <td>{{ item.1.2.1|floatformat }}%</td>
+                <td>{{ item.1.3.1|floatformat }}%</td>
+            </tr>
+            {% endfor %}
+        </table>
+</div>
+
+{% endblock %}

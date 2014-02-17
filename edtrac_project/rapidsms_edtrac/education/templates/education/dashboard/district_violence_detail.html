@@ -1,0 +1,43 @@
+{% extends "education/admin/admin_dashboard.html" %}
+{% load humanize %}
+{% block title %} Violence in Schools in {{ location }} -- {{ block.super }} {% endblock %}
+{% block content %}
+    <ul class="breadcrumb">
+        <li><a href="{% url rapidsms-dashboard %}">Dashboard Home</a><span class="divider">\</span></li>
+        <li><a href="{% url violence-admin-details %}">District Violence Dashboard</a></li>
+    </ul>
+
+    <div class="top general">
+        <h3 style="background-color:black; color:white; margin-bottom:5px; padding:10px;">
+            Violence in Schools
+        </h3>
+
+
+        <h2 class="block-header">Violence Records (for past 2 months)</h2>
+        <table class="tabulated-data">
+            <thead>
+            <tr>
+                <th>
+                    School
+                </th>
+                <th>
+                    Number of Cases in {{ month_now|date:"M Y" }}
+                </th>
+                <th>
+                    Number of cases in {{ month_before|date:"M Y" }}
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for school, val1, val2, val3 in school_vals %}           	
+                {% if val == 0 %}
+                {% else %}
+                <tr><td><a href="{% url school-detail school.pk %}">{{ school.name }}</a></td><td>{{ val1 }}</td><td>{{ val2 }}</td></tr>
+                {% endif %}
+            {% endfor %}
+            <tr style="background-color:#00bdea;"><td><h6>Monthly Violence Cases:</h6></td><td><h6>{{ nowViolence }}</h6></td><td><h6>{{ beforeViolence }}</h6></td></tr>
+        </table>
+        <p class="report alert-message block-message">Total Number of Violence Cases: {{ totalViolence }}</p>
+    </div>
+
+{% endblock %}

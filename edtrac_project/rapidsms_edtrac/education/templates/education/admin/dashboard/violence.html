@@ -1,0 +1,29 @@
+{% load url from future %}
+<div class="well">
+	<h3 class="title">Violence</h3>
+	<table class="table tabulated-data">
+		<thead>
+			<tr>
+				<th>Group</th>
+				<th>Monthly Numbers</th>
+			</tr>           
+		</thead>
+		<tbody>
+			<tr>
+				<td>Girls Cases</td>
+				<td>{{ violence_numbers_girls|floatformat:0 }}</td>
+			</tr>
+			<tr>
+				<td>Boys Cases</td>
+				<td>{{ violence_numbers_boys|floatformat:0 }}</td>
+			</tr>
+			<tr>
+				<td>Cases Referred to Police</td>
+				<td>{{ violence_numbers_reported|floatformat:0 }}</td>
+			</tr>
+		</tbody>
+	</table>
+	<div class="actions">
+		<a href="{% url 'violence-admin-details' %}" class="btn btn-secondary"><i class="icon-th-list"></i> View Details</a>
+	</div>
+</div>

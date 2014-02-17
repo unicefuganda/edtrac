@@ -1,0 +1,20 @@
+{% load url from future %}
+<div class="well">
+	<h3 class="title">Meals at School</h3>
+	<table class="table tabulated-data">
+		<thead>
+			<tr>
+				<th>This month</th>
+			</tr>           
+		</thead>
+		<tbody>
+			<tr>
+				<td>Schools with all meals missed</td>
+				<td class="data {{ meal_change_data }}"><span class="value {{ meal_change_class }}">{{ meals_missed }} {{ meal_change_class }}</span></td>
+			</tr>
+		</tbody>
+	</table>
+	<div class="actions">
+		<a href="{% url 'admin-meals-details' %}" class="btn btn-secondary"><i class="icon-th-list"></i> View Details</a>
+	</div>
+</div>

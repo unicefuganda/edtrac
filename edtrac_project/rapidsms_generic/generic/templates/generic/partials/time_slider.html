@@ -1,0 +1,62 @@
+{% load timeslider_tags %}
+<p>
+    Date Range:<span id="date_slider_value" class="daterange"></span>
+    <a href="javascript:void(0)" onclick="previous_date_range('w');"> &laquo; previous week</a> |
+    <a href="javascript:void(0)" onclick="previous_date_range('m');"> &laquo; previous month</a>
+    <script language="javascript">
+        update_date_layers = function() {
+            selected_start_date = $("select#start").val();
+            selected_end_date = $("select#end").val();
+            {% for layer in map_layers %}
+                {% if layer.needs_date %}
+                    if ($('#map_layers input[name="layer{{ forloop.counter0 }}"]:checked').length) {
+                        {% autoescape off %}
+                            plot_layer_with_date(
+                                'map',
+                                '{{ layer.name }}',
+                                '{{ layer.url }}',
+                                selected_start_date,
+                                selected_end_date);
+                        {% endautoescape %}
+                    }
+                {% endif %}
+           {% endfor %}
+        }
+    </script>
+    <a href="javascript:void(0)" onclick="{{ timeslider_update }}" style="float:right">update</a>
+</p>
+<div id="date_slider" style="margin: 5px 5px 80px 5px">
+{% for sel_ts, sel_name in selected_ts %}
+    <label for="{{ sel_name }}"></label>
+    <select name="{{ sel_name }}" id="{{ sel_name }}" style="display:none">
+        {% for i in ts_range %}
+            {% if forloop.first %}
+                <optgroup label="{{ i|to_date|year }}">
+                    <optgroup label="{{ i|to_date|date:"M" }}">
+            {% else %}
+                {% ifequal i|to_date|day 1 %}
+                        </optgroup>
+                    {% ifequal i|to_date|month 1 %}
+                        </optgroup>
+                        <optgroup label="{{ i|to_date|year }}">
+                    {% endifequal %}
+                        <optgroup label="{{ i|to_date|date:"M" }}">
+                {% endifequal %}
+            {% endif %}
+            <option value="{{ i }}"
+            {% ifequal i sel_ts %}selected="true"{% endifequal %}>
+                {{ i|to_date|date:"d-M-Y" }}
+            </option>
+            {% if forloop.last %}
+                    </optgroup>
+                </optgroup>
+            {% endif %}
+        {% endfor %}
+    </select>
+{% endfor %}
+</div>
+<script language="javascript">
+    $(document).ready(function() {
+        init_timeslider({{ min_ts }});
+    });
+</script>

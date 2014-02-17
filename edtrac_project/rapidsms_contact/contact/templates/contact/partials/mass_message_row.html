@@ -1,0 +1,8 @@
+{% extends 'generic/partials/partial_row.html' %}
+{% block remaining_row_content %}
+    <td>{{ object.0 }}</td>
+    <td>{{ object.1|date:"m/d/Y H:i:s" }}</td>
+    <td>{{ object.2 }}</td>
+    <td>{{ object.3 }} recipient{{ object.3|pluralize }}</td>
+    <td>{{ object.4 }}</td>
+{% endblock %}

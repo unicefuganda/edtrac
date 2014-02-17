@@ -1,0 +1,9 @@
+<p class="paginator">
+    {% for p in paginator.page_range %}
+    {% if p == page %}
+    {{ p }}
+    {% else %}
+    <a href="javascript:void(0)" onclick="page(this, {{ p }})">{{ p }}</a>
+    {% endif %}
+    {% endfor %}
+</p>

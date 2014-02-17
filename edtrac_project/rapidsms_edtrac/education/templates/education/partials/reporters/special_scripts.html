@@ -1,0 +1,52 @@
+{% load stats_extras %}
+<div>
+    <form action="{% url emis-special-scripts %}" method="post" id="special_script_form">
+        <div id="selected_reporters"></div>
+        {% csrf_token %}
+    {% for script in scripts %}
+
+        {{ script.name }}
+        <table width="100%" cellpadding="5" cellspacing="0" border=1 style="border-collapse:collapse;">
+            <tr>
+                <td width="10%"><label for="name">Script Name:</label></td>
+                <td>{{ script.name }}</td>
+                <td><label for="enabled">Enabled:</label></td>
+
+            </tr>
+                <tr>
+                    <td><h4 style="padding:5px;">Polls</h4></td>
+                    <td colspan="2">
+                        <br/>
+                            {% for step in script.steps.all %}
+                            {% if step.message %}
+                                {{ step.message }}</br>
+                            {% else %}
+                                <input type="checkbox" name="poll_questions" value="{{step.poll.id}}-{{step.script.slug}}" />{{ step.poll.question }}</br>
+                            {% endif %}
+                            {% endfor %}
+                    </td>
+                </tr>
+            </table>
+        {% endfor %}
+        <a href="#" id="submit" class="btn btn-primary">Schedule script</a>
+        </form>
+    </div>
+        <script>
+            $(document).ready(function(){
+                if ($('div#selected_reporters > input[type=hidden]').length == 0 && $('input[type=checkbox]:checked').length > 0){
+                    checked_boxes = new Array();
+                    checked = $('input[type=checkbox]:checked');
+                    tmp_var = '';
+                    checked.each(function(index) {
+                        checked_boxes = $(this).val();
+                        //tmp_var += '<input type="hidden" name="checked_' + checked_boxes +'" value="'+checked_boxes +'"/>'
+                        tmp_var += '<input type="hidden" name="checked_numbers" value="'+checked_boxes +'"/>';
+                        $('div#selected_reporters').html(tmp_var);
+
+                    });
+                }
+                $("a#submit").click(function(evt){
+                    $('form#special_script_form').submit();
+                });
+            });
+        </script>

@@ -1,0 +1,53 @@
+{% extends "education/admin/admin_dashboard.html" %}
+{% load stats_extras %}
+{% load endless %}
+{% block title %} Water Sources nationwide -- {{ block.super }} {% endblock %}
+{% block content %}
+
+    <ul class='breadcrumb'>
+        <li><a href="{% url rapidsms-dashboard %}">Dashboard Home</a></li>
+    </ul>
+{% for responses in data_list %}
+    <div class="general">
+        <div id="violence_container{{ forloop.counter }}" style="margin-bottom: 20px;">
+            <div class="stats"><h3> {{ label|capfirst }}</h3></div>
+            <div id="violence_sources{{ forloop.counter }}" style="min-width: 50px; height: 400px; margin: 0 auto"></div>
+
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    pie("{{ responses|reorganize_data|join:"," }}",
+                            " label",
+                            "--",
+                            "violence_sources{{ forloop.counter }}",
+                            " responded",
+                            true
+                    );
+
+                });
+            </script>
+        </div>
+    <div id="monthly_water_data{{ forloop.counter }}">    </div>
+    <script type="text/javascript">
+            $(document).ready(function () {
+                load_column("Schools with a {{ label }} within 500M",
+                        "monthly_water_data{{ forloop.counter }}",
+                        "Percentage",
+                        "Months",
+                        "{{ categories|join:";" }}",
+                        "Yes Percentages",
+                        "{{ data }}"
+                );
+
+            });
+        </script>
+    </div>
+{% endfor %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ block.super }}
+    <!--<script src="{{ MEDIA_URL }}education/javascripts/endless.js" charset="utf-8"></script>-->
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-collapse.js"></script>
+    <script type="text/javascript"></script>
+
+{% endblock %}

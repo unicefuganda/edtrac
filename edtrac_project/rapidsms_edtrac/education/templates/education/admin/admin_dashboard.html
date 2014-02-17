@@ -1,0 +1,93 @@
+{% extends "layout.html" %}
+{% load humanize %}
+{% load i18n %}
+{% load stats_extras %}
+{% block title %}
+Dashboard - {{ block.super }}
+{% endblock %}
+
+{% block javascripts %}
+{{ block.super }}
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-ui-1.8.19.custom.min.js"></script>
+    <script src="{{ MEDIA_URL }}education/javascripts/add_datepicker.js" type="text/javascript"></script>
+{% endblock %}
+
+<div id="wrapper">
+
+{% block masthead %}
+<div class="page-header">
+	<h1>Dashboard<small> - A summary of the monitored indicators</small></h1>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+	<div class="row">
+		<div class="span4">{% include "education/admin/dashboard/stat_summary.html" %}</div>
+		<div class="span8">{% include "education/admin/dashboard/alerts.html" %}</div>
+	</div>
+
+	<div class="tabbable"> <!-- Only required for left/right tabs -->
+		<ul class="nav nav-tabs">
+			<li class="active"><a href="#this-week" data-toggle="tab">This Week</a></li>
+			<li><a href="#this-month" data-toggle="tab">This Month</a></li>
+			<li><a href="#this-term" data-toggle="tab">This Term</a></li>
+		</ul>
+		<div class="tab-content">
+			<div class="tab-pane active" id="this-week">
+				<h2>This Week ({{ month|date:"D d M Y" }})</h2>
+				<div class="row">
+					<div class="span8">{% include "education/admin/dashboard/absenteeism.html" %}</div>
+					<div class="span4">
+						{% include "education/admin/dashboard/recently_reported.html" %}
+						{% include "education/admin/dashboard/curriculum_progress.html" %}
+					</div>
+				</div>
+			</div>
+			<div class="tab-pane" id="this-month">
+				<h2>This Month ({{ month|date:"M Y" }})</h2>
+				<div class="row">
+					<div class="span6"> {% include "education/admin/dashboard/violence.html" %} </div>
+					<div class="span6"> {% include "education/admin/dashboard/meals.html" %} </div>
+				</div>
+			</div>
+			<div class="tab-pane" id="this-term">
+				<h2>This Term</h2>
+				<div class="row">
+					<div class="span6"> {% include "education/admin/dashboard/upe_grant.html" %} </div>
+					<div class="span6"> {% include "education/admin/dashboard/smc_meetings.html" %} </div>
+				</div>
+                <!--
+                <div class="row">
+					<div class="span6"> {% include "education/admin/dashboard/latrine_stances.html" %} </div>
+					<div class="span6"> {% include "education/admin/dashboard/water_sources.html" %} </div>
+                </div>
+                -->
+
+			</div>
+		</div>
+	</div>
+
+
+	<script src="{{MEDIA_URL}}contact/javascripts/messages.js" type="text/javascript"></script>
+	<script src="{{MEDIA_URL}}education/javascripts/emis_reporters.js" type="text/javascript"></script>
+	<script src="{{MEDIA_URL}}education/javascripts/bootstrap-modal.js" type="text/javascript"></script>
+	<script src="{{MEDIA_URL}}education/javascripts/jquery.metadata.js"></script>
+	<script src="{{MEDIA_URL}}education/javascripts/jquery.tablesorter.min.js"></script>
+	<script src="{{MEDIA_URL}}education/javascripts/jquery.tablecloth.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/alert_messages.js"></script>
+    
+    <script type="text/javascript" charset="utf-8">
+      $(document).ready(function() {
+        $(".results").tablecloth({
+          theme: "paper",
+          striped: true,
+          condensed: true,
+          customClass: "tablehead"
+        });
+      });
+    </script>
+
+</div> <!-- /.container -->
+
+{% endblock %}

@@ -1,0 +1,21 @@
+<%inherit file="base.html"/>
+<%block name="content">
+    <%self:mylinks>
+        <li><a href="/settings">Settings</a></li>
+    </%self:mylinks>
+    <br/>
+    <table class="list" style="padding-bottom: 0px; margin-bottom:0px; border-bottom:none;
+        background-color:#4069b0;color:ffffff;">
+            <tr><th>Modem Status</th><th></th></tr>
+    </table>
+    <table class="list">
+        <tr style="text-align:left"><th>Modem</th><th>Status</th></tr>
+
+        % for k,v in res.iteritems():
+            <tr>
+                <td>${k}</td>
+                <td>${v}</td>
+            </tr>
+        % endfor
+    </table>
+</%block>
