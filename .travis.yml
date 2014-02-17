@@ -21,5 +21,5 @@ script:
   - cd edtrac_project
   - python manage.py syncdb --noinput
   - python manage.py migrate
-  - coverage run manage.py test
+  - coverage run --source=education manage.py test
   - coverage report -m
