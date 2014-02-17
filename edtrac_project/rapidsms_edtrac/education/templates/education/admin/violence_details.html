@@ -1,0 +1,56 @@
+{% extends "education/layout_base.html" %}
+{% load stats_extras %}
+{% block title %}
+    Dashboard -- {{ block.super }}
+{% endblock %}
+{% block content %}
+
+    {% if time_data %}
+
+        <div id="container" style="min-width: 400px; height: 400px; padding-bottom: 40px"></div>
+        <div style="margin: 10px; padding: 10px">
+            <table class="tabulated-data classy">
+                <tr>
+                    <th>
+                        District
+                    </th>
+                    {% for value in collective_result_keys_v %}
+                        <th>
+                            {{ value}}  Violence Percentage
+                        </th>
+                    {% endfor %}
+                </tr>
+                {% for key, value in collective_result.items %}
+                    <tr>
+                        <td>
+                            <a href="{{ locations|make_url_for_detail_attd:key }}">{{ key }}</a>
+                        </td>
+                    {% for key_name in collective_result_keys %}
+                            <td>
+                                {{ value|key:key_name }}
+                            </td>
+                    {% endfor %}
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <script type="text/javascript">
+            $(document).ready(function () {
+                load_three_columns("Violence cases in Schools",
+                        "container",
+                        "Violence cases",
+                        "Months",
+                        "{{months}}",
+                        "Yes Percentages",
+                        "[20,12,20]",
+ 						"No percentages",
+ 						"[15,23,45]",
+ 						"Unknown percentages",
+ 						"[12,24,65]"
+                );
+
+            });
+        </script>
+
+    {% endif %}
+{% endblock %}

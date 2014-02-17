@@ -1,0 +1,53 @@
+<div id="div_results_loading">&nbsp;</div>
+<div id="div_panel_loading">&nbsp;</div>
+{% if results_title %}
+<h2>{{ results_title }}</h2>
+{% endif %}
+{% if status_message %}
+    <div id="span_status_message" class="status_{{ status_message_type }}">
+        {{ status_message }}
+    <a href="javascript:void(0)" onclick="$('#span_status_message').hide();">Dismiss</a>
+    </div>
+
+{% endif %}
+{% block sort_fields %}
+    <input type="hidden" id="input_sort_column" name="sort_column" value="{{ sort_column }}"/>
+    <input type="hidden" id="input_sort_action" name="sort_action" value=""/>
+    <input type="hidden" id="input_sort_ascending" name="sort_ascending" value="{{ sort_ascending }}"/>
+{% endblock %}
+{% block list_wrapper %}
+    <table class="results">
+{% endblock %}
+
+{% include partial_header %}
+
+{% ifequal object_list|length 0 %}
+	<tr>
+		<td></td>
+		<td colspan="{{ columns|length }}"><p>No Results match your search.  Refresh to reset.</p></td>
+	</tr>
+{% else %}
+    {% block partial_base_content %}
+        {% for object in object_list %}
+          {% block item_wrapper %}
+            <tr class="row_{% cycle 'reg' 'alt' %}">
+          {% endblock %}
+          {% include partial_row %}
+          {% block item_wrapper_close %}
+            </tr>
+          {% endblock %}
+        {% endfor %}
+    {% endblock %}
+{% endifequal %}
+{% block list_wrapper_close %}
+    </table>
+{% endblock %}
+{% ifnotequal object_list|length 0 %}
+	{% block pagination %}
+	    {% if paginated %}
+	        <input type="hidden" id="input_page_num" name="page_num" value="{{ page }}"/>
+	        <input type="hidden" id="input_page_action" name="page_action" value=""/>
+	        {% include paginator_template %}
+	    {% endif %}
+	{% endblock %}
+{% endifnotequal %}

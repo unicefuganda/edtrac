@@ -1,0 +1,39 @@
+{% extends "education/admin/admin_dashboard.html" %}
+{% block title %}
+        Absenteeism of Female Head Teachers -- {{ block.super }}
+{% endblock %}
+{% block content %}
+<div class="back_link">
+    <p><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; font-size: 1.2em; color:white; line-height: inherit;">← Back to the EduTrac Home Page</a></p>
+</div>
+
+<div class="attendance">
+    <h2 class="block-header">Absenteeims of Female Head Teachers (week: {{ week|date:"D d M Y" }})</h2>
+    <div class="top">
+        {% paginate 25 location_data %}
+        <table class="tabulated-data">
+            <tbody>
+            <tr>
+                {% for heading in headings %}
+                <th>{{ heading }}</th>
+                {% endfor %}
+            </tr>
+
+
+            {% for a, b, c in location_data %}
+            <tr>
+                <td><a href="{% url school-detail a.id %}">{{ a }}</a></td>
+                <td>{{ b }}</td>
+                <td>{{ c }}</td>
+            </tr>
+            {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+    <div class="paginator">
+        {% show_pages %}
+    </div>
+</div>
+
+{% endblock %}

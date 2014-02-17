@@ -1,0 +1,57 @@
+{% extends "education/deo/deo_dashboard.html" %}
+
+{% block content %}
+<div id="smc_meetings_container">
+    <div id="smc_meetings"></div>
+        <script type="text/javascript">
+            $(document).ready(function(){smc_meetings();});
+        </script>
+		<div class="alert-message" style="width:150px;">
+			<p>Report based on 22% of Total Reporters (Schools)</p>
+		</div>
+</div>
+
+<div>
+	<h1>SMC Meetings
+	<table class="classy smc_meetings">
+		<tr>
+		<thead>
+			<td>Districts</td>
+			<td>No meetings were held</td>
+			<td>1 meetings was held</td>
+			<td>2 meetings were held</td>
+			<td>3 meetings were held</td>
+		</thead>
+		</tr>
+		<tr>
+			<td>Kabarole</td>
+			<td>25%</td>
+			<td>70%</td>
+			<td>1%</td>
+			<td>0%</td>
+		</tr>
+		<tr>
+			<td>Kyegegwa</td>
+			<td>45%</td>
+			<td>20%</td>
+			<td>2%</td>
+			<td>0.5%</td>
+		</tr>
+		<tr>
+			<td>Kotido</td>
+			<td>12%</td>
+			<td>60%</td>
+			<td>1%</td>
+			<td>0%</td>
+		</tr>
+		<tr>
+			<td>Kaabongo</td>
+			<td>23%</td>
+			<td>30%</td>
+			<td>3%</td>
+			<td>0%</td>
+		</tr>
+	</table>
+</div>
+
+{% endblock %}

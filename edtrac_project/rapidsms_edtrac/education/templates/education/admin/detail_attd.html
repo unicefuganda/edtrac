@@ -1,0 +1,89 @@
+{% extends "education/layout_base.html" %}
+{% load stats_extras %}
+{% block title %}
+    Dashboard -- {{ block.super }}
+{% endblock %}
+{% block content %}
+    <div style="padding: 10px;margin: 5px;">
+        <fieldset>
+            <form action="" method="POST">
+                {% csrf_token %}
+                <ul>
+                    <li class="{{ form.from_date.css_classes  }}">
+                        {{ form.from_date.label_tag }}
+                        {{ form.from_date }}
+                        {{ form.from_date.errors }}
+                    </li>
+                    <li class="{{ form.to_date.css_classes  }}">
+                        {{ form.to_date.label_tag }}
+                        {{ form.to_date }}
+                        {{ form.to_date.errors }}
+                    </li>
+                    <li class="{{ form.indicator.css_classes  }}">
+                        {{ form.indicator.label_tag }}
+                        {{ form.indicator }}
+                        {{ form.indicator.errors }}
+                    </li>
+                    <li>
+                        <input type="submit" value="Search"/>
+                    </li>
+                </ul>
+            </form>
+        </fieldset>
+        <script>
+            $(function(){
+                $('#id_from_date').datepicker();
+                $('#id_to_date').datepicker();
+            });
+        </script>
+    </div>
+    {% if time_data %}
+
+        <div id="container" style="min-width: 400px; height: 400px; padding-bottom: 40px"></div>
+        {% for key, value in school_percent.items %}
+            <div class='report-stickie'>
+               <span style='margin-top:10px;' class='alert-message'>
+                    {{ key }}: Report based on {{ value|floatformat }}% of schools that made a report
+               </span>
+            </div>
+        {% endfor %}
+        <div style="margin: 10px; padding: 10px">
+            <table class="tabulated-data classy">
+                <tr>
+                    <th>
+                        District
+                    </th>
+                    {% for value in collective_result_keys %}
+                        <th>
+                            {{ value}} Absenteeism Percentage
+                        </th>
+                    {% endfor %}
+                </tr>
+                {% for key, value in collective_result.items %}
+                    <tr>
+                        <td>
+                            <a href="{{ locations|make_url_for_detail_attd:key }}">{{ key }}</a>
+                        </td>
+                    {% for key_name in collective_result_keys %}
+                            <td>
+                                {{ value|key:key_name }}
+                            </td>
+                    {% endfor %}
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <script type="text/javascript">
+            $(document).ready(function () {
+                load_line_graph("Absenteeism Over Current Month",
+                        "",
+                        "container",
+                        "Absent-count",
+                        "Weeks",
+                        '{{ weeks }}',
+                        '{{ time_data }}');
+
+            });
+        </script>
+    {% endif %}
+{% endblock %}

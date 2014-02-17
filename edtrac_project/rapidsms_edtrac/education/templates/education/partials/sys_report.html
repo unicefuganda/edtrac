@@ -1,0 +1,14 @@
+{% extends "education/admin/admin_dashboard.html" %}
+{% block title %}
+Download system report -- {{ block.super }}
+{% endblock %}
+{% block content %}
+<ul class='breadcrumb'>
+    <li>
+        <a href="{% url rapidsms-dashboard %}">
+            Dashboard Home</a>
+    </li></ul>
+<div class="general">
+    <a href="#">Download report</a>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% load dict %}
+<tr>
+<td>
+    {{ object.submission__connection__contact__emisreporter__schools__name }}
+</td>
+{% for colname, sortable, colattr, sorter in columns %}
+{% if not forloop.first %}
+    <td>{% if object|dict:colattr %}{{ object|dict:colattr|floatformat }}{% else %}0{% endif %}</td>
+{% endif %}
+{% endfor %}
+</tr>

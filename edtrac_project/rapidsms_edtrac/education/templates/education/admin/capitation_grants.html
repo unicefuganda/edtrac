@@ -1,0 +1,21 @@
+{% extends "education/admin/admin_dashboard.html" %}
+{% load stats_extras %}
+{% load endless %}
+{% block title %} Capitation grants receipt nationwide -- {{ block.super }} {% endblock %}
+{% block content %}
+
+    <ul class='breadcrumb'>
+        <li><a href="{% url rapidsms-dashboard %}">Dashboard Home</a></li>
+        <li><a href="{% url emis-smc-grants %}" style="border-left: 2px solid; padding-left: 5px">UPE Capitation Grant
+            By SMC</a></li>
+    </ul>
+    <div class="general">
+        {% include "education/admin/_capitation_grants_partial.html" %}
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ block.super }}
+    <!--<script src="{{ MEDIA_URL }}education/javascripts/endless.js" charset="utf-8"></script>-->
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/bootstrap-collapse.js"></script>
+{% endblock %}

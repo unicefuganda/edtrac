@@ -1,0 +1,3 @@
+Message,District,School,Contact,Contact Number,Date
+{% for message in messages %}"{{ message.0 }}","{{ message.1 }}","{{ message.2 }}","{{ message.3 }}","{{ message.4 }}","{{ message.5 }}","{{ message.6|date:"d/m/Y H:i" }}"
+{% endfor %}

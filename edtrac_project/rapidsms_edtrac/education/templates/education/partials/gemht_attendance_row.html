@@ -1,0 +1,11 @@
+{% load stats_extras %}
+{% with row=object.values.all %}
+<tr>
+    {% for obj in row %}
+        <td>{{ obj|parse_gemvalues }}</td>
+    {% endfor %}
+    <td>
+        {{ object.created|date:"d-m-Y" }}
+    </td>
+</tr>
+{% endwith %}

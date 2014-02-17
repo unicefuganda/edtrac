@@ -1,0 +1,95 @@
+/*#body-id{background:#fff url('bg_body_msdn.png') repeat-x top;padding:0 483px}*/
+body{
+	font-family:Verdana;
+	font-size: 14px;
+    _text-align:center;
+
+
+}
+*{margin: 0;
+	padding: 0;
+	font-family: inherit;
+	font-size: 100%;
+	font-style: inherit;
+	font-weight: inherit;
+	text-decoration: inherit;
+}
+#inner{
+    _text-align:left;
+    _position:absolute;
+	width: 340px;
+	margin: 0 auto;
+	/*border: 1px solid black;*/
+	-moz-border-radius: 9px;
+	margin-top: 100px;
+
+}
+.centered{text-align: center;}
+h2.box-header{
+	font-size: 1em;
+	text-indent: 15px;
+}
+.box-header{
+	-moz-border-radius-topleft: 9px;
+	-moz-border-radius-topright: 9px;
+	border-bottom: 1px solid #dddddd;
+	margin-bottom: 15px !important;
+	border-color: #dddddd;
+}
+.box-header{
+	-moz-border-clip: border;
+	-moz-background-inline-policy: continuous;
+	-moz-background-origin: padding;
+	background: #ffffff url('../images/gradient-light-short.png') repeat-x scroll 0 -20px;
+}
+.box-header{
+	color: #333333;
+	font-size: 12px;
+	margin-left: 0 !important;
+	margin-right: 0 !important;
+	margin-top: -15px;
+	min-height: 15px;
+	padding: 3px 0;
+	width: 100%
+}
+.box{
+	background-color: #fefefe;
+	border-color: #dddddd #cccccc #bbbbbb;
+	border-style: solid;
+	border-width: 1px;
+	padding: 15px 0;
+
+}
+.box_shadow{
+	-moz-box-shadow: 0 1px 3px #CCCCCC;
+}
+.itext{border: 1px solid #bbbbbb;margin:1px;padding:1px;}
+/*.btn{border:1px solid #bbbbbb;}*/
+.button,
+input[type="submit"] {
+	-moz-border-clip: border;
+	-moz-background-inline-policy: continuous;
+	-moz-background-origin: padding;
+	-moz-border-radius: 5px;
+	background #DDDDDD url('../images/gradient-medium-short.png') repeat-x scroll 0 0;
+	border-color: #999999;
+	color: #555555;
+}
+.button{
+	background-color: #eeeeee;
+	border: 1px solid #666666;
+	padding: 2px 3px;
+}
+
+#bodyBackground{background:#fff url('../images/bg.png') repeat-x top;}
+.error {
+	color: #990000;
+	background-color: #FFF0F0;
+	text-align: center;
+	padding: 5px;
+	margin-top: 5px;
+	margin-bottom: 10px;
+	margin-right: 5px;
+	margin-left: 5px;
+	border: 1px dashed #990000;
+}

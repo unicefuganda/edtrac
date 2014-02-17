@@ -1,0 +1,50 @@
+.results ul {
+    list-style-type:none;
+    margin:2px;
+    padding:0;
+}
+
+.results li {
+    padding:1px;
+}
+
+.small {
+    font-size:8pt;
+}
+
+.successmessage {
+    color:green;
+}
+
+.errormessage {
+    color:red;
+}
+
+.othermessage {
+    color:blue;
+}
+
+#div_action_0 a {
+    position:absolute;
+    top:1em;
+    left:25em;
+    white-space:nowrap;
+}
+
+#div_action_1 {
+    position:absolute;
+    top:3em;
+    left:45%;
+}
+
+#div_action_1 a {
+    position:absolute;
+    top:1em;
+    left:10em;
+    white-space:nowrap;
+}
+
+.filterform label{
+    font-size: medium;
+    color: #000000;
+}

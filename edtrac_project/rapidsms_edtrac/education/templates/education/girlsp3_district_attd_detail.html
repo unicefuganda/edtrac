@@ -1,0 +1,81 @@
+{% extends "education/admin/admin_dashboard.html" %}
+{% block title %} Absenteeism of P3 Girls - {{ block.super }}{% endblock %}
+{% load endless %}
+
+{% block masthead %}
+<div class="page-header">
+	<h2>Absenteeism of P3 Girls for {{ location }} (week: {{ week|date:"D d M Y" }})</h2>
+</div>
+{% endblock %}
+
+{% block content %}
+
+
+<div class="attendance">
+
+	<ul class="breadcrumb">
+		<li><a href="{% url attendance-admin-details %}">Absenteeism</a> <span class="divider">/</span></li>
+		<li><a href="{% url girls-p3-range %}">P3 Girls</a> <span class="divider">/</span></li>
+		<li class="active">{{ location }}</li>
+	</ul>
+
+    <div class="top">
+        {% paginate 25 location_data %}
+        <table class="table tabulated-data">
+            <thead>
+            <tr>
+                {% for heading in headings %}
+                <th>{{ heading }}</th>
+                {% endfor %}
+            </tr>
+
+            </thead>
+            <tbody>
+            {% for school, current_week, week_before, diff,enrollment,current,previous in location_data %}
+            <tr>
+                <td><a href="{% url school-detail school.id %}">{{ school.name }}</a></td>
+            <td>
+                      E:  {% if enrollment == '--' %}
+                            {{ enrollment }}
+                        {% else %}
+                            {{ enrollment|floatformat }}
+                        {% endif %}
+                C:  {% if current == '--' %}
+                            {{ current }}
+                        {% else %}
+                            {{ current|floatformat }}
+                        {% endif %}
+                P:  {% if previous == '--' %}
+                            {{ previous }}
+                        {% else %}
+                            {{ previous|floatformat }}
+                        {% endif %}
+
+                    </td>
+
+                <td>
+                    {% if current_week == '--' %}
+                    {{ current_week }}
+                    {% else %}
+                    {{ current_week|floatformat }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if week_before == '--' %}
+                    {{ week_before }}
+                    {% else %}
+                    {{ week_before|floatformat }}
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="paginator">
+        {% show_pages %}
+    </div>
+
+</div>
+
+{% endblock %}

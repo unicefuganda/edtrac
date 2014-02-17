@@ -1,0 +1,117 @@
+{% extends "education/admin/admin_dashboard.html" %}
+{% load endless %}
+{% block title %} National statistics -- {{ block.super }} {% endblock %}
+{% block content %}
+<ul class="breadcrumb">
+    <li>
+        <a href="{% url rapidsms-dashboard %}" style="text-decoration: none; line-height: inherit;">← Back to EdTrac Home Page</a>
+    </li>
+</ul>
+        <div class="general">
+            <div style="float: left; width:410px;">
+            <p>
+            <h3 style="background-color:black; color:white; margin-bottom:5px; padding:10px;">
+                EduTrac Districts (total: {{ total_districts }})
+            </h3>
+            </p>
+            <table class="classy">
+                <tr>
+                    <th>District</th>
+                    <th>Schools being tracked</th>
+                </tr>
+                {% for district, school_count in district_schools %}
+                <tr>
+                    <td>{{ district }}</td>
+                    <td>{{ school_count }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+
+            </div>
+            
+            <div style="float:right; width:460px;">
+            	<p><h3 style="background-color:black; color:white; margin-bottom:5px; padding:10px;">EduTrac Reporters: Total => {{all_reporters}}</h3></p>
+            	<table class="classy">
+            		<tr>
+            			<th>Reporter Group</th>
+            			<th>Number of Reporters</th>
+            		</tr>
+            		<tr><td>Head Teachers: </td><td>{{ head_teacher_count }}</td></tr>
+            		<tr><td>Total Teacher Number: </td><td>{{ total_teacher_count }}</td></tr>
+            		<tr><td>P3 Teachers: </td><td>{{ p3_teacher_count }}</td></tr>
+            		<tr><td>P6 Teachers: </td><td>{{ p6_teacher_count }}</td></tr>
+            		<tr><td>Dirty Teacher Data: </td><td>{{ teacher_data_unclean }}</td></tr>
+            		<tr><td>SMC Members: </td><td>{{ smc_count }}</td></tr>
+            		<tr><td>GEM Reporters: </td><td>{{ gem_count }}</td></tr>
+            		<tr><td>Total Expected Reporters: </td><td>{{ expected_reporters }}</td></tr>
+            	</table>
+            	
+            	<h3 style="background-color:black; color:white; margin-bottom:5px; padding:10px;">
+                EduTrac Schools Tracked: {{ total_schools }}
+            	</h3>
+            </div>
+
+
+			<div style="clear:both;">
+                <h3 style="background-color:black; color:white; margin-bottom:5px; padding:10px;">School Activity</h3>
+
+                <!-- <div class="stats">
+                    <span>Number of active schools: </span><span style="color:white;">{{ school_active_count }}</span><br/><br/>
+                    <span>Total number of schools: </span><span style="color:white;">{{ school_count }}</span>
+                </div> -->
+                
+                
+                <table class="classy">
+                    <tr>
+                        <th>Most Active </th>
+                        <th>Least Active </th>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table style="width:450px;">
+                                {% for school, active_schools in school_active %}
+                                <tr><td>{{ school }}</td><td>{{ active_schools|floatformat }}%</td></tr>
+                                {% endfor %}
+                            </table>
+                        </td>
+                        <td>
+                            <table style="width:450px;">
+                                {% for school, active_schools in school_less_active %}
+                                <tr><td>{{ school }}</td><td>{{ active_schools|floatformat }}%</td></tr>
+                                {% endfor %}
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </div> 
+	
+
+
+           <div style="clear:both;">
+            <h3 style="background-color:black; color:white; margin-bottom:5px; padding:10px;">Head Teacher Activity</h3>
+
+            <table class="classy">
+                <tr>
+                    <th>Most Active</th>
+                    <th>Least Active</th>
+                </tr>
+                <tr>
+                    <td>
+                    <table style="width:450px;">
+                        {% for district, active_heads in district_active %}
+                        <tr><td>{{ district }}</td><td>{{ active_heads|floatformat }}%</td></tr>
+                        {% endfor %}
+                    </table>
+                    </td>
+                    <td>
+                        <table style="width:450px;">
+                            {% for district, active_heads in district_less_active %}
+                            <tr><td>{{ district }}</td><td>{{ active_heads|floatformat }}%</td></tr>
+                            {% endfor %}
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            </div>
+        </div>
+{% endblock %}

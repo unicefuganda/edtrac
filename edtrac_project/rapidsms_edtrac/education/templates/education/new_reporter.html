@@ -1,0 +1,44 @@
+{% extends "education/base.html" %}
+{% load stats_extras %}
+{% block content %}
+        <fieldset>
+        <legend>Create a new EduTrac Reporter</legend>
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="new_reporter">
+            <div class="fieldWrapper">
+                <label for="id_name">Name</label>{{ form.name }}
+            </div>
+
+            <div class="fieldWrapper">
+                <label for="id_connection">Contact (Telephone)</label> {{ form.connection_set }}
+            </div>
+
+
+            <div class="fieldWrapper">
+                <label for="id_reporting_location">Reporting Location</label>{{ form.reporting_location }}
+            </div>
+
+            <div class="fieldWrapper">
+                <label for="id_active">Active (check to activate)</label>{{ form.active }}
+            </div>
+
+
+            <div class="fieldWrapper">
+                <label for="id_gender">Gender</label>{{ form.gender }}
+            </div>
+
+            <div class="fieldWrapper">
+                <label for="id_groups">Groups (e.g. Teachers)</label>{{ form.groups }}
+            </div>
+
+            <div class="fieldWrapper">
+                <label for="id_schools">School (choose one)</label>{{ form.schools }}
+            </div>
+
+            <input type="submit" value="create">
+            </div>
+        </form>
+        </fieldset>
+
+{% endblock %}

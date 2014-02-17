@@ -1,0 +1,102 @@
+{% extends "education/base.html" %}
+{% load stats_extras %}
+{% load endless %}
+{% block content %}
+<div class="generic_table">
+    <table width="100%" cellpadding="5" cellspacing="0">
+        <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Role</th>
+            <th>District</th>
+            <th>Last Reported</th>
+            <th># Reports</th>
+            <th>School</th>
+            <th>Options</th>
+        </tr>
+        {% paginate reporter_list %}
+        {% for reporter in reporter_list %}
+            <tr>
+                <td>
+                    {% if reporter.default_connection %}
+                        <a href="{% url message_history reporter.default_connection.pk %}">
+                    {% endif %}
+                    {{ reporter.name }}
+                    {% if reporter.default_connection %}
+                        </a>
+                    {% endif %}
+                </td>
+                <td>
+                    <ul>
+                        {% for c in reporter.connection_set.all %}
+                            <li>
+                                {{ c.identity }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </td>
+                <td>
+                    <ul>
+                        {% for g in reporter.groups.all %}
+                            <li>
+                                {{ g.name }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </td>
+                <td>{{ reporter.reporting_location|get_district }}</td>
+                <td>{{ reporter|latest|date:"d-m-Y" }}</td>
+                <td>{{ reporter|submissions }}</td>
+                <td>
+                	<ul>
+                        {% for s in reporter.schools.all %}
+                            <li>
+                                {{ s.name }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                 </td>
+                {% comment %} 
+                <td id="row_{{ reporter.pk }}">{{ reporter.reporting_location.name }}</td>
+                {% endcomment %}
+                <td class="button_col">
+                    <div class="buttons">
+                        <a href="javascript:void(0)" onclick="deleteReporter(this, {{ reporter.pk }},'{{ reporter.name }}', '{% url education.views.delete_reporter reporter.pk %}')">
+                            <img src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png" />
+                        </a>
+                         <a href="javascript:void(0)" onclick="editReporter(this, {{ reporter.pk }}, '{% url education.views.edit_reporter reporter.pk %}')">
+                            <img src="{{ MEDIA_URL }}poll/icons/silk/pencil.png" />
+                        </a>
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+
+        <div class="pagination">
+        {% show_pages %}
+
+        </div>
+
+<!--
+{% if is_paginated %}
+        <div class="pagination">
+            <span class="page-links">
+                {% if page_obj.has_previous %}
+                   <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+                {% endif %}
+                <span class="page-current">
+                    page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                </span>
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number}}">next</a>
+                {% endif %}
+            </span>
+        </div>
+
+{% endif %}
+-->
+
+
+{% endblock %}

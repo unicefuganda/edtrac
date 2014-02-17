@@ -1,0 +1,37 @@
+{% load stats_extras %}
+<td>&nbsp;</td>
+<td id="row_{{ school.pk }}">{{ school_form.name }}
+    {% if school_form.name.errors %}
+        <br clear="left"/>
+        {{ school_form.name.errors }}
+    {% endif %}
+</td>
+<td>{{ school_form.location }}
+    {% if school_form.location.errors %}
+        <br clear="left"/>
+        {{ school_form.location.errors }}
+    {% endif %}
+</td>
+<td>{{ school_form.emis_id }}
+    {% if school_form.emis_id.errors %}
+        <br clear="left"/>
+        {{ school_form.emis_id.errors }}
+    {% endif %}
+</td>
+<td>&nbsp;</td>
+<td class="button_col">
+    <div class="buttons">
+        <a href="javascript:void(0)"
+           onclick="$(this).parents('tr').load('../school/{{ school.pk }}/show/')">
+            <img src="{{ MEDIA_URL }}rapidsms/icons/silk/decline.png"/>
+        </a>
+        <a href="javascript:void(0)"
+           onclick="submitForm(this, '../school/{{ school.pk }}/edit/', $(this).parents('tr'))">
+            <img src="{{ MEDIA_URL }}rapidsms/icons/silk/accept.png"/>
+        </a>
+    </div>
+</td>
+
+
+
+

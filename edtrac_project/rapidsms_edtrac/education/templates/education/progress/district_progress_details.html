@@ -1,0 +1,75 @@
+{% extends "education/admin/admin_dashboard.html" %}
+{% load endless %}
+{% load stats_extras %}
+{% block title %} Curriculum Progress P3 -- {{ block.super }} {% endblock %}
+{% block content %}
+    <ul class="breadcrumb"><li><a href="{% url rapidsms-dashboard %}">← Back to the EduTrac Home Page</a></li></ul>
+    <div class="general">
+
+        {% include "education/progress/_progress_detail_partial.html" %}
+
+        <div id="table_row" class="clear">
+            <div class="school_report general">
+                <div class="table_container">
+                    <div class="table">
+                        {% with location_data.items as list %}
+                            <table class="classy tabular-data">
+                                <tr>
+                                    <thead>
+                                    <th>{{ sub_location_type|capfirst }}</th>
+                                    <th>Literacy sub theme completed</th>
+                                    <!--<th>Percentage of schools at level</th>-->
+                                    <!--<th>Progress Status</th>-->
+                                    </thead>
+                                </tr>
+                                {% paginate 25 list %}
+                                {% for  sub_location,mode in list %}
+                                    {% if mode|format_mode == "No Reports made this week" %}
+                                        <tr>
+                                            <td>
+                                                <a href={{ sub_location_type|get_url:sub_location.pk}}> {{ sub_location.name }}</a>
+                                            </td>
+                                            <td>
+                                                {{ mode|format_mode }}
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </table>
+                            {% show_pages %}
+                            <table class="classy tabular-data">
+                                <tr>
+                                    <thead>
+                                    <th>{{ sub_location_type|capfirst }}</th>
+                                    <th>Literacy sub theme completed</th>
+                                    <!--<th>Percentage of schools at level</th>-->
+                                    <!--<th>Progress Status</th>-->
+                                    </thead>
+                                </tr>
+                                {% paginate 25 list %}
+                                {% for  sub_location,mode in list %}
+                                    {% if mode|format_mode != "No Reports made this week" %}
+                                        <tr>
+                                            <td>
+                                                <a href={{ sub_location_type|get_url:sub_location.pk}}> {{ sub_location.name }}</a>
+                                            </td>
+                                            <td>
+                                                {{ mode|format_mode }}
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </table>
+                            {% show_pages %}
+                        {% endwith %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        $(document).ready(function(){
+        });
+    </script>
+
+{% endblock %}

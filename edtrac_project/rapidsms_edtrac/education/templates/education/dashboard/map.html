@@ -1,0 +1,30 @@
+<table width="100%" cellpadding="5" cellspacing="0" border="1" style="border-collapse: collapse; border-color: #efefef">
+    <tr>
+        <td width="425">
+        <div class="map">
+            <!-- using js, we should populate the map titles -->
+            <h3>Pupil Attendance</h3>
+            <iframe width="425" height="350" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="http://maps.google.co.ug/?ie=UTF8&amp;t=m&amp;vpsrc=6&amp;ll=1.274309,32.080078&amp;spn=7.682768,9.338379&amp;z=6&amp;output=embed"></iframe><br /><small><a href="http://maps.google.co.ug/?ie=UTF8&amp;t=m&amp;vpsrc=6&amp;ll=1.274309,32.080078&amp;spn=7.682768,9.338379&amp;z=6&amp;source=embed" style="color:#0000FF;text-align:left">View Larger Map</a></small>
+<!--             <img border="0" src="http://maps.googleapis.com/maps/api/staticmap?center=Kampala,Uganda&amp;zoom=14&amp;size=380x300&amp;maptype=roadmap&amp;markers=color:blue%7Clabel:S%7C40.702147,-74.015794&amp;markers=color:green%7Clabel:G%7C40.711614,-74.012318&amp;markers=color:red%7Clabel:C%7C40.718217,-73.998284&amp;sensor=false" alt="Points of Interest in Lower Manhattan"> -->
+        </td>
+        <td valign="top">
+            <div class="indicator" style="float:right;top:0px">
+            <h3>Select an indicator to view it on Map</h3>
+            <form>
+                <!-- TODO: using django forms a more dynamic form will be created. This is demo code!!! -->
+                <input type="radio" value="boys_attendance" name="indicator" checked="checked">Pupil Attendance<br/>
+                <input type="radio" value="teachers_attendance" name="indicator">Teachers Attendance<br/>
+                <input type="radio" value="headteacher_attendance" name="indicator">Head Teachers<br/>
+                <input type="radio" value="meals_consumption" name="indicator">Meals Consumption<br/>
+                <input type="radio" value="violence_incidences" name="indicator">Violence Incidences<br/>
+                <input type="radio" value="curriculum_progress" name="indicator">Curriculum Progress<br/>
+            </form>
+        </div>
+        <div class="indicator" style="float:right;top:0px">
+            <h3>Key</h3>
+            
+        </div>
+        </td>
+    </tr>
+    </table>
+</div>

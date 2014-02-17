@@ -1,0 +1,51 @@
+{% load stats_extras %}
+<div>
+    <a href="{% url emis-grants 'first'%}" style="border-left: 2px solid; padding-left: 5px">First Term</a>
+    <a href="{% url emis-grants 'second'%}" style="border-left: 2px solid; padding-left: 5px">Second Term</a>
+    <a href="{% url emis-grants 'third'%}" style="border-left: 2px solid; padding-left: 5px">Third Term</a>
+</div>
+<div id="capitation_container" style="margin-bottom: 20px;">
+    <div class="stats"><h3>UPE Capitation Received on time across {{ location.name|capfirst }} reported by {{ group|capfirst }}</h3></div>
+    <div id="capitation" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            pie("{{ responses|reorganize_data|join:"," }}",
+                    "UPE Grants Received this Term",
+                    "Capitation Grants Received",
+                    "capitation",
+                    " responded",
+                    true
+            );
+
+            $("#capitation").append("<div class='report-stickie'><span style='margin-top:10px;' class='alert-message'>Report based on {{ reporter_count|floatformat }}% of Total Reporters</span></div>");
+        });
+    </script>
+</div>
+
+<div class="districts-stats" style="margin-top: 50px">
+    <div class="stats"><h3>UPE Capitation Grants Received by {{ sub_location_type|capfirst }}</h3></div>
+    <div style="padding:10px;">
+        <p>Click over a {{ sub_location_type }} to view</p>
+    </div>
+    <div id="placeholder" style="float:right; clear:both;"></div>
+    <table class="classy" style="width:200px;" border='1'>
+        <tr>
+            <th>{{ sub_location_type|capfirst }}</th>
+        </tr>
+        {% for sub_location, responses in sub_locations %}
+            <tr>
+                <td><a href="" id="response-{{ sub_location.id }}">{{ sub_location.name }}</a></td>
+            </tr>
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    $('a#response-{{ sub_location.id }}').click(
+                            function (event) {
+                                pie('{{ responses|reorganize_data|join:"," }}', "{{ sub_location.name }}", "", "placeholder", " responded", true);
+                                event.preventDefault();
+                            });
+                });
+            </script>
+        {% endfor %}
+    </table>
+</div>

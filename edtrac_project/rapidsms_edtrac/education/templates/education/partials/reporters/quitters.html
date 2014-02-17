@@ -1,0 +1,67 @@
+{% extends "generic/base.html" %}
+{% load endless %}
+{% load i18n %}
+{% block title %}
+Quitters - {{ block.super }}
+{% endblock %}
+
+{% block javascripts %}
+{{ block.super }}
+    <script src="{{ MEDIA_URL }}education/javascripts/jquery-1.7.1.min.js" type="text/javascript"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-ui-1.8.19.custom.min.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}education/javascripts/jquery-ui-1.7.3.custom.min.js"></script>
+    <script src="{{ MEDIA_URL }}education/javascripts/add_datepicker.js" type="text/javascript"></script>
+{% endblock %}
+
+<div id="wrapper">
+
+{% block masthead %}
+<div class="page-header"><h2>Quitters</h2></div>
+{% endblock %}
+
+{% block content %}
+<div id="content">
+
+  <div class="container">
+    <table id="quitters" class="table">
+    <thead>
+        <tr class="colhead">
+            <th>Name</th>
+            <th>Number</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% paginate quitters %}
+            {% for reporter in quitters %}
+            <tr>
+                <td>{{ reporter }}</td>
+                <td>{{ reporter.default_connection }}</td>
+            </tr>
+            {% endfor %}
+    </tbody>
+</table>
+{% show_pages %}
+</div> <!-- /.container -->
+
+</div> <!-- /#content -->
+</div> <!-- end wrapper -->
+
+<script src="{{MEDIA_URL}}contact/javascripts/messages.js" type="text/javascript"></script>
+<script src="{{MEDIA_URL}}education/javascripts/emis_reporters.js" type="text/javascript"></script>
+<script src="{{MEDIA_URL}}education/javascripts/bootstrap-modal.js" type="text/javascript"></script>
+<script src="{{MEDIA_URL}}education/javascripts/jquery.metadata.js"></script>
+<script src="{{MEDIA_URL}}education/javascripts/jquery.tablesorter.min.js"></script>
+<script src="{{MEDIA_URL}}education/javascripts/jquery.tablecloth.js"></script>
+    
+    <script type="text/javascript" charset="utf-8">
+      $(document).ready(function() {
+        $("#quitters ").tablecloth({
+          theme: "paper",
+          striped: true,
+          condensed: true,
+          customClass: "tablehead"
+        });
+      });
+    </script>
+
+{% endblock %}

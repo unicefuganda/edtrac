@@ -1,0 +1,34 @@
+{% extends "education/admin/admin_dashboard.html" %}
+{% load endless %}
+{% block title %} SMC Meetings in {{ location_name }}-- {{ block.super }} {% endblock %}
+{% block content %}
+<ul class="breadcrumb">
+    <li>
+        <a href="{% url rapidsms-dashboard %}" style="text-decoration: none; line-height: inherit;">← Back to EdTrac Home Page</a>
+        <span class="divider">\</span>
+    </li>
+    <li>
+        <a href="{% url emis-dash-admin-meetings %}" style="text-decoration: none; line-height: inherit;">Meetings in Districts</a>
+    </li>
+</ul>
+
+<div class="general">
+    <div class="stats"><h1 style="text-align: center;">SMC Meetings in {{ location_name }}</h1></div>
+    {% paginate meeting_count %}
+    <table class="tabulated-data classy smc_meetings">
+        <tr>
+            <th>Schools</th>
+            <th>Number of meetings</th>
+        </tr>
+
+        {% for school, number in meeting_count %}
+        <tr>
+            <td><a href="{% url school-detail school.1 %}">{{ school.0 }}</a></td>
+            <td>{{ number }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% show_pages %}
+</div>
+
+{% endblock %}

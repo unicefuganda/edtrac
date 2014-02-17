@@ -1,0 +1,42 @@
+{% extends "education/admin/admin_dashboard.html" %}
+{% load endless %}
+{% block title %}
+Absenteeism of P6 Boys by District -- {{ block.super }}
+{% endblock %}
+{% block content %}
+<ul class='breadcrumb'>
+	<li>
+		<a href="{% url rapidsms-dashboard %}">Dashboard Home</a>
+	</li>
+</ul><div class="attendance">
+    <h2 class="block-header">Absenteesim of P6 Boys by District (week: {{ week|date:"D d M Y" }})</h2>
+
+    <div class="top">
+        {% paginate 25 location_data %}
+        <table class="tabulated-data">
+            <thead>
+            <tr>
+                {% for heading in headings %}
+                <th>{{ heading }}</th>
+                {% endfor %}
+            </tr>
+
+            </thead>
+            <tbody>
+            {% for district, cur_value, prev_value, diff in location_data %}
+            <tr>
+                <td><a href="{% url boysp3-district-attd-detail district.id %}">{{ district }}</a>
+                <td>{% if cur_value == '--' or cur_value == 0%} {{ cur_value }} {% else %} {{ cur_value|floatformat }} {% endif %}</td>
+                <td>{% if prev_value == '--' or prev_value == 0%} {{ prev_value }} {% else %} {{ prev_value|floatformat }} {% endif %}</td>
+                <td>{% if diff == '--' or diff == 0 %} {{ diff }} {% else %} {{ diff|floatformat }}{% endif %}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="paginator">
+        {% show_pages %}
+    </div>
+</div>
+
+{% endblock %}

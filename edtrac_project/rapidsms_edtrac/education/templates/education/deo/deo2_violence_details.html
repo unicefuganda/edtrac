@@ -1,0 +1,147 @@
+{% extends "education/layout_base.html" %}
+{% load stats_extras %}
+{% block title %} Violence Cases -- {{ block.super }}{% endblock %}
+{% block content %}
+    <ul class='breadcrumb'>
+        <li><a href="{% url rapidsms-dashboard %}">Dashboard Home</a></li>
+    </ul>
+
+    <div class="general">
+
+        <ul class='breadcrumb' style="background-color: #e0ccef">
+            <li>
+                <a href="#" id="gem">Reports by GEM</a>
+                <span class="divider">|</span>
+            </li>
+            <li><a href="#" id="headteachers">Reports by Head Teachers</a></li>
+        </ul>
+        <div id="violence-graph"></div>
+        <script>
+            $(document).ready(function () {
+                violence_cases('{{ monthly_data_gem }}', title = "Violence in {{ location_name }} (GEM Report)");
+                $('a#headteachers').click(function (event) {
+                    violence_cases(
+                            '{{ monthly_data_h_teach }}',
+                            title = "Violence in {{ location_name }} (Head Teacher report)"
+                    );
+                });
+                $('a#gem').click(function (event) {
+                    violence_cases(
+                            '{{ monthly_data_gem }}',
+                            title = "Violence in {{ location_name }} (GEM reports)"
+                    );
+                });
+            });
+        </script>
+
+
+        <a href="#" id="show-table">Show Violence data</a> | <a href="#" id="hide-table">Hide Violence data</a>
+
+        <div class="viol">
+            <h2 class="block-header">Violence cases reported by schools</h2>
+
+            <div class="top">
+                <table class="tabulated-data">
+                    <tbody>
+                    <tr>
+                        <th>District</th>
+                        <th>Violence cases recorded in {{ report_dates.0|date:"M Y" }}</th>
+                        <th>Violence cases recorded in {{ report_dates.1|date:"M Y" }}</th>
+                        <th>Percentage change (%)</th>
+                    </tr>
+                    {% if violence_cases_reported_by_schools %}
+                        {% for name, list in violence_cases_reported_by_schools %}
+                            {% if list.0 == 0 and list.1 == 0 %}
+                            {% else %}
+                                <tr>
+                                    <td><a href="{% url district-violence list.2.pk %}">{{ list.2 }}</a></td>
+                                    <td>{{ list.0 }}</td>
+                                    <!-- current month -->
+                                    <td>{{ list.1 }}</td>
+                                    <!-- TODO check if list.3 is a decimal and limit dps -->
+                                    <td>
+                                        {% if list.3 == '--' %}
+                                            {{ list.3 }}
+                                        {% else %}
+                                            {{ list.3|floatformat }}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                        <tr>
+                            <td>Total</td>
+                            {% for t in school_totals %}
+                                <td>{{ t|floatformat }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4" style="text-align: center;">No cases</td>
+                        </tr>
+                    {% endif %}
+                </table>
+
+                <p class="report alert-message block-message">Results for this month based
+                    on {{ sch_reporting_percentage }}% of Total Reporters</p>
+
+
+                <h2 class="block-header">Violence cases reported by community members</h2>
+                <table class="tabulated-data">
+                    <tbody>
+                    <tr>
+                        <th>District</th>
+                        <th>Violence cases recorded in {{ report_dates.0|date:"M Y" }}</th>
+                        <th>Violence cases recorded in {{ report_dates.1|date:"M Y" }}</th>
+                        <th>Percentage change (%)</th>
+                    </tr>
+                    {% if violence_cases_reported_by_gem %}
+                        {% for name, list in violence_cases_reported_by_gem %}
+                            {% if list.0 == 0 and list.1 == 0 %}
+                            {% else %}
+                                <tr>
+                                    <td><a href="{% url district-violence-community list.2.pk %}">{{ list.2 }}</a></td>
+                                    <td>{{ list.0 }}</td>
+                                    <!-- current month -->
+                                    <td>{{ list.1 }}</td>
+                                    <!-- TODO check if list.3 is a decimal and limit dps -->
+                                    <td>{{ list.3 }}</td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                        <tr>
+                            <td>Total</td>
+                            {% for t in gem_totals %}
+                                <td>{{ t }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4" style="text-align: center;">No cases</td>
+                        </tr>
+                    {% endif %}
+                </table>
+
+                <p class="report alert-message block-message">Results for this month based
+                    on {{ gem_reporting_percentage }}% of Total Reporters</p>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('.viol').hide();
+            $('a#show-table').click(function (event) {
+                $('.viol').show();
+            });
+            $('a#hide-table').click(function (event) {
+                $('.viol').hide();
+                event.preventDefault();
+            })
+        });
+    </script>
+
+
+
+{% endblock %}

@@ -1,0 +1,14 @@
+{% load stats_extras %}
+<tr>
+<td>
+    {% for school in object.contact.emisreporter.schools_list %}
+        {{ school }}
+    {% endfor %}
+</td>
+<td>
+    {{ object.message.text }}
+</td>
+<td>
+    {{ object.date|date:"d-m-Y" }}
+</td>
+</tr>

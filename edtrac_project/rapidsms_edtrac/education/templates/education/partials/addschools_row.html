@@ -1,0 +1,17 @@
+{% extends 'generic/partials/partial_row.html' %}
+{% load stats_extras %}
+{% block remaining_row_content %}
+	    <td>
+	    	{% for obj in object %}
+	    		<p>
+		            {{ obj.name }} - Added to Schools Database
+			        <span class="buttons">
+			            <a href="javascript:void(0)" onclick="deleteSchool(this, '{% url delete-school obj.pk %}','{{ obj.school }}')">
+			                <img src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png" />
+			            </a>
+                        <a href="{% url emis-schools %}"> Back </a>
+			        </span>
+		    	</p>
+	        {% endfor %}	
+	    </td>   
+{% endblock %}

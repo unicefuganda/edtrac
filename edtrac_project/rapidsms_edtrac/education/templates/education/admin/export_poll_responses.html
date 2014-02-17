@@ -1,0 +1,53 @@
+{% extends "education/admin/admin_dashboard.html" %}
+{% load stats_extras %}
+
+{% block title %}
+    Export Poll Responses -- {{ block.super }}
+{% endblock %}
+
+{% block masthead %}
+<div class="page-header">
+    <h2>Export Poll Messages</h2>
+    <div id="masthead-text"><span></span></div>
+</div>
+{% endblock %}
+
+{% block content %}
+<ul class="breadcrumb">
+    <li><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; line-height: inherit;">EdTrac Home Page</a> <span class="divider">/</span></li>
+    <li><a href="{% url control-panel %}" style="text-decoration: none; line-height: inherit;">Control Panel</a> <span class="divider">/</span></li>
+    <li>Export Poll Messages</li>
+</ul>
+
+<div style="padding: 10px;margin: 5px;">
+	<form action="" method="POST" class="form">
+	    {% csrf_token %}
+	    <fieldset>
+		<div class="{{ form.from_date.css_classes  }} control-group">
+		    <label class="control-label" for="id_from_date">{{ form.from_date.label }}</label>
+		    {{ form.from_date }}
+		    <div class="error">{{ form.from_date.errors }}</div>
+		</div>
+		<div class="{{ form.to_date.css_classes  }} control-group">
+		    <label class="control-label" for="id_to_date">{{ form.to_date.label }}</label>
+		    {{ form.to_date }}
+		    <div class="error">{{ form.to_date.errors }}</div>
+		</div>
+		<div class="{{ form.poll_name.css_classes  }} control-group">
+		    <label class="control-label" for="id_poll_name">{{ form.poll_name.label }}</label>
+		    {{ form.poll_name }}
+		    <div class="error">{{ form.poll_name.errors }}</div>
+		</div>
+		<div>
+		    <button type="submit" value="Export" class="btn btn-primary">Export</button>
+		</div>
+	    </fieldset>
+	</form>
+        <script>
+            $(function(){
+                $('#id_from_date').datepicker();
+                $('#id_to_date').datepicker();
+            });
+        </script>
+    </div>
+{% endblock %}

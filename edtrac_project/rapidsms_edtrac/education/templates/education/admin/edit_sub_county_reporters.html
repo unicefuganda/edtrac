@@ -1,0 +1,62 @@
+{% extends "education/layout_base.html" %}
+{% load stats_extras %}
+{% block title %}
+    Sub County Reporters -- {{ block.super }}
+{% endblock %}
+{% block content %}
+    <div style="padding-bottom: 20px;float: left">
+        <a class="button button-purple" href="{% url export-sub-county-reporters %}">
+            <span class="details">
+                Export
+            </span>
+        </a>
+    </div>
+    <div style="padding: 10px;margin: 5px;">
+        <table style="border: 1px solid #dddddd; border-collapse: separate;width: 100%;background-color: #ffffff"
+               border="1">
+            <tr style="border-collapse: separate">
+                <th style="border-left: 1px solid #dddddd">
+                    Id
+                </th>
+                <th style="border-left: 1px solid #dddddd">
+                    Name
+                </th>
+                <th style="border-left: 1px solid #dddddd">
+                    Number
+                </th>
+                <th style="border-left: 1px solid #dddddd">
+                    Location Type
+                </th>
+                <th style="border-left: 1px solid #dddddd">
+                    Location
+                </th>
+                <th style="border-left: 1px solid #dddddd">
+                    Schools
+                </th>
+            </tr>
+            {% for reporter in reporters %}
+                <tr>
+                    <td style="border-left: 1px solid #dddddd; border-top: 1px solid #dddddd; text-align: center">
+                        {{ reporter.id }}
+                    </td>
+                    <td style="border-left: 1px solid #dddddd; border-top: 1px solid #dddddd; text-align: center">
+                        {{ reporter.name }}
+                    </td>
+                    <td style="border-left: 1px solid #dddddd; border-top: 1px solid #dddddd; text-align: center">
+                        {{ reporter.default_connection.identity }}
+                    </td>
+                    <td style="border-left: 1px solid #dddddd; border-top: 1px solid #dddddd; text-align: center">
+                        {{ reporter.reporting_location.type }}
+                    </td>
+                    <td style="border-left: 1px solid #dddddd; border-top: 1px solid #dddddd; text-align: center">
+                        {{ reporter.reporting_location.name }}
+                    </td>
+                    <td style="border-left: 1px solid #dddddd; border-top: 1px solid #dddddd; text-align: center">
+                        {{ reporter.schools.all|format_schools }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+
+    </div>
+{% endblock %}

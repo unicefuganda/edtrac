@@ -1,0 +1,15 @@
+#id_user_permissions {
+    width:100%;
+}
+
+#id_groups {
+    width: 100%;
+}
+
+#id_reporting_location {
+    width: 100%;
+}
+
+.col-1 th, .col-1 td {
+    white-space: normal;
+}

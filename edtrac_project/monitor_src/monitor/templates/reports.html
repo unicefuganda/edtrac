@@ -1,0 +1,38 @@
+<%inherit file="base.html"/>
+<%block name="content">
+    <%self:mylinks>
+        <li><a href="/settings">Settings</a></li>
+    </%self:mylinks>
+    <table class="list" style="padding-bottom: 0px; margin-bottom:0px; border-bottom:none;
+        background-color:#4069b0;color:ffffff;">
+            <tr><th>Message Log</th><th></th></tr>
+    </table>
+    <table class="list">
+        <tr style="text-align:left"><th>NETWORK</th><th>Message Out</th><th>Time Sent</th><th>Message In</th>
+            <th>Response Time</th><th>Recipient</th>
+        </tr>
+        % for l in res:
+            <tr>
+                <td>${l.name}</td>
+                <td>${l.msg_out}</td>
+                <td>${l.send_date}</td>
+                <td>
+                    % if l.msg_in:
+                        ${l.msg_in}
+                    % else:
+                        N/A
+                    % endif
+                </td>
+                <td>
+                    % if l.receive_date:
+                        ${l.receive_date}
+                    % else:
+                        N/A
+                    % endif
+                </td>
+                <td>${l.recipient}</td>
+            </tr>
+        % endfor
+    </table>
+    ${pagination_str}
+</%block>
