@@ -22,4 +22,4 @@ script:
   - python manage.py syncdb --noinput
   - python manage.py migrate
   - coverage run manage.py test
-  - coverage -m
+  - coverage report -m
