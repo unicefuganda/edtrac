@@ -1,8 +1,6 @@
 *.pyc
 .idea/*
 .idea/
-localsettings.py
-testSettings.py
 edtrac_projects/media
 build
 patch
@@ -15,10 +13,7 @@ Vagrantfile
 .coverage
 static/
 edtrac_project/.DS_Store
-edtrac_20140114.sql
 ~*
 *.orig
 *.db
 *.sqlite*
-_build
-build
