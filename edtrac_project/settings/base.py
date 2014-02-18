@@ -85,6 +85,7 @@ INSTALLED_BACKENDS = {
 }
 
 STATIC_ROOT = os.path.join(filedir, 'static')
+STATIC_URL = '/assets/'
 
 # to help you get started quickly, many django/rapidsms apps are enabled
 # by default. you may wish to remove some and/or add your own.
