@@ -51,7 +51,7 @@ def schedule_at(connection, script, time):
     """
     ScriptProgress.objects.filter(connection=connection, script=script).delete()
     if time and not Blacklist.objects.filter(connection=connection).exists():
-        progress = ScriptProgress.objects.create(connection=connection, script=script, time=time)
+        ScriptProgress.objects.create(connection=connection, script=script, time=time)
 
 def schedule_script_at(script, time, groups=groups):
     """
