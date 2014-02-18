@@ -1,4 +1,5 @@
-from education.models import Response 
+from education.models import *
+from django.db.models import *
 
 class NumericResponsesFor():
     def __init__(self, polls):
