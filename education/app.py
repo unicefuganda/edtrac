@@ -43,7 +43,7 @@ class App (AppBase):
                         connection=message.connection)
                 else:
                     message.respond("Your registration is not complete yet, you do not need to 'Join' again.")
-            elif Blacklist.objects.filter(connection=message.connection).count():
+            elif Blacklist.objects.filter(connection=message.connection).exists():
                 Blacklist.objects.filter(connection=message.connection).delete()
                 if not ScriptProgress.objects.filter(script__slug='edtrac_autoreg', connection=message.connection).count():
                     ScriptProgress.objects.create(script=Script.objects.get(slug="edtrac_autoreg"),\
