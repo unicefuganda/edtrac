@@ -87,13 +87,13 @@ class SchoolFilterForm(FilterForm):
 class LastReportingDateFilterForm(FilterForm):
     """ filter form for emis reporter on reporting date """
     from_date = forms.DateField()
-    to_date = forms.DateField(help_text='select dates to filter by last reporting date')
+    to_date = forms.DateField(help_text='Select dates to filter by last reporting date.')
 
     def filter(self, request, queryset):
-        if self.cleaned_data['to_date'] is not None and self.cleaned_data['from_date'] is not None:
+        if self.cleaned_data['to_date'] and self.cleaned_data['from_date']:
             if self.cleaned_data['to_date'] < self.cleaned_data['from_date']:
                 return queryset.none()
-            date_range = [self.cleaned_data['from_date'],self.cleaned_data['to_date']]
+            date_range = (self.cleaned_data['from_date'], self.cleaned_data['to_date'])
             if queryset.model.__name__ == 'EmisReporter':
                 return queryset.filter(responses__date__range=date_range).distinct()
             if queryset.model.__name__ == 'Messages':
