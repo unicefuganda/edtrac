@@ -1,0 +1,153 @@
+@import "style2.css";
+@import "pagination.css";
+body{
+	/*font-family:Verdana;*/
+	font-size: 13px;
+    color: #222222;
+    font-family: 'Lucida Grande',Veranda,sans-serif;
+    font-style: normal;
+    text-decoration: none;
+    text-transform: none;
+
+
+}
+*{margin: 0;
+	padding: 0;
+	font-family: inherit;
+	font-size: 100%;
+	/*font-style: inherit;*/
+	font-weight: inherit;
+	text-decoration: inherit;
+}
+.itext{
+	border: solid 1px #dddddd;
+	margin-bottom: 1px;
+	font-size: 90%;
+	padding:1px;
+}
+.button,
+input[type="submit"] {
+	-moz-border-clip: border;
+	-moz-background-inline-policy: continuous;
+	-moz-background-origin: padding;
+	-moz-border-radius: 5px;
+	background #DDDDDD url('media/images/gradient-medium-short.png') repeat-x scroll 0 0;
+	border-color: #999999;
+	color: #555555;
+}
+.button{
+	background-color: #eeeeee;
+	border: 1px solid #666666;
+	padding: 2px 3px;
+}
+h2{
+	text-shadow: 1px 1px 2px black, 0 0 1em white, 0 0 0.2em white;
+	color: black;
+	font: 1.5em Georgia, "Bitstream Charter", "URW Bookman L", "Century Schoolbook L", serif;
+	padding: 5px;
+}
+h3{
+    color: #3C28BF;
+}
+textarea{
+	border: 1px solid #999999;
+}
+.content{
+	/*border: 1px solid #999999;*/
+	margin: 1em 20px;
+
+}
+/*
+#new-item{
+	border: 1px solid #999999;
+	margin: 0 0 20px;
+}
+*/
+div.newitem{
+	/*border: 1px solid #999999;*/
+	margin: 0 0 20px;
+}
+div.newitem2{
+	border: 1px solid #bbbbbb;
+	padding: 7px;
+	margin: 0 0 20px;
+}
+#message2, #message{
+	border: 1px solid #bbbbbb;
+	margin:  0 0  20px;
+	padding: 1em;
+}
+table.list2{
+	margin: 0px 0 20px;
+	padding-top: 5px;
+	border: 1px solid #eee;
+	border-spacing:0;
+	width: 100%;
+	empty-cells:show;
+
+}
+
+table.list2 td{
+	/*border-color: #dddddd;
+	border-style: none none solid;
+	border-width: medium medium 1px;*/
+	padding: 5px 8px 2px;
+}
+table.list{
+	margin: 0px 0 20px;
+	padding-top: 5px;
+	border-color: #999999;
+	border-style: solid ;
+	border-width:  1px;
+	border-spacing:0;
+	width: 100%;
+	empty-cells:show;
+}
+table.inlist{border:none;}
+th{
+	font-weight: bold;
+}
+td{
+	border: medium none;
+	vertical-align: top;
+}
+table.list th{
+	/*border: 1px solid #999999;*/
+	border-bottom: solid 1px #999999;
+	padding: 3px 8px 2px;
+	text-align: left;
+}
+table.list td{
+	border-color: #dddddd;
+	border-style: none none solid;
+	border-width: medium medium 1px;
+	padding: 5px 8px 2px;
+	/*text-align: left;*/
+}
+div.table-title{
+	/*background-color:*/
+	border: 1px solid #999999;
+	margin-top: 20px;
+	text-align: left;
+	padding: 10px 0 9px 12px;
+
+}
+/* Footer */
+#footer{
+	clear:both;
+	text-align: center;
+	margin: 0 0 20px;
+	/*background-color: blue;*/
+}
+a > img{
+	border:none;
+}
+/*
+h3 {
+        /*background: url(../images/h.gif) no-repeat left;
+        color:#075181;
+        font-size:115%;
+        font-weight:bold;
+        margin: 5px 0 5px 0px;
+}
+*/
