@@ -2402,38 +2402,8 @@ def edit_reporter(request, reporter_pk):
                 reversion.set_comment('edited %s details' % reporter.name)
 
             old_reporter_group = EmisReporter.objects.get(pk=reporter_pk).groups.all()[0].name
-            if reporter.default_connection and reporter.groups.count() > 0:
-
-                if reporter_group_name != old_reporter_group:
-                    schedule_all(reporter.default_connection)
-
-                # remove from other scripts
-                # if reporter's groups remain the same.
-                if reporter_group_name == saved_reporter_grp:
-                    pass
-                else:
-                    ScriptProgress.objects.exclude(script__slug="edtrac_autoreg").filter(
-                        connection=reporter.default_connection).delete()
-                    _schedule_teacher_weekly_scripts(reporter.groups.all()[0], reporter.default_connection,
-                                                     ['Teachers'])
-                    _schedule_weekly_scripts(reporter.groups.all()[0], reporter.default_connection,
-                                             ['Head Teachers', 'SMC'])
-
-                    _schedule_monthly_script(reporter.groups.all()[0], reporter.default_connection,
-                                             'edtrac_head_teachers_monthly', 'last', ['Head Teachers'])
-                    _schedule_monthly_script(reporter.groups.all()[0], reporter.default_connection,
-                                             'edtrac_gem_monthly', 20, ['GEM'])
-                    _schedule_monthly_script(reporter.groups.all()[0], reporter.default_connection,
-                                             'edtrac_smc_monthly', 5, ['SMC'])
-
-                    _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection, 'edtrac_smc_termly',
-                                            ['SMC'])
-                    _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection,
-                                            'edtrac_p3_enrollment_headteacher_termly', ['Head Teachers'])
-                    _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection,
-                                            'edtrac_p6_enrollment_headteacher_termly', ['Head Teachers'])
-                    _schedule_termly_script(reporter.groups.all()[0], reporter.default_connection,
-                                            'edtrac_teacher_deployment_headteacher_termly', ['Head Teachers'])
+            if reporter.default_connection and reporter_group_name != old_reporter_group:
+                schedule_all(reporter.default_connection)
 
             return redirect("reporter-detail", pk=reporter.pk)
     else:
