@@ -2797,6 +2797,102 @@ def edit_scripts(request):
     return render_to_response('education/partials/edit_script.html', {'forms': forms, 'management_for': 'scripts'},
                               context_instance=RequestContext(request))
 
+
+def emis_scripts_special(req):
+    scripts = Script.objects.exclude(slug__icontains='weekly').exclude(name='Special Script').exclude(
+        slug='edtrac_autoreg').order_by('slug')
+
+    if req.method == 'POST':
+        checked_numbers = req.POST.getlist('checked_numbers')
+        checked_numbers = [n for n in checked_numbers if re.match(r'\d+', n)]
+        poll_questions = req.POST.getlist('poll_questions')
+        poll_scripts = [pq.split('-') for pq in poll_questions] #(poll_id, script_slug)
+        d = datetime.datetime.now()
+        _script = Script.objects.create(slug= \
+                                            "edtrac_%s %s %s %s:%s:%s" % (
+                                                d.year, d.month, d.day, d.hour, d.minute, d.second),
+                                        name="Special Script")
+
+        _poll_scripts = []
+        # make sure that the poll/script to sent to just one group not a mixture of groups.
+        reporter_group_name = EmisReporter.objects.get(id=checked_numbers[0]).groups.all()[0].name.lower().replace(' ',
+                                                                                                                   '_')
+        for id, script_slug in poll_scripts:
+            if re.search(reporter_group_name, script_slug):
+                _poll_scripts.append((id, script_slug))
+
+        for i, li in enumerate(_poll_scripts):
+            poll_id, script_slug = li
+            _script.steps.add(ScriptStep.objects.create(
+                script=_script,
+                poll=Poll.objects.get(id=poll_id),
+                order=i, # using index for different order???
+                rule=ScriptStep.RESEND_MOVEON,
+                num_tries=1,
+                start_offset=60,
+                retry_offset=86400,
+                giveup_offset=86400,
+            ))
+            _script.save()
+
+        if len(checked_numbers) < 25 and len(checked_numbers) > 0:
+            # assuming that "all" is not checked
+            for reporter in EmisReporter.objects.filter(id__in=checked_numbers).exclude(connection=None):
+                sp = ScriptProgress.objects.create(connection=reporter.default_connection, script=_script)
+                sp.set_time(datetime.datetime.now() + datetime.timedelta(seconds=90)) # 30s after default cron wait time
+                sp.save()
+        else:
+            # what if the reporting location is different? Would you instead want to poll the different districts?
+            single_reporter_location = True # flag
+            reporter_location = EmisReporter.objects.filter(id__in=checked_numbers). \
+                exclude(reporting_location=None).values_list('reporting_location__name', flat=True)
+            if reporter_location.count() > 0 and len(set(reporter_location)) > 1:
+                single_reporter_location = False
+                reporter_location = EmisReporter.objects.filter(reporting_location__type='district'). \
+                    values_list('reporting_location__name', flat=True)
+            else:
+                reporter_location = EmisReporter.objects.filter(reporting_location__type='district'). \
+                    filter(reporting_location__name=reporter_location[0]).values_list('reporting_location__name',
+                                                                                      flat=True)
+
+            single_school = True
+            reporter_schools = EmisReporter.objects.filter(id__in=checked_numbers). \
+                exclude(schools=None).values_list('schools__name', flat=True)
+            if reporter_schools.count() > 0 and len(set(reporter_schools)) > 1:
+                single_school = False
+                reporter_schools = EmisReporter.objects.values_list('schools__name', flat=True)
+            else:
+                reporter_schools = EmisReporter.objects.filter(schools__name=reporter_schools[0]).values_list(
+                    'schools__name', flat=True
+                )
+
+            if single_reporter_location or single_school:
+                for reporter in EmisReporter.objects.filter(schools__name__in=reporter_schools,
+                                                            reporting_location__name__in=reporter_location,
+                                                            groups__name= \
+                                                                ' '.join([i.capitalize() for i in
+                                                                          reporter_group_name.replace('_',
+                                                                                                      ' ').split()])). \
+                    exclude(connection=None):
+                    sp = ScriptProgress.objects.create(connection=reporter.default_connection, script=_script)
+                    sp.set_time(
+                        datetime.datetime.now() + datetime.timedelta(seconds=90)) # 30s after default cron wait time
+                    sp.save()
+            else:
+                for reporter in EmisReporter.objects.filter(groups__name= \
+                    ' '.join([i.capitalize() for i in reporter_group_name.replace('_', ' ').split()])).exclude(
+                        connection=None):
+                    sp = ScriptProgress.objects.create(connection=reporter.default_connection, script=_script)
+                    sp.set_time(
+                        datetime.datetime.now() + datetime.timedelta(seconds=90)) # 30s after default cron wait time
+                    sp.save()
+
+        return HttpResponseRedirect(reverse('emis-contact'))
+    else:
+        return render_to_response('education/partials/reporters/special_scripts.html', {'scripts': scripts},
+                                  RequestContext(req))
+
+
 def reschedule_scripts(request, script_slug):
     date = request.POST.get('date')
     script = Script.objects.get(slug=script_slug)
