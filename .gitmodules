@@ -16,9 +16,6 @@
 [submodule "edtrac_project/rapidsms_script"]
 	path = edtrac_project/rapidsms_script
 	url = git://github.com/unicefuganda/rapidsms-script.git
-[submodule "edtrac_project/rapidsms_httprouter_src"]
-	path = edtrac_project/rapidsms_httprouter_src
-	url = git://github.com/unicefuganda/rapidsms-httprouter.git
 [submodule "edtrac_project/rapidsms_edtrac"]
 	path = edtrac_project/rapidsms_edtrac
 	url = git://github.com/unicefuganda/rapidsms-edtrac.git
