@@ -1,7 +1,0 @@
-django==1.3
--e git+http://github.com/rapidsms/rapidsms.git#egg=rapidsms
--e git+http://github.com/mvpdev/django-eav.git#egg=django-eav
-django-uni-form==0.8.0
-python-digest
-django-digest
-django-picklefield
