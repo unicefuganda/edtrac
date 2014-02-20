@@ -5,7 +5,7 @@ python:
 
 # command to install dependencies
 install:
-  - pip install -r requirements.pip --use-mirrors
+  - pip install -r requirements.pip
   - sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm
 
 env:
