@@ -25,6 +25,3 @@
 [submodule "edtrac_project/rapidsms_geoserver"]
 	path = edtrac_project/rapidsms_geoserver
 	url = git://github.com/unicefuganda/rapidsms-geoserver.git
-[submodule "edtrac_project/monitor_src"]
-	path = edtrac_project/monitor_src
-	url = git://github.com/unicefuganda/monitor_src.git
