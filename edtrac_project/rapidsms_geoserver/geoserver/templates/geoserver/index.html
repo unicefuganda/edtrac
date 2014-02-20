@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>OpenLayers map preview</title>
+        <!-- Import OL CSS, auto import does not work with our minified OL.js build -->
+        <link rel="stylesheet" type="text/css" href="http://localhost:8080/geoserver/openlayers/theme/default/style.css"/>
+        <!-- Basic CSS definitions -->
+        <style type="text/css">
+            /* General settings */
+            body {
+                font-family: Verdana, Geneva, Arial, Helvetica, sans-serif;
+                font-size: small;
+            }
+            /* Toolbar styles */
+            #toolbar {
+                position: relative;
+                padding-bottom: 0.5em;
+                display: none;
+            }
+
+            #toolbar ul {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            #toolbar ul li {
+                float: left;
+                padding-right: 1em;
+                padding-bottom: 0.5em;
+            }
+
+            #toolbar ul li a {
+                font-weight: bold;
+                font-size: smaller;
+                vertical-align: middle;
+                color: black;
+                text-decoration: none;
+            }
+
+            #toolbar ul li a:hover {
+                text-decoration: underline;
+            }
+
+            #toolbar ul li * {
+                vertical-align: middle;
+            }
+
+            /* The map and the location bar */
+            #map {
+                clear: both;
+                position: relative;
+                width: 486px;
+                height: 512px;
+                border: 1px solid black;
+            }
+
+            #wrapper {
+                width: 486px;
+            }
+
+            #location {
+                float: right;
+            }
+
+            #options {
+                position: absolute;
+                left: 13px;
+                top: 7px;
+                z-index: 3000;
+            }
+
+            /* Styles used by the default GetFeatureInfo output, added to make IE happy */
+            table.featureInfo, table.featureInfo td, table.featureInfo th {
+                border: 1px solid #ddd;
+                border-collapse: collapse;
+                margin: 0;
+                padding: 0;
+                font-size: 90%;
+                padding: .2em .1em;
+            }
+
+            table.featureInfo th {
+                padding: .2em .2em;
+                text-transform: uppercase;
+                font-weight: bold;
+                background: #eee;
+            }
+
+            table.featureInfo td {
+                background: #fff;
+            }
+
+            table.featureInfo tr.odd td {
+                background: #eee;
+            }
+
+            table.featureInfo caption {
+                text-align: left;
+                font-size: 100%;
+                font-weight: bold;
+                text-transform: uppercase;
+                padding: .2em .2em;
+            }
+        </style>
+
+        <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=true"></script>
+    <script src="http://openlayers.org/api/OpenLayers.js"></script>
+        <script defer="defer" type="text/javascript">
+            var map;
+            var tiled;
+            var pureCoverage = false;
+            // pink tile avoidance
+            OpenLayers.IMAGE_RELOAD_ATTEMPTS = 5;
+            OpenLayers.Util.onImageLoadErrorColor = "transparent";
+            // make OL compute scale according to WMS spec
+            OpenLayers.DOTS_PER_INCH = 25.4 / 0.28;
+
+            function init(){
+                // if this is just a coverage or a group of them, disable a few items,
+                // and default to jpeg format
+                format = 'image/png';
+                
+
+                var bounds = new OpenLayers.Bounds(
+                    3292022.5, -164636.828,
+                    3896216.5, 471764.844
+                );
+                var options = {
+                    controls: [],
+                    maxExtent: bounds,
+                    maxResolution: 2485.94403125,
+                    projection: new OpenLayers.Projection("EPSG:900913"),
+                    displayProjection: new OpenLayers.Projection("EPSG:4326"),
+                    units: "m",
+                    numZoomLevels: 20,
+                    
+                };
+                map = new OpenLayers.Map('map', options);
+
+                // setup tiled layer
+                tiled = new OpenLayers.Layer.WMS(
+                    "mossplix:poll", "http://localhost:8080/geoserver/mossplix/wms",
+                    {
+                        VIEWPARAMS: 'poll:136',
+                        LAYERS: 'mossplix:poll',
+                        STYLES: '',
+                        format: format,
+                        tiled: true,
+                        transparent:true,
+                        tilesOrigin : map.maxExtent.left + ',' + map.maxExtent.bottom
+                    },
+                    {
+                        buffer: 0,
+                        displayOutsideMaxExtent: false,
+                        isBaseLayer: false,
+                        'opacity': 1.0,
+                    }
+                );
+                var ghyb = new OpenLayers.Layer.Google(
+        "Google Hybrid",
+        {type: google.maps.MapTypeId.HYBRID, numZoomLevels: 20}
+    );
+
+                map.addLayers([ ghyb,tiled ]);
+
+                // build up all controls
+                map.addControl(new OpenLayers.Control.PanZoomBar({
+                    position: new OpenLayers.Pixel(2, 15)
+                }));
+                map.addControl(new OpenLayers.Control.Navigation());
+                map.addControl(new OpenLayers.Control.LayerSwitcher());
+                map.zoomToExtent(bounds);
+
+               
+
+                // support GetFeatureInfo
+                map.events.register('click', map, function (e) {
+                    document.getElementById('nodelist').innerHTML = "Loading... please wait...";
+                    var params = {
+                        REQUEST: "GetFeatureInfo",
+                        EXCEPTIONS: "application/vnd.ogc.se_xml",
+                        BBOX: map.getExtent().toBBOX(),
+                        SERVICE: "WMS",
+                        VERSION: "1.1.1",
+                        X: e.xy.x,
+                        Y: e.xy.y,
+                        INFO_FORMAT: 'text/html',
+                        QUERY_LAYERS: 'mossplix:poll',
+                        FEATURE_COUNT: 50,
+                        Viewparams: 'poll:136',
+                        Layers: 'mossplix:poll',
+                        WIDTH: map.size.w,
+                        HEIGHT: map.size.h,
+                        format: format,
+                        styles: '',
+                        srs: "EPSG:900913"};
+                    if(map.layers[1].params.CQL_FILTER != null) {
+                        params.cql_filter = map.layers[0].params.CQL_FILTER;
+                    }
+                    if(map.layers[1].params.FILTER != null) {
+                        params.filter = map.layers[0].params.FILTER;
+                    }
+                    if(map.layers[1].params.FEATUREID) {
+                        params.featureid = map.layers[0].params.FEATUREID;
+                    }
+                    OpenLayers.loadURL("http://localhost:8080/geoserver/mossplix/wms", params, this, setHTML);
+                    OpenLayers.Event.stop(e);
+                });
+            }
+
+            // sets the HTML provided into the nodelist element
+            function setHTML(response){
+                document.getElementById('nodelist').innerHTML = response.responseText;
+
+            };
+
+          
+
+
+
+
+
+
+
+
+
+            
+        </script>
+    </head>
+    <body onload="init()">
+
+        <div id="map">
+            
+        </div>
+        <div id="wrapper">
+
+            <div id="location">location</div>
+            <div id="scale">
+            </div>
+        </div>
+        <div id="nodelist" style="width:800px;height:200px;">
+            <em>Click on the map to get feature info</em>
+        </div>
+    </body>
+
+</html>
