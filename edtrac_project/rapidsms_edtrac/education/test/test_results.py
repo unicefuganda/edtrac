@@ -127,15 +127,8 @@ class TestResults(TestCase):
 
 
     def test_filters_by_school(self):
-        mary = EmisReporter.objects.create()
-        st_marys = School.objects.create(name="St Marys", location=self.gulu)
-        mary.schools = [st_marys]
-        mary.save()
-
-        mark = EmisReporter.objects.create()
-        st_marks = School.objects.create(name="St Marks", location=self.gulu)
-        mark.schools = [st_marks]
-        mark.save()
+        (mary, st_marys) = self.create_teacher_with_school()
+        (mark, st_marks) = self.create_teacher_with_school()
 
         self.record_response_for(mary, "3 girls", 3)
         self.record_response_for(mark, "2 boys", 2)
@@ -143,15 +136,8 @@ class TestResults(TestCase):
 
 
     def test_groups_by_school(self):
-        mary = EmisReporter.objects.create()
-        st_marys = School.objects.create(name="St Marys", location=self.gulu)
-        mary.schools = [st_marys]
-        mary.save()
-
-        mark = EmisReporter.objects.create()
-        st_marks = School.objects.create(name="St Marks", location=self.gulu)
-        mark.schools = [st_marks]
-        mark.save()
+        (mary, st_marys) = self.create_teacher_with_school()
+        (mark, st_marks) = self.create_teacher_with_school()
 
         self.record_response_for(mary, "3 girls", 3)
         self.record_response_for(mary, "4 girls", 4)
@@ -160,6 +146,14 @@ class TestResults(TestCase):
 
         self.assertEqual(7, results[st_marys.id])
         self.assertEqual(2, results[st_marks.id])
+
+    def create_teacher_with_school(self):
+        teacher = EmisReporter.objects.create()
+        school = School.objects.create(name="Foo", location=self.gulu)
+        teacher.schools = [school]
+        teacher.save()
+
+        return (teacher, school)
 
     def tearDown(self):
         User.objects.all().delete()
