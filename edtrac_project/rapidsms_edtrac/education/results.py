@@ -57,8 +57,8 @@ class NumericResponsesFor():
         totals = [(result['eav_values__value_float'], result['frequency'] or 0) for result in results]
 
         if totals:
-            stage,frequency = max(totals, key=lambda x: x[1])
-            return stage
+            value,frequency = max(totals, key=lambda x: x[1])
+            return value
         else:
             return 0
 
