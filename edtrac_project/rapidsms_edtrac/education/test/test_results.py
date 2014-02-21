@@ -18,6 +18,9 @@ class TestResults(TestCase):
         self.poll = Poll.objects.create(name="foo", user=user, response_type=Poll.TYPE_NUMERIC)
         self.connection = Connection.objects.create(contact=self.contact, backend=backend)
 
+        self.gulu = Location.objects.create(name="Gulu")
+        self.kampala = Location.objects.create(name="Kampala")
+
 
     def reporter_for(self, location):
         return EmisReporter.objects.create(reporting_location=location)
@@ -97,50 +100,40 @@ class TestResults(TestCase):
 
 
     def test_filters_by_location(self):
-        gulu = Location.objects.create(name="Gulu")
-        kampala = Location.objects.create(name="Kampala")
-        self.record_response_for(self.reporter_for(kampala), "6 boys", 6)
-        self.record_response_for(self.reporter_for(gulu), "9 boys", 9)
-        self.assertEqual(9, NumericResponsesFor([self.poll]).forLocations([gulu]).total())
+        self.record_response_for(self.reporter_for(self.kampala), "6 boys", 6)
+        self.record_response_for(self.reporter_for(self.gulu), "9 boys", 9)
+        self.assertEqual(9, NumericResponsesFor([self.poll]).forLocations([self.gulu]).total())
 
 
     def test_filters_by_value(self):
-        gulu = Location.objects.create(name="Gulu")
-        kampala = Location.objects.create(name="Kampala")
-        self.record_response_for(self.reporter_for(kampala), "6 boys", 6)
-        self.record_response_for(self.reporter_for(kampala), "6 boys", 6)
-        self.record_response_for(self.reporter_for(kampala), "7 boys", 7)
-        self.record_response_for(self.reporter_for(gulu), "9 boys", 9)
+        self.record_response_for(self.reporter_for(self.kampala), "6 boys", 6)
+        self.record_response_for(self.reporter_for(self.kampala), "6 boys", 6)
+        self.record_response_for(self.reporter_for(self.kampala), "7 boys", 7)
+        self.record_response_for(self.reporter_for(self.gulu), "9 boys", 9)
         self.assertEqual(19, NumericResponsesFor([self.poll]).forValues([6, 7]).total())
 
 
     def test_mode_defaults_to_zero(self):
-        gulu = Location.objects.create(name="Gulu")
-        kampala = Location.objects.create(name="Kampala")
         self.assertEqual(0, NumericResponsesFor([self.poll]).mode())
 
 
     def test_groups_by_location(self):
-        gulu = Location.objects.create(name="Gulu")
-        kampala = Location.objects.create(name="Kampala")
-        self.record_response_for(self.reporter_for(kampala), "6 boys", 6)
-        self.record_response_for(self.reporter_for(kampala), "7 boys", 7)
-        self.record_response_for(self.reporter_for(gulu), "9 boys", 9)
+        self.record_response_for(self.reporter_for(self.kampala), "6 boys", 6)
+        self.record_response_for(self.reporter_for(self.kampala), "7 boys", 7)
+        self.record_response_for(self.reporter_for(self.gulu), "9 boys", 9)
         results = NumericResponsesFor([self.poll]).groupByLocation()
-        self.assertEqual(13, results[kampala.id])
-        self.assertEqual(9, results[gulu.id])
+        self.assertEqual(13, results[self.kampala.id])
+        self.assertEqual(9, results[self.gulu.id])
 
 
     def test_filters_by_school(self):
-        gulu = Location.objects.create(name="Gulu")
-
         mary = EmisReporter.objects.create()
-        st_marys = School.objects.create(name="St Marys", location=gulu)
+        st_marys = School.objects.create(name="St Marys", location=self.gulu)
         mary.schools = [st_marys]
         mary.save()
 
         mark = EmisReporter.objects.create()
-        st_marks = School.objects.create(name="St Marks", location=gulu)
+        st_marks = School.objects.create(name="St Marks", location=self.gulu)
         mark.schools = [st_marks]
         mark.save()
 
@@ -150,15 +143,13 @@ class TestResults(TestCase):
 
 
     def test_groups_by_school(self):
-        gulu = Location.objects.create(name="Gulu")
-
         mary = EmisReporter.objects.create()
-        st_marys = School.objects.create(name="St Marys", location=gulu)
+        st_marys = School.objects.create(name="St Marys", location=self.gulu)
         mary.schools = [st_marys]
         mary.save()
 
         mark = EmisReporter.objects.create()
-        st_marks = School.objects.create(name="St Marks", location=gulu)
+        st_marks = School.objects.create(name="St Marks", location=self.gulu)
         mark.schools = [st_marks]
         mark.save()
 
