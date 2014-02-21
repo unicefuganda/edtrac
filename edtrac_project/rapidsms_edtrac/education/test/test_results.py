@@ -104,7 +104,7 @@ class TestResults(TestCase):
         self.assertEqual(9, NumericResponsesFor([self.poll]).forLocations([gulu]).total())
 
 
-    def test_filters_by_location(self):
+    def test_filters_by_value(self):
         gulu = Location.objects.create(name="Gulu")
         kampala = Location.objects.create(name="Kampala")
         self.record_response_for(self.reporter_for(kampala), "6 boys", 6)
@@ -112,6 +112,12 @@ class TestResults(TestCase):
         self.record_response_for(self.reporter_for(kampala), "7 boys", 7)
         self.record_response_for(self.reporter_for(gulu), "9 boys", 9)
         self.assertEqual(19, NumericResponsesFor([self.poll]).forValues([6, 7]).total())
+
+
+    def test_mode_defaults_to_zero(self):
+        gulu = Location.objects.create(name="Gulu")
+        kampala = Location.objects.create(name="Kampala")
+        self.assertEqual(0, NumericResponsesFor([self.poll]).mode())
 
 
     def test_groups_by_location(self):
