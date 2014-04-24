@@ -12,6 +12,7 @@ ADMINS = (
     ('Neil Couthinho', 'ncoutin@thoughtworks.com'),
     ('Chris Ford', 'cford@thoughtworks.com'),
     ('matlads', 'matlads@gmail.com'),
+    ('Kenneth', 'kbonky@gmail.com'),
 )
 SMS_APPS = [
     "education",
