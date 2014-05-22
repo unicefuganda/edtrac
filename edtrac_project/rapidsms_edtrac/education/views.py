@@ -1186,7 +1186,7 @@ def violence_details_dash(req):
             locations = Location.objects.select_related().get(name=location).get_descendants().filter(type="district")
             locations = list(locations)
         else:
-            locations = [locations]
+            locations = [location]
 
     edtrac_violence_reported_poll = Poll.objects.filter(name="edtrac_violence_reported")
     edtrac_gem_abuse_poll = Poll.objects.filter(name="edtrac_gem_abuse")
