@@ -8,7 +8,7 @@
     <td>{{ object|headteacher }} {{ object|headteacher_connection }}</td>
     <td>
         <ul>
-            {% for r in object.emisreporter_set.all %}
+            {% for r in object|no_quiters %}
                 <li>
                     {{ r }}
                 </li>

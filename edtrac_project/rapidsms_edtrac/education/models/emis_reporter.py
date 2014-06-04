@@ -1,7 +1,14 @@
 from django.db import models
 from rapidsms.models import Contact
+from unregister.models import Blacklist
 
 from .school import School
+
+
+class EmisReporterManager(models.Manager):
+    def get_query_set(self):
+        return super(EmisReporterManager, self).get_query_set().exclude(
+            connection__in=Blacklist.objects.values_list('connection', flat=True))
 
 
 class EmisReporter(Contact):
@@ -12,6 +19,7 @@ class EmisReporter(Contact):
     grade = models.CharField(max_length=2, choices=CLASS_CHOICES, null=True)
     schools = models.ManyToManyField(School, null=True)
     has_exact_matched_school = models.BooleanField(default=True)
+    objects = EmisReporterManager()
 
     class Meta:
         ordering = ["name"]

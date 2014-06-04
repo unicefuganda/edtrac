@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from django.utils.http import urlquote
 from django.utils.safestring import mark_safe
+from unregister.models import Blacklist
 from education.utils import themes, is_empty
 
 from rapidsms.contrib.locations.models import Location
@@ -79,6 +80,9 @@ def headteacher_connection(obj):
         return reps[0].default_connection.identity
     except:
         return ''
+
+def no_quiters(obj):
+    return obj.emisreporter_set.exclude(pk__in=Blacklist.objects.values_list('connection__contact', flat=True))
 
 def hash(h, key):
     try:
@@ -313,6 +317,7 @@ def zip_lists(a, b):
 
 register = template.Library()
 register.filter('section', get_section)
+register.filter('no_quiters', no_quiters)
 register.filter('parent', get_parent)
 register.filter('parentId', get_parentId)
 register.filter('ancestors', get_ancestors)
