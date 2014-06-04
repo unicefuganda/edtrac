@@ -37,6 +37,8 @@ STATUS_CHOICES = (
 #
 # See: https://coderanger.net/2011/01/select-for-update/
 #
+
+
 class MessageBatch(models.Model):
     status = models.CharField(max_length=1, choices=STATUS_CHOICES)
     name = models.CharField(max_length=15, null=True, blank=True)
@@ -77,10 +79,11 @@ class Message(models.Model):
     @classmethod
     @transaction.commit_on_success
     def mass_text(cls, text, connections, status='P', batch_status='Q', batch_name=None):
-	if not connections:
+        if not connections:
             return []
 
-        batch = MessageBatch.objects.create(status=batch_status, name=batch_name, priority=1)#Todo fix the damn prioty shit
+        batch = MessageBatch.objects.create(status=batch_status, name=batch_name,
+                                            priority=1)  #Todo fix the damn prioty shit
         sql = 'insert into rapidsms_httprouter_message (text, date, direction, status, batch_id, connection_id, priority) values '
         insert_list = []
         params_list = []

@@ -176,9 +176,16 @@ class FreeSearchTextForm(FilterForm):
                              #help_text="Use 'or' to search for multiple names",
                              widget=forms.TextInput(attrs={'class':'itext', 'size':14}))
 
+    def clean_search(self):
+        if self.cleaned_data['search'].startswith('0'):
+            self.cleaned_data['search'] = '256'+self.cleaned_data['search'][1:]
+        elif self.cleaned_data['search'].startswith('+'):
+            self.cleaned_data['search'] = self.cleaned_data['search'][1:]
+        return self.cleaned_data['search']
+
     def filter(self, request, queryset):
         search = self.cleaned_data['search']
-        return queryset.filter(text__icontains=search)
+        return queryset.filter(Q(text__icontains=search) | Q(connection__identity=search))
 
 class HandledByForm(FilterForm):
     type = forms.ChoiceField(
