@@ -31,7 +31,7 @@
         </ul>
     </td>
     <td>{{ object.reporting_location|get_district }}</td>
-    <td>{{ object|latest|date:"d-m-Y" }}</td>
+    <td>{{ object.last_reporting_date }}</td>
     <td>
     	<ul>
             {% for s in object.schools.all %}

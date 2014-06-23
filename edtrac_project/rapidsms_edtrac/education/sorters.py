@@ -7,11 +7,8 @@ from education.models import EmisReporter
 
 class LatestSubmissionSorter(Sorter):
     def sort(self, column, object_list, ascending=True):
-        order = '-connection__submissions__created' if ascending else 'connection__submissions__created'
-        connections = list(Connection.objects.filter(contact__in=object_list))
-        submissions = EmisReporter.objects.filter(
-            pk__in=XFormSubmission.objects.filter(connection__in=connections).values_list(
-                'connection__contact__emisreporter', flat=True)).order_by(order)
+        order = '-last_reporting_date' if ascending else 'last_reporting_date'
+        submissions = EmisReporter.objects.exclude(last_reporting_date=None).order_by(order)
         return submissions
 
 
