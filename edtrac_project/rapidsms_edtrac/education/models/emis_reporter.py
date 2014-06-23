@@ -2,6 +2,9 @@ from django.db import models
 from rapidsms.models import Contact
 from unregister.models import Blacklist
 
+import logging
+logger = logging.getLogger(__name__)
+
 from .school import School
 
 
@@ -20,6 +23,7 @@ class EmisReporter(Contact):
     schools = models.ManyToManyField(School, null=True)
     has_exact_matched_school = models.BooleanField(default=True)
     objects = EmisReporterManager()
+    last_reporting_date = models.DateTimeField(null=True)
 
     class Meta:
         ordering = ["name"]
@@ -34,3 +38,13 @@ class EmisReporter(Contact):
 
     def schools_list(self):
         return self.schools.values_list('name', flat=True)
+
+def update_last_reporting_date(sender, instance, **kwargs):
+    created = kwargs.get('created', False)
+    if created:
+        logger.info('Updating last reporting date for reporter - New submission')
+        reporter = instance.connection.contact.emisreporter
+        reporter.last_reporting_date = instance.created
+        reporter.save()
+    else:
+        logger.info("This is not a new submission - Don't update last reporting date")

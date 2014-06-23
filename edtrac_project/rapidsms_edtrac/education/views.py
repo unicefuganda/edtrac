@@ -1,42 +1,24 @@
 from __future__ import division
 from urllib2 import urlopen
-import re
-import operator
-import copy
 import json
 
-from django.http import HttpResponseRedirect, HttpResponse
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, render_to_response, redirect
-from django.template import RequestContext
+from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404, redirect
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import user_passes_test
 from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
 from django.views.generic import DetailView, TemplateView, ListView
 from django.views.decorators.vary import vary_on_cookie
-from django.db.models import Q
 from django.core.cache import cache
-import xlwt
 from django.utils.safestring import mark_safe
 from education.curriculum_progress_helper import get_target_value, get_location_for_curriculum_view, get_curriculum_data, target
-from rapidsms_httprouter.models import Message
-from .forms import *
-from .models import *
-from uganda_common.utils import *
-from rapidsms.contrib.locations.models import Location
 from generic.views import generic
-from generic.sorters import SimpleSorter
-from poll.models import Poll, ResponseCategory
-from script.models import ScriptStep, Script
-from .reports import *
 from .utils import *
 import reversion
 from reversion.models import Revision
-from unregister.models import Blacklist
 from .utils import themes
-from education.absenteeism_view_helper import *
-import datetime
-from datetime import date, timedelta
+from datetime import date
 from education.view_helper import *
 from education.view_helper_utils import *
 from education.scheduling import schedule_all, schedule_script, schedule_script_at
@@ -2390,6 +2372,7 @@ def delete_reporter(request, reporter_pk):
 
 
 @login_required
+@never_cache
 def edit_reporter(request, reporter_pk):
     reporter = get_object_or_404(EmisReporter, pk=reporter_pk)
     reporter_group_name = reporter.groups.all()[0].name

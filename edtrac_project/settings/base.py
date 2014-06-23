@@ -201,7 +201,7 @@ INTERNAL_IPS = ('127.0.0.1',)
 TEST_RUNNER = "django_nose.NoseTestSuiteRunner"
 SKIP_SOUTH_TESTS = True
 SOUTH_TESTS_MIGRATE = False
-
+SOUTH_AUTO_FREEZE_APP = True
 # for some reason this setting is blank in django's global_settings.py,
 # but it is needed for static assets to be linkable.
 MEDIA_URL = "/static/"

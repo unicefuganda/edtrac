@@ -2,17 +2,18 @@ from generic.sorters import Sorter
 from rapidsms.models import Connection
 from rapidsms_xforms.models import XFormSubmission, XFormSubmissionValue
 from eav.models import Attribute
+from education.models import EmisReporter
+
 
 class LatestSubmissionSorter(Sorter):
     def sort(self, column, object_list, ascending=True):
+        order = '-connection__submissions__created' if ascending else 'connection__submissions__created'
         connections = list(Connection.objects.filter(contact__in=object_list))
-        submissions = list(XFormSubmission.objects.filter(connection__in=connections).order_by('-created'))
-        toret = []
-        for sub in submissions:
-            toret.append(sub.connection.contact.emisreporter)
-        if not ascending:
-            toret.reverse()
-        return toret
+        submissions = EmisReporter.objects.filter(
+            pk__in=XFormSubmission.objects.filter(connection__in=connections).values_list(
+                'connection__contact__emisreporter', flat=True)).order_by(order)
+        return submissions
+
 
 class SubmissionValueSorter(Sorter):
     def sort(self, column, object_list, ascending=True):
