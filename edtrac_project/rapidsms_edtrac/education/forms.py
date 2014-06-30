@@ -23,9 +23,11 @@ from rapidsms.models import Connection, Contact
 from script.models import Script
 from unregister.models import Blacklist
 
-date_range_choices = (('w', 'Previous Calendar Week'), ('m', 'Previous Calendar Month'), ('q', 'Previous calendar quarter'),)
+date_range_choices = (
+    ('w', 'Previous Calendar Week'), ('m', 'Previous Calendar Month'), ('q', 'Previous calendar quarter'),)
 
-class DateRangeForm(forms.Form): # pragma: no cover
+
+class DateRangeForm(forms.Form):  # pragma: no cover
     start = forms.IntegerField(required=True, widget=forms.HiddenInput())
     end = forms.IntegerField(required=True, widget=forms.HiddenInput())
 
@@ -39,16 +41,17 @@ class DateRangeForm(forms.Form): # pragma: no cover
         cleaned_data['end'] = datetime.datetime.fromtimestamp(float(end_ts))
         return cleaned_data
 
+
 AREAS = Location.tree.all().select_related('type')
 
 
 class ReporterFreeSearchForm(FilterForm):
-
     """ concrete implementation of filter form
         TO DO: add ability to search for multiple search terms separated by 'or'
     """
 
-    search = forms.CharField(max_length=100, required=False, label="Free-form search", help_text="Use 'or' to search for multiple names")
+    search = forms.CharField(max_length=100, required=False, label="Free-form search",
+                             help_text="Use 'or' to search for multiple names")
 
     def filter(self, request, queryset):
         search = self.cleaned_data['search']
@@ -72,9 +75,14 @@ class ReporterFreeSearchForm(FilterForm):
 
 class SchoolFilterForm(FilterForm):
     """ filter form for emis schools """
-    school = forms.ChoiceField(choices=(('', '-----'), (-1, 'Has No School'),) +\
-                                       tuple(School.objects.filter(location__name__in=\
-                                       EmisReporter.objects.values_list('reporting_location__name',flat=True)).values_list('pk', 'name').order_by('name')))
+    school = forms.ChoiceField(choices=(('', '-----'), (-1, 'Has No School'),) + \
+                                       tuple(School.objects.filter(location__name__in= \
+                                                                       EmisReporter.objects.values_list(
+                                                                           'reporting_location__name',
+                                                                           flat=True)).values_list('pk',
+                                                                                                   'name').order_by(
+                                           'name')))
+
     def filter(self, request, queryset):
         school_pk = self.cleaned_data['school']
         if school_pk == '':
@@ -84,6 +92,7 @@ class SchoolFilterForm(FilterForm):
         else:
             return queryset.filter(schools=school_pk)
 
+
 class LastReportingDateFilterForm(FilterForm):
     """ filter form for emis reporter on reporting date """
     from_date = forms.DateField()
@@ -92,27 +101,32 @@ class LastReportingDateFilterForm(FilterForm):
     def filter(self, request, queryset):
         if self.cleaned_data['to_date'] and self.cleaned_data['from_date']:
             if self.cleaned_data['to_date'] < self.cleaned_data['from_date']:
-                return queryset.none()
-            date_range = (self.cleaned_data['from_date'], self.cleaned_data['to_date'])
+                date_range = [self.cleaned_data['to_date'], self.cleaned_data['from_date']]
+            else:
+                date_range = [self.cleaned_data['from_date'], self.cleaned_data['to_date']]
             if queryset.model.__name__ == 'EmisReporter':
-                return queryset.filter(responses__date__range=date_range).distinct()
+                return queryset.filter(last_reporting_date__range=date_range).order_by('last_reporting_date')
             if queryset.model.__name__ == 'Message':
-                return queryset.filter(date__range=date_range).distinct()
+                return queryset.filter(date__range=date_range).order_by('date')
 
         return queryset
+
 
 class PollFilterForm(FilterForm):
     """ filter form for message on polls """
     polls = forms.ChoiceField(choices=(('', '-----'),) + \
                                       tuple(Poll.objects.all().values_list('pk', 'name').order_by('name')))
+
     def filter(self, request, queryset):
-        poll = Poll.objects.get(id = self.cleaned_data['polls'])
+        poll = Poll.objects.get(id=self.cleaned_data['polls'])
         if poll is not None:
-            return queryset.filter(poll_responses__poll = poll)
+            return queryset.filter(poll_responses__poll=poll)
         return queryset
+
 
 class NewConnectionForm(forms.Form):
     identity = forms.CharField(max_length=15, required=True, label="Primary contact information")
+
 
 class EditReporterForm(forms.ModelForm):
     class Meta:
@@ -123,23 +137,26 @@ class EditReporterForm(forms.ModelForm):
         super(EditReporterForm, self).__init__(*args, **kwargs)
         instance = kwargs['instance']
         data = kwargs.get('data')
-        self.fields['reporting_location'] = forms.ModelChoiceField(queryset=Location.objects.filter(type='district').order_by('name'))
+        self.fields['reporting_location'] = forms.ModelChoiceField(
+            queryset=Location.objects.filter(type='district').order_by('name'))
 
         if instance and data:
             edited_school = School.objects.none()
             schools_in_reporting_location = School.objects.filter(location=instance.reporting_location)
             if not is_empty(data.get('schools')):
-                edited_school = School.objects.filter(pk = data.get('schools'))
+                edited_school = School.objects.filter(pk=data.get('schools'))
             self.fields['schools'] = forms.ModelChoiceField(queryset=schools_in_reporting_location | edited_school)
         elif instance.reporting_location is None:
             if instance.schools.count() == 0:
-                self.fields['schools'] = forms.ModelChoiceField(queryset=School.objects.none(),widget=forms.Select(attrs={'disabled':'disabled'}))
+                self.fields['schools'] = forms.ModelChoiceField(queryset=School.objects.none(),
+                                                                widget=forms.Select(attrs={'disabled': 'disabled'}))
             else:
                 self.fields['schools'] = forms.ModelChoiceField(queryset=instance.schools.all())
         else:
             schools_in_reporting_location = School.objects.filter(location=instance.reporting_location)
             if instance.schools.all().exists() and instance.schools.all()[0] not in schools_in_reporting_location:
-                self.fields['schools'] = forms.ModelChoiceField(queryset=schools_in_reporting_location | instance.schools.all())
+                self.fields['schools'] = forms.ModelChoiceField(
+                    queryset=schools_in_reporting_location | instance.schools.all())
             else:
                 self.fields['schools'] = forms.ModelChoiceField(queryset=schools_in_reporting_location)
 
@@ -158,7 +175,7 @@ class EditReporterForm(forms.ModelForm):
 
         school = self.cleaned_data['schools']
         if school:
-            schools = School.objects.filter(pk = school.pk)
+            schools = School.objects.filter(pk=school.pk)
             reporter_form.schools = schools
         else:
             # remove all schools associated with this reporter
@@ -167,7 +184,7 @@ class EditReporterForm(forms.ModelForm):
         groups = self.cleaned_data['groups']
         if groups:
             reporter_form.groups.clear()
-            group = Group.objects.get(pk = groups[0].pk)
+            group = Group.objects.get(pk=groups[0].pk)
             reporter_form.groups.add(group)
         else:
             [reporter_form.groups.remove(grp) for grp in reporter_form.groups.all()]
@@ -176,20 +193,22 @@ class EditReporterForm(forms.ModelForm):
             reporter_form.save()
 
 
-
 class DistrictFilterForm(forms.Form):
     """ filter form for districts """
-    locs = Location.objects.filter(name__in=XFormSubmissionValue.objects.values_list('submission__connection__contact__reporting_location__name', flat=True))
+    locs = Location.objects.filter(
+        name__in=XFormSubmissionValue.objects.values_list('submission__connection__contact__reporting_location__name',
+                                                          flat=True))
     locs_list = []
     for loc in locs:
         if not Location.tree.root_nodes()[0].pk == loc.pk and loc.type.name == 'district':
             locs_list.append((loc.pk, loc.name))
     district = forms.ChoiceField(choices=(('', '-----'),) + tuple(locs_list))
 
-class LimitedDistictFilterForm(FilterForm):
 
+class LimitedDistictFilterForm(FilterForm):
     """ filter Emis Reporters on their districts """
-    locs = Location.objects.filter(name__in=EmisReporter.objects.values_list('reporting_location__name',flat=True).distinct())
+    locs = Location.objects.filter(
+        name__in=EmisReporter.objects.values_list('reporting_location__name', flat=True).distinct())
     locs_list = []
     for loc in locs:
         if not Location.tree.root_nodes()[0].pk == loc.pk and loc.type.name == 'district':
@@ -213,6 +232,7 @@ class LimitedDistictFilterForm(FilterForm):
             else:
                 return queryset
 
+
 class RolesFilterForm(FilterForm):
     def __init__(self, data=None, **kwargs):
         self.request = kwargs.pop('request')
@@ -231,6 +251,7 @@ class RolesFilterForm(FilterForm):
         else:
             return queryset.filter(groups=groups_pk)
 
+
 class SchoolForm(forms.ModelForm):
     class Meta:
         model = School
@@ -238,11 +259,11 @@ class SchoolForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(SchoolForm, self).__init__(*args, **kwargs)
-        self.fields['location'] = forms.ModelChoiceField(queryset=Location.objects.filter(type='district').order_by('name'))
+        self.fields['location'] = forms.ModelChoiceField(
+            queryset=Location.objects.filter(type='district').order_by('name'))
 
 
 class FreeSearchSchoolsForm(FilterForm):
-
     """ concrete implementation of filter form
         TO DO: add ability to search for multiple search terms separated by 'or'
     """
@@ -259,8 +280,8 @@ class FreeSearchSchoolsForm(FilterForm):
                                    | Q(emis_id__icontains=search)
                                    | Q(location__name__icontains=search))
 
-class SchoolDistictFilterForm(FilterForm):
 
+class SchoolDistictFilterForm(FilterForm):
     """ filter Schools on their districts """
 
     locs = Location.objects.filter(name__in=School.objects.values_list('location__name', flat=True)).order_by('name')
@@ -289,20 +310,21 @@ class SchoolDistictFilterForm(FilterForm):
 
 
 class ReportCommentForm(forms.ModelForm):
-    user = forms.ModelChoiceField(queryset=User.objects.all(), widget = forms.HiddenInput())
+    user = forms.ModelChoiceField(queryset=User.objects.all(), widget=forms.HiddenInput())
+
     class Meta:
         model = ReportComment
+
     def __init__(self, *args, **kwargs):
         super(ReportCommentForm, self).__init__(*args, **kwargs)
         self.fields['report_date'].required = False
         self.fields['reporting_period'].required = False
 
 
-
     def save(self, commit=True):
         # do all that funky saving
         report_comment = super(ReportCommentForm, self).save(commit=False)
-        reporting_period = self.cleaned_data.get('reporting_period','')
+        reporting_period = self.cleaned_data.get('reporting_period', '')
         today = datetime.datetime.now()
 
         if reporting_period == 'wk':
@@ -314,7 +336,7 @@ class ReportCommentForm(forms.ModelForm):
                 get_month_day_range(today)[0]
             )
         elif reporting_period == 't':
-            #TODO how best to set termly comments
+            # TODO how best to set termly comments
             pass
 
         if commit:
@@ -322,25 +344,23 @@ class ReportCommentForm(forms.ModelForm):
         return report_comment
 
 
-
-
 class UserForm(forms.ModelForm):
-
-    location=forms.ModelChoiceField(queryset=Location.objects.filter(type__in=["district","country"]).order_by('name'),required=True)
-    password1 = forms.CharField(label="Password", widget=forms.PasswordInput,required=False)
+    location = forms.ModelChoiceField(
+        queryset=Location.objects.filter(type__in=["district", "country"]).order_by('name'), required=True)
+    password1 = forms.CharField(label="Password", widget=forms.PasswordInput, required=False)
     password2 = forms.CharField(label="Password confirmation", widget=forms.PasswordInput,
-        help_text = "Enter the same password as above, for verification.",required=False)
+                                help_text="Enter the same password as above, for verification.", required=False)
 
     class Meta:
         model = User
-        fields = ("username","first_name","last_name", "email", "groups","password1","password2")
-    def __init__(self, *args, **kwargs):
-        self.edit= kwargs.pop('edit', None)
-        super(UserForm, self).__init__(*args, **kwargs)
-        self.fields['groups'].help_text=""
-        self.fields['groups'].required=True
-        self.fields['email'].help_text = "Optional field"
+        fields = ("username", "first_name", "last_name", "email", "groups", "password1", "password2")
 
+    def __init__(self, *args, **kwargs):
+        self.edit = kwargs.pop('edit', None)
+        super(UserForm, self).__init__(*args, **kwargs)
+        self.fields['groups'].help_text = ""
+        self.fields['groups'].required = True
+        self.fields['email'].help_text = "Optional field"
 
 
     def clean_username(self):
@@ -357,10 +377,10 @@ class UserForm(forms.ModelForm):
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1", "")
 
-        password2 = self.cleaned_data.get("password2","")
-        if password1 == password2 and password2 =="" and self.edit:
+        password2 = self.cleaned_data.get("password2", "")
+        if password1 == password2 and password2 == "" and self.edit:
             return password2
-        elif password2 =="":
+        elif password2 == "":
             raise forms.ValidationError("This Field is Required")
         if password1 != password2:
             raise forms.ValidationError("The two password fields didn't match.")
@@ -374,15 +394,15 @@ class UserForm(forms.ModelForm):
             user.save()
         return user
 
-class MassTextForm(ActionForm):
 
+class MassTextForm(ActionForm):
     text = forms.CharField(max_length=160, required=True, widget=SMSInput())
     action_label = 'Send Message'
 
     def clean_text(self):
         text = self.cleaned_data['text']
 
-        #replace common MS-word characters with SMS-friendly characters
+        # replace common MS-word characters with SMS-friendly characters
         for find, replace in [(u'\u201c', '"'),
                               (u'\u201d', '"'),
                               (u'\u201f', '"'),
@@ -414,9 +434,9 @@ class MassTextForm(ActionForm):
             messages = Message.mass_text(text, connections)
 
             MassText.bulk.bulk_insert(send_pre_save=False,
-                    user=request.user,
-                    text=text,
-                    contacts=list(results))
+                                      user=request.user,
+                                      text=text,
+                                      contacts=list(results))
             masstexts = MassText.bulk.bulk_insert_commit(send_post_save=False, autoclobber=True)
             masstext = masstexts[0]
             if settings.SITE_ID:
@@ -428,14 +448,13 @@ class MassTextForm(ActionForm):
 
 
 class SchoolMassTextForm(ActionForm):
-
     text = forms.CharField(max_length=160, required=True, widget=SMSInput())
     action_label = 'Send Message'
 
     def clean_text(self):
         text = self.cleaned_data['text']
 
-        #replace common MS-word characters with SMS-friendly characters
+        # replace common MS-word characters with SMS-friendly characters
         for find, replace in [(u'\u201c', '"'),
                               (u'\u201d', '"'),
                               (u'\u201f', '"'),
@@ -470,9 +489,9 @@ class SchoolMassTextForm(ActionForm):
             messages = Message.mass_text(text, connections)
 
             MassText.bulk.bulk_insert(send_pre_save=False,
-                    user=request.user,
-                    text=text,
-                    contacts=list(reporters))
+                                      user=request.user,
+                                      text=text,
+                                      contacts=list(reporters))
             masstexts = MassText.bulk.bulk_insert_commit(send_post_save=False, autoclobber=True)
             masstext = masstexts[0]
             if settings.SITE_ID:
@@ -482,15 +501,17 @@ class SchoolMassTextForm(ActionForm):
         else:
             return ("You don't have permission to send messages!", 'error',)
 
+
 class ScriptsForm(forms.ModelForm):
     date = forms.DateField(label="Schedule Date: ", widget=extras.widgets.SelectDateWidget(), required=False)
+
     class Meta:
         model = Script
-        fields = ("slug", "name","enabled")
+        fields = ("slug", "name", "enabled")
         widgets = {
             'slug': forms.HiddenInput(),
             'name': forms.TextInput(attrs={'size': 60}),
-            'enabled':forms.CheckboxInput(attrs={'onclick':'check_clicked(this);'})
+            'enabled': forms.CheckboxInput(attrs={'onclick': 'check_clicked(this);'})
         }
 
 

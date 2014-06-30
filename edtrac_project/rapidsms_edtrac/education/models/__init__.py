@@ -1,4 +1,3 @@
-from rapidsms_xforms.models import XFormSubmission
 from emis_reporter import EmisReporter, update_last_reporting_date
 from enrolled_deployed_questions_answered import EnrolledDeployedQuestionsAnswered
 from report_comment import ReportComment
@@ -11,4 +10,4 @@ from term import Term
 from utils import *
 from django.db.models.signals import post_save
 
-post_save.connect(update_last_reporting_date, sender=XFormSubmission)
+post_save.connect(update_last_reporting_date, sender=Message)
