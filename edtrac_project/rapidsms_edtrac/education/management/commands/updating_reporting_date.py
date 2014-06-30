@@ -8,7 +8,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         for a in Connection.objects.all():
             try:
-                ls = a.messages.latest('date')
+                ls = a.messages.filter(direction='I').latest('date')
                 r = a.contact.emisreporter
                 r.last_reporting_date = ls.date
                 r.save()

@@ -42,9 +42,10 @@ class EmisReporter(Contact):
 def update_last_reporting_date(sender, instance, **kwargs):
     created = kwargs.get('created', False)
     if created:
-        logger.info('Updating last reporting date for reporter - New Message')
-        reporter = instance.connection.contact.emisreporter
-        reporter.last_reporting_date = instance.date
-        reporter.save()
+        if instance.direction == 'I':
+            logger.info('Updating last reporting date for reporter - New Message')
+            reporter = instance.connection.contact.emisreporter
+            reporter.last_reporting_date = instance.date
+            reporter.save()
     else:
         logger.info("This is not a new message - Don't update last reporting date")
