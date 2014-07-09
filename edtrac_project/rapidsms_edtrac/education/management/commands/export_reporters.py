@@ -45,7 +45,7 @@ class Command(BaseCommand):
 
             for rep in EmisReporter.objects.filter(
                     reporting_location__in=district.get_descendants(include_self=True)).exclude(
-                    pk__in=Blacklist.objects.values_list('connection__contact', flat=True)):
+                    connection__in=Blacklist.objects.values_list('connection', flat=True)):
                 #                data = [district.name, rep.schools.all(), rep.name, Connection.objects.filter(contact=rep)]
                 sheet.write(rowx, 0, district.name)
                 sheet.write(rowx, 1, rep.name)
