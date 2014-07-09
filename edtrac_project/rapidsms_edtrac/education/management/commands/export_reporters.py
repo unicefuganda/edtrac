@@ -58,6 +58,6 @@ class Command(BaseCommand):
                 sheet.write(rowx, 5, names)
                 rowx += 1
 
-        file_name = "reporters.xls"
+        file_name = "ereporters.xls"
         file_path = '%s%s' % (settings.SPREADSHEETS_PATH, file_name)
         book.save(file_path)
