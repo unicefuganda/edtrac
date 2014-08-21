@@ -336,6 +336,10 @@ def violence_numbers_reported(locations):
     return {'violence_numbers_reported': month_total('edtrac_violence_reported', locations)}
 
 
+def latrine_proportions_in_use(locations):
+    return {'latrine_proportions_in_use': month_total('latrines_proportion', locations)}
+
+
 def compute_percent(x, y):
     if y != 0:
         return (100 * x) / y

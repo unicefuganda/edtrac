@@ -16,6 +16,7 @@ DATABASES = {
 }
 
 INSTALLED_APPS += (
+   'django_extensions',
    'django.contrib.staticfiles',
    'debug_toolbar',
 )
