@@ -29,3 +29,14 @@ INTERNAL_IPS += ('127.0.0.1', '::1')
 DEBUG_TOOLBAR_CONFIG = {
     'INTERCEPT_REDIRECTS': False
 }
+
+LOGGING['handlers']['mail_admins'] = {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+        }
+
+LOGGING['loggers']['django.request'] = {
+            'handlers': ['mail_admins'],
+            'level': 'DEBUG',
+            'propagate': True,
+            }

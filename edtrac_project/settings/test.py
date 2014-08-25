@@ -95,6 +95,16 @@ LOGGING['loggers']['sentry.errors'] = {
     'propagate': False,
 }
 
+LOGGING['handlers']['mail_admins'] = {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+        }
+
+LOGGING['loggers']['django.request'] = {
+            'handlers': ['mail_admins'],
+            'level': 'DEBUG',
+            'propagate': True,
+            }
 # raven docs say to put SentryResponseErrorIdMiddleware
 # 'as high in the chain as possible'
 # so this will insert raven into the top of the base
