@@ -1,4 +1,5 @@
 # settings/production.py
+import copy
 from .base import *
 
 ROUTER_PASSWORD = 'k1pr0t1ch'
@@ -74,4 +75,41 @@ CACHES = {
         'TIMEOUT': 1800,
         'KEY_PREFIX': 'edutrac-',
     }
+}
+
+LOGGING['handlers']['sentry'] = {
+    'level': 'ERROR',
+    'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
+}
+LOGGING['root'] = {
+    'level': 'WARNING',
+    'handlers': ['sentry'],
+}
+LOGGING['loggers']['raven'] = {
+    'level': 'DEBUG',
+    'handlers': ['console'],
+    'propagate': False,
+}
+LOGGING['loggers']['sentry.errors'] = {
+    'level': 'DEBUG',
+    'handlers': ['console'],
+    'propagate': False,
+}
+
+# raven docs say to put SentryResponseErrorIdMiddleware
+# 'as high in the chain as possible'
+# so this will insert raven into the top of the base
+# settings.py file's MIDDLEWARE_CLASSES
+TEMP = list(copy.copy(MIDDLEWARE_CLASSES))
+TEMP.insert(0, 'raven.contrib.django.raven_compat.'
+               'middleware.SentryResponseErrorIdMiddleware')
+TEMP.append('raven.contrib.django.raven_compat.'
+            'middleware.Sentry404CatchMiddleware')
+MIDDLEWARE_CLASSES = tuple(TEMP)
+
+INSTALLED_APPS += ["raven.contrib.django.raven_compat"]
+
+
+RAVEN_CONFIG = {
+    'dsn': 'https://879136a6744145b4b063231c453b286f:cd7b0c58e2864259befbcb974687e82c@sentry.unicefuganda.org/10728',
 }
