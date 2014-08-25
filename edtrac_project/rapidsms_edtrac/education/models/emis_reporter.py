@@ -49,5 +49,7 @@ def update_last_reporting_date(sender, instance, **kwargs):
                 reporter = reporter.contact.emisreporter
                 reporter.last_reporting_date = instance.date
                 reporter.save()
+            else:
+                logger.info('This is a new user.')
     else:
         logger.info("This is not a new message - Don't update last reporting date")
