@@ -368,11 +368,12 @@ class BulkInsertManager(models.Manager):
         specified by related models
         
         """
+
+        self.tempModel = self.model()
         if not self.initialized:
             #Initialize is delayed until bulk_insert is first called to ensure
             #that all relationship hooks have been added to the underlying class
             self._related_init()
-            self.tempModel = self.model()
 
         if now is not None:
             if now != self.now:
@@ -434,9 +435,9 @@ class BulkInsertManager(models.Manager):
             watch[f.name] = val
             if isinstance(f, AutoField):
                 if f.name in kwargs.keys():
-                    kwargs[f.name] = f.get_db_prep_save(raw and val or f.pre_save(self.tempModel, True))
+                    kwargs[f.name] = f.get_db_prep_save(raw and val or f.pre_save(self.tempModel, True), connections['default'])
             elif f.name in kwargs.keys():
-                kwargs[f.name] = f.get_db_prep_save(raw and val or f.pre_save(self.tempModel, True))
+                kwargs[f.name] = f.get_db_prep_save(raw and val or f.pre_save(self.tempModel, True), connections['default'])
             else:
                 kwargs[f.name] = self.defaults[f.name]
 
@@ -666,7 +667,7 @@ class BulkInsertManager(models.Manager):
                         self.defaults[f.name] = self.now.strftime('%H:%M:%S')
                     continue
             if not isinstance(f, AutoField):
-                self.defaults[f.name] = scrapModel._meta.get_field(f.name).get_db_prep_save(f.pre_save(scrapModel, True))
+                self.defaults[f.name] = scrapModel._meta.get_field(f.name).get_db_prep_save(f.pre_save(scrapModel, True), connections['default'])
 
     def _check_fields(self, no_related=False, kwargs={}):
         """
