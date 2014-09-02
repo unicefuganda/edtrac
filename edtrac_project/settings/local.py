@@ -40,3 +40,5 @@ LOGGING['loggers']['django.request'] = {
             'level': 'DEBUG',
             'propagate': True,
             }
+
+SPREADSHEETS_PATH = filedir
