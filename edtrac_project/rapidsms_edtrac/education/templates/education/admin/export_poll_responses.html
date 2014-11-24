@@ -22,6 +22,7 @@
     <li><a href="{% url rapidsms-dashboard %}" style="text-decoration: none; line-height: inherit;">EdTrac Home Page</a> <span class="divider">/</span></li>
     <li><a href="{% url control-panel %}" style="text-decoration: none; line-height: inherit;">Control Panel</a> <span class="divider">/</span></li>
     <li>Export Poll Messages</li>
+    {% if exported %}<li style="color: red">You will receive an email when export is ready for download</li>{% endif %}
 </ul>
 
 <div style="padding: 10px;margin: 5px;">
