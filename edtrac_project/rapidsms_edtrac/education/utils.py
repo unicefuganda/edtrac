@@ -377,37 +377,3 @@ def get_months(start_date,end_date):
     return to_ret
 
 
-def _format_responses(responses):
-    a = []
-    for response in responses:
-        if response.contact:
-            contact = response.contact
-            sender = contact
-            location_type = contact.reporting_location.type
-            reporting_location = contact.reporting_location.name
-            if not location_type.name == 'district' and not location_type.name == 'country':
-                reporting_location = get_district_parent(contact.reporting_location)
-                location_type = 'district'
-            school = ", ".join(contact.emisreporter.schools.values_list('name', flat=True))
-        else:
-            sender = response.message.connection.identity
-            location_type = "--"
-            reporting_location = "--"
-            school = "--"
-        date = response.message.date
-        if response.poll.type == "t":
-            value = response.eav.poll_text_value
-        elif response.poll.type == "n":
-            if hasattr(response.eav, 'poll_number_value'):
-                value = response.eav.poll_number_value
-            else:
-                value = 0
-        elif response.poll.type == 'l':
-            value = response.eav.poll_location_value.name
-        category = response.categories.values_list('category__name', flat=True)
-        if len(category) == 0:
-            category = "--"
-        else:
-            category = ", ".join(category)
-        a.append((sender, location_type, reporting_location, school, date, value, category))
-    return a
