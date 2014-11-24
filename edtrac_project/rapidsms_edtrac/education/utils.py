@@ -9,6 +9,8 @@ from script.models import ScriptStep
 from django.db.models import Count
 from django.conf import settings
 from education.scheduling import schedule_at, at
+from education.views import get_district_parent
+
 
 def is_holiday(date1, holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])):
     for date_start, date_end in holidays:
@@ -373,3 +375,39 @@ def get_months(start_date,end_date):
         datetime.datetime(first_day.year, first_day.month, first_day.day,first_day.hour,first_day.minute),
         datetime.datetime(end_date.year, end_date.month, end_date.day,end_date.hour,end_date.minute)])
     return to_ret
+
+
+def _format_responses(responses):
+    a = []
+    for response in responses:
+        if response.contact:
+            contact = response.contact
+            sender = contact
+            location_type = contact.reporting_location.type
+            reporting_location = contact.reporting_location.name
+            if not location_type.name == 'district' and not location_type.name == 'country':
+                reporting_location = get_district_parent(contact.reporting_location)
+                location_type = 'district'
+            school = ", ".join(contact.emisreporter.schools.values_list('name', flat=True))
+        else:
+            sender = response.message.connection.identity
+            location_type = "--"
+            reporting_location = "--"
+            school = "--"
+        date = response.message.date
+        if response.poll.type == "t":
+            value = response.eav.poll_text_value
+        elif response.poll.type == "n":
+            if hasattr(response.eav, 'poll_number_value'):
+                value = response.eav.poll_number_value
+            else:
+                value = 0
+        elif response.poll.type == 'l':
+            value = response.eav.poll_location_value.name
+        category = response.categories.values_list('category__name', flat=True)
+        if len(category) == 0:
+            category = "--"
+        else:
+            category = ", ".join(category)
+        a.append((sender, location_type, reporting_location, school, date, value, category))
+    return a

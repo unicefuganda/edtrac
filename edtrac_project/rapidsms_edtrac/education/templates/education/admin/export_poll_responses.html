@@ -4,6 +4,11 @@
 {% block title %}
     Export Poll Responses -- {{ block.super }}
 {% endblock %}
+{% if exported %}
+    <script>
+        alert('You export is being processed. You\'ll receive an email as soon as the ecport in ready for download')
+    </script>
+{% endif %}
 
 {% block masthead %}
 <div class="page-header">

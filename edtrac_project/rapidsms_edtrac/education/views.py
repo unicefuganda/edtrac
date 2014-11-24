@@ -1,6 +1,7 @@
 from __future__ import division
 from urllib2 import urlopen
 import json
+from datetime import date
 
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
@@ -12,16 +13,18 @@ from django.views.generic import DetailView, TemplateView, ListView
 from django.views.decorators.vary import vary_on_cookie
 from django.core.cache import cache
 from django.utils.safestring import mark_safe
-from education.curriculum_progress_helper import get_target_value, get_location_for_curriculum_view, get_curriculum_data, target
 from generic.views import generic
+from education import tasks
+
+from education.curriculum_progress_helper import get_target_value, get_location_for_curriculum_view, get_curriculum_data, target
 from .utils import *
 import reversion
 from reversion.models import Revision
 from .utils import themes
-from datetime import date
 from education.view_helper import *
 from education.view_helper_utils import *
 from education.scheduling import schedule_all, schedule_script, schedule_script_at
+
 
 Num_REG = re.compile('\d+')
 
@@ -3008,7 +3011,7 @@ def detail_attd_school(request, location):
 
 class ExportPollForm(forms.Form):
     error_css_class = 'error'
-    select_choices = list(Poll.objects.values_list(*['pk', 'name']))
+    select_choices = list(Poll.objects.values_list(*['pk', 'question']))
     from_date = forms.DateTimeField(required=False)
     to_date = forms.DateTimeField(required=False)
     poll_name = forms.ChoiceField(choices=select_choices, required=False)
@@ -3029,40 +3032,7 @@ def get_district_parent(reporting_location):
     return district_parent[0].name
 
 
-def _format_responses(responses):
-    a = []
-    for response in responses:
-        if response.contact:
-            contact = response.contact
-            sender = contact
-            location_type = contact.reporting_location.type
-            reporting_location = contact.reporting_location.name
-            if not location_type.name == 'district' and not location_type.name == 'country':
-                reporting_location = get_district_parent(contact.reporting_location)
-                location_type = 'district'
-            school = ", ".join(contact.emisreporter.schools.values_list('name', flat=True))
-        else:
-            sender = response.message.connection.identity
-            location_type = "--"
-            reporting_location = "--"
-            school = "--"
-        date = response.message.date
-        if response.poll.type == "t":
-            value = response.eav.poll_text_value
-        elif response.poll.type == "n":
-            if hasattr(response.eav, 'poll_number_value'):
-                value = response.eav.poll_number_value
-            else:
-                value = 0
-        elif response.poll.type == 'l':
-            value = response.eav.poll_location_value.name
-        category = response.categories.values_list('category__name', flat=True)
-        if len(category) == 0:
-            category = "--"
-        else:
-            category = ", ".join(category)
-        a.append((sender, location_type, reporting_location, school, date, value, category))
-    return a
+
 
 
 def _get_identity(r):
@@ -3085,31 +3055,14 @@ def edtrac_export_poll_responses(request):
 
     if request.method == 'GET':
         form = ExportPollForm()
+        exported = request.GET.get('exported', None)
     else:
         form = ExportPollForm(data=request.POST)
         if form.is_valid():
-            poll = get_object_or_404(Poll, pk=form.cleaned_data['poll_name'])
-
-            responses = poll.responses.all().order_by('-pk')
-            to_date = form.cleaned_data['to_date']
-            from_date = form.cleaned_data['from_date']
-            if from_date and to_date:
-                to_date = to_date + timedelta(days=1)
-                responses = responses.filter(date__range=[from_date, to_date])
-
-            resp = render_to_response(
-                'education/admin/export_poll_responses.csv', {
-                    'responses': _format_responses(responses)
-                },
-                mimetype='text/csv',
-                context_instance=RequestContext(request)
-            )
-            resp['Content-Disposition'] = 'attachment;filename="%s.csv"' \
-                                          % poll.name
-            return resp
-
+            tasks.export_responses.delay(form, request.user)
+            return HttpResponseRedirect(reverse('export-poll-responses')+'?exported=OK')
     return render_to_response('education/admin/export_poll_responses.html',
-                              {'form': form},
+                              {'form': form, 'exported' exported},
                               RequestContext(request),
     )
 
