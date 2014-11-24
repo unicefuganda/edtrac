@@ -3062,7 +3062,7 @@ def edtrac_export_poll_responses(request):
             tasks.export_responses.delay(form, request.user)
             return HttpResponseRedirect(reverse('export-poll-responses')+'?exported=OK')
     return render_to_response('education/admin/export_poll_responses.html',
-                              {'form': form, 'exported' exported},
+                              {'form': form, 'exported': exported},
                               RequestContext(request),
     )
 
