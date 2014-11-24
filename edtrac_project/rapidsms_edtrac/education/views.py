@@ -14,9 +14,9 @@ from django.views.decorators.vary import vary_on_cookie
 from django.core.cache import cache
 from django.utils.safestring import mark_safe
 from generic.views import generic
-from education import tasks
 
 from education.curriculum_progress_helper import get_target_value, get_location_for_curriculum_view, get_curriculum_data, target
+from education import export_tasks
 from .utils import *
 import reversion
 from reversion.models import Revision
@@ -3052,14 +3052,13 @@ def edtrac_export_poll_responses(request):
             or profile.is_member_of(
                 'UNICEF Officials')):
         return redirect('/')
-
+    exported = request.GET.get('exported', None)
     if request.method == 'GET':
         form = ExportPollForm()
-        exported = request.GET.get('exported', None)
     else:
         form = ExportPollForm(data=request.POST)
         if form.is_valid():
-            tasks.export_responses.delay(form, request.user)
+            export_tasks.export_responses.delay(form, request.user)
             return HttpResponseRedirect(reverse('export-poll-responses')+'?exported=OK')
     return render_to_response('education/admin/export_poll_responses.html',
                               {'form': form, 'exported': exported},

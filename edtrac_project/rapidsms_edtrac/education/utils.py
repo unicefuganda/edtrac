@@ -9,7 +9,6 @@ from script.models import ScriptStep
 from django.db.models import Count
 from django.conf import settings
 from education.scheduling import schedule_at, at
-from education.views import get_district_parent
 
 
 def is_holiday(date1, holidays = getattr(settings, 'SCHOOL_HOLIDAYS', [])):
