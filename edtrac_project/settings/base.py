@@ -127,7 +127,6 @@ INSTALLED_APPS = [
     "endless_pagination",
     "monitor",
     #leave south at the end of this list
-    "djcelery",
     "south",
 
 ]
@@ -135,7 +134,7 @@ INSTALLED_APPS = [
 INSTALLED_APPS += ['celery', "djcelery"]
 
 djcelery.setup_loader()
-CELERY_ALWAYS_EAGER = True
+# CELERY_ALWAYS_EAGER = True
 TEST_RUNNER = 'djcelery.contrib.test_runner.CeleryTestSuiteRunner'
 BROKER_URL = "amqp://guest:guest@localhost:5672"
 SIMPLE_AUTOCOMPLETE_MODELS = ('rapidsms.models.Connection')
@@ -169,9 +168,8 @@ CELERY_ROUTES = {
     }
 }
 
-CELERY_RESULT_BACKEND = 'amqp'
-CELERY_TASK_RESULT_EXPIRES = 18000  # 5 hours.
-
+CELERY_RESULT_PERSISTENT = False
+CELERY_IGNORE_RESULT = True
 
 SMS_APPS = [
     "monitor",
