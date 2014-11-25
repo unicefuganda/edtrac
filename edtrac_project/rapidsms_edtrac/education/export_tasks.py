@@ -1,6 +1,6 @@
-from celery.task import Task
+from celery.task import Task, task
+from celery.registry import tasks
 from datetime import timedelta
-from celery.task import task
 from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
@@ -70,3 +70,9 @@ def export_responses(form, user):
     message = 'Spreadsheet has finished exporting. Please download it here http://edutrac.unicefuganda.org/static/' \
               'education/spreadsheets/%s.csv' % poll.name
     send_mail('Spreadsheet Exported', message, "", [user.email], fail_silently=False)
+
+
+@task
+def make_add(a,b):
+    x = a+b
+    print x

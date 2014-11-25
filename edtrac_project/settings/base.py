@@ -127,6 +127,7 @@ INSTALLED_APPS = [
     "endless_pagination",
     "monitor",
     #leave south at the end of this list
+    "djcelery",
     "south",
 
 ]
@@ -147,6 +148,29 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(minutes=5)
     },
 }
+
+CELERY_IMPORTS = (
+    'education.export_tasks',
+)
+
+CELERY_QUEUES = {
+    'default': {
+        'binding_key': 'task.#',
+    },
+    'export_responses': {
+        'binding_key': 'export_responses.#',
+    }
+}
+
+CELERY_ROUTES = {
+    'education.export_tasks.export_responses': {
+        'queue': 'export_responses',
+        'routing_key': 'export_responses.result'
+    }
+}
+
+CELERY_RESULT_BACKEND = 'amqp'
+CELERY_TASK_RESULT_EXPIRES = 18000  # 5 hours.
 
 
 SMS_APPS = [
