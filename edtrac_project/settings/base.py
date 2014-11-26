@@ -134,12 +134,14 @@ INSTALLED_APPS = [
 INSTALLED_APPS += ['celery', "djcelery"]
 
 djcelery.setup_loader()
-# CELERY_ALWAYS_EAGER = True
+CELERY_ALWAYS_EAGER = True
 TEST_RUNNER = 'djcelery.contrib.test_runner.CeleryTestSuiteRunner'
 BROKER_URL = "amqp://guest:guest@localhost:5672"
 SIMPLE_AUTOCOMPLETE_MODELS = ('rapidsms.models.Connection')
 #CELERY_ENABLE_UTC = True # enable this when rapidsms is stable on django 1.4
 CELERY_TIMEZONE = 'Africa/Kampala'
+CELERY_RESULT_PERSISTENT = True
+CELERY_IGNORE_RESULT = False
 
 CELERYBEAT_SCHEDULE = {
     'runs-every-5-minutes': {
@@ -167,9 +169,6 @@ CELERY_ROUTES = {
         'routing_key': 'export_responses.result'
     }
 }
-
-CELERY_RESULT_PERSISTENT = False
-CELERY_IGNORE_RESULT = True
 
 SMS_APPS = [
     "monitor",

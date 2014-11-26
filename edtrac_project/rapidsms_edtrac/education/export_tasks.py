@@ -69,7 +69,7 @@ def export_responses(form, user):
         spreadsheet.write(resp)
     message = 'Spreadsheet has finished exporting. Please download it here http://edutrac.unicefuganda.org/static/' \
               'education/spreadsheets/%s.csv' % poll.name
-    send_mail('Spreadsheet Exported', message, "", [user.email], fail_silently=False)
+    send_mail('Spreadsheet Exported', message, "no-reply@uganda.rapidsms.org", [user.email], fail_silently=False)
 
 
 @task
